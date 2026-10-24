@@ -5,11 +5,7 @@ public sealed record SessionId
 {
     public SessionId(string text)
     {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            throw new ArgumentException("A session id cannot be blank.", nameof(text));
-        }
-
+        ArgumentException.ThrowIfNullOrWhiteSpace(text);
         Value = text;
     }
 

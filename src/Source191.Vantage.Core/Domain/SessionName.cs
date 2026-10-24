@@ -26,6 +26,7 @@ public sealed record SessionName
 
     public static SessionName Parse(string text)
     {
+        // Not ArgumentException.ThrowIfNullOrWhiteSpace: this message is shown in the footer when a rename is left blank.
         if (string.IsNullOrWhiteSpace(text))
         {
             throw new ArgumentException("A session name is required.", nameof(text));
