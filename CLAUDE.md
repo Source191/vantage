@@ -14,7 +14,7 @@ A Terminal.Gui console for Claude Code sessions and git worktrees on Windows, pa
 ## Code rules
 
 - TDD: red, green, refactor, a commit per step; no untested code except `Program.cs` and wiring. Sociable tests; fakes only at boundaries (`test\...\TestDoubles`: process runner, process registry, terminal, transcripts, git roots).
-- Concrete types, primary constructors, records, collection expressions, file-scoped namespaces, TimeProvider, braces always, British English in text. Reducers (`Screens\*View.cs`) are pure functions of state and input; everything a key does is a tested effect; the Terminal.Gui layer (`Screens\Tui`) only renders and runs effects.
+- Concrete types, primary constructors, records, collection expressions, file-scoped namespaces, TimeProvider, braces always, British English in text. Reducers (`Application\Views\*View.cs`) are pure functions of state and input; everything a key does is a tested effect; the Terminal.Gui layer (`Tui`) only renders and runs effects. `test\...\Architecture\LayeringShould.cs` asserts the dependency direction (Domain, Application, Adapters, Tui); rules the code does not meet yet are skipped and name the task that fixes them.
 - Test fixtures use made-up Northwind.* repository names and `C:\Users\me` paths; never real repositories or people.
 - Commit only when asked.
 

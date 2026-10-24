@@ -2,14 +2,14 @@
 
 ## 1. Lock the direction
 
-- [ ] 1.1 Confirm the architecture-test package through `npx ctx7@latest library` (ArchUnitNET or NetArchTest.Rules) and add it to the test project; verify `dotnet build -c Debug` passes
-- [ ] 1.2 `LayeringShould.KeepDomainFreeOfEverythingElse`: Domain types reference no other namespace in the assembly; verify it passes today (red is a sign of a mistake in the rule)
-- [ ] 1.3 `LayeringShould.KeepTerminalGuiInsideTui`, `KeepFileSystemAndProcessesInsideAdapters`, `KeepApplicationFreeOfAdaptersAndTui`, `KeepAdaptersFreeOfApplicationAndTui`: write all four, mark the ones that fail today with `Skip` naming the task that fixes them, and unskip each as its task lands
+- [x] 1.1 Confirm the architecture-test package through `npx ctx7@latest library` (ArchUnitNET or NetArchTest.Rules) and add it to the test project; verify `dotnet build -c Debug` passes
+- [x] 1.2 `LayeringShould.KeepDomainFreeOfEverythingElse`: Domain types reference no other namespace in the assembly; verify it passes today (red is a sign of a mistake in the rule)
+- [x] 1.3 `LayeringShould.KeepTerminalGuiInsideTui`, `KeepFileSystemAndProcessesInsideAdapters`, `KeepApplicationFreeOfAdaptersAndTui`, `KeepAdaptersFreeOfApplicationAndTui`: write all four, mark the ones that fail today with `Skip` naming the task that fixes them, and unskip each as its task lands
 
 ## 2. Application namespace
 
-- [ ] 2.1 Move `SessionRow`, `WorktreeRow`, `Key`, `KeyName`, `ViewInput`, `ViewEffect` and all effect records, `SessionsView`, `SessionsViewState`, `WorktreesView`, `WorktreesViewState` to `Application\Views`; verify build, tests and format pass with no test edits beyond `using`
-- [ ] 2.2 Move `SessionRowEnricher`, `WorktreeInventory`, `StateTransitionNotifier`, `Actions\*` and `Launch\*` to `Application`; verify build, tests and format pass
+- [x] 2.1 Move `SessionRow`, `WorktreeRow`, `Key`, `KeyName`, `ViewInput`, `ViewEffect` and all effect records, `SessionsView`, `SessionsViewState`, `WorktreesView`, `WorktreesViewState` to `Application\Views`; verify build, tests and format pass with no test edits beyond `using`
+- [x] 2.2 Move `SessionRowEnricher`, `WorktreeInventory`, `StateTransitionNotifier`, `Actions\*` and `Launch\*` to `Application`; verify build, tests and format pass
 - [ ] 2.3 Unskip `KeepApplicationFreeOfAdaptersAndTui` once 3.x lands; until then verify it fails only on `Adapters` references
 
 ## 3. Ports namespace

@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Logging;
-using Source191.Vantage.Screens;
+using Source191.Vantage.Application.Views;
 
 namespace Source191.Vantage.Adapters.Diagnostics;
 
