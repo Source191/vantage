@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Source191.Vantage.Application;
 
 /// <summary>
@@ -6,9 +8,27 @@ namespace Source191.Vantage.Application;
 /// </summary>
 public static class PowerShellScript
 {
+    /// <summary>
+    /// Every character PowerShell's tokenizer reads as a single quote: the ASCII apostrophe and U+2018 to U+201B.
+    /// Any of them would end the literal, so each is doubled with itself and the text comes back unchanged.
+    /// </summary>
+    private static readonly char[] SingleQuotes = ['\'', '‘', '’', '‚', '‛'];
+
+    /// <summary>The only way a value enters a tab's script: a single-quoted literal PowerShell reads back unchanged.</summary>
     public static string Quote(string text)
     {
-        return $"'{text.Replace("'", "''", StringComparison.Ordinal)}'";
+        StringBuilder quoted = new(text.Length + 2);
+        quoted.Append('\'');
+        foreach (char character in text)
+        {
+            quoted.Append(character);
+            if (Array.IndexOf(SingleQuotes, character) >= 0)
+            {
+                quoted.Append(character);
+            }
+        }
+
+        return quoted.Append('\'').ToString();
     }
 
     public static string Invoke(string executable, IReadOnlyList<string> arguments)
