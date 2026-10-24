@@ -28,13 +28,14 @@
 - [x] 4.1 `DialogEffects` in `Tui` gathers the six dialog flows from the two definitions; `TableScreen` dispatches `IDialogEffect` to it and everything else to `EffectDispatcher`; the definitions lose their `Handle` members; verify `dotnet run --project tools\HeadlessTerminal -- check` passes
 - [x] 4.2 `ScreenLoopShould` uses `ILeavesScreen` instead of a type list; remove the type lists from `TableScreen` and `ScreenLoop`; verify the test passes
 - [x] 4.3 `EffectDispatcherShould.HaveAHandlerForEveryEffectTheReducersCanProduce`: factor the registrations into `Composition.Handlers(...)` used by `Program.cs` and the test; verify it passes
-- [ ] 4.4 Manual pass through both README key tables (every key, including rename, delete with branch question, force remove, resume checklist, close empty); verify no footer text changed
+- [x] 4.4 Manual pass through both README key tables (every key, including rename, delete with branch question, force remove, resume checklist, close empty); verify no footer text changed
 
 ## 5. Documentation
 
-- [ ] 5.1 Update CLAUDE.md Code rules with the recipe for a new key (effect record, reducer case, handler, registration) and the `openspec\config.yaml` tasks rule to name handlers after adapters and before screens; verify `openspec validate` passes for every open change
+- [x] 5.1 Update CLAUDE.md Code rules with the recipe for a new key (effect record, reducer case, handler, registration) and the `openspec\config.yaml` tasks rule to name handlers after adapters and before screens; verify `openspec validate` passes for every open change
 
 ## Workflow follow-up
 
 - PR 10: task groups 1 and 2 (markers, dispatcher, the eight session handlers, `SessionActions` deleted).
 - PR 11: task groups 3, 4 and 5 (worktree handlers, `DialogEffects`, screens route only, registration completeness test). Archive the change in this PR.
+- PR 11 notes: `RemoveWorktree` became an `IDialogEffect` (its flow can end in the branch question) and `ResumeStoppedSessions` carries the visible rows, so `DialogEffects` needs no view state. The worktrees view's `s` now opens a trust tab for an untrusted workspace, as the sessions view did and the session-launch spec asks: the one footer change. Task 4.4 is accepted by the hand-off check, a scripted harness pass over the read-only keys (help, filter, both wizards, view switching) and the reviewer's manual pass over the keys that change sessions, listed in the pull request.

@@ -7,15 +7,15 @@
 
 ## 2. One worktree inspector
 
-- [ ] 2.1 `WorktreeInspectorShould.GatherFactsForARegisteredWorktree`, `ReportBrokenWhenGitNoLongerListsIt`, `ReportLockedWithTheReason`, `SkipMergeStateWhenNotAsked`: against `FakeProcessRunner` rules copied from `SessionActionsShould`; implement `WorktreeInspector`
+- [ ] 2.1 `WorktreeInspectorShould.GatherFactsForARegisteredWorktree`, `ReportBrokenWhenGitNoLongerListsIt`, `ReportLockedWithTheReason`, `SkipMergeStateWhenNotAsked`: against `FakeProcessRunner` rules copied from `DeleteSessionHandlerShould` and `RemoveWorktreeHandlerShould`; implement `WorktreeInspector`
 - [ ] 2.2 `DeleteSessionHandler` and `RemoveWorktreeHandler` call the inspector; delete `FactsAsync` and `IsMergedAsync`; verify their tests pass unchanged
 - [ ] 2.3 `WorktreeInventory.InspectedAsync` calls the inspector with merge state off; verify `WorktreeInventoryShould` passes and the number of git requests per row recorded by `FakeProcessRunner` is unchanged
 
 ## 3. One tab script factory
 
-- [ ] 3.1 `TabScriptsShould.BuildTheAttachScript`, `BuildTheTrustScript`, `BuildTheShellScript`, `QuoteUserTextSafely`: the script assertions from `TabOpenerShould`, `TrustRecoveryShould` and `PowerShellScriptShould` verbatim; implement `TabScripts`
-- [ ] 3.2 `OpenTabHandler`, `OpenShellHandler` and the trust flow take `TabScripts`; remove `claudeExecutable` and `vantageExecutable` from every other constructor; delete `TrustRecovery`; verify `grep claudeExecutable` finds it only in `Program.cs` and `TabScripts`
-- [ ] 3.3 Delete `LaunchWorkflow`; the wizard dialog takes `RepositoryCatalogue`, `IRecentRepositories`, `LaunchService` and `TabScripts`; verify `dotnet run --project tools\HeadlessTerminal -- check` passes and a manual wizard run (start, start and open in tab, untrusted folder) behaves as the README describes
+- [ ] 3.1 `TabScriptsShould.BuildTheAttachScript`, `BuildTheTrustScript`, `BuildTheShellScript`, `QuoteUserTextSafely`: the script assertions from `OpenTabHandlerShould`, `TrustRecoveryShould` and `PowerShellScriptShould` verbatim; implement `TabScripts`
+- [ ] 3.2 `OpenTabHandler`, `OpenShellHandler` and `StartSessionHandler` take `TabScripts`; remove `claudeExecutable` and `vantageExecutable` from every other constructor; delete `TrustRecovery`; verify `grep claudeExecutable` finds it only in `Program.cs` and `TabScripts`
+- [ ] 3.3 Delete `LaunchWorkflow`; the wizard dialog takes `RepositoryCatalogue`, `IRecentRepositories` and `IFolders`; verify `dotnet run --project tools\HeadlessTerminal -- check` passes and a manual wizard run (start, start and open in tab, untrusted folder) behaves as the README describes
 
 ## 4. IGit failure convention
 

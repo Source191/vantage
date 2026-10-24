@@ -2,7 +2,7 @@
 
 ## Why
 
-Paths, session ids, job ids and branch names travel as strings. Case-insensitive path comparison is re-implemented in six places (`StateStore.SamePath`, `RepositoryCatalogue.SamePath`, `WorktreeInventory.Normalise`, `SessionActions.cs:149`, `WorktreeActions.cs:23`, `WorktreesView.cs:46`), and the rule that a background session has a job id while an interactive one does not is enforced by five `JobId!` null-forgiving operators. The repository's own coding rules (wrap primitives, no getters for invariants pattern matching can carry) ask for the types this change adds.
+Paths, session ids, job ids and branch names travel as strings. Case-insensitive path comparison is re-implemented in six places (`StateStore.SamePath`, `RepositoryCatalogue.SamePath`, `WorktreeInventory.Normalise`, `DeleteSessionHandler.cs`, `RemoveWorktreeHandler.cs`, `WorktreesView.cs:46`), and the rule that a background session has a job id while an interactive one does not is enforced by five `JobId!` null-forgiving operators. The repository's own coding rules (wrap primitives, no getters for invariants pattern matching can carry) ask for the types this change adds.
 
 ## What Changes
 
