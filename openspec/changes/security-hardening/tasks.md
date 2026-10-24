@@ -9,8 +9,8 @@
 
 ## 2. Worktree include copies stay inside the worktree (adapter tests only)
 
-- [ ] 2.1 `WorktreeIncludeCopierShould.SkipParentRelativePathsFromGit`: `GitCli` over `FakeProcessRunner` answers `ls-files` with `../outside.local.json` and `app.local.json`, `.worktreeinclude` holds `*` and `**/*`, both files exist on disc; only `app.local.json` is copied and no file appears beside the worktree; verify it passes on first run (characterisation), commit
-- [ ] 2.2 `WorktreeIncludeCopierShould.SkipRootedAndNetworkPathsFromGit`: the listing adds `C:/Users/me/secrets.local.json` and `//server/share/secrets.local.json`; neither is copied; verify it passes on first run, commit
+- [x] 2.1 `WorktreeIncludeCopierShould.SkipParentRelativePathsFromGit`: `GitCli` over `FakeProcessRunner` answers `ls-files` with `../outside.local.json` and `app.local.json`, `.worktreeinclude` holds `*` and `**/*`, both files exist on disc; only `app.local.json` is copied and no file appears beside the worktree; verify it passes on first run (characterisation), commit
+- [x] 2.2 `WorktreeIncludeCopierShould.SkipRootedAndNetworkPathsFromGit`: the listing adds `C:/Users/me/secrets.local.json` and `//server/share/secrets.local.json`; neither is copied; verify it passes on first run, commit
 
 ## 3. Workflow credentials
 
