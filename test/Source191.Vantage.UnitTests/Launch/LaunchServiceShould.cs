@@ -100,6 +100,28 @@ public sealed class LaunchServiceShould : IDisposable
     }
 
     [Fact]
+    public async Task ReportTheListedSessionAfterAStart()
+    {
+        LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch with { Description = null }, CancellationToken.None);
+
+        outcome.Session.ShouldNotBeNull();
+        outcome.Session.SessionId.ShouldBe("sess-1");
+    }
+
+    [Fact]
+    public async Task StillReportStartedWhenTheSessionIsNotListedYet()
+    {
+        processes.Answer(request => request.Arguments.Contains("agents"), new ProcessResult(0, "[]", string.Empty));
+
+        LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
+
+        outcome.Kind.ShouldBe(LaunchOutcomeKind.Started);
+        outcome.JobId.ShouldBe("81cdb0f9");
+        outcome.Session.ShouldBeNull();
+        (await Store.ReadDescriptionsAsync()).ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task ReportAnUntrustedWorkspaceWithoutThrowing()
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "Workspace not trusted. Run `claude` in C:\\repos\\Northwind.Orders once and accept the trust prompt, then retry."));

@@ -50,9 +50,9 @@ SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.Syst
 StateTransitionNotifier notifier = new(Console.Out);
 WindowsTerminal terminal = new(processes);
 LaunchService launchService = new(claude, git, store, new WorktreeIncludeCopier(git), TimeProvider.System);
-LaunchWorkflow launches = new(new RepositoryCatalogue(config.RepositoryRoots), store, launchService, terminal, claudeExecutable);
-SessionActions actions = new(claude, git, store, processRegistry, transcripts);
 TabOpener tabs = new(store, processRegistry, terminal, TimeProvider.System, claudeExecutable, vantageExecutable);
+LaunchWorkflow launches = new(new RepositoryCatalogue(config.RepositoryRoots), store, launchService, tabs, terminal, claudeExecutable);
+SessionActions actions = new(claude, git, store, processRegistry, transcripts);
 TerminalEffects terminalEffects = new(claude, Console.Out);
 
 if (args.Length >= 1 && args[0] == "here")

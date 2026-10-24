@@ -8,15 +8,15 @@ using GuiKey = Terminal.Gui.Input.Key;
 
 namespace Source191.Vantage.Screens.Tui;
 
-/// <summary>What the wizard produces: a validated plan and whether to attach as soon as the session starts.</summary>
-public sealed record WizardResult(LaunchPlan Plan, bool AttachAfter);
+/// <summary>What the wizard produces: a validated plan and whether to open the session in its own tab as soon as it starts.</summary>
+public sealed record WizardResult(LaunchPlan Plan, bool OpenInTab);
 
 /// <summary>
 /// The new-session dialog. Collects the request, validates it through the plan builder, and hands the plan back.
 /// Nothing is started here; the screen runs the launch so the dialog can close at once.
 /// Keyboard model: focus starts in the repository filter; typing narrows the list, the arrow keys move into the
 /// list (whose selected row stays visible after focus leaves it), and Enter confirms the repository and moves to
-/// the name. Enter in the other fields moves on to the next one; only F5 (start) and F6 (start and attach) launch,
+/// the name. Enter in the other fields moves on to the next one; only F5 (start) and F6 (start and open in a tab) launch,
 /// so a stray Enter never starts a half-filled session.
 /// </summary>
 internal static class LaunchWizardDialog
@@ -69,7 +69,7 @@ internal static class LaunchWizardDialog
 #pragma warning restore CS0618
         Label problem = new() { X = LeftColumn, Y = Pos.AnchorEnd(3), Width = Dim.Fill(1), Text = string.Empty };
         problem.SetScheme(Palette.Plain(Palette.Red));
-        Label hint = new() { X = LeftColumn, Y = Pos.AnchorEnd(2), Width = Dim.Fill(1), Text = "Type to filter, ↑↓ to choose, Enter confirms the repository   Enter or Tab next field   F5 start   F6 start and open here   Esc cancel" };
+        Label hint = new() { X = LeftColumn, Y = Pos.AnchorEnd(2), Width = Dim.Fill(1), Text = "Type to filter, ↑↓ to choose, Enter confirms the repository   Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel" };
         hint.SetScheme(Palette.Plain(Palette.Blue));
         Label repositoryCaption = Caption(LeftColumn, 0, "Repository (type to filter, ↑↓ to choose)");
         Label whereCaption = Caption(RightColumn, 9, "Where (↑↓ to change)");
@@ -82,7 +82,7 @@ internal static class LaunchWizardDialog
                 hidden.Visible = false;
             }
 
-            hint.Text = "Enter or Tab next field   F5 start   F6 start and open here   Esc cancel";
+            hint.Text = "Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel";
         }
 
         void ShowPreview(string? nameText = null)
@@ -146,10 +146,10 @@ internal static class LaunchWizardDialog
 
         // No default button: Enter never starts anything by itself. The function keys and the buttons do.
         Button start = new() { Text = "_Start (F5)" };
-        Button startAndAttach = new() { Text = "Start and _open here (F6)" };
+        Button startInTab = new() { Text = "Start and open in _tab (F6)" };
         Button cancel = new() { Text = "_Cancel (Esc)" };
-        start.Accepting += (_, accepting) => accepting.Handled = TryFinish(attachAfter: false);
-        startAndAttach.Accepting += (_, accepting) => accepting.Handled = TryFinish(attachAfter: true);
+        start.Accepting += (_, accepting) => accepting.Handled = TryFinish(openInTab: false);
+        startInTab.Accepting += (_, accepting) => accepting.Handled = TryFinish(openInTab: true);
         cancel.Accepting += (_, accepting) =>
         {
             accepting.Handled = true;
@@ -159,11 +159,11 @@ internal static class LaunchWizardDialog
         {
             if (key == GuiKey.F5)
             {
-                key.Handled = TryFinish(attachAfter: false);
+                key.Handled = TryFinish(openInTab: false);
             }
             else if (key == GuiKey.F6)
             {
-                key.Handled = TryFinish(attachAfter: true);
+                key.Handled = TryFinish(openInTab: true);
             }
         };
         foreach (View chooser in new View[] { repositoryFilter, repositories })
@@ -176,7 +176,7 @@ internal static class LaunchWizardDialog
         description.Accepting += (_, accepting) => accepting.Handled = Focus(mode);
 
         dialog.AddButton(start);
-        dialog.AddButton(startAndAttach);
+        dialog.AddButton(startInTab);
         dialog.AddButton(cancel);
 
         app.Run(dialog);
@@ -196,7 +196,7 @@ internal static class LaunchWizardDialog
             return true;
         }
 
-        bool TryFinish(bool attachAfter)
+        bool TryFinish(bool openInTab)
         {
             RepositoryChoice? repository = Chosen();
             if (repository is null)
@@ -222,7 +222,7 @@ internal static class LaunchWizardDialog
                 return Fail(planned.Problem ?? "That cannot be launched.", name);
             }
 
-            result = new WizardResult(planned.Plan, attachAfter);
+            result = new WizardResult(planned.Plan, openInTab);
             app.RequestStop(dialog);
             return true;
         }

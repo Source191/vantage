@@ -74,17 +74,6 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 - **WHEN** `.worktreeinclude` lists appsettings.Development.json and that file is gitignored in the main checkout
 - **THEN** the file exists in the new worktree before the session starts
 
-### Requirement: The session starts under the supervisor with its name
-Vantage SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was, and SHALL then attach, open a tab, or return to the list as the user chose.
-
-#### Scenario: No opening prompt
-- **WHEN** the user leaves the opening prompt blank
-- **THEN** the session starts idle and waits for input under the given name
-
-#### Scenario: Start and open here
-- **WHEN** the user chooses "start and open here"
-- **THEN** Vantage attaches to the new session in the same tab as soon as it is listed
-
 ### Requirement: A session can be started from the shell in the current folder
 `vantage here [name] [-p prompt] [-d description]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the description and the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed and 2 for a usage error.
 
@@ -105,3 +94,18 @@ Vantage SHALL record each worktree and branch it created, and each launched repo
 #### Scenario: Worktree recorded
 - **WHEN** the wizard creates a worktree
 - **THEN** the state folder records the worktree path, branch, repository and creation time
+
+### Requirement: The session starts under the supervisor and opens where the user chose
+Vantage SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was, and SHALL then open the session in its own Windows Terminal tab or return to the list as the user chose.
+
+#### Scenario: No opening prompt
+- **WHEN** the user leaves the opening prompt blank
+- **THEN** the session starts idle and waits for input under the given name
+
+#### Scenario: Start and open in a tab
+- **WHEN** the user chooses "start and open in tab"
+- **THEN** Vantage starts the session, opens it in a new Windows Terminal tab titled with the session name as the open-in-tab key does, and the sessions view stays on screen with the footer naming the tab's colour
+
+#### Scenario: Started session not listed yet
+- **WHEN** the user chooses "start and open in tab" and the supervisor has not yet listed the new session when the start returns
+- **THEN** the footer reports the session as started and says to open it with the open-in-tab key once it appears, and no tab is opened
