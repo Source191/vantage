@@ -1,0 +1,61 @@
+name: release
+
+# Runs only on a push to main, never on a pull request: a release comes from a merge. It is a
+# no-op unless this push changed Version in src/Source191.Vantage/Source191.Vantage.csproj, so
+# bumping the version (already required because the tool cache keeps a version for ever) is the
+# same action that decides whether a release happens. Publishing to nuget.org is on the README
+# roadmap; until then the GitHub Release is provenance, an immutable package tied to a commit.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    name: Publish a release if the version changed
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # Compares the pushed commit against its first parent, which for the merge and squash commits
+      # this repository uses is the previous tip of main, so a whole pull request is in view.
+      - name: Check whether Version changed in this push
+        id: check
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $csproj = 'src/Source191.Vantage/Source191.Vantage.csproj'
+          git diff --quiet HEAD^ HEAD -- $csproj
+          if ($LASTEXITCODE -eq 0) {
+              "changed=false" >> $env:GITHUB_OUTPUT
+              Write-Host "$csproj unchanged in this push: nothing to release."
+              exit 0
+          }
+          $before = ([xml](git show "HEAD^:$csproj" | Out-String)).SelectSingleNode('//Version').InnerText
+          $after = (Select-Xml -Path $csproj -XPath '//Version').Node.InnerText
+          if ($before -eq $after) {
+              "changed=false" >> $env:GITHUB_OUTPUT
+              Write-Host "$csproj changed but Version did not ($before): nothing to release."
+              exit 0
+          }
+          "changed=true" >> $env:GITHUB_OUTPUT
+          "version=$after" >> $env:GITHUB_OUTPUT
+          Write-Host "Version changed: $before -> $after"
+
+      # check.yml runs on this same push but nothing makes the release wait for it, so the release
+      # builds and tests for itself rather than trusting a run it cannot see.
+      - uses: ./.github/actions/build-test-pack
+        if: steps.check.outputs.changed == 'true'
+        id: build
+
+      - uses: softprops/action-gh-release@v2
+        if: steps.check.outputs.changed == 'true'
+        with:
+          tag_name: v${{ steps.check.outputs.version }}
+          name: v${{ steps.check.outputs.version }}
+          files: ${{ steps.build.outputs.package }}
+          generate_release_notes: true
