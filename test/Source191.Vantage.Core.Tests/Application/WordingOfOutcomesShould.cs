@@ -36,11 +36,6 @@ public sealed class WordingOfOutcomesShould
         Wording.Describe(new StopSessionOutcome("fix-123")).ShouldBe("Stopped fix-123.");
     }
 
-    [Fact]
-    public void SayThereIsNoProcessToMove()
-    {
-        Wording.Describe(new AdoptSessionOutcome.NoProcess("repos-31")).ShouldBe("repos-31 has no process to move; it may have exited.");
-    }
 
     [Fact]
     public void SayThereIsNothingToMoveWithoutMessages()
@@ -121,15 +116,15 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayWhyNothingWasClosed()
     {
-        Wording.Describe(new CloseEmptyTerminalsOutcome([], [], [new SkippedSession("repos-31", HasMessages: true), new SkippedSession("repos-93", HasMessages: false)]))
-            .ShouldBe("Nothing closed: repos-31 has messages (press b to move it under Vantage); repos-93 has no process.");
+        Wording.Describe(new CloseEmptyTerminalsOutcome([], [], [new SkippedSession("repos-31")]))
+            .ShouldBe("Nothing closed: repos-31 has messages (press b to move it under Vantage).");
     }
 
     [Fact]
     public void NameWhatWasClosedEndedAndSkipped()
     {
-        Wording.Describe(new CloseEmptyTerminalsOutcome(["repos-f6"], ["repos-a1"], [new SkippedSession("repos-93", HasMessages: false)]))
-            .ShouldBe("Closed 1 tab: repos-f6. Ended 1 session: repos-a1 (not in a Windows Terminal tab, so nothing to close). Skipped: repos-93 has no process.");
+        Wording.Describe(new CloseEmptyTerminalsOutcome(["repos-f6"], ["repos-a1"], [new SkippedSession("repos-93")]))
+            .ShouldBe("Closed 1 tab: repos-f6. Ended 1 session: repos-a1 (not in a Windows Terminal tab, so nothing to close). Skipped: repos-93 has messages (press b to move it under Vantage).");
     }
 
     [Fact]
@@ -244,11 +239,6 @@ public sealed class WordingOfOutcomesShould
 
     // Tabs and starting.
 
-    [Fact]
-    public void RefuseATabForASessionThatIsNotInTheBackground()
-    {
-        Wording.Describe(new OpenTabOutcome.NotBackground()).ShouldBe("Only background sessions can be opened in a tab.");
-    }
 
     [Fact]
     public void NameTheColourOfTheNewTab()

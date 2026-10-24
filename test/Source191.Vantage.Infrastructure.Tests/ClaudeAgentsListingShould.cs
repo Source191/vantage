@@ -43,25 +43,42 @@ public sealed class ClaudeAgentsListingShould
     }
 
     [Fact]
-    public void ParseAnInteractiveSessionWithoutAJobId()
+    public void MapBackgroundRowsAndInteractiveRows()
     {
-        Session interactive = Sessions.Single(session => session.Name == "repos-93");
+        InteractiveSession interactive = Sessions.Single(session => session.Name == "repos-93").ShouldBeOfType<InteractiveSession>();
+        BackgroundSession background = Sessions.Single(session => session.Name == "spike-commit-check").ShouldBeOfType<BackgroundSession>();
 
-        interactive.Kind.ShouldBe(SessionKind.Interactive);
-        interactive.JobId.ShouldBeNull();
+        interactive.ProcessId.ShouldBe(51432);
         interactive.SessionId.Value.ShouldBe("82db48ec-63de-49db-9831-b8147075dc3a");
         interactive.WorkingDirectory.Value.ShouldBe(@"C:\Users\me\source\repos");
         interactive.State.ShouldBe(DisplayState.Idle);
+        background.JobId.ShouldBe(new JobId("1a4d2d86"));
+        background.ProcessId.ShouldBe(57456);
+        background.State.ShouldBe(DisplayState.Completed);
+        Sessions.Single(session => session.Name == "spike-permission").ShouldBeOfType<BackgroundSession>().ProcessId.ShouldBeNull("a stopped job has no process");
     }
 
+    /// <summary>
+    /// Not seen from the CLI: every row has a job id or a process. Should one arrive, it reads as a stopped background job
+    /// whose id is its session id's first eight characters, as the CLI derives it; when those are not hex the row is skipped.
+    /// </summary>
     [Fact]
-    public void ParseABackgroundSessionWithItsJobId()
+    public void MapARowWithNeitherPidNorIdToAStoppedBackgroundSession()
     {
-        Session background = Sessions.Single(session => session.Name == "spike-commit-check");
+        const string json = """
+            [
+              {"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"background","startedAt":1,"sessionId":"fa82d736-d876-4840-b6c2-d62a6767e1c1","name":"no-job"},
+              {"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"interactive","startedAt":1,"sessionId":"b2db48ec-63de-49db-9831-b8147075dc3a","name":"interactive-ended"},
+              {"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"background","startedAt":1,"sessionId":"not-hex-at-all","name":"underivable"}
+            ]
+            """;
 
-        background.Kind.ShouldBe(SessionKind.Background);
-        background.JobId.ShouldBe(new JobId("1a4d2d86"));
-        background.State.ShouldBe(DisplayState.Completed);
+        IReadOnlyList<Session> sessions = ClaudeAgentsListing.Parse(json);
+
+        sessions.Select(session => session.Name).ShouldBe(["no-job", "interactive-ended"]);
+        sessions[0].ShouldBeOfType<BackgroundSession>().JobId.ShouldBe(new JobId("fa82d736"));
+        sessions[1].ShouldBeOfType<BackgroundSession>().JobId.ShouldBe(new JobId("b2db48ec"), "an interactive row without a process cannot be its own terminal");
+        sessions.ShouldAllBe(session => session.State == DisplayState.Stopped);
     }
 
     [Fact]

@@ -25,7 +25,7 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
         };
     }
 
-    private async Task<StartSessionOutcome> StartedAsync(StartSession effect, JobId jobId, Session? listed, CancellationToken cancellationToken)
+    private async Task<StartSessionOutcome> StartedAsync(StartSession effect, JobId jobId, BackgroundSession? listed, CancellationToken cancellationToken)
     {
         string name = effect.Plan.Name.Text;
 
@@ -33,7 +33,7 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
         {
             (false, _) => new StartSessionOutcome.Started(name, jobId),
             (true, null) => new StartSessionOutcome.NotListedYet(name, jobId),
-            (true, Session session) => new StartSessionOutcome.StartedAndOpened(name, jobId, await tabs.OpenAsync(session, cancellationToken)),
+            (true, BackgroundSession session) => new StartSessionOutcome.StartedAndOpened(name, jobId, await tabs.OpenAsync(session, cancellationToken)),
         };
     }
 

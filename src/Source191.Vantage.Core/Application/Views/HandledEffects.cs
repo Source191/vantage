@@ -9,8 +9,8 @@ public interface ILeavesScreen;
 /// <summary>An effect whose flow includes a dialog, before it runs or about what it left behind; the answer comes back as an input or another effect.</summary>
 public interface IDialogEffect;
 
-/// <summary>Resume these sessions under the supervisor; raised once the checklist has been answered.</summary>
-public sealed record ResumeSessions(IReadOnlyList<SessionRow> Rows) : ViewEffect;
+/// <summary>Resume these jobs under the supervisor; raised once the checklist has been answered.</summary>
+public sealed record ResumeSessions(IReadOnlyList<BackgroundSession> Sessions) : ViewEffect;
 
 /// <summary>Delete the branch a removal left behind, after the user agreed.</summary>
 public sealed record DeleteBranch(BranchToConfirm Branch) : ViewEffect;

@@ -20,7 +20,7 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
         [typeof(ShowHelp)] = (_, context, _) => Confirm.Query(context.App, "Keys", context.HelpText, "Close"),
         [typeof(OpenLaunchWizard)] = (self, context, _) => self.StartSession(context, fixedDirectory: null),
         [typeof(StartSessionIn)] = (self, context, effect) => self.StartSession(context, ((StartSessionIn)effect).Row.Path),
-        [typeof(AskForNewName)] = (_, context, effect) => Rename(context, ((AskForNewName)effect).Row),
+        [typeof(AskForNewName)] = (_, context, effect) => Rename(context, ((AskForNewName)effect).Session),
         [typeof(CloseEmptyTerminals)] = (_, context, effect) => ConfirmCloseEmpty(context, (CloseEmptyTerminals)effect),
         [typeof(DeleteSession)] = (self, context, effect) => self.ConfirmDelete(context, (DeleteSession)effect),
         [typeof(ResumeStoppedSessions)] = (_, context, effect) => ChooseSessionsToResume(context, ((ResumeStoppedSessions)effect).Rows),
@@ -57,15 +57,15 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
         return new Footer.Working(deleteBranch);
     }
 
-    private static void Rename(IEffectContext context, SessionRow row)
+    private static void Rename(IEffectContext context, BackgroundSession session)
     {
-        string? typed = NameDialog.Show(context.App, "Rename session", Wording.RenamePrompt(row.Session.Name), row.Session.Name);
-        context.Reduce(new RenameConfirmed(row, typed));
+        string? typed = NameDialog.Show(context.App, "Rename session", Wording.RenamePrompt(session.Name), session.Name);
+        context.Reduce(new RenameConfirmed(session, typed));
     }
 
     private static void ConfirmCloseEmpty(IEffectContext context, CloseEmptyTerminals close)
     {
-        string question = Wording.CloseEmptyQuestion([.. close.Rows.Select(row => row.Session.Name)]);
+        string question = Wording.CloseEmptyQuestion([.. close.Sessions.Select(session => session.Name)]);
         int? answer = Confirm.Query(context.App, "Close empty terminal sessions", question, "Close", "Keep");
         if (answer != 0)
         {
@@ -88,7 +88,7 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
             return;
         }
 
-        context.Dispatch(new ResumeSessions(toResume));
+        context.Dispatch(new ResumeSessions([.. toResume.Select(row => row.Session).OfType<BackgroundSession>()]));
     }
 
     private static void ConfirmForce(IEffectContext context, ConfirmForceRemove confirm)
@@ -115,8 +115,8 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
 
     private void ConfirmDelete(IEffectContext context, DeleteSession deletion)
     {
-        SessionRow row = deletion.Row;
-        int? answer = Confirm.Query(context.App, "Delete session", Wording.DeleteSessionQuestion(row.Session.Name), "Delete", "Cancel");
+        BackgroundSession session = deletion.Session;
+        int? answer = Confirm.Query(context.App, "Delete session", Wording.DeleteSessionQuestion(session.Name), "Delete", "Cancel");
         if (answer != 0)
         {
             return;
@@ -124,7 +124,7 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
 
         context.RunInBackground(
             new Footer.Working(deletion),
-            token => deleteSession.DeleteAsync(row, forced: false, token),
+            token => deleteSession.DeleteAsync(session, forced: false, token),
             outcome => outcome is DeleteSessionOutcome.BranchNotMerged unmerged
                 ? AskAboutBranch(context, outcome, unmerged.Branch, createdByVantage: true)
                 : new Footer.Reported(outcome));

@@ -14,10 +14,10 @@
 
 ## 3. Session hierarchy
 
-- [ ] 3.1 `ClaudeAgentsListingShould.MapBackgroundRowsAndInteractiveRows` and `MapARowWithNeitherPidNorIdToAStoppedBackgroundSession`; implement `BackgroundSession` and `InteractiveSession` and the mapping
-- [ ] 3.2 `SessionsViewShould`: the interactive-row cases pass with type patterns; rewrite `SessionAction`, `Rename` and `Adopt` to match on the subtype and remove `SessionKind` and every `JobId!`; verify `grep "JobId!"` finds nothing
-- [ ] 3.3 Handlers (`Stop`, `Delete`, `Rename`, `Adopt`, `CloseEmptyTerminals`, `Resume`, `OpenTab`) take the subtype they act on; their tests construct the subtype; verify build and tests pass
-- [ ] 3.4 `StateTransitionNotifier`, `WorktreeInventory.LiveSessionIn` and the table definitions match on the subtype; verify `dotnet run --project tools\HeadlessTerminal -- check` passes
+- [x] 3.1 `ClaudeAgentsListingShould.MapBackgroundRowsAndInteractiveRows` and `MapARowWithNeitherPidNorIdToAStoppedBackgroundSession`; implement `BackgroundSession` and `InteractiveSession` and the mapping
+- [x] 3.2 `SessionsViewShould`: the interactive-row cases pass with type patterns; rewrite `SessionAction`, `Rename` and `Adopt` to match on the subtype and remove `SessionKind` and every `JobId!`; verify `grep "JobId!"` finds nothing
+- [x] 3.3 Handlers (`Stop`, `Delete`, `Rename`, `Adopt`, `CloseEmptyTerminals`, `Resume`, `OpenTab`) take the subtype they act on; their tests construct the subtype; verify build and tests pass
+- [x] 3.4 `StateTransitionNotifier`, `WorktreeInventory.LiveSessionIn` and the table definitions match on the subtype; verify `dotnet run --project tools\HeadlessTerminal -- check` passes
 
 ## 4. Documentation
 

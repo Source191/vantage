@@ -64,13 +64,13 @@ public static partial class Wording
     {
         return effect switch
         {
-            OpenTabForSession open => $"Opening a tab for {open.Row.Session.Name}...",
+            OpenTabForSession open => $"Opening a tab for {open.Session.Name}...",
             StopSession => "Stopping...",
-            AdoptSession adopt => $"Moving {adopt.Row.Session.Name} under Vantage...",
-            RenameSession rename => $"Renaming {rename.Row.Session.Name} to {rename.NewName.Text}...",
+            AdoptSession adopt => $"Moving {adopt.Session.Name} under Vantage...",
+            RenameSession rename => $"Renaming {rename.Session.Name} to {rename.NewName.Text}...",
             CloseEmptyTerminals => "Closing...",
-            ResumeSessions resume => $"Resuming {resume.Rows.Count}...",
-            DeleteSession deletion => $"Deleting {deletion.Row.Session.Name}...",
+            ResumeSessions resume => $"Resuming {resume.Sessions.Count}...",
+            DeleteSession deletion => $"Deleting {deletion.Session.Name}...",
             DeleteBranch branch => $"Deleting branch {branch.Branch.Branch}...",
             RemoveWorktree remove => $"Removing {remove.Row.FolderName}...",
             PruneRepository => "Pruning...",

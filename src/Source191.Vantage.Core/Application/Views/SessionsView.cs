@@ -44,24 +44,25 @@ public abstract record ViewEffect;
 public sealed record AttachToSession(JobId JobId) : ViewEffect, ILeavesScreen;
 
 /// <summary>The TUI asks for a new name, then raises <see cref="RenameConfirmed"/> with what was typed (null when cancelled).</summary>
-public sealed record AskForNewName(SessionRow Row) : ViewEffect, IDialogEffect;
+public sealed record AskForNewName(BackgroundSession Session) : ViewEffect, IDialogEffect;
 
-public sealed record RenameConfirmed(SessionRow Row, string? Name) : ViewInput;
+public sealed record RenameConfirmed(BackgroundSession Session, string? Name) : ViewInput;
 
 /// <summary>Rename by swapping the job for one resumed under the new name; the session id and conversation stay.</summary>
-public sealed record RenameSession(SessionRow Row, SessionName NewName) : ViewEffect;
+public sealed record RenameSession(BackgroundSession Session, SessionName NewName) : ViewEffect;
 
-public sealed record OpenTabForSession(SessionRow Row) : ViewEffect;
+/// <summary>Open the job in its own tab, or switch to the tab that already shows it.</summary>
+public sealed record OpenTabForSession(BackgroundSession Session, bool HasLiveTab) : ViewEffect;
 
-public sealed record StopSession(SessionRow Row) : ViewEffect;
+public sealed record StopSession(BackgroundSession Session) : ViewEffect;
 
-public sealed record DeleteSession(SessionRow Row) : ViewEffect, IDialogEffect;
+public sealed record DeleteSession(BackgroundSession Session) : ViewEffect, IDialogEffect;
 
 /// <summary>Move a session started as plain claude in another tab under the supervisor, so Vantage can manage it.</summary>
-public sealed record AdoptSession(SessionRow Row) : ViewEffect;
+public sealed record AdoptSession(InteractiveSession Session) : ViewEffect;
 
 /// <summary>Close the tabs of plain claude sessions that were never sent a message: nothing to keep.</summary>
-public sealed record CloseEmptyTerminals(IReadOnlyList<SessionRow> Rows) : ViewEffect, IDialogEffect;
+public sealed record CloseEmptyTerminals(IReadOnlyList<InteractiveSession> Sessions) : ViewEffect, IDialogEffect;
 
 public sealed record OpenLaunchWizard : ViewEffect, IDialogEffect;
 
@@ -146,15 +147,15 @@ public static class SessionsView
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1))),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1))),
             { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
-            { Name: KeyName.Enter } => SessionAction(state, row => new AttachToSession(row.Session.JobId!), Attachment.Here),
+            { Name: KeyName.Enter } => SessionAction(state, (_, session) => new AttachToSession(session.JobId), Attachment.Here),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter())),
-            { Name: KeyName.Character, Character: 'o' } => SessionAction(state, row => new OpenTabForSession(row), Attachment.InOwnTab),
+            { Name: KeyName.Character, Character: 'o' } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
-            { Name: KeyName.Character, Character: 'x' } => SessionAction(state, row => new StopSession(row), Attachment.None),
-            { Name: KeyName.Character, Character: 'd' } when state.Selected is { Session.Kind: SessionKind.Interactive, HasTranscript: false } row =>
-                Effect(state with { Footer = Footer.None }, new CloseEmptyTerminals([row])),
+            { Name: KeyName.Character, Character: 'x' } => SessionAction(state, (_, session) => new StopSession(session), Attachment.None),
+            { Name: KeyName.Character, Character: 'd' } when state.Selected is { Session: InteractiveSession terminal, HasTranscript: false } =>
+                Effect(state with { Footer = Footer.None }, new CloseEmptyTerminals([terminal])),
             { Name: KeyName.Character, Character: 'C' } => CloseEmpty(state),
-            { Name: KeyName.Character, Character: 'd' } => SessionAction(state, row => new DeleteSession(row), Attachment.None),
+            { Name: KeyName.Character, Character: 'd' } => SessionAction(state, (_, session) => new DeleteSession(session), Attachment.None),
             { Name: KeyName.Character, Character: 'b' } => Adopt(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
             { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
@@ -174,7 +175,8 @@ public static class SessionsView
         Here,
     }
 
-    private static ViewUpdate SessionAction(SessionsViewState state, Func<SessionRow, ViewEffect> effect, Attachment attachment)
+    /// <summary>A key that acts on a supervised job; a terminal session gets the footer that says why it cannot.</summary>
+    private static ViewUpdate SessionAction(SessionsViewState state, Func<SessionRow, BackgroundSession, ViewEffect> effect, Attachment attachment)
     {
         SessionRow? row = state.Selected;
         if (row is null)
@@ -182,7 +184,7 @@ public static class SessionsView
             return Unchanged(state with { Footer = new Footer.NoSessionSelected() });
         }
 
-        if (row.Session.Kind == SessionKind.Interactive || row.Session.JobId is null)
+        if (row.Session is not BackgroundSession session)
         {
             return Unchanged(state with { Footer = new Footer.RunsInOwnTerminal(row.Session.Name, row.HasTranscript) });
         }
@@ -194,18 +196,18 @@ public static class SessionsView
         }
 
         // Attaching to a session with no process resumes it from its transcript; a session never sent a message has none.
-        if (attachment != Attachment.None && row.Session.ProcessId is null && !row.HasTranscript)
+        if (attachment != Attachment.None && session.ProcessId is null && !row.HasTranscript)
         {
             return Unchanged(state with { Footer = new Footer.NeverSentAMessage(row.Session.Name) });
         }
 
-        return Effect(state with { Footer = Footer.None }, effect(row));
+        return Effect(state with { Footer = Footer.None }, effect(row, session));
     }
 
     /// <summary>Every plain claude session that was never sent a message, in one go; the TUI confirms before closing.</summary>
     private static ViewUpdate CloseEmpty(SessionsViewState state)
     {
-        IReadOnlyList<SessionRow> empty = [.. state.Rows.Where(row => row.Session.Kind == SessionKind.Interactive && !row.HasTranscript && row.Session.ProcessId is not null)];
+        IReadOnlyList<InteractiveSession> empty = [.. state.Rows.Where(row => !row.HasTranscript).Select(row => row.Session).OfType<InteractiveSession>()];
 
         return empty.Count == 0
             ? Unchanged(state with { Footer = new Footer.NoEmptyTerminals() })
@@ -215,18 +217,17 @@ public static class SessionsView
     /// <summary>Renaming restarts the session under the new name, so it waits until nothing is in flight.</summary>
     private static ViewUpdate Rename(SessionsViewState state)
     {
-        SessionRow? row = state.Selected;
-        if (row is null || row.Session.Kind == SessionKind.Interactive || row.Session.JobId is null)
+        if (state.Selected is not { Session: BackgroundSession session } row)
         {
-            return SessionAction(state, _ => new AskForNewName(row!), Attachment.None);
+            return SessionAction(state, (_, background) => new AskForNewName(background), Attachment.None);
         }
 
-        return row switch
+        return (row.HasTranscript, session) switch
         {
-            { HasTranscript: false, Session.ProcessId: null } => Unchanged(state with { Footer = new Footer.NeverSentAMessage(row.Session.Name) }),
-            { HasTranscript: false } => Unchanged(state with { Footer = new Footer.NoMessagesToRename(row.Session.Name) }),
-            { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Footer = new Footer.WorkingSoRenameWaits(row.Session.Name) }),
-            _ => Effect(state with { Footer = Footer.None }, new AskForNewName(row)),
+            (false, { ProcessId: null }) => Unchanged(state with { Footer = new Footer.NeverSentAMessage(session.Name) }),
+            (false, _) => Unchanged(state with { Footer = new Footer.NoMessagesToRename(session.Name) }),
+            (_, { State.Kind: DisplayStateKind.Working }) => Unchanged(state with { Footer = new Footer.WorkingSoRenameWaits(session.Name) }),
+            _ => Effect(state with { Footer = Footer.None }, new AskForNewName(session)),
         };
     }
 
@@ -241,7 +242,7 @@ public static class SessionsView
         {
             SessionName name = SessionName.Parse(confirmed.Name.Trim());
 
-            RenameSession rename = new(confirmed.Row, name);
+            RenameSession rename = new(confirmed.Session, name);
 
             return Effect(state with { Footer = new Footer.Working(rename) }, rename);
         }
@@ -263,9 +264,10 @@ public static class SessionsView
         return row switch
         {
             null => Unchanged(state with { Footer = new Footer.NoSessionSelected() }),
-            { Session.Kind: SessionKind.Background } => Unchanged(state with { Footer = new Footer.AlreadyUnderVantage(row.Session.Name) }),
+            { Session: BackgroundSession } => Unchanged(state with { Footer = new Footer.AlreadyUnderVantage(row.Session.Name) }),
             { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Footer = new Footer.WorkingSoAdoptWaits(row.Session.Name) }),
-            _ => Effect(state with { Footer = Footer.None }, new AdoptSession(row)),
+            { Session: InteractiveSession terminal } => Effect(state with { Footer = Footer.None }, new AdoptSession(terminal)),
+            _ => Unchanged(state),
         };
     }
 

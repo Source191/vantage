@@ -16,7 +16,7 @@ public sealed class StopSessionHandlerShould
     {
         StopSessionHandler handler = new(new ClaudeCli(processes, Claude));
 
-        Outcome outcome = await handler.HandleAsync(new StopSession(Background(Repository, isWorktree: false)), CancellationToken.None);
+        Outcome outcome = await handler.HandleAsync(new StopSession(As.Job(Background(Repository, isWorktree: false))), CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.FileName == Claude).Arguments.ShouldBe(["stop", "81cdb0f9"]);
         outcome.ShouldBe(new StopSessionOutcome("fix-123"));

@@ -20,7 +20,7 @@ public sealed class DeleteSessionHandlerShould
     [Fact]
     public async Task DeleteASessionOutsideAVantageWorktreeWithoutTouchingGit()
     {
-        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Repository, isWorktree: false), forced: false, CancellationToken.None);
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(As.Job(Background(Repository, isWorktree: false)), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.FileName == Claude).Arguments.ShouldBe(["rm", "81cdb0f9"]);
         processes.CapturedRequests.ShouldNotContain(request => request.FileName == "git");
@@ -32,7 +32,7 @@ public sealed class DeleteSessionHandlerShould
     {
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), new BranchName("fix-123"), new FolderPath(Repository), Noon));
 
-        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(As.Job(Background(Worktree, isWorktree: true)), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.Arguments.Contains("remove")).Arguments.ShouldBe(["worktree", "remove", Worktree]);
         processes.CapturedRequests.Single(request => request.Arguments.Contains("branch")).Arguments.ShouldBe(["branch", "-d", "fix-123"]);
@@ -46,7 +46,7 @@ public sealed class DeleteSessionHandlerShould
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), new BranchName("fix-123"), new FolderPath(Repository), Noon));
         processes.Answer(request => request.Arguments.Contains("status"), new ProcessResult(0, " M a.cs\n", string.Empty));
 
-        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(As.Job(Background(Worktree, isWorktree: true)), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("remove"));
         outcome.ShouldBeOfType<DeleteSessionOutcome.KeptWorktree>().Reason.ShouldContain("1 changed");
@@ -58,7 +58,7 @@ public sealed class DeleteSessionHandlerShould
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), new BranchName("fix-123"), new FolderPath(Repository), Noon));
         processes.Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty));
 
-        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(As.Job(Background(Worktree, isWorktree: true)), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.ShouldContain(request => request.Arguments.Contains("remove"));
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("branch"));

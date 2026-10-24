@@ -14,14 +14,14 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
 {
     public async Task<Outcome> HandleAsync(RenameSession effect, CancellationToken cancellationToken)
     {
-        Session session = effect.Row.Session;
+        BackgroundSession session = effect.Session;
         SessionName newName = effect.NewName;
         if (!transcripts.HasMessages(session.SessionId.Value))
         {
             return new RenameSessionOutcome.NoMessages(session.Name);
         }
 
-        await claude.RemoveAsync(session.JobId!.Value, cancellationToken);
+        await claude.RemoveAsync(session.JobId.Value, cancellationToken);
         ResumeResult renamed = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, newName, cancellationToken);
         if (renamed.Continued)
         {

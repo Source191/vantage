@@ -18,9 +18,14 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), new Folders(), [root.Path]);
 
+    /// <summary>Plain claude running in the folder, or a stopped job there when it has no process.</summary>
     private static Session SessionIn(string directory, string name, int? processId)
     {
-        return new Session(new SessionId(Guid.NewGuid().ToString()), null, name, new FolderPath(directory), SessionKind.Interactive, Noon, DisplayState.Idle, processId);
+        SessionId id = new(Guid.NewGuid().ToString());
+
+        return processId is int running
+            ? new InteractiveSession(id, name, new FolderPath(directory), Noon, DisplayState.Idle, running)
+            : new BackgroundSession(id, new JobId("81cdb0f9"), name, new FolderPath(directory), Noon, DisplayState.Stopped);
     }
 
     public void Dispose()

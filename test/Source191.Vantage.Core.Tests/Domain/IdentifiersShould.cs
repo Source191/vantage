@@ -50,6 +50,8 @@ public sealed class JobIdShould
     public void DeriveFromASessionId()
     {
         JobId.Of(new SessionId("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3")).ShouldBe(new JobId("1a4d2d86"));
+        JobId.Of(new SessionId("not-hex-at-all")).ShouldBeNull();
+        JobId.Of(new SessionId("1a4d")).ShouldBeNull();
     }
 
     [Fact]

@@ -3,6 +3,7 @@ using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Core.Tests.Application.Actions;
 using Source191.Vantage.Domain;
 using Sessions = Source191.Vantage.Core.Tests.Application.Actions.SessionTestData;
 using Worktrees = Source191.Vantage.Core.Tests.Application.Actions.WorktreeTestData;
@@ -16,6 +17,7 @@ namespace Source191.Vantage.Core.Tests.Application;
 public sealed class WordingShould
 {
     private static readonly SessionRow Session = Sessions.Background(Sessions.Repository, isWorktree: false);
+    private static readonly SessionRow Terminal = Sessions.Interactive("fix-123", 4242);
     private static readonly WorktreeRow Worktree = Worktrees.Row(WorktreeHealthKind.Ok);
 
     public static TheoryData<Type> FooterCases => new(typeof(Footer).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(Footer))));
@@ -215,7 +217,7 @@ public sealed class WordingShould
     [Fact]
     public void SayWhatARunningEffectIsDoing()
     {
-        Wording.Describe(new Footer.Working(new StopSession(Session))).ShouldBe("Stopping...");
+        Wording.Describe(new Footer.Working(new StopSession(As.Job(Session)))).ShouldBe("Stopping...");
     }
 
     [Fact]
@@ -297,13 +299,13 @@ public sealed class WordingShould
     [Fact]
     public void SayWhatEachSessionEffectIsDoingWhileItRuns()
     {
-        Wording.Working(new OpenTabForSession(Session)).ShouldBe("Opening a tab for fix-123...");
-        Wording.Working(new StopSession(Session)).ShouldBe("Stopping...");
-        Wording.Working(new AdoptSession(Session)).ShouldBe("Moving fix-123 under Vantage...");
-        Wording.Working(new RenameSession(Session, SessionName.Parse("fix-124"))).ShouldBe("Renaming fix-123 to fix-124...");
-        Wording.Working(new CloseEmptyTerminals([Session])).ShouldBe("Closing...");
-        Wording.Working(new ResumeSessions([Session, Session])).ShouldBe("Resuming 2...");
-        Wording.Working(new DeleteSession(Session)).ShouldBe("Deleting fix-123...");
+        Wording.Working(new OpenTabForSession(As.Job(Session), HasLiveTab: false)).ShouldBe("Opening a tab for fix-123...");
+        Wording.Working(new StopSession(As.Job(Session))).ShouldBe("Stopping...");
+        Wording.Working(new AdoptSession(As.Terminal(Terminal))).ShouldBe("Moving fix-123 under Vantage...");
+        Wording.Working(new RenameSession(As.Job(Session), SessionName.Parse("fix-124"))).ShouldBe("Renaming fix-123 to fix-124...");
+        Wording.Working(new CloseEmptyTerminals([As.Terminal(Terminal)])).ShouldBe("Closing...");
+        Wording.Working(new ResumeSessions([As.Job(Session), As.Job(Session)])).ShouldBe("Resuming 2...");
+        Wording.Working(new DeleteSession(As.Job(Session))).ShouldBe("Deleting fix-123...");
         Wording.Working(new DeleteBranch(new BranchToConfirm(new FolderPath(Sessions.Repository), new BranchName("fix-123")))).ShouldBe("Deleting branch fix-123...");
     }
 

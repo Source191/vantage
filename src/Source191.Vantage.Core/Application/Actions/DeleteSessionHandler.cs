@@ -1,5 +1,4 @@
 using Source191.Vantage.Application.Effects;
-using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
@@ -11,13 +10,13 @@ namespace Source191.Vantage.Application.Actions;
 /// </summary>
 public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWorktrees createdWorktrees)
 {
-    public async Task<DeleteSessionOutcome> DeleteAsync(SessionRow row, bool forced, CancellationToken cancellationToken)
+    public async Task<DeleteSessionOutcome> DeleteAsync(BackgroundSession session, bool forced, CancellationToken cancellationToken)
     {
-        await claude.RemoveAsync(row.Session.JobId!.Value, cancellationToken);
-        string name = row.Session.Name;
+        await claude.RemoveAsync(session.JobId.Value, cancellationToken);
+        string name = session.Name;
 
         CreatedWorktree? created = (await createdWorktrees.ReadCreatedWorktreesAsync())
-            .FirstOrDefault(worktree => worktree.Path == row.Session.WorkingDirectory);
+            .FirstOrDefault(worktree => worktree.Path == session.WorkingDirectory);
         if (created is null)
         {
             return new DeleteSessionOutcome.Deleted(name);

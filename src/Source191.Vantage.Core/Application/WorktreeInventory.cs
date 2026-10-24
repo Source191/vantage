@@ -189,7 +189,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
     private static Session? LiveSessionIn(FolderPath worktree, IReadOnlyList<Session> sessions)
     {
         return sessions
-            .Where(session => session.ProcessId is not null)
+            .Where(session => session is InteractiveSession or BackgroundSession { ProcessId: not null })
             .FirstOrDefault(session => session.WorkingDirectory.IsUnder(worktree));
     }
 

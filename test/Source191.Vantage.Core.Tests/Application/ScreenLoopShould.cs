@@ -109,7 +109,7 @@ public sealed class ScreenLoopShould : IDisposable
 
     private static SessionRow Row(string sessionId, string name)
     {
-        Session session = new(new SessionId(sessionId), new JobId(sessionId == "sess-1" ? "81cdb0f9" : "92ddc1a0"), name, new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), SessionKind.Background, Noon, DisplayState.Idle);
+        BackgroundSession session = new(new SessionId(sessionId), new JobId(sessionId == "sess-1" ? "81cdb0f9" : "92ddc1a0"), name, new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), Noon, DisplayState.Idle);
 
         return new SessionRow(session, "Northwind.Orders", new BranchName("main"), IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
     }
