@@ -17,9 +17,11 @@ jobs:
     permissions:
       contents: write
     steps:
+      # The release is published with gh and GH_TOKEN, never git push, so git keeps no credentials.
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
+          persist-credentials: false
 
       # Compares the pushed commit against its first parent, which for the merge and squash commits
       # this repository uses is the previous tip of main, so a whole pull request is in view.

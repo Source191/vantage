@@ -174,7 +174,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 
 | Key | Action |
 | --- | --- |
-| d | Remove the worktree, or delete a leftover folder. Refused, with the reason, when it has changed files, unpushed commits, a lock or a live session. A broken leftover also has its stale registration pruned from the repository. A leftover's files are counted up to 1,000, so a large one is refused as "at least 1000 files" |
+| d | Remove the worktree, or delete a leftover folder. Refused, with the reason, when it has changed files, unpushed commits, a lock or a live session. A broken leftover also has its stale registration pruned from the repository. Junctions and links inside a leftover (pnpm's `node_modules`, for one) are removed as links and never followed, so nothing outside the folder is touched. A leftover's files are counted up to 1,000, so a large one is refused as "at least 1000 files" |
 | D | Force removal: the folder name opens selected in a read-only box, so Ctrl+C copies it (F2 also copies, from anywhere in the dialog); Tab or Enter moves to the answer box, Ctrl+V pastes, Enter confirms. There is no Remove button; a wrong or empty answer keeps the dialog open and says what was typed, and Esc cancels. Never forces a locked worktree or one with a live session |
 | p | Prune stale registrations in the row's repository |
 | s | Start a session in this worktree (the wizard opens with the directory fixed) |
