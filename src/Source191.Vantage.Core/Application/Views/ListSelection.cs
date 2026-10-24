@@ -85,7 +85,8 @@ public sealed record ListSelection<TRow>(
             KeyName.Escape => ClearFilter(),
             KeyName.Backspace => (this with { Filter = new RowFilter(Filter.Text[..Math.Max(0, Filter.Text.Length - 1)]) }).Reselect(),
             KeyName.Character => (this with { Filter = new RowFilter(Filter.Text + key.Character) }).Reselect(),
-            _ => this,
+            KeyName.Up => this,
+            KeyName.Down => this,
         };
     }
 

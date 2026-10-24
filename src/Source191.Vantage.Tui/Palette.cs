@@ -68,7 +68,8 @@ internal static class Palette
             DisplayStateKind.Idle => White,
             DisplayStateKind.Completed => Green,
             DisplayStateKind.Failed => Red,
-            _ => Grey,
+            DisplayStateKind.Stopped => Grey,
+            DisplayStateKind.Unknown => Grey,
         };
     }
 

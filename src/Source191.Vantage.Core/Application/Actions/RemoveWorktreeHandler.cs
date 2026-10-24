@@ -23,7 +23,7 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
         {
             RemovalOutcome.Refused => new RemoveWorktreeOutcome.Refused(decision.Reason),
             RemovalOutcome.DeleteFolder => await DeleteFolderAsync(row, decision, cancellationToken),
-            _ => await RemoveThroughGitAsync(row, decision, createdByVantage: created is not null, cancellationToken),
+            RemovalOutcome.RemoveWorktree => await RemoveThroughGitAsync(row, decision, createdByVantage: created is not null, cancellationToken),
         };
     }
 
@@ -46,17 +46,19 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
         // A worktree on a detached head has no branch; the folder name stands in, as the removal rules assume.
         BranchName? branch = row.Branch ?? BranchName.TryParse(row.FolderName);
 
-        switch (decision.Branch, branch)
+        return (decision.Branch, branch) switch
         {
-            case (BranchAction.Delete, BranchName merged):
-                await git.DeleteBranchAsync(row.Repository.Value, merged.Value, force: false, cancellationToken);
+            (BranchAction.Delete, BranchName merged) => await DeleteBranchAsync(row, merged, cancellationToken),
+            (BranchAction.Ask, BranchName kept) => new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository, kept), createdByVantage),
+            (BranchAction.None, _) or (_, null) => new RemoveWorktreeOutcome.Removed(row.FolderName),
+        };
+    }
 
-                return new RemoveWorktreeOutcome.RemovedAndDeletedBranch(row.FolderName, merged);
-            case (BranchAction.Ask, BranchName kept):
-                return new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository, kept), createdByVantage);
-            default:
-                return new RemoveWorktreeOutcome.Removed(row.FolderName);
-        }
+    private async Task<RemoveWorktreeOutcome> DeleteBranchAsync(WorktreeRow row, BranchName branch, CancellationToken cancellationToken)
+    {
+        await git.DeleteBranchAsync(row.Repository.Value, branch.Value, force: false, cancellationToken);
+
+        return new RemoveWorktreeOutcome.RemovedAndDeletedBranch(row.FolderName, branch);
     }
 
     private async Task<RemoveWorktreeOutcome> DeleteFolderAsync(WorktreeRow row, RemovalDecision decision, CancellationToken cancellationToken)

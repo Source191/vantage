@@ -55,7 +55,8 @@ internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesVie
             WorktreeHealthKind.Ok => Palette.White,
             WorktreeHealthKind.Locked => Palette.Amber,
             WorktreeHealthKind.Empty => Palette.Grey,
-            _ => Palette.Red,
+            WorktreeHealthKind.Orphan => Palette.Red,
+            WorktreeHealthKind.Broken => Palette.Red,
         };
     }
 

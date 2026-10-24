@@ -34,7 +34,7 @@ public static partial class Wording
         {
             LaunchOutcomeKind.Started => $"Started {name} ({outcome.JobId}) in {directory}.",
             LaunchOutcomeKind.WorkspaceNotTrusted => $"Could not start: {directory} is not trusted yet. Run claude here once and accept the prompt.",
-            _ => $"Could not start: {outcome.Message}",
+            LaunchOutcomeKind.Failed => $"Could not start: {outcome.Message}",
         };
     }
 

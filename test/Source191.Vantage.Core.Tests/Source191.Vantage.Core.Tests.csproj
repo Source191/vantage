@@ -3,7 +3,7 @@
   <!--
     The fast suite: domain rules, reducers, use cases and read models over in-memory fakes. No temp folders, no git,
     no processes. Infrastructure is referenced so sociable tests can assemble the real adapters over a fake process
-    runner; Tui only so the architecture test can inspect its assembly.
+    runner; Tui so the architecture test can inspect its assembly and DialogEffectsShould can ask which effects have a dialog.
   -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>

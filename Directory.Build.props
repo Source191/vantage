@@ -9,7 +9,12 @@
 		<AnalysisLevel>10.0-recommended</AnalysisLevel>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<NoWarn>$(NoWarn);CS1591</NoWarn>
+		<!--
+			CS8524 is off so that a switch expression naming every member of an enum is exhaustive without a discard arm.
+			Enums in this solution hold only their named members (none is parsed from an integer), so dropping the arm
+			costs nothing and a new member then fails the build with CS8509 at every switch that has to learn about it.
+		-->
+		<NoWarn>$(NoWarn);CS1591;CS8524</NoWarn>
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
 
