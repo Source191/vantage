@@ -1,5 +1,4 @@
 using Source191.Vantage.Adapters.Git;
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -8,34 +7,29 @@ using Source191.Vantage.UnitTests.TestDoubles;
 
 namespace Source191.Vantage.UnitTests.Application.Actions;
 
-public sealed class WorktreeActionsShould : IDisposable
+public sealed class WorktreeActionsShould
 {
-    private const string Repository = @"C:\repos\Northwind.Orders";
-    private const string Worktree = @"C:\repos\Northwind.Orders-fix-123";
+    private const string Root = @"C:\Users\me\source\repos";
+    private const string Repository = @"C:\Users\me\source\repos\Northwind.Orders";
+    private const string Worktree = @"C:\Users\me\source\repos\Northwind.Orders-fix-123";
 
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
-    private readonly string scratch = Path.Combine(Path.GetTempPath(), "vantage-worktree-actions-" + Guid.NewGuid().ToString("N"));
     private readonly FakeProcessRunner processes = new FakeProcessRunner()
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
         .Answer(request => request.Arguments.Contains("symbolic-ref"), new ProcessResult(0, "origin/main\n", string.Empty))
         .Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(0, string.Empty, string.Empty));
     private readonly FakeWindowsTerminal terminal = new();
+    private readonly FakeFolders folders = new();
+    private readonly InMemoryState store = new();
 
-    private StateStore Store => new(Path.Combine(scratch, "state"), TimeProvider.System);
-
-    private WorktreeActions Actions => new(new GitCli(processes), Store, terminal);
+    private WorktreeActions Actions => new(new GitCli(processes), store, folders, terminal);
 
     private IEnumerable<ProcessRequest> GitCalls => processes.CapturedRequests.Where(request => request.FileName == "git");
 
     private static WorktreeRow Row(WorktreeHealthKind health, string path = Worktree, string? branch = "fix-123", bool ownerExists = true)
     {
         return new WorktreeRow(Repository, path, branch, new WorktreeHealth(health, string.Empty), 0, 0, Noon, null, null, 0, ownerExists, FolderExists: true);
-    }
-
-    public void Dispose()
-    {
-        TemporaryGitRoot.DeleteTree(scratch);
     }
 
     [Fact]
@@ -53,14 +47,14 @@ public sealed class WorktreeActionsShould : IDisposable
     [Fact]
     public async Task DeleteTheBranchWhenVantageCreatedItAndItIsMerged()
     {
-        await Store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
 
         WorktreeRemovalOutcome outcome = await Actions.RemoveAsync(Row(WorktreeHealthKind.Ok), forced: false, CancellationToken.None);
 
         GitCalls.Single(request => request.Arguments.Contains("branch")).Arguments.ShouldBe(["branch", "-d", "fix-123"]);
         outcome.Message.ShouldBe("Removed Northwind.Orders-fix-123 and deleted its merged branch fix-123.");
         outcome.BranchToConfirm.ShouldBeNull();
-        (await Store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
+        (await store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
     }
 
     [Fact]
@@ -87,16 +81,13 @@ public sealed class WorktreeActionsShould : IDisposable
     [Fact]
     public async Task DeleteABrokenLeftoverFolderAndPruneItsOwner()
     {
-        string folder = Path.Combine(scratch, "Northwind.Orders-stale");
-        Directory.CreateDirectory(folder);
-        string readOnly = Path.Combine(folder, "pack.idx");
-        await File.WriteAllTextAsync(readOnly, "x", TestContext.Current.CancellationToken);
-        File.SetAttributes(readOnly, FileAttributes.ReadOnly);
+        string folder = Path.Combine(Root, "Northwind.Orders-stale");
+        folders.WithFile(Path.Combine(folder, "pack.idx"));
         processes.AnswerInTurn(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/a\nHEAD a\nbranch refs/heads/main\n\nworktree C:/b\nHEAD b\nbranch refs/heads/x\n", string.Empty), new ProcessResult(0, "worktree C:/a\nHEAD a\nbranch refs/heads/main\n", string.Empty));
 
         WorktreeRemovalOutcome outcome = await Actions.RemoveAsync(Row(WorktreeHealthKind.Broken, folder, branch: null), forced: false, CancellationToken.None);
 
-        Directory.Exists(folder).ShouldBeFalse();
+        folders.DirectoryExists(folder).ShouldBeFalse();
         GitCalls.ShouldContain(request => request.Arguments.Contains("prune"));
         outcome.Message.ShouldBe("Deleted the folder Northwind.Orders-stale and pruned 1 stale registration from Northwind.Orders.");
     }
@@ -104,12 +95,12 @@ public sealed class WorktreeActionsShould : IDisposable
     [Fact]
     public async Task DeleteAnOrphanFolderWithoutTouchingGit()
     {
-        string folder = Path.Combine(scratch, "fix-service-tests");
-        Directory.CreateDirectory(folder);
+        string folder = Path.Combine(Root, "fix-service-tests");
+        folders.WithDirectory(folder);
 
         WorktreeRemovalOutcome outcome = await Actions.RemoveAsync(Row(WorktreeHealthKind.Orphan, folder, branch: null), forced: false, CancellationToken.None);
 
-        Directory.Exists(folder).ShouldBeFalse();
+        folders.DirectoryExists(folder).ShouldBeFalse();
         GitCalls.ShouldBeEmpty();
         outcome.Message.ShouldBe("Deleted the folder fix-service-tests.");
     }

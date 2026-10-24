@@ -1,4 +1,3 @@
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -6,7 +5,7 @@ using Source191.Vantage.Ports;
 namespace Source191.Vantage.Application.Actions;
 
 /// <summary>Opens a session in its own Windows Terminal tab and records the tab so its colour and liveness are known.</summary>
-public sealed class TabOpener(StateStore store, IProcessRegistry processes, IWindowsTerminal terminal, TimeProvider clock, string claudeExecutable, string vantageExecutable)
+public sealed class TabOpener(ITabRegistry tabs, IProcessRegistry processes, IWindowsTerminal terminal, TimeProvider clock, string claudeExecutable, string vantageExecutable)
 {
     private readonly TabColourSelection colours = new(TabPalette.Default);
 
@@ -30,10 +29,10 @@ public sealed class TabOpener(StateStore store, IProcessRegistry processes, IWin
         }
 
         DateTimeOffset now = clock.GetUtcNow();
-        IReadOnlyList<TabRegistration> live = new TabRegistrations(await store.ReadTabsAsync()).Live(now, processes);
+        IReadOnlyList<TabRegistration> live = new TabRegistrations(await tabs.ReadTabsAsync()).Live(now, processes);
         ColourChoice colour = colours.Choose([.. live.Select(registration => registration.Colour)]);
         TabRegistration pending = TabRegistration.Pending(session.SessionId, colour.Colour, now);
-        await store.WriteTabAsync(pending);
+        await tabs.WriteTabAsync(pending);
 
         // The shell passes its own $PID so the registration is tied to the tab, not to the short-lived claim-tab process.
         // The profile is loaded (so the shell behind the session is the normal one) and its output cleared before attaching.
@@ -50,7 +49,7 @@ public sealed class TabOpener(StateStore store, IProcessRegistry processes, IWin
     /// <summary>The tab is already open: select it in the Windows Terminal window that owns its shell.</summary>
     private async Task<string> SwitchToTabAsync(Session session, CancellationToken cancellationToken)
     {
-        TabRegistration? registration = (await store.ReadTabsAsync()).FirstOrDefault(tab => tab.SessionId == session.SessionId);
+        TabRegistration? registration = (await tabs.ReadTabsAsync()).FirstOrDefault(tab => tab.SessionId == session.SessionId);
         int? owner = registration?.OwningTerminal(processes);
         bool found = await terminal.FocusTabAsync(owner, session.Name, cancellationToken);
 
@@ -61,17 +60,17 @@ public sealed class TabOpener(StateStore store, IProcessRegistry processes, IWin
 }
 
 /// <summary>What "vantage claim-tab" does inside the new tab: stamps the registration with the tab shell's process.</summary>
-public sealed class TabClaimer(StateStore store, IProcessRegistry processes)
+public sealed class TabClaimer(ITabRegistry tabs, IProcessRegistry processes)
 {
     public async Task ClaimAsync(Guid registrationId, int processId)
     {
-        TabRegistration? pending = (await store.ReadTabsAsync()).FirstOrDefault(registration => registration.Id == registrationId);
+        TabRegistration? pending = (await tabs.ReadTabsAsync()).FirstOrDefault(registration => registration.Id == registrationId);
         DateTimeOffset? startedAt = processes.StartTimeOf(processId);
         if (pending is null || startedAt is null)
         {
             return;
         }
 
-        await store.WriteTabAsync(pending.ClaimedBy(processId, startedAt.Value));
+        await tabs.WriteTabAsync(pending.ClaimedBy(processId, startedAt.Value));
     }
 }

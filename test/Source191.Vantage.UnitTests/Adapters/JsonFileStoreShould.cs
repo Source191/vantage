@@ -1,17 +1,18 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.UnitTests.Adapters;
 
-public sealed class StateStoreShould : IDisposable
+public sealed class JsonFileStoreShould : IDisposable
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
     private readonly string folder = Path.Combine(Path.GetTempPath(), "vantage-state-" + Guid.NewGuid().ToString("N"));
     private readonly FakeTimeProvider clock = new(Noon);
 
-    private StateStore Store => new(folder, clock);
+    private JsonFileStore Store => new(folder, clock);
 
     [Fact]
     public async Task StartEmptyWhenTheFolderDoesNotExist()
@@ -85,8 +86,8 @@ public sealed class StateStoreShould : IDisposable
     [Fact]
     public async Task KeepRecentRepositoriesWrittenByTwoWriters()
     {
-        StateStore console = Store;
-        StateStore here = new(folder, new FakeTimeProvider(Noon.AddSeconds(1)));
+        JsonFileStore console = Store;
+        JsonFileStore here = new(folder, new FakeTimeProvider(Noon.AddSeconds(1)));
 
         await Task.WhenAll(console.RecordRecentRepositoryAsync(@"C:\repos\A"), here.RecordRecentRepositoryAsync(@"C:\repos\B"));
 
@@ -96,8 +97,8 @@ public sealed class StateStoreShould : IDisposable
     [Fact]
     public async Task KeepDescriptionsWrittenByTwoWriters()
     {
-        StateStore console = Store;
-        StateStore here = Store;
+        JsonFileStore console = Store;
+        JsonFileStore here = Store;
 
         await Task.WhenAll(console.WriteDescriptionAsync("session-1", "Replace the login page"), here.WriteDescriptionAsync("session-2", "Spike"));
 

@@ -34,4 +34,9 @@ public sealed class Folders : IFolders
     {
         return File.ReadLines(file);
     }
+
+    public void DeleteTree(string path)
+    {
+        FolderDeletion.DeleteTree(path);
+    }
 }

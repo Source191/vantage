@@ -1,6 +1,6 @@
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Adapters.State;
+namespace Source191.Vantage.Ports;
 
 /// <summary>User configuration kept beside the state: where repositories live and how new worktrees branch.</summary>
 public sealed record VantageConfig(IReadOnlyList<string> RepositoryRoots, WorktreeBase DefaultBase)

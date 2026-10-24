@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Time.Testing;
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -8,18 +7,17 @@ using Source191.Vantage.UnitTests.TestDoubles;
 
 namespace Source191.Vantage.UnitTests.Application.Actions;
 
-public sealed class TabOpenerShould : IDisposable
+public sealed class TabOpenerShould
 {
     private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
     private const string Vantage = @"C:\Users\me\.dotnet\tools\vantage.exe";
 
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
-    private readonly string stateFolder = Path.Combine(Path.GetTempPath(), "vantage-tabs-" + Guid.NewGuid().ToString("N"));
     private readonly FakeWindowsTerminal terminal = new();
     private readonly FakeProcessRegistry registry = new();
 
-    private StateStore Store => new(stateFolder, TimeProvider.System);
+    private readonly InMemoryState Store = new();
 
     private TabOpener Opener => new(Store, registry, terminal, new FakeTimeProvider(Noon), Claude, Vantage);
 
@@ -139,13 +137,5 @@ public sealed class TabOpenerShould : IDisposable
         TabRegistration claimed = (await Store.ReadTabsAsync()).Single();
         claimed.ProcessId.ShouldBe(4242);
         claimed.ProcessStartedAt.ShouldBe(Noon.AddSeconds(2));
-    }
-
-    public void Dispose()
-    {
-        if (Directory.Exists(stateFolder))
-        {
-            Directory.Delete(stateFolder, recursive: true);
-        }
     }
 }

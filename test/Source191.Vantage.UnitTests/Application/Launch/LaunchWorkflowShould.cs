@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
@@ -10,7 +9,7 @@ using Source191.Vantage.UnitTests.TestDoubles;
 
 namespace Source191.Vantage.UnitTests.Application.Launch;
 
-public sealed class LaunchWorkflowShould : IDisposable
+public sealed class LaunchWorkflowShould
 {
     private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
     private const string Vantage = @"C:\Users\me\.dotnet\tools\vantage.exe";
@@ -19,7 +18,6 @@ public sealed class LaunchWorkflowShould : IDisposable
     private static readonly RepositoryChoice Repository = new("Northwind.Orders", @"C:\repos\Northwind.Orders", IsRepository: true);
     private static readonly Session Listed = new("sess-1", "81cdb0f9", "Fix flaky tests", Repository.Path, SessionKind.Background, Noon, DisplayState.Working);
 
-    private readonly string stateFolder = Path.Combine(Path.GetTempPath(), "vantage-workflow-" + Guid.NewGuid().ToString("N"));
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
     private readonly FakeWindowsTerminal terminal = new();
 
@@ -33,10 +31,10 @@ public sealed class LaunchWorkflowShould : IDisposable
     {
         get
         {
-            StateStore store = new(stateFolder, TimeProvider.System);
+            InMemoryState store = new();
             GitCli git = new(processes);
             FakeTimeProvider clock = new(Noon);
-            LaunchService service = new(new ClaudeCli(processes, Claude), git, store, new WorktreeIncludeCopier(git), clock);
+            LaunchService service = new(new ClaudeCli(processes, Claude), git, store, store, store, new WorktreeIncludeCopier(git), clock);
             TabOpener tabs = new(store, new FakeProcessRegistry(), terminal, clock, Claude, Vantage);
 
             return new LaunchWorkflow(new RepositoryCatalogue(new FakeFolders(), []), new FakeFolders(), store, service, tabs, terminal, Claude);
@@ -70,13 +68,5 @@ public sealed class LaunchWorkflowShould : IDisposable
 
         footer.ShouldBe("Started Fix flaky tests (81cdb0f9). It is not listed yet: press o on it to open a tab.");
         terminal.Opened.ShouldBeEmpty();
-    }
-
-    public void Dispose()
-    {
-        if (Directory.Exists(stateFolder))
-        {
-            Directory.Delete(stateFolder, recursive: true);
-        }
     }
 }

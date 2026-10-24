@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -9,7 +8,7 @@ using Source191.Vantage.UnitTests.TestDoubles;
 
 namespace Source191.Vantage.UnitTests.Application.Launch;
 
-public sealed class LaunchServiceShould : IDisposable
+public sealed class LaunchServiceShould
 {
     private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
     private const string Started = "Starting background service…\nbackgrounded · 81cdb0f9 · Fix flaky tests (idle — send a prompt to start)\n";
@@ -18,21 +17,20 @@ public sealed class LaunchServiceShould : IDisposable
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
     private static readonly RepositoryChoice Repository = new("Northwind.Orders", @"C:\repos\Northwind.Orders", IsRepository: true);
 
-    private readonly string stateFolder = Path.Combine(Path.GetTempPath(), "vantage-launch-" + Guid.NewGuid().ToString("N"));
     private readonly FakeProcessRunner processes = new FakeProcessRunner()
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
         .Answer(request => request.FileName == Claude && request.Arguments.Contains("--bg"), new ProcessResult(0, Started, string.Empty))
         .Answer(request => request.FileName == Claude && request.Arguments.Contains("agents"), new ProcessResult(0, Listing, string.Empty))
         .Answer(request => request.FileName == "git" && request.Arguments.Contains("symbolic-ref"), new ProcessResult(0, "origin/main\n", string.Empty));
 
-    private StateStore Store => new(stateFolder, TimeProvider.System);
+    private readonly InMemoryState Store = new();
 
     private LaunchService Service
     {
         get
         {
             GitCli git = new(processes);
-            return new LaunchService(new ClaudeCli(processes, Claude), git, Store, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
+            return new LaunchService(new ClaudeCli(processes, Claude), git, Store, Store, Store, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
         }
     }
 
@@ -142,13 +140,5 @@ public sealed class LaunchServiceShould : IDisposable
         outcome.Kind.ShouldBe(LaunchOutcomeKind.Failed);
         outcome.Message.ShouldContain("already checked out");
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("--bg"));
-    }
-
-    public void Dispose()
-    {
-        if (Directory.Exists(stateFolder))
-        {
-            Directory.Delete(stateFolder, recursive: true);
-        }
     }
 }

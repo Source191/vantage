@@ -1,5 +1,3 @@
-using Source191.Vantage.Adapters.Files;
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -12,13 +10,13 @@ public sealed record WorktreeRemovalOutcome(string Message, BranchToConfirm? Bra
 /// Removal, prune and shell actions for the worktrees view. The decision comes from the domain rules; this class
 /// adds the two facts only it can settle (did Vantage create the branch, is it merged) and then carries the decision out.
 /// </summary>
-public sealed class WorktreeActions(IGit git, StateStore store, IWindowsTerminal terminal)
+public sealed class WorktreeActions(IGit git, ICreatedWorktrees createdWorktrees, IFolders folders, IWindowsTerminal terminal)
 {
     private static readonly TabColour ShellTabColour = TabPalette.Default[^1];
 
     public async Task<WorktreeRemovalOutcome> RemoveAsync(WorktreeRow row, bool forced, CancellationToken cancellationToken)
     {
-        CreatedWorktree? created = (await store.ReadCreatedWorktreesAsync())
+        CreatedWorktree? created = (await createdWorktrees.ReadCreatedWorktreesAsync())
             .FirstOrDefault(candidate => string.Equals(candidate.Path, row.Path, StringComparison.OrdinalIgnoreCase));
         bool merged = created is not null && await IsMergedAsync(row, cancellationToken);
         RemovalDecision decision = RemovalDecision.For(row.Facts(created is not null, merged), forced);
@@ -65,7 +63,7 @@ public sealed class WorktreeActions(IGit git, StateStore store, IWindowsTerminal
     private async Task<WorktreeRemovalOutcome> RemoveThroughGitAsync(WorktreeRow row, RemovalDecision decision, CancellationToken cancellationToken)
     {
         await git.RemoveWorktreeAsync(row.Repository, row.Path, decision.Forced, cancellationToken);
-        await store.ForgetCreatedWorktreeAsync(row.Path);
+        await createdWorktrees.ForgetCreatedWorktreeAsync(row.Path);
         string branch = row.Branch ?? row.FolderName;
 
         switch (decision.Branch)
@@ -85,7 +83,7 @@ public sealed class WorktreeActions(IGit git, StateStore store, IWindowsTerminal
 
     private async Task<WorktreeRemovalOutcome> DeleteFolderAsync(WorktreeRow row, RemovalDecision decision, CancellationToken cancellationToken)
     {
-        FolderDeletion.DeleteTree(row.Path);
+        folders.DeleteTree(row.Path);
         if (!decision.PruneRegistration || !row.OwnerExists)
         {
             return new WorktreeRemovalOutcome($"Deleted the folder {row.FolderName}.", BranchToConfirm: null);
