@@ -34,6 +34,7 @@ public sealed record WorktreesViewState(
     string? Banner,
     string Footer,
     bool Loaded = false)
+    : IListViewState<WorktreeRow>
 {
     /// <summary>Nothing scanned yet: the first scan has not arrived, so the screen shows that it is scanning rather than an empty table.</summary>
     public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: string.Empty);

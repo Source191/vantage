@@ -88,6 +88,7 @@ public sealed record SessionsViewState(
     string? Banner,
     string Footer,
     bool Loaded = false)
+    : IListViewState<SessionRow>
 {
     /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
     public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: string.Empty);
