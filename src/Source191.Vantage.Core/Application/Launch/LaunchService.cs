@@ -11,7 +11,7 @@ public enum LaunchOutcomeKind
 }
 
 /// <summary>The listed session is null when the supervisor had not listed the new job by the time the start returned.</summary>
-public sealed record LaunchOutcome(LaunchOutcomeKind Kind, string? JobId, string Message, Session? Session = null);
+public sealed record LaunchOutcome(LaunchOutcomeKind Kind, JobId? JobId, string Message, Session? Session = null);
 
 /// <summary>
 /// Carries out a launch plan: creates the sibling worktree when one is wanted, copies the include files,
@@ -42,10 +42,11 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
         }
 
         await recent.RecordRecentRepositoryAsync(plan.Repository.Path.Value);
-        Session? started = await ListedSessionAsync(start.JobId, cancellationToken);
+        JobId? jobId = JobId.TryParse(start.JobId);
+        Session? started = jobId is null ? null : await ListedSessionAsync(jobId, cancellationToken);
         await RecordDescriptionAsync(plan, started);
 
-        return new LaunchOutcome(LaunchOutcomeKind.Started, start.JobId, start.Message, started);
+        return new LaunchOutcome(LaunchOutcomeKind.Started, jobId, start.Message, started);
     }
 
     private async Task CreateWorktreeAsync(LaunchPlan plan, SiblingWorktree worktree, CancellationToken cancellationToken)
@@ -55,13 +56,13 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
             ? await git.DefaultRemoteBranchAsync(repository.Value, cancellationToken) ?? "HEAD"
             : "HEAD";
 
-        await git.AddWorktreeAsync(repository.Value, worktree.Path.Value, worktree.Branch, baseRef, cancellationToken);
+        await git.AddWorktreeAsync(repository.Value, worktree.Path.Value, worktree.Branch.Value, baseRef, cancellationToken);
         await copier.CopyAsync(repository.Value, worktree.Path.Value, cancellationToken);
         await created.RecordCreatedWorktreeAsync(new CreatedWorktree(worktree.Path, worktree.Branch, repository, clock.GetUtcNow()));
     }
 
     /// <summary>The new session as the supervisor lists it, which is where its full session id comes from.</summary>
-    private async Task<Session?> ListedSessionAsync(string jobId, CancellationToken cancellationToken)
+    private async Task<Session?> ListedSessionAsync(JobId jobId, CancellationToken cancellationToken)
     {
         IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(cancellationToken);
 
@@ -75,6 +76,6 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
             return;
         }
 
-        await descriptions.WriteDescriptionAsync(started.SessionId, plan.Description);
+        await descriptions.WriteDescriptionAsync(started.SessionId.Value, plan.Description);
     }
 }

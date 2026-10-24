@@ -20,13 +20,13 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
             return new AdoptSessionOutcome.NoProcess(session.Name);
         }
 
-        if (!transcripts.HasMessages(session.SessionId))
+        if (!transcripts.HasMessages(session.SessionId.Value))
         {
             return new AdoptSessionOutcome.NoMessages(session.Name);
         }
 
         processes.Terminate(session.ProcessId.Value);
-        ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
+        ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
 
         return result.Continued
             ? new AdoptSessionOutcome.Moved(session.Name)

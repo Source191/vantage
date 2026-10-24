@@ -19,13 +19,13 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
 
         return outcome switch
         {
-            { Kind: LaunchOutcomeKind.Started, JobId: string jobId } => await StartedAsync(effect, jobId, outcome.Session, cancellationToken),
+            { Kind: LaunchOutcomeKind.Started, JobId: JobId jobId } => await StartedAsync(effect, jobId, outcome.Session, cancellationToken),
             { Kind: LaunchOutcomeKind.WorkspaceNotTrusted } => await OpenTrustTabAsync(effect.Plan.Directory, cancellationToken),
             _ => new StartSessionOutcome.Failed(outcome.Message),
         };
     }
 
-    private async Task<StartSessionOutcome> StartedAsync(StartSession effect, string jobId, Session? listed, CancellationToken cancellationToken)
+    private async Task<StartSessionOutcome> StartedAsync(StartSession effect, JobId jobId, Session? listed, CancellationToken cancellationToken)
     {
         string name = effect.Plan.Name.Text;
 
@@ -48,11 +48,11 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
 /// <summary>What starting the wizard's session did, including the tab when one was asked for.</summary>
 public abstract record StartSessionOutcome : Outcome
 {
-    public sealed record Started(string Name, string JobId) : StartSessionOutcome;
+    public sealed record Started(string Name, JobId JobId) : StartSessionOutcome;
 
-    public sealed record StartedAndOpened(string Name, string JobId, OpenTabOutcome Tab) : StartSessionOutcome;
+    public sealed record StartedAndOpened(string Name, JobId JobId, OpenTabOutcome Tab) : StartSessionOutcome;
 
-    public sealed record NotListedYet(string Name, string JobId) : StartSessionOutcome;
+    public sealed record NotListedYet(string Name, JobId JobId) : StartSessionOutcome;
 
     /// <summary>A Claude tab was opened in the directory so the trust prompt can be accepted.</summary>
     public sealed record NotTrusted(FolderPath Directory) : StartSessionOutcome;

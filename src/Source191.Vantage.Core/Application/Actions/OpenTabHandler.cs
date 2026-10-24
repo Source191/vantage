@@ -23,7 +23,7 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
     /// <summary>Opens a tab for a session that is not a listed row yet, such as one the wizard has just started.</summary>
     public async Task<OpenTabOutcome> OpenAsync(Session session, CancellationToken cancellationToken)
     {
-        if (session.JobId is null)
+        if (session.JobId is not JobId jobId)
         {
             return new OpenTabOutcome.NotBackground();
         }
@@ -31,7 +31,7 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
         DateTimeOffset now = clock.GetUtcNow();
         IReadOnlyList<TabRegistration> live = new TabRegistrations(await tabs.ReadTabsAsync()).Live(now, processes);
         ColourChoice colour = colours.Choose([.. live.Select(registration => registration.Colour)]);
-        TabRegistration pending = TabRegistration.Pending(session.SessionId, colour.Colour, now);
+        TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), colour.Colour, now);
         await tabs.WriteTabAsync(pending);
 
         // The shell passes its own $PID so the registration is tied to the tab, not to the short-lived claim-tab process.
@@ -39,7 +39,7 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
         string script = string.Join('\n',
             $"{PowerShellScript.Invoke(vantageExecutable, ["claim-tab", pending.Id.ToString("N")])} $PID",
             "Clear-Host",
-            PowerShellScript.Invoke(claudeExecutable, ["attach", session.JobId]));
+            PowerShellScript.Invoke(claudeExecutable, ["attach", jobId.Value]));
         await terminal.OpenTabAsync(new TabLaunch(session.Name, colour.Colour, session.WorkingDirectory, script), cancellationToken);
 
         return new OpenTabOutcome.Opened(session.Name, colour.Colour.Name, colour.Reused);
@@ -48,7 +48,7 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
     /// <summary>The tab is already open: select it in the Windows Terminal window that owns its shell.</summary>
     private async Task<OpenTabOutcome> SwitchToTabAsync(Session session, CancellationToken cancellationToken)
     {
-        TabRegistration? registration = (await tabs.ReadTabsAsync()).FirstOrDefault(tab => tab.SessionId == session.SessionId);
+        TabRegistration? registration = (await tabs.ReadTabsAsync()).FirstOrDefault(tab => tab.Owner == new TabOwner.ForSession(session.SessionId));
         int? owner = registration?.OwningTerminal(processes);
         bool found = await terminal.FocusTabAsync(owner, session.Name, cancellationToken);
 

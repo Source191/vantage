@@ -48,7 +48,7 @@ public sealed class ScreenLoopShould : IDisposable
             state => new ScreenExit(SessionsView.Reduce(state, new RowsLoaded([First, Second])).State, new SwitchToWorktrees()),
             state => new ScreenExit(state, new SwitchToWorktrees()),
             state => new ScreenExit(state, null));
-        ScriptedWorktreesScreen worktrees = new(new JumpToSession("sess-2"), new SwitchToSessions());
+        ScriptedWorktreesScreen worktrees = new(new JumpToSession(new SessionId("sess-2")), new SwitchToSessions());
 
         await Loop(sessions, worktrees).RunAsync(processId: 100, CancellationToken.None);
 
@@ -61,7 +61,7 @@ public sealed class ScreenLoopShould : IDisposable
     public async Task RunTerminalEffectsBetweenScreensAndRelabelTheTabAfterwards()
     {
         ScriptedSessionsScreen sessions = new(
-            state => new ScreenExit(state, new AttachToSession("81cdb0f9")),
+            state => new ScreenExit(state, new AttachToSession(new JobId("81cdb0f9"))),
             state => new ScreenExit(state, new OpenAgentView()),
             state => new ScreenExit(state, new Quit()));
 
@@ -93,21 +93,24 @@ public sealed class ScreenLoopShould : IDisposable
         terminal.Dispose();
     }
 
-    /// <summary>An instance of an effect record whose fields are all strings, such as a job or session id.</summary>
+    /// <summary>An instance of an effect record whose fields are ids, such as a job or session id.</summary>
     private static ViewEffect Instantiate(Type type)
     {
         System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single();
-        object[] arguments = [.. constructor.GetParameters().Select(parameter => parameter.ParameterType == typeof(string)
-            ? "81cdb0f9"
-            : throw new InvalidOperationException($"{type.Name} needs a {parameter.ParameterType.Name}; extend {nameof(Instantiate)}."))];
+        object[] arguments = [.. constructor.GetParameters().Select(parameter => parameter.ParameterType switch
+        {
+            Type id when id == typeof(JobId) => new JobId("81cdb0f9"),
+            Type id when id == typeof(SessionId) => (object)new SessionId("sess-1"),
+            _ => throw new InvalidOperationException($"{type.Name} needs a {parameter.ParameterType.Name}; extend {nameof(Instantiate)}."),
+        })];
 
         return (ViewEffect)constructor.Invoke(arguments);
     }
 
     private static SessionRow Row(string sessionId, string name)
     {
-        Session session = new(sessionId, sessionId[..4] + "0000", name, new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), SessionKind.Background, Noon, DisplayState.Idle);
+        Session session = new(new SessionId(sessionId), new JobId(sessionId == "sess-1" ? "81cdb0f9" : "92ddc1a0"), name, new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), SessionKind.Background, Noon, DisplayState.Idle);
 
-        return new SessionRow(session, "Northwind.Orders", "main", IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, "Northwind.Orders", new BranchName("main"), IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
     }
 }

@@ -20,7 +20,7 @@ public sealed record StartSessionIn(WorktreeRow Row) : ViewEffect, IDialogEffect
 public sealed record OpenShellTab(WorktreeRow Row) : ViewEffect;
 
 /// <summary>Go to the sessions view with this session selected; by id, because names are not unique.</summary>
-public sealed record JumpToSession(string SessionId) : ViewEffect, ILeavesScreen;
+public sealed record JumpToSession(SessionId SessionId) : ViewEffect, ILeavesScreen;
 
 public sealed record SwitchToSessions : ViewEffect, ILeavesScreen;
 
@@ -41,7 +41,7 @@ public sealed record WorktreesViewState(
 
     private static readonly ListPolicy<WorktreeRow> Policy = new(
         KeyOf: row => row.Path.Key,
-        FilterFields: row => [row.RepositoryName, row.FolderName, row.Branch, row.Health.Kind.ToString()],
+        FilterFields: row => [row.RepositoryName, row.FolderName, row.Branch?.Value, row.Health.Kind.ToString()],
         Order: rows => rows.OrderBy(row => row.Repository.Key, StringComparer.Ordinal).ThenBy(row => row.FolderName, StringComparer.OrdinalIgnoreCase),
         KeyComparison: StringComparison.Ordinal);
 

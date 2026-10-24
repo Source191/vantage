@@ -20,7 +20,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     private static Session SessionIn(string directory, string name, int? processId)
     {
-        return new Session(Guid.NewGuid().ToString(), null, name, new FolderPath(directory), SessionKind.Interactive, Noon, DisplayState.Idle, processId);
+        return new Session(new SessionId(Guid.NewGuid().ToString()), null, name, new FolderPath(directory), SessionKind.Interactive, Noon, DisplayState.Idle, processId);
     }
 
     public void Dispose()
@@ -40,8 +40,8 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         rows.Select(row => (row.RepositoryName, row.Path, row.Branch, row.Health.Kind)).ShouldBe(
         [
-            ("Northwind.First", new FolderPath(firstWorktree), "fix-1", WorktreeHealthKind.Ok),
-            ("Northwind.Second", new FolderPath(secondWorktree), "fix-2", WorktreeHealthKind.Ok),
+            ("Northwind.First", new FolderPath(firstWorktree), new BranchName("fix-1"), WorktreeHealthKind.Ok),
+            ("Northwind.Second", new FolderPath(secondWorktree), new BranchName("fix-2"), WorktreeHealthKind.Ok),
         ]);
     }
 

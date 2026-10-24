@@ -115,7 +115,7 @@ public sealed class SessionsViewShould
     public void SelectASessionByIdWhenAskedTo()
     {
         Reduce(Loaded, new SelectSession(Stopped.Session.SessionId)).Selected.ShouldBe(Stopped);
-        Reduce(Loaded, new SelectSession("no-such-session")).Selected.ShouldBe(Waiting);
+        Reduce(Loaded, new SelectSession(new SessionId("no-such-session"))).Selected.ShouldBe(Waiting);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public sealed class SessionsViewShould
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Enter));
 
-        update.Effects.ShouldBe([new AttachToSession("bbbb2222")]);
+        update.Effects.ShouldBe([new AttachToSession(new JobId("bbbb2222"))]);
     }
 
     [Fact]
@@ -340,7 +340,7 @@ public sealed class SessionsViewShould
     [Fact]
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
-        new AttachToSession("x").ShouldBeAssignableTo<ILeavesScreen>();
+        new AttachToSession(new JobId("81cdb0f9")).ShouldBeAssignableTo<ILeavesScreen>();
         new OpenAgentView().ShouldBeAssignableTo<ILeavesScreen>();
         new SwitchToWorktrees().ShouldBeAssignableTo<ILeavesScreen>();
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
@@ -365,8 +365,8 @@ public sealed class SessionsViewShould
     private static SessionRow Row(string name, DisplayState state, string repository, string? jobId, SessionKind kind = SessionKind.Background)
     {
         Session session = new(
-            SessionId: Guid.NewGuid().ToString(),
-            JobId: jobId,
+            SessionId: new SessionId(Guid.NewGuid().ToString()),
+            JobId: jobId is null ? null : new JobId(jobId),
             Name: name,
             WorkingDirectory: new FolderPath($@"C:\repos\{repository}"),
             Kind: kind,
@@ -374,6 +374,6 @@ public sealed class SessionsViewShould
             State: state,
             ProcessId: kind == SessionKind.Interactive ? 4242 : null);
 
-        return new SessionRow(session, repository, "main", IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, repository, new BranchName("main"), IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
     }
 }

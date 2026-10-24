@@ -57,8 +57,8 @@ public sealed class StateTransitionNotifierShould : IDisposable
 
     private static SessionRow Row(string name, DisplayState state, SessionKind kind = SessionKind.Background)
     {
-        Session session = new(Guid.NewGuid().ToString(), kind == SessionKind.Background ? "81cdb0f9" : null, name, new FolderPath(@"C:\repos\Northwind.Orders"), kind, Noon, state);
+        Session session = new(new SessionId(Guid.NewGuid().ToString()), kind == SessionKind.Background ? new JobId("81cdb0f9") : null, name, new FolderPath(@"C:\repos\Northwind.Orders"), kind, Noon, state);
 
-        return new SessionRow(session, "Northwind.Orders", "main", IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, "Northwind.Orders", new BranchName("main"), IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
     }
 }

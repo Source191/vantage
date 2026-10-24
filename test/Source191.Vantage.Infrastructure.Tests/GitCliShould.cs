@@ -1,4 +1,5 @@
 using Source191.Vantage.Adapters.Git;
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
@@ -26,7 +27,7 @@ public sealed class GitCliShould
             request => request.FileName.ShouldBe("git"),
             request => request.WorkingDirectory.ShouldBe(Repository),
             request => request.Arguments.ShouldBe(["worktree", "list", "--porcelain"]));
-        entries.Single().Branch.ShouldBe("main");
+        entries.Single().Branch.ShouldBe(new BranchName("main"));
     }
 
     [Fact]

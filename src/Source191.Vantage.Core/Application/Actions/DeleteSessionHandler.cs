@@ -13,7 +13,7 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
 {
     public async Task<DeleteSessionOutcome> DeleteAsync(SessionRow row, bool forced, CancellationToken cancellationToken)
     {
-        await claude.RemoveAsync(row.Session.JobId!, cancellationToken);
+        await claude.RemoveAsync(row.Session.JobId!.Value, cancellationToken);
         string name = row.Session.Name;
 
         CreatedWorktree? created = (await createdWorktrees.ReadCreatedWorktreesAsync())
@@ -33,12 +33,12 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
         await createdWorktrees.ForgetCreatedWorktreeAsync(created.Path);
         if (decision.Branch == BranchAction.Delete)
         {
-            await git.DeleteBranchAsync(created.Repository.Value, created.Branch, force: false, cancellationToken);
+            await git.DeleteBranchAsync(created.Repository.Value, created.Branch.Value, force: false, cancellationToken);
 
             return new DeleteSessionOutcome.RemovedWorktreeAndBranch(name, created.Branch);
         }
 
-        return new DeleteSessionOutcome.BranchNotMerged(name, new BranchToConfirm(created.Repository.Value, created.Branch));
+        return new DeleteSessionOutcome.BranchNotMerged(name, new BranchToConfirm(created.Repository, created.Branch));
     }
 
     private async Task<WorktreeRemovalFacts> FactsAsync(CreatedWorktree created, CancellationToken cancellationToken)
@@ -53,12 +53,12 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
 
         return new WorktreeRemovalFacts(
             health,
-            created.Branch,
+            created.Branch.Value,
             DirtyFileCount: await git.CountChangedFilesAsync(created.Path.Value, cancellationToken),
             UnpushedCommitCount: await git.CountUnpushedCommitsAsync(created.Path.Value, cancellationToken),
             LiveSessionName: null,
             BranchCreatedByVantage: true,
-            BranchMerged: await git.IsMergedAsync(created.Repository.Value, created.Branch, into, cancellationToken),
+            BranchMerged: await git.IsMergedAsync(created.Repository.Value, created.Branch.Value, into, cancellationToken),
             LeftoverFileCount: 0);
     }
 }
@@ -70,7 +70,7 @@ public abstract record DeleteSessionOutcome : Outcome
 
     public sealed record KeptWorktree(string Name, string Reason) : DeleteSessionOutcome;
 
-    public sealed record RemovedWorktreeAndBranch(string Name, string Branch) : DeleteSessionOutcome;
+    public sealed record RemovedWorktreeAndBranch(string Name, BranchName Branch) : DeleteSessionOutcome;
 
     public sealed record BranchNotMerged(string Name, BranchToConfirm Branch) : DeleteSessionOutcome;
 }

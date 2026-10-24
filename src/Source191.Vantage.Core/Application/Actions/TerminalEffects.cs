@@ -12,7 +12,7 @@ public sealed class TerminalEffects(IClaudeCli claude, TextWriter console)
         {
             case AttachToSession attach:
                 await console.WriteLineAsync(Wording.ReturnHint);
-                await claude.AttachAsync(attach.JobId, cancellationToken);
+                await claude.AttachAsync(attach.JobId.Value, cancellationToken);
                 break;
             case OpenAgentView:
                 await claude.OpenAgentViewAsync(cancellationToken);

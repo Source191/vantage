@@ -11,12 +11,12 @@ namespace Source191.Vantage.Application.Views;
 public sealed record WorktreeRow(
     FolderPath Repository,
     FolderPath Path,
-    string? Branch,
+    BranchName? Branch,
     WorktreeHealth Health,
     int DirtyFiles,
     int UnpushedCommits,
     DateTimeOffset? LastCommitAt,
-    string? SessionId,
+    SessionId? SessionId,
     string? SessionName,
     int LeftoverFileCount,
     bool OwnerExists,
@@ -27,5 +27,5 @@ public sealed record WorktreeRow(
     public string FolderName => Path.Name;
 
     /// <summary>The removal facts as far as the scan knows them; the branch flags are settled by the action.</summary>
-    public WorktreeRemovalFacts Facts(bool branchCreatedByVantage = false, bool branchMerged = false) => new WorktreeRemovalFacts(Health.Kind, Branch ?? FolderName, DirtyFiles, UnpushedCommits, SessionName, branchCreatedByVantage, branchMerged, LeftoverFileCount);
+    public WorktreeRemovalFacts Facts(bool branchCreatedByVantage = false, bool branchMerged = false) => new WorktreeRemovalFacts(Health.Kind, Branch?.Value ?? FolderName, DirtyFiles, UnpushedCommits, SessionName, branchCreatedByVantage, branchMerged, LeftoverFileCount);
 }

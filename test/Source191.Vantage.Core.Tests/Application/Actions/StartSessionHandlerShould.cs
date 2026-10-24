@@ -51,7 +51,7 @@ public sealed class StartSessionHandlerShould
     {
         Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: false), CancellationToken.None);
 
-        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", "81cdb0f9"));
+        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", new JobId("81cdb0f9")));
         terminal.Opened.ShouldBeEmpty();
     }
 
@@ -60,7 +60,7 @@ public sealed class StartSessionHandlerShould
     {
         Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe(new StartSessionOutcome.StartedAndOpened("Fix flaky tests", "81cdb0f9", new OpenTabOutcome.Opened("Fix flaky tests", "Red", ColourReused: false)));
+        footer.ShouldBe(new StartSessionOutcome.StartedAndOpened("Fix flaky tests", new JobId("81cdb0f9"), new OpenTabOutcome.Opened("Fix flaky tests", "Red", ColourReused: false)));
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Fix flaky tests");
         tab.Script.ShouldContain($"& '{Claude}' 'attach' '81cdb0f9'");
@@ -73,7 +73,7 @@ public sealed class StartSessionHandlerShould
 
         Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe(new StartSessionOutcome.NotListedYet("Fix flaky tests", "81cdb0f9"));
+        footer.ShouldBe(new StartSessionOutcome.NotListedYet("Fix flaky tests", new JobId("81cdb0f9")));
         terminal.Opened.ShouldBeEmpty();
     }
 
@@ -110,6 +110,6 @@ public sealed class StartSessionHandlerShould
 
         processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(Worktree);
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
-        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", "81cdb0f9"));
+        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", new JobId("81cdb0f9")));
     }
 }

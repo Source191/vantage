@@ -10,7 +10,7 @@
 ## 2. Identifiers
 
 - [x] 2.1 `SessionIdShould.RejectBlank`, `JobIdShould.BeEightHexCharacters` and `DeriveFromASessionId`, `BranchNameShould.RejectBlankAndWhitespace`; implement the three records
-- [ ] 2.2 Replace the string fields on `Session`, `SessionRow`, `TabRegistration` (owner becomes `TabOwner`, with `OwnTabShould` and `SessionRowEnricherShould` covering the Vantage case), `CreatedWorktree`, `BranchToConfirm`, `GitWorktreeEntry.Branch` and the handler effects; add converters; verify build, tests and the fixture-file test pass
+- [x] 2.2 Replace the string fields on `Session`, `SessionRow`, `TabRegistration` (owner becomes `TabOwner`, with `OwnTabShould` and `SessionRowEnricherShould` covering the Vantage case), `CreatedWorktree`, `BranchToConfirm`, `GitWorktreeEntry.Branch` and the handler effects; add converters; verify build, tests and the fixture-file test pass
 
 ## 3. Session hierarchy
 

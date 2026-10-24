@@ -7,8 +7,8 @@ public enum SessionKind
 }
 
 public sealed record Session(
-    string SessionId,
-    string? JobId,
+    SessionId SessionId,
+    JobId? JobId,
     string Name,
     FolderPath WorkingDirectory,
     SessionKind Kind,

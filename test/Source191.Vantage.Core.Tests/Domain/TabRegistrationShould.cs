@@ -73,7 +73,7 @@ public sealed class TabRegistrationShould
     private static TabRegistration Pending(DateTimeOffset createdAt)
     {
         return TabRegistration.Pending(
-            sessionId: Guid.NewGuid().ToString(),
+            owner: new TabOwner.ForSession(new SessionId(Guid.NewGuid().ToString())),
             colour: TabPalette.Default[0],
             createdAt: createdAt);
     }
