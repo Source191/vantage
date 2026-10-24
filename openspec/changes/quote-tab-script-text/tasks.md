@@ -3,7 +3,7 @@
 ## 1. Quote every single-quote character
 
 - [x] 1.1 `PowerShellScriptShould.DoubleEveryCharacterPowerShellReadsAsASingleQuote`: a theory over `'`, U+2018, U+2019, U+201A and U+201B, each doubled with itself inside the literal (red first); make `PowerShellScript.Quote` double all five; verify the Core suite passes
-- [ ] 1.2 `PowerShellQuotingShould.PrintQuotedTextBackUnchanged` in Infrastructure.Tests: run real `pwsh -NoProfile -NonInteractive -EncodedCommand` through `ProcessRunner` on `Write-Output` of `Quote(text)`, where the text holds all five quote characters, a backtick, a `$name` and `'; Remove-Item C:\nowhere; '`; verify the output equals the text and that the test fails against the old `Quote`
+- [x] 1.2 `PowerShellQuotingShould.PrintQuotedTextBackUnchanged` in Infrastructure.Tests: run real `pwsh -NoProfile -NonInteractive -EncodedCommand` through `ProcessRunner` on `Write-Output` of `Quote(text)`, where the text holds all five quote characters, a backtick, a `$name` and `'; Remove-Item C:\nowhere; '`; verify the output equals the text and that the test fails against the old `Quote`
 
 ## 2. The trust tab
 
