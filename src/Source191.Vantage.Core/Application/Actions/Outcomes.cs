@@ -8,3 +8,6 @@ public sealed record DeleteOutcome(string Message, BranchToConfirm? BranchToConf
 
 /// <summary>Which sessions a resume runs for at once (failed) and which it offers as a checklist (stopped).</summary>
 public sealed record ResumePlan(IReadOnlyList<SessionRow> Automatic, IReadOnlyList<SessionRow> ToChoose);
+
+/// <summary>What removing a worktree did, and the branch the user is asked about when Vantage did not create it.</summary>
+public sealed record WorktreeRemovalOutcome(string Message, BranchToConfirm? BranchToConfirm);

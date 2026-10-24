@@ -1,5 +1,3 @@
-using Source191.Vantage.Application.Actions;
-using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.Drawing;
@@ -7,8 +5,7 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The worktrees view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class WorktreesScreenDefinition(WorktreeActions actions, LaunchWorkflow launches, WorktreeBase defaultBase)
-    : IScreenDefinition<WorktreesViewState, WorktreeRow>
+internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesViewState, WorktreeRow>
 {
     private static readonly string[] Columns = ["REPOSITORY", "FOLDER", "BRANCH", "DIRTY", "UNPUSHED", "LAST COMMIT", "SESSION", "HEALTH"];
 
@@ -103,99 +100,8 @@ internal sealed class WorktreesScreenDefinition(WorktreeActions actions, LaunchW
         // Nothing listens to the worktrees view's inputs.
     }
 
-    public bool LeavesScreen(ViewEffect effect)
-    {
-        return effect is SwitchToSessions or JumpToSession or Quit or AttachToSession;
-    }
-
-    public void Handle(IEffectContext<WorktreesViewState> context, ViewEffect effect)
-    {
-        switch (effect)
-        {
-            case RemoveWorktree remove:
-                Remove(context, remove.Row, remove.Forced);
-                break;
-            case ConfirmForceRemove confirm:
-                ConfirmThenForce(context, confirm);
-                break;
-            case PruneRepository prune:
-                context.RunInBackground("Pruning...", token => actions.PruneAsync(prune.Repository, token));
-                break;
-            case OpenShellTab shell:
-                context.RunInBackground($"Opening a shell in {shell.Row.FolderName}...", token => actions.OpenShellAsync(shell.Row, token));
-                break;
-            case StartSessionIn start:
-                RunWizard(context, start.Row);
-                break;
-            default:
-                break;
-        }
-    }
-
     private static string Count(int number)
     {
         return number == 0 ? string.Empty : number.ToString(System.Globalization.CultureInfo.InvariantCulture);
-    }
-
-    private static void ConfirmThenForce(IEffectContext<WorktreesViewState> context, ConfirmForceRemove confirm)
-    {
-        string? typed = TypedConfirmationDialog.Show(
-            context.App,
-            "Force remove",
-            "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:",
-            confirm.ConfirmationText,
-            "folder name");
-        context.Reduce(new ForceConfirmed(confirm.Row, confirm.ConfirmationText, typed));
-    }
-
-    private void Remove(IEffectContext<WorktreesViewState> context, WorktreeRow row, bool forced)
-    {
-        context.RunInBackground(
-            $"Removing {row.FolderName}...",
-            token => actions.RemoveAsync(row, forced, token),
-            outcome =>
-            {
-                if (outcome.BranchToConfirm is null)
-                {
-                    return outcome.Message;
-                }
-
-                int? answer = Confirm.Query(context.App, "Delete branch", $"Branch {outcome.BranchToConfirm.Branch} was not created by Vantage. Delete it anyway?", "Delete branch", "Keep");
-                if (answer != 0)
-                {
-                    return $"{outcome.Message} Branch kept.";
-                }
-
-                context.RunInBackground($"Deleting branch {outcome.BranchToConfirm.Branch}...", async token =>
-                {
-                    await actions.DeleteBranchAsync(outcome.BranchToConfirm, token);
-                    return $"{outcome.Message} Branch deleted.";
-                });
-
-                return $"Deleting branch {outcome.BranchToConfirm.Branch}...";
-            });
-    }
-
-    private void RunWizard(IEffectContext<WorktreesViewState> context, WorktreeRow row)
-    {
-        WizardResult? wizard = LaunchWizardDialog.Show(context.App, launches, defaultBase, fixedDirectory: row.Path);
-        if (wizard is null)
-        {
-            return;
-        }
-
-        context.RunInBackground(
-            $"Starting {wizard.Plan.Name.Text}...",
-            async token =>
-            {
-                LaunchOutcome outcome = await launches.LaunchAsync(wizard.Plan, token);
-
-                return outcome.Kind switch
-                {
-                    LaunchOutcomeKind.Started => await launches.StartedAsync(wizard.Plan, outcome, wizard.OpenInTab, token),
-                    LaunchOutcomeKind.WorkspaceNotTrusted => $"Could not start: {wizard.Plan.Directory} is not trusted yet. Run claude there once and accept the prompt.",
-                    _ => $"Could not start: {outcome.Message}",
-                };
-            });
     }
 }

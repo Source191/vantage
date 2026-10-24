@@ -5,8 +5,8 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>
-/// What one table view adds to the shared screen: its layout text, its columns and colours, its reducer, and how its
-/// own effects are carried out. Everything else (lifetime, refresh, keys, background work, spinners, redraw) is
+/// What one table view adds to the shared screen: its layout text, its columns and colours, and its reducer.
+/// Everything else (lifetime, refresh, keys, routing effects, background work, spinners, redraw) is
 /// <see cref="TableScreen{TState, TRow}"/>'s and written once.
 /// </summary>
 internal interface IScreenDefinition<TState, TRow>
@@ -53,27 +53,27 @@ internal interface IScreenDefinition<TState, TRow>
 
     /// <summary>Sees every input before the state is replaced, for the notifier.</summary>
     void OnInput(TState before, ViewInput input);
-
-    /// <summary>Effects that stop this screen so the loop can run them or switch screens.</summary>
-    bool LeavesScreen(ViewEffect effect);
-
-    /// <summary>Carries out an in-screen effect; help is handled by the screen itself.</summary>
-    void Handle(IEffectContext<TState> context, ViewEffect effect);
 }
 
-/// <summary>What a definition may do while handling an effect, on the UI thread.</summary>
-internal interface IEffectContext<TState>
+/// <summary>What a dialog flow may do on the UI thread of the screen that raised it.</summary>
+internal interface IEffectContext
 {
     IApplication App { get; }
 
-    TState State { get; set; }
+    /// <summary>The screen's key help, for the help dialog.</summary>
+    string HelpText { get; }
 
-    /// <summary>Runs the action off the UI thread with a busy spinner; its text becomes the footer and a refresh follows.</summary>
-    void RunInBackground(string working, Func<CancellationToken, Task<string>> action);
-
-    /// <summary>As above, with a continuation on the UI thread that turns the result into the footer (and may ask a question first).</summary>
-    void RunInBackground<T>(string working, Func<CancellationToken, Task<T>> action, Func<T, string> onUiThread);
+    void ShowFooter(string footer);
 
     /// <summary>Feeds a follow-up input (a dialog's answer) back through the reducer.</summary>
     void Reduce(ViewInput input);
+
+    /// <summary>Runs the effect's handler off the UI thread with a busy spinner; its answer becomes the footer.</summary>
+    void Dispatch(ViewEffect effect);
+
+    /// <summary>As above, with a continuation on the UI thread that turns the handler's answer into the footer.</summary>
+    void Dispatch(ViewEffect effect, Func<string, string> onUiThread);
+
+    /// <summary>Runs work that is not a dispatched effect (its outcome needs a question) with a continuation on the UI thread.</summary>
+    void RunInBackground<T>(string working, Func<CancellationToken, Task<T>> action, Func<T, string> onUiThread);
 }

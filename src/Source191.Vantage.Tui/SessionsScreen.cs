@@ -1,9 +1,6 @@
 using Source191.Vantage.Application;
-using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
-using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
-using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Tui;
 
@@ -11,17 +8,15 @@ namespace Source191.Vantage.Tui;
 public sealed class SessionsScreen(
     Func<CancellationToken, Task<ViewInput>> load,
     StateTransitionNotifier notifier,
-    LaunchWorkflow launches,
+    DialogEffects dialogs,
     EffectDispatcher dispatcher,
-    DeleteSessionHandler delete,
-    WorktreeBase defaultBase,
     TimeProvider clock,
     string context)
     : ISessionsScreen
 {
     public ScreenExit Run(SessionsViewState initial)
     {
-        TableScreen<SessionsViewState, SessionRow> screen = new(new SessionsScreenDefinition(notifier, launches, dispatcher, delete, defaultBase), load, clock, context);
+        TableScreen<SessionsViewState, SessionRow> screen = new(new SessionsScreenDefinition(notifier), dialogs, dispatcher, load, clock, context);
         ScreenRun<SessionsViewState> run = screen.Run(initial);
 
         return new ScreenExit(run.State, run.Exit);

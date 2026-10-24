@@ -4,16 +4,13 @@ using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Actions;
 
-public sealed record WorktreeRemovalOutcome(string Message, BranchToConfirm? BranchToConfirm);
-
 /// <summary>
-/// Removal, prune and shell actions for the worktrees view. The decision comes from the domain rules; this class
-/// adds the two facts only it can settle (did Vantage create the branch, is it merged) and then carries the decision out.
+/// Removes a worktree under the removal rules. The decision comes from the domain; this class adds the two facts only
+/// it can settle (did Vantage create the branch, is it merged) and then carries the decision out. Not a dispatcher
+/// handler: the screen may ask about the branch afterwards, so it needs the outcome.
 /// </summary>
-public sealed class WorktreeActions(IGit git, ICreatedWorktrees createdWorktrees, IFolders folders, IWindowsTerminal terminal)
+public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWorktrees, IFolders folders)
 {
-    private static readonly TabColour ShellTabColour = TabPalette.Default[^1];
-
     public async Task<WorktreeRemovalOutcome> RemoveAsync(WorktreeRow row, bool forced, CancellationToken cancellationToken)
     {
         CreatedWorktree? created = (await createdWorktrees.ReadCreatedWorktreesAsync())
@@ -27,25 +24,6 @@ public sealed class WorktreeActions(IGit git, ICreatedWorktrees createdWorktrees
             RemovalOutcome.DeleteFolder => await DeleteFolderAsync(row, decision, cancellationToken),
             _ => await RemoveThroughGitAsync(row, decision, cancellationToken),
         };
-    }
-
-    public async Task<string> PruneAsync(string repository, CancellationToken cancellationToken)
-    {
-        int pruned = await git.PruneWorktreesAsync(repository, cancellationToken);
-
-        return $"Pruned {Count(pruned, "stale registration")} from {new RepositoryPath(repository).Name}.";
-    }
-
-    public async Task<string> OpenShellAsync(WorktreeRow row, CancellationToken cancellationToken)
-    {
-        await terminal.OpenTabAsync(new TabLaunch(row.FolderName, ShellTabColour, row.Path, "Clear-Host"), cancellationToken);
-
-        return $"Opened a shell in {row.FolderName}.";
-    }
-
-    public Task DeleteBranchAsync(BranchToConfirm branch, CancellationToken cancellationToken)
-    {
-        return git.DeleteBranchAsync(branch.Repository, branch.Branch, force: true, cancellationToken);
     }
 
     private async Task<bool> IsMergedAsync(WorktreeRow row, CancellationToken cancellationToken)
@@ -92,12 +70,7 @@ public sealed class WorktreeActions(IGit git, ICreatedWorktrees createdWorktrees
         int pruned = await git.PruneWorktreesAsync(row.Repository, cancellationToken);
 
         return new WorktreeRemovalOutcome(
-            $"Deleted the folder {row.FolderName} and pruned {Count(pruned, "stale registration")} from {row.RepositoryName}.",
+            $"Deleted the folder {row.FolderName} and pruned {Registrations.Count(pruned)} from {row.RepositoryName}.",
             BranchToConfirm: null);
-    }
-
-    private static string Count(int number, string noun)
-    {
-        return number == 1 ? $"1 {noun}" : $"{number} {noun}s";
     }
 }

@@ -18,14 +18,14 @@
 
 ## 3. Worktree handlers
 
-- [ ] 3.1 `RemoveWorktreeHandlerShould`: move the removal cases from `WorktreeActionsShould`; implement `RemoveWorktreeHandler`
-- [ ] 3.2 `PruneRepositoryHandlerShould` and `OpenShellHandlerShould`: move the cases; implement both
-- [ ] 3.3 `StartSessionHandlerShould`: the `StartedAsync` cases from `LaunchWorkflowShould` (started, started and opened in a tab, started but not listed yet, untrusted) plus starting from a worktree row with the fixed directory plan; implement `StartSessionHandler` and both wizards call it
-- [ ] 3.4 Delete `WorktreeActions` and `WorktreeActionsShould`; verify build and tests pass
+- [x] 3.1 `RemoveWorktreeHandlerShould`: move the removal cases from `WorktreeActionsShould`; implement `RemoveWorktreeHandler`
+- [x] 3.2 `PruneRepositoryHandlerShould` and `OpenShellHandlerShould`: move the cases; implement both
+- [x] 3.3 `StartSessionHandlerShould`: the `StartedAsync` cases from `LaunchWorkflowShould` (started, started and opened in a tab, started but not listed yet, untrusted) plus starting from a worktree row with the fixed directory plan; implement `StartSessionHandler` and both wizards call it
+- [x] 3.4 Delete `WorktreeActions` and `WorktreeActionsShould`; verify build and tests pass
 
 ## 4. Screens route only
 
-- [ ] 4.1 `DialogEffects` in `Tui` gathers the six dialog flows from the two definitions; `TableScreen` dispatches `IDialogEffect` to it and everything else to `EffectDispatcher`; the definitions lose their `Handle` members; verify `dotnet run --project tools\HeadlessTerminal -- check` passes
+- [x] 4.1 `DialogEffects` in `Tui` gathers the six dialog flows from the two definitions; `TableScreen` dispatches `IDialogEffect` to it and everything else to `EffectDispatcher`; the definitions lose their `Handle` members; verify `dotnet run --project tools\HeadlessTerminal -- check` passes
 - [ ] 4.2 `ScreenLoopShould` uses `ILeavesScreen` instead of a type list; remove the type lists from `TableScreen` and `ScreenLoop`; verify the test passes
 - [ ] 4.3 `EffectDispatcherShould.HaveAHandlerForEveryEffectTheReducersCanProduce`: factor the registrations into `Composition.Handlers(...)` used by `Program.cs` and the test; verify it passes
 - [ ] 4.4 Manual pass through both README key tables (every key, including rename, delete with branch question, force remove, resume checklist, close empty); verify no footer text changed
