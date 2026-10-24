@@ -19,8 +19,10 @@
 
 .PARAMETER FromArtifact
     A folder holding a Source191.Vantage.<version>.nupkg, typically one downloaded from a
-    GitHub Actions run with `gh run download <run id>`. The newest package in the folder is
-    installed as it is; nothing is built or packed.
+    GitHub Actions run with `gh run download <run id>`. Check runs pack as
+    <Version>-ci.<run number>, so each run's package is a distinct version and never collides
+    with one the tool cache already holds. The newest package in the folder is installed as it
+    is; nothing is built or packed.
 
 .EXAMPLE
     .\tools\install-local.ps1
@@ -29,7 +31,7 @@
     .\tools\install-local.ps1 -Clean
 
 .EXAMPLE
-    gh run download 123456789 --name Source191.Vantage-0.1.18 --dir .\downloaded
+    gh run download 123456789 --name Source191.Vantage-0.1.18-ci.42 --dir .\downloaded
     .\tools\install-local.ps1 -FromArtifact .\downloaded
 #>
 [CmdletBinding()]
@@ -86,8 +88,10 @@ if ($Clean -and $installed -gt 0) {
     $installed = 0
 }
 
+# --allow-downgrade: a local or CI prerelease sorts below the plain release version it was built from, and a
+# ci build sorts below a local one, so moving between them is often a downgrade in NuGet's eyes.
 $verb = if ($installed -gt 0) { 'update' } else { 'install' }
-dotnet tool $verb -g $PackageId --add-source $source --version $version
+dotnet tool $verb -g $PackageId --add-source $source --version $version --allow-downgrade
 if ($LASTEXITCODE -ne 0) {
     Write-Error "dotnet tool $verb failed with exit code $LASTEXITCODE."
     exit $LASTEXITCODE

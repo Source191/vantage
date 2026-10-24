@@ -17,8 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Packed as <Version>-ci.<run number>: a distinct version per run, so installing it never
+      # collides with a version the tool cache already holds.
       - uses: ./.github/actions/build-test-pack
         id: build
+        with:
+          version-suffix: ci.${{ github.run_number }}
 
       # The packed tool from any commit, installable with
       # tools\install-local.ps1 -FromArtifact <downloaded folder>.

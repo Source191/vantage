@@ -30,13 +30,22 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $csproj = 'src/Source191.Vantage/Source191.Vantage.csproj'
           git diff --quiet HEAD^ HEAD -- $csproj
-          if ($LASTEXITCODE -eq 0) {
+          $diff = $LASTEXITCODE
+          if ($diff -eq 0) {
               "changed=false" >> $env:GITHUB_OUTPUT
               Write-Host "$csproj unchanged in this push: nothing to release."
               exit 0
           }
-          $before = ([xml](git show "HEAD^:$csproj" | Out-String)).SelectSingleNode('//Version').InnerText
+          if ($diff -ne 1) {
+              throw "git diff failed with exit code $diff; refusing to guess whether Version changed."
+          }
+          # A regex rather than an [xml] cast: git's output comes through the console encoding, and a byte
+          # order mark would break the cast.
+          $before = [regex]::Match((git show "HEAD^:$csproj" | Out-String), '<Version>\s*([^<]+?)\s*</Version>').Groups[1].Value
           $after = (Select-Xml -Path $csproj -XPath '//Version').Node.InnerText
+          if ([string]::IsNullOrWhiteSpace($before) -or [string]::IsNullOrWhiteSpace($after)) {
+              throw "Could not read Version from $csproj (before='$before', after='$after')."
+          }
           if ($before -eq $after) {
               "changed=false" >> $env:GITHUB_OUTPUT
               Write-Host "$csproj changed but Version did not ($before): nothing to release."

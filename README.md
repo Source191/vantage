@@ -36,10 +36,10 @@ Prerequisites: Windows 11, Windows Terminal, PowerShell 7, .NET 10 SDK, git, and
 
    The script stops a running `vantage.exe`, packs the tool as `<Version>-local.<timestamp>` and installs or updates the global tool. The suffix matters: the tool cache keeps the first package it saw for a version, so two plain builds of 0.1.18 would run the first one. `-Clean` uninstalls first.
 
-   To test the package a GitHub Actions run built instead of building locally, download the run's `Source191.Vantage-<version>` artefact and install from the folder:
+   To test the package a GitHub Actions run built instead of building locally, download the run's `Source191.Vantage-<version>-ci.<run number>` artefact and install from the folder:
 
    ```powershell
-   gh run download <run id> --name Source191.Vantage-0.1.18 --dir .\downloaded
+   gh run download <run id> --name Source191.Vantage-0.1.18-ci.42 --dir .\downloaded
    .\tools\install-local.ps1 -FromArtifact .\downloaded
    ```
 
@@ -271,11 +271,11 @@ dotnet run --project tools\HeadlessTerminal -- check               # the hand-of
 
 ## Continuous integration
 
-`.github\workflows\check.yml` runs on every pull request and every push to `main`, on a `windows-latest` runner because the code uses P/Invoke, ConPTY and `cmd.exe` in its integration tests. Its `check` job builds in Release (warnings are errors), runs the whole test suite against that build, runs `dotnet format --verify-no-changes`, packs the tool and uploads the `.nupkg` as a workflow artefact named `Source191.Vantage-<version>`, so a working package is downloadable from any commit (see Install). Branch protection on `main` requires `check`, so a red pull request cannot merge and `main` only moves by pull request.
+`.github\workflows\check.yml` runs on every pull request and every push to `main`, on a `windows-latest` runner because the code uses P/Invoke, ConPTY and `cmd.exe` in its integration tests. Its `check` job builds in Release (warnings are errors), runs the whole test suite against that build, runs `dotnet format --verify-no-changes`, packs the tool as `<Version>-ci.<run number>` and uploads the `.nupkg` as a workflow artefact named `Source191.Vantage-<that version>`, so a working package is downloadable from any commit and each run's package is a version the tool cache has never seen (see Install). Branch protection on `main` requires `check`, so a red pull request cannot merge. Administrators can still push to `main` directly; do not, because the release check below only looks at the last commit of a push.
 
 **Releases.** `.github\workflows\release.yml` runs on every push to `main` and is a no-op unless that push changed `Version` in `src\Source191.Vantage\Source191.Vantage.csproj`. When it did, it builds, tests and packs again and publishes a GitHub Release tagged `v<version>` with the `.nupkg` attached. Bumping `Version` is therefore the release action; do it on its own pull request once the manual checks below have passed. The tool is not on nuget.org yet (see Roadmap), so the release is provenance, an immutable package tied to a commit, rather than a distribution route.
 
-**The hand-off job.** `check.yml` has a second job, `handoff`, that installs Claude Code on the runner and runs the hand-off check from `tools\HeadlessTerminal` against a real throwaway session. It needs a `CLAUDE_CODE_OAUTH_TOKEN` repository secret (from `claude setup-token`); without one it skips with a notice. It never blocks a merge, because its keystroke timings were tuned on a laptop and a slow runner can fail it for reasons that are not bugs; read its `handoff-capture` artefact when it does. The runner has no desktop, so it seeds workspace trust for the checkout in its own `~\.claude.json`, which is the one place that record is ever written by a script.
+**The hand-off job.** `check.yml` has a second job, `handoff`, that installs Claude Code on the runner and runs the hand-off check from `tools\HeadlessTerminal` against a real throwaway session. It needs a `CLAUDE_CODE_OAUTH_TOKEN` repository secret (from `claude setup-token`); without one it skips with a notice. It never blocks a merge, because its keystroke timings were tuned on a laptop and a slow runner can fail it for reasons that are not bugs; read its `handoff-capture` artefact when it does. The runner has no desktop, so it seeds workspace trust for the checkout in its own `~\.claude.json`, which is the one place that record is ever written by a script. One caveat until the first live run has been read: Vantage strips `CLAUDE_CODE_*` from the environment of the `claude` processes it starts (`InheritedEnvironment`), so the token reaches the throwaway session the harness starts but not Vantage's own `claude agents` and `claude attach`. If those turn out to need it, the attach never happens and the check still exits 0 because Vantage quits on `q`; the capture shows whether Claude's screen was actually reached.
 
 ### Manual checks before a release
 
