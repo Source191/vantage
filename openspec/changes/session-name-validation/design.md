@@ -22,7 +22,7 @@ See proposal.md, Why. `SessionName.Parse` is the only rule for a session name. T
 
 ## Decisions
 
-- **`SessionName.Validate(string text)` returns `SessionNameValidation`.** It is either `Valid(SessionName Name)` or `Refused(NameProblem Problem)`, a two-case record hierarchy matched with a type pattern, like `Footer`. `NameProblem` is an enum (`Missing`, `UnsafeCharacters`): it carries no data, and `Wording` switches over it exhaustively. The rules move from `Parse` into `Validate`, in today's order: blank first, then semicolon or double quote.
+- **`SessionName.Validate(string text)` returns `SessionNameValidation`.** It is either `Valid(SessionName Name)` or `Refused(NameProblem Problem)`, a two-case record hierarchy matched with a type pattern, like `Footer`. `NameProblem` is an enum (`Missing`, `UnsafeCharacters`): it carries no data. `Wording` switches over it naming both members, with no discard arm, as `guard-every-switch` requires, so a third problem fails the build with CS8509 until it has words. The rules move from `Parse` into `Validate`, in today's order: blank first, then semicolon or double quote.
   - Rejected, `bool TryParse(string, out SessionName?, out NameProblem?)`: two out parameters read worse in a reducer than one pattern match.
   - Rejected, a `Result<T, E>` type: it is a general abstraction with one user.
 - **`Parse` and `TryParse` are built on `Validate`.**
