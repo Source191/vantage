@@ -60,6 +60,22 @@ public sealed class WorktreeInventoryShould : IDisposable
     }
 
     [Fact]
+    public async Task StopCountingLeftoverFilesAtTheLimit()
+    {
+        string repository = await root.CreateRepositoryAsync("Northwind.Orders");
+        string orphan = Path.Combine(repository, ".claude", "worktrees", "fix-service-tests", "node_modules");
+        Directory.CreateDirectory(orphan);
+        foreach (int number in Enumerable.Range(1, WorktreeRemovalFacts.LeftoverFileLimit + 5))
+        {
+            await File.WriteAllTextAsync(Path.Combine(orphan, $"{number}.js"), string.Empty, TestContext.Current.CancellationToken);
+        }
+
+        WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
+
+        row.LeftoverFileCount.ShouldBe(WorktreeRemovalFacts.LeftoverFileLimit);
+    }
+
+    [Fact]
     public async Task ReportASiblingWhoseRepositoryHasGoneAsBrokenWithNoOwnerToPrune()
     {
         string repository = await root.CreateRepositoryAsync("Northwind.Retired");

@@ -12,7 +12,7 @@ An architecture review on 24 October 2026 (`docs\architecture-review.md`) found 
 - `HasTranscript` on a session row is a required argument, so a forgotten value can no longer read as "safe to resume".
 - The configured worktree base is the existing `WorktreeBase` enum rather than a string compared with `"Head"`; the JSON values `RemoteDefault` and `Head` in `config.json` are unchanged.
 - Enter on a worktree row selects the running session by its session id, not by its name, because names are not unique.
-- The worktree scan no longer walks every leftover folder's whole tree on every refresh; the exact file count is gathered when removal is requested.
+- The worktree scan stops counting a leftover folder's files at a limit instead of walking its whole tree on every refresh; a refusal then says at least that many files would be lost.
 - Recent repositories and session descriptions are stored one record per file, as tab registrations already are, so `vantage here` and the console cannot overwrite each other's writes.
 
 Out of scope: every structural change from the review (project split, generic screen, effect handlers, value objects), multiple Claude accounts, and any new key or column.
@@ -25,7 +25,7 @@ None.
 
 ### Modified Capabilities
 
-- `worktree-management`: a refusal that cannot be forced never suggests force-remove; Enter goes to the session by identity; the scan does not enumerate leftover folders in full on every refresh.
+- `worktree-management`: a refusal that cannot be forced never suggests force-remove; Enter goes to the session by identity; counting a leftover folder's files is bounded.
 - `session-attach`: stop acts on the row that was selected when the key was pressed, even if the listing refreshed in between.
 - `session-listing`: overlapping refreshes leave the view consistent.
 - `session-launch`: records written by two Vantage processes at once are both kept; the recent-repositories scenario says ten, matching the code's long-standing limit, instead of five.

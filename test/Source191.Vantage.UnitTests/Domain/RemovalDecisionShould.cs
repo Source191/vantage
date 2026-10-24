@@ -126,6 +126,15 @@ public sealed class RemovalDecisionShould
     }
 
     [Fact]
+    public void SayAtLeastTheLimitWhenTheCountWasCapped()
+    {
+        RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LeftoverFileCount = WorktreeRemovalFacts.LeftoverFileLimit }, forced: false);
+
+        decision.Outcome.ShouldBe(RemovalOutcome.Refused);
+        decision.Reason.ShouldBe("at least 1000 files that git no longer tracks would be lost");
+    }
+
+    [Fact]
     public void DeleteALeftoverFolderWithFilesWhenForced()
     {
         RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LeftoverFileCount = 12 }, forced: true);

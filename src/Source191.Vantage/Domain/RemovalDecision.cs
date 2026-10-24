@@ -33,7 +33,7 @@ public sealed record RemovalDecision(
             { LiveSessionName: not null } => Refused($"session {facts.LiveSessionName} is using it", canBeForced: false),
             { Health: WorktreeHealthKind.Locked } => Refused("the worktree is locked", canBeForced: false),
             { Health: WorktreeHealthKind.Empty } => DeleteFolder(forced, prune: false),
-            { Health: WorktreeHealthKind.Orphan or WorktreeHealthKind.Broken, LeftoverFileCount: > 0 } when !forced => Refused($"{facts.LeftoverFileCount} files that git no longer tracks would be lost", canBeForced: true),
+            { Health: WorktreeHealthKind.Orphan or WorktreeHealthKind.Broken, LeftoverFileCount: > 0 } when !forced => Refused($"{LeftoverFiles(facts)} files that git no longer tracks would be lost", canBeForced: true),
             { Health: WorktreeHealthKind.Broken } => DeleteFolder(forced, prune: true),
             { Health: WorktreeHealthKind.Orphan } => DeleteFolder(forced, prune: false),
             { DirtyFileCount: > 0 } when !forced => Refused($"{facts.DirtyFileCount} changed or untracked files would be lost", canBeForced: true),
@@ -50,6 +50,13 @@ public sealed record RemovalDecision(
     private static RemovalDecision Refused(string reason, bool canBeForced)
     {
         return new(RemovalOutcome.Refused, Forced: false, BranchAction.None, PruneRegistration: false, reason, canBeForced);
+    }
+
+    private static string LeftoverFiles(WorktreeRemovalFacts facts)
+    {
+        return facts.LeftoverFileCount >= WorktreeRemovalFacts.LeftoverFileLimit
+            ? $"at least {WorktreeRemovalFacts.LeftoverFileLimit}"
+            : facts.LeftoverFileCount.ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
 
     private static BranchAction BranchActionFor(WorktreeRemovalFacts facts)

@@ -30,9 +30,13 @@ Enter on a worktree row with a running session SHALL switch to the sessions view
 - **WHEN** two sessions are both named fix-tests and one runs in the selected worktree
 - **THEN** the sessions view opens with the one whose working directory is that worktree selected
 
-### Requirement: The scan does not enumerate leftover folders in full
-The worktree scan SHALL determine whether a leftover folder holds any files without enumerating all of them, and SHALL gather the exact count only when removal is requested.
+### Requirement: Counting a leftover folder's files is bounded
+The worktree scan SHALL stop counting a leftover folder's files at a fixed limit, so a refresh never walks a whole dependencies tree, and a refusal for such a folder SHALL say that at least that many files would be lost.
 
 #### Scenario: Large leftover
 - **WHEN** an orphan folder holds many thousands of files under a dependencies folder
-- **THEN** the refresh completes without walking them, and pressing remove still reports how many files would be lost
+- **THEN** the refresh stops counting at the limit, and pressing remove says at least that many files would be lost
+
+#### Scenario: Small leftover
+- **WHEN** an orphan folder holds twelve files
+- **THEN** pressing remove says twelve files would be lost

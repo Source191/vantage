@@ -12,8 +12,8 @@
 
 - [x] 2.1 `StateStoreShould.ReadAndWriteTheWorktreeBaseAsAnEnum`: `config.json` with `"defaultBase": "Head"` reads as `WorktreeBase.Head` and writes back the same text; change `VantageConfig` and make it pass
 - [x] 2.2 `WorktreeInventoryShould.ReportTheSessionIdOfTheLiveSession`: a row carries the session id and name of the session running inside it; extend `WorktreeRow` and `LiveSessionIn`
-- [ ] 2.3 `WorktreeInventoryShould.StopCountingLeftoverFilesAtTheLimit`: a leftover holding more files than the limit reports the limit, using a temporary folder; cap `CountLeftoverFiles` with the Domain limit
-- [ ] 2.4 `RemovalDecisionShould.SayAtLeastTheLimitWhenTheCountWasCapped`: a leftover count at the limit is refused as "at least N files"; implement the wording in `RemovalDecision`
+- [x] 2.3 `WorktreeInventoryShould.StopCountingLeftoverFilesAtTheLimit`: a leftover holding more files than the limit reports the limit, using a temporary folder; cap `CountLeftoverFiles` with the Domain limit
+- [x] 2.4 `RemovalDecisionShould.SayAtLeastTheLimitWhenTheCountWasCapped`: a leftover count at the limit is refused as "at least N files"; implement the wording in `RemovalDecision`
 - [ ] 2.5 `SessionRowEnricherShould.SurviveOverlappingRefreshes`: two concurrent `EnrichAsync` calls over the same directories complete and agree; switch the cache to `ConcurrentDictionary`
 
 ## 3. State store
