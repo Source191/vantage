@@ -51,7 +51,7 @@ public sealed class SessionActionsShould : IDisposable
     {
         Session session = new("sess-9", JobId: null, name, Repository, SessionKind.Interactive, Noon, state ?? DisplayState.Idle, processId);
 
-        return new SessionRow(session, "Northwind.Orders", "main", IsWorktree: false, Description: null, HasLiveTab: false);
+        return new SessionRow(session, "Northwind.Orders", "main", IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public sealed class SessionActionsShould : IDisposable
     {
         Session session = new("sess-1", "81cdb0f9", "fix-123", directory, SessionKind.Background, Noon, state ?? DisplayState.Working);
 
-        return new SessionRow(session, "Northwind.Orders", isWorktree ? "fix-123" : "main", isWorktree, Description: null, HasLiveTab: false);
+        return new SessionRow(session, "Northwind.Orders", isWorktree ? "fix-123" : "main", isWorktree, Description: null, HasLiveTab: false, HasTranscript: true);
     }
 
     [Fact]

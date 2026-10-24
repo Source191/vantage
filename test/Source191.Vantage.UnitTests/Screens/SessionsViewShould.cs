@@ -344,6 +344,6 @@ public sealed class SessionsViewShould
             State: state,
             ProcessId: kind == SessionKind.Interactive ? 4242 : null);
 
-        return new SessionRow(session, repository, "main", IsWorktree: false, Description: null, HasLiveTab: false);
+        return new SessionRow(session, repository, "main", IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
     }
 }

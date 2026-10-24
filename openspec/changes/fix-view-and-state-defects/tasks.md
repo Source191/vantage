@@ -6,7 +6,7 @@
 - [x] 1.2 `WorktreesViewShould.NotSuggestForceWhenTheRefusalCannotBeForced`: a locked row's footer has no force hint even when its reason text is reworded; replace `IsFinal` with the field and make it pass
 - [x] 1.3 `SessionsViewShould.SelectASessionByIdWhenAskedTo`: a `SelectSession` input selects the matching row and leaves the selection alone when the id is absent; implement the reducer case
 - [x] 1.4 `SessionsViewShould.StopCarriesTheSelectedRow`: pressing x yields a `StopSession` holding the row; change the effect record and make it pass
-- [ ] 1.5 Remove the `HasTranscript = true` default from `SessionRow`; verify `dotnet build -c Debug` lists every construction site and fix each by naming the value
+- [x] 1.5 Remove the `HasTranscript = true` default from `SessionRow`; verify `dotnet build -c Debug` lists every construction site and fix each by naming the value
 
 ## 2. Configuration and inventory
 

@@ -2,9 +2,8 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Screens;
 
-/// <summary>One line of the sessions table: the session plus what Vantage adds to it.</summary>
-/// <summary>A listed session with what git, the state store and the transcript folder add to it. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then.</summary>
-public sealed record SessionRow(Session Session, string Repository, string? Branch, bool IsWorktree, string? Description, bool HasLiveTab, bool HasTranscript = true);
+/// <summary>A listed session with what git, the state store and the transcript folder add to it. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then, so every caller must say which it is.</summary>
+public sealed record SessionRow(Session Session, string Repository, string? Branch, bool IsWorktree, string? Description, bool HasLiveTab, bool HasTranscript);
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
 public sealed record Key(KeyName Name, char Character)
