@@ -4,7 +4,7 @@ A terminal console for Claude Code sessions and git worktrees on Windows.
 
 Supervise your Claude Code sessions from one terminal tab: start, attach, rename, stop, and clean up the worktrees they leave behind. Vantage lists every Claude Code session on the machine on one screen, with its state, repository, branch and description, and lets you attach to a session, open it in its own coloured Windows Terminal tab, start new sessions in a repository or a fresh sibling worktree, and tidy up the worktrees that sessions leave behind. Sessions run under Claude Code's own background supervisor (`claude --bg`), so they keep working when no terminal shows them, and the terminal bell tells you when one needs you.
 
-<!-- Screenshot of the sessions view to go here before the repository is made public. -->
+> **To do:** add a screenshot of the sessions view here before the repository is made public.
 
 ## Contents
 
