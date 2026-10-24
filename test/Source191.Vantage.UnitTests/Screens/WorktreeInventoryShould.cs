@@ -60,6 +60,22 @@ public sealed class WorktreeInventoryShould : IDisposable
     }
 
     [Fact]
+    public async Task StopCountingLeftoverFilesAtTheLimit()
+    {
+        string repository = await root.CreateRepositoryAsync("Northwind.Orders");
+        string orphan = Path.Combine(repository, ".claude", "worktrees", "fix-service-tests", "node_modules");
+        Directory.CreateDirectory(orphan);
+        foreach (int number in Enumerable.Range(1, WorktreeRemovalFacts.LeftoverFileLimit + 5))
+        {
+            await File.WriteAllTextAsync(Path.Combine(orphan, $"{number}.js"), string.Empty, TestContext.Current.CancellationToken);
+        }
+
+        WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
+
+        row.LeftoverFileCount.ShouldBe(WorktreeRemovalFacts.LeftoverFileLimit);
+    }
+
+    [Fact]
     public async Task ReportASiblingWhoseRepositoryHasGoneAsBrokenWithNoOwnerToPrune()
     {
         string repository = await root.CreateRepositoryAsync("Northwind.Retired");
@@ -148,6 +164,20 @@ public sealed class WorktreeInventoryShould : IDisposable
         WorktreeRow row = (await Inventory.ScanAsync([elsewhere, dead, live], TestContext.Current.CancellationToken)).Single();
 
         row.SessionName.ShouldBe("fix-the-tests");
+    }
+
+    [Fact]
+    public async Task ReportTheSessionIdOfTheLiveSession()
+    {
+        string repository = await root.CreateRepositoryAsync("Northwind.Orders");
+        string worktree = await root.AddSiblingWorktreeAsync(repository, "fix-1");
+        Session live = SessionIn(worktree, "fix-tests", processId: 4242);
+        Session sameName = SessionIn(repository, "fix-tests", processId: 4343);
+
+        WorktreeRow row = (await Inventory.ScanAsync([sameName, live], TestContext.Current.CancellationToken)).Single();
+
+        row.SessionId.ShouldBe(live.SessionId);
+        row.SessionName.ShouldBe("fix-tests");
     }
 
     [Fact]

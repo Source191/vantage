@@ -22,7 +22,7 @@ public sealed class SessionsScreen(
     LaunchWorkflow launches,
     SessionActions actions,
     TabOpener tabs,
-    string defaultBase,
+    WorktreeBase defaultBase,
     TimeProvider clock,
     string context)
 {
@@ -113,7 +113,7 @@ public sealed class SessionsScreen(
                     RunInBackground(app, live, $"Opening a tab for {open.Row.Session.Name}...", token => tabs.OpenAsync(open.Row, token));
                     break;
                 case StopSession stop:
-                    RunInBackground(app, live, "Stopping...", token => actions.StopAsync(live.State.Rows.First(row => row.Session.JobId == stop.JobId), token));
+                    RunInBackground(app, live, "Stopping...", token => actions.StopAsync(stop.Row, token));
                     break;
                 case AdoptSession adopt:
                     RunInBackground(app, live, $"Moving {adopt.Row.Session.Name} under Vantage...", token => actions.AdoptAsync(adopt.Row, token));

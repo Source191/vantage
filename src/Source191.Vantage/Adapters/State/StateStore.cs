@@ -1,5 +1,6 @@
 using Source191.Vantage.Domain;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Source191.Vantage.Adapters.State;
 
@@ -11,7 +12,8 @@ public sealed class StateStore(string folder)
 {
     private const int RecentLimit = 10;
 
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+    // Enums are written as their names, so config.json keeps reading "RemoteDefault" and "Head".
+    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { WriteIndented = true, Converters = { new JsonStringEnumConverter() } };
 
     private string TabsFolder => Path.Combine(folder, "tabs");
 

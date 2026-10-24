@@ -19,7 +19,8 @@ public sealed record StartSessionIn(WorktreeRow Row) : ViewEffect;
 
 public sealed record OpenShellTab(WorktreeRow Row) : ViewEffect;
 
-public sealed record JumpToSession(string SessionName) : ViewEffect;
+/// <summary>Go to the sessions view with this session selected; by id, because names are not unique.</summary>
+public sealed record JumpToSession(string SessionId) : ViewEffect;
 
 public sealed record SwitchToSessions : ViewEffect;
 
@@ -174,7 +175,7 @@ public static class WorktreesView
         RemovalDecision decision = RemovalDecision.For(row.Facts(), forced);
         if (decision.Outcome == RemovalOutcome.Refused)
         {
-            string hint = forced || IsFinal(decision) ? string.Empty : ForceHint;
+            string hint = forced || !decision.CanBeForced ? string.Empty : ForceHint;
 
             return (null, $"Not removed: {decision.Reason}.{hint}");
         }
@@ -198,12 +199,6 @@ public static class WorktreesView
         };
     }
 
-    /// <summary>Lock and live-session refusals cannot be forced, so the footer must not suggest it.</summary>
-    private static bool IsFinal(RemovalDecision decision)
-    {
-        return decision.Reason.StartsWith("session ", StringComparison.Ordinal) || decision.Reason.Contains("locked", StringComparison.Ordinal);
-    }
-
     private static (ViewEffect?, string) Prune(WorktreeRow row)
     {
         return row.OwnerExists
@@ -220,9 +215,9 @@ public static class WorktreesView
 
     private static (ViewEffect?, string) JumpToSession(WorktreeRow row)
     {
-        return row.SessionName is null
+        return row.SessionId is null
             ? (null, $"No session is running in {row.FolderName}.")
-            : (new JumpToSession(row.SessionName), string.Empty);
+            : (new JumpToSession(row.SessionId), string.Empty);
     }
 
     private static WorktreesViewState MoveSelection(WorktreesViewState state, int delta)

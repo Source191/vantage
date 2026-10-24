@@ -126,6 +126,15 @@ public sealed class RemovalDecisionShould
     }
 
     [Fact]
+    public void SayAtLeastTheLimitWhenTheCountWasCapped()
+    {
+        RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LeftoverFileCount = WorktreeRemovalFacts.LeftoverFileLimit }, forced: false);
+
+        decision.Outcome.ShouldBe(RemovalOutcome.Refused);
+        decision.Reason.ShouldBe("at least 1000 files that git no longer tracks would be lost");
+    }
+
+    [Fact]
     public void DeleteALeftoverFolderWithFilesWhenForced()
     {
         RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LeftoverFileCount = 12 }, forced: true);
@@ -141,6 +150,18 @@ public sealed class RemovalDecisionShould
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
         decision.Reason.ShouldContain("fix-service-tests");
+    }
+
+    [Fact]
+    public void SayWhetherARefusalCanBeForced()
+    {
+        RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Locked }, forced: false).CanBeForced.ShouldBeFalse();
+        RemovalDecision.For(Clean with { LiveSessionName = "remove-sonar" }, forced: false).CanBeForced.ShouldBeFalse();
+        RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LiveSessionName = "fix-service-tests" }, forced: false).CanBeForced.ShouldBeFalse();
+        RemovalDecision.For(Clean with { DirtyFileCount = 5 }, forced: false).CanBeForced.ShouldBeTrue();
+        RemovalDecision.For(Clean with { UnpushedCommitCount = 2 }, forced: false).CanBeForced.ShouldBeTrue();
+        RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LeftoverFileCount = 12 }, forced: false).CanBeForced.ShouldBeTrue();
+        RemovalDecision.For(Clean, forced: false).CanBeForced.ShouldBeFalse();
     }
 
     [Fact]

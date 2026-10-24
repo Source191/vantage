@@ -27,7 +27,7 @@ internal static class LaunchWizardDialog
     private const int PromptLines = 5;
 
     /// <summary>Shows the wizard. With a fixed directory (the worktrees view's s key) the session starts there: no repository list, no worktree choice.</summary>
-    public static WizardResult? Show(IApplication app, LaunchWorkflow workflow, string defaultBase, string? fixedDirectory = null)
+    public static WizardResult? Show(IApplication app, LaunchWorkflow workflow, WorktreeBase defaultBase, string? fixedDirectory = null)
     {
         WizardResult? result = null;
         RepositoryChoice? fixedChoice = fixedDirectory is null ? null : new RepositoryChoice(new RepositoryPath(fixedDirectory).Name, fixedDirectory, IsRepository: true);
@@ -60,7 +60,7 @@ internal static class LaunchWizardDialog
         TextField name = new() { X = RightColumn, Y = 4, Width = ColumnWidth };
         TextField description = new() { X = RightColumn, Y = 7, Width = ColumnWidth };
         OptionSelector mode = new() { X = RightColumn, Y = 10, Labels = ["Current branch", "New sibling worktree"], Value = 0 };
-        OptionSelector baseRef = new() { X = RightColumn, Y = 13, Labels = ["origin default branch", "current HEAD"], Value = defaultBase == "Head" ? 1 : 0 };
+        OptionSelector baseRef = new() { X = RightColumn, Y = 13, Labels = ["origin default branch", "current HEAD"], Value = defaultBase == WorktreeBase.Head ? 1 : 0 };
         Label preview = new() { X = RightColumn, Y = 15, Width = Dim.Fill(1), Text = string.Empty };
         preview.SetScheme(Palette.Plain(Palette.Cyan));
         // TextView is marked obsolete in favour of the separate tui-cs Editor package; a wrapping prompt box does not justify another dependency.

@@ -1,3 +1,4 @@
+using Source191.Vantage.Domain;
 using Source191.Vantage.Launch;
 
 namespace Source191.Vantage.UnitTests.Launch;

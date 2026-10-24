@@ -8,12 +8,6 @@ public enum LaunchMode
     NewWorktree,
 }
 
-public enum WorktreeBase
-{
-    RemoteDefault,
-    Head,
-}
-
 /// <summary>What the user typed and chose in the wizard, before any rule is applied.</summary>
 public sealed record LaunchRequest(
     RepositoryChoice Repository,

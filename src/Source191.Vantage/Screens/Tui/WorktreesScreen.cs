@@ -20,7 +20,7 @@ public sealed class WorktreesScreen(
     Func<CancellationToken, Task<ViewInput>> load,
     WorktreeActions actions,
     LaunchWorkflow launches,
-    string defaultBase,
+    WorktreeBase defaultBase,
     TimeProvider clock,
     string context)
 {

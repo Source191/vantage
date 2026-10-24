@@ -27,7 +27,7 @@ public sealed class TabOpenerShould : IDisposable
     {
         Session session = new("sess-1", "81cdb0f9", "Refund retry policy", @"C:\repos\Northwind.Orders", SessionKind.Background, Noon, DisplayState.Working);
 
-        return new SessionRow(session, "Northwind.Orders", "main", IsWorktree: false, Description: null, hasLiveTab);
+        return new SessionRow(session, "Northwind.Orders", "main", IsWorktree: false, Description: null, hasLiveTab, HasTranscript: true);
     }
 
     [Fact]

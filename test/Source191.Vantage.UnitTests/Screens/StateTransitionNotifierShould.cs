@@ -58,6 +58,6 @@ public sealed class StateTransitionNotifierShould : IDisposable
     {
         Session session = new(Guid.NewGuid().ToString(), kind == SessionKind.Background ? "81cdb0f9" : null, name, @"C:\repos\Northwind.Orders", kind, Noon, state);
 
-        return new SessionRow(session, "Northwind.Orders", "main", IsWorktree: false, Description: null, HasLiveTab: false);
+        return new SessionRow(session, "Northwind.Orders", "main", IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
     }
 }

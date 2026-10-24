@@ -2,19 +2,19 @@
 
 ## 1. Domain rules
 
-- [ ] 1.1 `RemovalDecisionShould.SayWhetherARefusalCanBeForced`: lock and live-session refusals report `CanBeForced` false, dirty, unpushed and leftover-with-files refusals report true; add the field and make it pass
-- [ ] 1.2 `WorktreesViewShould.NotSuggestForceWhenTheRefusalCannotBeForced`: a locked row's footer has no force hint even when its reason text is reworded; replace `IsFinal` with the field and make it pass
-- [ ] 1.3 `SessionsViewShould.SelectASessionByIdWhenAskedTo`: a `SelectSession` input selects the matching row and leaves the selection alone when the id is absent; implement the reducer case
-- [ ] 1.4 `SessionsViewShould.StopCarriesTheSelectedRow`: pressing x yields a `StopSession` holding the row; change the effect record and make it pass
-- [ ] 1.5 Remove the `HasTranscript = true` default from `SessionRow`; verify `dotnet build -c Debug` lists every construction site and fix each by naming the value
+- [x] 1.1 `RemovalDecisionShould.SayWhetherARefusalCanBeForced`: lock and live-session refusals report `CanBeForced` false, dirty, unpushed and leftover-with-files refusals report true; add the field and make it pass
+- [x] 1.2 `WorktreesViewShould.NotSuggestForceWhenTheRefusalCannotBeForced`: a locked row's footer has no force hint even when its reason text is reworded; replace `IsFinal` with the field and make it pass
+- [x] 1.3 `SessionsViewShould.SelectASessionByIdWhenAskedTo`: a `SelectSession` input selects the matching row and leaves the selection alone when the id is absent; implement the reducer case
+- [x] 1.4 `SessionsViewShould.StopCarriesTheSelectedRow`: pressing x yields a `StopSession` holding the row; change the effect record and make it pass
+- [x] 1.5 Remove the `HasTranscript = true` default from `SessionRow`; verify `dotnet build -c Debug` lists every construction site and fix each by naming the value
 
 ## 2. Configuration and inventory
 
-- [ ] 2.1 `StateStoreShould.ReadAndWriteTheWorktreeBaseAsAnEnum`: `config.json` with `"defaultBase": "Head"` reads as `WorktreeBase.Head` and writes back the same text; change `VantageConfig` and make it pass
-- [ ] 2.2 `WorktreeInventoryShould.ReportTheSessionIdOfTheLiveSession`: a row carries the session id and name of the session running inside it; extend `WorktreeRow` and `LiveSessionIn`
-- [ ] 2.3 `WorktreeInventoryShould.NotCountLeftoverFilesDuringTheScan`: a leftover with many files reports `HasLeftoverFiles` without a count, using a temporary folder; change `CountLeftoverFiles` to an `Any` check
-- [ ] 2.4 `WorktreeActionsShould.CountLeftoverFilesWhenRemovalIsRequested`: the refusal names the exact count; move the full count into the action
-- [ ] 2.5 `SessionRowEnricherShould.SurviveOverlappingRefreshes`: two concurrent `EnrichAsync` calls over the same directories complete and agree; switch the cache to `ConcurrentDictionary`
+- [x] 2.1 `StateStoreShould.ReadAndWriteTheWorktreeBaseAsAnEnum`: `config.json` with `"defaultBase": "Head"` reads as `WorktreeBase.Head` and writes back the same text; change `VantageConfig` and make it pass
+- [x] 2.2 `WorktreeInventoryShould.ReportTheSessionIdOfTheLiveSession`: a row carries the session id and name of the session running inside it; extend `WorktreeRow` and `LiveSessionIn`
+- [x] 2.3 `WorktreeInventoryShould.StopCountingLeftoverFilesAtTheLimit`: a leftover holding more files than the limit reports the limit, using a temporary folder; cap `CountLeftoverFiles` with the Domain limit
+- [x] 2.4 `RemovalDecisionShould.SayAtLeastTheLimitWhenTheCountWasCapped`: a leftover count at the limit is refused as "at least N files"; implement the wording in `RemovalDecision`
+- [x] 2.5 `SessionRowEnricherShould.SurviveOverlappingRefreshes`: two concurrent `EnrichAsync` calls over the same directories complete and agree; switch the cache to `ConcurrentDictionary`
 
 ## 3. State store
 
@@ -24,9 +24,9 @@
 
 ## 4. Screens and wiring
 
-- [ ] 4.1 `SessionsScreen` handles `StopSession` from the row it carries; `WorktreesScreen` and `LaunchWizardDialog` take `WorktreeBase`; `Program.cs` reduces a `SelectSession` input for `JumpToSession` instead of editing state; verify `dotnet build -c Debug`, `dotnet test test\Source191.Vantage.UnitTests -c Debug --no-build` and `dotnet format --verify-no-changes` pass
-- [ ] 4.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` and verify exit code 0
-- [ ] 4.3 Update the README's worktrees-view key table (Enter goes to the session by id) and the "Where Vantage keeps things" section for the new state layout; verify the text matches the delta specs
+- [x] 4.1 `SessionsScreen` handles `StopSession` from the row it carries; `WorktreesScreen` and `LaunchWizardDialog` take `WorktreeBase`; `Program.cs` reduces a `SelectSession` input for `JumpToSession` instead of editing state; verify `dotnet build -c Debug`, `dotnet test test\Source191.Vantage.UnitTests -c Debug --no-build` and `dotnet format --verify-no-changes` pass
+- [x] 4.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` and verify exit code 0
+- [x] 4.3 Update the README's worktrees-view key table (Enter goes to the session by id) and the "Where Vantage keeps things" section for the new state layout; verify the text matches the delta specs
 
 ## Workflow follow-up
 
