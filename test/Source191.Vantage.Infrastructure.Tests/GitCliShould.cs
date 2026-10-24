@@ -48,6 +48,55 @@ public sealed class GitCliShould
         exception.Message.ShouldContain("already checked out");
     }
 
+    /// <summary>The commands (list, add, remove, prune, count, delete): a non-zero exit is a GitException naming the command and git's words.</summary>
+    [Theory]
+    [InlineData("list worktrees")]
+    [InlineData("remove a worktree")]
+    [InlineData("prune")]
+    [InlineData("count changed files")]
+    [InlineData("count unpushed commits")]
+    [InlineData("delete a branch")]
+    [InlineData("list ignored files")]
+    public async Task ThrowAGitExceptionWhenACommandFails(string command)
+    {
+        processes.AnswerAll(new ProcessResult(128, string.Empty, "fatal: not a git repository"));
+
+        Task run = command switch
+        {
+            "list worktrees" => Git.ListWorktreesAsync(Repository, CancellationToken.None),
+            "remove a worktree" => Git.RemoveWorktreeAsync(Repository, Worktree, force: false, CancellationToken.None),
+            "prune" => Git.PruneWorktreesAsync(Repository, CancellationToken.None),
+            "count changed files" => Git.CountChangedFilesAsync(Worktree, CancellationToken.None),
+            "count unpushed commits" => Git.CountUnpushedCommitsAsync(Worktree, CancellationToken.None),
+            "delete a branch" => Git.DeleteBranchAsync(Repository, "fix-123", force: false, CancellationToken.None),
+            "list ignored files" => Git.ListIgnoredFilesAsync(Repository, CancellationToken.None),
+            _ => throw new ArgumentOutOfRangeException(nameof(command), command, "no such command in this test"),
+        };
+
+        GitException exception = await Should.ThrowAsync<GitException>(() => run);
+        exception.Message.ShouldContain("not a git repository");
+    }
+
+    [Fact]
+    public async Task ThrowAGitExceptionWhenTheUnpushedCountIsNotANumber()
+    {
+        processes.AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
+
+        GitException exception = await Should.ThrowAsync<GitException>(() => Git.CountUnpushedCommitsAsync(Worktree, CancellationToken.None));
+
+        exception.Message.ShouldContain("rev-list");
+    }
+
+    /// <summary>The queries (current branch, main checkout): a non-zero exit is no answer, not an error.</summary>
+    [Fact]
+    public async Task AnswerNullWhenAQueryFails()
+    {
+        processes.AnswerAll(new ProcessResult(128, string.Empty, "fatal: not a git repository"));
+
+        (await Git.CurrentBranchAsync(Worktree, CancellationToken.None)).ShouldBeNull();
+        (await Git.MainCheckoutOfAsync(Worktree, CancellationToken.None)).ShouldBeNull();
+    }
+
     [Theory]
     [InlineData(false, new[] { "worktree", "remove", Worktree })]
     [InlineData(true, new[] { "worktree", "remove", "--force", Worktree })]

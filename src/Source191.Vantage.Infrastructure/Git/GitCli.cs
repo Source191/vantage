@@ -49,7 +49,10 @@ public sealed class GitCli(IProcessRunner processes) : IGit
     {
         ProcessResult result = await RunOrThrowAsync(worktree, ["rev-list", "--count", "HEAD", "--not", "--remotes"], cancellationToken);
 
-        return int.Parse(result.StandardOutput.Trim(), CultureInfo.InvariantCulture);
+        // An unreadable count is a failed command too, so the scan's catch for GitException covers it.
+        return int.TryParse(result.StandardOutput.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out int count)
+            ? count
+            : throw new GitException($"git rev-list --count gave '{result.StandardOutput.Trim()}', not a number");
     }
 
     public async Task<DateTimeOffset?> LastCommitAtAsync(string worktree, CancellationToken cancellationToken)

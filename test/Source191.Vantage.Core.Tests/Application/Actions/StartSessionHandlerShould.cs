@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
@@ -40,9 +41,9 @@ public sealed class StartSessionHandlerShould
             GitCli git = new(processes);
             FakeTimeProvider clock = new(Noon);
             LaunchService service = new(new ClaudeCli(processes, Claude), git, store, store, store, new WorktreeIncludeCopier(git), clock);
-            OpenTabHandler tabs = new(store, new FakeProcessRegistry(), terminal, clock, Claude, Vantage);
+            OpenTabHandler tabs = new(store, new FakeProcessRegistry(), terminal, clock, new TabScripts(Claude, Vantage));
 
-            return new StartSessionHandler(service, tabs, terminal, Claude);
+            return new StartSessionHandler(service, tabs, terminal, new TabScripts(Claude, Vantage));
         }
     }
 

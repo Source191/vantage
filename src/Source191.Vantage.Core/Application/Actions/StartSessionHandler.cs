@@ -10,7 +10,7 @@ namespace Source191.Vantage.Application.Actions;
 /// Starts the session the launch wizard planned, from either view. When asked it opens the new session's tab; when the
 /// workspace is not trusted it opens a plain Claude tab there so the trust prompt can be accepted.
 /// </summary>
-public sealed class StartSessionHandler(LaunchService service, OpenTabHandler tabs, IWindowsTerminal terminal, string claudeExecutable)
+public sealed class StartSessionHandler(LaunchService service, OpenTabHandler tabs, IWindowsTerminal terminal, TabScripts scripts)
     : IEffectHandler<StartSession>
 {
     public async Task<Outcome> HandleAsync(StartSession effect, CancellationToken cancellationToken)
@@ -39,7 +39,7 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
 
     private async Task<StartSessionOutcome> OpenTrustTabAsync(FolderPath directory, CancellationToken cancellationToken)
     {
-        await terminal.OpenTabAsync(TrustRecovery.TabFor(directory, claudeExecutable), cancellationToken);
+        await terminal.OpenTabAsync(scripts.Trust(directory), cancellationToken);
 
         return new StartSessionOutcome.NotTrusted(directory);
     }
