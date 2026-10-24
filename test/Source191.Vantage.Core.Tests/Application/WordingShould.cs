@@ -5,6 +5,7 @@ using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Core.Tests.Application.Actions;
 using Source191.Vantage.Domain;
+using Source191.Vantage.TestDoubles;
 using Sessions = Source191.Vantage.Core.Tests.Application.Actions.SessionTestData;
 using Worktrees = Source191.Vantage.Core.Tests.Application.Actions.WorktreeTestData;
 
@@ -16,6 +17,8 @@ namespace Source191.Vantage.Core.Tests.Application;
 /// </summary>
 public sealed class WordingShould
 {
+    private const string FixedFolder = @"C:\Users\me\source\repos\Northwind.Orders-fix-123";
+
     private static readonly SessionRow Session = Sessions.Background(Sessions.Repository, isWorktree: false);
     private static readonly SessionRow Terminal = Sessions.Interactive("fix-123", 4242);
     private static readonly WorktreeRow Worktree = Worktrees.Row(WorktreeHealthKind.Ok);
@@ -345,6 +348,76 @@ public sealed class WordingShould
             _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123"),
             _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),
         };
+    }
+
+    // The new-session wizard.
+
+    public static TheoryData<Type> WizardProblems => new(typeof(WizardProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(WizardProblem))));
+
+    [Theory]
+    [MemberData(nameof(WizardProblems))]
+    public void HaveWordsForEveryWizardProblem(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        WizardProblem problem = (WizardProblem)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+
+        Wording.Describe(problem).ShouldNotBe(problem.ToString(), $"{type.Name} has no arm in Wording.Describe");
+    }
+
+    [Fact]
+    public void AskForARepositoryInTheWizard()
+    {
+        Wording.Describe(new WizardProblem.NoRepository()).ShouldBe("Choose a repository: type part of its name, then ↑↓.");
+    }
+
+    [Fact]
+    public void AskForASessionNameInTheWizard()
+    {
+        Wording.Describe(new WizardProblem.NoName()).ShouldBe("Session name is required: a short, human-readable label for the session.");
+    }
+
+    [Fact]
+    public void GiveThePlanBuildersReasonInTheWizard()
+    {
+        Wording.Describe(new WizardProblem.Refused("A worktree needs a name with some letters or digits in it."))
+            .ShouldBe("A worktree needs a name with some letters or digits in it.");
+        Wording.Describe(new WizardProblem.Refused(Reason: null)).ShouldBe("That cannot be launched.");
+    }
+
+    [Fact]
+    public void TitleTheWizardByWhereTheSessionStarts()
+    {
+        Wording.WizardTitle(Wizard()).ShouldBe("New session");
+        Wording.WizardTitle(Wizard(FixedFolder)).ShouldBe("New session in Northwind.Orders-fix-123");
+    }
+
+    [Fact]
+    public void CaptionTheChosenRepositoryOrTheFixedDirectory()
+    {
+        Wording.WizardChosenCaption(Wizard()).ShouldBe("Repository");
+        Wording.WizardChosenCaption(Wizard(FixedFolder)).ShouldBe("Directory");
+    }
+
+    [Fact]
+    public void NameTheChosenRepositoryOrSayNone()
+    {
+        Wording.WizardChosen(Wizard()).ShouldBe("(none)");
+        Wording.WizardChosen(Wizard(FixedFolder)).ShouldBe("Northwind.Orders-fix-123");
+    }
+
+    [Fact]
+    public void HintTheWizardsKeys()
+    {
+        Wording.WizardHint(Wizard()).ShouldBe("Type to filter, ↑↓ to choose, Enter confirms the repository   Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel");
+        Wording.WizardHint(Wizard(FixedFolder)).ShouldBe("Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel");
+    }
+
+    /// <summary>A wizard with no repositories to offer, or fixed in one folder.</summary>
+    private static WizardState Wizard(string? fixedDirectory = null)
+    {
+        FakeFolders folders = new();
+
+        return WizardState.Open(new RepositoryCatalogue(folders, []), [], folders, WorktreeBase.RemoteDefault, fixedDirectory is null ? null : new FolderPath(fixedDirectory));
     }
 
     // The help dialogs.
