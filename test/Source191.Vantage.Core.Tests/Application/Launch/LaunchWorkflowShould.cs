@@ -35,7 +35,7 @@ public sealed class LaunchWorkflowShould
             GitCli git = new(processes);
             FakeTimeProvider clock = new(Noon);
             LaunchService service = new(new ClaudeCli(processes, Claude), git, store, store, store, new WorktreeIncludeCopier(git), clock);
-            TabOpener tabs = new(store, new FakeProcessRegistry(), terminal, clock, Claude, Vantage);
+            OpenTabHandler tabs = new(store, new FakeProcessRegistry(), terminal, clock, Claude, Vantage);
 
             return new LaunchWorkflow(new RepositoryCatalogue(new FakeFolders(), []), new FakeFolders(), store, service, tabs, terminal, Claude);
         }

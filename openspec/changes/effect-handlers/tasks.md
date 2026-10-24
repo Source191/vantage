@@ -2,19 +2,19 @@
 
 ## 1. Markers and dispatcher
 
-- [ ] 1.1 `SessionsViewShould.MarkEffectsThatLeaveTheScreen` and `WorktreesViewShould.MarkEffectsThatLeaveTheScreen`: attach, agent view, quit, switch and jump implement `ILeavesScreen`; add the markers (`ILeavesScreen`, `IDialogEffect`) and apply them
-- [ ] 1.2 `EffectDispatcherShould.RouteAnEffectToItsHandler` and `RefuseAnUnregisteredEffectByName`: implement `IEffectHandler<TEffect>` and `EffectDispatcher`
+- [x] 1.1 `SessionsViewShould.MarkEffectsThatLeaveTheScreen` and `WorktreesViewShould.MarkEffectsThatLeaveTheScreen`: attach, agent view, quit, switch and jump implement `ILeavesScreen`; add the markers (`ILeavesScreen`, `IDialogEffect`) and apply them
+- [x] 1.2 `EffectDispatcherShould.RouteAnEffectToItsHandler` and `RefuseAnUnregisteredEffectByName`: implement `IEffectHandler<TEffect>` and `EffectDispatcher`
 
 ## 2. Session handlers
 
-- [ ] 2.1 `StopSessionHandlerShould`: move the stop case from `SessionActionsShould`; implement `StopSessionHandler`
-- [ ] 2.2 `AdoptSessionHandlerShould`: move the adopt cases; implement `AdoptSessionHandler`
-- [ ] 2.3 `RenameSessionHandlerShould`: move the rename cases including the restore-under-old-name path; implement `RenameSessionHandler`
-- [ ] 2.4 `CloseEmptyTerminalsHandlerShould`: move the close cases including the summary wording; implement `CloseEmptyTerminalsHandler`
-- [ ] 2.5 `DeleteSessionHandlerShould` and `DeleteBranchHandlerShould`: move the delete and branch cases; implement both handlers with `DeleteBranch` as a new effect
-- [ ] 2.6 `ResumeSessionsHandlerShould`: move the resume and plan cases; implement `ResumeSessionsHandler`
-- [ ] 2.7 `OpenTabHandlerShould`: rename `TabOpenerShould`, keeping the open and switch-to-live-tab cases; `TabOpener` becomes `OpenTabHandler`
-- [ ] 2.8 Delete `SessionActions` and `SessionActionsShould`; verify `dotnet build` and tests pass
+- [x] 2.1 `StopSessionHandlerShould`: move the stop case from `SessionActionsShould`; implement `StopSessionHandler`
+- [x] 2.2 `AdoptSessionHandlerShould`: move the adopt cases; implement `AdoptSessionHandler`
+- [x] 2.3 `RenameSessionHandlerShould`: move the rename cases including the restore-under-old-name path; implement `RenameSessionHandler`
+- [x] 2.4 `CloseEmptyTerminalsHandlerShould`: move the close cases including the summary wording; implement `CloseEmptyTerminalsHandler`
+- [x] 2.5 `DeleteSessionHandlerShould` and `DeleteBranchHandlerShould`: move the delete and branch cases; implement both handlers with `DeleteBranch` as a new effect
+- [x] 2.6 `ResumeSessionsHandlerShould`: move the resume and plan cases; implement `ResumeSessionsHandler`
+- [x] 2.7 `OpenTabHandlerShould`: rename `TabOpenerShould`, keeping the open and switch-to-live-tab cases; `TabOpener` becomes `OpenTabHandler`
+- [x] 2.8 Delete `SessionActions` and `SessionActionsShould`; verify `dotnet build` and tests pass
 
 ## 3. Worktree handlers
 

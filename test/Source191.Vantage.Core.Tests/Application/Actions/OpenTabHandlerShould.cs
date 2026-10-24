@@ -7,7 +7,7 @@ using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application.Actions;
 
-public sealed class TabOpenerShould
+public sealed class OpenTabHandlerShould
 {
     private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
     private const string Vantage = @"C:\Users\me\.dotnet\tools\vantage.exe";
@@ -19,7 +19,7 @@ public sealed class TabOpenerShould
 
     private readonly InMemoryState Store = new();
 
-    private TabOpener Opener => new(Store, registry, terminal, new FakeTimeProvider(Noon), Claude, Vantage);
+    private OpenTabHandler Handler => new(Store, registry, terminal, new FakeTimeProvider(Noon), Claude, Vantage);
 
     private static SessionRow Row(bool hasLiveTab = false)
     {
@@ -31,7 +31,7 @@ public sealed class TabOpenerShould
     [Fact]
     public async Task OpenATabTitledWithTheSessionNameThatClaimsItselfThenAttaches()
     {
-        string footer = await Opener.OpenAsync(Row(), CancellationToken.None);
+        string footer = await Handler.HandleAsync(new OpenTabForSession(Row()), CancellationToken.None);
 
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Refund retry policy");
@@ -47,7 +47,7 @@ public sealed class TabOpenerShould
     [Fact]
     public async Task OpenATabForAJustStartedSessionThatIsNotARowYet()
     {
-        string footer = await Opener.OpenAsync(Row().Session, CancellationToken.None);
+        string footer = await Handler.OpenAsync(Row().Session, CancellationToken.None);
 
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Refund retry policy");
@@ -60,7 +60,7 @@ public sealed class TabOpenerShould
     [Fact]
     public async Task RecordAPendingRegistrationForTheTab()
     {
-        await Opener.OpenAsync(Row(), CancellationToken.None);
+        await Handler.HandleAsync(new OpenTabForSession(Row()), CancellationToken.None);
 
         TabRegistration pending = (await Store.ReadTabsAsync()).Single();
         pending.SessionId.ShouldBe("sess-1");
@@ -74,7 +74,7 @@ public sealed class TabOpenerShould
     {
         await Store.WriteTabAsync(TabRegistration.Pending("other", TabPalette.Default[0], Noon.AddSeconds(-5)));
 
-        await Opener.OpenAsync(Row(), CancellationToken.None);
+        await Handler.HandleAsync(new OpenTabForSession(Row()), CancellationToken.None);
 
         terminal.Opened.Single().Colour.ShouldBe(TabPalette.Default[1]);
     }
@@ -85,7 +85,7 @@ public sealed class TabOpenerShould
         registry.Running(100, Noon);
         await Store.WriteTabAsync(TabRegistration.Pending(OwnTab.RegistrationKey, TabPalette.Default[0], Noon).ClaimedBy(100, Noon));
 
-        await Opener.OpenAsync(Row(), CancellationToken.None);
+        await Handler.HandleAsync(new OpenTabForSession(Row()), CancellationToken.None);
 
         terminal.Opened.Single().Colour.ShouldBe(TabPalette.Default[1]);
     }
@@ -96,7 +96,7 @@ public sealed class TabOpenerShould
         await Store.WriteTabAsync(TabRegistration.Pending("sess-1", TabPalette.Default[0], Noon).ClaimedBy(4242, Noon));
         registry.Running(4242, Noon).InTree(4242, "pwsh", 777).InTree(777, "WindowsTerminal", 1);
 
-        string footer = await Opener.OpenAsync(Row(hasLiveTab: true), CancellationToken.None);
+        string footer = await Handler.HandleAsync(new OpenTabForSession(Row(hasLiveTab: true)), CancellationToken.None);
 
         terminal.Opened.ShouldBeEmpty();
         terminal.Focused.Single().ShouldBe((777, "Refund retry policy"));
@@ -108,7 +108,7 @@ public sealed class TabOpenerShould
     {
         await Store.WriteTabAsync(TabRegistration.Pending("sess-1", TabPalette.Default[0], Noon));
 
-        await Opener.OpenAsync(Row(hasLiveTab: true), CancellationToken.None);
+        await Handler.HandleAsync(new OpenTabForSession(Row(hasLiveTab: true)), CancellationToken.None);
 
         terminal.Focused.Single().ShouldBe(((int?)null, "Refund retry policy"));
     }
@@ -119,7 +119,7 @@ public sealed class TabOpenerShould
         terminal.FocusFinds = false;
         await Store.WriteTabAsync(TabRegistration.Pending("sess-1", TabPalette.Default[0], Noon));
 
-        string footer = await Opener.OpenAsync(Row(hasLiveTab: true), CancellationToken.None);
+        string footer = await Handler.HandleAsync(new OpenTabForSession(Row(hasLiveTab: true)), CancellationToken.None);
 
         terminal.Opened.ShouldBeEmpty();
         footer.ShouldBe("Refund retry policy is open in another tab, but Vantage could not find it. Is it in another window?");

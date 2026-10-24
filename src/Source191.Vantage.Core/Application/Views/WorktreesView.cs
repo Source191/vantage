@@ -11,18 +11,18 @@ public sealed record ForceConfirmed(WorktreeRow Row, string ConfirmationText, st
 public sealed record RemoveWorktree(WorktreeRow Row, bool Forced) : ViewEffect;
 
 /// <summary>The TUI asks the user to type the confirmation text, then raises RemoveWorktree with Forced.</summary>
-public sealed record ConfirmForceRemove(WorktreeRow Row, string ConfirmationText) : ViewEffect;
+public sealed record ConfirmForceRemove(WorktreeRow Row, string ConfirmationText) : ViewEffect, IDialogEffect;
 
 public sealed record PruneRepository(string Repository) : ViewEffect;
 
-public sealed record StartSessionIn(WorktreeRow Row) : ViewEffect;
+public sealed record StartSessionIn(WorktreeRow Row) : ViewEffect, IDialogEffect;
 
 public sealed record OpenShellTab(WorktreeRow Row) : ViewEffect;
 
 /// <summary>Go to the sessions view with this session selected; by id, because names are not unique.</summary>
-public sealed record JumpToSession(string SessionId) : ViewEffect;
+public sealed record JumpToSession(string SessionId) : ViewEffect, ILeavesScreen;
 
-public sealed record SwitchToSessions : ViewEffect;
+public sealed record SwitchToSessions : ViewEffect, ILeavesScreen;
 
 public sealed record WorktreesViewUpdate(WorktreesViewState State, IReadOnlyList<ViewEffect> Effects);
 
