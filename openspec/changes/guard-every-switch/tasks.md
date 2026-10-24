@@ -2,13 +2,13 @@
 
 ## 1. Compiler exhaustiveness for closed enums
 
-- [ ] 1.1 Add CS8524 to `NoWarn` in `Directory.Build.props` with a comment stating the stance (enums hold only named members, so a switch expression that names every member is exhaustive and a new member fails with CS8509); verify `dotnet build -c Debug` still passes with zero warnings
-- [ ] 1.2 `Domain\Sessions.cs` `AttentionRank`: replace `_ => 6` with `DisplayStateKind.Unknown => 6`; verify `SessionsShould` passes and the build is clean
-- [ ] 1.3 `Application\Views\ListSelection.cs` `EditFilter`: replace `_ => this` with `KeyName.Up => this` and `KeyName.Down => this`; verify the view tests that cover filter editing pass and the build is clean
-- [ ] 1.4 `Application\WordingOfOutcomes.cs` `Here`: replace `_` with `LaunchOutcomeKind.Failed`; verify `WordingOfOutcomesShould.SayWhyVantageHereCouldNotStart` passes and the build is clean
-- [ ] 1.5 `Application\Actions\RemoveWorktreeHandler.cs` `RemoveAsync`: replace `_` with `RemovalOutcome.RemoveWorktree`; verify `RemoveWorktreeHandlerShould` passes and the build is clean
-- [ ] 1.6 `RemoveWorktreeHandler.RemoveThroughGitAsync`: convert the `BranchAction` switch statement to a switch expression naming `Delete`, `Ask` and `None`, with the delete-then-report arm extracted to a private async method; verify `RemoveWorktreeHandlerShould` passes (the branch-deleted, branch-kept and plain-removed cases) and the build is clean
-- [ ] 1.7 Prove the guard once: add a temporary member to `BranchAction`, confirm `dotnet build` fails with CS8509 naming `RemoveWorktreeHandler.cs`, then remove the member; verify the build passes again (record the failing diagnostic line in the pull request description)
+- [x] 1.1 Add CS8524 to `NoWarn` in `Directory.Build.props` with a comment stating the stance (enums hold only named members, so a switch expression that names every member is exhaustive and a new member fails with CS8509); verify `dotnet build -c Debug` still passes with zero warnings
+- [x] 1.2 `Domain\Sessions.cs` `AttentionRank`: replace `_ => 6` with `DisplayStateKind.Unknown => 6`; verify `SessionsShould` passes and the build is clean
+- [x] 1.3 `Application\Views\ListSelection.cs` `EditFilter`: replace `_ => this` with `KeyName.Up => this` and `KeyName.Down => this`; verify the view tests that cover filter editing pass and the build is clean
+- [x] 1.4 `Application\WordingOfOutcomes.cs` `Here`: replace `_` with `LaunchOutcomeKind.Failed`; verify `WordingOfOutcomesShould.SayWhyVantageHereCouldNotStart` passes and the build is clean
+- [x] 1.5 `Application\Actions\RemoveWorktreeHandler.cs` `RemoveAsync`: replace `_` with `RemovalOutcome.RemoveWorktree`; verify `RemoveWorktreeHandlerShould` passes and the build is clean
+- [x] 1.6 `RemoveWorktreeHandler.RemoveThroughGitAsync`: convert the `BranchAction` switch statement to a switch expression naming `Delete`, `Ask` and `None`, with the delete-then-report arm extracted to a private async method; verify `RemoveWorktreeHandlerShould` passes (the branch-deleted, branch-kept and plain-removed cases) and the build is clean
+- [x] 1.7 Prove the guard once: add a temporary member to `BranchAction`, confirm `dotnet build` fails with CS8509 naming `RemoveWorktreeHandler.cs`, then remove the member; verify the build passes again (record the failing diagnostic line in the pull request description)
 
 ## 2. Enum switches in the Tui layer
 

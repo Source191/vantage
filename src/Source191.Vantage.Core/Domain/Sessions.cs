@@ -19,7 +19,7 @@ public sealed class Sessions(IReadOnlyList<Session> items)
             DisplayStateKind.Completed => 3,
             DisplayStateKind.Failed => 4,
             DisplayStateKind.Stopped => 5,
-            _ => 6,
+            DisplayStateKind.Unknown => 6,
         };
     }
 }

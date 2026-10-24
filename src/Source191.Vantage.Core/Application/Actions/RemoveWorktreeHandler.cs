@@ -23,7 +23,7 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
         {
             RemovalOutcome.Refused => new RemoveWorktreeOutcome.Refused(decision.Reason),
             RemovalOutcome.DeleteFolder => await DeleteFolderAsync(row, decision, cancellationToken),
-            _ => await RemoveThroughGitAsync(row, decision, createdByVantage: created is not null, cancellationToken),
+            RemovalOutcome.RemoveWorktree => await RemoveThroughGitAsync(row, decision, createdByVantage: created is not null, cancellationToken),
         };
     }
 
@@ -45,17 +45,19 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
         await createdWorktrees.ForgetCreatedWorktreeAsync(row.Path);
         string branch = row.Branch ?? row.FolderName;
 
-        switch (decision.Branch)
+        return decision.Branch switch
         {
-            case BranchAction.Delete:
-                await git.DeleteBranchAsync(row.Repository.Value, branch, force: false, cancellationToken);
+            BranchAction.Delete => await DeleteBranchAsync(row, branch, cancellationToken),
+            BranchAction.Ask => new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository.Value, branch), createdByVantage),
+            BranchAction.None => new RemoveWorktreeOutcome.Removed(row.FolderName),
+        };
+    }
 
-                return new RemoveWorktreeOutcome.RemovedAndDeletedBranch(row.FolderName, branch);
-            case BranchAction.Ask:
-                return new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository.Value, branch), createdByVantage);
-            default:
-                return new RemoveWorktreeOutcome.Removed(row.FolderName);
-        }
+    private async Task<RemoveWorktreeOutcome> DeleteBranchAsync(WorktreeRow row, string branch, CancellationToken cancellationToken)
+    {
+        await git.DeleteBranchAsync(row.Repository.Value, branch, force: false, cancellationToken);
+
+        return new RemoveWorktreeOutcome.RemovedAndDeletedBranch(row.FolderName, branch);
     }
 
     private async Task<RemoveWorktreeOutcome> DeleteFolderAsync(WorktreeRow row, RemovalDecision decision, CancellationToken cancellationToken)
