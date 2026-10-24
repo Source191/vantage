@@ -1,7 +1,7 @@
+using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Launch;
 
-namespace Source191.Vantage.UnitTests.Launch;
+namespace Source191.Vantage.UnitTests.Application.Launch;
 
 public sealed class LaunchPlanShould
 {

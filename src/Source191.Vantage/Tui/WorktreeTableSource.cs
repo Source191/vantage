@@ -1,5 +1,6 @@
+using Source191.Vantage.Application.Views;
 using Terminal.Gui.Views;
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>Presents the worktree rows to Terminal.Gui's TableView.</summary>
 internal sealed class WorktreeTableSource(IReadOnlyList<WorktreeRow> rows, DateTimeOffset now) : ITableSource

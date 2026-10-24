@@ -2,7 +2,7 @@ using Source191.Vantage.Domain;
 using Terminal.Gui.Drawing;
 using Attribute = Terminal.Gui.Drawing.Attribute;
 
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>
 /// The console colours. This is the only place colour values live; everything else speaks in display states.

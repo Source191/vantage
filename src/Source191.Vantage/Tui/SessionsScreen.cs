@@ -1,13 +1,15 @@
-using Source191.Vantage.Actions;
+using Source191.Vantage.Application;
+using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Launch;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using GuiKey = Terminal.Gui.Input.Key;
 
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>What the screen hands back when it stops: the state to resume with and the effect that needs the terminal.</summary>
 public sealed record ScreenExit(SessionsViewState State, ViewEffect? Effect);
@@ -30,7 +32,7 @@ public sealed class SessionsScreen(
 
     public ScreenExit Run(SessionsViewState initial)
     {
-        using IApplication app = Application.Create().Init();
+        using IApplication app = Terminal.Gui.App.Application.Create().Init();
         // Windows Terminal renders 24-bit colour; without this the driver falls back to 16 colours and the palette shifts.
         if (app.Driver is not null)
         {

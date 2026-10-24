@@ -1,6 +1,6 @@
-using Source191.Vantage.Launch;
+using Source191.Vantage.Application.Launch;
 
-namespace Source191.Vantage.UnitTests.Launch;
+namespace Source191.Vantage.UnitTests.Application.Launch;
 
 public sealed class RepositoryCatalogueShould : IDisposable
 {

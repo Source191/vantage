@@ -1,7 +1,8 @@
+using Source191.Vantage.Application;
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Screens;
 
-namespace Source191.Vantage.UnitTests.Screens;
+namespace Source191.Vantage.UnitTests.Application;
 
 public sealed class StateTransitionNotifierShould : IDisposable
 {

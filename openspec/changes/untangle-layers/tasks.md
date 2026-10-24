@@ -8,8 +8,8 @@
 
 ## 2. Application namespace
 
-- [ ] 2.1 Move `SessionRow`, `WorktreeRow`, `Key`, `KeyName`, `ViewInput`, `ViewEffect` and all effect records, `SessionsView`, `SessionsViewState`, `WorktreesView`, `WorktreesViewState` to `Application\Views`; verify build, tests and format pass with no test edits beyond `using`
-- [ ] 2.2 Move `SessionRowEnricher`, `WorktreeInventory`, `StateTransitionNotifier`, `Actions\*` and `Launch\*` to `Application`; verify build, tests and format pass
+- [x] 2.1 Move `SessionRow`, `WorktreeRow`, `Key`, `KeyName`, `ViewInput`, `ViewEffect` and all effect records, `SessionsView`, `SessionsViewState`, `WorktreesView`, `WorktreesViewState` to `Application\Views`; verify build, tests and format pass with no test edits beyond `using`
+- [x] 2.2 Move `SessionRowEnricher`, `WorktreeInventory`, `StateTransitionNotifier`, `Actions\*` and `Launch\*` to `Application`; verify build, tests and format pass
 - [ ] 2.3 Unskip `KeepApplicationFreeOfAdaptersAndTui` once 3.x lands; until then verify it fails only on `Adapters` references
 
 ## 3. Ports namespace

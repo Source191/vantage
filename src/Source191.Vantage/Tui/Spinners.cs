@@ -1,7 +1,7 @@
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>Terminal.Gui's own spinner, as the screens use it: braille dots, spinning only while shown.</summary>
 internal static class Spinners

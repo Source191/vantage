@@ -1,7 +1,7 @@
 using Source191.Vantage.Adapters.Terminal;
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Launch;
+namespace Source191.Vantage.Application.Launch;
 
 /// <summary>
 /// Claude Code refuses to start a background session in a directory whose workspace trust has not been accepted,

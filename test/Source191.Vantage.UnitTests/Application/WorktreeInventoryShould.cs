@@ -1,10 +1,11 @@
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.Processes;
+using Source191.Vantage.Application;
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Screens;
 using Source191.Vantage.UnitTests.TestDoubles;
 
-namespace Source191.Vantage.UnitTests.Screens;
+namespace Source191.Vantage.UnitTests.Application;
 
 /// <summary>Scans real repositories under a throwaway root with the real git.</summary>
 [Trait("Category", "Integration")]

@@ -1,12 +1,12 @@
+using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Launch;
 using System.Collections.ObjectModel;
 using Terminal.Gui.App;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using GuiKey = Terminal.Gui.Input.Key;
 
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>What the wizard produces: a validated plan and whether to open the session in its own tab as soon as it starts.</summary>
 public sealed record WizardResult(LaunchPlan Plan, bool OpenInTab);

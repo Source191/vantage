@@ -1,7 +1,7 @@
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Screens;
 
-namespace Source191.Vantage.UnitTests.Screens;
+namespace Source191.Vantage.UnitTests.Application.Views;
 
 public sealed class SessionsViewShould
 {

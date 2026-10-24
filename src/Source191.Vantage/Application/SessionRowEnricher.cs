@@ -1,9 +1,10 @@
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.State;
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Screens;
+namespace Source191.Vantage.Application;
 
 /// <summary>
 /// Turns listed sessions into table rows by asking git about each working directory (cached, because that is

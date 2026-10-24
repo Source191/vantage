@@ -1,10 +1,10 @@
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.State;
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Screens;
 
-namespace Source191.Vantage.Actions;
+namespace Source191.Vantage.Application.Actions;
 
 public sealed record BranchToConfirm(string Repository, string Branch);
 

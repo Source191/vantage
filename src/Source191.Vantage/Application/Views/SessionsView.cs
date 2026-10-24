@@ -1,6 +1,6 @@
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Screens;
+namespace Source191.Vantage.Application.Views;
 
 /// <summary>A listed session with what git, the state store and the transcript folder add to it. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then, so every caller must say which it is.</summary>
 public sealed record SessionRow(Session Session, string Repository, string? Branch, bool IsWorktree, string? Description, bool HasLiveTab, bool HasTranscript);

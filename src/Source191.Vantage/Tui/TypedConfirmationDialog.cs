@@ -5,7 +5,7 @@ using Terminal.Gui.Views;
 using Attribute = Terminal.Gui.Drawing.Attribute;
 using GuiKey = Terminal.Gui.Input.Key;
 
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>
 /// A question answered by typing a specific word, for actions that destroy work. The word is shown highlighted on

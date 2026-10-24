@@ -1,13 +1,14 @@
-using Source191.Vantage.Actions;
+using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Launch;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using GuiKey = Terminal.Gui.Input.Key;
 
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>What the worktrees screen hands back when it stops: the state to resume with and the effect for the caller.</summary>
 public sealed record WorktreesScreenExit(WorktreesViewState State, ViewEffect? Effect);
@@ -37,7 +38,7 @@ public sealed class WorktreesScreen(
 
     public WorktreesScreenExit Run(WorktreesViewState initial)
     {
-        using IApplication app = Application.Create().Init();
+        using IApplication app = Terminal.Gui.App.Application.Create().Init();
         if (app.Driver is not null)
         {
             app.Driver.Force16Colors = false;

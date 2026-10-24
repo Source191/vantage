@@ -4,7 +4,7 @@ using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
 using Attribute = Terminal.Gui.Drawing.Attribute;
 
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>Asks for one line of text, pre-filled. Enter in the box answers; Esc or Cancel returns null.</summary>
 internal static class NameDialog

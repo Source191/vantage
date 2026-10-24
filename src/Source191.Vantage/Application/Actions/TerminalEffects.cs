@@ -1,7 +1,7 @@
 using Source191.Vantage.Adapters.Claude;
-using Source191.Vantage.Screens;
+using Source191.Vantage.Application.Views;
 
-namespace Source191.Vantage.Actions;
+namespace Source191.Vantage.Application.Actions;
 
 /// <summary>Runs the effects that need the terminal to themselves: attaching to a session and the native agent view.</summary>
 public sealed class TerminalEffects(IClaudeCli claude, TextWriter console)

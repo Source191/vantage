@@ -1,6 +1,6 @@
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Screens;
+namespace Source191.Vantage.Application.Views;
 
 /// <summary>
 /// One line of the worktrees table: a linked worktree or a leftover folder, with everything the removal rules need

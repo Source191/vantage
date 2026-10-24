@@ -1,6 +1,7 @@
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Screens;
+namespace Source191.Vantage.Application;
 
 /// <summary>
 /// Rings the terminal bell when a background session starts waiting for input between two refreshes, so Windows

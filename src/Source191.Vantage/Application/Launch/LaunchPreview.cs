@@ -1,6 +1,6 @@
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Launch;
+namespace Source191.Vantage.Application.Launch;
 
 /// <summary>
 /// One sentence telling the wizard's user what the name they are typing will become, so "session name" and

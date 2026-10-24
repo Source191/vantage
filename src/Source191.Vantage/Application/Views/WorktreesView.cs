@@ -1,6 +1,6 @@
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Screens;
+namespace Source191.Vantage.Application.Views;
 
 public sealed record WorktreeRowsLoaded(IReadOnlyList<WorktreeRow> Rows) : ViewInput;
 

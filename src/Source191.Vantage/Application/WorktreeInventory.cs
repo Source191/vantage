@@ -1,8 +1,9 @@
 using Source191.Vantage.Adapters.Git;
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using IOPath = System.IO.Path;
 
-namespace Source191.Vantage.Screens;
+namespace Source191.Vantage.Application;
 
 /// <summary>
 /// Everything under the repository roots that is, or was, a worktree: git's own listing per repository, plus the

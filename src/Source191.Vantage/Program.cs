@@ -1,15 +1,16 @@
 using Microsoft.Extensions.Logging;
-using Source191.Vantage.Actions;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Diagnostics;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Adapters.Terminal;
+using Source191.Vantage.Application;
+using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Launch;
-using Source191.Vantage.Screens;
-using Source191.Vantage.Screens.Tui;
+using Source191.Vantage.Tui;
 
 // Composition root. Everything here is wiring; behaviour lives in the tested classes it assembles.
 string stateFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vantage");

@@ -1,7 +1,7 @@
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Actions;
+namespace Source191.Vantage.Application.Actions;
 
 /// <summary>
 /// Vantage's own tab: registered like a session tab, keyed "vantage" and claimed by Vantage's own process, so the

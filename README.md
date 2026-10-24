@@ -265,7 +265,7 @@ dotnet format --verify-no-changes
 dotnet run --project tools\HeadlessTerminal -- check               # the hand-off check, from tools\HeadlessTerminal
 ```
 
-- `src\Source191.Vantage`: `Domain` (rules), `Screens` (reducers, pure functions of state and input), `Screens\Tui` (Terminal.Gui rendering and dialogs), `Actions` and `Launch` (what keys do, behind thin boundary interfaces), `Adapters` (git, Claude CLI, Windows Terminal, processes, state files).
+- `src\Source191.Vantage`: `Domain` (rules), `Application\Views` (reducers, pure functions of state and input), `Application` with `Actions` and `Launch` (what keys do, behind thin boundary interfaces), `Tui` (Terminal.Gui rendering and dialogs), `Adapters` (git, Claude CLI, Windows Terminal, processes, state files).
 - Tests are sociable: real collaborators, fakes only at the boundaries (`test\...\TestDoubles`). Every key in the tables above is dispatched by a reducer test. The domain rules are mutation tested with Stryker.
 - `CLAUDE.md` records the verified Claude Code CLI and Terminal.Gui facts Vantage depends on, and the rules for working on it; `openspec\` holds the specifications and changes (below).
 - `tools\HeadlessTerminal` drives the built exe inside a pseudo-console with scripted keys, replays the screen as text and runs the hand-off check; it is how the hand-off bug was reproduced and how the screen in this README was rendered.

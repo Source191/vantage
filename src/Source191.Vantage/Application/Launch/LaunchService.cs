@@ -3,7 +3,7 @@ using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Launch;
+namespace Source191.Vantage.Application.Launch;
 
 public enum LaunchOutcomeKind
 {

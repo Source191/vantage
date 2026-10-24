@@ -1,7 +1,7 @@
 using Terminal.Gui.App;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>
 /// A question with buttons, in Vantage's colours rather than Terminal.Gui's default blue. Returns the index of the

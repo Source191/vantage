@@ -1,6 +1,6 @@
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Launch;
+namespace Source191.Vantage.Application.Launch;
 
 /// <summary>
 /// <c>vantage here [name] [-p prompt] [-d description]</c>: a supervised session in the current folder, on its current

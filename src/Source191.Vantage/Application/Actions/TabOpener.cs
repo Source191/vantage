@@ -1,9 +1,9 @@
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Adapters.Terminal;
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Screens;
 
-namespace Source191.Vantage.Actions;
+namespace Source191.Vantage.Application.Actions;
 
 /// <summary>Opens a session in its own Windows Terminal tab and records the tab so its colour and liveness are known.</summary>
 public sealed class TabOpener(StateStore store, IProcessRegistry processes, IWindowsTerminal terminal, TimeProvider clock, string claudeExecutable, string vantageExecutable)

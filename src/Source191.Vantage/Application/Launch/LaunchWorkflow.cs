@@ -1,9 +1,9 @@
-using Source191.Vantage.Actions;
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Adapters.Terminal;
+using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Launch;
+namespace Source191.Vantage.Application.Launch;
 
 /// <summary>
 /// Everything the launch wizard dialog needs from the rest of the system, behind one door so the dialog stays thin.

@@ -1,6 +1,7 @@
+using Source191.Vantage.Application.Views;
 using GuiKey = Terminal.Gui.Input.Key;
 
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>Translates Terminal.Gui keys into the reducer's library-free keys.</summary>
 internal static class KeyMapping

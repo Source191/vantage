@@ -3,11 +3,11 @@ using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Adapters.State;
+using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
-using Source191.Vantage.Launch;
 using Source191.Vantage.UnitTests.TestDoubles;
 
-namespace Source191.Vantage.UnitTests.Launch;
+namespace Source191.Vantage.UnitTests.Application.Launch;
 
 public sealed class LaunchServiceShould : IDisposable
 {

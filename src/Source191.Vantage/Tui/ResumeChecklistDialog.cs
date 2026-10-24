@@ -1,6 +1,7 @@
+using Source191.Vantage.Application.Views;
 using Terminal.Gui.App;
 using Terminal.Gui.Views;
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>
 /// Stopped sessions look the same whether a reboot killed them or the user stopped them on purpose, so they are

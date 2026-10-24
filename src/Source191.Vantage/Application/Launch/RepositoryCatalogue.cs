@@ -1,4 +1,4 @@
-namespace Source191.Vantage.Launch;
+namespace Source191.Vantage.Application.Launch;
 
 public sealed record RepositoryChoice(string Name, string Path, bool IsRepository);
 

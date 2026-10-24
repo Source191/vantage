@@ -1,7 +1,8 @@
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.Views;
 
-namespace Source191.Vantage.Screens.Tui;
+namespace Source191.Vantage.Tui;
 
 /// <summary>Presents the visible rows to Terminal.Gui's TableView.</summary>
 internal sealed class SessionTableSource(IReadOnlyList<SessionRow> rows, DateTimeOffset now) : ITableSource
