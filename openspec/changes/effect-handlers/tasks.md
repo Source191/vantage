@@ -26,8 +26,8 @@
 ## 4. Screens route only
 
 - [x] 4.1 `DialogEffects` in `Tui` gathers the six dialog flows from the two definitions; `TableScreen` dispatches `IDialogEffect` to it and everything else to `EffectDispatcher`; the definitions lose their `Handle` members; verify `dotnet run --project tools\HeadlessTerminal -- check` passes
-- [ ] 4.2 `ScreenLoopShould` uses `ILeavesScreen` instead of a type list; remove the type lists from `TableScreen` and `ScreenLoop`; verify the test passes
-- [ ] 4.3 `EffectDispatcherShould.HaveAHandlerForEveryEffectTheReducersCanProduce`: factor the registrations into `Composition.Handlers(...)` used by `Program.cs` and the test; verify it passes
+- [x] 4.2 `ScreenLoopShould` uses `ILeavesScreen` instead of a type list; remove the type lists from `TableScreen` and `ScreenLoop`; verify the test passes
+- [x] 4.3 `EffectDispatcherShould.HaveAHandlerForEveryEffectTheReducersCanProduce`: factor the registrations into `Composition.Handlers(...)` used by `Program.cs` and the test; verify it passes
 - [ ] 4.4 Manual pass through both README key tables (every key, including rename, delete with branch question, force remove, resume checklist, close empty); verify no footer text changed
 
 ## 5. Documentation

@@ -72,20 +72,10 @@ if (command is StartHere here)
 
 SessionRowEnricher enricher = new(git, store, store, processRegistry, TimeProvider.System, transcripts);
 StateTransitionNotifier notifier = new(Console.Out);
-OpenTabHandler tabs = new(store, processRegistry, terminal, TimeProvider.System, claudeExecutable, vantageExecutable);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
 LaunchWorkflow launches = new(new RepositoryCatalogue(folders, config.RepositoryRoots), folders, store);
-EffectDispatcher dispatcher = new EffectDispatcher()
-    .Register(tabs)
-    .Register(new StopSessionHandler(claude))
-    .Register(new AdoptSessionHandler(claude, processRegistry, transcripts))
-    .Register(new RenameSessionHandler(claude, transcripts))
-    .Register(new CloseEmptyTerminalsHandler(processRegistry, transcripts))
-    .Register(new ResumeSessionsHandler(claude, transcripts))
-    .Register(new DeleteBranchHandler(git))
-    .Register(new PruneRepositoryHandler(git))
-    .Register(new OpenShellHandler(terminal))
-    .Register(new StartSessionHandler(launchService, tabs, terminal, claudeExecutable));
+EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System);
+EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, claudeExecutable, vantageExecutable);
 DialogEffects dialogs = new(launches, config.DefaultBase, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
 WorktreeInventory inventory = new(git, folders, config.RepositoryRoots);
 string context = string.Join('\n', Environment.MachineName, claudeExecutable, string.Join("; ", config.RepositoryRoots));
