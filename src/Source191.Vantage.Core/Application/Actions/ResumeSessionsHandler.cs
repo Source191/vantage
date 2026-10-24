@@ -41,3 +41,9 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
         return $"Resumed {continued} of {effect.Rows.Count}.{suffix}";
     }
 }
+
+/// <summary>How many of the chosen sessions resumed, and a note for each that did not.</summary>
+public sealed record ResumeSessionsOutcome(int Resumed, int Chosen, IReadOnlyList<ResumeNote> Notes) : Outcome;
+
+/// <summary>A session that did not resume: the CLI's failure, or null when it was never sent a message.</summary>
+public sealed record ResumeNote(string Name, string? Failure);

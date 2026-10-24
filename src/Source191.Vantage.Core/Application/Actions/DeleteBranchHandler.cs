@@ -14,3 +14,6 @@ public sealed class DeleteBranchHandler(IGit git) : IEffectHandler<DeleteBranch>
         return "Branch deleted.";
     }
 }
+
+/// <summary>The branch the user agreed to lose was deleted.</summary>
+public sealed record DeleteBranchOutcome : Outcome;

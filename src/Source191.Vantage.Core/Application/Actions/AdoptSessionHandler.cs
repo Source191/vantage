@@ -33,3 +33,15 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
             : $"Could not move {session.Name} under Vantage: {result.Message}";
     }
 }
+
+/// <summary>What moving a terminal session under the supervisor did.</summary>
+public abstract record AdoptSessionOutcome : Outcome
+{
+    public sealed record NoProcess(string Name) : AdoptSessionOutcome;
+
+    public sealed record NoMessages(string Name) : AdoptSessionOutcome;
+
+    public sealed record Moved(string Name) : AdoptSessionOutcome;
+
+    public sealed record Failed(string Name, string Message) : AdoptSessionOutcome;
+}

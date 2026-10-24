@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -60,4 +61,16 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
             BranchMerged: await git.IsMergedAsync(created.Repository, created.Branch, into, cancellationToken),
             LeftoverFileCount: 0);
     }
+}
+
+/// <summary>What deleting a session did, and in the last case the unmerged branch the user is asked about.</summary>
+public abstract record DeleteSessionOutcome : Outcome
+{
+    public sealed record Deleted(string Name) : DeleteSessionOutcome;
+
+    public sealed record KeptWorktree(string Name, string Reason) : DeleteSessionOutcome;
+
+    public sealed record RemovedWorktreeAndBranch(string Name, string Branch) : DeleteSessionOutcome;
+
+    public sealed record BranchNotMerged(string Name, BranchToConfirm Branch) : DeleteSessionOutcome;
 }

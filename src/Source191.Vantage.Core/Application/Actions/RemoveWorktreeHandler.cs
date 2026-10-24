@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -73,4 +74,21 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
             $"Deleted the folder {row.FolderName} and pruned {Registrations.Count(pruned)} from {row.RepositoryName}.",
             BranchToConfirm: null);
     }
+}
+
+/// <summary>What removing a worktree did, and in one case the branch the user is asked about.</summary>
+public abstract record RemoveWorktreeOutcome : Outcome
+{
+    public sealed record Refused(string Reason) : RemoveWorktreeOutcome;
+
+    public sealed record Removed(string FolderName) : RemoveWorktreeOutcome;
+
+    public sealed record RemovedAndDeletedBranch(string FolderName, string Branch) : RemoveWorktreeOutcome;
+
+    /// <summary>The branch was kept: Vantage did not create it, or created it and it is not merged. The user is asked.</summary>
+    public sealed record BranchKept(string FolderName, BranchToConfirm Branch, bool CreatedByVantage) : RemoveWorktreeOutcome;
+
+    public sealed record DeletedFolder(string FolderName) : RemoveWorktreeOutcome;
+
+    public sealed record DeletedFolderAndPruned(string FolderName, int Pruned, string RepositoryName) : RemoveWorktreeOutcome;
 }

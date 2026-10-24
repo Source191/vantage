@@ -44,3 +44,18 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
         return TrustRecovery.Explanation(directory);
     }
 }
+
+/// <summary>What starting the wizard's session did, including the tab when one was asked for.</summary>
+public abstract record StartSessionOutcome : Outcome
+{
+    public sealed record Started(string Name, string JobId) : StartSessionOutcome;
+
+    public sealed record StartedAndOpened(string Name, string JobId, OpenTabOutcome Tab) : StartSessionOutcome;
+
+    public sealed record NotListedYet(string Name, string JobId) : StartSessionOutcome;
+
+    /// <summary>A Claude tab was opened in the directory so the trust prompt can be accepted.</summary>
+    public sealed record NotTrusted(string Directory) : StartSessionOutcome;
+
+    public sealed record Failed(string Message) : StartSessionOutcome;
+}

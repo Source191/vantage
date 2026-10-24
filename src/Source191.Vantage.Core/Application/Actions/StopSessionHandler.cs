@@ -13,3 +13,6 @@ public sealed class StopSessionHandler(IClaudeCli claude) : IEffectHandler<StopS
         return $"Stopped {effect.Row.Session.Name}.";
     }
 }
+
+/// <summary>The session was stopped; it stays listed and can be resumed.</summary>
+public sealed record StopSessionOutcome(string Name) : Outcome;

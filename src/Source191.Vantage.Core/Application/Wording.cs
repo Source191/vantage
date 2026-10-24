@@ -7,7 +7,7 @@ namespace Source191.Vantage.Application;
 /// key help. Reducers, dialogs and the screen hand over facts; this class chooses the words. <c>WordingShould</c>
 /// holds each sentence verbatim.
 /// </summary>
-public static class Wording
+public static partial class Wording
 {
     public static string SessionsHelp => """
         Enter  attach (Ctrl+Z/Esc back)    o  open in its own tab, or switch to it when it is open

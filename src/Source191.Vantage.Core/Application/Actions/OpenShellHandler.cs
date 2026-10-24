@@ -18,3 +18,6 @@ public sealed class OpenShellHandler(IWindowsTerminal terminal) : IEffectHandler
         return $"Opened a shell in {row.FolderName}.";
     }
 }
+
+/// <summary>A plain shell tab was opened in the worktree.</summary>
+public sealed record OpenShellOutcome(string FolderName) : Outcome;

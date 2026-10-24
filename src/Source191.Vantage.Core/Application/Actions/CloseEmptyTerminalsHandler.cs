@@ -72,3 +72,9 @@ public sealed class CloseEmptyTerminalsHandler(IProcessRegistry processes, ITran
         return string.Join(' ', parts);
     }
 }
+
+/// <summary>Which tabs were closed, which sessions were ended without a tab to close, and which were left alone.</summary>
+public sealed record CloseEmptyTerminalsOutcome(IReadOnlyList<string> Closed, IReadOnlyList<string> Ended, IReadOnlyList<SkippedSession> Skipped) : Outcome;
+
+/// <summary>A session close-empty left alone: it has messages, or it has no process.</summary>
+public sealed record SkippedSession(string Name, bool HasMessages);

@@ -35,3 +35,15 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
             : $"Could not rename {session.Name}: {renamed.Message}; resume it with claude --bg --resume {session.SessionId} ({restored.Message}).";
     }
 }
+
+/// <summary>What renaming did: renamed, refused, or failed and either restored or left for the user to resume.</summary>
+public abstract record RenameSessionOutcome : Outcome
+{
+    public sealed record NoMessages(string Name) : RenameSessionOutcome;
+
+    public sealed record Renamed(string OldName, string NewName) : RenameSessionOutcome;
+
+    public sealed record Restored(string OldName, string Failure) : RenameSessionOutcome;
+
+    public sealed record Unsupervised(string OldName, string Failure, string SessionId, string RestoreFailure) : RenameSessionOutcome;
+}
