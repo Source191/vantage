@@ -140,6 +140,6 @@ public sealed class SessionRowEnricherShould
 
     private static Session Session(string workingDirectory)
     {
-        return new Session(Guid.NewGuid().ToString(), "job1", "name", workingDirectory, SessionKind.Background, Noon, DisplayState.Working);
+        return new Session(Guid.NewGuid().ToString(), "job1", "name", new FolderPath(workingDirectory), SessionKind.Background, Noon, DisplayState.Working);
     }
 }

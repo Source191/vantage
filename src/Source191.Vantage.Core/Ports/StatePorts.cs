@@ -27,7 +27,7 @@ public interface ICreatedWorktrees
 
     Task RecordCreatedWorktreeAsync(CreatedWorktree worktree);
 
-    Task ForgetCreatedWorktreeAsync(string path);
+    Task ForgetCreatedWorktreeAsync(FolderPath path);
 }
 
 /// <summary>Free-text descriptions keyed by session id.</summary>

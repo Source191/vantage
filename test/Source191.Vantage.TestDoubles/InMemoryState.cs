@@ -58,14 +58,14 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
 
     public Task RecordCreatedWorktreeAsync(CreatedWorktree worktree)
     {
-        created.RemoveAll(existing => string.Equals(existing.Path, worktree.Path, StringComparison.OrdinalIgnoreCase));
+        created.RemoveAll(existing => existing.Path == worktree.Path);
         created.Add(worktree);
         return Task.CompletedTask;
     }
 
-    public Task ForgetCreatedWorktreeAsync(string path)
+    public Task ForgetCreatedWorktreeAsync(FolderPath path)
     {
-        created.RemoveAll(existing => string.Equals(existing.Path, path, StringComparison.OrdinalIgnoreCase));
+        created.RemoveAll(existing => existing.Path == path);
         return Task.CompletedTask;
     }
 

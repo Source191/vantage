@@ -19,7 +19,7 @@ public sealed record LaunchRequest(
 
 /// <summary>What the launch service will do: where the session starts, under what name, and whether a worktree is made first.</summary>
 public sealed record LaunchPlan(
-    string Directory,
+    FolderPath Directory,
     SessionName Name,
     string? Description,
     SiblingWorktree? Worktree,
@@ -62,8 +62,8 @@ public static class LaunchPlanBuilder
             return new LaunchPlanResult(Plan: null, "A worktree needs a name with some letters or digits in it.");
         }
 
-        SiblingWorktree worktree = SiblingWorktree.For(new RepositoryPath(request.Repository.Path), name.Slug);
-        bool reuse = folderExists(worktree.Path);
+        SiblingWorktree worktree = SiblingWorktree.For(request.Repository.Path, name.Slug);
+        bool reuse = folderExists(worktree.Path.Value);
 
         return Ok(new LaunchPlan(worktree.Path, name, description, worktree, reuse, request.Base, prompt, request.Repository));
     }

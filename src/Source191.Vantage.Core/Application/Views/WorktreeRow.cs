@@ -9,8 +9,8 @@ namespace Source191.Vantage.Application.Views;
 /// leftover, the root). OwnerExists says whether that repository still has a .git folder, so a stale registration can be pruned.
 /// </summary>
 public sealed record WorktreeRow(
-    string Repository,
-    string Path,
+    FolderPath Repository,
+    FolderPath Path,
     string? Branch,
     WorktreeHealth Health,
     int DirtyFiles,
@@ -22,9 +22,9 @@ public sealed record WorktreeRow(
     bool OwnerExists,
     bool FolderExists)
 {
-    public string RepositoryName => new RepositoryPath(Repository).Name;
+    public string RepositoryName => Repository.Name;
 
-    public string FolderName => new RepositoryPath(Path).Name;
+    public string FolderName => Path.Name;
 
     /// <summary>The removal facts as far as the scan knows them; the branch flags are settled by the action.</summary>
     public WorktreeRemovalFacts Facts(bool branchCreatedByVantage = false, bool branchMerged = false) => new WorktreeRemovalFacts(Health.Kind, Branch ?? FolderName, DirtyFiles, UnpushedCommits, SessionName, branchCreatedByVantage, branchMerged, LeftoverFileCount);

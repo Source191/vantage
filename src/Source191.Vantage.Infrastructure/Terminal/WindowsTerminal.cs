@@ -17,7 +17,7 @@ public static class WindowsTerminalArguments
             "--title", launch.Title,
             "--tabColor", launch.Colour.Hex,
             "--suppressApplicationTitle",
-            "--startingDirectory", launch.StartingDirectory,
+            "--startingDirectory", launch.StartingDirectory.Value,
             "pwsh.exe", "-NoExit", "-EncodedCommand", EncodedCommand.Encode(launch.Script),
         ];
     }
@@ -33,7 +33,7 @@ public sealed class WindowsTerminal(IProcessRunner processes) : IWindowsTerminal
 {
     public async Task OpenTabAsync(TabLaunch launch, CancellationToken cancellationToken)
     {
-        ProcessRequest request = new("wt.exe", WindowsTerminalArguments.ForTab(launch), launch.StartingDirectory);
+        ProcessRequest request = new("wt.exe", WindowsTerminalArguments.ForTab(launch), launch.StartingDirectory.Value);
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
         {

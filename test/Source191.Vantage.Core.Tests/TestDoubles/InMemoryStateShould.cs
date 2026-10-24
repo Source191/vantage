@@ -41,11 +41,11 @@ public sealed class InMemoryStateShould
     [Fact]
     public async Task KeepOneCreatedWorktreePerPathAndForgetIt()
     {
-        await state.RecordCreatedWorktreeAsync(new CreatedWorktree(@"C:\repos\A-fix", "fix", @"C:\repos\A", Noon));
-        await state.RecordCreatedWorktreeAsync(new CreatedWorktree(@"C:\repos\a-fix", "fix-2", @"C:\repos\A", Noon));
+        await state.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(@"C:\repos\A-fix"), "fix", new FolderPath(@"C:\repos\A"), Noon));
+        await state.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(@"C:\repos\a-fix"), "fix-2", new FolderPath(@"C:\repos\A"), Noon));
 
         (await state.ReadCreatedWorktreesAsync()).Single().Branch.ShouldBe("fix-2");
-        await state.ForgetCreatedWorktreeAsync(@"C:\repos\A-FIX");
+        await state.ForgetCreatedWorktreeAsync(new FolderPath(@"C:\repos\A-FIX"));
         (await state.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
     }
 

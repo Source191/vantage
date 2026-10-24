@@ -19,18 +19,24 @@ public static class ClaudeAgentsListing
     {
         IReadOnlyList<Row> rows = JsonSerializer.Deserialize<IReadOnlyList<Row>>(json, Options) ?? [];
 
-        return [.. rows.Select(ToSession)];
+        return [.. rows.Select(ToSession).OfType<Session>()];
     }
 
-    private static Session ToSession(Row row)
+    /// <summary>A row without a full working directory is skipped: the CLI always gives one, and one odd row must not fail the listing.</summary>
+    private static Session? ToSession(Row row)
     {
+        if (FolderPath.TryParse(row.Cwd) is not FolderPath workingDirectory)
+        {
+            return null;
+        }
+
         SessionListingEntry entry = new(row.Pid, row.Status, row.WaitingFor, row.State);
 
         return new Session(
             SessionId: row.SessionId ?? string.Empty,
             JobId: row.Id,
             Name: row.Name ?? string.Empty,
-            WorkingDirectory: row.Cwd ?? string.Empty,
+            WorkingDirectory: workingDirectory,
             Kind: row.Kind == "interactive" ? SessionKind.Interactive : SessionKind.Background,
             StartedAt: DateTimeOffset.FromUnixTimeMilliseconds(row.StartedAt ?? 0),
             State: DisplayState.From(entry),

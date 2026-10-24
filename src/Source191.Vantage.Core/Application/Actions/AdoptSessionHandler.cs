@@ -26,7 +26,7 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
         }
 
         processes.Terminate(session.ProcessId.Value);
-        ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory, SessionName.TryParse(session.Name), cancellationToken);
+        ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
 
         return result.Continued
             ? new AdoptSessionOutcome.Moved(session.Name)

@@ -24,7 +24,7 @@ public sealed class OpenTabHandlerShould
 
     private static SessionRow Row(bool hasLiveTab = false)
     {
-        Session session = new("sess-1", "81cdb0f9", "Refund retry policy", @"C:\repos\Northwind.Orders", SessionKind.Background, Noon, DisplayState.Working);
+        Session session = new("sess-1", "81cdb0f9", "Refund retry policy", new FolderPath(@"C:\repos\Northwind.Orders"), SessionKind.Background, Noon, DisplayState.Working);
 
         return new SessionRow(session, "Northwind.Orders", "main", IsWorktree: false, Description: null, hasLiveTab, HasTranscript: true);
     }
@@ -36,7 +36,7 @@ public sealed class OpenTabHandlerShould
 
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Refund retry policy");
-        tab.StartingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
+        tab.StartingDirectory.Value.ShouldBe(@"C:\repos\Northwind.Orders");
         tab.Colour.ShouldBe(TabPalette.Default[0]);
         tab.Script.ShouldContain($"& '{Vantage}' 'claim-tab' '");
         tab.Script.ShouldContain("' $PID", customMessage: "the tab shell must pass its own process id, unquoted, so the registration outlives claim-tab");
@@ -52,7 +52,7 @@ public sealed class OpenTabHandlerShould
 
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Refund retry policy");
-        tab.StartingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
+        tab.StartingDirectory.Value.ShouldBe(@"C:\repos\Northwind.Orders");
         tab.Script.ShouldContain($"& '{Claude}' 'attach' '81cdb0f9'");
         (await Store.ReadTabsAsync()).Single().SessionId.ShouldBe("sess-1");
         footer.ShouldBeOfType<OpenTabOutcome.Opened>().Name.ShouldBe("Refund retry policy");

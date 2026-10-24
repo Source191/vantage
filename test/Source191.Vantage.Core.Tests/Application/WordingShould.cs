@@ -311,7 +311,7 @@ public sealed class WordingShould
     public void SayWhatEachWorktreeEffectIsDoingWhileItRuns()
     {
         Wording.Working(new RemoveWorktree(Worktree, Forced: false)).ShouldBe("Removing Northwind.Orders-fix-123...");
-        Wording.Working(new PruneRepository(Worktrees.Repository)).ShouldBe("Pruning...");
+        Wording.Working(new PruneRepository(new FolderPath(Worktrees.Repository))).ShouldBe("Pruning...");
         Wording.Working(new OpenShellTab(Worktree)).ShouldBe("Opening a shell in Northwind.Orders-fix-123...");
     }
 
@@ -319,8 +319,8 @@ public sealed class WordingShould
     public void NameTheSessionBeingStarted()
     {
         LaunchPlan plan = new(
-            Sessions.Repository, SessionName.Parse("Fix flaky tests"), Description: null, Worktree: null,
-            ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", Sessions.Repository, IsRepository: true));
+            new FolderPath(Sessions.Repository), SessionName.Parse("Fix flaky tests"), Description: null, Worktree: null,
+            ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", new FolderPath(Sessions.Repository), IsRepository: true));
 
         Wording.Working(new StartSession(plan, OpenInTab: true)).ShouldBe("Starting Fix flaky tests...");
     }

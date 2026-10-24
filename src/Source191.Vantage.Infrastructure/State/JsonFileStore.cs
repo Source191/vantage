@@ -18,7 +18,7 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     private const int RecentLimit = 10;
 
     // Enums are written as their names, so config.json keeps reading "RemoteDefault" and "Head".
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { WriteIndented = true, Converters = { new JsonStringEnumConverter() } };
+    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { WriteIndented = true, Converters = { new JsonStringEnumConverter(), new FolderPathJsonConverter() } };
 
     private string TabsFolder => Path.Combine(folder, "tabs");
 
@@ -66,14 +66,14 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     {
         IReadOnlyList<CreatedWorktree> existing = await ReadCreatedWorktreesAsync();
 
-        await WriteJsonAsync(CreatedFile, existing.Where(created => !SamePath(created.Path, worktree.Path)).Append(worktree).ToList());
+        await WriteJsonAsync(CreatedFile, existing.Where(created => created.Path != worktree.Path).Append(worktree).ToList());
     }
 
-    public async Task ForgetCreatedWorktreeAsync(string path)
+    public async Task ForgetCreatedWorktreeAsync(FolderPath path)
     {
         IReadOnlyList<CreatedWorktree> existing = await ReadCreatedWorktreesAsync();
 
-        await WriteJsonAsync(CreatedFile, existing.Where(created => !SamePath(created.Path, path)).ToList());
+        await WriteJsonAsync(CreatedFile, existing.Where(created => created.Path != path).ToList());
     }
 
     public async Task<IReadOnlyDictionary<string, string>> ReadDescriptionsAsync()
@@ -142,8 +142,6 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     }
 
     private static string FileKey(string text) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)))[..16].ToLowerInvariant();
-
-    private static bool SamePath(string left, string right) => string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
 
     private static async Task<IReadOnlyList<T>> ReadAllAsync<T>(string directory)
         where T : class

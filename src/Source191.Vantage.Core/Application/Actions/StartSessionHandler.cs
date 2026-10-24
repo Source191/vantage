@@ -37,7 +37,7 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
         };
     }
 
-    private async Task<StartSessionOutcome> OpenTrustTabAsync(string directory, CancellationToken cancellationToken)
+    private async Task<StartSessionOutcome> OpenTrustTabAsync(FolderPath directory, CancellationToken cancellationToken)
     {
         await terminal.OpenTabAsync(TrustRecovery.TabFor(directory, claudeExecutable), cancellationToken);
 
@@ -55,7 +55,7 @@ public abstract record StartSessionOutcome : Outcome
     public sealed record NotListedYet(string Name, string JobId) : StartSessionOutcome;
 
     /// <summary>A Claude tab was opened in the directory so the trust prompt can be accepted.</summary>
-    public sealed record NotTrusted(string Directory) : StartSessionOutcome;
+    public sealed record NotTrusted(FolderPath Directory) : StartSessionOutcome;
 
     public sealed record Failed(string Message) : StartSessionOutcome;
 }

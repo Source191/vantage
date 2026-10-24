@@ -30,7 +30,7 @@ public sealed class RemoveWorktreeHandlerShould
     [Fact]
     public async Task DeleteTheBranchWhenVantageCreatedItAndItIsMerged()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), "fix-123", new FolderPath(Repository), Noon));
 
         RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok), forced: false, CancellationToken.None);
 
@@ -42,7 +42,7 @@ public sealed class RemoveWorktreeHandlerShould
     [Fact]
     public async Task KeepAnUnmergedBranchVantageCreatedAndSayVantageCreatedIt()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), "fix-123", new FolderPath(Repository), Noon));
         processes.Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty));
 
         RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok), forced: false, CancellationToken.None);

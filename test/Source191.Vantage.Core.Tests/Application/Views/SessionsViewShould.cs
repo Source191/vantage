@@ -368,7 +368,7 @@ public sealed class SessionsViewShould
             SessionId: Guid.NewGuid().ToString(),
             JobId: jobId,
             Name: name,
-            WorkingDirectory: $@"C:\repos\{repository}",
+            WorkingDirectory: new FolderPath($@"C:\repos\{repository}"),
             Kind: kind,
             StartedAt: Noon,
             State: state,

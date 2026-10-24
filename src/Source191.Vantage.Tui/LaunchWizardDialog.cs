@@ -27,10 +27,10 @@ internal static class LaunchWizardDialog
     private const int PromptLines = 5;
 
     /// <summary>Shows the wizard. With a fixed directory (the worktrees view's s key) the session starts there: no repository list, no worktree choice.</summary>
-    public static WizardResult? Show(IApplication app, LaunchWorkflow workflow, WorktreeBase defaultBase, string? fixedDirectory = null)
+    public static WizardResult? Show(IApplication app, LaunchWorkflow workflow, WorktreeBase defaultBase, FolderPath? fixedDirectory = null)
     {
         WizardResult? result = null;
-        RepositoryChoice? fixedChoice = fixedDirectory is null ? null : new RepositoryChoice(new RepositoryPath(fixedDirectory).Name, fixedDirectory, IsRepository: true);
+        RepositoryChoice? fixedChoice = fixedDirectory is null ? null : new RepositoryChoice(fixedDirectory.Name, fixedDirectory, IsRepository: true);
         using Dialog dialog = new() { Title = fixedChoice is null ? "New session" : $"New session in {fixedChoice.Name}", Width = Dim.Percent(90), Height = Dim.Percent(90) };
         dialog.SetScheme(Palette.Focusable(Palette.White));
 

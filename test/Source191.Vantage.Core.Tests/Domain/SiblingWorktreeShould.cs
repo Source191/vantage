@@ -9,17 +9,17 @@ public sealed class SiblingWorktreeShould
     [Fact]
     public void SitBesideTheRepositoryNamedAfterItAndTheSlug()
     {
-        RepositoryPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders");
+        FolderPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders");
 
         SiblingWorktree worktree = SiblingWorktree.For(repository, Slug);
 
-        worktree.Path.ShouldBe(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
+        worktree.Path.Value.ShouldBe(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
     }
 
     [Fact]
     public void CheckOutABranchNamedAfterTheSlug()
     {
-        RepositoryPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders");
+        FolderPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders");
 
         SiblingWorktree worktree = SiblingWorktree.For(repository, Slug);
 
@@ -29,7 +29,7 @@ public sealed class SiblingWorktreeShould
     [Fact]
     public void RefuseARepositoryAtADriveRootBecauseItHasNoParentToSitBeside()
     {
-        RepositoryPath repository = new(@"C:\");
+        FolderPath repository = new(@"C:\");
 
         ArgumentException refusal = Should.Throw<ArgumentException>(() => SiblingWorktree.For(repository, Slug));
 
@@ -37,12 +37,12 @@ public sealed class SiblingWorktreeShould
     }
 
     [Fact]
-    public void IgnoreATrailingSeparatorOnTheRepositoryPath()
+    public void IgnoreATrailingSeparatorOnTheFolderPath()
     {
-        RepositoryPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders\");
+        FolderPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders\");
 
         SiblingWorktree worktree = SiblingWorktree.For(repository, Slug);
 
-        worktree.Path.ShouldBe(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
+        worktree.Path.Value.ShouldBe(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
     }
 }

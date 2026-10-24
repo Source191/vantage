@@ -12,7 +12,7 @@ public static class HereCommand
 
     public static LaunchPlanResult Plan(string directory, IReadOnlyList<string> arguments, Func<string, bool> isRepository)
     {
-        RepositoryPath path = new(directory);
+        FolderPath path = new(directory);
         string? name = null;
         string prompt = string.Empty;
         string description = string.Empty;
@@ -42,7 +42,7 @@ public static class HereCommand
             }
         }
 
-        RepositoryChoice repository = new(path.Name, directory, isRepository(directory));
+        RepositoryChoice repository = new(path.Name, path, isRepository(directory));
         LaunchRequest request = new(repository, name ?? path.Name, description, LaunchMode.CurrentBranch, WorktreeBase.RemoteDefault, prompt);
 
         return LaunchPlanBuilder.Build(request, _ => false);

@@ -22,13 +22,13 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
         }
 
         await claude.RemoveAsync(session.JobId!, cancellationToken);
-        ResumeResult renamed = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory, newName, cancellationToken);
+        ResumeResult renamed = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory.Value, newName, cancellationToken);
         if (renamed.Continued)
         {
             return new RenameSessionOutcome.Renamed(session.Name, newName.Text);
         }
 
-        ResumeResult restored = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory, SessionName.TryParse(session.Name), cancellationToken);
+        ResumeResult restored = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
 
         return restored.Continued
             ? new RenameSessionOutcome.Restored(session.Name, renamed.Message)

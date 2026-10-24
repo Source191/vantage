@@ -5,8 +5,8 @@ namespace Source191.Vantage.Core.Tests.Application.Launch;
 
 public sealed class LaunchPlanShould
 {
-    private static readonly RepositoryChoice Repository = new("Northwind.Orders", @"C:\repos\Northwind.Orders", IsRepository: true);
-    private static readonly RepositoryChoice NoRepository = new("repos (no repository)", @"C:\repos", IsRepository: false);
+    private static readonly RepositoryChoice Repository = new("Northwind.Orders", new FolderPath(@"C:\repos\Northwind.Orders"), IsRepository: true);
+    private static readonly RepositoryChoice NoRepository = new("repos (no repository)", new FolderPath(@"C:\repos"), IsRepository: false);
 
     private static readonly LaunchRequest Default = new(
         Repository,
@@ -21,7 +21,7 @@ public sealed class LaunchPlanShould
     {
         LaunchPlan plan = LaunchPlanBuilder.Build(Default, folderExists: _ => false).Plan!;
 
-        plan.Directory.ShouldBe(@"C:\repos\Northwind.Orders");
+        plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders");
         plan.Worktree.ShouldBeNull();
         plan.Name.Text.ShouldBe("Fix #123: flaky tests!");
     }
@@ -45,7 +45,7 @@ public sealed class LaunchPlanShould
     {
         LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, _ => false).Plan!;
 
-        plan.Directory.ShouldBe(@"C:\repos\Northwind.Orders-fix-123-flaky-tests");
+        plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders-fix-123-flaky-tests");
         plan.Worktree.ShouldNotBeNull();
         plan.Worktree.Branch.ShouldBe("fix-123-flaky-tests");
         plan.ReuseExistingWorktree.ShouldBeFalse();
@@ -58,7 +58,7 @@ public sealed class LaunchPlanShould
         LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, folderExists: path => path.EndsWith("flaky-tests", StringComparison.Ordinal)).Plan!;
 
         plan.ReuseExistingWorktree.ShouldBeTrue();
-        plan.Directory.ShouldBe(@"C:\repos\Northwind.Orders-fix-123-flaky-tests");
+        plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders-fix-123-flaky-tests");
     }
 
     [Fact]

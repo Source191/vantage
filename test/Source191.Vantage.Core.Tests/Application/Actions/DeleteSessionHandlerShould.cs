@@ -30,7 +30,7 @@ public sealed class DeleteSessionHandlerShould
     [Fact]
     public async Task DeleteASessionAndRemoveItsCleanVantageWorktreeAndMergedBranch()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), "fix-123", new FolderPath(Repository), Noon));
 
         DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
 
@@ -43,7 +43,7 @@ public sealed class DeleteSessionHandlerShould
     [Fact]
     public async Task KeepAVantageWorktreeThatStillHasChanges()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), "fix-123", new FolderPath(Repository), Noon));
         processes.Answer(request => request.Arguments.Contains("status"), new ProcessResult(0, " M a.cs\n", string.Empty));
 
         DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
@@ -55,7 +55,7 @@ public sealed class DeleteSessionHandlerShould
     [Fact]
     public async Task AskAboutTheBranchWhenItIsNotMerged()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), "fix-123", new FolderPath(Repository), Noon));
         processes.Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty));
 
         DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);

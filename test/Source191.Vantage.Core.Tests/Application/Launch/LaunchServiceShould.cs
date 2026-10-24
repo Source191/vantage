@@ -15,7 +15,7 @@ public sealed class LaunchServiceShould
     private const string Listing = """[{"pid":1,"id":"81cdb0f9","cwd":"C:\\repos\\Northwind.Orders","kind":"background","startedAt":1,"sessionId":"sess-1","name":"Fix flaky tests","status":"idle","state":"blocked"}]""";
 
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
-    private static readonly RepositoryChoice Repository = new("Northwind.Orders", @"C:\repos\Northwind.Orders", IsRepository: true);
+    private static readonly RepositoryChoice Repository = new("Northwind.Orders", new FolderPath(@"C:\repos\Northwind.Orders"), IsRepository: true);
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner()
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
@@ -40,8 +40,8 @@ public sealed class LaunchServiceShould
 
     private static LaunchPlan NewWorktree => CurrentBranch with
     {
-        Directory = @"C:\repos\Northwind.Orders-fix-flaky-tests",
-        Worktree = new SiblingWorktree(@"C:\repos\Northwind.Orders-fix-flaky-tests", "fix-flaky-tests"),
+        Directory = new FolderPath(@"C:\repos\Northwind.Orders-fix-flaky-tests"),
+        Worktree = new SiblingWorktree(new FolderPath(@"C:\repos\Northwind.Orders-fix-flaky-tests"), "fix-flaky-tests"),
     };
 
     [Fact]

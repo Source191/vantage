@@ -29,8 +29,8 @@ public sealed class StartSessionHandlerShould
     private readonly FakeWindowsTerminal terminal = new();
 
     private static LaunchPlan Plan => new(
-        Repository, SessionName.Parse("Fix flaky tests"), Description: null, Worktree: null,
-        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", Repository, IsRepository: true));
+        new FolderPath(Repository), SessionName.Parse("Fix flaky tests"), Description: null, Worktree: null,
+        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", new FolderPath(Repository), IsRepository: true));
 
     private StartSessionHandler Handler
     {
@@ -84,10 +84,10 @@ public sealed class StartSessionHandlerShould
 
         Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe(new StartSessionOutcome.NotTrusted(Repository));
+        footer.ShouldBe(new StartSessionOutcome.NotTrusted(new FolderPath(Repository)));
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Trust Northwind.Orders");
-        tab.StartingDirectory.ShouldBe(Repository);
+        tab.StartingDirectory.Value.ShouldBe(Repository);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class StartSessionHandlerShould
     [Fact]
     public async Task StartInTheWorktreeTheWizardWasFixedTo()
     {
-        LaunchPlan inWorktree = Plan with { Directory = Worktree, Repository = new RepositoryChoice("Northwind.Orders-fix-flaky-tests", Worktree, IsRepository: true) };
+        LaunchPlan inWorktree = Plan with { Directory = new FolderPath(Worktree), Repository = new RepositoryChoice("Northwind.Orders-fix-flaky-tests", new FolderPath(Worktree), IsRepository: true) };
 
         Outcome footer = await Handler.HandleAsync(new StartSession(inWorktree, OpenInTab: false), CancellationToken.None);
 

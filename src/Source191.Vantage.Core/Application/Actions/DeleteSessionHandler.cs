@@ -17,7 +17,7 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
         string name = row.Session.Name;
 
         CreatedWorktree? created = (await createdWorktrees.ReadCreatedWorktreesAsync())
-            .FirstOrDefault(worktree => string.Equals(worktree.Path, row.Session.WorkingDirectory, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(worktree => worktree.Path == row.Session.WorkingDirectory);
         if (created is null)
         {
             return new DeleteSessionOutcome.Deleted(name);
@@ -29,36 +29,36 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
             return new DeleteSessionOutcome.KeptWorktree(name, decision.Reason);
         }
 
-        await git.RemoveWorktreeAsync(created.Repository, created.Path, decision.Forced, cancellationToken);
+        await git.RemoveWorktreeAsync(created.Repository.Value, created.Path.Value, decision.Forced, cancellationToken);
         await createdWorktrees.ForgetCreatedWorktreeAsync(created.Path);
         if (decision.Branch == BranchAction.Delete)
         {
-            await git.DeleteBranchAsync(created.Repository, created.Branch, force: false, cancellationToken);
+            await git.DeleteBranchAsync(created.Repository.Value, created.Branch, force: false, cancellationToken);
 
             return new DeleteSessionOutcome.RemovedWorktreeAndBranch(name, created.Branch);
         }
 
-        return new DeleteSessionOutcome.BranchNotMerged(name, new BranchToConfirm(created.Repository, created.Branch));
+        return new DeleteSessionOutcome.BranchNotMerged(name, new BranchToConfirm(created.Repository.Value, created.Branch));
     }
 
     private async Task<WorktreeRemovalFacts> FactsAsync(CreatedWorktree created, CancellationToken cancellationToken)
     {
-        IReadOnlyList<GitWorktreeEntry> entries = await git.ListWorktreesAsync(created.Repository, cancellationToken);
-        GitWorktreeEntry? entry = entries.FirstOrDefault(candidate => string.Equals(candidate.Path, created.Path, StringComparison.OrdinalIgnoreCase));
+        IReadOnlyList<GitWorktreeEntry> entries = await git.ListWorktreesAsync(created.Repository.Value, cancellationToken);
+        GitWorktreeEntry? entry = entries.FirstOrDefault(candidate => new FolderPath(candidate.Path) == created.Path);
         // Git's listing is the source of truth here: a prunable entry means the folder has gone.
         WorktreeHealthKind health = entry is null
             ? WorktreeHealthKind.Broken
             : WorktreeHealth.From(new WorktreeObservation(true, entry.PrunableReason is null, entry.LockReason, false, null, false)).Kind;
-        string into = await git.DefaultRemoteBranchAsync(created.Repository, cancellationToken) ?? "HEAD";
+        string into = await git.DefaultRemoteBranchAsync(created.Repository.Value, cancellationToken) ?? "HEAD";
 
         return new WorktreeRemovalFacts(
             health,
             created.Branch,
-            DirtyFileCount: await git.CountChangedFilesAsync(created.Path, cancellationToken),
-            UnpushedCommitCount: await git.CountUnpushedCommitsAsync(created.Path, cancellationToken),
+            DirtyFileCount: await git.CountChangedFilesAsync(created.Path.Value, cancellationToken),
+            UnpushedCommitCount: await git.CountUnpushedCommitsAsync(created.Path.Value, cancellationToken),
             LiveSessionName: null,
             BranchCreatedByVantage: true,
-            BranchMerged: await git.IsMergedAsync(created.Repository, created.Branch, into, cancellationToken),
+            BranchMerged: await git.IsMergedAsync(created.Repository.Value, created.Branch, into, cancellationToken),
             LeftoverFileCount: 0);
     }
 }
