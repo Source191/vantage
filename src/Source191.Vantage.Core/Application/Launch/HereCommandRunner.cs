@@ -23,15 +23,13 @@ public sealed class HereCommandRunner(IFolders folders, LaunchService launches, 
         switch (outcome.Kind)
         {
             case LaunchOutcomeKind.Started when outcome.JobId is not null:
-                await output.WriteLineAsync($"Started {planned.Plan.Name.Text} ({outcome.JobId}) in {directory}.");
+                await output.WriteLineAsync(Wording.Here(outcome, planned.Plan.Name.Text, directory));
                 await effects.RunAsync(new AttachToSession(outcome.JobId), cancellationToken);
                 console.RecoverAfterChild();
                 return 0;
-            case LaunchOutcomeKind.WorkspaceNotTrusted:
-                await error.WriteLineAsync($"Could not start: {directory} is not trusted yet. Run claude here once and accept the prompt.");
-                return 1;
             default:
-                await error.WriteLineAsync($"Could not start: {outcome.Message}");
+                // Not trusted or failed: Wording says which.
+                await error.WriteLineAsync(Wording.Here(outcome, planned.Plan.Name.Text, directory));
                 return 1;
         }
     }
