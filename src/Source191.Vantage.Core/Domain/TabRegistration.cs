@@ -13,15 +13,9 @@ public sealed record TabRegistration(
 {
     private static readonly TimeSpan PendingGracePeriod = TimeSpan.FromSeconds(60);
 
-    public static TabRegistration Pending(string sessionId, TabColour colour, DateTimeOffset createdAt)
-    {
-        return new TabRegistration(Guid.NewGuid(), sessionId, colour, createdAt, ProcessId: null, ProcessStartedAt: null);
-    }
+    public static TabRegistration Pending(string sessionId, TabColour colour, DateTimeOffset createdAt) => new TabRegistration(Guid.NewGuid(), sessionId, colour, createdAt, ProcessId: null, ProcessStartedAt: null);
 
-    public TabRegistration ClaimedBy(int processId, DateTimeOffset processStartedAt)
-    {
-        return this with { ProcessId = processId, ProcessStartedAt = processStartedAt };
-    }
+    public TabRegistration ClaimedBy(int processId, DateTimeOffset processStartedAt) => this with { ProcessId = processId, ProcessStartedAt = processStartedAt };
 
     /// <summary>
     /// The Windows Terminal process whose window holds this tab, found by walking up from the tab's shell. Null for a
@@ -57,8 +51,5 @@ public sealed record TabRegistration(
 
 public sealed class TabRegistrations(IReadOnlyList<TabRegistration> items)
 {
-    public IReadOnlyList<TabRegistration> Live(DateTimeOffset now, IProcessRegistry processes)
-    {
-        return [.. items.Where(registration => registration.IsLive(now, processes))];
-    }
+    public IReadOnlyList<TabRegistration> Live(DateTimeOffset now, IProcessRegistry processes) => [.. items.Where(registration => registration.IsLive(now, processes))];
 }

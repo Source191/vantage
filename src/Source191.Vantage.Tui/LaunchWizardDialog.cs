@@ -242,10 +242,7 @@ internal static class LaunchWizardDialog
         return true;
     }
 
-    private static bool IsListNavigation(GuiKey key)
-    {
-        return key == GuiKey.CursorDown || key == GuiKey.CursorUp || key == GuiKey.PageDown || key == GuiKey.PageUp;
-    }
+    private static bool IsListNavigation(GuiKey key) => key == GuiKey.CursorDown || key == GuiKey.CursorUp || key == GuiKey.PageDown || key == GuiKey.PageUp;
 
     /// <summary>Arrow and page keys typed in the filter drive the list, so choosing never needs a Tab first.</summary>
     private static bool MoveSelection(ListView list, GuiKey key)

@@ -20,10 +20,20 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
-      # No step pushes, so the token is not left in .git\config for the rest of the job.
+      # No step pushes, so the token is not left in .git\config for the rest of the job. Depth 2 keeps
+      # both parents of a pull request's merge ref for the version check.
       - uses: actions/checkout@v4
         with:
+          fetch-depth: 2
           persist-credentials: false
+
+      # A pull request that changes the packaged tool must raise Version. The checkout is GitHub's
+      # merge ref: HEAD^1 is the tip of main it was built on and HEAD is main after the merge, so the
+      # diff is exactly what the pull request changes. First, so a missing bump fails before the build.
+      - name: Check the version was raised
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: .github/scripts/Assert-VersionBumped.ps1 -Base HEAD^1 -Head HEAD
 
       # Packed as <Version>-ci.<run number>: a distinct version per run, so installing it never
       # collides with a version the tool cache already holds.

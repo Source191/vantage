@@ -39,8 +39,5 @@ public sealed class RepositoryCatalogue(IFolders folders, IReadOnlyList<string> 
     }
 
     /// <summary>The configured, listed and recorded paths that are full paths; anything else is skipped.</summary>
-    private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts)
-    {
-        return texts.Select(FolderPath.TryParse).OfType<FolderPath>();
-    }
+    private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Select(FolderPath.TryParse).OfType<FolderPath>();
 }

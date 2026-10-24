@@ -9,18 +9,9 @@ namespace Source191.Vantage.Application.Launch;
 public sealed class LaunchWorkflow(RepositoryCatalogue catalogue, IFolders folders, IRecentRepositories recent)
 {
     /// <summary>The recently used repositories, read once when the wizard opens; filtering is then synchronous.</summary>
-    public Task<IReadOnlyList<string>> RecentAsync()
-    {
-        return recent.ReadRecentRepositoriesAsync();
-    }
+    public Task<IReadOnlyList<string>> RecentAsync() => recent.ReadRecentRepositoriesAsync();
 
-    public IReadOnlyList<RepositoryChoice> Choices(IReadOnlyList<string> recent, string filter)
-    {
-        return catalogue.Choices(recent, filter);
-    }
+    public IReadOnlyList<RepositoryChoice> Choices(IReadOnlyList<string> recent, string filter) => catalogue.Choices(recent, filter);
 
-    public LaunchPlanResult Plan(LaunchRequest request)
-    {
-        return LaunchPlanBuilder.Build(request, folders.DirectoryExists);
-    }
+    public LaunchPlanResult Plan(LaunchRequest request) => LaunchPlanBuilder.Build(request, folders.DirectoryExists);
 }

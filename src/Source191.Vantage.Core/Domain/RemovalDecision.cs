@@ -42,15 +42,9 @@ public sealed record RemovalDecision(
         };
     }
 
-    private static RemovalDecision DeleteFolder(bool forced, bool prune)
-    {
-        return new(RemovalOutcome.DeleteFolder, forced, BranchAction.None, PruneRegistration: prune, "leftover folder", CanBeForced: false);
-    }
+    private static RemovalDecision DeleteFolder(bool forced, bool prune) => new(RemovalOutcome.DeleteFolder, forced, BranchAction.None, PruneRegistration: prune, "leftover folder", CanBeForced: false);
 
-    private static RemovalDecision Refused(string reason, bool canBeForced)
-    {
-        return new(RemovalOutcome.Refused, Forced: false, BranchAction.None, PruneRegistration: false, reason, canBeForced);
-    }
+    private static RemovalDecision Refused(string reason, bool canBeForced) => new(RemovalOutcome.Refused, Forced: false, BranchAction.None, PruneRegistration: false, reason, canBeForced);
 
     private static string LeftoverFiles(WorktreeRemovalFacts facts)
     {
@@ -59,8 +53,5 @@ public sealed record RemovalDecision(
             : facts.LeftoverFileCount.ToString(System.Globalization.CultureInfo.InvariantCulture);
     }
 
-    private static BranchAction BranchActionFor(WorktreeRemovalFacts facts)
-    {
-        return facts is { BranchCreatedByVantage: true, BranchMerged: true } ? BranchAction.Delete : BranchAction.Ask;
-    }
+    private static BranchAction BranchActionFor(WorktreeRemovalFacts facts) => facts is { BranchCreatedByVantage: true, BranchMerged: true } ? BranchAction.Delete : BranchAction.Ask;
 }

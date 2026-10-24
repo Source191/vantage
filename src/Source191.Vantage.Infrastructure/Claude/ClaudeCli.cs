@@ -26,20 +26,11 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         return InterpretStart(result);
     }
 
-    public Task<int> AttachAsync(string jobId, CancellationToken cancellationToken)
-    {
-        return processes.RunInteractiveAsync(Request(["attach", jobId]), cancellationToken);
-    }
+    public Task<int> AttachAsync(string jobId, CancellationToken cancellationToken) => processes.RunInteractiveAsync(Request(["attach", jobId]), cancellationToken);
 
-    public Task StopAsync(string jobId, CancellationToken cancellationToken)
-    {
-        return processes.RunAsync(Request(["stop", jobId]), cancellationToken);
-    }
+    public Task StopAsync(string jobId, CancellationToken cancellationToken) => processes.RunAsync(Request(["stop", jobId]), cancellationToken);
 
-    public Task RemoveAsync(string jobId, CancellationToken cancellationToken)
-    {
-        return processes.RunAsync(Request(["rm", jobId]), cancellationToken);
-    }
+    public Task RemoveAsync(string jobId, CancellationToken cancellationToken) => processes.RunAsync(Request(["rm", jobId]), cancellationToken);
 
     public async Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, SessionName? name, CancellationToken cancellationToken)
     {
@@ -63,15 +54,9 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         return new ResumeResult(Continued: note is null, note ?? result.StandardOutput.Trim());
     }
 
-    public Task<int> OpenAgentViewAsync(CancellationToken cancellationToken)
-    {
-        return processes.RunInteractiveAsync(Request(["agents"]), cancellationToken);
-    }
+    public Task<int> OpenAgentViewAsync(CancellationToken cancellationToken) => processes.RunInteractiveAsync(Request(["agents"]), cancellationToken);
 
-    private ProcessRequest Request(IReadOnlyList<string> arguments, string? workingDirectory = null)
-    {
-        return new ProcessRequest(executable, arguments, workingDirectory);
-    }
+    private ProcessRequest Request(IReadOnlyList<string> arguments, string? workingDirectory = null) => new ProcessRequest(executable, arguments, workingDirectory);
 
     private static StartResult InterpretStart(ProcessResult result)
     {

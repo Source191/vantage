@@ -34,15 +34,9 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
     private string ConfigFile => Path.Combine(folder, "config.json");
 
-    public async Task<IReadOnlyList<TabRegistration>> ReadTabsAsync()
-    {
-        return await ReadAllAsync<TabRegistration>(TabsFolder);
-    }
+    public async Task<IReadOnlyList<TabRegistration>> ReadTabsAsync() => await ReadAllAsync<TabRegistration>(TabsFolder);
 
-    public Task WriteTabAsync(TabRegistration registration)
-    {
-        return WriteJsonAsync(Path.Combine(TabsFolder, $"{registration.Id:N}.json"), registration);
-    }
+    public Task WriteTabAsync(TabRegistration registration) => WriteJsonAsync(Path.Combine(TabsFolder, $"{registration.Id:N}.json"), registration);
 
     public Task RemoveTabAsync(Guid id)
     {
@@ -66,10 +60,7 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         await TrimRecentAsync();
     }
 
-    public async Task<IReadOnlyList<CreatedWorktree>> ReadCreatedWorktreesAsync()
-    {
-        return await ReadJsonAsync<List<CreatedWorktree>>(CreatedFile) ?? [];
-    }
+    public async Task<IReadOnlyList<CreatedWorktree>> ReadCreatedWorktreesAsync() => await ReadJsonAsync<List<CreatedWorktree>>(CreatedFile) ?? [];
 
     public async Task RecordCreatedWorktreeAsync(CreatedWorktree worktree)
     {
@@ -99,25 +90,13 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         await WriteJsonAsync(DescriptionFile(sessionId), new SessionDescription(sessionId, description));
     }
 
-    public async Task<VantageConfig> ReadConfigAsync()
-    {
-        return await ReadJsonAsync<VantageConfig>(ConfigFile) ?? VantageConfig.Default;
-    }
+    public async Task<VantageConfig> ReadConfigAsync() => await ReadJsonAsync<VantageConfig>(ConfigFile) ?? VantageConfig.Default;
 
-    public Task WriteConfigAsync(VantageConfig config)
-    {
-        return WriteJsonAsync(ConfigFile, config);
-    }
+    public Task WriteConfigAsync(VantageConfig config) => WriteJsonAsync(ConfigFile, config);
 
-    private string RecentFile(string repository)
-    {
-        return Path.Combine(RecentFolder, $"{FileKey(repository.ToUpperInvariant())}.json");
-    }
+    private string RecentFile(string repository) => Path.Combine(RecentFolder, $"{FileKey(repository.ToUpperInvariant())}.json");
 
-    private string DescriptionFile(string sessionId)
-    {
-        return Path.Combine(DescriptionsFolder, $"{FileKey(sessionId)}.json");
-    }
+    private string DescriptionFile(string sessionId) => Path.Combine(DescriptionsFolder, $"{FileKey(sessionId)}.json");
 
     /// <summary>The old single list, most recent first, becomes one file each with descending timestamps so the order survives.</summary>
     private async Task ImportLegacyRecentAsync()
@@ -162,10 +141,7 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         }
     }
 
-    private static string FileKey(string text)
-    {
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)))[..16].ToLowerInvariant();
-    }
+    private static string FileKey(string text) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)))[..16].ToLowerInvariant();
 
     private static async Task<IReadOnlyList<T>> ReadAllAsync<T>(string directory)
         where T : class

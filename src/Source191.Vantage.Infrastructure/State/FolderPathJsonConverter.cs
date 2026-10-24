@@ -10,13 +10,7 @@ namespace Source191.Vantage.Adapters.State;
 /// </summary>
 public sealed class FolderPathJsonConverter : JsonConverter<FolderPath>
 {
-    public override FolderPath Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        return FolderPath.TryParse(reader.GetString()) ?? throw new JsonException("A state file holds a path that is not a full path.");
-    }
+    public override FolderPath Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => FolderPath.TryParse(reader.GetString()) ?? throw new JsonException("A state file holds a path that is not a full path.");
 
-    public override void Write(Utf8JsonWriter writer, FolderPath value, JsonSerializerOptions options)
-    {
-        writer.WriteStringValue(value.Value);
-    }
+    public override void Write(Utf8JsonWriter writer, FolderPath value, JsonSerializerOptions options) => writer.WriteStringValue(value.Value);
 }

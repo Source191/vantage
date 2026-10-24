@@ -159,18 +159,9 @@ public static partial class Wording
         };
     }
 
-    private static string Started(string name, string jobId)
-    {
-        return $"Started {name} ({jobId}).";
-    }
+    private static string Started(string name, string jobId) => $"Started {name} ({jobId}).";
 
-    private static string Registrations(int number)
-    {
-        return number == 1 ? "1 stale registration" : $"{number} stale registrations";
-    }
+    private static string Registrations(int number) => number == 1 ? "1 stale registration" : $"{number} stale registrations";
 
-    private static string Count(int number, string noun)
-    {
-        return number == 1 ? $"1 {noun}" : $"{number} {noun}s";
-    }
+    private static string Count(int number, string noun) => number == 1 ? $"1 {noun}" : $"{number} {noun}s";
 }

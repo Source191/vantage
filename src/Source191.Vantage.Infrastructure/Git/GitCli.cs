@@ -12,10 +12,7 @@ public sealed class GitCli(IProcessRunner processes) : IGit
         return GitWorktreeListing.Parse(result.StandardOutput);
     }
 
-    public Task AddWorktreeAsync(string repository, string path, string branch, string baseRef, CancellationToken cancellationToken)
-    {
-        return RunOrThrowAsync(repository, ["worktree", "add", path, "-b", branch, baseRef], cancellationToken);
-    }
+    public Task AddWorktreeAsync(string repository, string path, string branch, string baseRef, CancellationToken cancellationToken) => RunOrThrowAsync(repository, ["worktree", "add", path, "-b", branch, baseRef], cancellationToken);
 
     public Task RemoveWorktreeAsync(string repository, string path, bool force, CancellationToken cancellationToken)
     {
@@ -64,10 +61,7 @@ public sealed class GitCli(IProcessRunner processes) : IGit
             : null;
     }
 
-    public Task DeleteBranchAsync(string repository, string branch, bool force, CancellationToken cancellationToken)
-    {
-        return RunOrThrowAsync(repository, ["branch", force ? "-D" : "-d", branch], cancellationToken);
-    }
+    public Task DeleteBranchAsync(string repository, string branch, bool force, CancellationToken cancellationToken) => RunOrThrowAsync(repository, ["branch", force ? "-D" : "-d", branch], cancellationToken);
 
     public async Task<string?> DefaultRemoteBranchAsync(string repository, CancellationToken cancellationToken)
     {
@@ -127,18 +121,9 @@ public sealed class GitCli(IProcessRunner processes) : IGit
         return result;
     }
 
-    private static ProcessRequest Request(string directory, IReadOnlyList<string> arguments)
-    {
-        return new ProcessRequest("git", arguments, directory);
-    }
+    private static ProcessRequest Request(string directory, IReadOnlyList<string> arguments) => new ProcessRequest("git", arguments, directory);
 
-    private static List<string> Lines(string output)
-    {
-        return [.. output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
-    }
+    private static List<string> Lines(string output) => [.. output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
 
-    private static string ToWindowsPath(string output)
-    {
-        return output.Trim().Replace('/', Path.DirectorySeparatorChar);
-    }
+    private static string ToWindowsPath(string output) => output.Trim().Replace('/', Path.DirectorySeparatorChar);
 }

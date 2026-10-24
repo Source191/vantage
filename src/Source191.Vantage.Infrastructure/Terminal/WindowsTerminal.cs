@@ -26,10 +26,7 @@ public static class WindowsTerminalArguments
 /// <summary>The -EncodedCommand form PowerShell takes: the script as Base64 of its UTF-16 bytes.</summary>
 public static class EncodedCommand
 {
-    public static string Encode(string script)
-    {
-        return Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
-    }
+    public static string Encode(string script) => Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
 }
 
 public sealed class WindowsTerminal(IProcessRunner processes) : IWindowsTerminal
@@ -44,8 +41,5 @@ public sealed class WindowsTerminal(IProcessRunner processes) : IWindowsTerminal
         }
     }
 
-    public Task<bool> FocusTabAsync(int? terminalProcessId, string title, CancellationToken cancellationToken)
-    {
-        return Task.Run(() => UiAutomationTabs.Select(terminalProcessId, title), cancellationToken);
-    }
+    public Task<bool> FocusTabAsync(int? terminalProcessId, string title, CancellationToken cancellationToken) => Task.Run(() => UiAutomationTabs.Select(terminalProcessId, title), cancellationToken);
 }

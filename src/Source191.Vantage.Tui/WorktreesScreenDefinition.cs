@@ -72,10 +72,7 @@ internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesVie
         return $"{summary}\n{dirty} with changes, {unpushed} with unpushed commits";
     }
 
-    public WorktreesViewState WithFooter(WorktreesViewState state, Footer footer)
-    {
-        return state with { Footer = footer };
-    }
+    public WorktreesViewState WithFooter(WorktreesViewState state, Footer footer) => state with { Footer = footer };
 
     public (WorktreesViewState State, IReadOnlyList<ViewEffect> Effects) Reduce(WorktreesViewState state, ViewInput input)
     {
@@ -89,8 +86,5 @@ internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesVie
         // Nothing listens to the worktrees view's inputs.
     }
 
-    private static string Count(int number)
-    {
-        return number == 0 ? string.Empty : number.ToString(System.Globalization.CultureInfo.InvariantCulture);
-    }
+    private static string Count(int number) => number == 0 ? string.Empty : number.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }

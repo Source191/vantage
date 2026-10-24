@@ -9,15 +9,9 @@ public sealed class FileLogger(string path, TimeProvider clock) : ILogger
 {
     private readonly Lock gate = new();
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
-    {
-        return null;
-    }
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
 
-    public bool IsEnabled(LogLevel logLevel)
-    {
-        return logLevel != LogLevel.None;
-    }
+    public bool IsEnabled(LogLevel logLevel) => logLevel != LogLevel.None;
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {

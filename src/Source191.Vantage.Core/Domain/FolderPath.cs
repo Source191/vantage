@@ -33,39 +33,18 @@ public sealed record FolderPath
     public FolderPath? Parent => IOPath.GetDirectoryName(Value) is string parent ? new FolderPath(parent) : null;
 
     /// <summary>A path from outside Vantage (git output, the CLI's listing, a state file); null when it is not a full path.</summary>
-    public static FolderPath? TryParse(string? text)
-    {
-        return text is not null && IOPath.IsPathFullyQualified(text) ? new FolderPath(text) : null;
-    }
+    public static FolderPath? TryParse(string? text) => text is not null && IOPath.IsPathFullyQualified(text) ? new FolderPath(text) : null;
 
-    public FolderPath Combine(string child)
-    {
-        return new FolderPath(IOPath.Combine(Value, child));
-    }
+    public FolderPath Combine(string child) => new FolderPath(IOPath.Combine(Value, child));
 
     /// <summary>True for this folder itself or anything inside it; a sibling that shares a name prefix is not inside.</summary>
-    public bool IsUnder(FolderPath other)
-    {
-        return Equals(other) || Value.StartsWith(Inside(other.Value), StringComparison.OrdinalIgnoreCase);
-    }
+    public bool IsUnder(FolderPath other) => Equals(other) || Value.StartsWith(Inside(other.Value), StringComparison.OrdinalIgnoreCase);
 
-    public bool Equals(FolderPath? other)
-    {
-        return other is not null && string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
-    }
+    public bool Equals(FolderPath? other) => other is not null && string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
 
-    public override int GetHashCode()
-    {
-        return StringComparer.OrdinalIgnoreCase.GetHashCode(Value);
-    }
+    public override int GetHashCode() => StringComparer.OrdinalIgnoreCase.GetHashCode(Value);
 
-    public override string ToString()
-    {
-        return Value;
-    }
+    public override string ToString() => Value;
 
-    private static string Inside(string folder)
-    {
-        return folder.EndsWith(IOPath.DirectorySeparatorChar) ? folder : folder + IOPath.DirectorySeparatorChar;
-    }
+    private static string Inside(string folder) => folder.EndsWith(IOPath.DirectorySeparatorChar) ? folder : folder + IOPath.DirectorySeparatorChar;
 }

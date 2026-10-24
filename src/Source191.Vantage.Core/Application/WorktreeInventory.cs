@@ -54,10 +54,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
     }
 
     /// <summary>The paths among folder listings and configured roots that are full paths; anything else is skipped.</summary>
-    private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts)
-    {
-        return texts.Select(FolderPath.TryParse).OfType<FolderPath>();
-    }
+    private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Select(FolderPath.TryParse).OfType<FolderPath>();
 
     private async Task<IReadOnlyList<WorktreeRow>> RegisteredRowsAsync(FolderPath repository, HashSet<FolderPath> registered, CancellationToken cancellationToken)
     {
@@ -149,10 +146,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
         return Leftover(owner, folder, observation, ownerExists);
     }
 
-    private WorktreeRow Leftover(FolderPath repository, FolderPath folder, WorktreeObservation observation, bool ownerExists)
-    {
-        return new WorktreeRow(repository, folder, null, WorktreeHealth.From(observation), 0, 0, null, null, null, CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder.Value));
-    }
+    private WorktreeRow Leftover(FolderPath repository, FolderPath folder, WorktreeObservation observation, bool ownerExists) => new WorktreeRow(repository, folder, null, WorktreeHealth.From(observation), 0, 0, null, null, null, CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder.Value));
 
     private string? GitDirOf(string gitFile)
     {
@@ -199,8 +193,5 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
             .FirstOrDefault(session => session.WorkingDirectory.IsUnder(worktree));
     }
 
-    private static WorktreeRow WithLiveSession(WorktreeRow row, Session? live)
-    {
-        return row with { SessionId = live?.SessionId, SessionName = live?.Name };
-    }
+    private static WorktreeRow WithLiveSession(WorktreeRow row, Session? live) => row with { SessionId = live?.SessionId, SessionName = live?.Name };
 }
