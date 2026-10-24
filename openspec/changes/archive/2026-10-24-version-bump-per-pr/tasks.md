@@ -21,7 +21,7 @@
 
 ## 5. Integration
 
-- [ ] 5.1 Open the pull request; verify on the runner that the version step ran (not skipped) and passed with 0.3.1 to 0.4.0, and that the `check` job is green
+- [x] 5.1 Open the pull request; verify on the runner that the version step ran (not skipped) and passed with 0.3.1 to 0.4.0, and that the `check` job is green
 - [x] 5.2 The user enables "Require branches to be up to date before merging" on `main`'s branch protection (already on when checked); verify with `gh api repos/Source191/vantage/branches/main/protection --jq .required_status_checks.strict` returning `true`
 
 ## Workflow follow-up
