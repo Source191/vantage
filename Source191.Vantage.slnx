@@ -1,4 +1,24 @@
 <Solution>
+  <Folder Name="/pipelines/" />
+  <Folder Name="/pipelines/actions/" />
+  <Folder Name="/pipelines/actions/build-test-pack/">
+    <File Path=".github/actions/build-test-pack/action.yml" />
+  </Folder>
+  <Folder Name="/pipelines/workflows/">
+    <File Path=".github/workflows/check.yml" />
+    <File Path=".github/workflows/release.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="CLAUDE.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Source191.Vantage.Core/Source191.Vantage.Core.csproj" />
     <Project Path="src/Source191.Vantage.Infrastructure/Source191.Vantage.Infrastructure.csproj" />
