@@ -21,6 +21,15 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
+    public void KnowWhetherTheFirstListingHasArrived()
+    {
+        SessionsViewState.Empty.Loaded.ShouldBeFalse();
+        Reduce(SessionsViewState.Empty, new LoadFailed("claude is not installed")).Loaded.ShouldBeFalse();
+        Loaded.Loaded.ShouldBeTrue();
+        Reduce(Loaded, new RowsLoaded([])).Loaded.ShouldBeTrue();
+    }
+
+    [Fact]
     public void SelectTheFirstRowOnFirstLoad()
     {
         Loaded.Selected.ShouldBe(Waiting);

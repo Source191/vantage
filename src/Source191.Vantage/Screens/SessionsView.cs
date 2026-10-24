@@ -84,8 +84,10 @@ public sealed record SessionsViewState(
     RowFilter Filter,
     bool FilterEditing,
     string? Banner,
-    string Footer)
+    string Footer,
+    bool Loaded = false)
 {
+    /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
     public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: string.Empty);
 
     public IReadOnlyList<SessionRow> VisibleRows
@@ -137,7 +139,7 @@ public static class SessionsView
     private static SessionsViewState Load(SessionsViewState state, IReadOnlyList<SessionRow> rows)
     {
         int previousIndex = IndexOfSelected(state);
-        SessionsViewState loaded = state with { Rows = rows, Banner = null };
+        SessionsViewState loaded = state with { Rows = rows, Banner = null, Loaded = true };
         if (loaded.Selected is not null)
         {
             return loaded;

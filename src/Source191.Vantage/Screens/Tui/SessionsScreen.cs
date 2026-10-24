@@ -231,6 +231,7 @@ public sealed class SessionsScreen(
     {
         live.State = live.State with { Footer = working };
         live.Redraw(clock.GetUtcNow());
+        live.ShowBusy(true);
         Task.Run(async () =>
         {
             T? result = default;
@@ -246,6 +247,7 @@ public sealed class SessionsScreen(
 
             app.Invoke(() =>
             {
+                live.ShowBusy(false);
                 string footer = failure ?? onUiThread(result!);
                 live.State = live.State with { Footer = footer };
                 live.Redraw(clock.GetUtcNow());
@@ -262,33 +264,16 @@ public sealed class SessionsScreen(
             return;
         }
 
-        live.State = live.State with { Footer = $"Starting {wizard.Plan.Name.Text}..." };
-        live.Redraw(clock.GetUtcNow());
-
-        Task.Run(async () =>
+        RunInBackground(app, live, $"Starting {wizard.Plan.Name.Text}...", async token =>
         {
-            string footer;
-            try
-            {
-                LaunchOutcome outcome = await launches.LaunchAsync(wizard.Plan, CancellationToken.None);
-                footer = outcome.Kind switch
-                {
-                    LaunchOutcomeKind.Started => await launches.StartedAsync(wizard.Plan, outcome, wizard.OpenInTab, CancellationToken.None),
-                    LaunchOutcomeKind.WorkspaceNotTrusted => await launches.OpenTrustTabAsync(wizard.Plan.Directory, CancellationToken.None),
-                    _ => $"Could not start: {outcome.Message}",
-                };
-            }
-            catch (Exception exception)
-            {
-                footer = $"Could not start: {exception.Message}";
-            }
+            LaunchOutcome outcome = await launches.LaunchAsync(wizard.Plan, token);
 
-            app.Invoke(() =>
+            return outcome.Kind switch
             {
-                live.State = live.State with { Footer = footer };
-                live.Redraw(clock.GetUtcNow());
-                TriggerLoad(app, live);
-            });
+                LaunchOutcomeKind.Started => await launches.StartedAsync(wizard.Plan, outcome, wizard.OpenInTab, token),
+                LaunchOutcomeKind.WorkspaceNotTrusted => await launches.OpenTrustTabAsync(wizard.Plan.Directory, token),
+                _ => $"Could not start: {outcome.Message}",
+            };
         });
     }
 
@@ -301,8 +286,10 @@ public sealed class SessionsScreen(
         private readonly Label title;
         private readonly Label banner;
         private readonly Label footer;
+        private readonly SpinnerView busy;
+        private readonly WaitingIndicator waiting;
 
-        private Live(Window window, TableView table, Label contextValues, string context, Label title, Label banner, Label footer, SessionsViewState state)
+        private Live(Window window, TableView table, Label contextValues, string context, Label title, Label banner, Label footer, SpinnerView busy, WaitingIndicator waiting, SessionsViewState state)
         {
             Window = window;
             this.table = table;
@@ -311,7 +298,15 @@ public sealed class SessionsScreen(
             this.title = title;
             this.banner = banner;
             this.footer = footer;
+            this.busy = busy;
+            this.waiting = waiting;
             State = state;
+        }
+
+        /// <summary>The footer spinner: on while an action runs off the UI thread, off once its outcome is shown.</summary>
+        public void ShowBusy(bool working)
+        {
+            busy.Show(working);
         }
 
         public Window Window { get; }
@@ -354,11 +349,13 @@ public sealed class SessionsScreen(
 
             Label crumb = Text(1, Pos.AnchorEnd(2), 12, " <sessions> ", Palette.Background);
             crumb.SetScheme(Palette.Pair(Palette.Background, Palette.Amber));
-            Label footer = Text(14, Pos.AnchorEnd(2), Dim.Fill(), string.Empty, Palette.Cyan);
+            SpinnerView busy = Spinners.Create(14, Pos.AnchorEnd(2));
+            WaitingIndicator waiting = new("Listing sessions");
+            Label footer = Text(16, Pos.AnchorEnd(2), Dim.Fill(), string.Empty, Palette.Cyan);
 
-            window.Add(contextNames, contextValues, keys, keyNames, keys2, keyNames2, logo, banner, title, table, crumb, footer);
+            window.Add(contextNames, contextValues, keys, keyNames, keys2, keyNames2, logo, banner, title, table, crumb, busy, footer, waiting);
 
-            Live live = new(window, table, contextValues, context, title, banner, footer, state);
+            Live live = new(window, table, contextValues, context, title, banner, footer, busy, waiting, state);
             table.Style.RowColorGetter = live.RowColour;
             _ = app;
 
@@ -379,6 +376,7 @@ public sealed class SessionsScreen(
                 table.SetSelection(0, selected, false, null);
             }
 
+            waiting.Show(!State.Loaded && State.Banner is null);
             Window.SetNeedsDraw();
         }
 

@@ -145,6 +145,14 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
+    public void KnowWhetherTheFirstScanHasArrived()
+    {
+        WorktreesViewState.Empty.Loaded.ShouldBeFalse();
+        Reduce(WorktreesViewState.Empty, new LoadFailed("git is not installed")).Loaded.ShouldBeFalse();
+        Loaded.Loaded.ShouldBeTrue();
+    }
+
+    [Fact]
     public void ShowALoadFailureAsABanner()
     {
         Reduce(Loaded, new LoadFailed("git is not installed")).Banner.ShouldBe("git is not installed");

@@ -31,8 +31,10 @@ public sealed record WorktreesViewState(
     RowFilter Filter,
     bool FilterEditing,
     string? Banner,
-    string Footer)
+    string Footer,
+    bool Loaded = false)
 {
+    /// <summary>Nothing scanned yet: the first scan has not arrived, so the screen shows that it is scanning rather than an empty table.</summary>
     public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: string.Empty);
 
     public IReadOnlyList<WorktreeRow> VisibleRows =>
@@ -100,7 +102,7 @@ public static class WorktreesView
     private static WorktreesViewState Load(WorktreesViewState state, IReadOnlyList<WorktreeRow> rows)
     {
         int previousIndex = IndexOfSelected(state);
-        WorktreesViewState loaded = state with { Rows = rows, Banner = null };
+        WorktreesViewState loaded = state with { Rows = rows, Banner = null, Loaded = true };
         if (loaded.Selected is not null)
         {
             return loaded;

@@ -76,7 +76,7 @@ Open a tab and run `vantage` (or `v`). The screen has three parts:
 
 - **Header:** the machine, the Claude executable, the repository roots being scanned, counts of sessions by state, and the key hints.
 - **Table:** one row per session, titled `sessions(all)[n]`, or `sessions(<filter>)[n]` when a filter is set. The selection bar is cyan.
-- **Footer:** the current view as a crumb, then the last message: what a key did, why it was refused, or what the selected row needs.
+- **Footer:** the current view as a crumb, then the last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside it while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
 
 The table refreshes every five seconds. `?` shows the keys for the current view and `q` quits. Quitting Vantage never stops a session.
 
