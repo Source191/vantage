@@ -41,7 +41,7 @@ A Terminal.Gui console for Claude Code sessions and git worktrees on Windows, pa
 - Focus roles: a scheme with Focus equal to Normal hides focus everywhere; ListView draws the selected row with Focus when focused and Active otherwise; a TextField needs its own background or it is invisible when empty, and a read-only TextField is drawn with the ReadOnly role once it loses focus.
 - Dialogs: a Button with IsDefault takes the initial focus; set focus from the dialog's `Initialized` event, not before `Run`. A Dialog of Height 12 has 8 usable rows and the button row overdraws the last. A Label that receives text later needs a fixed Height and non-empty initial Text. A TextField's Enter raises its own `Accepting`; KeyDown handlers on the field or dialog do not see it. Ctrl+C in a TextField copies its selection through `app.Clipboard`, which Windows Terminal passes through when it has no selection of its own.
 - `TextView` is obsolete (pragma CS0618) but still the wrapping multi-line box. `OptionSelector` replaces RadioGroup. Table rows take colours through `TableView.Style.RowColorGetter`.
-- User text must never be interpolated into PowerShell source: session names reach `wt.exe` tab commands as an encoded script and Base64 arguments.
+- User text must never be interpolated into PowerShell source: a tab's script reaches `wt.exe` Base64-encoded for `pwsh -EncodedCommand`, and every value inside it (paths, ids, folder names, whole messages) goes through `PowerShellScript.Quote`, which doubles all five characters PowerShell reads as a single quote (`'` and U+2018 to U+201B). `PowerShellQuotingShould` checks this against real `pwsh`.
 
 ## Windows Terminal facts (verified 2026-10-24, Windows Terminal 1.25)
 

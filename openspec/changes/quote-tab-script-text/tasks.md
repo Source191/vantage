@@ -11,7 +11,7 @@
 
 ## 3. Documentation
 
-- [ ] 3.1 CLAUDE.md: the line on user text names `PowerShellScript.Quote` as the only way a value enters a tab script and the five characters it doubles; verify `openspec validate` passes for every open change
+- [x] 3.1 CLAUDE.md: the line on user text names `PowerShellScript.Quote` as the only way a value enters a tab script and the five characters it doubles; verify `openspec validate` passes for every open change
 
 ## Workflow follow-up
 
