@@ -2,7 +2,7 @@
 
 ## 1. Leftover-folder deletion never follows links (adapter)
 
-- [ ] 1.1 `FolderDeletionShould.DeleteAFolderWithReadOnlyFiles` (integration, temp folder): a tree with a read-only file in a subfolder is deleted completely; verify it passes today as the baseline for the existing behaviour
+- [x] 1.1 `FolderDeletionShould.DeleteAFolderWithReadOnlyFiles` (integration, temp folder): a tree with a read-only file in a subfolder is deleted completely; verify it passes today as the baseline for the existing behaviour
 - [ ] 1.2 `FolderDeletionShould.LeaveTheTargetOfAJunctionUntouched`: a tree holding `node_modules\pkg`, a junction made with `cmd /c mklink /J` through `ProcessRunner`, to an outside folder with a read-only file; after `DeleteTree` the tree is gone, the outside file exists and is still read-only; verify red for the right reason (the outside file loses read-only and `Directory.Delete` throws "Access to the path ... is denied"), commit
 - [ ] 1.3 Green: `DeleteTree` first checks the folder's own `ReparsePoint` attribute (a linked folder is unlinked and nothing is enumerated), otherwise walks one level at a time, removing reparse points as links, recursing into plain directories and clearing attributes on plain files, then deletes the rest recursively; verify 1.1 and 1.2 pass, commit
 - [ ] 1.4 `FolderDeletionShould.RemoveAFolderThatIsItselfAJunction`: `DeleteTree` on a junction removes the link and leaves its target and its read-only file in place; write it before the root check in 1.3 lands if possible so it is red for the right reason, then refactor for readability with `dotnet build -c Debug` and `dotnet format --verify-no-changes` clean, commit
