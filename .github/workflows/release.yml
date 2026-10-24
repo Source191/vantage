@@ -52,10 +52,12 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         id: build
 
-      - uses: softprops/action-gh-release@v2
+      # gh is on the runner, so no third-party action is needed for the release itself.
+      - name: Publish the release
         if: steps.check.outputs.changed == 'true'
-        with:
-          tag_name: v${{ steps.check.outputs.version }}
-          name: v${{ steps.check.outputs.version }}
-          files: ${{ steps.build.outputs.package }}
-          generate_release_notes: true
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.check.outputs.version }}
+          PACKAGE: ${{ steps.build.outputs.package }}
+        run: gh release create "v$env:VERSION" $env:PACKAGE --title "v$env:VERSION" --generate-notes --target $env:GITHUB_SHA
