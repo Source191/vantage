@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Time.Testing;
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
@@ -20,7 +21,7 @@ public sealed class OpenTabHandlerShould
 
     private readonly InMemoryState Store = new();
 
-    private OpenTabHandler Handler => new(Store, registry, terminal, new FakeTimeProvider(Noon), Claude, Vantage);
+    private OpenTabHandler Handler => new(Store, registry, terminal, new FakeTimeProvider(Noon), new TabScripts(Claude, Vantage));
 
     private static BackgroundSession Job() => new(new SessionId("sess-1"), new JobId("81cdb0f9"), "Refund retry policy", new FolderPath(@"C:\repos\Northwind.Orders"), Noon, DisplayState.Working);
 

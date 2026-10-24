@@ -1,5 +1,6 @@
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using System.Collections.ObjectModel;
 using Terminal.Gui.App;
 using Terminal.Gui.ViewBase;
@@ -27,7 +28,7 @@ internal static class LaunchWizardDialog
     private const int PromptLines = 5;
 
     /// <summary>Shows the wizard. With a fixed directory (the worktrees view's s key) the session starts there: no repository list, no worktree choice.</summary>
-    public static WizardResult? Show(IApplication app, LaunchWorkflow workflow, WorktreeBase defaultBase, FolderPath? fixedDirectory = null)
+    public static WizardResult? Show(IApplication app, RepositoryCatalogue catalogue, IRecentRepositories recentRepositories, IFolders folders, WorktreeBase defaultBase, FolderPath? fixedDirectory = null)
     {
         WizardResult? result = null;
         RepositoryChoice? fixedChoice = fixedDirectory is null ? null : new RepositoryChoice(fixedDirectory.Name, fixedDirectory, IsRepository: true);
@@ -36,13 +37,13 @@ internal static class LaunchWizardDialog
 
         // Read once, on a pool thread: Terminal.Gui installs a synchronisation context while it runs, so awaiting
         // on the UI thread and then blocking for the result would deadlock (it did, after every attach-and-return).
-        IReadOnlyList<string> recent = Task.Run(workflow.RecentAsync).GetAwaiter().GetResult();
+        IReadOnlyList<string> recent = Task.Run(recentRepositories.ReadRecentRepositoriesAsync).GetAwaiter().GetResult();
         IReadOnlyList<RepositoryChoice> choices = [];
         TextField repositoryFilter = new() { X = LeftColumn, Y = 1, Width = ColumnWidth };
         ListView repositories = new() { X = LeftColumn, Y = 2, Width = ColumnWidth, Height = Dim.Fill(4) };
         void Refilter(string filter)
         {
-            choices = workflow.Choices(recent, filter);
+            choices = catalogue.Choices(recent, filter);
             repositories.SetSource(new ObservableCollection<string>(choices.Select(choice => choice.Name)));
             repositories.SelectedItem = choices.Count > 0 ? 0 : null;
         }
@@ -216,7 +217,7 @@ internal static class LaunchWizardDialog
                 mode.Value == 1 ? LaunchMode.NewWorktree : LaunchMode.CurrentBranch,
                 baseRef.Value == 1 ? WorktreeBase.Head : WorktreeBase.RemoteDefault,
                 prompt.Text);
-            LaunchPlanResult planned = workflow.Plan(request);
+            LaunchPlanResult planned = LaunchPlanBuilder.Build(request, folders.DirectoryExists);
             if (planned.Plan is null)
             {
                 return Fail(planned.Problem ?? "That cannot be launched.", name);

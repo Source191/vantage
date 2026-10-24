@@ -4,6 +4,7 @@ using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using System.Collections.Frozen;
 
 namespace Source191.Vantage.Tui;
@@ -12,7 +13,7 @@ namespace Source191.Vantage.Tui;
 /// Every effect that needs a dialog, for both views. Each flow asks its question, then hands the answer back through
 /// the reducer or dispatches the effect it settles on; the work itself is always a handler's.
 /// </summary>
-public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultBase, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
+public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, WorktreeBase defaultBase, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
 {
     /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
@@ -104,7 +105,7 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
 
     private void StartSession(IEffectContext context, FolderPath? fixedDirectory)
     {
-        WizardResult? wizard = LaunchWizardDialog.Show(context.App, launches, defaultBase, fixedDirectory);
+        WizardResult? wizard = LaunchWizardDialog.Show(context.App, catalogue, recent, folders, defaultBase, fixedDirectory);
         if (wizard is null)
         {
             return;

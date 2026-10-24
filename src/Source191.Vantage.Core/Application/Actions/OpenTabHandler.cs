@@ -9,7 +9,7 @@ namespace Source191.Vantage.Application.Actions;
 /// Opens a session in its own Windows Terminal tab and records the tab so its colour and liveness are known; when a
 /// live tab already shows the session, switches to it instead.
 /// </summary>
-public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes, IWindowsTerminal terminal, TimeProvider clock, string claudeExecutable, string vantageExecutable) : IEffectHandler<OpenTabForSession>
+public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes, IWindowsTerminal terminal, TimeProvider clock, TabScripts scripts) : IEffectHandler<OpenTabForSession>
 {
     private readonly TabColourSelection colours = new(TabPalette.Default);
 
@@ -29,13 +29,7 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
         TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), colour.Colour, now);
         await tabs.WriteTabAsync(pending);
 
-        // The shell passes its own $PID so the registration is tied to the tab, not to the short-lived claim-tab process.
-        // The profile is loaded (so the shell behind the session is the normal one) and its output cleared before attaching.
-        string script = string.Join('\n',
-            $"{PowerShellScript.Invoke(vantageExecutable, ["claim-tab", pending.Id.ToString("N")])} $PID",
-            "Clear-Host",
-            PowerShellScript.Invoke(claudeExecutable, ["attach", session.JobId.Value]));
-        await terminal.OpenTabAsync(new TabLaunch(session.Name, colour.Colour, session.WorkingDirectory, script), cancellationToken);
+        await terminal.OpenTabAsync(scripts.Attach(session, pending), cancellationToken);
 
         return new OpenTabOutcome.Opened(session.Name, colour.Colour.Name, colour.Reused);
     }

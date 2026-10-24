@@ -73,10 +73,9 @@ if (command is StartHere here)
 SessionRowEnricher enricher = new(git, store, store, processRegistry, TimeProvider.System, transcripts);
 StateTransitionNotifier notifier = new(Console.Out);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
-LaunchWorkflow launches = new(new RepositoryCatalogue(folders, config.RepositoryRoots), folders, store);
 EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System);
-EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, claudeExecutable, vantageExecutable);
-DialogEffects dialogs = new(launches, config.DefaultBase, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
+EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable));
+DialogEffects dialogs = new(new RepositoryCatalogue(folders, config.RepositoryRoots), store, folders, config.DefaultBase, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
 WorktreeInventory inventory = new(git, folders, config.RepositoryRoots);
 string context = string.Join('\n', Environment.MachineName, claudeExecutable, string.Join("; ", config.RepositoryRoots));
 SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context);

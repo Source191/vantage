@@ -13,8 +13,8 @@
 
 ## 3. One tab script factory
 
-- [ ] 3.1 `TabScriptsShould.BuildTheAttachScript`, `BuildTheTrustScript`, `BuildTheShellScript`, `QuoteUserTextSafely`: the script assertions from `OpenTabHandlerShould`, `TrustRecoveryShould` and `PowerShellScriptShould` verbatim; implement `TabScripts`
-- [ ] 3.2 `OpenTabHandler`, `OpenShellHandler` and `StartSessionHandler` take `TabScripts`; remove `claudeExecutable` and `vantageExecutable` from every other constructor; delete `TrustRecovery`; verify `grep claudeExecutable` finds it only in `Program.cs` and `TabScripts`
+- [x] 3.1 `TabScriptsShould.BuildTheAttachScript`, `BuildTheTrustScript`, `BuildTheShellScript`, `QuoteUserTextSafely`: the script assertions from `OpenTabHandlerShould`, `TrustRecoveryShould` and `PowerShellScriptShould` verbatim; implement `TabScripts`
+- [x] 3.2 `OpenTabHandler`, `OpenShellHandler` and `StartSessionHandler` take `TabScripts`; remove `claudeExecutable` and `vantageExecutable` from every other constructor; delete `TrustRecovery`; verify `grep claudeExecutable` finds it only in `Program.cs` and `TabScripts`
 - [ ] 3.3 Delete `LaunchWorkflow`; the wizard dialog takes `RepositoryCatalogue`, `IRecentRepositories` and `IFolders`; verify `dotnet run --project tools\HeadlessTerminal -- check` passes and a manual wizard run (start, start and open in tab, untrusted folder) behaves as the README describes
 
 ## 4. IGit failure convention
