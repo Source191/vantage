@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
@@ -70,7 +71,7 @@ internal interface IEffectContext
     void Dispatch(ViewEffect effect);
 
     /// <summary>As above, with a continuation on the UI thread that turns the handler's answer into the footer.</summary>
-    void Dispatch(ViewEffect effect, Func<string, Footer> onUiThread);
+    void Dispatch(ViewEffect effect, Func<Outcome, Footer> onUiThread);
 
     /// <summary>Runs work that is not a dispatched effect (its outcome needs a question) with a continuation on the UI thread.</summary>
     void RunInBackground<T>(Footer working, Func<CancellationToken, Task<T>> action, Func<T, Footer> onUiThread);

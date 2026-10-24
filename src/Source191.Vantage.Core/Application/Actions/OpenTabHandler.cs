@@ -13,19 +13,19 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
 {
     private readonly TabColourSelection colours = new(TabPalette.Default);
 
-    public Task<string> HandleAsync(OpenTabForSession effect, CancellationToken cancellationToken)
+    public async Task<Outcome> HandleAsync(OpenTabForSession effect, CancellationToken cancellationToken)
     {
         return effect.Row.HasLiveTab
-            ? SwitchToTabAsync(effect.Row.Session, cancellationToken)
-            : OpenAsync(effect.Row.Session, cancellationToken);
+            ? await SwitchToTabAsync(effect.Row.Session, cancellationToken)
+            : await OpenAsync(effect.Row.Session, cancellationToken);
     }
 
     /// <summary>Opens a tab for a session that is not a listed row yet, such as one the wizard has just started.</summary>
-    public async Task<string> OpenAsync(Session session, CancellationToken cancellationToken)
+    public async Task<OpenTabOutcome> OpenAsync(Session session, CancellationToken cancellationToken)
     {
         if (session.JobId is null)
         {
-            return "Only background sessions can be opened in a tab.";
+            return new OpenTabOutcome.NotBackground();
         }
 
         DateTimeOffset now = clock.GetUtcNow();
@@ -42,21 +42,19 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
             PowerShellScript.Invoke(claudeExecutable, ["attach", session.JobId]));
         await terminal.OpenTabAsync(new TabLaunch(session.Name, colour.Colour, session.WorkingDirectory, script), cancellationToken);
 
-        string warning = colour.Reused ? " (every palette colour is in use, so one was reused)" : string.Empty;
-
-        return $"Opened {session.Name} in a {colour.Colour.Name.ToLowerInvariant()} tab{warning}.";
+        return new OpenTabOutcome.Opened(session.Name, colour.Colour.Name, colour.Reused);
     }
 
     /// <summary>The tab is already open: select it in the Windows Terminal window that owns its shell.</summary>
-    private async Task<string> SwitchToTabAsync(Session session, CancellationToken cancellationToken)
+    private async Task<OpenTabOutcome> SwitchToTabAsync(Session session, CancellationToken cancellationToken)
     {
         TabRegistration? registration = (await tabs.ReadTabsAsync()).FirstOrDefault(tab => tab.SessionId == session.SessionId);
         int? owner = registration?.OwningTerminal(processes);
         bool found = await terminal.FocusTabAsync(owner, session.Name, cancellationToken);
 
         return found
-            ? $"Switched to the tab of {session.Name}."
-            : $"{session.Name} is open in another tab, but Vantage could not find it. Is it in another window?";
+            ? new OpenTabOutcome.SwitchedTo(session.Name)
+            : new OpenTabOutcome.NotFound(session.Name);
     }
 }
 
@@ -74,4 +72,17 @@ public sealed class TabClaimer(ITabRegistry tabs, IProcessRegistry processes)
 
         await tabs.WriteTabAsync(pending.ClaimedBy(processId, startedAt.Value));
     }
+}
+
+/// <summary>What opening a session's tab did: opened one, switched to the open one, or could not.</summary>
+public abstract record OpenTabOutcome : Outcome
+{
+    public sealed record NotBackground : OpenTabOutcome;
+
+    /// <summary>Opened in the named colour; reused when every palette colour was already taken.</summary>
+    public sealed record Opened(string Name, string Colour, bool ColourReused) : OpenTabOutcome;
+
+    public sealed record SwitchedTo(string Name) : OpenTabOutcome;
+
+    public sealed record NotFound(string Name) : OpenTabOutcome;
 }

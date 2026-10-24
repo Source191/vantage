@@ -7,7 +7,7 @@ namespace Source191.Vantage.Application;
 /// key help. Reducers, dialogs and the screen hand over facts; this class chooses the words. <c>WordingShould</c>
 /// holds each sentence verbatim.
 /// </summary>
-public static class Wording
+public static partial class Wording
 {
     public static string SessionsHelp => """
         Enter  attach (Ctrl+Z/Esc back)    o  open in its own tab, or switch to it when it is open
@@ -27,6 +27,9 @@ public static class Wording
         /      filter    ?  help    q  quit
         Health: ok, locked (by another tool), orphan (folder git forgot), broken (registration or owner gone), empty (leftover folder)
         """;
+
+    /// <summary>Printed before an attach. Attach lands on Claude's agent list when the session has no messages yet; that screen leaves with Esc, not Ctrl+Z.</summary>
+    public static string ReturnHint => "Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.";
 
     public static string ForceRemoveWarning => "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:";
 
@@ -119,7 +122,9 @@ public static class Wording
             Footer.NothingChosenToResume => "Nothing to resume.",
             Footer.NoDialogFor missing => $"No dialog is defined for {missing.EffectName}.",
             Footer.Working working => Working(working.Effect),
-            Footer.Reported reported => reported.Text,
+            Footer.Reported reported => Describe(reported.Outcome),
+            Footer.BranchKept kept => $"{Describe(kept.Removal)} Branch kept.",
+            Footer.Followed followed => $"{Describe(followed.First)} {Describe(followed.Then)}",
             Footer.Failed failed => $"Failed: {failed.Message}",
             _ => footer.ToString(),
         };

@@ -16,15 +16,15 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
             [.. rows.Where(row => row.Session.State.Kind == DisplayStateKind.Stopped)]);
     }
 
-    public async Task<string> HandleAsync(ResumeSessions effect, CancellationToken cancellationToken)
+    public async Task<Outcome> HandleAsync(ResumeSessions effect, CancellationToken cancellationToken)
     {
         int continued = 0;
-        List<string> notes = [];
+        List<ResumeNote> notes = [];
         foreach (Session session in effect.Rows.Select(row => row.Session))
         {
             if (!transcripts.HasMessages(session.SessionId))
             {
-                notes.Add($"{session.Name}: never sent a message, so there is nothing to resume; d deletes it");
+                notes.Add(new ResumeNote(session.Name, Failure: null));
                 continue;
             }
 
@@ -32,12 +32,16 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
             continued += result.Continued ? 1 : 0;
             if (!result.Continued)
             {
-                notes.Add($"{session.Name}: {result.Message}");
+                notes.Add(new ResumeNote(session.Name, result.Message));
             }
         }
 
-        string suffix = notes.Count == 0 ? string.Empty : $" Notes: {string.Join("; ", notes)}";
-
-        return $"Resumed {continued} of {effect.Rows.Count}.{suffix}";
+        return new ResumeSessionsOutcome(continued, effect.Rows.Count, notes);
     }
 }
+
+/// <summary>How many of the chosen sessions resumed, and a note for each that did not.</summary>
+public sealed record ResumeSessionsOutcome(int Resumed, int Chosen, IReadOnlyList<ResumeNote> Notes) : Outcome;
+
+/// <summary>A session that did not resume: the CLI's failure, or null when it was never sent a message.</summary>
+public sealed record ResumeNote(string Name, string? Failure);

@@ -10,11 +10,14 @@ public sealed class OpenShellHandler(IWindowsTerminal terminal) : IEffectHandler
 {
     private static readonly TabColour ShellTabColour = TabPalette.Default[^1];
 
-    public async Task<string> HandleAsync(OpenShellTab effect, CancellationToken cancellationToken)
+    public async Task<Outcome> HandleAsync(OpenShellTab effect, CancellationToken cancellationToken)
     {
         WorktreeRow row = effect.Row;
         await terminal.OpenTabAsync(new TabLaunch(row.FolderName, ShellTabColour, row.Path, "Clear-Host"), cancellationToken);
 
-        return $"Opened a shell in {row.FolderName}.";
+        return new OpenShellOutcome(row.FolderName);
     }
 }
+
+/// <summary>A plain shell tab was opened in the worktree.</summary>
+public sealed record OpenShellOutcome(string FolderName) : Outcome;

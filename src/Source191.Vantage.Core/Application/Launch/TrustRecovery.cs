@@ -19,10 +19,4 @@ public static class TrustRecovery
         return new TabLaunch($"Trust {name}", TabPalette.Default[2], directory, script);
     }
 
-    public static string Explanation(string directory)
-    {
-        string name = new RepositoryPath(directory).Name;
-
-        return $"{name} is not a trusted workspace yet. A Claude tab was opened there: accept the trust prompt, exit, then retry.";
-    }
 }

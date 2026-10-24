@@ -13,34 +13,49 @@ namespace Source191.Vantage.Application.Actions;
 public sealed class StartSessionHandler(LaunchService service, OpenTabHandler tabs, IWindowsTerminal terminal, string claudeExecutable)
     : IEffectHandler<StartSession>
 {
-    public async Task<string> HandleAsync(StartSession effect, CancellationToken cancellationToken)
+    public async Task<Outcome> HandleAsync(StartSession effect, CancellationToken cancellationToken)
     {
         LaunchOutcome outcome = await service.LaunchAsync(effect.Plan, cancellationToken);
 
-        return outcome.Kind switch
+        return outcome switch
         {
-            LaunchOutcomeKind.Started => await StartedAsync(effect, outcome, cancellationToken),
-            LaunchOutcomeKind.WorkspaceNotTrusted => await OpenTrustTabAsync(effect.Plan.Directory, cancellationToken),
-            _ => $"Could not start: {outcome.Message}",
+            { Kind: LaunchOutcomeKind.Started, JobId: string jobId } => await StartedAsync(effect, jobId, outcome.Session, cancellationToken),
+            { Kind: LaunchOutcomeKind.WorkspaceNotTrusted } => await OpenTrustTabAsync(effect.Plan.Directory, cancellationToken),
+            _ => new StartSessionOutcome.Failed(outcome.Message),
         };
     }
 
-    private async Task<string> StartedAsync(StartSession effect, LaunchOutcome outcome, CancellationToken cancellationToken)
+    private async Task<StartSessionOutcome> StartedAsync(StartSession effect, string jobId, Session? listed, CancellationToken cancellationToken)
     {
-        string started = $"Started {effect.Plan.Name.Text} ({outcome.JobId}).";
+        string name = effect.Plan.Name.Text;
 
-        return (effect.OpenInTab, outcome.Session) switch
+        return (effect.OpenInTab, listed) switch
         {
-            (false, _) => started,
-            (true, null) => $"{started} It is not listed yet: press o on it to open a tab.",
-            (true, Session session) => $"{started} {await tabs.OpenAsync(session, cancellationToken)}",
+            (false, _) => new StartSessionOutcome.Started(name, jobId),
+            (true, null) => new StartSessionOutcome.NotListedYet(name, jobId),
+            (true, Session session) => new StartSessionOutcome.StartedAndOpened(name, jobId, await tabs.OpenAsync(session, cancellationToken)),
         };
     }
 
-    private async Task<string> OpenTrustTabAsync(string directory, CancellationToken cancellationToken)
+    private async Task<StartSessionOutcome> OpenTrustTabAsync(string directory, CancellationToken cancellationToken)
     {
         await terminal.OpenTabAsync(TrustRecovery.TabFor(directory, claudeExecutable), cancellationToken);
 
-        return TrustRecovery.Explanation(directory);
+        return new StartSessionOutcome.NotTrusted(directory);
     }
+}
+
+/// <summary>What starting the wizard's session did, including the tab when one was asked for.</summary>
+public abstract record StartSessionOutcome : Outcome
+{
+    public sealed record Started(string Name, string JobId) : StartSessionOutcome;
+
+    public sealed record StartedAndOpened(string Name, string JobId, OpenTabOutcome Tab) : StartSessionOutcome;
+
+    public sealed record NotListedYet(string Name, string JobId) : StartSessionOutcome;
+
+    /// <summary>A Claude tab was opened in the directory so the trust prompt can be accepted.</summary>
+    public sealed record NotTrusted(string Directory) : StartSessionOutcome;
+
+    public sealed record Failed(string Message) : StartSessionOutcome;
 }

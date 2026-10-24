@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 
@@ -201,7 +202,7 @@ public sealed class WorktreesViewShould
     [Fact]
     public void ClearTheLastMessageWhenTheSelectionMovesSoTheNewRowsReasonShows()
     {
-        WorktreesViewState afterDelete = Loaded with { SelectedPath = Clean.Path, Footer = new Footer.Reported("Deleted the folder Northwind.Orders.worktrees.") };
+        WorktreesViewState afterDelete = Loaded with { SelectedPath = Clean.Path, Footer = new Footer.Reported(new RemoveWorktreeOutcome.DeletedFolder("Northwind.Orders.worktrees")) };
 
         Press(afterDelete, Key.Down).Footer.ShouldBe(Footer.None);
         Press(afterDelete, Key.Up).Footer.ShouldBe(Footer.None);

@@ -12,24 +12,36 @@ namespace Source191.Vantage.Application.Actions;
 /// </summary>
 public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry processes, ITranscripts transcripts) : IEffectHandler<AdoptSession>
 {
-    public async Task<string> HandleAsync(AdoptSession effect, CancellationToken cancellationToken)
+    public async Task<Outcome> HandleAsync(AdoptSession effect, CancellationToken cancellationToken)
     {
         Session session = effect.Row.Session;
         if (session.ProcessId is null)
         {
-            return $"{session.Name} has no process to move; it may have exited.";
+            return new AdoptSessionOutcome.NoProcess(session.Name);
         }
 
         if (!transcripts.HasMessages(session.SessionId))
         {
-            return $"{session.Name} has no messages yet, so there is nothing to move. Send it something in its tab first, or close that tab and start a session from Vantage.";
+            return new AdoptSessionOutcome.NoMessages(session.Name);
         }
 
         processes.Terminate(session.ProcessId.Value);
         ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory, SessionName.TryParse(session.Name), cancellationToken);
 
         return result.Continued
-            ? $"Moved {session.Name} under Vantage; its old tab is now a plain shell."
-            : $"Could not move {session.Name} under Vantage: {result.Message}";
+            ? new AdoptSessionOutcome.Moved(session.Name)
+            : new AdoptSessionOutcome.Failed(session.Name, result.Message);
     }
+}
+
+/// <summary>What moving a terminal session under the supervisor did.</summary>
+public abstract record AdoptSessionOutcome : Outcome
+{
+    public sealed record NoProcess(string Name) : AdoptSessionOutcome;
+
+    public sealed record NoMessages(string Name) : AdoptSessionOutcome;
+
+    public sealed record Moved(string Name) : AdoptSessionOutcome;
+
+    public sealed record Failed(string Name, string Message) : AdoptSessionOutcome;
 }

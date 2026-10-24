@@ -1,5 +1,6 @@
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -37,10 +38,12 @@ public sealed class ResumeSessionsHandlerShould
         SessionRow withTranscript = Background(Repository, isWorktree: false, DisplayState.Failed);
         SessionRow stub = withTranscript with { Session = withTranscript.Session with { SessionId = "sess-stub", Name = "repos-f6" } };
 
-        string message = await Handler.HandleAsync(new ResumeSessions([withTranscript, stub]), CancellationToken.None);
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([withTranscript, stub]), CancellationToken.None);
 
         processes.CapturedRequests.Count(request => request.Arguments.Contains("--resume")).ShouldBe(1);
-        message.ShouldBe("Resumed 1 of 2. Notes: repos-f6: never sent a message, so there is nothing to resume; d deletes it");
+        ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
+        (resume.Resumed, resume.Chosen).ShouldBe((1, 2));
+        resume.Notes.ShouldBe([new ResumeNote("repos-f6", Failure: null)]);
     }
 
     [Fact]
@@ -51,12 +54,12 @@ public sealed class ResumeSessionsHandlerShould
         SessionRow first = Background(Repository, isWorktree: false, DisplayState.Failed);
         SessionRow second = Background(Worktree, isWorktree: true, DisplayState.Stopped) with { Session = Background(Worktree, true).Session with { SessionId = "sess-2" } };
 
-        string message = await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
 
         List<ProcessRequest> resumes = [.. processes.CapturedRequests.Where(request => request.Arguments.Contains("--resume"))];
         resumes.Select(request => request.WorkingDirectory).ShouldBe([Repository, Worktree]);
         resumes.Select(request => request.Arguments[2]).ShouldBe(["sess-1", "sess-2"]);
         resumes.Select(request => request.Arguments[^1]).ShouldAllBe(name => name == "fix-123", "the display name survives the resume");
-        message.ShouldContain("Resumed 2");
+        message.ShouldBeOfType<ResumeSessionsOutcome>().Resumed.ShouldBe(2);
     }
 }

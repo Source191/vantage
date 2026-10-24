@@ -1,5 +1,6 @@
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -50,21 +51,16 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
     }
 
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>
-    private static Footer AskAboutBranch(IEffectContext context, string message, BranchToConfirm? branch, bool createdByVantage)
+    private static Footer AskAboutBranch(IEffectContext context, Outcome removal, BranchToConfirm branch, bool createdByVantage)
     {
-        if (branch is null)
-        {
-            return new Footer.Reported(message);
-        }
-
         int? answer = Confirm.Query(context.App, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch, createdByVantage), "Delete branch", "Keep");
         if (answer != 0)
         {
-            return new Footer.Reported($"{message} Branch kept.");
+            return new Footer.BranchKept(removal);
         }
 
         DeleteBranch deleteBranch = new(branch);
-        context.Dispatch(deleteBranch, deleted => new Footer.Reported($"{message} {deleted}"));
+        context.Dispatch(deleteBranch, deleted => new Footer.Followed(removal, deleted));
 
         return new Footer.Working(deleteBranch);
     }
@@ -137,7 +133,9 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
         context.RunInBackground(
             new Footer.Working(deletion),
             token => deleteSession.DeleteAsync(row, forced: false, token),
-            outcome => AskAboutBranch(context, outcome.Message, outcome.BranchToConfirm, createdByVantage: true));
+            outcome => outcome is DeleteSessionOutcome.BranchNotMerged unmerged
+                ? AskAboutBranch(context, outcome, unmerged.Branch, createdByVantage: true)
+                : new Footer.Reported(outcome));
     }
 
     private void Remove(IEffectContext context, RemoveWorktree remove)
@@ -145,6 +143,8 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
         context.RunInBackground(
             new Footer.Working(remove),
             token => removeWorktree.RemoveAsync(remove.Row, remove.Forced, token),
-            outcome => AskAboutBranch(context, outcome.Message, outcome.BranchToConfirm, createdByVantage: false));
+            outcome => outcome is RemoveWorktreeOutcome.BranchKept kept
+                ? AskAboutBranch(context, outcome, kept.Branch, kept.CreatedByVantage)
+                : new Footer.Reported(outcome));
     }
 }

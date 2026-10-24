@@ -16,10 +16,4 @@ public sealed class TrustRecoveryShould
         tab.Script.ShouldContain("accept the trust prompt");
     }
 
-    [Fact]
-    public void ExplainWhatToDoInTheFooter()
-    {
-        TrustRecovery.Explanation(@"C:\repos\Northwind.Orders").ShouldContain("Northwind.Orders");
-        TrustRecovery.Explanation(@"C:\repos\Northwind.Orders").ShouldContain("retry");
-    }
 }

@@ -122,10 +122,10 @@ internal sealed class TableScreen<TState, TRow>(
 
         public void Dispatch(ViewEffect effect)
         {
-            Dispatch(effect, said => new Footer.Reported(said));
+            Dispatch(effect, outcome => new Footer.Reported(outcome));
         }
 
-        public void Dispatch(ViewEffect effect, Func<string, Footer> onUiThread)
+        public void Dispatch(ViewEffect effect, Func<Outcome, Footer> onUiThread)
         {
             RunInBackground(new Footer.Working(effect), token => screen.dispatcher.DispatchAsync(effect, token), onUiThread);
         }
