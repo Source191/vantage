@@ -47,7 +47,7 @@ public sealed class LaunchPlanShould
 
         plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders-fix-123-flaky-tests");
         plan.Worktree.ShouldNotBeNull();
-        plan.Worktree.Branch.ShouldBe("fix-123-flaky-tests");
+        plan.Worktree.Branch.ShouldBe(new BranchName("fix-123-flaky-tests"));
         plan.ReuseExistingWorktree.ShouldBeFalse();
         plan.Base.ShouldBe(WorktreeBase.RemoteDefault);
     }

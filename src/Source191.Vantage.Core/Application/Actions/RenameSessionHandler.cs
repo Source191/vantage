@@ -16,19 +16,19 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
     {
         Session session = effect.Row.Session;
         SessionName newName = effect.NewName;
-        if (!transcripts.HasMessages(session.SessionId))
+        if (!transcripts.HasMessages(session.SessionId.Value))
         {
             return new RenameSessionOutcome.NoMessages(session.Name);
         }
 
-        await claude.RemoveAsync(session.JobId!, cancellationToken);
-        ResumeResult renamed = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory.Value, newName, cancellationToken);
+        await claude.RemoveAsync(session.JobId!.Value, cancellationToken);
+        ResumeResult renamed = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, newName, cancellationToken);
         if (renamed.Continued)
         {
             return new RenameSessionOutcome.Renamed(session.Name, newName.Text);
         }
 
-        ResumeResult restored = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
+        ResumeResult restored = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
 
         return restored.Continued
             ? new RenameSessionOutcome.Restored(session.Name, renamed.Message)
@@ -45,5 +45,5 @@ public abstract record RenameSessionOutcome : Outcome
 
     public sealed record Restored(string OldName, string Failure) : RenameSessionOutcome;
 
-    public sealed record Unsupervised(string OldName, string Failure, string SessionId, string RestoreFailure) : RenameSessionOutcome;
+    public sealed record Unsupervised(string OldName, string Failure, SessionId SessionId, string RestoreFailure) : RenameSessionOutcome;
 }

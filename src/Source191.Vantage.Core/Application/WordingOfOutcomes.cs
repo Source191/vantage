@@ -149,9 +149,9 @@ public static partial class Wording
     {
         return outcome switch
         {
-            StartSessionOutcome.Started started => Started(started.Name, started.JobId),
-            StartSessionOutcome.StartedAndOpened opened => $"{Started(opened.Name, opened.JobId)} {Describe(opened.Tab)}",
-            StartSessionOutcome.NotListedYet unlisted => $"{Started(unlisted.Name, unlisted.JobId)} It is not listed yet: press o on it to open a tab.",
+            StartSessionOutcome.Started started => Started(started.Name, started.JobId.Value),
+            StartSessionOutcome.StartedAndOpened opened => $"{Started(opened.Name, opened.JobId.Value)} {Describe(opened.Tab)}",
+            StartSessionOutcome.NotListedYet unlisted => $"{Started(unlisted.Name, unlisted.JobId.Value)} It is not listed yet: press o on it to open a tab.",
             StartSessionOutcome.NotTrusted untrusted =>
                 $"{untrusted.Directory.Name} is not a trusted workspace yet. A Claude tab was opened there: accept the trust prompt, exit, then retry.",
             StartSessionOutcome.Failed failed => $"Could not start: {failed.Message}",

@@ -25,7 +25,7 @@ public sealed class CloseEmptyTerminalsHandler(IProcessRegistry processes, ITran
                 continue;
             }
 
-            if (transcripts.HasMessages(session.SessionId))
+            if (transcripts.HasMessages(session.SessionId.Value))
             {
                 skipped.Add(new SkippedSession(session.Name, HasMessages: true));
                 continue;

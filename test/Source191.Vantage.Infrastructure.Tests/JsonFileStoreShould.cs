@@ -9,6 +9,42 @@ public sealed class JsonFileStoreShould : IDisposable
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
+    private static readonly Guid SessionTabId = Guid.Parse("0b8d2a1c-9e3f-4b5a-8c7d-6e5f4a3b2c1d");
+    private static readonly Guid OwnTabId = Guid.Parse("1c9e3f4b-5a8c-7d6e-5f4a-3b2c1d0b8d2a");
+
+    private static readonly TabRegistration SessionTab = new(SessionTabId, new TabOwner.ForSession(new SessionId("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3")), TabPalette.Default[2], Noon, 4242, Noon.AddSeconds(5));
+    private static readonly TabRegistration OwnTab = new(OwnTabId, TabOwner.Vantage, TabPalette.Default[4], Noon, 5151, Noon.AddSeconds(1));
+
+    /// <summary>A session's tab file exactly as the store wrote it before ids were typed: the owner is the session id string.</summary>
+    private const string SessionTabJson = """
+        {
+          "id": "0b8d2a1c-9e3f-4b5a-8c7d-6e5f4a3b2c1d",
+          "sessionId": "1a4d2d86-8e87-44fe-a9f7-61d47d481ae3",
+          "colour": {
+            "name": "Yellow",
+            "hex": "#FFB900"
+          },
+          "createdAt": "2026-10-23T12:00:00+00:00",
+          "processId": 4242,
+          "processStartedAt": "2026-10-23T12:00:05+00:00"
+        }
+        """;
+
+    /// <summary>Vantage's own tab file exactly as the store wrote it before ids were typed: the owner is the word vantage.</summary>
+    private const string OwnTabJson = """
+        {
+          "id": "1c9e3f4b-5a8c-7d6e-5f4a-3b2c1d0b8d2a",
+          "sessionId": "vantage",
+          "colour": {
+            "name": "Green",
+            "hex": "#16C60C"
+          },
+          "createdAt": "2026-10-23T12:00:00+00:00",
+          "processId": 5151,
+          "processStartedAt": "2026-10-23T12:00:01+00:00"
+        }
+        """;
+
     /// <summary>created.json exactly as the store wrote it before paths became FolderPath: plain strings.</summary>
     private const string CreatedJson = """
         [
@@ -38,7 +74,7 @@ public sealed class JsonFileStoreShould : IDisposable
     [Fact]
     public async Task RoundTripATabRegistration()
     {
-        TabRegistration pending = TabRegistration.Pending("session-1", TabPalette.Default[2], Noon);
+        TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(new SessionId("session-1")), TabPalette.Default[2], Noon);
         TabRegistration claimed = pending.ClaimedBy(4242, Noon.AddSeconds(5));
 
         await Store.WriteTabAsync(claimed);
@@ -47,9 +83,32 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
+    public async Task ReadTabFilesWrittenByTheCurrentVersion()
+    {
+        Directory.CreateDirectory(Path.Combine(folder, "tabs"));
+        await File.WriteAllTextAsync(Path.Combine(folder, "tabs", "0b8d2a1c9e3f4b5a8c7d6e5f4a3b2c1d.json"), SessionTabJson, TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(folder, "tabs", "1c9e3f4b5a8c7d6e5f4a3b2c1d0b8d2a.json"), OwnTabJson, TestContext.Current.CancellationToken);
+
+        IReadOnlyList<TabRegistration> tabs = await Store.ReadTabsAsync();
+
+        tabs.Single(tab => tab.Id == SessionTabId).ShouldBe(SessionTab);
+        tabs.Single(tab => tab.Id == OwnTabId).ShouldBe(OwnTab);
+    }
+
+    [Fact]
+    public async Task WriteTabFilesTheCurrentVersionCanRead()
+    {
+        await Store.WriteTabAsync(SessionTab);
+        await Store.WriteTabAsync(OwnTab);
+
+        (await File.ReadAllTextAsync(Path.Combine(folder, "tabs", $"{SessionTabId:N}.json"), TestContext.Current.CancellationToken)).ReplaceLineEndings("\n").ShouldBe(SessionTabJson.ReplaceLineEndings("\n"));
+        (await File.ReadAllTextAsync(Path.Combine(folder, "tabs", $"{OwnTabId:N}.json"), TestContext.Current.CancellationToken)).ReplaceLineEndings("\n").ShouldBe(OwnTabJson.ReplaceLineEndings("\n"));
+    }
+
+    [Fact]
     public async Task RemoveATabRegistration()
     {
-        TabRegistration pending = TabRegistration.Pending("session-1", TabPalette.Default[2], Noon);
+        TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(new SessionId("session-1")), TabPalette.Default[2], Noon);
         await Store.WriteTabAsync(pending);
 
         await Store.RemoveTabAsync(pending.Id);
@@ -60,7 +119,7 @@ public sealed class JsonFileStoreShould : IDisposable
     [Fact]
     public async Task IgnoreACorruptTabFile()
     {
-        TabRegistration pending = TabRegistration.Pending("session-1", TabPalette.Default[2], Noon);
+        TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(new SessionId("session-1")), TabPalette.Default[2], Noon);
         await Store.WriteTabAsync(pending);
         await File.WriteAllTextAsync(Path.Combine(folder, "tabs", "broken.json"), "{ not json", TestContext.Current.CancellationToken);
 
@@ -176,8 +235,8 @@ public sealed class JsonFileStoreShould : IDisposable
     [Fact]
     public async Task RoundTripCreatedWorktreesAndForgetOne()
     {
-        CreatedWorktree first = new(new FolderPath(@"C:\repos\A-fix"), "fix", new FolderPath(@"C:\repos\A"), Noon);
-        CreatedWorktree second = new(new FolderPath(@"C:\repos\B-feat"), "feat", new FolderPath(@"C:\repos\B"), Noon);
+        CreatedWorktree first = new(new FolderPath(@"C:\repos\A-fix"), new BranchName("fix"), new FolderPath(@"C:\repos\A"), Noon);
+        CreatedWorktree second = new(new FolderPath(@"C:\repos\B-feat"), new BranchName("feat"), new FolderPath(@"C:\repos\B"), Noon);
         await Store.RecordCreatedWorktreeAsync(first);
         await Store.RecordCreatedWorktreeAsync(second);
 
@@ -194,13 +253,13 @@ public sealed class JsonFileStoreShould : IDisposable
 
         CreatedWorktree created = (await Store.ReadCreatedWorktreesAsync()).Single();
 
-        created.ShouldBe(new CreatedWorktree(new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders-fix-123"), "fix-123", new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), Noon));
+        created.ShouldBe(new CreatedWorktree(new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders-fix-123"), new BranchName("fix-123"), new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), Noon));
     }
 
     [Fact]
     public async Task WriteFilesTheCurrentVersionCanRead()
     {
-        await Store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders-fix-123"), "fix-123", new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), Noon));
+        await Store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders-fix-123"), new BranchName("fix-123"), new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), Noon));
 
         string written = await File.ReadAllTextAsync(Path.Combine(folder, "created.json"), TestContext.Current.CancellationToken);
 

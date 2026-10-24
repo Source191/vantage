@@ -23,7 +23,7 @@ internal static class ResumeChecklistDialog
         for (int index = 0; index < stopped.Count; index++)
         {
             SessionRow row = stopped[index];
-            CheckBox box = new() { X = 1, Y = 2 + index, Text = $"{row.Session.Name}  ({row.Repository}, {row.Branch ?? "-"})", Value = CheckState.UnChecked };
+            CheckBox box = new() { X = 1, Y = 2 + index, Text = $"{row.Session.Name}  ({row.Repository}, {row.Branch?.Value ?? "-"})", Value = CheckState.UnChecked };
             boxes.Add(box);
             dialog.Add(box);
         }

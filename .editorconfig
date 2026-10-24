@@ -80,6 +80,13 @@ csharp_style_expression_bodied_lambdas = true:silent
 csharp_style_expression_bodied_local_functions = false:silent
 csharp_style_expression_bodied_methods = when_on_single_line:warning
 dotnet_diagnostic.IDE0022.severity = warning
+
+# Guard clauses use the throw helpers (ArgumentNullException.ThrowIfNull, ArgumentException.ThrowIfNullOrEmpty,
+# ArgumentOutOfRangeException.ThrowIfNegative and so on, ObjectDisposedException.ThrowIf) wherever one fits.
+dotnet_diagnostic.CA1510.severity = warning
+dotnet_diagnostic.CA1511.severity = warning
+dotnet_diagnostic.CA1512.severity = warning
+dotnet_diagnostic.CA1513.severity = warning
 csharp_style_expression_bodied_operators = false:silent
 csharp_style_expression_bodied_properties = true:silent
 

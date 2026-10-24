@@ -17,8 +17,14 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 {
     private const int RecentLimit = 10;
 
-    // Enums are written as their names, so config.json keeps reading "RemoteDefault" and "Head".
-    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web) { WriteIndented = true, Converters = { new JsonStringEnumConverter(), new FolderPathJsonConverter() } };
+    // Enums are written as their names, so config.json keeps reading "RemoteDefault" and "Head"; paths, branch names
+    // and tab owners are written as the plain strings earlier versions wrote.
+    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true,
+        Converters = { new JsonStringEnumConverter(), new FolderPathJsonConverter(), new BranchNameJsonConverter(), new TabOwnerJsonConverter() },
+        TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver { Modifiers = { StateFileNames.KeepTabOwnerAsSessionId } },
+    };
 
     private string TabsFolder => Path.Combine(folder, "tabs");
 

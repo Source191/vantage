@@ -18,7 +18,7 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
     public async Task<IReadOnlyList<SessionRow>> EnrichAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {
         IReadOnlyDictionary<string, string> descriptions = await sessionDescriptions.ReadDescriptionsAsync();
-        HashSet<string> sessionsWithLiveTabs = await LiveTabSessionsAsync();
+        HashSet<SessionId> sessionsWithLiveTabs = await LiveTabSessionsAsync();
 
         List<SessionRow> rows = [];
         foreach (Session session in sessions)
@@ -29,15 +29,15 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
                 location.Repository,
                 location.Branch,
                 location.IsWorktree,
-                descriptions.GetValueOrDefault(session.SessionId),
+                descriptions.GetValueOrDefault(session.SessionId.Value),
                 sessionsWithLiveTabs.Contains(session.SessionId),
-                transcripts.HasMessages(session.SessionId)));
+                transcripts.HasMessages(session.SessionId.Value)));
         }
 
         return rows;
     }
 
-    private async Task<HashSet<string>> LiveTabSessionsAsync()
+    private async Task<HashSet<SessionId>> LiveTabSessionsAsync()
     {
         IReadOnlyList<TabRegistration> all = await tabs.ReadTabsAsync();
         IReadOnlyList<TabRegistration> live = new TabRegistrations(all).Live(clock.GetUtcNow(), processes);
@@ -46,7 +46,7 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
             await tabs.RemoveTabAsync(stale.Id);
         }
 
-        return [.. live.Select(registration => registration.SessionId)];
+        return [.. live.Select(registration => registration.Owner).OfType<TabOwner.ForSession>().Select(owner => owner.Id)];
     }
 
     private async Task<Location> LocateAsync(FolderPath directory, CancellationToken cancellationToken)
@@ -76,8 +76,8 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
         FolderPath? mainCheckout = FolderPath.TryParse(main);
         bool isWorktree = mainCheckout is not null && mainCheckout != FolderPath.TryParse(root);
 
-        return new Location((mainCheckout ?? FolderPath.TryParse(root))?.Name ?? root, branch, isWorktree);
+        return new Location((mainCheckout ?? FolderPath.TryParse(root))?.Name ?? root, BranchName.TryParse(branch), isWorktree);
     }
 
-    private sealed record Location(string Repository, string? Branch, bool IsWorktree);
+    private sealed record Location(string Repository, BranchName? Branch, bool IsWorktree);
 }

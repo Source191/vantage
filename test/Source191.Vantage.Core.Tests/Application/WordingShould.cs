@@ -227,14 +227,14 @@ public sealed class WordingShould
     [Fact]
     public void SayTheBranchWasKeptAfterTheRemoval()
     {
-        Wording.Describe(new Footer.BranchKept(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(Sessions.Repository, "fix-123"))))
+        Wording.Describe(new Footer.BranchKept(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(new FolderPath(Sessions.Repository), new BranchName("fix-123")))))
             .ShouldBe("Deleted fix-123 and removed the worktree; branch fix-123 is not merged. Branch kept.");
     }
 
     [Fact]
     public void SayTheBranchWasDeletedAfterTheRemoval()
     {
-        Wording.Describe(new Footer.Followed(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(Sessions.Repository, "fix-123")), new DeleteBranchOutcome()))
+        Wording.Describe(new Footer.Followed(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(new FolderPath(Sessions.Repository), new BranchName("fix-123"))), new DeleteBranchOutcome()))
             .ShouldBe("Deleted fix-123 and removed the worktree; branch fix-123 is not merged. Branch deleted.");
     }
 
@@ -304,7 +304,7 @@ public sealed class WordingShould
         Wording.Working(new CloseEmptyTerminals([Session])).ShouldBe("Closing...");
         Wording.Working(new ResumeSessions([Session, Session])).ShouldBe("Resuming 2...");
         Wording.Working(new DeleteSession(Session)).ShouldBe("Deleting fix-123...");
-        Wording.Working(new DeleteBranch(new BranchToConfirm(Sessions.Repository, "fix-123"))).ShouldBe("Deleting branch fix-123...");
+        Wording.Working(new DeleteBranch(new BranchToConfirm(new FolderPath(Sessions.Repository), new BranchName("fix-123")))).ShouldBe("Deleting branch fix-123...");
     }
 
     [Fact]

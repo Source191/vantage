@@ -1,3 +1,4 @@
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 namespace Source191.Vantage.Adapters.Git;
 
@@ -51,7 +52,7 @@ public static class GitWorktreeListing
             }
         }
 
-        return new GitWorktreeEntry(path, head, branch, isMain, lockReason, prunableReason);
+        return new GitWorktreeEntry(path, head, BranchName.TryParse(branch), isMain, lockReason, prunableReason);
     }
 
     private static (string Key, string Value) SplitLine(string line)

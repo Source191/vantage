@@ -5,7 +5,7 @@ namespace Source191.Vantage.Domain;
 /// </summary>
 public sealed record TabRegistration(
     Guid Id,
-    string SessionId,
+    TabOwner Owner,
     TabColour Colour,
     DateTimeOffset CreatedAt,
     int? ProcessId,
@@ -13,7 +13,7 @@ public sealed record TabRegistration(
 {
     private static readonly TimeSpan PendingGracePeriod = TimeSpan.FromSeconds(60);
 
-    public static TabRegistration Pending(string sessionId, TabColour colour, DateTimeOffset createdAt) => new TabRegistration(Guid.NewGuid(), sessionId, colour, createdAt, ProcessId: null, ProcessStartedAt: null);
+    public static TabRegistration Pending(TabOwner owner, TabColour colour, DateTimeOffset createdAt) => new TabRegistration(Guid.NewGuid(), owner, colour, createdAt, ProcessId: null, ProcessStartedAt: null);
 
     public TabRegistration ClaimedBy(int processId, DateTimeOffset processStartedAt) => this with { ProcessId = processId, ProcessStartedAt = processStartedAt };
 
@@ -47,6 +47,17 @@ public sealed record TabRegistration(
 
         return processes.StartTimeOf(ProcessId.Value) == ProcessStartedAt;
     }
+}
+
+/// <summary>Whose tab a registration is: a session's, or Vantage's own.</summary>
+public abstract record TabOwner
+{
+    public static readonly TabOwner Vantage = new ForVantage();
+
+    public sealed record ForSession(SessionId Id) : TabOwner;
+
+    /// <summary>The tab Vantage itself runs in, so its colour is not handed to a session tab.</summary>
+    public sealed record ForVantage : TabOwner;
 }
 
 public sealed class TabRegistrations(IReadOnlyList<TabRegistration> items)

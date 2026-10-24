@@ -1,4 +1,5 @@
 using Source191.Vantage.Adapters.Git;
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Infrastructure.Tests;
@@ -55,7 +56,7 @@ public sealed class GitWorktreeListingShould
     [Fact]
     public void StripTheRefsHeadsPrefixFromBranches()
     {
-        Entries[1].Branch.ShouldBe("release/event-contract-nested-objects");
+        Entries[1].Branch.ShouldBe(new BranchName("release/event-contract-nested-objects"));
     }
 
     [Fact]

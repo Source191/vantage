@@ -22,13 +22,13 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
         List<ResumeNote> notes = [];
         foreach (Session session in effect.Rows.Select(row => row.Session))
         {
-            if (!transcripts.HasMessages(session.SessionId))
+            if (!transcripts.HasMessages(session.SessionId.Value))
             {
                 notes.Add(new ResumeNote(session.Name, Failure: null));
                 continue;
             }
 
-            ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
+            ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
             continued += result.Continued ? 1 : 0;
             if (!result.Continued)
             {

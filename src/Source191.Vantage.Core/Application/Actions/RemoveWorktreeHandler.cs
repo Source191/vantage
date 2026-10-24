@@ -36,26 +36,27 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
 
         string into = await git.DefaultRemoteBranchAsync(row.Repository.Value, cancellationToken) ?? "HEAD";
 
-        return await git.IsMergedAsync(row.Repository.Value, row.Branch, into, cancellationToken);
+        return await git.IsMergedAsync(row.Repository.Value, row.Branch.Value, into, cancellationToken);
     }
 
     private async Task<RemoveWorktreeOutcome> RemoveThroughGitAsync(WorktreeRow row, RemovalDecision decision, bool createdByVantage, CancellationToken cancellationToken)
     {
         await git.RemoveWorktreeAsync(row.Repository.Value, row.Path.Value, decision.Forced, cancellationToken);
         await createdWorktrees.ForgetCreatedWorktreeAsync(row.Path);
-        string branch = row.Branch ?? row.FolderName;
+        // A worktree on a detached head has no branch; the folder name stands in, as the removal rules assume.
+        BranchName? branch = row.Branch ?? BranchName.TryParse(row.FolderName);
 
-        return decision.Branch switch
+        return (decision.Branch, branch) switch
         {
-            BranchAction.Delete => await DeleteBranchAsync(row, branch, cancellationToken),
-            BranchAction.Ask => new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository.Value, branch), createdByVantage),
-            BranchAction.None => new RemoveWorktreeOutcome.Removed(row.FolderName),
+            (BranchAction.Delete, BranchName merged) => await DeleteBranchAsync(row, merged, cancellationToken),
+            (BranchAction.Ask, BranchName kept) => new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository, kept), createdByVantage),
+            (BranchAction.None, _) or (_, null) => new RemoveWorktreeOutcome.Removed(row.FolderName),
         };
     }
 
-    private async Task<RemoveWorktreeOutcome> DeleteBranchAsync(WorktreeRow row, string branch, CancellationToken cancellationToken)
+    private async Task<RemoveWorktreeOutcome> DeleteBranchAsync(WorktreeRow row, BranchName branch, CancellationToken cancellationToken)
     {
-        await git.DeleteBranchAsync(row.Repository.Value, branch, force: false, cancellationToken);
+        await git.DeleteBranchAsync(row.Repository.Value, branch.Value, force: false, cancellationToken);
 
         return new RemoveWorktreeOutcome.RemovedAndDeletedBranch(row.FolderName, branch);
     }
@@ -81,7 +82,7 @@ public abstract record RemoveWorktreeOutcome : Outcome
 
     public sealed record Removed(string FolderName) : RemoveWorktreeOutcome;
 
-    public sealed record RemovedAndDeletedBranch(string FolderName, string Branch) : RemoveWorktreeOutcome;
+    public sealed record RemovedAndDeletedBranch(string FolderName, BranchName Branch) : RemoveWorktreeOutcome;
 
     /// <summary>The branch was kept: Vantage did not create it, or created it and it is not merged. The user is asked.</summary>
     public sealed record BranchKept(string FolderName, BranchToConfirm Branch, bool CreatedByVantage) : RemoveWorktreeOutcome;

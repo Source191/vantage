@@ -38,7 +38,7 @@ internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesVie
         {
             0 => row.RepositoryName,
             1 => row.FolderName,
-            2 => row.Branch ?? "-",
+            2 => row.Branch?.Value ?? "-",
             3 => Count(row.DirtyFiles),
             4 => Count(row.UnpushedCommits),
             5 => row.LastCommitAt is null ? "-" : Durations.Age(now - row.LastCommitAt.Value),

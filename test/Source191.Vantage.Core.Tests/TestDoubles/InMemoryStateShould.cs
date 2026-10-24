@@ -13,7 +13,7 @@ public sealed class InMemoryStateShould
     [Fact]
     public async Task KeepTabsByIdAndRemoveThem()
     {
-        TabRegistration pending = TabRegistration.Pending("session-1", TabPalette.Default[0], Noon);
+        TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(new SessionId("session-1")), TabPalette.Default[0], Noon);
         await state.WriteTabAsync(pending);
         await state.WriteTabAsync(pending.ClaimedBy(4242, Noon));
 
@@ -41,10 +41,10 @@ public sealed class InMemoryStateShould
     [Fact]
     public async Task KeepOneCreatedWorktreePerPathAndForgetIt()
     {
-        await state.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(@"C:\repos\A-fix"), "fix", new FolderPath(@"C:\repos\A"), Noon));
-        await state.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(@"C:\repos\a-fix"), "fix-2", new FolderPath(@"C:\repos\A"), Noon));
+        await state.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(@"C:\repos\A-fix"), new BranchName("fix"), new FolderPath(@"C:\repos\A"), Noon));
+        await state.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(@"C:\repos\a-fix"), new BranchName("fix-2"), new FolderPath(@"C:\repos\A"), Noon));
 
-        (await state.ReadCreatedWorktreesAsync()).Single().Branch.ShouldBe("fix-2");
+        (await state.ReadCreatedWorktreesAsync()).Single().Branch.ShouldBe(new BranchName("fix-2"));
         await state.ForgetCreatedWorktreeAsync(new FolderPath(@"C:\repos\A-FIX"));
         (await state.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
     }
