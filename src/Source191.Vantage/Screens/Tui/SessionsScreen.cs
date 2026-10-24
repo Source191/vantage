@@ -317,7 +317,8 @@ public sealed class SessionsScreen(
 
         public static Live Build(IApplication app, SessionsViewState state, string context)
         {
-            Window window = new() { BorderStyle = LineStyle.None };
+            // Terminal.Gui writes the top-level's Title to the terminal (OSC 0) on every run, so this is what the tab shows.
+            Window window = new() { BorderStyle = LineStyle.None, Title = "Vantage" };
             window.SetScheme(Palette.Plain(Palette.White));
 
             Label contextNames = Text(1, 0, 11, "Machine:\nClaude:\nRoots:\nSessions:\nNeed input:", Palette.Orange);
