@@ -59,6 +59,18 @@ public static partial class Wording
         };
     }
 
+    /// <summary>Why the wizard will not go on.</summary>
+    public static string Describe(WizardProblem problem)
+    {
+        return problem switch
+        {
+            WizardProblem.NoRepository => "Choose a repository: type part of its name, then ↑↓.",
+            WizardProblem.NoName => "Session name is required: a short, human-readable label for the session.",
+            WizardProblem.Refused refused => refused.Reason ?? "That cannot be launched.",
+            _ => problem.ToString(),
+        };
+    }
+
     /// <summary>What the footer says, beside the busy spinner, while an effect runs off the UI thread.</summary>
     public static string Working(ViewEffect effect)
     {
@@ -78,6 +90,19 @@ public static partial class Wording
             StartSession start => $"Starting {start.Plan.Name.Text}...",
             _ => "Working...",
         };
+    }
+
+    public static string WizardTitle(WizardState wizard) => wizard.FixedChoice is null ? "New session" : $"New session in {wizard.FixedChoice.Name}";
+
+    public static string WizardChosenCaption(WizardState wizard) => wizard.ShowsChooser ? "Repository" : "Directory";
+
+    public static string WizardChosen(WizardState wizard) => wizard.Chosen?.Name ?? "(none)";
+
+    public static string WizardHint(WizardState wizard)
+    {
+        const string Fields = "Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel";
+
+        return wizard.ShowsChooser ? $"Type to filter, ↑↓ to choose, Enter confirms the repository   {Fields}" : Fields;
     }
 
     public static string RenamePrompt(string name) => $"Rename {name}. The session restarts under the new name and keeps its conversation.";

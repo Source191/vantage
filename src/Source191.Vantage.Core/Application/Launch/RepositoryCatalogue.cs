@@ -3,7 +3,11 @@ using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Launch;
 
-public sealed record RepositoryChoice(string Name, FolderPath Path, bool IsRepository);
+public sealed record RepositoryChoice(string Name, FolderPath Path, bool IsRepository)
+{
+    /// <summary>Whether the filter typed in the wizard keeps this choice: part of its name, in any case.</summary>
+    public bool Matches(string filter) => Name.Contains(filter, StringComparison.OrdinalIgnoreCase);
+}
 
 /// <summary>
 /// The repositories the wizard offers: every git checkout directly under the configured roots, recently used
@@ -28,7 +32,7 @@ public sealed class RepositoryCatalogue(IFolders folders, IReadOnlyList<string> 
             .Select(root => new RepositoryChoice($"{root.Name} (no repository)", root, IsRepository: false));
 
         return [.. recentFirst.Concat(rest).Concat(noRepository)
-            .Where(choice => choice.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))];
+            .Where(choice => choice.Matches(filter))];
     }
 
     private bool IsGitCheckout(string path)
