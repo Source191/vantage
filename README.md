@@ -20,6 +20,7 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 - [Where Vantage keeps things](#where-vantage-keeps-things)
 - [Troubleshooting](#troubleshooting)
 - [Developing Vantage](#developing-vantage)
+- [Continuous integration](#continuous-integration)
 - [Working with OpenSpec](#working-with-openspec)
 - [Roadmap and known limits](#roadmap-and-known-limits)
 
@@ -30,11 +31,19 @@ Prerequisites: Windows 11, Windows Terminal, PowerShell 7, .NET 10 SDK, git, and
 1. Pack and install the tool from this repository:
 
    ```powershell
-   dotnet pack src\Source191.Vantage -c Release
-   dotnet tool install -g Source191.Vantage --add-source .\artifacts\packages
+   .\tools\install-local.ps1
    ```
 
-   To install a newer build of the same version, uninstall first (`dotnet tool uninstall -g Source191.Vantage`), or bump `Version` in the project file; the tool cache keeps the first package it saw for a version.
+   The script stops a running `vantage.exe`, packs the tool as `<Version>-local.<timestamp>` and installs or updates the global tool. The suffix matters: the tool cache keeps the first package it saw for a version, so two plain builds of 0.1.18 would run the first one. `-Clean` uninstalls first.
+
+   To test the package a GitHub Actions run built instead of building locally, download the run's `Source191.Vantage-<version>-ci.<run number>` artefact and install from the folder:
+
+   ```powershell
+   gh run download <run id> --name Source191.Vantage-0.1.18-ci.42 --dir .\downloaded
+   .\tools\install-local.ps1 -FromArtifact .\downloaded
+   ```
+
+   Or by hand: `dotnet pack src\Source191.Vantage -c Release` then `dotnet tool install -g Source191.Vantage --add-source .\artifacts\packages`.
 
 2. Let Claude Code ring the terminal bell (optional but recommended). Add this to `~\.claude\settings.json`:
 
@@ -258,7 +267,25 @@ dotnet run --project tools\HeadlessTerminal -- check               # the hand-of
 - Tests are sociable: real collaborators, fakes only at the boundaries (`test\...\TestDoubles`). Every key in the tables above is dispatched by a reducer test. The domain rules are mutation tested with Stryker.
 - `CLAUDE.md` records the verified Claude Code CLI and Terminal.Gui facts Vantage depends on, and the rules for working on it; `openspec\` holds the specifications and changes (below).
 - `tools\HeadlessTerminal` drives the built exe inside a pseudo-console with scripted keys, replays the screen as text and runs the hand-off check; it is how the hand-off bug was reproduced and how the screen in this README was rendered.
-- A Release build of `vantage.exe` cannot be rebuilt while it is running; use Debug for the test loop and stop the running instance before `dotnet pack`.
+- A Release build of `vantage.exe` cannot be rebuilt while it is running; use Debug for the test loop and stop the running instance before `dotnet pack` (`tools\install-local.ps1` does both).
+
+## Continuous integration
+
+`.github\workflows\check.yml` runs on every pull request and every push to `main`, on a `windows-latest` runner because the code uses P/Invoke, ConPTY and `cmd.exe` in its integration tests. Its `check` job builds in Release (warnings are errors), runs the whole test suite against that build, runs `dotnet format --verify-no-changes`, packs the tool as `<Version>-ci.<run number>` and uploads the `.nupkg` as a workflow artefact named `Source191.Vantage-<that version>`, so a working package is downloadable from any commit and each run's package is a version the tool cache has never seen (see Install). Branch protection on `main` requires `check`, so a red pull request cannot merge. Administrators can still push to `main` directly; do not, because the release check below only looks at the last commit of a push.
+
+**Releases.** `.github\workflows\release.yml` runs on every push to `main` and is a no-op unless that push changed `Version` in `src\Source191.Vantage\Source191.Vantage.csproj`. When it did, it builds, tests and packs again and publishes a GitHub Release tagged `v<version>` with the `.nupkg` attached. Bumping `Version` is therefore the release action; do it on its own pull request once the manual checks below have passed. The tool is not on nuget.org yet (see Roadmap), so the release is provenance, an immutable package tied to a commit, rather than a distribution route.
+
+**The hand-off job.** `check.yml` has a second job, `handoff`, that installs Claude Code on the runner and runs the hand-off check from `tools\HeadlessTerminal` against a real throwaway session. It needs a `CLAUDE_CODE_OAUTH_TOKEN` repository secret (from `claude setup-token`); without one it skips with a notice. It never blocks a merge, because its keystroke timings were tuned on a laptop and a slow runner can fail it for reasons that are not bugs; read its `handoff-capture` artefact when it does. The runner has no desktop, so it seeds workspace trust for the checkout in its own `~\.claude.json`, which is the one place that record is ever written by a script. One caveat until the first live run has been read: Vantage strips `CLAUDE_CODE_*` from the environment of the `claude` processes it starts (`InheritedEnvironment`), so the token reaches the throwaway session the harness starts but not Vantage's own `claude agents` and `claude attach`. If those turn out to need it, the attach never happens and the check still exits 0 because Vantage quits on `q`; the capture shows whether Claude's screen was actually reached.
+
+### Manual checks before a release
+
+The runner drives Vantage inside a pseudo-console, which is the same plumbing Windows Terminal uses for a tab, so rendering, keys and the attach hand-off are covered. Anything that goes out through `wt.exe` is not: a runner has no desktop for a tab to appear on. Before bumping `Version`, run these in a real Windows Terminal:
+
+1. `o` on a session opens a coloured tab titled with the session name, and `o` again is refused while it is open.
+2. `n`, pick `New sibling worktree`, F6: a new tab opens attached to the new session, and the WT column marks the row.
+3. `d` on that session ends claude and the tab closes by itself.
+4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
+5. Ctrl+Z from an attached session returns to the table with the keys still working.
 
 ## Working with OpenSpec
 
@@ -277,3 +304,4 @@ The repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-
 - Multiple Claude accounts: Claude Code's `CLAUDE_CONFIG_DIR` selects a configuration directory with its own login, settings, sessions and supervisor; Vantage would gain a profile column and set the variable when starting a session.
 - A per-path cache for the worktree scan, so the first press of `w` is quick on a large roots folder.
 - Pinning sessions, once the CLI exposes it outside the native agent view; configurable palette and Windows Terminal profile for the tabs Vantage opens.
+- Publish to nuget.org: an API key secret, `dotnet nuget push` of the packed tool in `release.yml`, package icon and readme metadata, and the Install section dropping `--add-source`.

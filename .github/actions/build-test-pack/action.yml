@@ -1,0 +1,70 @@
+name: Build, test and pack
+description: >-
+  Builds the solution in Release (warnings are errors), runs the unit tests against that build,
+  checks formatting, and packs the dotnet tool. Shared by check.yml and release.yml so the release
+  never ships a build that the check did not see.
+
+inputs:
+  version-suffix:
+    description: >-
+      Prerelease suffix appended to the csproj Version when packing, e.g. ci.42. Empty packs the plain
+      version. Check runs pass one so every run's package is a distinct version: the dotnet tool cache
+      keeps the first package it sees for a version for ever.
+    required: false
+    default: ''
+
+outputs:
+  version:
+    description: The version the package was packed as (csproj Version plus any suffix).
+    value: ${{ steps.meta.outputs.version }}
+  package:
+    description: Path of the single .nupkg written to artifacts/packages.
+    value: ${{ steps.meta.outputs.package }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Build (Release, warnings are errors)
+      shell: pwsh
+      run: dotnet build -c Release
+
+    - name: Test
+      shell: pwsh
+      run: dotnet test test\Source191.Vantage.UnitTests -c Release --no-build
+
+    - name: Format
+      shell: pwsh
+      run: dotnet format --verify-no-changes --no-restore
+
+    - name: Pack
+      shell: pwsh
+      env:
+        VERSION_SUFFIX: ${{ inputs.version-suffix }}
+      run: |
+        $ErrorActionPreference = 'Stop'
+        if ([string]::IsNullOrEmpty($env:VERSION_SUFFIX)) {
+            dotnet pack src\Source191.Vantage -c Release --no-build
+        }
+        else {
+            $base = (Select-Xml -Path src\Source191.Vantage\Source191.Vantage.csproj -XPath '//Version').Node.InnerText
+            dotnet pack src\Source191.Vantage -c Release --no-build -p:Version="$base-$env:VERSION_SUFFIX"
+        }
+        exit $LASTEXITCODE
+
+    - name: Read the version and find the package
+      id: meta
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $packages = @(Get-ChildItem artifacts\packages -Filter *.nupkg)
+        if ($packages.Count -ne 1) {
+            throw "Expected exactly one .nupkg in artifacts\packages, found $($packages.Count)."
+        }
+        $version = $packages[0].BaseName.Substring('Source191.Vantage.'.Length)
+        "version=$version" >> $env:GITHUB_OUTPUT
+        "package=$($packages[0].FullName)" >> $env:GITHUB_OUTPUT
+        Write-Host "Packed $($packages[0].Name) (version $version)"

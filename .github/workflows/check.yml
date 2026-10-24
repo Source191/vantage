@@ -1,0 +1,109 @@
+name: check
+
+# Runs on every pull request and every push to main. Branch protection on main requires the
+# `check` job, so a red pull request cannot merge. Windows only: the code uses P/Invoke, ConPTY
+# and cmd.exe in the integration tests.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    name: check
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Packed as <Version>-ci.<run number>: a distinct version per run, so installing it never
+      # collides with a version the tool cache already holds.
+      - uses: ./.github/actions/build-test-pack
+        id: build
+        with:
+          version-suffix: ci.${{ github.run_number }}
+
+      # The packed tool from any commit, installable with
+      # tools\install-local.ps1 -FromArtifact <downloaded folder>.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Source191.Vantage-${{ steps.build.outputs.version }}
+          path: ${{ steps.build.outputs.package }}
+          if-no-files-found: error
+
+  # The hand-off check against a real Claude session (CLAUDE.md, "Hand-off check"). Needs the
+  # CLAUDE_CODE_OAUTH_TOKEN secret from `claude setup-token`; without it every step after the gate
+  # is skipped. continue-on-error because the keystroke timings were tuned on a laptop and a slow
+  # runner can fail it for reasons that are not bugs: read the handoff-capture artefact when it does.
+  handoff:
+    name: handoff
+    runs-on: windows-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    env:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      DISABLE_AUTOUPDATER: 1
+    steps:
+      - name: Gate on the token secret
+        id: gate
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrEmpty($env:CLAUDE_CODE_OAUTH_TOKEN)) {
+              Write-Host "::notice::handoff skipped: no CLAUDE_CODE_OAUTH_TOKEN secret"
+              "enabled=false" >> $env:GITHUB_OUTPUT
+          }
+          else {
+              "enabled=true" >> $env:GITHUB_OUTPUT
+          }
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.enabled == 'true'
+
+      - uses: actions/setup-dotnet@v4
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Claude Code
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          irm https://claude.ai/install.ps1 | iex
+          Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.local\bin"
+          & "$env:USERPROFILE\.local\bin\claude.exe" --version
+
+      # The runner has no desktop to accept the trust prompt on, so trust the checkout here. The
+      # only place this record is ever written by a script; see CLAUDE.md.
+      - name: Trust the checkout
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $key = $env:GITHUB_WORKSPACE -replace '\\', '/'
+          $path = Join-Path $env:USERPROFILE '.claude.json'
+          $config = if (Test-Path $path) { Get-Content $path -Raw | ConvertFrom-Json -AsHashtable } else { @{} }
+          $config['hasCompletedOnboarding'] = $true
+          if (-not $config.ContainsKey('projects')) { $config['projects'] = @{} }
+          $config['projects'][$key] = @{ hasTrustDialogAccepted = $true }
+          $config | ConvertTo-Json -Depth 10 | Set-Content $path -NoNewline
+          Write-Host "Trusted $key"
+
+      - name: Build Release
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        run: dotnet build -c Release
+
+      - name: Hand-off check
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        working-directory: tools\HeadlessTerminal
+        run: dotnet run --project . -- check
+
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.gate.outputs.enabled == 'true'
+        with:
+          name: handoff-capture
+          path: tools\HeadlessTerminal\drive-raw.txt
+          if-no-files-found: ignore

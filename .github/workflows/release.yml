@@ -1,0 +1,72 @@
+name: release
+
+# Runs only on a push to main, never on a pull request: a release comes from a merge. It is a
+# no-op unless this push changed Version in src/Source191.Vantage/Source191.Vantage.csproj, so
+# bumping the version (already required because the tool cache keeps a version for ever) is the
+# same action that decides whether a release happens. Publishing to nuget.org is on the README
+# roadmap; until then the GitHub Release is provenance, an immutable package tied to a commit.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    name: Publish a release if the version changed
+    runs-on: windows-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      # Compares the pushed commit against its first parent, which for the merge and squash commits
+      # this repository uses is the previous tip of main, so a whole pull request is in view.
+      - name: Check whether Version changed in this push
+        id: check
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $csproj = 'src/Source191.Vantage/Source191.Vantage.csproj'
+          git diff --quiet HEAD^ HEAD -- $csproj
+          $diff = $LASTEXITCODE
+          if ($diff -eq 0) {
+              "changed=false" >> $env:GITHUB_OUTPUT
+              Write-Host "$csproj unchanged in this push: nothing to release."
+              exit 0
+          }
+          if ($diff -ne 1) {
+              throw "git diff failed with exit code $diff; refusing to guess whether Version changed."
+          }
+          # A regex rather than an [xml] cast: git's output comes through the console encoding, and a byte
+          # order mark would break the cast.
+          $before = [regex]::Match((git show "HEAD^:$csproj" | Out-String), '<Version>\s*([^<]+?)\s*</Version>').Groups[1].Value
+          $after = (Select-Xml -Path $csproj -XPath '//Version').Node.InnerText
+          if ([string]::IsNullOrWhiteSpace($before) -or [string]::IsNullOrWhiteSpace($after)) {
+              throw "Could not read Version from $csproj (before='$before', after='$after')."
+          }
+          if ($before -eq $after) {
+              "changed=false" >> $env:GITHUB_OUTPUT
+              Write-Host "$csproj changed but Version did not ($before): nothing to release."
+              exit 0
+          }
+          "changed=true" >> $env:GITHUB_OUTPUT
+          "version=$after" >> $env:GITHUB_OUTPUT
+          Write-Host "Version changed: $before -> $after"
+
+      # check.yml runs on this same push but nothing makes the release wait for it, so the release
+      # builds and tests for itself rather than trusting a run it cannot see.
+      - uses: ./.github/actions/build-test-pack
+        if: steps.check.outputs.changed == 'true'
+        id: build
+
+      # gh is on the runner, so no third-party action is needed for the release itself.
+      - name: Publish the release
+        if: steps.check.outputs.changed == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.check.outputs.version }}
+          PACKAGE: ${{ steps.build.outputs.package }}
+        run: gh release create "v$env:VERSION" $env:PACKAGE --title "v$env:VERSION" --generate-notes --target $env:GITHUB_SHA
