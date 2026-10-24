@@ -16,4 +16,12 @@ public sealed class TrustRecoveryShould
         tab.Script.ShouldContain("accept the trust prompt");
     }
 
+    [Fact]
+    public void KeepAFolderNameWithAnApostropheInsideTheMessage()
+    {
+        TabLaunch tab = TrustRecovery.TabFor(@"C:\repos\Bob's tools", @"C:\Users\me\.local\bin\claude.exe");
+
+        tab.Script.Split('\n')[0].ShouldBe(
+            "Write-Host 'Vantage: accept the trust prompt for Bob''s tools, then exit Claude and press n in Vantage to retry.' -ForegroundColor Cyan");
+    }
 }

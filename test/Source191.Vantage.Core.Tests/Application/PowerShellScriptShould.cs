@@ -16,6 +16,18 @@ public sealed class PowerShellScriptShould
         PowerShellScript.Quote("Jo's fix").ShouldBe("'Jo''s fix'");
     }
 
+    /// <summary>PowerShell ends a single-quoted string at any of these, so each is doubled with itself to stay literal.</summary>
+    [Theory]
+    [InlineData("'")]
+    [InlineData("‘")]
+    [InlineData("’")]
+    [InlineData("‚")]
+    [InlineData("‛")]
+    public void DoubleEveryCharacterPowerShellReadsAsASingleQuote(string quote)
+    {
+        PowerShellScript.Quote($"O{quote}Neill").ShouldBe($"'O{quote}{quote}Neill'");
+    }
+
     [Fact]
     public void JoinACommandAndItsArgumentsWithTheCallOperator()
     {
