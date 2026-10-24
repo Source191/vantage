@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace Source191.Vantage.Adapters.Diagnostics;
+namespace Source191.Vantage.Application;
 
 /// <summary>The handful of lines Vantage itself writes to the diagnostic log around a terminal hand-off.</summary>
 public static partial class HandoffLog

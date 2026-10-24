@@ -1,0 +1,45 @@
+using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Views;
+using Source191.Vantage.Ports;
+
+namespace Source191.Vantage.Application.Launch;
+
+/// <summary>
+/// <c>vantage here</c> from start to finish: plan from the arguments, start the supervised session in the folder,
+/// attach in this tab, and exit 0 after a detach, 1 when the start failed, 2 for a usage error.
+/// </summary>
+public sealed class HereCommandRunner(IFolders folders, LaunchService launches, TerminalEffects effects, ITerminalConsole console, TextWriter output, TextWriter error)
+{
+    public async Task<int> RunAsync(string directory, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    {
+        LaunchPlanResult planned = HereCommand.Plan(directory, arguments, IsRepository);
+        if (planned.Plan is null)
+        {
+            await error.WriteLineAsync(planned.Problem);
+            return 2;
+        }
+
+        LaunchOutcome outcome = await launches.LaunchAsync(planned.Plan, cancellationToken);
+        switch (outcome.Kind)
+        {
+            case LaunchOutcomeKind.Started when outcome.JobId is not null:
+                await output.WriteLineAsync($"Started {planned.Plan.Name.Text} ({outcome.JobId}) in {directory}.");
+                await effects.RunAsync(new AttachToSession(outcome.JobId), cancellationToken);
+                console.RecoverAfterChild();
+                return 0;
+            case LaunchOutcomeKind.WorkspaceNotTrusted:
+                await error.WriteLineAsync($"Could not start: {directory} is not trusted yet. Run claude here once and accept the prompt.");
+                return 1;
+            default:
+                await error.WriteLineAsync($"Could not start: {outcome.Message}");
+                return 1;
+        }
+    }
+
+    private bool IsRepository(string path)
+    {
+        string git = Path.Combine(path, ".git");
+
+        return folders.DirectoryExists(git) || folders.FileExists(git);
+    }
+}

@@ -10,8 +10,6 @@ using GuiKey = Terminal.Gui.Input.Key;
 
 namespace Source191.Vantage.Tui;
 
-/// <summary>What the worktrees screen hands back when it stops: the state to resume with and the effect for the caller.</summary>
-public sealed record WorktreesScreenExit(WorktreesViewState State, ViewEffect? Effect);
 
 /// <summary>
 /// Renders the worktrees view with Terminal.Gui, the same way <see cref="SessionsScreen"/> renders sessions: keys go
@@ -24,6 +22,7 @@ public sealed class WorktreesScreen(
     WorktreeBase defaultBase,
     TimeProvider clock,
     string context)
+    : IWorktreesScreen
 {
     private static readonly TimeSpan RefreshEvery = TimeSpan.FromSeconds(15);
 

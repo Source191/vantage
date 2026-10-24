@@ -1,7 +1,7 @@
-using Source191.Vantage.Adapters.Diagnostics;
+using Source191.Vantage.Application;
 using Source191.Vantage.UnitTests.TestDoubles;
 
-namespace Source191.Vantage.UnitTests.Adapters;
+namespace Source191.Vantage.UnitTests.Application;
 
 public sealed class HandoffLogShould
 {

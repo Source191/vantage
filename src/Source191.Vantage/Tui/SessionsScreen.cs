@@ -11,8 +11,6 @@ using GuiKey = Terminal.Gui.Input.Key;
 
 namespace Source191.Vantage.Tui;
 
-/// <summary>What the screen hands back when it stops: the state to resume with and the effect that needs the terminal.</summary>
-public sealed record ScreenExit(SessionsViewState State, ViewEffect? Effect);
 
 /// <summary>
 /// Renders the sessions view with Terminal.Gui. Keys go to the reducer; the reducer's state is redrawn; effects
@@ -27,6 +25,7 @@ public sealed class SessionsScreen(
     WorktreeBase defaultBase,
     TimeProvider clock,
     string context)
+    : ISessionsScreen
 {
     private static readonly TimeSpan RefreshEvery = TimeSpan.FromSeconds(5);
 
