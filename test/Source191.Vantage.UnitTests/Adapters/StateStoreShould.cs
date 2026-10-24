@@ -108,6 +108,42 @@ public sealed class StateStoreShould : IDisposable
     }
 
     [Fact]
+    public async Task SkipARecordAnotherProcessIsStillWritingInsteadOfFailingTheRead()
+    {
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+        string lockedFile = Path.Combine(folder, "recent", "being-written.json");
+        await using FileStream exclusive = new(lockedFile, FileMode.Create, FileAccess.Write, FileShare.None);
+
+        IReadOnlyList<string> recent = await Store.ReadRecentRepositoriesAsync();
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\B");
+
+        recent.ShouldBe([@"C:\repos\A"]);
+    }
+
+    [Fact]
+    public async Task WriteARecordWhileAnotherProcessHasItOpenForReading()
+    {
+        await Store.WriteDescriptionAsync("session-1", "first");
+        string file = Directory.EnumerateFiles(Path.Combine(folder, "descriptions")).Single();
+        await using FileStream reading = new(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+
+        await Store.WriteDescriptionAsync("session-1", "second");
+
+        (await Store.ReadDescriptionsAsync())["session-1"].ShouldBe("second");
+    }
+
+    [Fact]
+    public async Task TreatAHalfWrittenRecordAsAbsentUntilItIsFinished()
+    {
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+        Directory.CreateDirectory(Path.Combine(folder, "descriptions"));
+        await File.WriteAllTextAsync(Path.Combine(folder, "descriptions", "half.json"), """{ "sessionId": "session-9", "descr""", TestContext.Current.CancellationToken);
+
+        (await Store.ReadDescriptionsAsync()).ShouldBeEmpty();
+        (await Store.ReadRecentRepositoriesAsync()).ShouldBe([@"C:\repos\A"]);
+    }
+
+    [Fact]
     public async Task ImportLegacyRecentAndSessionsFiles()
     {
         Directory.CreateDirectory(folder);

@@ -45,7 +45,7 @@ public sealed class StateStore(string folder, TimeProvider clock)
 
     public Task RemoveTabAsync(Guid id)
     {
-        File.Delete(Path.Combine(TabsFolder, $"{id:N}.json"));
+        TryDelete(Path.Combine(TabsFolder, $"{id:N}.json"));
 
         return Task.CompletedTask;
     }
@@ -133,7 +133,7 @@ public sealed class StateStore(string folder, TimeProvider clock)
             await WriteJsonAsync(RecentFile(repository), new RecentRepository(repository, now.AddSeconds(-index)));
         }
 
-        File.Delete(LegacyRecentFile);
+        TryDelete(LegacyRecentFile);
     }
 
     private async Task ImportLegacyDescriptionsAsync()
@@ -149,7 +149,7 @@ public sealed class StateStore(string folder, TimeProvider clock)
             await WriteJsonAsync(DescriptionFile(sessionId), new SessionDescription(sessionId, description));
         }
 
-        File.Delete(LegacySessionsFile);
+        TryDelete(LegacySessionsFile);
     }
 
     private async Task TrimRecentAsync()
@@ -157,7 +157,7 @@ public sealed class StateStore(string folder, TimeProvider clock)
         IReadOnlyList<RecentRepository> recent = await ReadAllAsync<RecentRepository>(RecentFolder);
         foreach (RecentRepository stale in recent.OrderByDescending(entry => entry.UsedAt).Skip(RecentLimit))
         {
-            File.Delete(RecentFile(stale.Path));
+            TryDelete(RecentFile(stale.Path));
         }
     }
 
@@ -192,6 +192,11 @@ public sealed class StateStore(string folder, TimeProvider clock)
         return items;
     }
 
+    /// <summary>
+    /// Reads one record. Another Vantage process may be replacing or deleting the file at the same moment, so the
+    /// stream allows sharing and a file that is locked, gone or half-written reads as absent rather than failing the
+    /// whole read; the next refresh sees the finished file.
+    /// </summary>
     private static async Task<T?> ReadJsonAsync<T>(string file)
         where T : class
     {
@@ -202,9 +207,13 @@ public sealed class StateStore(string folder, TimeProvider clock)
 
         try
         {
-            await using FileStream stream = File.OpenRead(file);
+            await using FileStream stream = new(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
 
             return await JsonSerializer.DeserializeAsync<T>(stream, Options);
+        }
+        catch (IOException)
+        {
+            return null;
         }
         catch (JsonException)
         {
@@ -212,11 +221,29 @@ public sealed class StateStore(string folder, TimeProvider clock)
         }
     }
 
+    /// <summary>
+    /// Writes one record, allowing readers in while it does: Windows refuses to rename over a file another process
+    /// has open, so an atomic replace is not available, and a reader that catches the record half-written treats it as
+    /// absent until the next refresh instead.
+    /// </summary>
     private static async Task WriteJsonAsync<T>(string file, T value)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(file)!);
-        await using FileStream stream = File.Create(file);
+        await using FileStream stream = new(file, FileMode.Create, FileAccess.Write, FileShare.Read);
         await JsonSerializer.SerializeAsync(stream, value, Options);
+    }
+
+    /// <summary>A file another process is reading or has already removed is not an error; it will be gone soon enough.</summary>
+    private static void TryDelete(string file)
+    {
+        try
+        {
+            File.Delete(file);
+        }
+        catch (IOException)
+        {
+            // Left for the next read or write to clear.
+        }
     }
 
     private sealed record RecentRepository(string Path, DateTimeOffset UsedAt);
