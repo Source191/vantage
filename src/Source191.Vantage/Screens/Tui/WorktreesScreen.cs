@@ -210,6 +210,7 @@ public sealed class WorktreesScreen(
     {
         live.State = live.State with { Footer = working };
         live.Redraw(clock.GetUtcNow());
+        live.ShowBusy(true);
         Task.Run(async () =>
         {
             T? result = default;
@@ -225,6 +226,7 @@ public sealed class WorktreesScreen(
 
             app.Invoke(() =>
             {
+                live.ShowBusy(false);
                 string footer = failure ?? onUiThread(result!);
                 live.State = live.State with { Footer = footer };
                 live.Redraw(clock.GetUtcNow());
@@ -242,8 +244,10 @@ public sealed class WorktreesScreen(
         private readonly Label title;
         private readonly Label banner;
         private readonly Label footer;
+        private readonly SpinnerView busy;
+        private readonly WaitingIndicator waiting;
 
-        private Live(Window window, TableView table, Label contextValues, string context, Label title, Label banner, Label footer, WorktreesViewState state)
+        private Live(Window window, TableView table, Label contextValues, string context, Label title, Label banner, Label footer, SpinnerView busy, WaitingIndicator waiting, WorktreesViewState state)
         {
             Window = window;
             this.table = table;
@@ -252,7 +256,15 @@ public sealed class WorktreesScreen(
             this.title = title;
             this.banner = banner;
             this.footer = footer;
+            this.busy = busy;
+            this.waiting = waiting;
             State = state;
+        }
+
+        /// <summary>The footer spinner: on while an action runs off the UI thread, off once its outcome is shown.</summary>
+        public void ShowBusy(bool working)
+        {
+            busy.Show(working);
         }
 
         public Window Window { get; }
@@ -263,7 +275,8 @@ public sealed class WorktreesScreen(
 
         public static Live Build(WorktreesViewState state, string context)
         {
-            Window window = new() { BorderStyle = LineStyle.None };
+            // Terminal.Gui writes the top-level's Title to the terminal (OSC 0) on every run, so this is what the tab shows.
+            Window window = new() { BorderStyle = LineStyle.None, Title = "Vantage" };
             window.SetScheme(Palette.Plain(Palette.White));
 
             Label contextNames = Text(1, 0, 11, "Machine:\nClaude:\nRoots:\nWorktrees:\nAt risk:", Palette.Orange);
@@ -295,11 +308,13 @@ public sealed class WorktreesScreen(
 
             Label crumb = Text(1, Pos.AnchorEnd(2), 13, " <worktrees> ", Palette.Background);
             crumb.SetScheme(Palette.Pair(Palette.Background, Palette.Amber));
-            Label footer = Text(15, Pos.AnchorEnd(2), Dim.Fill(), string.Empty, Palette.Cyan);
+            SpinnerView busy = Spinners.Create(15, Pos.AnchorEnd(2));
+            WaitingIndicator waiting = new("Scanning worktrees");
+            Label footer = Text(17, Pos.AnchorEnd(2), Dim.Fill(), string.Empty, Palette.Cyan);
 
-            window.Add(contextNames, contextValues, keys, keyNames, keys2, keyNames2, logo, banner, title, table, crumb, footer);
+            window.Add(contextNames, contextValues, keys, keyNames, keys2, keyNames2, logo, banner, title, table, crumb, busy, footer, waiting);
 
-            Live live = new(window, table, contextValues, context, title, banner, footer, state);
+            Live live = new(window, table, contextValues, context, title, banner, footer, busy, waiting, state);
             table.Style.RowColorGetter = live.RowColour;
 
             return live;
@@ -319,6 +334,7 @@ public sealed class WorktreesScreen(
                 table.SetSelection(0, selected, false, null);
             }
 
+            waiting.Show(!State.Loaded && State.Banner is null);
             Window.SetNeedsDraw();
         }
 

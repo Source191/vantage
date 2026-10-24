@@ -46,6 +46,24 @@ public sealed class TabColourSelectionShould
     }
 
     [Fact]
+    public void PreferAColourWhenItIsFree()
+    {
+        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default[0]], preferred: TabPalette.Default[4]);
+
+        choice.Colour.Name.ShouldBe("Green");
+        choice.Reused.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void FallBackToTheFirstFreeColourWhenThePreferredOneIsInUse()
+    {
+        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default[4]], preferred: TabPalette.Default[4]);
+
+        choice.Colour.Name.ShouldBe("Red");
+        choice.Reused.ShouldBeFalse();
+    }
+
+    [Fact]
     public void OfferElevenContrastingColoursInOrder()
     {
         TabPalette.Default.Select(colour => colour.Name).ShouldBe(

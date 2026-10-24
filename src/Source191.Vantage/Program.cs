@@ -51,6 +51,7 @@ StateTransitionNotifier notifier = new(Console.Out);
 WindowsTerminal terminal = new(processes);
 LaunchService launchService = new(claude, git, store, new WorktreeIncludeCopier(git), TimeProvider.System);
 TabOpener tabs = new(store, processRegistry, terminal, TimeProvider.System, claudeExecutable, vantageExecutable);
+OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
 LaunchWorkflow launches = new(new RepositoryCatalogue(config.RepositoryRoots), store, launchService, tabs, terminal, claudeExecutable);
 SessionActions actions = new(claude, git, store, processRegistry, transcripts);
 TerminalEffects terminalEffects = new(claude, Console.Out);
@@ -68,6 +69,12 @@ WorktreesScreen worktreesScreen = new(ScanAsync, worktreeActions, launches, conf
 SessionsViewState sessions = SessionsViewState.Empty;
 WorktreesViewState worktrees = WorktreesViewState.Empty;
 bool showingWorktrees = false;
+
+// This tab is named and coloured like a session tab so it can be found among them; the colour counts as in use.
+// Claude sets the title itself while attached, so the label is written again after every hand-off.
+TabColour? ownColour = await ownTab.ClaimAsync(Environment.ProcessId);
+string ownTabLabel = TabEscapes.Title("Vantage") + (ownColour is null ? string.Empty : TabEscapes.Background(ownColour));
+ConsoleRecovery.WriteSequence(Console.Out, ownTabLabel);
 
 // Two screens alternate in one loop. Each keeps its state across switches and hand-offs, so a selection survives a trip
 // to the other view or into an attached session.
@@ -90,6 +97,7 @@ while (true)
     switch (effect)
     {
         case null or Quit:
+            ConsoleRecovery.WriteSequence(Console.Out, TabEscapes.ClearTitle + TabEscapes.ResetBackground);
             return 0;
         case SwitchToWorktrees:
             showingWorktrees = true;
@@ -106,6 +114,7 @@ while (true)
             await terminalEffects.RunAsync(effect, CancellationToken.None);
             log.ChildReturned();
             ConsoleRecovery.AfterChildProcess(Console.Out);
+            ConsoleRecovery.WriteSequence(Console.Out, ownTabLabel);
             continue;
     }
 }

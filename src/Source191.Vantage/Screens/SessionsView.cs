@@ -84,8 +84,10 @@ public sealed record SessionsViewState(
     RowFilter Filter,
     bool FilterEditing,
     string? Banner,
-    string Footer)
+    string Footer,
+    bool Loaded = false)
 {
+    /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
     public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: string.Empty);
 
     public IReadOnlyList<SessionRow> VisibleRows
@@ -137,7 +139,7 @@ public static class SessionsView
     private static SessionsViewState Load(SessionsViewState state, IReadOnlyList<SessionRow> rows)
     {
         int previousIndex = IndexOfSelected(state);
-        SessionsViewState loaded = state with { Rows = rows, Banner = null };
+        SessionsViewState loaded = state with { Rows = rows, Banner = null, Loaded = true };
         if (loaded.Selected is not null)
         {
             return loaded;
@@ -173,15 +175,15 @@ public static class SessionsView
             { Name: KeyName.Up } => Unchanged(MoveSelection(state, -1)),
             { Name: KeyName.Down } => Unchanged(MoveSelection(state, +1)),
             { Name: KeyName.Escape } => Unchanged(Reselect(state with { Filter = new RowFilter(string.Empty) })),
-            { Name: KeyName.Enter } => SessionAction(state, row => new AttachToSession(row.Session.JobId!), refuseWhenTabOpen: true),
+            { Name: KeyName.Enter } => SessionAction(state, row => new AttachToSession(row.Session.JobId!), Attachment.Here),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state with { FilterEditing = true, Filter = new RowFilter(string.Empty) }),
-            { Name: KeyName.Character, Character: 'o' } => SessionAction(state, row => new OpenTabForSession(row), refuseWhenTabOpen: true),
+            { Name: KeyName.Character, Character: 'o' } => SessionAction(state, row => new OpenTabForSession(row), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
-            { Name: KeyName.Character, Character: 'x' } => SessionAction(state, row => new StopSession(row.Session.JobId!), refuseWhenTabOpen: false),
+            { Name: KeyName.Character, Character: 'x' } => SessionAction(state, row => new StopSession(row.Session.JobId!), Attachment.None),
             { Name: KeyName.Character, Character: 'd' } when state.Selected is { Session.Kind: SessionKind.Interactive, HasTranscript: false } row =>
                 Effect(state with { Footer = string.Empty }, new CloseEmptyTerminals([row])),
             { Name: KeyName.Character, Character: 'C' } => CloseEmpty(state),
-            { Name: KeyName.Character, Character: 'd' } => SessionAction(state, row => new DeleteSession(row), refuseWhenTabOpen: false),
+            { Name: KeyName.Character, Character: 'd' } => SessionAction(state, row => new DeleteSession(row), Attachment.None),
             { Name: KeyName.Character, Character: 'b' } => Adopt(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
             { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions()),
@@ -193,7 +195,15 @@ public static class SessionsView
         };
     }
 
-    private static ViewUpdate SessionAction(SessionsViewState state, Func<SessionRow, ViewEffect> effect, bool refuseWhenTabOpen)
+    /// <summary>Whether a key attaches to the session: here (so not while a tab already shows it), in its own tab, or not at all.</summary>
+    private enum Attachment
+    {
+        None,
+        InOwnTab,
+        Here,
+    }
+
+    private static ViewUpdate SessionAction(SessionsViewState state, Func<SessionRow, ViewEffect> effect, Attachment attachment)
     {
         SessionRow? row = state.Selected;
         if (row is null)
@@ -210,13 +220,14 @@ public static class SessionsView
             return Unchanged(state with { Footer = footer });
         }
 
-        if (refuseWhenTabOpen && row.HasLiveTab)
+        // The open-in-tab key switches to the tab that already shows the session; attaching here as well would be a second attach.
+        if (attachment == Attachment.Here && row.HasLiveTab)
         {
-            return Unchanged(state with { Footer = $"{row.Session.Name} is already open in another tab." });
+            return Unchanged(state with { Footer = $"{row.Session.Name} is open in another tab; press o to switch to it." });
         }
 
         // Attaching to a session with no process resumes it from its transcript; a session never sent a message has none.
-        if (refuseWhenTabOpen && row.Session.ProcessId is null && !row.HasTranscript)
+        if (attachment != Attachment.None && row.Session.ProcessId is null && !row.HasTranscript)
         {
             return Unchanged(state with { Footer = $"{row.Session.Name} has nothing to resume: it was never sent a message. d deletes it." });
         }
@@ -240,7 +251,7 @@ public static class SessionsView
         SessionRow? row = state.Selected;
         if (row is null || row.Session.Kind == SessionKind.Interactive || row.Session.JobId is null)
         {
-            return SessionAction(state, _ => new AskForNewName(row!), refuseWhenTabOpen: false);
+            return SessionAction(state, _ => new AskForNewName(row!), Attachment.None);
         }
 
         return row switch

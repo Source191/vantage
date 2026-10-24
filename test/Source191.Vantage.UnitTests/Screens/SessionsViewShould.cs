@@ -21,6 +21,15 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
+    public void KnowWhetherTheFirstListingHasArrived()
+    {
+        SessionsViewState.Empty.Loaded.ShouldBeFalse();
+        Reduce(SessionsViewState.Empty, new LoadFailed("claude is not installed")).Loaded.ShouldBeFalse();
+        Loaded.Loaded.ShouldBeTrue();
+        Reduce(Loaded, new RowsLoaded([])).Loaded.ShouldBeTrue();
+    }
+
+    [Fact]
     public void SelectTheFirstRowOnFirstLoad()
     {
         Loaded.Selected.ShouldBe(Waiting);
@@ -212,13 +221,23 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
-    public void RefuseEnterAndOpenInTabWhenALiveTabAlreadyShowsTheSession()
+    public void RefuseEnterWhenALiveTabAlreadyShowsTheSessionAndNameTheWayThere()
     {
         SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([Waiting with { HasLiveTab = true }]));
 
-        SessionsView.Reduce(withTab, new KeyPressed(Key.Enter)).Effects.ShouldBeEmpty();
-        SessionsView.Reduce(withTab, new KeyPressed(Key.Of('o'))).Effects.ShouldBeEmpty();
-        SessionsView.Reduce(withTab, new KeyPressed(Key.Of('o'))).State.Footer.ShouldContain("already open");
+        ViewUpdate update = SessionsView.Reduce(withTab, new KeyPressed(Key.Enter));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe("change-feed is open in another tab; press o to switch to it.");
+    }
+
+    [Fact]
+    public void LetOSwitchToTheLiveTabThatShowsTheSession()
+    {
+        SessionRow shown = Waiting with { HasLiveTab = true };
+        SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([shown]));
+
+        SessionsView.Reduce(withTab, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenTabForSession(shown)]);
     }
 
     [Fact]
