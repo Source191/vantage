@@ -19,7 +19,8 @@ public sealed record StartSessionIn(WorktreeRow Row) : ViewEffect;
 
 public sealed record OpenShellTab(WorktreeRow Row) : ViewEffect;
 
-public sealed record JumpToSession(string SessionName) : ViewEffect;
+/// <summary>Go to the sessions view with this session selected; by id, because names are not unique.</summary>
+public sealed record JumpToSession(string SessionId) : ViewEffect;
 
 public sealed record SwitchToSessions : ViewEffect;
 
@@ -214,9 +215,9 @@ public static class WorktreesView
 
     private static (ViewEffect?, string) JumpToSession(WorktreeRow row)
     {
-        return row.SessionName is null
+        return row.SessionId is null
             ? (null, $"No session is running in {row.FolderName}.")
-            : (new JumpToSession(row.SessionName), string.Empty);
+            : (new JumpToSession(row.SessionId), string.Empty);
     }
 
     private static WorktreesViewState MoveSelection(WorktreesViewState state, int delta)

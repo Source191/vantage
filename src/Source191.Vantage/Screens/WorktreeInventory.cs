@@ -49,7 +49,7 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
 
         rows.AddRange(candidates.Where(candidate => !registered.Contains(Normalise(candidate))).Select(BrokenSibling));
 
-        return [.. rows.Select(row => row with { SessionName = LiveSessionIn(row.Path, sessions) })];
+        return [.. rows.Select(row => WithLiveSession(row, LiveSessionIn(row.Path, sessions)))];
     }
 
     private async Task<IReadOnlyList<WorktreeRow>> RegisteredRowsAsync(string repository, HashSet<string> registered, CancellationToken cancellationToken)
@@ -73,7 +73,7 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
             WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.LockReason, false, null, false));
             rows.Add(folderExists
                 ? await InspectedAsync(repository, entry, health, cancellationToken)
-                : new WorktreeRow(repository, entry.Path, entry.Branch, health, 0, 0, null, null, 0, OwnerExists: true, FolderExists: false));
+                : new WorktreeRow(repository, entry.Path, entry.Branch, health, 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: false));
         }
 
         return rows;
@@ -91,6 +91,7 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
                 await git.CountChangedFilesAsync(entry.Path, cancellationToken),
                 await git.CountUnpushedCommitsAsync(entry.Path, cancellationToken),
                 await git.LastCommitAtAsync(entry.Path, cancellationToken),
+                SessionId: null,
                 SessionName: null,
                 LeftoverFileCount: 0,
                 OwnerExists: true,
@@ -98,7 +99,7 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
         }
         catch (GitException)
         {
-            return new WorktreeRow(repository, entry.Path, entry.Branch, health, 0, 0, null, null, 0, OwnerExists: true, FolderExists: true);
+            return new WorktreeRow(repository, entry.Path, entry.Branch, health, 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: true);
         }
     }
 
@@ -137,7 +138,7 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
 
     private static WorktreeRow Leftover(string repository, string folder, WorktreeObservation observation, bool ownerExists)
     {
-        return new WorktreeRow(repository, folder, null, WorktreeHealth.From(observation), 0, 0, null, null, CountLeftoverFiles(folder), ownerExists, FolderExists: Directory.Exists(folder));
+        return new WorktreeRow(repository, folder, null, WorktreeHealth.From(observation), 0, 0, null, null, null, CountLeftoverFiles(folder), ownerExists, FolderExists: Directory.Exists(folder));
     }
 
     private static string? GitDirOf(string gitFile)
@@ -170,14 +171,18 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
             : 0;
     }
 
-    private static string? LiveSessionIn(string worktree, IReadOnlyList<Session> sessions)
+    private static Session? LiveSessionIn(string worktree, IReadOnlyList<Session> sessions)
     {
         string prefix = Normalise(worktree) + IOPath.DirectorySeparatorChar;
 
         return sessions
             .Where(session => session.ProcessId is not null)
-            .FirstOrDefault(session => (Normalise(session.WorkingDirectory) + IOPath.DirectorySeparatorChar).StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            ?.Name;
+            .FirstOrDefault(session => (Normalise(session.WorkingDirectory) + IOPath.DirectorySeparatorChar).StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static WorktreeRow WithLiveSession(WorktreeRow row, Session? live)
+    {
+        return row with { SessionId = live?.SessionId, SessionName = live?.Name };
     }
 
     private static string Normalise(string path)

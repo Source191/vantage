@@ -13,7 +13,7 @@ public sealed class WorktreesViewShould
     private static readonly WorktreeRow Orphan = Row(@"C:\repos\Northwind.Orders\.claude\worktrees\fix-service-tests", null, WorktreeHealthKind.Orphan) with { LeftoverFileCount = 12 };
     private static readonly WorktreeRow Empty = Row(@"C:\repos\Northwind.Orders.worktrees", null, WorktreeHealthKind.Empty) with { Repository = @"C:\repos" };
     private static readonly WorktreeRow Gone = Row(@"C:\repos\Northwind.Retired-republish", null, WorktreeHealthKind.Broken) with { Repository = @"C:\repos\Northwind.Retired", OwnerExists = false };
-    private static readonly WorktreeRow Busy = Row(@"C:\repos\Northwind.Orders-fix-3", "fix-3", WorktreeHealthKind.Ok) with { SessionName = "fix-the-tests" };
+    private static readonly WorktreeRow Busy = Row(@"C:\repos\Northwind.Orders-fix-3", "fix-3", WorktreeHealthKind.Ok) with { SessionId = "sess-fix-3", SessionName = "fix-the-tests" };
 
     private static readonly WorktreesViewState Loaded = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Gone, Busy, Empty, Orphan, Locked, Dirty, Clean]));
 
@@ -142,7 +142,7 @@ public sealed class WorktreesViewShould
     {
         WorktreesViewState onBusy = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down);
 
-        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Enter)).Effects.ShouldBe([new JumpToSession("fix-the-tests")]);
+        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Enter)).Effects.ShouldBe([new JumpToSession("sess-fix-3")]);
         WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Enter)).State.Footer.ShouldBe("No session is running in Northwind.Orders-fix-1.");
     }
 
@@ -220,6 +220,6 @@ public sealed class WorktreesViewShould
 
     private static WorktreeRow Row(string path, string? branch, WorktreeHealthKind health, string reason = "")
     {
-        return new WorktreeRow(Repository, path, branch, new WorktreeHealth(health, reason), 0, 0, null, null, 0, OwnerExists: true, FolderExists: true);
+        return new WorktreeRow(Repository, path, branch, new WorktreeHealth(health, reason), 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: true);
     }
 }

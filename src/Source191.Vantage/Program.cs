@@ -107,7 +107,7 @@ while (true)
             continue;
         case JumpToSession jump:
             showingWorktrees = false;
-            sessions = sessions with { SelectedSessionId = sessions.Rows.FirstOrDefault(row => row.Session.Name == jump.SessionName)?.Session.SessionId ?? sessions.SelectedSessionId };
+            sessions = SessionsView.Reduce(sessions, new SelectSession(jump.SessionId)).State;
             continue;
         default:
             log.HandingOver(effect);

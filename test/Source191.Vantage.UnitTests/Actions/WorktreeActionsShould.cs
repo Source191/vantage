@@ -31,7 +31,7 @@ public sealed class WorktreeActionsShould : IDisposable
 
     private static WorktreeRow Row(WorktreeHealthKind health, string path = Worktree, string? branch = "fix-123", bool ownerExists = true)
     {
-        return new WorktreeRow(Repository, path, branch, new WorktreeHealth(health, string.Empty), 0, 0, Noon, null, 0, ownerExists, FolderExists: true);
+        return new WorktreeRow(Repository, path, branch, new WorktreeHealth(health, string.Empty), 0, 0, Noon, null, null, 0, ownerExists, FolderExists: true);
     }
 
     public void Dispose()

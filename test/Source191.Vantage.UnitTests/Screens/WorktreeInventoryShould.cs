@@ -151,6 +151,20 @@ public sealed class WorktreeInventoryShould : IDisposable
     }
 
     [Fact]
+    public async Task ReportTheSessionIdOfTheLiveSession()
+    {
+        string repository = await root.CreateRepositoryAsync("Northwind.Orders");
+        string worktree = await root.AddSiblingWorktreeAsync(repository, "fix-1");
+        Session live = SessionIn(worktree, "fix-tests", processId: 4242);
+        Session sameName = SessionIn(repository, "fix-tests", processId: 4343);
+
+        WorktreeRow row = (await Inventory.ScanAsync([sameName, live], TestContext.Current.CancellationToken)).Single();
+
+        row.SessionId.ShouldBe(live.SessionId);
+        row.SessionName.ShouldBe("fix-tests");
+    }
+
+    [Fact]
     public async Task KeepScanningWhenOneFolderIsNotAUsableRepository()
     {
         Directory.CreateDirectory(Path.Combine(root.Path, "Corrupt", ".git"));
