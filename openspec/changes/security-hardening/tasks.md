@@ -14,7 +14,7 @@
 
 ## 3. Workflow credentials
 
-- [ ] 3.1 Add `persist-credentials: false` to both `actions/checkout` steps in `.github\workflows\check.yml` and the one in `.github\workflows\release.yml`, and `permissions: contents: read` at the top of `check.yml`; verify with `Select-String -Path .github\workflows\*.yml -Pattern 'actions/checkout' -Context 0,3` that every checkout is followed by the setting, commit
+- [x] 3.1 Add `persist-credentials: false` to both `actions/checkout` steps in `.github\workflows\check.yml` and the one in `.github\workflows\release.yml`, and `permissions: contents: read` at the top of `check.yml`; verify with `Select-String -Path .github\workflows\*.yml -Pattern 'actions/checkout' -Context 0,3` that every checkout is followed by the setting, commit
 
 ## 4. Integration
 
