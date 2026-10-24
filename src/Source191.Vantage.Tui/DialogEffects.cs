@@ -4,6 +4,7 @@ using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using System.Collections.Frozen;
 
 namespace Source191.Vantage.Tui;
 
@@ -13,41 +14,32 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultBase, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
 {
+    /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
+    private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
+    {
+        [typeof(ShowHelp)] = (_, context, _) => Confirm.Query(context.App, "Keys", context.HelpText, "Close"),
+        [typeof(OpenLaunchWizard)] = (self, context, _) => self.StartSession(context, fixedDirectory: null),
+        [typeof(StartSessionIn)] = (self, context, effect) => self.StartSession(context, ((StartSessionIn)effect).Row.Path),
+        [typeof(AskForNewName)] = (_, context, effect) => Rename(context, ((AskForNewName)effect).Row),
+        [typeof(CloseEmptyTerminals)] = (_, context, effect) => ConfirmCloseEmpty(context, (CloseEmptyTerminals)effect),
+        [typeof(DeleteSession)] = (self, context, effect) => self.ConfirmDelete(context, (DeleteSession)effect),
+        [typeof(ResumeStoppedSessions)] = (_, context, effect) => ChooseSessionsToResume(context, ((ResumeStoppedSessions)effect).Rows),
+        [typeof(ConfirmForceRemove)] = (_, context, effect) => ConfirmForce(context, (ConfirmForceRemove)effect),
+        [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
+    }.ToFrozenDictionary();
+
+    /// <summary>Whether an effect of this type has a dialog flow.</summary>
+    public static bool Handles(Type effectType) => Flows.ContainsKey(effectType);
+
     internal void Show(IEffectContext context, ViewEffect effect)
     {
-        switch (effect)
+        if (Flows.TryGetValue(effect.GetType(), out Action<DialogEffects, IEffectContext, ViewEffect>? flow))
         {
-            case ShowHelp:
-                Confirm.Query(context.App, "Keys", context.HelpText, "Close");
-                break;
-            case OpenLaunchWizard:
-                StartSession(context, fixedDirectory: null);
-                break;
-            case StartSessionIn start:
-                StartSession(context, start.Row.Path);
-                break;
-            case AskForNewName ask:
-                Rename(context, ask.Row);
-                break;
-            case CloseEmptyTerminals close:
-                ConfirmCloseEmpty(context, close);
-                break;
-            case DeleteSession deletion:
-                ConfirmDelete(context, deletion);
-                break;
-            case ResumeStoppedSessions resume:
-                ChooseSessionsToResume(context, resume.Rows);
-                break;
-            case ConfirmForceRemove confirm:
-                ConfirmForce(context, confirm);
-                break;
-            case RemoveWorktree remove:
-                Remove(context, remove);
-                break;
-            default:
-                context.ShowFooter(new Footer.NoDialogFor(effect.GetType().Name));
-                break;
+            flow(this, context, effect);
+            return;
         }
+
+        context.ShowFooter(new Footer.NoDialogFor(effect.GetType().Name));
     }
 
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>

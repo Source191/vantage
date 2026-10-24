@@ -17,8 +17,8 @@
 
 ## 3. Dialog completeness fact
 
-- [ ] 3.1 `test\Source191.Vantage.Core.Tests\Tui\DialogEffectsShould.HaveAFlowForEveryDialogEffect`: a theory over every non-abstract `IDialogEffect` implementer in the `Core` assembly asserting `DialogEffects.Handles(type)`, plus `NotClaimABackgroundEffect` asserting `Handles(typeof(StopSession))` is false; confirm it fails to compile because `Handles` does not exist
-- [ ] 3.2 `Tui\DialogEffects.cs`: add the static `FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>` with one entry per existing `case`, `public static bool Handles(Type effectType)`, and rewrite `Show` as a lookup with the `NoDialogFor` fallback; verify both facts pass and `dotnet test -c Debug --no-build` at the solution is green
+- [x] 3.1 `test\Source191.Vantage.Core.Tests\Tui\DialogEffectsShould.HaveAFlowForEveryDialogEffect`: a theory over every non-abstract `IDialogEffect` implementer in the `Core` assembly asserting `DialogEffects.Handles(type)`, plus `NotClaimABackgroundEffect` asserting `Handles(typeof(StopSession))` is false; confirm it fails to compile because `Handles` does not exist
+- [x] 3.2 `Tui\DialogEffects.cs`: add the static `FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>` with one entry per existing `case`, `public static bool Handles(Type effectType)`, and rewrite `Show` as a lookup with the `NoDialogFor` fallback; verify both facts pass and `dotnet test -c Debug --no-build` at the solution is green
 - [ ] 3.3 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`; verify exit 0, then a manual pass over each dialog key on both views (`?`, `n`, `r`, `d`, `C`, `R` on sessions; `s`, `d`, `D` on worktrees) confirming each opens the same dialog as before; verify no footer text changed
 
 ## 4. DisplayState observation
