@@ -216,7 +216,7 @@ internal static class LaunchWizardDialog
                 mode.Value == 1 ? LaunchMode.NewWorktree : LaunchMode.CurrentBranch,
                 baseRef.Value == 1 ? WorktreeBase.Head : WorktreeBase.RemoteDefault,
                 prompt.Text);
-            LaunchPlanResult planned = LaunchWorkflow.Plan(request);
+            LaunchPlanResult planned = workflow.Plan(request);
             if (planned.Plan is null)
             {
                 return Fail(planned.Problem ?? "That cannot be launched.", name);

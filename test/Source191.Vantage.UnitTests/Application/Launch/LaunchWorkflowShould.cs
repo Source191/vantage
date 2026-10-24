@@ -39,7 +39,7 @@ public sealed class LaunchWorkflowShould : IDisposable
             LaunchService service = new(new ClaudeCli(processes, Claude), git, store, new WorktreeIncludeCopier(git), clock);
             TabOpener tabs = new(store, new FakeProcessRegistry(), terminal, clock, Claude, Vantage);
 
-            return new LaunchWorkflow(new RepositoryCatalogue([]), store, service, tabs, terminal, Claude);
+            return new LaunchWorkflow(new RepositoryCatalogue(new FakeFolders(), []), new FakeFolders(), store, service, tabs, terminal, Claude);
         }
     }
 
