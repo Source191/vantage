@@ -12,6 +12,12 @@ public sealed class TerminalException(string message) : Exception(message);
 public interface IWindowsTerminal
 {
     Task OpenTabAsync(TabLaunch launch, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Selects the tab titled <paramref name="title"/> in the window of the given Windows Terminal process, or in any
+    /// Windows Terminal window when the process is unknown. False when no such tab item could be found.
+    /// </summary>
+    Task<bool> FocusTabAsync(int? terminalProcessId, string title, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -64,5 +70,10 @@ public sealed class WindowsTerminal(IProcessRunner processes) : IWindowsTerminal
         {
             throw new TerminalException($"Windows Terminal could not open the tab: {result.StandardError.Trim()}");
         }
+    }
+
+    public Task<bool> FocusTabAsync(int? terminalProcessId, string title, CancellationToken cancellationToken)
+    {
+        return Task.Run(() => UiAutomationTabs.Select(terminalProcessId, title), cancellationToken);
     }
 }

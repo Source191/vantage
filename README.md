@@ -100,7 +100,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | --- | --- |
 | Up, Down | Move the selection bar |
 | Enter | Attach to the selected background session in this tab; Ctrl+Z returns |
-| o | Open the session in its own coloured Windows Terminal tab; refused while one is already open for it |
+| o | Open the session in its own coloured Windows Terminal tab; when one is already open for it, switch to that tab |
 | n | New session wizard |
 | r | Rename the session from Vantage: type the new name, Enter. The session restarts under the new name with the same id and conversation, so it is refused while the session is working or before its first message |
 | x | Stop the session (it stays listed and can be resumed) |
@@ -138,7 +138,7 @@ Enter never starts a session, so there is nothing to undo if you press it too so
 
 **Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. If the session has never had a message, Claude shows its agent list instead of a conversation: Space on the session sends it a prompt, Esc returns to Vantage. Vantage prints this reminder before every attach.
 
-**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows `open`. Vantage refuses a second tab for the same session while the first is open; close that tab (or detach in it) and the column clears within a few seconds.
+**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows `open`. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); close the tab (or detach in it) and the column clears within a few seconds.
 
 **The native agent view (a):** Claude Code's own `claude agents` screen, for anything Vantage does not do, such as pinning. Esc returns.
 
@@ -210,7 +210,7 @@ There are no toasts; the header's Need input count and the amber rows are the ov
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, with a description so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
-**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows `open`; `o` again is refused until that tab is closed.
+**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows `open`; `o` again switches to that tab until it is closed.
 
 **Start Claude from a repository folder you are already in.** `vh fix-tests -p "..."` instead of `claude`. It shows up in Vantage with a job id, so `o`, `x` and `d` work on it later.
 
@@ -234,7 +234,7 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 | `sessions.json` | Session id to description |
 | `recent.json` | Recently used repositories, shown first in the wizard |
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
-| `tabs\` | One file per tab Vantage opened, so a second `o` can be refused |
+| `tabs\` | One file per tab Vantage opened, so a second `o` switches to the tab instead of opening another |
 
 A missing or corrupt file is treated as empty. Sessions themselves belong to Claude Code (`claude agents --json`), never to Vantage.
 
@@ -281,7 +281,7 @@ dotnet run --project tools\HeadlessTerminal -- check               # the hand-of
 
 The runner drives Vantage inside a pseudo-console, which is the same plumbing Windows Terminal uses for a tab, so rendering, keys and the attach hand-off are covered. Anything that goes out through `wt.exe` is not: a runner has no desktop for a tab to appear on. Before bumping `Version`, run these in a real Windows Terminal:
 
-1. `o` on a session opens a coloured tab titled with the session name, and `o` again is refused while it is open.
+1. `o` on a session opens a coloured tab titled with the session name, and `o` again switches to that tab while it is open.
 2. `n`, pick `New sibling worktree`, F6: a new tab opens attached to the new session, and the WT column marks the row.
 3. `d` on that session ends claude and the tab closes by itself.
 4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.

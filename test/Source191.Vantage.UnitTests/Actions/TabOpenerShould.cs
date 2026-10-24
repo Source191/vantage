@@ -82,12 +82,38 @@ public sealed class TabOpenerShould : IDisposable
     }
 
     [Fact]
-    public async Task RefuseWhenALiveTabAlreadyShowsTheSession()
+    public async Task SwitchToTheLiveTabInsteadOfOpeningAnother()
     {
+        await Store.WriteTabAsync(TabRegistration.Pending("sess-1", TabPalette.Default[0], Noon).ClaimedBy(4242, Noon));
+        registry.Running(4242, Noon).InTree(4242, "pwsh", 777).InTree(777, "WindowsTerminal", 1);
+
         string footer = await Opener.OpenAsync(Row(hasLiveTab: true), CancellationToken.None);
 
         terminal.Opened.ShouldBeEmpty();
-        footer.ShouldContain("already open");
+        terminal.Focused.Single().ShouldBe((777, "Refund retry policy"));
+        footer.ShouldBe("Switched to the tab of Refund retry policy.");
+    }
+
+    [Fact]
+    public async Task SearchEveryWindowWhenTheTabShellHasNoKnownParent()
+    {
+        await Store.WriteTabAsync(TabRegistration.Pending("sess-1", TabPalette.Default[0], Noon));
+
+        await Opener.OpenAsync(Row(hasLiveTab: true), CancellationToken.None);
+
+        terminal.Focused.Single().ShouldBe(((int?)null, "Refund retry policy"));
+    }
+
+    [Fact]
+    public async Task SayWhenTheLiveTabCannotBeFound()
+    {
+        terminal.FocusFinds = false;
+        await Store.WriteTabAsync(TabRegistration.Pending("sess-1", TabPalette.Default[0], Noon));
+
+        string footer = await Opener.OpenAsync(Row(hasLiveTab: true), CancellationToken.None);
+
+        terminal.Opened.ShouldBeEmpty();
+        footer.ShouldBe("Refund retry policy is open in another tab, but Vantage could not find it. Is it in another window?");
     }
 
     [Fact]

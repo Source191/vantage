@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.13" />
     <PackageReference Include="Terminal.Gui" Version="2.5.0" />
   </ItemGroup>

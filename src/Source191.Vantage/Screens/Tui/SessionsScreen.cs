@@ -146,7 +146,7 @@ public sealed class SessionsScreen(
     }
 
     private const string HelpText = """
-        Enter  attach (Ctrl+Z/Esc back)    o  open in its own tab
+        Enter  attach (Ctrl+Z/Esc back)    o  open in its own tab, or switch to it when it is open
         n      new session                 r  rename (restarts the session under the new name)
         x      stop                        d  delete (and its worktree, safely); closes the tab of a terminal session with no messages
         C      close every tab whose claude has never been sent a message
