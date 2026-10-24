@@ -12,8 +12,8 @@
 
 ## 2. Enum switches in the Tui layer
 
-- [ ] 2.1 `Tui\Palette.cs` `ForState`: replace `_ => Grey` with `DisplayStateKind.Stopped => Grey` and `DisplayStateKind.Unknown => Grey`; verify the build is clean (the colours are asserted by the session-listing spec's manual check, not a unit test; no value changes)
-- [ ] 2.2 `Tui\WorktreesScreenDefinition.cs` `RowColour`: replace `_ => Palette.Red` with `WorktreeHealthKind.Orphan => Palette.Red` and `WorktreeHealthKind.Broken => Palette.Red`; verify the build is clean
+- [x] 2.1 `Tui\Palette.cs` `ForState`: replace `_ => Grey` with `DisplayStateKind.Stopped => Grey` and `DisplayStateKind.Unknown => Grey`; verify the build is clean (the colours are asserted by the session-listing spec's manual check, not a unit test; no value changes)
+- [x] 2.2 `Tui\WorktreesScreenDefinition.cs` `RowColour`: replace `_ => Palette.Red` with `WorktreeHealthKind.Orphan => Palette.Red` and `WorktreeHealthKind.Broken => Palette.Red`; verify the build is clean
 
 ## 3. Dialog completeness fact
 
