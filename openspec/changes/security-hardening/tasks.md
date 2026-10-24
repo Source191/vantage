@@ -18,7 +18,7 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` all pass, and `openspec validate security-hardening` is clean
+- [x] 4.1 Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` all pass, and `openspec validate security-hardening` is clean
 - [ ] 4.2 Verify the pull request's `check` run is green, which proves `check.yml` still runs under the read-only token and without persisted credentials
 
 ## Workflow follow-up
