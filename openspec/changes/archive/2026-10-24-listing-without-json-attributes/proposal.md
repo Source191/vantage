@@ -8,7 +8,7 @@
 
 - `ClaudeAgentsListing.Row` loses its ten `JsonPropertyName` attributes and becomes a plain positional record.
 - `ClaudeAgentsListing.Options` is built from `JsonSerializerDefaults.Web` (camelCase naming, case-insensitive reads), the same defaults `JsonFileStore` uses, so the two serialisers in the solution are configured alike.
-- `Version` rises from 0.4.4 to 0.4.5: the change touches `src\`, and every such pull request is a release.
+- `Version` rises from 0.4.5 to 0.4.6: the change touches `src\`, and every such pull request is a release.
 
 Out of scope: how the listing is mapped to sessions, the state file formats, source-generated serialisation, multiple Claude accounts.
 
