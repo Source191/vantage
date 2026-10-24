@@ -260,13 +260,14 @@ To scan more than one roots folder, edit `config.json`:
 
 ```powershell
 dotnet build -c Debug                                              # warnings are errors
-dotnet test test\Source191.Vantage.UnitTests -c Debug --no-build   # xunit.v3 on Microsoft.Testing.Platform
+dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build  # the fast in-memory suite, about two seconds
+dotnet test -c Debug --no-build                                    # every suite, including real git and processes
 dotnet format --verify-no-changes
 dotnet run --project tools\HeadlessTerminal -- check               # the hand-off check, from tools\HeadlessTerminal
 ```
 
-- `src\Source191.Vantage`: `Domain` (rules), `Ports` (the boundary interfaces), `Application` (`Views` reducers, `Actions` and `Launch` use cases, the screen loop and command line), `Tui` (Terminal.Gui rendering and dialogs), `Adapters` (git, Claude CLI, Windows Terminal, processes, files, state). An architecture test keeps the dependencies pointing one way; `Program.cs` is the only composition root.
-- Tests are sociable: real collaborators, fakes only at the boundaries (`test\...\TestDoubles`). Every key in the tables above is dispatched by a reducer test. The domain rules are mutation tested with Stryker.
+- Four projects under `src\`: `Source191.Vantage.Core` (`Domain` rules, `Ports` boundary interfaces, `Application` with the `Views` reducers, `Actions` and `Launch` use cases, the screen loop and command line), `Source191.Vantage.Infrastructure` (git, Claude CLI, Windows Terminal, processes, files, state), `Source191.Vantage.Tui` (Terminal.Gui rendering and dialogs) and `Source191.Vantage` (`Program.cs`, the only composition root, packed as the tool with the other three inside). Project references and an architecture test keep the dependencies pointing one way.
+- Tests are sociable: real collaborators, fakes only at the boundaries (`test\Source191.Vantage.TestDoubles`). `Core.Tests` is the fast in-memory suite; `Infrastructure.Tests` uses real git, processes and files. Every key in the tables above is dispatched by a reducer test. The domain rules are mutation tested with Stryker.
 - `CLAUDE.md` records the verified Claude Code CLI and Terminal.Gui facts Vantage depends on, and the rules for working on it; `openspec\` holds the specifications and changes (below).
 - `tools\HeadlessTerminal` drives the built exe inside a pseudo-console with scripted keys, replays the screen as text and runs the hand-off check; it is how the hand-off bug was reproduced and how the screen in this README was rendered.
 - A Release build of `vantage.exe` cannot be rebuilt while it is running; use Debug for the test loop and stop the running instance before `dotnet pack` (`tools\install-local.ps1` does both).

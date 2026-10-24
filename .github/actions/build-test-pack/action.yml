@@ -1,6 +1,6 @@
 name: Build, test and pack
 description: >-
-  Builds the solution in Release (warnings are errors), runs the unit tests against that build,
+  Builds the solution in Release (warnings are errors), runs every test project against that build,
   checks formatting, and packs the dotnet tool. Shared by check.yml and release.yml so the release
   never ships a build that the check did not see.
 
@@ -34,7 +34,7 @@ runs:
 
     - name: Test
       shell: pwsh
-      run: dotnet test test\Source191.Vantage.UnitTests -c Release --no-build
+      run: dotnet test -c Release --no-build
 
     - name: Format
       shell: pwsh

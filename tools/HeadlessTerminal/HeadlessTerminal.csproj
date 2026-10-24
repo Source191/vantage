@@ -13,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Source191.Vantage.UnitTests" />
+    <InternalsVisibleTo Include="Source191.Vantage.HeadlessTerminal.Tests" />
   </ItemGroup>
 
 </Project>
