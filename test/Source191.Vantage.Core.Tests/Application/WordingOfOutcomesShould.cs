@@ -299,7 +299,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void ExplainTheTrustTab()
     {
-        Wording.Describe(new StartSessionOutcome.NotTrusted(@"C:\repos\Northwind.Orders"))
+        Wording.Describe(new StartSessionOutcome.NotTrusted(new FolderPath(@"C:\repos\Northwind.Orders")))
             .ShouldBe("Northwind.Orders is not a trusted workspace yet. A Claude tab was opened there: accept the trust prompt, exit, then retry.");
     }
 
@@ -340,6 +340,7 @@ public sealed class WordingOfOutcomesShould
             _ when type == typeof(int) => 2,
             _ when type == typeof(bool) => true,
             _ when type == typeof(BranchToConfirm) => Branch,
+            _ when type == typeof(FolderPath) => new FolderPath(@"C:\repos\Northwind.Orders"),
             _ when type == typeof(OpenTabOutcome) => new OpenTabOutcome.SwitchedTo("fix-123"),
             _ when type == typeof(IReadOnlyList<string>) => new List<string> { "fix-123" },
             _ when type == typeof(IReadOnlyList<SkippedSession>) => new List<SkippedSession>(),

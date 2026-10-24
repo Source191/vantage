@@ -22,9 +22,9 @@ public sealed record WorktreeRow(
     bool OwnerExists,
     bool FolderExists)
 {
-    public string RepositoryName => new RepositoryPath(Repository).Name;
+    public string RepositoryName => new FolderPath(Repository).Name;
 
-    public string FolderName => new RepositoryPath(Path).Name;
+    public string FolderName => new FolderPath(Path).Name;
 
     /// <summary>The removal facts as far as the scan knows them; the branch flags are settled by the action.</summary>
     public WorktreeRemovalFacts Facts(bool branchCreatedByVantage = false, bool branchMerged = false)

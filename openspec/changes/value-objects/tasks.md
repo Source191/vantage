@@ -3,7 +3,7 @@
 ## 1. FolderPath
 
 - [x] 1.1 `FolderPathShould.EqualIgnoringCaseAndTrailingSeparators`, `ConvertForwardSlashes`, `ExposeNameAndParent`, `KnowWhenItIsUnderAnother`, `RejectRelativePaths`; implement `FolderPath` in `Domain`
-- [ ] 1.2 Replace `RepositoryPath` with `FolderPath` everywhere and delete it; verify build and tests pass
+- [x] 1.2 Replace `RepositoryPath` with `FolderPath` everywhere and delete it; verify build and tests pass
 - [ ] 1.3 `WorktreeRow.Path` and `Repository`, `CreatedWorktree.Path` and `Repository`, `SiblingWorktree.Path`, `RepositoryChoice.Path`, `LaunchPlan.Directory`, `TabLaunch.StartingDirectory`, `Session.WorkingDirectory` become `FolderPath`; delete `StateStore.SamePath`, `RepositoryCatalogue.SamePath`, `WorktreeInventory.Normalise` and the inline comparisons; verify build and tests pass and `grep OrdinalIgnoreCase` finds no path comparison outside `FolderPath`
 - [ ] 1.4 `JsonFileStoreShould.ReadFilesWrittenByTheCurrentVersion`: fixture JSON captured before this change reads back; add the `FolderPath` converter
 

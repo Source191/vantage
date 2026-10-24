@@ -68,14 +68,14 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
         string? root = await git.RepositoryRootAsync(directory, cancellationToken);
         if (root is null)
         {
-            return new Location(new RepositoryPath(directory).Name, Branch: null, IsWorktree: false);
+            return new Location(new FolderPath(directory).Name, Branch: null, IsWorktree: false);
         }
 
         string? main = await git.MainCheckoutOfAsync(directory, cancellationToken);
         string? branch = await git.CurrentBranchAsync(directory, cancellationToken);
         bool isWorktree = main is not null && !string.Equals(main, root, StringComparison.OrdinalIgnoreCase);
 
-        return new Location(new RepositoryPath(main ?? root).Name, branch, isWorktree);
+        return new Location(new FolderPath(main ?? root).Name, branch, isWorktree);
     }
 
     private sealed record Location(string Repository, string? Branch, bool IsWorktree);

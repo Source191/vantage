@@ -1,7 +1,6 @@
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
-using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application;
 
@@ -154,7 +153,7 @@ public static partial class Wording
             StartSessionOutcome.StartedAndOpened opened => $"{Started(opened.Name, opened.JobId)} {Describe(opened.Tab)}",
             StartSessionOutcome.NotListedYet unlisted => $"{Started(unlisted.Name, unlisted.JobId)} It is not listed yet: press o on it to open a tab.",
             StartSessionOutcome.NotTrusted untrusted =>
-                $"{new RepositoryPath(untrusted.Directory).Name} is not a trusted workspace yet. A Claude tab was opened there: accept the trust prompt, exit, then retry.",
+                $"{untrusted.Directory.Name} is not a trusted workspace yet. A Claude tab was opened there: accept the trust prompt, exit, then retry.",
             StartSessionOutcome.Failed failed => $"Could not start: {failed.Message}",
             _ => outcome.ToString(),
         };

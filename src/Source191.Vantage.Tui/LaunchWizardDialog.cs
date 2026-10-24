@@ -30,7 +30,7 @@ internal static class LaunchWizardDialog
     public static WizardResult? Show(IApplication app, LaunchWorkflow workflow, WorktreeBase defaultBase, string? fixedDirectory = null)
     {
         WizardResult? result = null;
-        RepositoryChoice? fixedChoice = fixedDirectory is null ? null : new RepositoryChoice(new RepositoryPath(fixedDirectory).Name, fixedDirectory, IsRepository: true);
+        RepositoryChoice? fixedChoice = fixedDirectory is null ? null : new RepositoryChoice(new FolderPath(fixedDirectory).Name, fixedDirectory, IsRepository: true);
         using Dialog dialog = new() { Title = fixedChoice is null ? "New session" : $"New session in {fixedChoice.Name}", Width = Dim.Percent(90), Height = Dim.Percent(90) };
         dialog.SetScheme(Palette.Focusable(Palette.White));
 

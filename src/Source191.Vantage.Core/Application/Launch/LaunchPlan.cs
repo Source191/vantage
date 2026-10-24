@@ -62,7 +62,7 @@ public static class LaunchPlanBuilder
             return new LaunchPlanResult(Plan: null, "A worktree needs a name with some letters or digits in it.");
         }
 
-        SiblingWorktree worktree = SiblingWorktree.For(new RepositoryPath(request.Repository.Path), name.Slug);
+        SiblingWorktree worktree = SiblingWorktree.For(new FolderPath(request.Repository.Path), name.Slug);
         bool reuse = folderExists(worktree.Path);
 
         return Ok(new LaunchPlan(worktree.Path, name, description, worktree, reuse, request.Base, prompt, request.Repository));

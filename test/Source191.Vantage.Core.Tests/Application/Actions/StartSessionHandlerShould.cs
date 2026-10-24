@@ -84,7 +84,7 @@ public sealed class StartSessionHandlerShould
 
         Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe(new StartSessionOutcome.NotTrusted(Repository));
+        footer.ShouldBe(new StartSessionOutcome.NotTrusted(new FolderPath(Repository)));
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Trust Northwind.Orders");
         tab.StartingDirectory.ShouldBe(Repository);

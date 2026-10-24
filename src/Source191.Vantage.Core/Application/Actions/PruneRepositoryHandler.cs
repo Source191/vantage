@@ -12,7 +12,7 @@ public sealed class PruneRepositoryHandler(IGit git) : IEffectHandler<PruneRepos
     {
         int pruned = await git.PruneWorktreesAsync(effect.Repository, cancellationToken);
 
-        return new PruneRepositoryOutcome(pruned, new RepositoryPath(effect.Repository).Name);
+        return new PruneRepositoryOutcome(pruned, new FolderPath(effect.Repository).Name);
     }
 }
 

@@ -1,18 +1,14 @@
-using IOPath = System.IO.Path;
-
 namespace Source191.Vantage.Domain;
 
 public sealed record SiblingWorktree(string Path, string Branch)
 {
-    public static SiblingWorktree For(RepositoryPath repository, WorktreeSlug slug)
+    public static SiblingWorktree For(FolderPath repository, WorktreeSlug slug)
     {
-        if (repository.Parent.Length == 0)
+        if (repository.Parent is not FolderPath parent)
         {
             throw new ArgumentException($"{repository.Value} has no parent folder for a sibling worktree to sit in.", nameof(repository));
         }
 
-        string path = IOPath.Combine(repository.Parent, $"{repository.Name}-{slug.Value}");
-
-        return new SiblingWorktree(path, slug.Value);
+        return new SiblingWorktree(parent.Combine($"{repository.Name}-{slug.Value}").Value, slug.Value);
     }
 }
