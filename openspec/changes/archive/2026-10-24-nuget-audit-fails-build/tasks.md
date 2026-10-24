@@ -7,4 +7,4 @@
 
 ## 2. Archive
 
-- [ ] 2.1 Archive the change and run `openspec validate`
+- [x] 2.1 Archive the change and run `openspec validate`
