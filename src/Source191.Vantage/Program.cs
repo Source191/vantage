@@ -72,23 +72,15 @@ if (command is StartHere here)
 
 SessionRowEnricher enricher = new(git, store, store, processRegistry, TimeProvider.System, transcripts);
 StateTransitionNotifier notifier = new(Console.Out);
-OpenTabHandler tabs = new(store, processRegistry, terminal, TimeProvider.System, claudeExecutable, vantageExecutable);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
-LaunchWorkflow launches = new(new RepositoryCatalogue(folders, config.RepositoryRoots), folders, store, launchService, tabs, terminal, claudeExecutable);
-EffectDispatcher dispatcher = new EffectDispatcher()
-    .Register(tabs)
-    .Register(new StopSessionHandler(claude))
-    .Register(new AdoptSessionHandler(claude, processRegistry, transcripts))
-    .Register(new RenameSessionHandler(claude, transcripts))
-    .Register(new CloseEmptyTerminalsHandler(processRegistry, transcripts))
-    .Register(new ResumeSessionsHandler(claude, transcripts))
-    .Register(new DeleteBranchHandler(git));
-DeleteSessionHandler deleteSession = new(claude, git, store);
-WorktreeActions worktreeActions = new(git, store, folders, terminal);
+LaunchWorkflow launches = new(new RepositoryCatalogue(folders, config.RepositoryRoots), folders, store);
+EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System);
+EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, claudeExecutable, vantageExecutable);
+DialogEffects dialogs = new(launches, config.DefaultBase, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
 WorktreeInventory inventory = new(git, folders, config.RepositoryRoots);
 string context = string.Join('\n', Environment.MachineName, claudeExecutable, string.Join("; ", config.RepositoryRoots));
-SessionsScreen sessionsScreen = new(LoadAsync, notifier, launches, dispatcher, deleteSession, config.DefaultBase, TimeProvider.System, context);
-WorktreesScreen worktreesScreen = new(ScanAsync, worktreeActions, launches, config.DefaultBase, TimeProvider.System, context);
+SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context);
+WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context);
 ScreenLoop loop = new(sessionsScreen, worktreesScreen, ownTab, console, terminalEffects, log);
 
 return await loop.RunAsync(Environment.ProcessId, CancellationToken.None);

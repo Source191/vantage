@@ -1,6 +1,9 @@
+using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Claude;
+using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
+using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
@@ -18,7 +21,7 @@ public sealed class EffectDispatcherShould
         EffectDispatcher dispatcher = new EffectDispatcher().Register(new StopSessionHandler(new ClaudeCli(processes, Claude)));
         StopSession stop = new(Background(Repository, isWorktree: false));
 
-        dispatcher.Handles(stop).ShouldBeTrue();
+        dispatcher.Handles(typeof(StopSession)).ShouldBeTrue();
         (await dispatcher.DispatchAsync(stop, CancellationToken.None)).ShouldBe("Stopped fix-123.");
         processes.CapturedRequests.Single().Arguments.ShouldBe(["stop", "81cdb0f9"]);
     }
@@ -29,8 +32,30 @@ public sealed class EffectDispatcherShould
         EffectDispatcher dispatcher = new();
         Quit quit = new();
 
-        dispatcher.Handles(quit).ShouldBeFalse();
+        dispatcher.Handles(typeof(Quit)).ShouldBeFalse();
         InvalidOperationException refusal = await Should.ThrowAsync<InvalidOperationException>(() => dispatcher.DispatchAsync(quit, CancellationToken.None));
         refusal.Message.ShouldBe("No handler is registered for Quit.");
+    }
+
+    [Fact]
+    public void HaveAHandlerForEveryEffectTheReducersCanProduce()
+    {
+        InMemoryState store = new();
+        GitCli git = new(processes);
+        ClaudeCli claude = new(processes, Claude);
+        FakeTimeProvider clock = new(Noon);
+        LaunchService launches = new(claude, git, store, store, store, new WorktreeIncludeCopier(git), clock);
+        EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock);
+        EffectDispatcher dispatcher = Composition.Handlers(ports, launches, Claude, @"C:\Users\me\.dotnet\tools\vantage.exe");
+        // A dialog effect that is dispatched itself once its dialog has been answered.
+        Type[] dispatchedAfterTheirDialog = [typeof(CloseEmptyTerminals)];
+
+        IEnumerable<Type> background = typeof(ViewEffect).Assembly.GetTypes()
+            .Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(ViewEffect)))
+            .Where(type => !type.IsAssignableTo(typeof(ILeavesScreen)) && !type.IsAssignableTo(typeof(IDialogEffect)));
+
+        background.Concat(dispatchedAfterTheirDialog)
+            .Where(type => !dispatcher.Handles(type))
+            .ShouldBeEmpty("every background effect needs a registration in Composition.Handlers");
     }
 }

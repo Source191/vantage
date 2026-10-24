@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
@@ -11,14 +12,23 @@ namespace Source191.Vantage.Tui;
 internal sealed record ScreenRun<TState>(TState State, ViewEffect? Exit);
 
 /// <summary>
-/// The shared table screen: one Terminal.Gui application per run, a refresh timer, keys to the reducer, effects that
-/// leave the screen returned to the caller, background work with a busy spinner, a waiting indicator until the first
-/// load, and the header, table, crumb and footer layout. A definition supplies everything specific to a view.
+/// The shared table screen: one Terminal.Gui application per run, a refresh timer, keys to the reducer, effects routed
+/// by what they need (leaving the screen returns them to the caller, a dialog goes to <see cref="DialogEffects"/>, the
+/// rest to their handler through the <see cref="EffectDispatcher"/> with a busy spinner), a waiting indicator until the
+/// first load, and the header, table, crumb and footer layout. A definition supplies everything specific to a view.
 /// </summary>
-internal sealed class TableScreen<TState, TRow>(IScreenDefinition<TState, TRow> definition, Func<CancellationToken, Task<ViewInput>> load, TimeProvider clock, string context)
+internal sealed class TableScreen<TState, TRow>(
+    IScreenDefinition<TState, TRow> definition,
+    DialogEffects dialogs,
+    EffectDispatcher dispatcher,
+    Func<CancellationToken, Task<ViewInput>> load,
+    TimeProvider clock,
+    string context)
     where TState : IListViewState<TRow>
 {
     private readonly IScreenDefinition<TState, TRow> definition = definition;
+    private readonly DialogEffects dialogs = dialogs;
+    private readonly EffectDispatcher dispatcher = dispatcher;
     private readonly Func<CancellationToken, Task<ViewInput>> load = load;
     private readonly TimeProvider clock = clock;
     private readonly string context = context;
@@ -54,11 +64,13 @@ internal sealed class TableScreen<TState, TRow>(IScreenDefinition<TState, TRow> 
     }
 
     /// <summary>One run's mutable state: what the reducer last produced and the effect that ended the run.</summary>
-    private sealed class Running(TableScreen<TState, TRow> screen, IApplication app, Live live, TState initial) : IEffectContext<TState>
+    private sealed class Running(TableScreen<TState, TRow> screen, IApplication app, Live live, TState initial) : IEffectContext
     {
         public IApplication App => app;
 
-        public TState State { get; set; } = initial;
+        public string HelpText => screen.definition.HelpText;
+
+        public TState State { get; private set; } = initial;
 
         public ViewEffect? Exit { get; private set; }
 
@@ -102,9 +114,19 @@ internal sealed class TableScreen<TState, TRow>(IScreenDefinition<TState, TRow> 
             live.Redraw(State, screen.clock.GetUtcNow());
         }
 
-        public void RunInBackground(string working, Func<CancellationToken, Task<string>> action)
+        public void ShowFooter(string footer)
         {
-            RunInBackground(working, action, footer => footer);
+            State = screen.definition.WithFooter(State, footer);
+        }
+
+        public void Dispatch(ViewEffect effect)
+        {
+            Dispatch(effect, footer => footer);
+        }
+
+        public void Dispatch(ViewEffect effect, Func<string, string> onUiThread)
+        {
+            RunInBackground(WorkingText.For(effect), token => screen.dispatcher.DispatchAsync(effect, token), onUiThread);
         }
 
         public void RunInBackground<T>(string working, Func<CancellationToken, Task<T>> action, Func<T, string> onUiThread)
@@ -142,20 +164,19 @@ internal sealed class TableScreen<TState, TRow>(IScreenDefinition<TState, TRow> 
             State = state;
             foreach (ViewEffect effect in effects)
             {
-                if (screen.definition.LeavesScreen(effect))
+                switch (effect)
                 {
-                    Exit = effect;
-                    app.RequestStop();
-                    return;
+                    case ILeavesScreen:
+                        Exit = effect;
+                        app.RequestStop();
+                        return;
+                    case IDialogEffect:
+                        screen.dialogs.Show(this, effect);
+                        break;
+                    default:
+                        Dispatch(effect);
+                        break;
                 }
-
-                if (effect is ShowHelp)
-                {
-                    Confirm.Query(app, "Keys", screen.definition.HelpText, "Close");
-                    continue;
-                }
-
-                screen.definition.Handle(this, effect);
             }
 
             Redraw();

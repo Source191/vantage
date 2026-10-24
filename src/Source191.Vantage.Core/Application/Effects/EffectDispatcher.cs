@@ -18,9 +18,10 @@ public sealed class EffectDispatcher
         return this;
     }
 
-    public bool Handles(ViewEffect effect)
+    /// <summary>Whether an effect of this type has a handler; the registration completeness test asks this.</summary>
+    public bool Handles(Type effectType)
     {
-        return handlers.ContainsKey(effect.GetType());
+        return handlers.ContainsKey(effectType);
     }
 
     public Task<string> DispatchAsync(ViewEffect effect, CancellationToken cancellationToken)

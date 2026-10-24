@@ -2,7 +2,7 @@
 
 ## Why
 
-User-facing English is composed in three layers: the reducers write footers (`SessionsView.SessionAction`, `Rename`, `Adopt`), the use cases return sentences (`CloseEmptyTerminalsAsync`'s `Summary`, `ResumeAsync`, `RenameAsync`, `TabOpener.SwitchToTabAsync`, `LaunchWorkflow.StartedAsync`), and the screens compose more (`ConfirmAndDelete`, `RunWizard`). The same fact ("has no messages yet") is worded three ways, a wording change touches three files and three test classes, and the force-removal hint bug came from one layer parsing another's sentence. `DeleteOutcome`, `LaunchOutcome` and `WorktreeRemovalOutcome` already show the intended shape.
+User-facing English is composed in three layers: the reducers write footers (`SessionsView.SessionAction`, `Rename`, `Adopt`), the handlers return sentences (`CloseEmptyTerminalsHandler`'s summary, `ResumeSessionsHandler`, `RenameSessionHandler`, `OpenTabHandler`'s switch to a live tab, `StartSessionHandler`), and `Tui\DialogEffects` composes more (the branch question, "Branch kept."). The same fact ("has no messages yet") is worded three ways, a wording change touches three files and three test classes, and the force-removal hint bug came from one layer parsing another's sentence. `DeleteOutcome`, `LaunchOutcome` and `WorktreeRemovalOutcome` already show the intended shape.
 
 ## What Changes
 

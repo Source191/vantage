@@ -8,7 +8,7 @@ public sealed record WorktreeRowsLoaded(IReadOnlyList<WorktreeRow> Rows) : ViewI
 public sealed record ForceConfirmed(WorktreeRow Row, string ConfirmationText, string? Typed) : ViewInput;
 
 /// <summary>Remove through git, or delete a leftover folder; the action re-checks the facts it alone can settle.</summary>
-public sealed record RemoveWorktree(WorktreeRow Row, bool Forced) : ViewEffect;
+public sealed record RemoveWorktree(WorktreeRow Row, bool Forced) : ViewEffect, IDialogEffect;
 
 /// <summary>The TUI asks the user to type the confirmation text, then raises RemoveWorktree with Forced.</summary>
 public sealed record ConfirmForceRemove(WorktreeRow Row, string ConfirmationText) : ViewEffect, IDialogEffect;
