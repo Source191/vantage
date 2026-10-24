@@ -20,7 +20,7 @@ public sealed class OpenShellHandlerShould
 
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Northwind.Orders-fix-123");
-        tab.StartingDirectory.ShouldBe(Worktree);
+        tab.StartingDirectory.Value.ShouldBe(Worktree);
         message.ShouldBe(new OpenShellOutcome("Northwind.Orders-fix-123"));
     }
 }

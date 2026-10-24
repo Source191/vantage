@@ -28,6 +28,20 @@ public sealed class ClaudeAgentsListingShould
     }
 
     [Fact]
+    public void SkipARowWithoutAFullWorkingDirectoryRatherThanFailTheListing()
+    {
+        const string json = """
+            [
+              {"pid":51432,"kind":"interactive","startedAt":1792591583841,"sessionId":"82db48ec-63de-49db-9831-b8147075dc3a","name":"no-cwd","status":"idle"},
+              {"pid":51433,"cwd":"repos","kind":"interactive","startedAt":1792591583841,"sessionId":"92db48ec-63de-49db-9831-b8147075dc3a","name":"relative-cwd","status":"idle"},
+              {"pid":51434,"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"interactive","startedAt":1792591583841,"sessionId":"a2db48ec-63de-49db-9831-b8147075dc3a","name":"full-cwd","status":"idle"}
+            ]
+            """;
+
+        ClaudeAgentsListing.Parse(json).Select(session => session.Name).ShouldBe(["full-cwd"]);
+    }
+
+    [Fact]
     public void ParseAnInteractiveSessionWithoutAJobId()
     {
         Session interactive = Sessions.Single(session => session.Name == "repos-93");
@@ -35,7 +49,7 @@ public sealed class ClaudeAgentsListingShould
         interactive.Kind.ShouldBe(SessionKind.Interactive);
         interactive.JobId.ShouldBeNull();
         interactive.SessionId.ShouldBe("82db48ec-63de-49db-9831-b8147075dc3a");
-        interactive.WorkingDirectory.ShouldBe(@"C:\Users\me\source\repos");
+        interactive.WorkingDirectory.Value.ShouldBe(@"C:\Users\me\source\repos");
         interactive.State.ShouldBe(DisplayState.Idle);
     }
 

@@ -13,7 +13,7 @@ public sealed class SiblingWorktreeShould
 
         SiblingWorktree worktree = SiblingWorktree.For(repository, Slug);
 
-        worktree.Path.ShouldBe(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
+        worktree.Path.Value.ShouldBe(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
     }
 
     [Fact]
@@ -43,6 +43,6 @@ public sealed class SiblingWorktreeShould
 
         SiblingWorktree worktree = SiblingWorktree.For(repository, Slug);
 
-        worktree.Path.ShouldBe(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
+        worktree.Path.Value.ShouldBe(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
     }
 }

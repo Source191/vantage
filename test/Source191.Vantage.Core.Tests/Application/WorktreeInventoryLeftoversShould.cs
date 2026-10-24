@@ -28,7 +28,7 @@ public sealed class WorktreeInventoryLeftoversShould
 
         WorktreeRow row = (await Inventory.ScanAsync([], CancellationToken.None)).Single();
 
-        row.Path.ShouldBe(orphan);
+        row.Path.Value.ShouldBe(orphan);
         row.Health.Kind.ShouldBe(WorktreeHealthKind.Orphan);
         row.LeftoverFileCount.ShouldBe(2);
         row.OwnerExists.ShouldBeTrue();
@@ -55,7 +55,7 @@ public sealed class WorktreeInventoryLeftoversShould
 
         row.FolderName.ShouldBe("Northwind.Orders.worktrees");
         row.Health.Kind.ShouldBe(WorktreeHealthKind.Empty);
-        row.Repository.ShouldBe(Root);
+        row.Repository.Value.ShouldBe(Root);
     }
 
     [Fact]
@@ -66,9 +66,9 @@ public sealed class WorktreeInventoryLeftoversShould
 
         WorktreeRow row = (await Inventory.ScanAsync([], CancellationToken.None)).Single();
 
-        row.Path.ShouldBe(sibling);
+        row.Path.Value.ShouldBe(sibling);
         row.Health.Kind.ShouldBe(WorktreeHealthKind.Broken);
-        row.Repository.ShouldBe(Repository);
+        row.Repository.Value.ShouldBe(Repository);
         row.OwnerExists.ShouldBeTrue();
         row.LeftoverFileCount.ShouldBe(1);
     }

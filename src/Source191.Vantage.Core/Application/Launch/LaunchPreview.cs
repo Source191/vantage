@@ -26,8 +26,8 @@ public static class LaunchPreview
             return $"The name becomes the worktree folder {repository.Name}-<name> and its branch.";
         }
 
-        SiblingWorktree worktree = SiblingWorktree.For(new FolderPath(repository.Path), slug);
+        SiblingWorktree worktree = SiblingWorktree.For(repository.Path, slug);
 
-        return $"Worktree {Path.GetFileName(worktree.Path)} beside the repository, on branch {worktree.Branch}.";
+        return $"Worktree {worktree.Path.Name} beside the repository, on branch {worktree.Branch}.";
     }
 }

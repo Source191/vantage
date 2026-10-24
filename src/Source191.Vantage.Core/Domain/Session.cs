@@ -10,7 +10,7 @@ public sealed record Session(
     string SessionId,
     string? JobId,
     string Name,
-    string WorkingDirectory,
+    FolderPath WorkingDirectory,
     SessionKind Kind,
     DateTimeOffset StartedAt,
     DisplayState State,

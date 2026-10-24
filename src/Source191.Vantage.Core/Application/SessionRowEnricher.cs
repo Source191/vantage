@@ -13,7 +13,7 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
     private static readonly TimeSpan CacheWindow = TimeSpan.FromSeconds(30);
 
     // Refreshes can overlap (the timer and the refresh after an action), so the cache must take concurrent writes.
-    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTimeOffset CachedAt, Location Location)> locations = new(StringComparer.OrdinalIgnoreCase);
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<FolderPath, (DateTimeOffset CachedAt, Location Location)> locations = new();
 
     public async Task<IReadOnlyList<SessionRow>> EnrichAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {
@@ -49,7 +49,7 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
         return [.. live.Select(registration => registration.SessionId)];
     }
 
-    private async Task<Location> LocateAsync(string directory, CancellationToken cancellationToken)
+    private async Task<Location> LocateAsync(FolderPath directory, CancellationToken cancellationToken)
     {
         DateTimeOffset now = clock.GetUtcNow();
         if (locations.TryGetValue(directory, out (DateTimeOffset CachedAt, Location Location) cached) && now - cached.CachedAt < CacheWindow)
@@ -63,19 +63,20 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
         return location;
     }
 
-    private async Task<Location> AskGitAsync(string directory, CancellationToken cancellationToken)
+    private async Task<Location> AskGitAsync(FolderPath directory, CancellationToken cancellationToken)
     {
-        string? root = await git.RepositoryRootAsync(directory, cancellationToken);
+        string? root = await git.RepositoryRootAsync(directory.Value, cancellationToken);
         if (root is null)
         {
-            return new Location(new FolderPath(directory).Name, Branch: null, IsWorktree: false);
+            return new Location(directory.Name, Branch: null, IsWorktree: false);
         }
 
-        string? main = await git.MainCheckoutOfAsync(directory, cancellationToken);
-        string? branch = await git.CurrentBranchAsync(directory, cancellationToken);
-        bool isWorktree = main is not null && !string.Equals(main, root, StringComparison.OrdinalIgnoreCase);
+        string? main = await git.MainCheckoutOfAsync(directory.Value, cancellationToken);
+        string? branch = await git.CurrentBranchAsync(directory.Value, cancellationToken);
+        FolderPath? mainCheckout = FolderPath.TryParse(main);
+        bool isWorktree = mainCheckout is not null && mainCheckout != FolderPath.TryParse(root);
 
-        return new Location(new FolderPath(main ?? root).Name, branch, isWorktree);
+        return new Location((mainCheckout ?? FolderPath.TryParse(root))?.Name ?? root, branch, isWorktree);
     }
 
     private sealed record Location(string Repository, string? Branch, bool IsWorktree);

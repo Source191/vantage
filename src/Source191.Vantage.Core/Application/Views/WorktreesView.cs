@@ -13,7 +13,7 @@ public sealed record RemoveWorktree(WorktreeRow Row, bool Forced) : ViewEffect, 
 /// <summary>The TUI asks the user to type the confirmation text, then raises RemoveWorktree with Forced.</summary>
 public sealed record ConfirmForceRemove(WorktreeRow Row, string ConfirmationText) : ViewEffect, IDialogEffect;
 
-public sealed record PruneRepository(string Repository) : ViewEffect;
+public sealed record PruneRepository(FolderPath Repository) : ViewEffect;
 
 public sealed record StartSessionIn(WorktreeRow Row) : ViewEffect, IDialogEffect;
 
@@ -40,10 +40,10 @@ public sealed record WorktreesViewState(
     public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: Footer.None);
 
     private static readonly ListPolicy<WorktreeRow> Policy = new(
-        KeyOf: row => row.Path,
+        KeyOf: row => row.Path.Key,
         FilterFields: row => [row.RepositoryName, row.FolderName, row.Branch, row.Health.Kind.ToString()],
-        Order: rows => rows.OrderBy(row => row.Repository, StringComparer.OrdinalIgnoreCase).ThenBy(row => row.FolderName, StringComparer.OrdinalIgnoreCase),
-        KeyComparison: StringComparison.OrdinalIgnoreCase);
+        Order: rows => rows.OrderBy(row => row.Repository.Key, StringComparer.Ordinal).ThenBy(row => row.FolderName, StringComparer.OrdinalIgnoreCase),
+        KeyComparison: StringComparison.Ordinal);
 
     /// <summary>The rows, selection, filter and loaded flag as the shared list component, built from this state's fields.</summary>
     public ListSelection<WorktreeRow> List => new(Policy, Rows, SelectedPath, Filter, FilterEditing, Loaded);

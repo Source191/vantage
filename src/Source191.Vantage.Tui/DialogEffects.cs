@@ -110,7 +110,7 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
         context.Reduce(new ForceConfirmed(confirm.Row, confirm.ConfirmationText, typed));
     }
 
-    private void StartSession(IEffectContext context, string? fixedDirectory)
+    private void StartSession(IEffectContext context, FolderPath? fixedDirectory)
     {
         WizardResult? wizard = LaunchWizardDialog.Show(context.App, launches, defaultBase, fixedDirectory);
         if (wizard is null)

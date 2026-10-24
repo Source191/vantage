@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Core.Tests.Application.Launch;
 
@@ -13,12 +14,12 @@ public sealed class HereCommandShould
 
         result.Problem.ShouldBeNull();
         result.Plan.ShouldNotBeNull();
-        result.Plan.Directory.ShouldBe(Directory);
+        result.Plan.Directory.Value.ShouldBe(Directory);
         result.Plan.Name.Text.ShouldBe("Northwind.Orders");
         result.Plan.Worktree.ShouldBeNull();
         result.Plan.Description.ShouldBeNull();
         result.Plan.OpeningPrompt.ShouldBeNull();
-        result.Plan.Repository.ShouldBe(new RepositoryChoice("Northwind.Orders", Directory, IsRepository: true));
+        result.Plan.Repository.ShouldBe(new RepositoryChoice("Northwind.Orders", new FolderPath(Directory), IsRepository: true));
     }
 
     [Fact]

@@ -23,11 +23,20 @@ public sealed record FolderPath
 
     public string Value { get; }
 
+    /// <summary>The same for every spelling of this folder: for keys and ordering that compare text ordinally.</summary>
+    public string Key => Value.ToUpperInvariant();
+
     /// <summary>The last segment, such as the repository's folder name.</summary>
     public string Name => IOPath.GetFileName(Value);
 
     /// <summary>The containing folder; null for a drive root.</summary>
     public FolderPath? Parent => IOPath.GetDirectoryName(Value) is string parent ? new FolderPath(parent) : null;
+
+    /// <summary>A path from outside Vantage (git output, the CLI's listing, a state file); null when it is not a full path.</summary>
+    public static FolderPath? TryParse(string? text)
+    {
+        return text is not null && IOPath.IsPathFullyQualified(text) ? new FolderPath(text) : null;
+    }
 
     public FolderPath Combine(string child)
     {

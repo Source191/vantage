@@ -28,7 +28,7 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
                 continue;
             }
 
-            ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory, SessionName.TryParse(session.Name), cancellationToken);
+            ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
             continued += result.Continued ? 1 : 0;
             if (!result.Continued)
             {

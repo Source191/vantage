@@ -12,7 +12,7 @@ public sealed class WindowsTerminalShould
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
         WindowsTerminal terminal = new(processes);
-        TabLaunch launch = new("Title", TabPalette.Default[0], @"C:\repos\Northwind.Orders", "Write-Host hi");
+        TabLaunch launch = new("Title", TabPalette.Default[0], new FolderPath(@"C:\repos\Northwind.Orders"), "Write-Host hi");
 
         await terminal.OpenTabAsync(launch, CancellationToken.None);
 
@@ -26,7 +26,7 @@ public sealed class WindowsTerminalShould
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(1, string.Empty, "bad args"));
         WindowsTerminal terminal = new(processes);
-        TabLaunch launch = new("Title", TabPalette.Default[0], @"C:\repos\Northwind.Orders", "Write-Host hi");
+        TabLaunch launch = new("Title", TabPalette.Default[0], new FolderPath(@"C:\repos\Northwind.Orders"), "Write-Host hi");
 
         TerminalException exception = await Should.ThrowAsync<TerminalException>(() => terminal.OpenTabAsync(launch, CancellationToken.None));
 

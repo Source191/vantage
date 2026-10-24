@@ -31,7 +31,7 @@ public sealed class RepositoryCatalogueShould
 
         RepositoryChoice last = choices[^1];
         last.IsRepository.ShouldBeFalse();
-        last.Path.ShouldBe(Root);
+        last.Path.Value.ShouldBe(Root);
         last.Name.ShouldContain("no repository");
     }
 

@@ -70,6 +70,24 @@ public sealed class FolderPathShould
     }
 
     [Fact]
+    public void GiveTheSameKeyToPathsThatAreTheSameFolder()
+    {
+        new FolderPath(@"c:\users\ME\source\repos\northwind.orders\").Key.ShouldBe(new FolderPath(Repository).Key);
+        new FolderPath(@"C:\Users\me\source\repos\Northwind.Billing").Key.ShouldNotBe(new FolderPath(Repository).Key);
+    }
+
+    [Theory]
+    [InlineData(Repository, Repository)]
+    [InlineData("C:/Users/me/source/repos/Northwind.Orders", Repository)]
+    [InlineData("", null)]
+    [InlineData(@"repos\Northwind.Orders", null)]
+    public void ParseTextFromOutsideWithoutThrowing(string text, string? expected)
+    {
+        FolderPath.TryParse(text)?.Value.ShouldBe(expected);
+        (FolderPath.TryParse(text) is null).ShouldBe(expected is null);
+    }
+
+    [Fact]
     public void ReadAsThePathItself()
     {
         $"{new FolderPath(Repository)}".ShouldBe(Repository);

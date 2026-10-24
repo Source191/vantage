@@ -33,7 +33,7 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
             return new LaunchOutcome(LaunchOutcomeKind.Failed, JobId: null, failure.Message);
         }
 
-        StartResult start = await claude.StartBackgroundAsync(plan.Directory, plan.Name, plan.OpeningPrompt, cancellationToken);
+        StartResult start = await claude.StartBackgroundAsync(plan.Directory.Value, plan.Name, plan.OpeningPrompt, cancellationToken);
         if (start.Outcome != StartOutcome.Started || start.JobId is null)
         {
             LaunchOutcomeKind kind = start.Outcome == StartOutcome.WorkspaceNotTrusted ? LaunchOutcomeKind.WorkspaceNotTrusted : LaunchOutcomeKind.Failed;
@@ -41,7 +41,7 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
             return new LaunchOutcome(kind, JobId: null, start.Message);
         }
 
-        await recent.RecordRecentRepositoryAsync(plan.Repository.Path);
+        await recent.RecordRecentRepositoryAsync(plan.Repository.Path.Value);
         Session? started = await ListedSessionAsync(start.JobId, cancellationToken);
         await RecordDescriptionAsync(plan, started);
 
@@ -50,13 +50,13 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
 
     private async Task CreateWorktreeAsync(LaunchPlan plan, SiblingWorktree worktree, CancellationToken cancellationToken)
     {
-        string repository = plan.Repository.Path;
+        FolderPath repository = plan.Repository.Path;
         string baseRef = plan.Base == WorktreeBase.RemoteDefault
-            ? await git.DefaultRemoteBranchAsync(repository, cancellationToken) ?? "HEAD"
+            ? await git.DefaultRemoteBranchAsync(repository.Value, cancellationToken) ?? "HEAD"
             : "HEAD";
 
-        await git.AddWorktreeAsync(repository, worktree.Path, worktree.Branch, baseRef, cancellationToken);
-        await copier.CopyAsync(repository, worktree.Path, cancellationToken);
+        await git.AddWorktreeAsync(repository.Value, worktree.Path.Value, worktree.Branch, baseRef, cancellationToken);
+        await copier.CopyAsync(repository.Value, worktree.Path.Value, cancellationToken);
         await created.RecordCreatedWorktreeAsync(new CreatedWorktree(worktree.Path, worktree.Branch, repository, clock.GetUtcNow()));
     }
 

@@ -57,7 +57,7 @@ public sealed class SessionsShould
             SessionId: Guid.NewGuid().ToString(),
             JobId: null,
             Name: name,
-            WorkingDirectory: @"C:\repos\Northwind.Orders",
+            WorkingDirectory: new FolderPath(@"C:\repos\Northwind.Orders"),
             Kind: SessionKind.Background,
             StartedAt: startedAt,
             State: state);

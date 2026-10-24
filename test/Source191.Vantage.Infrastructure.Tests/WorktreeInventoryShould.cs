@@ -20,7 +20,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     private static Session SessionIn(string directory, string name, int? processId)
     {
-        return new Session(Guid.NewGuid().ToString(), null, name, directory, SessionKind.Interactive, Noon, DisplayState.Idle, processId);
+        return new Session(Guid.NewGuid().ToString(), null, name, new FolderPath(directory), SessionKind.Interactive, Noon, DisplayState.Idle, processId);
     }
 
     public void Dispose()
@@ -40,8 +40,8 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         rows.Select(row => (row.RepositoryName, row.Path, row.Branch, row.Health.Kind)).ShouldBe(
         [
-            ("Northwind.First", firstWorktree, "fix-1", WorktreeHealthKind.Ok),
-            ("Northwind.Second", secondWorktree, "fix-2", WorktreeHealthKind.Ok),
+            ("Northwind.First", new FolderPath(firstWorktree), "fix-1", WorktreeHealthKind.Ok),
+            ("Northwind.Second", new FolderPath(secondWorktree), "fix-2", WorktreeHealthKind.Ok),
         ]);
     }
 
@@ -55,7 +55,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
 
-        row.Path.ShouldBe(orphan);
+        row.Path.Value.ShouldBe(orphan);
         row.RepositoryName.ShouldBe("Northwind.Orders");
         row.Health.Kind.ShouldBe(WorktreeHealthKind.Orphan);
         row.LeftoverFileCount.ShouldBe(1);
@@ -86,7 +86,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
 
-        row.Path.ShouldBe(worktree);
+        row.Path.Value.ShouldBe(worktree);
         row.RepositoryName.ShouldBe("Northwind.Retired");
         row.Health.Kind.ShouldBe(WorktreeHealthKind.Broken);
         row.OwnerExists.ShouldBeFalse();
@@ -102,7 +102,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
 
-        row.Path.ShouldBe(worktree);
+        row.Path.Value.ShouldBe(worktree);
         row.Health.Kind.ShouldBe(WorktreeHealthKind.Broken);
         row.OwnerExists.ShouldBeTrue();
         row.DirtyFiles.ShouldBe(0);
@@ -117,7 +117,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         IReadOnlyList<WorktreeRow> rows = await Inventory.ScanAsync([], TestContext.Current.CancellationToken);
 
-        rows.Select(row => (Path.GetFileName(row.Path), row.Health.Kind)).ShouldBe(
+        rows.Select(row => (row.Path.Name, row.Health.Kind)).ShouldBe(
         [
             ("Archive.worktrees", WorktreeHealthKind.Empty),
             ("Northwind.Orders.worktrees", WorktreeHealthKind.Empty),
@@ -191,6 +191,6 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         IReadOnlyList<WorktreeRow> rows = await Inventory.ScanAsync([], TestContext.Current.CancellationToken);
 
-        rows.Single().Path.ShouldBe(worktree);
+        rows.Single().Path.Value.ShouldBe(worktree);
     }
 }

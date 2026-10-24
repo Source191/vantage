@@ -1,6 +1,5 @@
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
-using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Actions;
@@ -10,9 +9,9 @@ public sealed class PruneRepositoryHandler(IGit git) : IEffectHandler<PruneRepos
 {
     public async Task<Outcome> HandleAsync(PruneRepository effect, CancellationToken cancellationToken)
     {
-        int pruned = await git.PruneWorktreesAsync(effect.Repository, cancellationToken);
+        int pruned = await git.PruneWorktreesAsync(effect.Repository.Value, cancellationToken);
 
-        return new PruneRepositoryOutcome(pruned, new FolderPath(effect.Repository).Name);
+        return new PruneRepositoryOutcome(pruned, effect.Repository.Name);
     }
 }
 
