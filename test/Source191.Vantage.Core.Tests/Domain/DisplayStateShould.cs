@@ -2,72 +2,9 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Core.Tests.Domain;
 
+/// <summary>The six display states and their labels; mapping the CLI's words to them is <c>ClaudeStatesShould</c>'s.</summary>
 public sealed class DisplayStateShould
 {
-    [Fact]
-    public void ShowWorkingForABusySession()
-    {
-        SessionListingEntry entry = new(ProcessId: 100, Status: "busy", WaitingFor: null, State: "working");
-
-        DisplayState.From(entry).ShouldBe(DisplayState.Working);
-    }
-
-    [Fact]
-    public void ShowNeedsInputWhenWaitingOnAPermissionPrompt()
-    {
-        SessionListingEntry entry = new(ProcessId: 100, Status: "waiting", WaitingFor: "permission prompt", State: "blocked");
-
-        DisplayState.From(entry).ShouldBe(DisplayState.NeedsInput);
-    }
-
-    [Fact]
-    public void ShowNeedsInputForAnIdleSessionThatHasNotStarted()
-    {
-        SessionListingEntry entry = new(ProcessId: 100, Status: "idle", WaitingFor: null, State: "blocked");
-
-        DisplayState.From(entry).ShouldBe(DisplayState.NeedsInput);
-    }
-
-    [Fact]
-    public void ShowCompletedForAFinishedSessionWithALiveProcess()
-    {
-        SessionListingEntry entry = new(ProcessId: 100, Status: "idle", WaitingFor: null, State: "done");
-
-        DisplayState.From(entry).ShouldBe(DisplayState.Completed);
-    }
-
-    [Fact]
-    public void ShowIdleForAnInteractiveSessionWithNoState()
-    {
-        SessionListingEntry entry = new(ProcessId: 100, Status: "idle", WaitingFor: null, State: null);
-
-        DisplayState.From(entry).ShouldBe(DisplayState.Idle);
-    }
-
-    [Fact]
-    public void ShowIdleForABackgroundSessionBetweenTurns()
-    {
-        SessionListingEntry entry = new(ProcessId: 100, Status: "idle", WaitingFor: null, State: "working");
-
-        DisplayState.From(entry).ShouldBe(DisplayState.Idle);
-    }
-
-    [Fact]
-    public void ShowFailedWhenTheListingSaysSo()
-    {
-        SessionListingEntry entry = new(ProcessId: null, Status: null, WaitingFor: null, State: "failed");
-
-        DisplayState.From(entry).ShouldBe(DisplayState.Failed);
-    }
-
-    [Fact]
-    public void ShowStoppedWhenThereIsNoProcess()
-    {
-        SessionListingEntry entry = new(ProcessId: null, Status: null, WaitingFor: null, State: "done");
-
-        DisplayState.From(entry).ShouldBe(DisplayState.Stopped);
-    }
-
     [Fact]
     public void LabelEachStateInPlainLowerCaseWordsForTheStateColumn()
     {
@@ -80,11 +17,9 @@ public sealed class DisplayStateShould
     }
 
     [Fact]
-    public void ShowTheRawValuesForAnUnknownCombination()
+    public void KeepTheRawWordsOfAnUnknownCombinationAsItsLabel()
     {
-        SessionListingEntry entry = new(ProcessId: 100, Status: "paused", WaitingFor: null, State: "dreaming");
-
-        DisplayState state = DisplayState.From(entry);
+        DisplayState state = DisplayState.Unknown("paused/dreaming");
 
         state.Kind.ShouldBe(DisplayStateKind.Unknown);
         state.Label.ShouldBe("paused/dreaming");

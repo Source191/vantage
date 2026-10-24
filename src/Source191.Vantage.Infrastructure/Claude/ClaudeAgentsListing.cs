@@ -36,7 +36,7 @@ public static class ClaudeAgentsListing
 
         string name = row.Name ?? string.Empty;
         DateTimeOffset startedAt = DateTimeOffset.FromUnixTimeMilliseconds(row.StartedAt ?? 0);
-        DisplayState state = DisplayState.From(new SessionListingEntry(row.Pid, row.Status, row.WaitingFor, row.State));
+        DisplayState state = ClaudeStates.From(row.Pid, row.Status, row.State);
 
         return (row.Kind, row.Pid, JobId.TryParse(row.Id) ?? JobId.Of(sessionId)) switch
         {

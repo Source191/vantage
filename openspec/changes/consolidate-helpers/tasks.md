@@ -2,8 +2,8 @@
 
 ## 1. Claude vocabulary into the adapter
 
-- [ ] 1.1 `ClaudeStatesShould`: move every case from `DisplayStateShould` (busy, waiting, idle and blocked, idle and done, no pid, no pid and failed, unknown); implement `ClaudeStates.From` in `Adapters\Claude` and reduce `DisplayState` to kinds, labels and `Unknown(label)`
-- [ ] 1.2 `ClaudeAgentsListing` calls `ClaudeStates`; delete `SessionListingEntry` from `Domain`; verify build, tests and the architecture test pass
+- [x] 1.1 `ClaudeStatesShould`: move every case from `DisplayStateShould` (busy, waiting, idle and blocked, idle and done, no pid, no pid and failed, unknown); implement `ClaudeStates.From` in `Adapters\Claude` and reduce `DisplayState` to kinds, labels and `Unknown(label)`
+- [x] 1.2 `ClaudeAgentsListing` calls `ClaudeStates`; delete `SessionListingEntry` from `Domain`; verify build, tests and the architecture test pass
 
 ## 2. One worktree inspector
 
