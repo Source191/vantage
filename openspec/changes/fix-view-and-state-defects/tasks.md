@@ -25,7 +25,7 @@
 ## 4. Screens and wiring
 
 - [x] 4.1 `SessionsScreen` handles `StopSession` from the row it carries; `WorktreesScreen` and `LaunchWizardDialog` take `WorktreeBase`; `Program.cs` reduces a `SelectSession` input for `JumpToSession` instead of editing state; verify `dotnet build -c Debug`, `dotnet test test\Source191.Vantage.UnitTests -c Debug --no-build` and `dotnet format --verify-no-changes` pass
-- [ ] 4.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` and verify exit code 0
+- [x] 4.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` and verify exit code 0
 - [x] 4.3 Update the README's worktrees-view key table (Enter goes to the session by id) and the "Where Vantage keeps things" section for the new state layout; verify the text matches the delta specs
 
 ## Workflow follow-up
