@@ -144,7 +144,7 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
             new Footer.Working(remove),
             token => removeWorktree.RemoveAsync(remove.Row, remove.Forced, token),
             outcome => outcome is RemoveWorktreeOutcome.BranchKept kept
-                ? AskAboutBranch(context, outcome, kept.Branch, createdByVantage: false)
+                ? AskAboutBranch(context, outcome, kept.Branch, kept.CreatedByVantage)
                 : new Footer.Reported(outcome));
     }
 }

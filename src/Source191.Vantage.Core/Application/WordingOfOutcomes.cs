@@ -123,6 +123,7 @@ public static partial class Wording
             RemoveWorktreeOutcome.Refused refused => $"Not removed: {refused.Reason}.",
             RemoveWorktreeOutcome.Removed removed => $"Removed {removed.FolderName}.",
             RemoveWorktreeOutcome.RemovedAndDeletedBranch removed => $"Removed {removed.FolderName} and deleted its merged branch {removed.Branch}.",
+            RemoveWorktreeOutcome.BranchKept { CreatedByVantage: true } kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} is not merged.",
             RemoveWorktreeOutcome.BranchKept kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} was not created by Vantage, so it is kept.",
             RemoveWorktreeOutcome.DeletedFolder deleted => $"Deleted the folder {deleted.FolderName}.",
             RemoveWorktreeOutcome.DeletedFolderAndPruned pruned =>

@@ -205,6 +205,13 @@ public sealed class WordingOfOutcomesShould
     }
 
     [Fact]
+    public void SayAnUnmergedVantageBranchWasKept()
+    {
+        Wording.Describe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedByVantage: true))
+            .ShouldBe("Removed Northwind.Orders-fix-123; branch fix-123 is not merged.");
+    }
+
+    [Fact]
     public void SayALeftoverFolderWasDeleted()
     {
         Wording.Describe(new RemoveWorktreeOutcome.DeletedFolder("fix-service-tests")).ShouldBe("Deleted the folder fix-service-tests.");

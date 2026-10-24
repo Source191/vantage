@@ -40,6 +40,18 @@ public sealed class RemoveWorktreeHandlerShould
     }
 
     [Fact]
+    public async Task KeepAnUnmergedBranchVantageCreatedAndSayVantageCreatedIt()
+    {
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
+        processes.Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty));
+
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok), forced: false, CancellationToken.None);
+
+        GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("branch"));
+        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(Repository, "fix-123"), CreatedByVantage: true));
+    }
+
+    [Fact]
     public async Task RefuseWhenTheRulesSayNoAndTouchNothing()
     {
         WorktreeRow dirty = Row(WorktreeHealthKind.Ok) with { DirtyFiles = 3 };
