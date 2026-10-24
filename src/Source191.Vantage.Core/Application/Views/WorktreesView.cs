@@ -38,15 +38,24 @@ public sealed record WorktreesViewState(
     /// <summary>Nothing scanned yet: the first scan has not arrived, so the screen shows that it is scanning rather than an empty table.</summary>
     public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: string.Empty);
 
-    public IReadOnlyList<WorktreeRow> VisibleRows =>
-    [
-        .. Rows
-            .Where(Matches)
-            .OrderBy(row => row.Repository, StringComparer.OrdinalIgnoreCase)
-            .ThenBy(row => row.FolderName, StringComparer.OrdinalIgnoreCase),
-    ];
+    private static readonly ListPolicy<WorktreeRow> Policy = new(
+        KeyOf: row => row.Path,
+        FilterFields: row => [row.RepositoryName, row.FolderName, row.Branch, row.Health.Kind.ToString()],
+        Order: rows => rows.OrderBy(row => row.Repository, StringComparer.OrdinalIgnoreCase).ThenBy(row => row.FolderName, StringComparer.OrdinalIgnoreCase),
+        KeyComparison: StringComparison.OrdinalIgnoreCase);
 
-    public WorktreeRow? Selected => VisibleRows.FirstOrDefault(row => string.Equals(row.Path, SelectedPath, StringComparison.OrdinalIgnoreCase));
+    /// <summary>The rows, selection, filter and loaded flag as the shared list component, built from this state's fields.</summary>
+    public ListSelection<WorktreeRow> List => new(Policy, Rows, SelectedPath, Filter, FilterEditing, Loaded);
+
+    public IReadOnlyList<WorktreeRow> VisibleRows => List.Visible;
+
+    public WorktreeRow? Selected => List.Selected;
+
+    /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
+    public WorktreesViewState With(ListSelection<WorktreeRow> list)
+    {
+        return this with { Rows = list.Rows, SelectedPath = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
+    }
 
     /// <summary>The footer to show: the last message, else why the selected row is not healthy, else the standing hint.</summary>
     public string FooterText
@@ -66,20 +75,7 @@ public sealed record WorktreesViewState(
         }
     }
 
-    public string Title
-    {
-        get
-        {
-            string scope = string.IsNullOrWhiteSpace(Filter.Text) ? "all" : Filter.Text;
-
-            return $"worktrees({scope})[{VisibleRows.Count}]";
-        }
-    }
-
-    private bool Matches(WorktreeRow row)
-    {
-        return Filter.Matches([row.RepositoryName, row.FolderName, row.Branch, row.Health.Kind.ToString()]);
-    }
+    public string Title => List.Title("worktrees");
 }
 
 /// <summary>The worktrees view as a pure function of state and input, mirroring <see cref="SessionsView"/>.</summary>
@@ -91,44 +87,12 @@ public static class WorktreesView
     {
         return input switch
         {
-            WorktreeRowsLoaded loaded => Unchanged(Load(state, loaded.Rows)),
+            WorktreeRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
             ForceConfirmed confirmed => Force(state, confirmed),
-            KeyPressed pressed when state.FilterEditing => Unchanged(EditFilter(state, pressed.Key)),
+            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key))),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
-        };
-    }
-
-    private static WorktreesViewState Load(WorktreesViewState state, IReadOnlyList<WorktreeRow> rows)
-    {
-        int previousIndex = IndexOfSelected(state);
-        WorktreesViewState loaded = state with { Rows = rows, Banner = null, Loaded = true };
-        if (loaded.Selected is not null)
-        {
-            return loaded;
-        }
-
-        IReadOnlyList<WorktreeRow> visible = loaded.VisibleRows;
-        if (visible.Count == 0)
-        {
-            return loaded with { SelectedPath = null };
-        }
-
-        int nearest = Math.Clamp(previousIndex, 0, visible.Count - 1);
-
-        return loaded with { SelectedPath = visible[nearest].Path };
-    }
-
-    private static WorktreesViewState EditFilter(WorktreesViewState state, Key key)
-    {
-        return key.Name switch
-        {
-            KeyName.Enter => state with { FilterEditing = false },
-            KeyName.Escape => Reselect(state with { FilterEditing = false, Filter = new RowFilter(string.Empty) }),
-            KeyName.Backspace => Reselect(state with { Filter = new RowFilter(state.Filter.Text[..Math.Max(0, state.Filter.Text.Length - 1)]) }),
-            KeyName.Character => Reselect(state with { Filter = new RowFilter(state.Filter.Text + key.Character) }),
-            _ => state,
         };
     }
 
@@ -136,12 +100,13 @@ public static class WorktreesView
     {
         return key switch
         {
-            { Name: KeyName.Up } => Unchanged(MoveSelection(state, -1)),
-            { Name: KeyName.Down } => Unchanged(MoveSelection(state, +1)),
-            { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(Reselect(state with { Filter = new RowFilter(string.Empty) })),
+            // Moving on clears the last message, so the footer can explain the row now under the bar.
+            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = string.Empty }),
+            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = string.Empty }),
+            { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Escape } => Effect(state, new SwitchToSessions()),
             { Name: KeyName.Enter } => RowAction(state, JumpToSession),
-            { Name: KeyName.Character, Character: '/' } => Unchanged(state with { FilterEditing = true, Filter = new RowFilter(string.Empty), Footer = string.Empty }),
+            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = string.Empty }),
             { Name: KeyName.Character, Character: 'd' } => RowAction(state, row => Remove(row, forced: false)),
             { Name: KeyName.Character, Character: 'D' } => RowAction(state, row => Remove(row, forced: true)),
             { Name: KeyName.Character, Character: 'p' } => RowAction(state, Prune),
@@ -218,32 +183,6 @@ public static class WorktreesView
         return row.SessionId is null
             ? (null, $"No session is running in {row.FolderName}.")
             : (new JumpToSession(row.SessionId), string.Empty);
-    }
-
-    private static WorktreesViewState MoveSelection(WorktreesViewState state, int delta)
-    {
-        IReadOnlyList<WorktreeRow> visible = state.VisibleRows;
-        if (visible.Count == 0)
-        {
-            return state;
-        }
-
-        int index = Math.Clamp(IndexOfSelected(state) + delta, 0, visible.Count - 1);
-
-        // Moving on clears the last message, so the footer can explain the row now under the bar.
-        return state with { SelectedPath = visible[index].Path, Footer = string.Empty };
-    }
-
-    private static WorktreesViewState Reselect(WorktreesViewState state)
-    {
-        return state.Selected is not null ? state : Load(state, state.Rows);
-    }
-
-    private static int IndexOfSelected(WorktreesViewState state)
-    {
-        int index = state.VisibleRows.ToList().FindIndex(row => string.Equals(row.Path, state.SelectedPath, StringComparison.OrdinalIgnoreCase));
-
-        return Math.Max(index, 0);
     }
 
     private static WorktreesViewUpdate Unchanged(WorktreesViewState state)
