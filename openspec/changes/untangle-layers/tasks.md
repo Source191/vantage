@@ -38,9 +38,9 @@
 
 ## 6. Housekeeping
 
-- [ ] 6.1 Remove NSubstitute and NSubstitute.Analyzers.CSharp from the test project; add Microsoft.Extensions.Logging.Abstractions to the tool project; verify `dotnet build -c Release` passes with no new warnings
-- [ ] 6.2 Update `openspec\config.yaml` context (test packages; add the layering rule in one sentence) and CLAUDE.md (OpenSpec rule, namespace map, architecture test in the test loop); verify `openspec validate` passes for every open change
-- [ ] 6.3 Update the README developer section with the namespace map; verify the described commands run as written
+- [x] 6.1 Remove NSubstitute and NSubstitute.Analyzers.CSharp from the test project; add Microsoft.Extensions.Logging.Abstractions to the tool project; verify `dotnet build -c Release` passes with no new warnings
+- [x] 6.2 Update `openspec\config.yaml` context (test packages; add the layering rule in one sentence) and CLAUDE.md (OpenSpec rule, namespace map, architecture test in the test loop); verify `openspec validate` passes for every open change
+- [x] 6.3 Update the README developer section with the namespace map; verify the described commands run as written
 
 ## Workflow follow-up
 
