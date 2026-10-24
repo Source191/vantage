@@ -21,6 +21,21 @@ public sealed class WorktreeInventoryLeftoversShould
     private WorktreeInventory Inventory => new(new GitCli(processes), folders, [Root]);
 
     [Fact]
+    public async Task AskGitThreeThingsPerRegisteredWorktreeAndNothingAboutMergeState()
+    {
+        string worktree = Path.Combine(Root, "Northwind.Orders-fix-123");
+        folders.WithDirectory(worktree);
+        processes.Answer(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/Users/me/source/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n\nworktree C:/Users/me/source/repos/Northwind.Orders-fix-123\nHEAD b\nbranch refs/heads/fix-123\n", string.Empty));
+
+        processes.Answer(request => request.Arguments.Contains("rev-list"), new ProcessResult(0, "0\n", string.Empty));
+
+        await Inventory.ScanAsync([], CancellationToken.None);
+
+        processes.CapturedRequests.Where(request => request.WorkingDirectory == worktree).Select(request => request.Arguments[0]).ShouldBe(["status", "rev-list", "log"]);
+        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("merge-base") || request.Arguments.Contains("symbolic-ref"));
+    }
+
+    [Fact]
     public async Task ReportAFolderUnderClaudeWorktreesThatGitNoLongerListsAsAnOrphanWithItsFileCount()
     {
         string orphan = Path.Combine(Repository, ".claude", "worktrees", "fix-service-tests");

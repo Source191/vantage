@@ -12,6 +12,8 @@ namespace Source191.Vantage.Application;
 /// </summary>
 public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<string> roots)
 {
+    private readonly WorktreeInspector inspector = new(git);
+
     private const string GitDirPrefix = "gitdir:";
     private const string WorktreesSegment = ".git\\worktrees\\";
 
@@ -92,14 +94,16 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
     {
         try
         {
+            WorktreeCounts counts = await inspector.CountAsync(path, cancellationToken);
+
             return new WorktreeRow(
                 repository,
                 path,
                 entry.Branch,
                 health,
-                await git.CountChangedFilesAsync(path.Value, cancellationToken),
-                await git.CountUnpushedCommitsAsync(path.Value, cancellationToken),
-                await git.LastCommitAtAsync(path.Value, cancellationToken),
+                counts.DirtyFiles,
+                counts.UnpushedCommits,
+                counts.LastCommitAt,
                 SessionId: null,
                 SessionName: null,
                 LeftoverFileCount: 0,
