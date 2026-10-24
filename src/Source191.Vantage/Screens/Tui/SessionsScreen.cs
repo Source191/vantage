@@ -22,7 +22,7 @@ public sealed class SessionsScreen(
     LaunchWorkflow launches,
     SessionActions actions,
     TabOpener tabs,
-    string defaultBase,
+    WorktreeBase defaultBase,
     TimeProvider clock,
     string context)
 {

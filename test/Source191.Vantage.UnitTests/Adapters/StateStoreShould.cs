@@ -116,17 +116,31 @@ public sealed class StateStoreShould : IDisposable
         VantageConfig config = await Store.ReadConfigAsync();
 
         config.RepositoryRoots.ShouldBe([Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos")]);
-        config.DefaultBase.ShouldBe("RemoteDefault");
+        config.DefaultBase.ShouldBe(WorktreeBase.RemoteDefault);
     }
 
     [Fact]
     public async Task RoundTripTheConfiguration()
     {
-        VantageConfig saved = new([@"C:\repos", @"D:\work"], DefaultBase: "Head");
+        VantageConfig saved = new([@"C:\repos", @"D:\work"], WorktreeBase.Head);
 
         await Store.WriteConfigAsync(saved);
 
         (await Store.ReadConfigAsync()).ShouldBe(saved);
+    }
+
+    [Fact]
+    public async Task ReadAndWriteTheWorktreeBaseAsAnEnum()
+    {
+        Directory.CreateDirectory(folder);
+        string configFile = Path.Combine(folder, "config.json");
+        await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["C:\\repos"], "defaultBase": "Head" }""", TestContext.Current.CancellationToken);
+
+        VantageConfig read = await Store.ReadConfigAsync();
+        await Store.WriteConfigAsync(read);
+
+        read.DefaultBase.ShouldBe(WorktreeBase.Head);
+        (await File.ReadAllTextAsync(configFile, TestContext.Current.CancellationToken)).ShouldContain("\"Head\"");
     }
 
     [Fact]

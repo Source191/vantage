@@ -10,7 +10,7 @@
 
 ## 2. Configuration and inventory
 
-- [ ] 2.1 `StateStoreShould.ReadAndWriteTheWorktreeBaseAsAnEnum`: `config.json` with `"defaultBase": "Head"` reads as `WorktreeBase.Head` and writes back the same text; change `VantageConfig` and make it pass
+- [x] 2.1 `StateStoreShould.ReadAndWriteTheWorktreeBaseAsAnEnum`: `config.json` with `"defaultBase": "Head"` reads as `WorktreeBase.Head` and writes back the same text; change `VantageConfig` and make it pass
 - [ ] 2.2 `WorktreeInventoryShould.ReportTheSessionIdOfTheLiveSession`: a row carries the session id and name of the session running inside it; extend `WorktreeRow` and `LiveSessionIn`
 - [ ] 2.3 `WorktreeInventoryShould.NotCountLeftoverFilesDuringTheScan`: a leftover with many files reports `HasLeftoverFiles` without a count, using a temporary folder; change `CountLeftoverFiles` to an `Any` check
 - [ ] 2.4 `WorktreeActionsShould.CountLeftoverFilesWhenRemovalIsRequested`: the refusal names the exact count; move the full count into the action
