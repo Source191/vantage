@@ -86,12 +86,12 @@ public sealed record SessionsViewState(
     RowFilter Filter,
     bool FilterEditing,
     string? Banner,
-    string Footer,
+    Footer Footer,
     bool Loaded = false)
     : IListViewState<SessionRow>
 {
     /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
-    public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: string.Empty);
+    public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: Footer.None);
 
     private static readonly ListPolicy<SessionRow> Policy = new(
         KeyOf: row => row.Session.SessionId,
@@ -109,6 +109,9 @@ public sealed record SessionsViewState(
     public int NeedsInputCount => Rows.Count(row => row.Session.State.Kind == DisplayStateKind.NeedsInput);
 
     public string Title => List.Title("sessions");
+
+    /// <summary>The footer to show: the last message, else how many sessions need input.</summary>
+    public Footer Shown => Footer is Footer.Blank ? new Footer.NeedInput(NeedsInputCount) : Footer;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
     public SessionsViewState With(ListSelection<SessionRow> list)
@@ -155,7 +158,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
             { Name: KeyName.Character, Character: 'x' } => SessionAction(state, row => new StopSession(row), Attachment.None),
             { Name: KeyName.Character, Character: 'd' } when state.Selected is { Session.Kind: SessionKind.Interactive, HasTranscript: false } row =>
-                Effect(state with { Footer = string.Empty }, new CloseEmptyTerminals([row])),
+                Effect(state with { Footer = Footer.None }, new CloseEmptyTerminals([row])),
             { Name: KeyName.Character, Character: 'C' } => CloseEmpty(state),
             { Name: KeyName.Character, Character: 'd' } => SessionAction(state, row => new DeleteSession(row), Attachment.None),
             { Name: KeyName.Character, Character: 'b' } => Adopt(state),
@@ -182,31 +185,27 @@ public static class SessionsView
         SessionRow? row = state.Selected;
         if (row is null)
         {
-            return Unchanged(state with { Footer = "No session selected." });
+            return Unchanged(state with { Footer = new Footer.NoSessionSelected() });
         }
 
         if (row.Session.Kind == SessionKind.Interactive || row.Session.JobId is null)
         {
-            string footer = row.HasTranscript
-                ? $"{row.Session.Name} runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there."
-                : $"{row.Session.Name} runs in its own terminal and has no messages yet. d closes its tab, C closes every such tab, or send it something there and press b.";
-
-            return Unchanged(state with { Footer = footer });
+            return Unchanged(state with { Footer = new Footer.RunsInOwnTerminal(row.Session.Name, row.HasTranscript) });
         }
 
         // The open-in-tab key switches to the tab that already shows the session; attaching here as well would be a second attach.
         if (attachment == Attachment.Here && row.HasLiveTab)
         {
-            return Unchanged(state with { Footer = $"{row.Session.Name} is open in another tab; press o to switch to it." });
+            return Unchanged(state with { Footer = new Footer.OpenInAnotherTab(row.Session.Name) });
         }
 
         // Attaching to a session with no process resumes it from its transcript; a session never sent a message has none.
         if (attachment != Attachment.None && row.Session.ProcessId is null && !row.HasTranscript)
         {
-            return Unchanged(state with { Footer = $"{row.Session.Name} has nothing to resume: it was never sent a message. d deletes it." });
+            return Unchanged(state with { Footer = new Footer.NeverSentAMessage(row.Session.Name) });
         }
 
-        return Effect(state with { Footer = string.Empty }, effect(row));
+        return Effect(state with { Footer = Footer.None }, effect(row));
     }
 
     /// <summary>Every plain claude session that was never sent a message, in one go; the TUI confirms before closing.</summary>
@@ -215,8 +214,8 @@ public static class SessionsView
         IReadOnlyList<SessionRow> empty = [.. state.Rows.Where(row => row.Session.Kind == SessionKind.Interactive && !row.HasTranscript && row.Session.ProcessId is not null)];
 
         return empty.Count == 0
-            ? Unchanged(state with { Footer = "No terminal sessions without messages." })
-            : Effect(state with { Footer = string.Empty }, new CloseEmptyTerminals(empty));
+            ? Unchanged(state with { Footer = new Footer.NoEmptyTerminals() })
+            : Effect(state with { Footer = Footer.None }, new CloseEmptyTerminals(empty));
     }
 
     /// <summary>Renaming restarts the session under the new name, so it waits until nothing is in flight.</summary>
@@ -230,10 +229,10 @@ public static class SessionsView
 
         return row switch
         {
-            { HasTranscript: false, Session.ProcessId: null } => Unchanged(state with { Footer = $"{row.Session.Name} has nothing to resume: it was never sent a message. d deletes it." }),
-            { HasTranscript: false } => Unchanged(state with { Footer = $"{row.Session.Name} has no messages yet, so it cannot be renamed; send it something first." }),
-            { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Footer = $"{row.Session.Name} is working; wait until it is idle or needs input, because renaming restarts it." }),
-            _ => Effect(state with { Footer = string.Empty }, new AskForNewName(row)),
+            { HasTranscript: false, Session.ProcessId: null } => Unchanged(state with { Footer = new Footer.NeverSentAMessage(row.Session.Name) }),
+            { HasTranscript: false } => Unchanged(state with { Footer = new Footer.NoMessagesToRename(row.Session.Name) }),
+            { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Footer = new Footer.WorkingSoRenameWaits(row.Session.Name) }),
+            _ => Effect(state with { Footer = Footer.None }, new AskForNewName(row)),
         };
     }
 
@@ -241,19 +240,21 @@ public static class SessionsView
     {
         if (confirmed.Name is null)
         {
-            return Unchanged(state with { Footer = "Rename cancelled." });
+            return Unchanged(state with { Footer = new Footer.RenameCancelled() });
         }
 
         try
         {
             SessionName name = SessionName.Parse(confirmed.Name.Trim());
 
-            return Effect(state with { Footer = $"Renaming {confirmed.Row.Session.Name} to {name.Text}..." }, new RenameSession(confirmed.Row, name));
+            RenameSession rename = new(confirmed.Row, name);
+
+            return Effect(state with { Footer = new Footer.Working(rename) }, rename);
         }
         catch (ArgumentException invalid)
         {
             // ArgumentException appends " (Parameter 'text')" to the message; the footer wants only the sentence.
-            return Unchanged(state with { Footer = invalid.Message.Split(" (Parameter")[0] });
+            return Unchanged(state with { Footer = new Footer.InvalidName(invalid.Message.Split(" (Parameter")[0]) });
         }
     }
 
@@ -267,10 +268,10 @@ public static class SessionsView
 
         return row switch
         {
-            null => Unchanged(state with { Footer = "No session selected." }),
-            { Session.Kind: SessionKind.Background } => Unchanged(state with { Footer = $"{row.Session.Name} already runs in the background under Vantage." }),
-            { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Footer = $"{row.Session.Name} is working; wait until it is idle or needs input, so nothing in flight is lost." }),
-            _ => Effect(state with { Footer = string.Empty }, new AdoptSession(row)),
+            null => Unchanged(state with { Footer = new Footer.NoSessionSelected() }),
+            { Session.Kind: SessionKind.Background } => Unchanged(state with { Footer = new Footer.AlreadyUnderVantage(row.Session.Name) }),
+            { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Footer = new Footer.WorkingSoAdoptWaits(row.Session.Name) }),
+            _ => Effect(state with { Footer = Footer.None }, new AdoptSession(row)),
         };
     }
 

@@ -32,12 +32,12 @@ public sealed record WorktreesViewState(
     RowFilter Filter,
     bool FilterEditing,
     string? Banner,
-    string Footer,
+    Footer Footer,
     bool Loaded = false)
     : IListViewState<WorktreeRow>
 {
     /// <summary>Nothing scanned yet: the first scan has not arrived, so the screen shows that it is scanning rather than an empty table.</summary>
-    public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: string.Empty);
+    public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: Footer.None);
 
     private static readonly ListPolicy<WorktreeRow> Policy = new(
         KeyOf: row => row.Path,
@@ -59,22 +59,12 @@ public sealed record WorktreesViewState(
     }
 
     /// <summary>The footer to show: the last message, else why the selected row is not healthy, else the standing hint.</summary>
-    public string FooterText
+    public Footer Shown => (Footer, Selected) switch
     {
-        get
-        {
-            if (Footer.Length > 0)
-            {
-                return Footer;
-            }
-
-            WorktreeRow? selected = Selected;
-
-            return selected is null || selected.Health.Reason.Length == 0
-                ? "d removes only what is safe to remove"
-                : $"{selected.FolderName} is {selected.Health.Kind.ToString().ToLowerInvariant()}: {selected.Health.Reason}.";
-        }
-    }
+        (not Footer.Blank, _) => Footer,
+        (_, { Health.Reason.Length: > 0 } selected) => new Footer.Unhealthy(selected.FolderName, selected.Health.Kind, selected.Health.Reason),
+        _ => new Footer.RemoveHint(),
+    };
 
     public string Title => List.Title("worktrees");
 }
@@ -82,8 +72,6 @@ public sealed record WorktreesViewState(
 /// <summary>The worktrees view as a pure function of state and input, mirroring <see cref="SessionsView"/>.</summary>
 public static class WorktreesView
 {
-    private const string ForceHint = " D forces after a typed confirmation.";
-
     public static WorktreesViewUpdate Reduce(WorktreesViewState state, ViewInput input)
     {
         return input switch
@@ -102,12 +90,12 @@ public static class WorktreesView
         return key switch
         {
             // Moving on clears the last message, so the footer can explain the row now under the bar.
-            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = string.Empty }),
-            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = string.Empty }),
+            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = Footer.None }),
+            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = Footer.None }),
             { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Escape } => Effect(state, new SwitchToSessions()),
             { Name: KeyName.Enter } => RowAction(state, JumpToSession),
-            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = string.Empty }),
+            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
             { Name: KeyName.Character, Character: 'd' } => RowAction(state, row => Remove(row, forced: false)),
             { Name: KeyName.Character, Character: 'D' } => RowAction(state, row => Remove(row, forced: true)),
             { Name: KeyName.Character, Character: 'p' } => RowAction(state, Prune),
@@ -121,35 +109,33 @@ public static class WorktreesView
     }
 
     /// <summary>Either an effect to run or a footer explaining why nothing happens.</summary>
-    private static WorktreesViewUpdate RowAction(WorktreesViewState state, Func<WorktreeRow, (ViewEffect? Effect, string Footer)> decide)
+    private static WorktreesViewUpdate RowAction(WorktreesViewState state, Func<WorktreeRow, (ViewEffect? Effect, Footer Footer)> decide)
     {
         WorktreeRow? row = state.Selected;
         if (row is null)
         {
-            return Unchanged(state with { Footer = "No worktree selected." });
+            return Unchanged(state with { Footer = new Footer.NoWorktreeSelected() });
         }
 
-        (ViewEffect? effect, string footer) = decide(row);
+        (ViewEffect? effect, Footer footer) = decide(row);
 
         return effect is null
             ? Unchanged(state with { Footer = footer })
             : Effect(state with { Footer = footer }, effect);
     }
 
-    private static (ViewEffect?, string) Remove(WorktreeRow row, bool forced)
+    private static (ViewEffect?, Footer) Remove(WorktreeRow row, bool forced)
     {
         RemovalDecision decision = RemovalDecision.For(row.Facts(), forced);
         if (decision.Outcome == RemovalOutcome.Refused)
         {
-            string hint = forced || !decision.CanBeForced ? string.Empty : ForceHint;
-
-            return (null, $"Not removed: {decision.Reason}.{hint}");
+            return (null, new Footer.NotRemoved(decision.Reason, OfferForce: !forced && decision.CanBeForced));
         }
 
         // The folder name is what the dialog says it deletes, so that is the text to type; a branch name would be a second thing to look up.
         return forced
-            ? (new ConfirmForceRemove(row, row.FolderName), string.Empty)
-            : (new RemoveWorktree(row, Forced: false), string.Empty);
+            ? (new ConfirmForceRemove(row, row.FolderName), Footer.None)
+            : (new RemoveWorktree(row, Forced: false), Footer.None);
     }
 
     /// <summary>The typed text must match exactly; anything else says what was typed so a near miss is obvious.</summary>
@@ -157,33 +143,38 @@ public static class WorktreesView
     {
         return confirmed.Typed switch
         {
-            null => Unchanged(state with { Footer = "Cancelled; nothing removed." }),
-            "" => Unchanged(state with { Footer = "Nothing was typed; nothing removed." }),
+            null => Unchanged(state with { Footer = new Footer.ForceCancelled() }),
+            "" => Unchanged(state with { Footer = new Footer.NothingTyped() }),
             string typed when !string.Equals(typed, confirmed.ConfirmationText, StringComparison.Ordinal) =>
-                Unchanged(state with { Footer = $"You typed {typed}, not {confirmed.ConfirmationText}; nothing removed." }),
-            _ => Effect(state with { Footer = $"Removing {confirmed.Row.FolderName}..." }, new RemoveWorktree(confirmed.Row, Forced: true)),
+                Unchanged(state with { Footer = new Footer.TypedWrongName(typed, confirmed.ConfirmationText) }),
+            _ => Forced(state, new RemoveWorktree(confirmed.Row, Forced: true)),
         };
     }
 
-    private static (ViewEffect?, string) Prune(WorktreeRow row)
+    private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove)
+    {
+        return Effect(state with { Footer = new Footer.Working(remove) }, remove);
+    }
+
+    private static (ViewEffect?, Footer) Prune(WorktreeRow row)
     {
         return row.OwnerExists
-            ? (new PruneRepository(row.Repository), string.Empty)
-            : (null, $"Nothing to prune: the repository {row.RepositoryName} no longer exists.");
+            ? (new PruneRepository(row.Repository), Footer.None)
+            : (null, new Footer.NothingToPrune(row.RepositoryName));
     }
 
-    private static (ViewEffect?, string) InRealWorktree(WorktreeRow row, ViewEffect effect)
+    private static (ViewEffect?, Footer) InRealWorktree(WorktreeRow row, ViewEffect effect)
     {
         return row.Health.Kind is WorktreeHealthKind.Ok or WorktreeHealthKind.Locked && row.FolderExists
-            ? (effect, string.Empty)
-            : (null, $"{row.FolderName} is a leftover folder, not a worktree.");
+            ? (effect, Footer.None)
+            : (null, new Footer.LeftoverFolder(row.FolderName));
     }
 
-    private static (ViewEffect?, string) JumpToSession(WorktreeRow row)
+    private static (ViewEffect?, Footer) JumpToSession(WorktreeRow row)
     {
         return row.SessionId is null
-            ? (null, $"No session is running in {row.FolderName}.")
-            : (new JumpToSession(row.SessionId), string.Empty);
+            ? (null, new Footer.NoSessionIn(row.FolderName))
+            : (new JumpToSession(row.SessionId), Footer.None);
     }
 
     private static WorktreesViewUpdate Unchanged(WorktreesViewState state)

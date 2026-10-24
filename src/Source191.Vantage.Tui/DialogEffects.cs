@@ -1,5 +1,5 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
-using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -44,45 +44,44 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
                 Remove(context, remove);
                 break;
             default:
-                context.ShowFooter($"No dialog is defined for {effect.GetType().Name}.");
+                context.ShowFooter(new Footer.NoDialogFor(effect.GetType().Name));
                 break;
         }
     }
 
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>
-    private static string AskAboutBranch(IEffectContext context, string message, BranchToConfirm? branch, string question)
+    private static Footer AskAboutBranch(IEffectContext context, string message, BranchToConfirm? branch, bool createdByVantage)
     {
         if (branch is null)
         {
-            return message;
+            return new Footer.Reported(message);
         }
 
-        int? answer = Confirm.Query(context.App, "Delete branch", question, "Delete branch", "Keep");
+        int? answer = Confirm.Query(context.App, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch, createdByVantage), "Delete branch", "Keep");
         if (answer != 0)
         {
-            return $"{message} Branch kept.";
+            return new Footer.Reported($"{message} Branch kept.");
         }
 
         DeleteBranch deleteBranch = new(branch);
-        context.Dispatch(deleteBranch, deleted => $"{message} {deleted}");
+        context.Dispatch(deleteBranch, deleted => new Footer.Reported($"{message} {deleted}"));
 
-        return WorkingText.For(deleteBranch);
+        return new Footer.Working(deleteBranch);
     }
 
     private static void Rename(IEffectContext context, SessionRow row)
     {
-        string? typed = NameDialog.Show(context.App, "Rename session", $"Rename {row.Session.Name}. The session restarts under the new name and keeps its conversation.", row.Session.Name);
+        string? typed = NameDialog.Show(context.App, "Rename session", Wording.RenamePrompt(row.Session.Name), row.Session.Name);
         context.Reduce(new RenameConfirmed(row, typed));
     }
 
     private static void ConfirmCloseEmpty(IEffectContext context, CloseEmptyTerminals close)
     {
-        string names = string.Join(", ", close.Rows.Select(row => row.Session.Name));
-        string what = close.Rows.Count == 1 ? $"Close the tab of {names}?" : $"Close {close.Rows.Count} tabs: {names}?";
-        int? answer = Confirm.Query(context.App, "Close empty terminal sessions", $"{what}\nNone of them has been sent a message, so nothing is lost.", "Close", "Keep");
+        string question = Wording.CloseEmptyQuestion([.. close.Rows.Select(row => row.Session.Name)]);
+        int? answer = Confirm.Query(context.App, "Close empty terminal sessions", question, "Close", "Keep");
         if (answer != 0)
         {
-            context.ShowFooter("Kept.");
+            context.ShowFooter(new Footer.Kept());
             return;
         }
 
@@ -97,7 +96,7 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
         List<SessionRow> toResume = [.. plan.Automatic, .. chosen];
         if (toResume.Count == 0)
         {
-            context.ShowFooter("Nothing to resume.");
+            context.ShowFooter(new Footer.NothingChosenToResume());
             return;
         }
 
@@ -109,7 +108,7 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
         string? typed = TypedConfirmationDialog.Show(
             context.App,
             "Force remove",
-            "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:",
+            Wording.ForceRemoveWarning,
             confirm.ConfirmationText,
             "folder name");
         context.Reduce(new ForceConfirmed(confirm.Row, confirm.ConfirmationText, typed));
@@ -129,23 +128,23 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
     private void ConfirmDelete(IEffectContext context, DeleteSession deletion)
     {
         SessionRow row = deletion.Row;
-        int? answer = Confirm.Query(context.App, "Delete session", $"Delete {row.Session.Name}?\nIts worktree is removed only when nothing in it would be lost.", "Delete", "Cancel");
+        int? answer = Confirm.Query(context.App, "Delete session", Wording.DeleteSessionQuestion(row.Session.Name), "Delete", "Cancel");
         if (answer != 0)
         {
             return;
         }
 
         context.RunInBackground(
-            WorkingText.For(deletion),
+            new Footer.Working(deletion),
             token => deleteSession.DeleteAsync(row, forced: false, token),
-            outcome => AskAboutBranch(context, outcome.Message, outcome.BranchToConfirm, $"Branch {outcome.BranchToConfirm?.Branch} is not merged. Delete it anyway?"));
+            outcome => AskAboutBranch(context, outcome.Message, outcome.BranchToConfirm, createdByVantage: true));
     }
 
     private void Remove(IEffectContext context, RemoveWorktree remove)
     {
         context.RunInBackground(
-            WorkingText.For(remove),
+            new Footer.Working(remove),
             token => removeWorktree.RemoveAsync(remove.Row, remove.Forced, token),
-            outcome => AskAboutBranch(context, outcome.Message, outcome.BranchToConfirm, $"Branch {outcome.BranchToConfirm?.Branch} was not created by Vantage. Delete it anyway?"));
+            outcome => AskAboutBranch(context, outcome.Message, outcome.BranchToConfirm, createdByVantage: false));
     }
 }

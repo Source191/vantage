@@ -71,7 +71,7 @@ public sealed class WorktreesViewShould
         WorktreesViewUpdate update = WorktreesView.Reduce(onDirty, new KeyPressed(Key.Of('d')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe("Not removed: 5 changed or untracked files would be lost. D forces after a typed confirmation.");
+        update.State.Footer.ShouldBe(new Footer.NotRemoved("5 changed or untracked files would be lost", OfferForce: true));
     }
 
     [Fact]
@@ -90,8 +90,8 @@ public sealed class WorktreesViewShould
         WorktreesViewState onLocked = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down, Key.Down);
         WorktreesViewState onBusy = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down);
 
-        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe("Not removed: the worktree is locked.");
-        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe("Not removed: session fix-the-tests is using it.");
+        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved("the worktree is locked", OfferForce: false));
+        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved("session fix-the-tests is using it", OfferForce: false));
         WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('D'))).Effects.ShouldBeEmpty();
     }
 
@@ -101,9 +101,9 @@ public sealed class WorktreesViewShould
         WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path };
         WorktreesViewState onBusy = Loaded with { SelectedPath = Busy.Path };
 
-        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe("Not removed: the worktree is locked.");
-        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe("Not removed: session fix-the-tests is using it.");
-        WorktreesView.Reduce(Loaded with { SelectedPath = Dirty.Path }, new KeyPressed(Key.Of('d'))).State.Footer.ShouldEndWith("D forces after a typed confirmation.");
+        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved("the worktree is locked", OfferForce: false));
+        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved("session fix-the-tests is using it", OfferForce: false));
+        WorktreesView.Reduce(Loaded with { SelectedPath = Dirty.Path }, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBeOfType<Footer.NotRemoved>().OfferForce.ShouldBeTrue();
     }
 
     [Fact]
@@ -112,7 +112,7 @@ public sealed class WorktreesViewShould
         WorktreesViewState onOrphan = Press(Loaded, Key.Down);
 
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('d'))).Effects.ShouldBe([new RemoveWorktree(Empty, Forced: false)]);
-        WorktreesView.Reduce(onOrphan, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe("Not removed: 12 files that git no longer tracks would be lost. D forces after a typed confirmation.");
+        WorktreesView.Reduce(onOrphan, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved("12 files that git no longer tracks would be lost", OfferForce: true));
         WorktreesView.Reduce(onOrphan, new KeyPressed(Key.Of('D'))).Effects.ShouldBe([new ConfirmForceRemove(Orphan, ConfirmationText: "fix-service-tests")]);
     }
 
@@ -124,7 +124,7 @@ public sealed class WorktreesViewShould
         WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Of('p'))).Effects.ShouldBe([new PruneRepository(Repository)]);
         WorktreesViewUpdate refused = WorktreesView.Reduce(onGone, new KeyPressed(Key.Of('p')));
         refused.Effects.ShouldBeEmpty();
-        refused.State.Footer.ShouldBe("Nothing to prune: the repository Northwind.Retired no longer exists.");
+        refused.State.Footer.ShouldBe(new Footer.NothingToPrune("Northwind.Retired"));
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public sealed class WorktreesViewShould
 
         WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('s'))).Effects.ShouldBe([new StartSessionIn(Clean)]);
         WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenShellTab(Clean)]);
-        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('s'))).State.Footer.ShouldBe("Northwind.Orders.worktrees is a leftover folder, not a worktree.");
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('s'))).State.Footer.ShouldBe(new Footer.LeftoverFolder("Northwind.Orders.worktrees"));
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public sealed class WorktreesViewShould
         WorktreesViewState onBusy = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down);
 
         WorktreesView.Reduce(onBusy, new KeyPressed(Key.Enter)).Effects.ShouldBe([new JumpToSession("sess-fix-3")]);
-        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Enter)).State.Footer.ShouldBe("No session is running in Northwind.Orders-fix-1.");
+        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Enter)).State.Footer.ShouldBe(new Footer.NoSessionIn("Northwind.Orders-fix-1"));
     }
 
     [Fact]
@@ -179,12 +179,12 @@ public sealed class WorktreesViewShould
         WorktreesViewUpdate wrong = WorktreesView.Reduce(onDirty, new ForceConfirmed(Dirty, "fix-2", Typed: "fix-9"));
         WorktreesViewUpdate right = WorktreesView.Reduce(onDirty, new ForceConfirmed(Dirty, "fix-2", Typed: "fix-2"));
 
-        cancelled.State.Footer.ShouldBe("Cancelled; nothing removed.");
-        blank.State.Footer.ShouldBe("Nothing was typed; nothing removed.");
-        wrong.State.Footer.ShouldBe("You typed fix-9, not fix-2; nothing removed.");
+        cancelled.State.Footer.ShouldBe(new Footer.ForceCancelled());
+        blank.State.Footer.ShouldBe(new Footer.NothingTyped());
+        wrong.State.Footer.ShouldBe(new Footer.TypedWrongName("fix-9", "fix-2"));
         cancelled.Effects.Concat(blank.Effects).Concat(wrong.Effects).ShouldBeEmpty();
         right.Effects.ShouldBe([new RemoveWorktree(Dirty, Forced: true)]);
-        right.State.Footer.ShouldBe("Removing Northwind.Orders-fix-2...");
+        right.State.Footer.ShouldBe(new Footer.Working(new RemoveWorktree(Dirty, Forced: true)));
     }
 
     [Fact]
@@ -193,19 +193,19 @@ public sealed class WorktreesViewShould
         WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path };
         WorktreesViewState onClean = Loaded with { SelectedPath = Clean.Path };
 
-        onLocked.FooterText.ShouldBe("Northwind.Orders-locked is locked: another tool is using it.");
-        onClean.FooterText.ShouldBe("d removes only what is safe to remove");
-        (onLocked with { Footer = "Pruning..." }).FooterText.ShouldBe("Pruning...");
+        onLocked.Shown.ShouldBe(new Footer.Unhealthy("Northwind.Orders-locked", WorktreeHealthKind.Locked, "another tool is using it"));
+        onClean.Shown.ShouldBe(new Footer.RemoveHint());
+        (onLocked with { Footer = new Footer.Kept() }).Shown.ShouldBe(new Footer.Kept());
     }
 
     [Fact]
     public void ClearTheLastMessageWhenTheSelectionMovesSoTheNewRowsReasonShows()
     {
-        WorktreesViewState afterDelete = Loaded with { SelectedPath = Clean.Path, Footer = "Deleted the folder Northwind.Orders.worktrees." };
+        WorktreesViewState afterDelete = Loaded with { SelectedPath = Clean.Path, Footer = new Footer.Reported("Deleted the folder Northwind.Orders.worktrees.") };
 
-        Press(afterDelete, Key.Down).Footer.ShouldBe(string.Empty);
-        Press(afterDelete, Key.Up).Footer.ShouldBe(string.Empty);
-        Press(afterDelete, Key.Of('/'), Key.Of('k')).Footer.ShouldBe(string.Empty);
+        Press(afterDelete, Key.Down).Footer.ShouldBe(Footer.None);
+        Press(afterDelete, Key.Up).Footer.ShouldBe(Footer.None);
+        Press(afterDelete, Key.Of('/'), Key.Of('k')).Footer.ShouldBe(Footer.None);
     }
 
     [Fact]
