@@ -39,6 +39,19 @@ public sealed class FolderDeletionShould : IDisposable
         File.GetAttributes(kept).HasFlag(FileAttributes.ReadOnly).ShouldBeTrue();
     }
 
+    [Fact]
+    public async Task RemoveAFolderThatIsItselfAJunction()
+    {
+        string kept = WriteReadOnlyFile(Path.Combine(root, "Northwind.Orders", "src"), "Program.cs");
+        await CreateJunctionAsync(Tree, Path.Combine(root, "Northwind.Orders"));
+
+        FolderDeletion.DeleteTree(Tree);
+
+        Directory.Exists(Tree).ShouldBeFalse();
+        File.Exists(kept).ShouldBeTrue();
+        File.GetAttributes(kept).HasFlag(FileAttributes.ReadOnly).ShouldBeTrue();
+    }
+
     public void Dispose()
     {
         if (!Directory.Exists(root))
