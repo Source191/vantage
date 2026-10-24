@@ -80,15 +80,9 @@ public static partial class Wording
         };
     }
 
-    public static string RenamePrompt(string name)
-    {
-        return $"Rename {name}. The session restarts under the new name and keeps its conversation.";
-    }
+    public static string RenamePrompt(string name) => $"Rename {name}. The session restarts under the new name and keeps its conversation.";
 
-    public static string DeleteSessionQuestion(string name)
-    {
-        return $"Delete {name}?\nIts worktree is removed only when nothing in it would be lost.";
-    }
+    public static string DeleteSessionQuestion(string name) => $"Delete {name}?\nIts worktree is removed only when nothing in it would be lost.";
 
     public static string CloseEmptyQuestion(IReadOnlyList<string> names)
     {

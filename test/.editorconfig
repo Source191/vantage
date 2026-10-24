@@ -1,0 +1,4 @@
+# Test code keeps block-bodied methods; the expression-bodied rule covers src and tools\HeadlessTerminal only.
+[*.cs]
+csharp_style_expression_bodied_methods = false:silent
+dotnet_diagnostic.IDE0022.severity = silent
