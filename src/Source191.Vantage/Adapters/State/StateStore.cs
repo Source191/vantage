@@ -1,14 +1,18 @@
 using Source191.Vantage.Domain;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Source191.Vantage.Adapters.State;
 
 /// <summary>
-/// The only state Vantage owns, under one folder: tab registrations (one file each), recent repositories,
-/// worktrees Vantage created, and session descriptions. A missing or corrupt file reads as empty.
+/// The only state Vantage owns, under one folder: tab registrations, recent repositories and session descriptions
+/// (one file each, so two Vantage processes writing at once cannot lose each other's records), worktrees Vantage
+/// created, and config. A missing or corrupt file reads as empty. The single-file recent.json and sessions.json of
+/// earlier versions are imported once and removed.
 /// </summary>
-public sealed class StateStore(string folder)
+public sealed class StateStore(string folder, TimeProvider clock)
 {
     private const int RecentLimit = 10;
 
@@ -17,30 +21,21 @@ public sealed class StateStore(string folder)
 
     private string TabsFolder => Path.Combine(folder, "tabs");
 
-    private string RecentFile => Path.Combine(folder, "recent.json");
+    private string RecentFolder => Path.Combine(folder, "recent");
+
+    private string DescriptionsFolder => Path.Combine(folder, "descriptions");
+
+    private string LegacyRecentFile => Path.Combine(folder, "recent.json");
+
+    private string LegacySessionsFile => Path.Combine(folder, "sessions.json");
 
     private string CreatedFile => Path.Combine(folder, "created.json");
 
-    private string SessionsFile => Path.Combine(folder, "sessions.json");
+    private string ConfigFile => Path.Combine(folder, "config.json");
 
     public async Task<IReadOnlyList<TabRegistration>> ReadTabsAsync()
     {
-        if (!Directory.Exists(TabsFolder))
-        {
-            return [];
-        }
-
-        List<TabRegistration> registrations = [];
-        foreach (string file in Directory.EnumerateFiles(TabsFolder, "*.json"))
-        {
-            TabRegistration? registration = await ReadJsonAsync<TabRegistration>(file);
-            if (registration is not null)
-            {
-                registrations.Add(registration);
-            }
-        }
-
-        return registrations;
+        return await ReadAllAsync<TabRegistration>(TabsFolder);
     }
 
     public Task WriteTabAsync(TabRegistration registration)
@@ -57,15 +52,17 @@ public sealed class StateStore(string folder)
 
     public async Task<IReadOnlyList<string>> ReadRecentRepositoriesAsync()
     {
-        return await ReadJsonAsync<List<string>>(RecentFile) ?? [];
+        await ImportLegacyRecentAsync();
+        IReadOnlyList<RecentRepository> recent = await ReadAllAsync<RecentRepository>(RecentFolder);
+
+        return [.. recent.OrderByDescending(entry => entry.UsedAt).Take(RecentLimit).Select(entry => entry.Path)];
     }
 
     public async Task RecordRecentRepositoryAsync(string repository)
     {
-        IReadOnlyList<string> existing = await ReadRecentRepositoriesAsync();
-        List<string> updated = [repository, .. existing.Where(path => !string.Equals(path, repository, StringComparison.OrdinalIgnoreCase))];
-
-        await WriteJsonAsync(RecentFile, updated.Take(RecentLimit).ToList());
+        await ImportLegacyRecentAsync();
+        await WriteJsonAsync(RecentFile(repository), new RecentRepository(repository, clock.GetUtcNow()));
+        await TrimRecentAsync();
     }
 
     public async Task<IReadOnlyList<CreatedWorktree>> ReadCreatedWorktreesAsync()
@@ -89,17 +86,16 @@ public sealed class StateStore(string folder)
 
     public async Task<IReadOnlyDictionary<string, string>> ReadDescriptionsAsync()
     {
-        return await ReadJsonAsync<Dictionary<string, string>>(SessionsFile) ?? [];
+        await ImportLegacyDescriptionsAsync();
+        IReadOnlyList<SessionDescription> descriptions = await ReadAllAsync<SessionDescription>(DescriptionsFolder);
+
+        return descriptions.ToDictionary(description => description.SessionId, description => description.Description);
     }
 
     public async Task WriteDescriptionAsync(string sessionId, string description)
     {
-        Dictionary<string, string> descriptions = new(await ReadDescriptionsAsync())
-        {
-            [sessionId] = description,
-        };
-
-        await WriteJsonAsync(SessionsFile, descriptions);
+        await ImportLegacyDescriptionsAsync();
+        await WriteJsonAsync(DescriptionFile(sessionId), new SessionDescription(sessionId, description));
     }
 
     public async Task<VantageConfig> ReadConfigAsync()
@@ -112,11 +108,88 @@ public sealed class StateStore(string folder)
         return WriteJsonAsync(ConfigFile, config);
     }
 
-    private string ConfigFile => Path.Combine(folder, "config.json");
+    private string RecentFile(string repository)
+    {
+        return Path.Combine(RecentFolder, $"{FileKey(repository.ToUpperInvariant())}.json");
+    }
+
+    private string DescriptionFile(string sessionId)
+    {
+        return Path.Combine(DescriptionsFolder, $"{FileKey(sessionId)}.json");
+    }
+
+    /// <summary>The old single list, most recent first, becomes one file each with descending timestamps so the order survives.</summary>
+    private async Task ImportLegacyRecentAsync()
+    {
+        List<string>? legacy = await ReadJsonAsync<List<string>>(LegacyRecentFile);
+        if (legacy is null)
+        {
+            return;
+        }
+
+        DateTimeOffset now = clock.GetUtcNow();
+        foreach ((string repository, int index) in legacy.Select((repository, index) => (repository, index)))
+        {
+            await WriteJsonAsync(RecentFile(repository), new RecentRepository(repository, now.AddSeconds(-index)));
+        }
+
+        File.Delete(LegacyRecentFile);
+    }
+
+    private async Task ImportLegacyDescriptionsAsync()
+    {
+        Dictionary<string, string>? legacy = await ReadJsonAsync<Dictionary<string, string>>(LegacySessionsFile);
+        if (legacy is null)
+        {
+            return;
+        }
+
+        foreach ((string sessionId, string description) in legacy)
+        {
+            await WriteJsonAsync(DescriptionFile(sessionId), new SessionDescription(sessionId, description));
+        }
+
+        File.Delete(LegacySessionsFile);
+    }
+
+    private async Task TrimRecentAsync()
+    {
+        IReadOnlyList<RecentRepository> recent = await ReadAllAsync<RecentRepository>(RecentFolder);
+        foreach (RecentRepository stale in recent.OrderByDescending(entry => entry.UsedAt).Skip(RecentLimit))
+        {
+            File.Delete(RecentFile(stale.Path));
+        }
+    }
+
+    private static string FileKey(string text)
+    {
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text)))[..16].ToLowerInvariant();
+    }
 
     private static bool SamePath(string left, string right)
     {
         return string.Equals(left, right, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static async Task<IReadOnlyList<T>> ReadAllAsync<T>(string directory)
+        where T : class
+    {
+        if (!Directory.Exists(directory))
+        {
+            return [];
+        }
+
+        List<T> items = [];
+        foreach (string file in Directory.EnumerateFiles(directory, "*.json"))
+        {
+            T? item = await ReadJsonAsync<T>(file);
+            if (item is not null)
+            {
+                items.Add(item);
+            }
+        }
+
+        return items;
     }
 
     private static async Task<T?> ReadJsonAsync<T>(string file)
@@ -145,4 +218,8 @@ public sealed class StateStore(string folder)
         await using FileStream stream = File.Create(file);
         await JsonSerializer.SerializeAsync(stream, value, Options);
     }
+
+    private sealed record RecentRepository(string Path, DateTimeOffset UsedAt);
+
+    private sealed record SessionDescription(string SessionId, string Description);
 }

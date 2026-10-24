@@ -34,7 +34,7 @@ public sealed class LaunchWorkflowShould : IDisposable
     {
         get
         {
-            StateStore store = new(stateFolder);
+            StateStore store = new(stateFolder, TimeProvider.System);
             GitCli git = new(processes);
             FakeTimeProvider clock = new(Noon);
             LaunchService service = new(new ClaudeCli(processes, Claude), git, store, new WorktreeIncludeCopier(git), clock);

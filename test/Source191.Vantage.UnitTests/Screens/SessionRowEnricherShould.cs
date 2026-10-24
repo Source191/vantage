@@ -19,7 +19,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
     private readonly FakeTranscripts transcripts = new();
 
-    private SessionRowEnricher Enricher => new(new GitCli(processes), new StateStore(stateFolder), registry, clock, transcripts);
+    private SessionRowEnricher Enricher => new(new GitCli(processes), new StateStore(stateFolder, clock), registry, clock, transcripts);
 
     [Fact]
     public async Task SayWhetherASessionHasATranscriptToResumeFrom()
@@ -76,7 +76,7 @@ public sealed class SessionRowEnricherShould : IDisposable
     public async Task AttachTheStoredDescription()
     {
         Session session = Session(@"C:\repos\Northwind.Orders");
-        await new StateStore(stateFolder).WriteDescriptionAsync(session.SessionId, "Replace the hook");
+        await new StateStore(stateFolder, clock).WriteDescriptionAsync(session.SessionId, "Replace the hook");
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
@@ -89,14 +89,14 @@ public sealed class SessionRowEnricherShould : IDisposable
         Session session = Session(@"C:\repos\Northwind.Orders");
         TabRegistration live = TabRegistration.Pending(session.SessionId, TabPalette.Default[0], Noon.AddMinutes(-5)).ClaimedBy(7001, Noon.AddMinutes(-5));
         TabRegistration stale = TabRegistration.Pending(session.SessionId, TabPalette.Default[1], Noon.AddHours(-1));
-        await new StateStore(stateFolder).WriteTabAsync(live);
-        await new StateStore(stateFolder).WriteTabAsync(stale);
+        await new StateStore(stateFolder, clock).WriteTabAsync(live);
+        await new StateStore(stateFolder, clock).WriteTabAsync(stale);
         registry.Running(7001, Noon.AddMinutes(-5));
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         row.HasLiveTab.ShouldBeTrue();
-        (await new StateStore(stateFolder).ReadTabsAsync()).Count.ShouldBe(1, "the stale registration is removed on read");
+        (await new StateStore(stateFolder, clock).ReadTabsAsync()).Count.ShouldBe(1, "the stale registration is removed on read");
     }
 
     [Fact]

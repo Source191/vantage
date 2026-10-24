@@ -19,7 +19,7 @@ public sealed class TabOpenerShould : IDisposable
     private readonly FakeWindowsTerminal terminal = new();
     private readonly FakeProcessRegistry registry = new();
 
-    private StateStore Store => new(stateFolder);
+    private StateStore Store => new(stateFolder, TimeProvider.System);
 
     private TabOpener Opener => new(Store, registry, terminal, new FakeTimeProvider(Noon), Claude, Vantage);
 

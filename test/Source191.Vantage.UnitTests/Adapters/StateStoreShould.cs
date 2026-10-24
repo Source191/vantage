@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Domain;
 
@@ -8,8 +9,9 @@ public sealed class StateStoreShould : IDisposable
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
     private readonly string folder = Path.Combine(Path.GetTempPath(), "vantage-state-" + Guid.NewGuid().ToString("N"));
+    private readonly FakeTimeProvider clock = new(Noon);
 
-    private StateStore Store => new(folder);
+    private StateStore Store => new(folder, clock);
 
     [Fact]
     public async Task StartEmptyWhenTheFolderDoesNotExist()
@@ -56,10 +58,12 @@ public sealed class StateStoreShould : IDisposable
     public async Task KeepRecentRepositoriesMostRecentFirstWithoutDuplicates()
     {
         await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+        clock.Advance(TimeSpan.FromSeconds(1));
         await Store.RecordRecentRepositoryAsync(@"C:\repos\B");
-        await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+        clock.Advance(TimeSpan.FromSeconds(1));
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\a");
 
-        (await Store.ReadRecentRepositoriesAsync()).ShouldBe([@"C:\repos\A", @"C:\repos\B"]);
+        (await Store.ReadRecentRepositoriesAsync()).ShouldBe([@"C:\repos\a", @"C:\repos\B"]);
     }
 
     [Fact]
@@ -67,6 +71,7 @@ public sealed class StateStoreShould : IDisposable
     {
         foreach (int index in Enumerable.Range(1, 12))
         {
+            clock.Advance(TimeSpan.FromSeconds(1));
             await Store.RecordRecentRepositoryAsync($@"C:\repos\R{index}");
         }
 
@@ -74,6 +79,49 @@ public sealed class StateStoreShould : IDisposable
 
         recent.Count.ShouldBe(10);
         recent[0].ShouldBe(@"C:\repos\R12");
+        Directory.EnumerateFiles(Path.Combine(folder, "recent")).Count().ShouldBe(10, "the two oldest records are deleted");
+    }
+
+    [Fact]
+    public async Task KeepRecentRepositoriesWrittenByTwoWriters()
+    {
+        StateStore console = Store;
+        StateStore here = new(folder, new FakeTimeProvider(Noon.AddSeconds(1)));
+
+        await Task.WhenAll(console.RecordRecentRepositoryAsync(@"C:\repos\A"), here.RecordRecentRepositoryAsync(@"C:\repos\B"));
+
+        (await Store.ReadRecentRepositoriesAsync()).ShouldBe([@"C:\repos\B", @"C:\repos\A"]);
+    }
+
+    [Fact]
+    public async Task KeepDescriptionsWrittenByTwoWriters()
+    {
+        StateStore console = Store;
+        StateStore here = Store;
+
+        await Task.WhenAll(console.WriteDescriptionAsync("session-1", "Replace the login page"), here.WriteDescriptionAsync("session-2", "Spike"));
+
+        IReadOnlyDictionary<string, string> descriptions = await Store.ReadDescriptionsAsync();
+        descriptions.Count.ShouldBe(2);
+        descriptions["session-1"].ShouldBe("Replace the login page");
+        descriptions["session-2"].ShouldBe("Spike");
+    }
+
+    [Fact]
+    public async Task ImportLegacyRecentAndSessionsFiles()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "recent.json"), """["C:\\repos\\Newest", "C:\\repos\\Older"]""", TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(folder, "sessions.json"), """{ "session-1": "Replace the login page" }""", TestContext.Current.CancellationToken);
+
+        IReadOnlyList<string> recent = await Store.ReadRecentRepositoriesAsync();
+        IReadOnlyDictionary<string, string> descriptions = await Store.ReadDescriptionsAsync();
+
+        recent.ShouldBe([@"C:\repos\Newest", @"C:\repos\Older"]);
+        descriptions.Count.ShouldBe(1);
+        descriptions["session-1"].ShouldBe("Replace the login page");
+        File.Exists(Path.Combine(folder, "recent.json")).ShouldBeFalse();
+        File.Exists(Path.Combine(folder, "sessions.json")).ShouldBeFalse();
     }
 
     [Fact]

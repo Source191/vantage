@@ -25,7 +25,7 @@ public sealed class LaunchServiceShould : IDisposable
         .Answer(request => request.FileName == Claude && request.Arguments.Contains("agents"), new ProcessResult(0, Listing, string.Empty))
         .Answer(request => request.FileName == "git" && request.Arguments.Contains("symbolic-ref"), new ProcessResult(0, "origin/main\n", string.Empty));
 
-    private StateStore Store => new(stateFolder);
+    private StateStore Store => new(stateFolder, TimeProvider.System);
 
     private LaunchService Service
     {

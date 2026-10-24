@@ -13,7 +13,7 @@ using Source191.Vantage.Screens.Tui;
 
 // Composition root. Everything here is wiring; behaviour lives in the tested classes it assembles.
 string stateFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vantage");
-StateStore store = new(stateFolder);
+StateStore store = new(stateFolder, TimeProvider.System);
 
 // VANTAGE_LOG=<file> turns on a diagnostic log of Vantage's hand-offs and Terminal.Gui's internals.
 ILogger log = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;

@@ -233,12 +233,12 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 | File or folder | Contents |
 | --- | --- |
 | `config.json` | `repositoryRoots` (default `~\source\repos`) and `defaultBase` (`RemoteDefault` or `Head`) |
-| `sessions.json` | Session id to description |
-| `recent.json` | Recently used repositories, shown first in the wizard |
+| `descriptions\` | One file per session description |
+| `recent\` | One file per recently used repository, with when it was last used; the ten most recent are shown first in the wizard |
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
 | `tabs\` | One file per tab Vantage opened, so a second `o` switches to the tab instead of opening another |
 
-A missing or corrupt file is treated as empty. Sessions themselves belong to Claude Code (`claude agents --json`), never to Vantage.
+A missing or corrupt file is treated as empty. Descriptions and recent repositories are one file each so that `vantage here` and the console can record at the same time without losing a write; the `sessions.json` and `recent.json` files of versions before 0.3.0 are imported once and removed. Sessions themselves belong to Claude Code (`claude agents --json`), never to Vantage.
 
 To scan more than one roots folder, edit `config.json`:
 
