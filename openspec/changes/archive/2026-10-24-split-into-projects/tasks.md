@@ -28,7 +28,7 @@
 
 ## 6. Pipeline and documentation
 
-- [ ] 6.1 Update `.github\workflows\check.yml` and `.github\actions\build-test-pack\action.yml` to test at the solution and pack `src\Source191.Vantage`; verify a pull-request run is green
+- [x] 6.1 Update `.github\workflows\check.yml` and `.github\actions\build-test-pack\action.yml` to test at the solution and pack `src\Source191.Vantage`; verify a pull-request run is green
 - [x] 6.2 Update `tools\install-local.ps1`, CLAUDE.md (test loop, Stryker invocation, project map) and the README developer and CI sections; verify every command in them runs as written
 - [x] 6.3 Update `openspec\config.yaml` context with the project names in one sentence; verify `openspec validate` passes for every open change
 
