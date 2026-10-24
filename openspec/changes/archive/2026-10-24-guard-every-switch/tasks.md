@@ -34,3 +34,4 @@
 
 - One pull request for the whole change; archive the change in it.
 - If task 4.1 finds a `busy` pairing that should read as working, the follow-up change modifies the `session-listing` spec and the mapping wherever it lives when it lands (`Domain\DisplayState.From` today, `Adapters\Claude\ClaudeStates` after `consolidate-helpers`).
+- Archived on 2026-10-24 with 3.3 (the manual dialog pass) and 4.1 (the busy pairing observation) outstanding: both need a terminal and run against the released 0.4.3; a busy pairing with done, blocked or failed becomes a change against session-listing.
