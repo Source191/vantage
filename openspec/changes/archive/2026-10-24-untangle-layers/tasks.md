@@ -31,16 +31,16 @@
 
 ## 5. Program becomes wiring
 
-- [ ] 5.1 `CommandLineShould.ParseConsoleHereClaimTabAndUsage`: the four argument shapes parse to the four records, including the `claim-tab` Guid and pid validation; implement `CommandLine.Parse`
-- [ ] 5.2 `HereCommandRunnerShould.StartAttachAndReturnTheExitCodes`: trusted start returns 0 after attach, untrusted returns 1 with the trust message, bad arguments return 2 with usage, all against `FakeProcessRunner`; implement `HereCommandRunner`
-- [ ] 5.3 `ScreenLoopShould.AlternateScreensAndRunTerminalEffects` and `LabelTheOwnTabAtStartAfterHandOffsAndClearItOnQuit`: scripted `ISessionsScreen` and `IWorktreesScreen` doubles drive quit, switch both ways, jump to a session (as a `SelectSession` input) and an attach hand-off, with a `FakeOwnTabLabel` recording show and clear calls; define `IOwnTabLabel` in `Ports` with its `TabEscapes` implementation in `Adapters\Terminal`; implement `ScreenLoop` and make `SessionsScreen` and `WorktreesScreen` implement the two interfaces
-- [ ] 5.4 Reduce `Program.cs` to construction and three calls; verify `dotnet build`, tests, `dotnet format --verify-no-changes` and `dotnet run --project tools\HeadlessTerminal -- check` pass
+- [x] 5.1 `CommandLineShould.ParseConsoleHereClaimTabAndUsage`: the four argument shapes parse to the four records, including the `claim-tab` Guid and pid validation; implement `CommandLine.Parse`
+- [x] 5.2 `HereCommandRunnerShould.StartAttachAndReturnTheExitCodes`: trusted start returns 0 after attach, untrusted returns 1 with the trust message, bad arguments return 2 with usage, all against `FakeProcessRunner`; implement `HereCommandRunner`
+- [x] 5.3 `ScreenLoopShould.AlternateScreensAndRunTerminalEffects` and `LabelTheOwnTabAtStartAfterHandOffsAndClearItOnQuit`: scripted `ISessionsScreen` and `IWorktreesScreen` doubles drive quit, switch both ways, jump to a session (as a `SelectSession` input) and an attach hand-off, with a `FakeOwnTabLabel` recording show and clear calls; define `IOwnTabLabel` in `Ports` with its `TabEscapes` implementation in `Adapters\Terminal`; implement `ScreenLoop` and make `SessionsScreen` and `WorktreesScreen` implement the two interfaces
+- [x] 5.4 Reduce `Program.cs` to construction and three calls; verify `dotnet build`, tests, `dotnet format --verify-no-changes` and `dotnet run --project tools\HeadlessTerminal -- check` pass
 
 ## 6. Housekeeping
 
-- [ ] 6.1 Remove NSubstitute and NSubstitute.Analyzers.CSharp from the test project; add Microsoft.Extensions.Logging.Abstractions to the tool project; verify `dotnet build -c Release` passes with no new warnings
-- [ ] 6.2 Update `openspec\config.yaml` context (test packages; add the layering rule in one sentence) and CLAUDE.md (OpenSpec rule, namespace map, architecture test in the test loop); verify `openspec validate` passes for every open change
-- [ ] 6.3 Update the README developer section with the namespace map; verify the described commands run as written
+- [x] 6.1 Remove NSubstitute and NSubstitute.Analyzers.CSharp from the test project; add Microsoft.Extensions.Logging.Abstractions to the tool project; verify `dotnet build -c Release` passes with no new warnings
+- [x] 6.2 Update `openspec\config.yaml` context (test packages; add the layering rule in one sentence) and CLAUDE.md (OpenSpec rule, namespace map, architecture test in the test loop); verify `openspec validate` passes for every open change
+- [x] 6.3 Update the README developer section with the namespace map; verify the described commands run as written
 
 ## Workflow follow-up
 
