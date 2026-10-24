@@ -8,10 +8,7 @@ public sealed class ClaudeJobs
 {
     private readonly string claude = Locate();
 
-    public async Task StartAsync(string repository, string name, string prompt)
-    {
-        await RunAsync(repository, "--bg", "-n", name, prompt);
-    }
+    public async Task StartAsync(string repository, string name, string prompt) => await RunAsync(repository, "--bg", "-n", name, prompt);
 
     public async Task<string?> FindJobIdAsync(string repository, string name)
     {

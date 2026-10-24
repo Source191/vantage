@@ -14,13 +14,7 @@ public sealed class TerminalConsole(TextWriter console) : ITerminalConsole
         ConsoleRecovery.WriteSequence(console, label);
     }
 
-    public void ClearOwnTab()
-    {
-        ConsoleRecovery.WriteSequence(console, TabEscapes.ClearTitle + TabEscapes.ResetBackground);
-    }
+    public void ClearOwnTab() => ConsoleRecovery.WriteSequence(console, TabEscapes.ClearTitle + TabEscapes.ResetBackground);
 
-    public void RecoverAfterChild()
-    {
-        ConsoleRecovery.AfterChildProcess(console);
-    }
+    public void RecoverAfterChild() => ConsoleRecovery.AfterChildProcess(console);
 }

@@ -39,8 +39,5 @@ public sealed class RepositoryCatalogue(IFolders folders, IReadOnlyList<string> 
         return folders.DirectoryExists(git) || folders.FileExists(git);
     }
 
-    private static bool SamePath(string left, string right)
-    {
-        return string.Equals(left.TrimEnd('\\', '/'), right.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase);
-    }
+    private static bool SamePath(string left, string right) => string.Equals(left.TrimEnd('\\', '/'), right.TrimEnd('\\', '/'), StringComparison.OrdinalIgnoreCase);
 }

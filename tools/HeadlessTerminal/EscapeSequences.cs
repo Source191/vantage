@@ -5,10 +5,7 @@ namespace Source191.Vantage.HeadlessTerminal;
 /// <summary>Strips CSI, OSC and DCS sequences from a capture so plain text can be searched.</summary>
 public static partial class EscapeSequences
 {
-    public static string Strip(string raw)
-    {
-        return OscOrDcs().Replace(Csi().Replace(raw, string.Empty), string.Empty);
-    }
+    public static string Strip(string raw) => OscOrDcs().Replace(Csi().Replace(raw, string.Empty), string.Empty);
 
     [GeneratedRegex(@"\x1b\[[0-9;?<>=]*[A-Za-z_@`]")]
     private static partial Regex Csi();

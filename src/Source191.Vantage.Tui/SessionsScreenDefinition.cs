@@ -48,10 +48,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
         };
     }
 
-    public Color RowColour(SessionRow row)
-    {
-        return Palette.ForState(row.Session.State.Kind);
-    }
+    public Color RowColour(SessionRow row) => Palette.ForState(row.Session.State.Kind);
 
     /// <summary>The sessions line (48 columns at most, so it never wraps into the "Need input" row) and the needs-input count.</summary>
     public string ContextLines(SessionsViewState state)
@@ -68,10 +65,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
         return $"{fitted}\n{state.NeedsInputCount}";
     }
 
-    public SessionsViewState WithFooter(SessionsViewState state, Footer footer)
-    {
-        return state with { Footer = footer };
-    }
+    public SessionsViewState WithFooter(SessionsViewState state, Footer footer) => state with { Footer = footer };
 
     public (SessionsViewState State, IReadOnlyList<ViewEffect> Effects) Reduce(SessionsViewState state, ViewInput input)
     {

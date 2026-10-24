@@ -105,30 +105,15 @@ internal sealed class TableScreen<TState, TRow>(
             Apply(new KeyPressed(mapped));
         }
 
-        public void Reduce(ViewInput input)
-        {
-            Apply(input);
-        }
+        public void Reduce(ViewInput input) => Apply(input);
 
-        public void Redraw()
-        {
-            live.Redraw(State, screen.clock.GetUtcNow());
-        }
+        public void Redraw() => live.Redraw(State, screen.clock.GetUtcNow());
 
-        public void ShowFooter(Footer footer)
-        {
-            State = screen.definition.WithFooter(State, footer);
-        }
+        public void ShowFooter(Footer footer) => State = screen.definition.WithFooter(State, footer);
 
-        public void Dispatch(ViewEffect effect)
-        {
-            Dispatch(effect, outcome => new Footer.Reported(outcome));
-        }
+        public void Dispatch(ViewEffect effect) => Dispatch(effect, outcome => new Footer.Reported(outcome));
 
-        public void Dispatch(ViewEffect effect, Func<Outcome, Footer> onUiThread)
-        {
-            RunInBackground(new Footer.Working(effect), token => screen.dispatcher.DispatchAsync(effect, token), onUiThread);
-        }
+        public void Dispatch(ViewEffect effect, Func<Outcome, Footer> onUiThread) => RunInBackground(new Footer.Working(effect), token => screen.dispatcher.DispatchAsync(effect, token), onUiThread);
 
         public void RunInBackground<T>(Footer working, Func<CancellationToken, Task<T>> action, Func<T, Footer> onUiThread)
         {
@@ -248,10 +233,7 @@ internal sealed class TableScreen<TState, TRow>(
         public Window Window { get; }
 
         /// <summary>The footer spinner: on while an action runs off the UI thread, off once its outcome is shown.</summary>
-        public void ShowBusy(bool working)
-        {
-            busy.Show(working);
-        }
+        public void ShowBusy(bool working) => busy.Show(working);
 
         public void Redraw(TState state, DateTimeOffset now)
         {
@@ -272,10 +254,7 @@ internal sealed class TableScreen<TState, TRow>(
             Window.SetNeedsDraw();
         }
 
-        public void Dispose()
-        {
-            Window.Dispose();
-        }
+        public void Dispose() => Window.Dispose();
 
         private Scheme? RowColour(RowColorGetterArgs args)
         {

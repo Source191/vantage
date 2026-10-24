@@ -24,10 +24,7 @@ public sealed class TerminalQueries(int xtversionDelayMs)
         (Query(@"\x1b\]11;\?(\x07|\x1b\\)"), "\x1b]11;rgb:0c0c/0c0c/0c0c\x1b\\"),
     ];
 
-    private static Regex Query(string pattern)
-    {
-        return new Regex(pattern, RegexOptions.None, MatchTimeout);
-    }
+    private static Regex Query(string pattern) => new Regex(pattern, RegexOptions.None, MatchTimeout);
 
     public IReadOnlyList<TerminalReply> RepliesTo(string output)
     {

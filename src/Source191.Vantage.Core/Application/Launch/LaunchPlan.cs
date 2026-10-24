@@ -68,13 +68,7 @@ public static class LaunchPlanBuilder
         return Ok(new LaunchPlan(worktree.Path, name, description, worktree, reuse, request.Base, prompt, request.Repository));
     }
 
-    private static LaunchPlanResult Ok(LaunchPlan plan)
-    {
-        return new LaunchPlanResult(plan, Problem: null);
-    }
+    private static LaunchPlanResult Ok(LaunchPlan plan) => new LaunchPlanResult(plan, Problem: null);
 
-    private static bool Blank(string text)
-    {
-        return string.IsNullOrWhiteSpace(text);
-    }
+    private static bool Blank(string text) => string.IsNullOrWhiteSpace(text);
 }

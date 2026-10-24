@@ -189,8 +189,5 @@ public sealed class ScreenReplay(int columns, int rows)
         }
     }
 
-    private static bool IsFinal(char ch)
-    {
-        return char.IsAsciiLetter(ch) || ch is '_' or '@' or '`';
-    }
+    private static bool IsFinal(char ch) => char.IsAsciiLetter(ch) || ch is '_' or '@' or '`';
 }
