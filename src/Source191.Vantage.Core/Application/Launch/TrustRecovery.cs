@@ -12,8 +12,10 @@ public static class TrustRecovery
     public static TabLaunch TabFor(string directory, string claudeExecutable)
     {
         string name = new RepositoryPath(directory).Name;
+        // The folder name is user text, so the whole message is one quoted value, never script source.
+        string message = PowerShellScript.Quote($"Vantage: accept the trust prompt for {name}, then exit Claude and press n in Vantage to retry.");
         string script = string.Join('\n',
-            $"Write-Host 'Vantage: accept the trust prompt for {name}, then exit Claude and press n in Vantage to retry.' -ForegroundColor Cyan",
+            $"Write-Host {message} -ForegroundColor Cyan",
             PowerShellScript.Invoke(claudeExecutable, []));
 
         return new TabLaunch($"Trust {name}", TabPalette.Default[2], directory, script);
