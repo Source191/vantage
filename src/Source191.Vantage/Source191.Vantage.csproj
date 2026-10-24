@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- The vantage tool: Program.cs wires Core, Infrastructure and Tui together. Packing includes the three referenced projects. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -10,7 +11,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vantage</ToolCommandName>
     <PackageId>Source191.Vantage</PackageId>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
     <Authors>Simon Vane</Authors>
     <Description>A terminal console for Claude Code sessions and git worktrees on Windows.</Description>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\packages</PackageOutputPath>
@@ -18,14 +19,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Source191.Vantage.UnitTests" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Interop.UIAutomationClient" Version="10.19041.0" />
-    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.13" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.13" />
-    <PackageReference Include="Terminal.Gui" Version="2.5.0" />
+    <ProjectReference Include="..\Source191.Vantage.Core\Source191.Vantage.Core.csproj" />
+    <ProjectReference Include="..\Source191.Vantage.Infrastructure\Source191.Vantage.Infrastructure.csproj" />
+    <ProjectReference Include="..\Source191.Vantage.Tui\Source191.Vantage.Tui.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,28 +1,17 @@
 <Solution>
-  <Folder Name="/Solution Items/">
-    <File Path=".editorconfig" />
-    <File Path=".gitattributes" />
-    <File Path=".gitignore" />
-    <File Path="CLAUDE.md" />
-    <File Path="Directory.Build.props" />
-    <File Path="global.json" />
-    <File Path="LICENSE" />
-    <File Path="nuget.config" />
-    <File Path="README.md" />
-  </Folder>
-  <Folder Name="/pipelines/">
-    <File Path=".github/actions/build-test-pack/action.yml" />
-    <File Path=".github/workflows/check.yml" />
-    <File Path=".github/workflows/release.yml" />
-  </Folder>
   <Folder Name="/src/">
+    <Project Path="src/Source191.Vantage.Core/Source191.Vantage.Core.csproj" />
+    <Project Path="src/Source191.Vantage.Infrastructure/Source191.Vantage.Infrastructure.csproj" />
+    <Project Path="src/Source191.Vantage.Tui/Source191.Vantage.Tui.csproj" />
     <Project Path="src/Source191.Vantage/Source191.Vantage.csproj" />
   </Folder>
   <Folder Name="/test/">
-    <Project Path="test/Source191.Vantage.UnitTests/Source191.Vantage.UnitTests.csproj" />
+    <Project Path="test/Source191.Vantage.TestDoubles/Source191.Vantage.TestDoubles.csproj" />
+    <Project Path="test/Source191.Vantage.Core.Tests/Source191.Vantage.Core.Tests.csproj" />
+    <Project Path="test/Source191.Vantage.Infrastructure.Tests/Source191.Vantage.Infrastructure.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">
-    <File Path="tools/install-local.ps1" />
     <Project Path="tools/HeadlessTerminal/HeadlessTerminal.csproj" />
+    <Project Path="tools/HeadlessTerminal.Tests/HeadlessTerminal.Tests.csproj" />
   </Folder>
 </Solution>
