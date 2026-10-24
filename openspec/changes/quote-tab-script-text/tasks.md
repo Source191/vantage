@@ -7,7 +7,7 @@
 
 ## 2. The trust tab
 
-- [ ] 2.1 `TrustRecoveryShould.KeepAFolderNameWithAnApostropheInsideTheMessage`: the trust tab for `C:\repos\Bob's tools` has a `Write-Host` line whose argument is `Quote` of the whole message (red first); build the line through `Quote`; verify the test and the existing trust tests pass
+- [x] 2.1 `TrustRecoveryShould.KeepAFolderNameWithAnApostropheInsideTheMessage`: the trust tab for `C:\repos\Bob's tools` has a `Write-Host` line whose argument is `Quote` of the whole message (red first); build the line through `Quote`; verify the test and the existing trust tests pass
 
 ## 3. Documentation
 
