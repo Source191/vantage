@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.Drawing;
@@ -27,14 +28,7 @@ internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesVie
 
     public string KeyNames2 => "Sessions\nSessions\nFilter\nHelp\nQuit";
 
-    public string HelpText => """
-        d      remove (refused when work would be lost)   D  force remove after typing the branch or folder name
-        p      prune stale registrations in its repository
-        s      start a session in this worktree            o  open a PowerShell tab there
-        Enter  go to the session running in it             w or Esc  back to sessions
-        /      filter    ?  help    q  quit
-        Health: ok, locked (by another tool), orphan (folder git forgot), broken (registration or owner gone), empty (leftover folder)
-        """;
+    public string HelpText => Wording.WorktreesHelp;
 
     public IReadOnlyList<string> ColumnNames => Columns;
 
@@ -78,12 +72,7 @@ internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesVie
         return $"{summary}\n{dirty} with changes, {unpushed} with unpushed commits";
     }
 
-    public string FooterText(WorktreesViewState state)
-    {
-        return state.FooterText;
-    }
-
-    public WorktreesViewState WithFooter(WorktreesViewState state, string footer)
+    public WorktreesViewState WithFooter(WorktreesViewState state, Footer footer)
     {
         return state with { Footer = footer };
     }

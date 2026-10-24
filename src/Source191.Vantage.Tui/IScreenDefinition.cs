@@ -45,9 +45,7 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>The fourth and fifth header lines, newline separated: counts drawn from the state.</summary>
     string ContextLines(TState state);
 
-    string FooterText(TState state);
-
-    TState WithFooter(TState state, string footer);
+    TState WithFooter(TState state, Footer footer);
 
     (TState State, IReadOnlyList<ViewEffect> Effects) Reduce(TState state, ViewInput input);
 
@@ -63,7 +61,7 @@ internal interface IEffectContext
     /// <summary>The screen's key help, for the help dialog.</summary>
     string HelpText { get; }
 
-    void ShowFooter(string footer);
+    void ShowFooter(Footer footer);
 
     /// <summary>Feeds a follow-up input (a dialog's answer) back through the reducer.</summary>
     void Reduce(ViewInput input);
@@ -72,8 +70,8 @@ internal interface IEffectContext
     void Dispatch(ViewEffect effect);
 
     /// <summary>As above, with a continuation on the UI thread that turns the handler's answer into the footer.</summary>
-    void Dispatch(ViewEffect effect, Func<string, string> onUiThread);
+    void Dispatch(ViewEffect effect, Func<string, Footer> onUiThread);
 
     /// <summary>Runs work that is not a dispatched effect (its outcome needs a question) with a continuation on the UI thread.</summary>
-    void RunInBackground<T>(string working, Func<CancellationToken, Task<T>> action, Func<T, string> onUiThread);
+    void RunInBackground<T>(Footer working, Func<CancellationToken, Task<T>> action, Func<T, Footer> onUiThread);
 }

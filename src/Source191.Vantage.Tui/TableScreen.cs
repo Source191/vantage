@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Terminal.Gui.App;
@@ -114,22 +115,22 @@ internal sealed class TableScreen<TState, TRow>(
             live.Redraw(State, screen.clock.GetUtcNow());
         }
 
-        public void ShowFooter(string footer)
+        public void ShowFooter(Footer footer)
         {
             State = screen.definition.WithFooter(State, footer);
         }
 
         public void Dispatch(ViewEffect effect)
         {
-            Dispatch(effect, footer => footer);
+            Dispatch(effect, said => new Footer.Reported(said));
         }
 
-        public void Dispatch(ViewEffect effect, Func<string, string> onUiThread)
+        public void Dispatch(ViewEffect effect, Func<string, Footer> onUiThread)
         {
-            RunInBackground(WorkingText.For(effect), token => screen.dispatcher.DispatchAsync(effect, token), onUiThread);
+            RunInBackground(new Footer.Working(effect), token => screen.dispatcher.DispatchAsync(effect, token), onUiThread);
         }
 
-        public void RunInBackground<T>(string working, Func<CancellationToken, Task<T>> action, Func<T, string> onUiThread)
+        public void RunInBackground<T>(Footer working, Func<CancellationToken, Task<T>> action, Func<T, Footer> onUiThread)
         {
             State = screen.definition.WithFooter(State, working);
             Redraw();
@@ -137,14 +138,14 @@ internal sealed class TableScreen<TState, TRow>(
             Task.Run(async () =>
             {
                 T? result = default;
-                string? failure = null;
+                Footer? failure = null;
                 try
                 {
                     result = await action(CancellationToken.None);
                 }
                 catch (Exception exception)
                 {
-                    failure = $"Failed: {exception.Message}";
+                    failure = new Footer.Failed(exception.Message);
                 }
 
                 app.Invoke(() =>
@@ -260,7 +261,7 @@ internal sealed class TableScreen<TState, TRow>(
             contextValues.Text = $"{context}\n{definition.ContextLines(state)}";
             title.Text = state.List.FilterEditing ? $"{state.Title}  filter: {state.List.Filter.Text}_" : state.Title;
             banner.Text = state.Banner is null ? string.Empty : $"  {definition.LoadFailurePrefix}: {state.Banner}";
-            footer.Text = definition.FooterText(state);
+            footer.Text = Wording.Describe(state.Shown);
             if (rows.Count > 0)
             {
                 int index = selected is null ? 0 : Math.Max(rows.ToList().IndexOf(selected), 0);

@@ -106,7 +106,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | n | New session wizard |
 | r | Rename the session from Vantage: type the new name, Enter. The session restarts under the new name with the same id and conversation, so it is refused while the session is working or before its first message |
 | x | Stop the session (it stays listed and can be resumed) |
-| d | Delete the session; offers to remove a worktree Vantage created for it when that is safe. On a `terminal` row that has never been sent a message, closes that tab instead |
+| d | Delete the session, after a confirmation, and the worktree Vantage created for it when nothing in it would be lost; asks before deleting that worktree's branch when it is not merged. On a `terminal` row that has never been sent a message, closes that tab instead |
 | C | Close every tab whose plain `claude` has never been sent a message, after a confirmation naming them |
 | b | Move a plain terminal session under Vantage's supervision (its tab becomes an ordinary shell) |
 | R | Resume sessions that stopped with a reboot |
@@ -183,7 +183,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | w, Esc | Back to the sessions view (Esc clears a filter first) |
 | / | Filter by repository, folder, branch or health |
 
-Branches: when a removed worktree's branch was created by Vantage and is merged, the branch is deleted too; when Vantage created it but it is not merged, it is kept; when you created the branch by hand, Vantage asks before deleting it.
+Branches: when a removed worktree's branch was created by Vantage and is merged, the branch is deleted too; when Vantage created it but it is not merged, or you created it by hand, Vantage asks before deleting it.
 
 ## vantage here
 

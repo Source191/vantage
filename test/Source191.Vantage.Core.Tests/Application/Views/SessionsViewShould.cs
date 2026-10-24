@@ -153,7 +153,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(onInteractive, new KeyPressed(Key.Enter));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe("repos-93 runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there.");
+        update.State.Footer.ShouldBe(new Footer.RunsInOwnTerminal("repos-93", HasTranscript: true));
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('b')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe("busy-terminal is working; wait until it is idle or needs input, so nothing in flight is lost.");
+        update.State.Footer.ShouldBe(new Footer.WorkingSoAdoptWaits("busy-terminal"));
     }
 
     [Fact]
@@ -184,7 +184,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('b')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe("change-feed already runs in the background under Vantage.");
+        update.State.Footer.ShouldBe(new Footer.AlreadyUnderVantage("change-feed"));
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public sealed class SessionsViewShould
             ViewUpdate update = SessionsView.Reduce(withStub, new KeyPressed(key));
 
             update.Effects.ShouldBeEmpty();
-            update.State.Footer.ShouldBe("repos-f6 has nothing to resume: it was never sent a message. d deletes it.");
+            update.State.Footer.ShouldBe(new Footer.NeverSentAMessage("repos-f6"));
         }
 
         SessionsView.Reduce(withStub, new KeyPressed(Key.Of('d'))).Effects.ShouldBe([new DeleteSession(stub)]);
@@ -214,7 +214,7 @@ public sealed class SessionsViewShould
         ViewUpdate closed = SessionsView.Reduce(onUntouched, new KeyPressed(Key.Of('d')));
 
         enter.Effects.ShouldBeEmpty();
-        enter.State.Footer.ShouldBe("repos-f6 runs in its own terminal and has no messages yet. d closes its tab, C closes every such tab, or send it something there and press b.");
+        enter.State.Footer.ShouldBe(new Footer.RunsInOwnTerminal("repos-f6", HasTranscript: false));
         closed.Effects.Single().ShouldBeOfType<CloseEmptyTerminals>().Rows.ShouldBe([untouched]);
     }
 
@@ -231,7 +231,7 @@ public sealed class SessionsViewShould
 
         update.Effects.Single().ShouldBeOfType<CloseEmptyTerminals>().Rows.ShouldBe([first, second], ignoreOrder: true);
         none.Effects.ShouldBeEmpty();
-        none.State.Footer.ShouldBe("No terminal sessions without messages.");
+        none.State.Footer.ShouldBe(new Footer.NoEmptyTerminals());
     }
 
     [Fact]
@@ -242,7 +242,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(onInteractive, new KeyPressed(Key.Of('d')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldContain("Press b to move it under Vantage");
+        update.State.Footer.ShouldBeOfType<Footer.RunsInOwnTerminal>().HasTranscript.ShouldBeTrue();
     }
 
     [Fact]
@@ -253,7 +253,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(withTab, new KeyPressed(Key.Enter));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe("change-feed is open in another tab; press o to switch to it.");
+        update.State.Footer.ShouldBe(new Footer.OpenInAnotherTab("change-feed"));
     }
 
     [Fact]
@@ -275,11 +275,11 @@ public sealed class SessionsViewShould
         ViewUpdate cancelled = SessionsView.Reduce(Loaded, new RenameConfirmed(Waiting, null));
 
         renamed.Effects.ShouldBe([new RenameSession(Waiting, SessionName.Parse("fix the tests"))]);
-        renamed.State.Footer.ShouldBe("Renaming change-feed to fix the tests...");
+        renamed.State.Footer.ShouldBe(new Footer.Working(new RenameSession(Waiting, SessionName.Parse("fix the tests"))));
         blank.Effects.ShouldBeEmpty();
-        blank.State.Footer.ShouldBe("A session name is required.");
+        blank.State.Footer.ShouldBe(new Footer.InvalidName("A session name is required."));
         cancelled.Effects.ShouldBeEmpty();
-        cancelled.State.Footer.ShouldBe("Rename cancelled.");
+        cancelled.State.Footer.ShouldBe(new Footer.RenameCancelled());
     }
 
     [Fact]
@@ -290,7 +290,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(onWorking, new KeyPressed(Key.Of('r')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe("remove-sonar is working; wait until it is idle or needs input, because renaming restarts it.");
+        update.State.Footer.ShouldBe(new Footer.WorkingSoRenameWaits("remove-sonar"));
     }
 
     [Theory]
@@ -320,6 +320,13 @@ public sealed class SessionsViewShould
 
         update.Effects.ShouldBeEmpty();
         update.State.Filter.Text.ShouldBe("q");
+    }
+
+    [Fact]
+    public void ShowHowManySessionsNeedInputUntilThereIsAMessage()
+    {
+        Loaded.Shown.ShouldBe(new Footer.NeedInput(1));
+        (Loaded with { Footer = new Footer.Kept() }).Shown.ShouldBe(new Footer.Kept());
     }
 
     [Fact]

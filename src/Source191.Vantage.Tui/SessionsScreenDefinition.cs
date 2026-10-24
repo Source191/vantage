@@ -29,15 +29,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
 
     public string KeyNames2 => "Resume stopped\nClose empty tabs\nAgent view\nWorktrees\nFilter\nHelp\nQuit";
 
-    public string HelpText => """
-        Enter  attach (Ctrl+Z/Esc back)    o  open in its own tab, or switch to it when it is open
-        n      new session                 r  rename (restarts the session under the new name)
-        x      stop                        d  delete (and its worktree, safely); closes the tab of a terminal session with no messages
-        C      close every tab whose claude has never been sent a message
-        b      move a terminal session under Vantage (its tab becomes a shell)
-        R      resume after a reboot       a  native agent view
-        w      worktrees view              /  filter    ?  help    q  quit
-        """;
+    public string HelpText => Wording.SessionsHelp;
 
     public IReadOnlyList<string> ColumnNames => Columns;
 
@@ -76,12 +68,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
         return $"{fitted}\n{state.NeedsInputCount}";
     }
 
-    public string FooterText(SessionsViewState state)
-    {
-        return state.Footer.Length == 0 ? $"{state.NeedsInputCount} need input" : state.Footer;
-    }
-
-    public SessionsViewState WithFooter(SessionsViewState state, string footer)
+    public SessionsViewState WithFooter(SessionsViewState state, Footer footer)
     {
         return state with { Footer = footer };
     }
