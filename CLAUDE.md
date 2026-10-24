@@ -39,6 +39,13 @@ A Terminal.Gui console for Claude Code sessions and git worktrees on Windows, pa
 - `TextView` is obsolete (pragma CS0618) but still the wrapping multi-line box. `OptionSelector` replaces RadioGroup. Table rows take colours through `TableView.Style.RowColorGetter`.
 - User text must never be interpolated into PowerShell source: session names reach `wt.exe` tab commands as an encoded script and Base64 arguments.
 
+## Windows Terminal facts (verified 2026-10-24, Windows Terminal 1.25)
+
+- `wt.exe` focuses tabs only by index and cannot list them. Windows UI Automation can: the tab items of a `WindowsTerminal.exe` window carry the tab titles as names and support SelectionItemPattern, which is how `o` switches to an open tab (`UiAutomationTabs`, through `Interop.UIAutomationClient`, a ComImport-only net35 library that builds clean under warnings-as-errors on net10.0 and works from a pool thread).
+- A tab shell's parent chain is `pwsh <- WindowsTerminal <- explorer` (no OpenConsole hop); `TabRegistration.OwningTerminal` walks it, capped at five steps.
+- A program sets its own tab title with OSC 2 and the tab background with OSC 4 on palette entry 264 (`ESC ] 4 ; 264 ; rgb:rr/gg/bb ESC \`); DECAC `ESC [ 2 ; 263 ; 264 , |` resets the tab's colour indices. The terminal ignores the colour for a tab launched with an explicit `--tabColor`. Claude sets the title itself while attached, so Vantage writes its label again after every hand-off (`TabEscapes`).
+- `SpinnerView.AutoSpin` is safe to set repeatedly and before the view has an `App` (`EndInit` adds the timeout later); the default style is Line, and `SpinnerStyle.Dots` renders in the headless capture.
+
 ## Open items
 
 - Spike 0.2 (attach to one session from two tabs) and 0.3 (which of `--bg --resume` or `respawn --all` brings sessions back after a reboot) still need observation at the terminal; the listing side is documented.

@@ -140,6 +140,10 @@ When the console starts in a Windows Terminal tab, Vantage SHALL title that tab 
 - **WHEN** Vantage starts while a live Vantage-opened tab is green
 - **THEN** the tab is titled Vantage and coloured with the first palette colour no live tab uses
 
+#### Scenario: Title restored after a hand-off
+- **WHEN** the user returns from an attached session or the agent view, which set the tab title themselves
+- **THEN** the tab is titled Vantage and coloured as before again
+
 #### Scenario: Quit
 - **WHEN** the user quits Vantage
 - **THEN** the tab's title is cleared and its colour reset, and its registration goes stale with the process

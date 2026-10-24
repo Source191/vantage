@@ -80,7 +80,7 @@ Open a tab and run `vantage` (or `v`). The screen has three parts:
 
 The table refreshes every five seconds. `?` shows the keys for the current view and `q` quits. Quitting Vantage never stops a session.
 
-Vantage names its own tab `Vantage` and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; the title and colour are put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab.
+Vantage names its own tab `Vantage` and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab.
 
 ## The sessions view
 

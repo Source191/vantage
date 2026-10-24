@@ -71,8 +71,10 @@ WorktreesViewState worktrees = WorktreesViewState.Empty;
 bool showingWorktrees = false;
 
 // This tab is named and coloured like a session tab so it can be found among them; the colour counts as in use.
+// Claude sets the title itself while attached, so the label is written again after every hand-off.
 TabColour? ownColour = await ownTab.ClaimAsync(Environment.ProcessId);
-ConsoleRecovery.WriteSequence(Console.Out, TabEscapes.Title("Vantage") + (ownColour is null ? string.Empty : TabEscapes.Background(ownColour)));
+string ownTabLabel = TabEscapes.Title("Vantage") + (ownColour is null ? string.Empty : TabEscapes.Background(ownColour));
+ConsoleRecovery.WriteSequence(Console.Out, ownTabLabel);
 
 // Two screens alternate in one loop. Each keeps its state across switches and hand-offs, so a selection survives a trip
 // to the other view or into an attached session.
@@ -112,6 +114,7 @@ while (true)
             await terminalEffects.RunAsync(effect, CancellationToken.None);
             log.ChildReturned();
             ConsoleRecovery.AfterChildProcess(Console.Out);
+            ConsoleRecovery.WriteSequence(Console.Out, ownTabLabel);
             continue;
     }
 }
