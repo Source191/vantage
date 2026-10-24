@@ -80,6 +80,8 @@ Open a tab and run `vantage` (or `v`). The screen has three parts:
 
 The table refreshes every five seconds. `?` shows the keys for the current view and `q` quits. Quitting Vantage never stops a session.
 
+Vantage names its own tab `Vantage` and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; the title and colour are put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab.
+
 ## The sessions view
 
 Each row is a Claude Code session, ordered so that the ones needing attention come first:
@@ -286,6 +288,7 @@ The runner drives Vantage inside a pseudo-console, which is the same plumbing Wi
 3. `d` on that session ends claude and the tab closes by itself.
 4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
 5. Ctrl+Z from an attached session returns to the table with the keys still working.
+6. The tab Vantage runs in is titled `Vantage` and green, and goes back to the profile's title and colour on `q`.
 
 ## Working with OpenSpec
 

@@ -82,6 +82,17 @@ public sealed class TabOpenerShould : IDisposable
     }
 
     [Fact]
+    public async Task SkipTheColourOfTheVantageTabItself()
+    {
+        registry.Running(100, Noon);
+        await Store.WriteTabAsync(TabRegistration.Pending(OwnTab.RegistrationKey, TabPalette.Default[0], Noon).ClaimedBy(100, Noon));
+
+        await Opener.OpenAsync(Row(), CancellationToken.None);
+
+        terminal.Opened.Single().Colour.ShouldBe(TabPalette.Default[1]);
+    }
+
+    [Fact]
     public async Task SwitchToTheLiveTabInsteadOfOpeningAnother()
     {
         await Store.WriteTabAsync(TabRegistration.Pending("sess-1", TabPalette.Default[0], Noon).ClaimedBy(4242, Noon));

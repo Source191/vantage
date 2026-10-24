@@ -26,6 +26,14 @@ public static class ConsoleRecovery
     /// <summary>How long to wait for late query replies before the input buffer is discarded.</summary>
     internal static readonly TimeSpan SettleTime = TimeSpan.FromMilliseconds(150);
 
+    /// <summary>Writes escape sequences (such as the tab title) to the console, making sure they are interpreted rather than printed.</summary>
+    public static void WriteSequence(TextWriter console, string sequence)
+    {
+        EnableEscapeSequencesOnOutput();
+        console.Write(sequence);
+        console.Flush();
+    }
+
     public static void AfterChildProcess(TextWriter console)
     {
         EnableEscapeSequencesOnOutput();
