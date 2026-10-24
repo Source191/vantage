@@ -31,7 +31,7 @@ public static class WizardView
         };
     }
 
-    /// <summary>Typing in the filter (or a letter typed in the list) puts focus in the filter and selects the first match; the same text again changes nothing.</summary>
+    /// <summary>Typing in the filter (or a letter typed in the list) puts focus in the filter and selects the first match; the same text again only puts focus in the filter and keeps the selection.</summary>
     private static WizardState Filtered(WizardState state, string text)
     {
         if (text == state.Filter)
@@ -68,8 +68,12 @@ public static class WizardView
         return state.Focus switch
         {
             WizardField.Name => WizardField.Description,
-            WizardField.Description when state.ShowsChooser => WizardField.Mode,
-            _ => state.Focus,
+            WizardField.Description => state.ShowsChooser ? WizardField.Mode : WizardField.Description,
+            WizardField.RepositoryFilter => WizardField.RepositoryFilter,
+            WizardField.RepositoryList => WizardField.RepositoryList,
+            WizardField.Mode => WizardField.Mode,
+            WizardField.Base => WizardField.Base,
+            WizardField.Prompt => WizardField.Prompt,
         };
     }
 
