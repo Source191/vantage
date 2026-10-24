@@ -13,7 +13,8 @@ public sealed class SessionRowEnricher(IGit git, StateStore store, IProcessRegis
 {
     private static readonly TimeSpan CacheWindow = TimeSpan.FromSeconds(30);
 
-    private readonly Dictionary<string, (DateTimeOffset CachedAt, Location Location)> locations = new(StringComparer.OrdinalIgnoreCase);
+    // Refreshes can overlap (the timer and the refresh after an action), so the cache must take concurrent writes.
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTimeOffset CachedAt, Location Location)> locations = new(StringComparer.OrdinalIgnoreCase);
 
     public async Task<IReadOnlyList<SessionRow>> EnrichAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {

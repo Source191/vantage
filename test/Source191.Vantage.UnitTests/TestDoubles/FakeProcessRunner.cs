@@ -3,15 +3,26 @@ using Source191.Vantage.Adapters.Processes;
 namespace Source191.Vantage.UnitTests.TestDoubles;
 
 /// <summary>
-/// Records every process request and answers captured runs with canned results, newest rule first.
+/// Records every process request and answers captured runs with canned results, newest rule first. Each run yields
+/// once, like a real process, so callers that overlap really do overlap; the lists are guarded for that reason.
 /// </summary>
 public sealed class FakeProcessRunner : IProcessRunner
 {
+    private readonly Lock gate = new();
     private readonly List<Rule> rules = [];
     private readonly List<ProcessRequest> captured = [];
     private readonly List<ProcessRequest> interactive = [];
 
-    public IReadOnlyList<ProcessRequest> CapturedRequests => captured;
+    public IReadOnlyList<ProcessRequest> CapturedRequests
+    {
+        get
+        {
+            lock (gate)
+            {
+                return [.. captured];
+            }
+        }
+    }
 
     public IReadOnlyList<ProcessRequest> InteractiveRequests => interactive;
 
@@ -35,10 +46,14 @@ public sealed class FakeProcessRunner : IProcessRunner
         return this;
     }
 
-    public Task<ProcessResult> RunAsync(ProcessRequest request, CancellationToken cancellationToken)
+    public async Task<ProcessResult> RunAsync(ProcessRequest request, CancellationToken cancellationToken)
     {
-        captured.Add(request);
-        return Task.FromResult(rules.First(rule => rule.Matches(request)).Next());
+        await Task.Yield();
+        lock (gate)
+        {
+            captured.Add(request);
+            return rules.First(rule => rule.Matches(request)).Next();
+        }
     }
 
     public Task<int> RunInteractiveAsync(ProcessRequest request, CancellationToken cancellationToken)

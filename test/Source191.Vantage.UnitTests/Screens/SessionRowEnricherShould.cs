@@ -119,6 +119,18 @@ public sealed class SessionRowEnricherShould : IDisposable
         processes.CapturedRequests.Count.ShouldBeGreaterThan(afterSecond);
     }
 
+    [Fact]
+    public async Task SurviveOverlappingRefreshes()
+    {
+        AnswerGit(@"C:\repos\Northwind.Orders", root: "C:/repos/Northwind.Orders", commonDir: "C:/repos/Northwind.Orders/.git", branch: "main");
+        IReadOnlyList<Session> sessions = [.. Enumerable.Range(0, 20).Select(_ => Session(@"C:\repos\Northwind.Orders"))];
+        SessionRowEnricher enricher = Enricher;
+
+        IReadOnlyList<SessionRow>[] results = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => enricher.EnrichAsync(sessions, CancellationToken.None)));
+
+        results.ShouldAllBe(rows => rows.Count == 20 && rows.All(row => row.Repository == "Northwind.Orders" && row.Branch == "main"));
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(stateFolder))
