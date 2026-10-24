@@ -1,6 +1,6 @@
-using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using IOPath = System.IO.Path;
 
 namespace Source191.Vantage.Application;
@@ -10,7 +10,7 @@ namespace Source191.Vantage.Application;
 /// leftovers git has forgotten (orphans under .claude\worktrees, siblings whose registration is gone, empty folders
 /// that worktree tools leave behind). Read-only: nothing here prunes, deletes or touches git state.
 /// </summary>
-public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
+public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<string> roots)
 {
     private const string GitDirPrefix = "gitdir:";
     private const string WorktreesSegment = ".git\\worktrees\\";
@@ -22,16 +22,16 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
         List<string> repositories = [];
         List<string> candidates = [];
 
-        foreach (string root in roots.Where(Directory.Exists))
+        foreach (string root in roots.Where(folders.DirectoryExists))
         {
-            foreach (string child in Directory.EnumerateDirectories(root).Order(StringComparer.OrdinalIgnoreCase))
+            foreach (string child in folders.Directories(root).Order(StringComparer.OrdinalIgnoreCase))
             {
                 string gitPath = IOPath.Combine(child, ".git");
-                if (Directory.Exists(gitPath))
+                if (folders.DirectoryExists(gitPath))
                 {
                     repositories.Add(child);
                 }
-                else if (File.Exists(gitPath))
+                else if (folders.FileExists(gitPath))
                 {
                     candidates.Add(child);
                 }
@@ -70,7 +70,7 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
         foreach (GitWorktreeEntry entry in entries.Where(entry => !entry.IsMain))
         {
             registered.Add(Normalise(entry.Path));
-            bool folderExists = entry.PrunableReason is null && Directory.Exists(entry.Path);
+            bool folderExists = entry.PrunableReason is null && folders.DirectoryExists(entry.Path);
             WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.LockReason, false, null, false));
             rows.Add(folderExists
                 ? await InspectedAsync(repository, entry, health, cancellationToken)
@@ -104,15 +104,15 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
         }
     }
 
-    private static IEnumerable<WorktreeRow> OrphanRows(string repository, HashSet<string> registered)
+    private IEnumerable<WorktreeRow> OrphanRows(string repository, HashSet<string> registered)
     {
         string claudeWorktrees = IOPath.Combine(repository, ".claude", "worktrees");
-        if (!Directory.Exists(claudeWorktrees))
+        if (!folders.DirectoryExists(claudeWorktrees))
         {
             yield break;
         }
 
-        foreach (string folder in Directory.EnumerateDirectories(claudeWorktrees).Order(StringComparer.OrdinalIgnoreCase))
+        foreach (string folder in folders.Directories(claudeWorktrees).Order(StringComparer.OrdinalIgnoreCase))
         {
             if (registered.Contains(Normalise(folder)))
             {
@@ -120,31 +120,32 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
             }
 
             string gitFile = IOPath.Combine(folder, ".git");
-            bool? targetExists = File.Exists(gitFile) ? Directory.Exists(GitDirOf(gitFile) ?? string.Empty) : null;
+            string? target = folders.FileExists(gitFile) ? GitDirOf(gitFile) : null;
+            bool? targetExists = folders.FileExists(gitFile) ? target is not null && folders.DirectoryExists(target) : null;
             WorktreeObservation observation = new(false, true, null, UnderClaudeWorktrees: true, targetExists, false);
             yield return Leftover(repository, folder, observation, ownerExists: true);
         }
     }
 
     /// <summary>A direct child of a root with a .git file that no repository under the roots lists.</summary>
-    private static WorktreeRow BrokenSibling(string folder)
+    private WorktreeRow BrokenSibling(string folder)
     {
         string? gitDir = GitDirOf(IOPath.Combine(folder, ".git"));
         string owner = OwnerOf(gitDir) ?? IOPath.GetDirectoryName(folder) ?? folder;
-        bool ownerExists = Directory.Exists(IOPath.Combine(owner, ".git"));
-        WorktreeObservation observation = new(false, true, null, false, GitFileTargetExists: gitDir is not null && Directory.Exists(gitDir), false);
+        bool ownerExists = folders.DirectoryExists(IOPath.Combine(owner, ".git"));
+        WorktreeObservation observation = new(false, true, null, false, GitFileTargetExists: gitDir is not null && folders.DirectoryExists(gitDir), false);
 
         return Leftover(owner, folder, observation, ownerExists);
     }
 
-    private static WorktreeRow Leftover(string repository, string folder, WorktreeObservation observation, bool ownerExists)
+    private WorktreeRow Leftover(string repository, string folder, WorktreeObservation observation, bool ownerExists)
     {
-        return new WorktreeRow(repository, folder, null, WorktreeHealth.From(observation), 0, 0, null, null, null, CountLeftoverFiles(folder), ownerExists, FolderExists: Directory.Exists(folder));
+        return new WorktreeRow(repository, folder, null, WorktreeHealth.From(observation), 0, 0, null, null, null, CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder));
     }
 
-    private static string? GitDirOf(string gitFile)
+    private string? GitDirOf(string gitFile)
     {
-        string? line = File.ReadLines(gitFile).FirstOrDefault(candidate => candidate.StartsWith(GitDirPrefix, StringComparison.Ordinal));
+        string? line = folders.Lines(gitFile).FirstOrDefault(candidate => candidate.StartsWith(GitDirPrefix, StringComparison.Ordinal));
 
         return line is null ? null : IOPath.GetFullPath(line[GitDirPrefix.Length..].Trim().Replace('/', IOPath.DirectorySeparatorChar));
     }
@@ -156,26 +157,26 @@ public sealed class WorktreeInventory(IGit git, IReadOnlyList<string> roots)
         return at < 0 ? null : gitDir![..at].TrimEnd(IOPath.DirectorySeparatorChar);
     }
 
-    private static bool IsEmptyLeftover(string folder)
+    private bool IsEmptyLeftover(string folder)
     {
         string name = IOPath.GetFileName(folder);
         bool leftoverName = name.EndsWith(".worktrees", StringComparison.OrdinalIgnoreCase);
 
-        return leftoverName && !Directory.EnumerateFileSystemEntries(folder).Any();
+        return leftoverName && folders.IsEmpty(folder);
     }
 
     /// <summary>
     /// Files git no longer tracks, so would be lost with the folder; the .git pointer file itself does not count. Counting
     /// stops at the Domain limit so a leftover with a dependencies tree inside does not slow every scan.
     /// </summary>
-    private static int CountLeftoverFiles(string folder)
+    private int CountLeftoverFiles(string folder)
     {
-        if (!Directory.Exists(folder))
+        if (!folders.DirectoryExists(folder))
         {
             return 0;
         }
 
-        return Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories)
+        return folders.Files(folder)
             .Where(file => !string.Equals(IOPath.GetFileName(file), ".git", StringComparison.OrdinalIgnoreCase))
             .Take(WorktreeRemovalFacts.LeftoverFileLimit)
             .Count();

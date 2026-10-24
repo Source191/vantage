@@ -1,4 +1,4 @@
-namespace Source191.Vantage.Adapters.Git;
+namespace Source191.Vantage.Ports;
 
 /// <summary>
 /// The git commands Vantage needs. Every call names the directory it runs in; nothing depends on the current directory.

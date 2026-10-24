@@ -1,12 +1,5 @@
+using Source191.Vantage.Ports;
 namespace Source191.Vantage.Adapters.Git;
-
-public sealed record GitWorktreeEntry(
-    string Path,
-    string Head,
-    string? Branch,
-    bool IsMain,
-    string? LockReason,
-    string? PrunableReason);
 
 /// <summary>
 /// Parses "git worktree list --porcelain": blank-line separated blocks of "worktree", "HEAD", then

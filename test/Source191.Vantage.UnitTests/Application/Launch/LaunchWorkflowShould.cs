@@ -1,12 +1,11 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
-using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Adapters.State;
-using Source191.Vantage.Adapters.Terminal;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.UnitTests.TestDoubles;
 
 namespace Source191.Vantage.UnitTests.Application.Launch;
@@ -40,7 +39,7 @@ public sealed class LaunchWorkflowShould : IDisposable
             LaunchService service = new(new ClaudeCli(processes, Claude), git, store, new WorktreeIncludeCopier(git), clock);
             TabOpener tabs = new(store, new FakeProcessRegistry(), terminal, clock, Claude, Vantage);
 
-            return new LaunchWorkflow(new RepositoryCatalogue([]), store, service, tabs, terminal, Claude);
+            return new LaunchWorkflow(new RepositoryCatalogue(new FakeFolders(), []), new FakeFolders(), store, service, tabs, terminal, Claude);
         }
     }
 

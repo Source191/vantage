@@ -1,4 +1,4 @@
-using Source191.Vantage.Adapters.Terminal;
+using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.UnitTests.TestDoubles;
 

@@ -30,7 +30,7 @@ public sealed class LayeringShould
             .GetResult().FailingTypeNames.ShouldBeNull();
     }
 
-    [Fact(Skip = "untangle-layers task 3.7: WorktreeInventory, RepositoryCatalogue and LaunchWorkflow still call System.IO directly")]
+    [Fact]
     public void KeepFileSystemAndProcessesInsideAdapters()
     {
         Vantage.That().ResideInNamespaceStartingWith(Root).And().DoNotResideInNamespaceStartingWith($"{Root}.Adapters")
@@ -46,7 +46,7 @@ public sealed class LayeringShould
             .GetResult().FailingTypeNames.ShouldBeNull();
     }
 
-    [Fact(Skip = "untangle-layers task 3.3: HandoffLog still takes a ViewEffect")]
+    [Fact]
     public void KeepAdaptersFreeOfApplicationAndTui()
     {
         Vantage.That().ResideInNamespaceStartingWith($"{Root}.Adapters")

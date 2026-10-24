@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Diagnostics;
+using Source191.Vantage.Adapters.Files;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Adapters.State;
@@ -50,10 +51,11 @@ ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
 SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts);
 StateTransitionNotifier notifier = new(Console.Out);
 WindowsTerminal terminal = new(processes);
+Folders folders = new();
 LaunchService launchService = new(claude, git, store, new WorktreeIncludeCopier(git), TimeProvider.System);
 TabOpener tabs = new(store, processRegistry, terminal, TimeProvider.System, claudeExecutable, vantageExecutable);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
-LaunchWorkflow launches = new(new RepositoryCatalogue(config.RepositoryRoots), store, launchService, tabs, terminal, claudeExecutable);
+LaunchWorkflow launches = new(new RepositoryCatalogue(folders, config.RepositoryRoots), folders, store, launchService, tabs, terminal, claudeExecutable);
 SessionActions actions = new(claude, git, store, processRegistry, transcripts);
 TerminalEffects terminalEffects = new(claude, Console.Out);
 
@@ -65,7 +67,7 @@ if (args.Length >= 1 && args[0] == "here")
 string context = string.Join('\n', Environment.MachineName, claudeExecutable, string.Join("; ", config.RepositoryRoots));
 SessionsScreen sessionsScreen = new(LoadAsync, notifier, launches, actions, tabs, config.DefaultBase, TimeProvider.System, context);
 WorktreeActions worktreeActions = new(git, store, terminal);
-WorktreeInventory inventory = new(git, config.RepositoryRoots);
+WorktreeInventory inventory = new(git, folders, config.RepositoryRoots);
 WorktreesScreen worktreesScreen = new(ScanAsync, worktreeActions, launches, config.DefaultBase, TimeProvider.System, context);
 SessionsViewState sessions = SessionsViewState.Empty;
 WorktreesViewState worktrees = WorktreesViewState.Empty;
@@ -111,7 +113,11 @@ while (true)
             sessions = SessionsView.Reduce(sessions, new SelectSession(jump.SessionId)).State;
             continue;
         default:
-            log.HandingOver(effect);
+            if (log.IsEnabled(LogLevel.Information))
+            {
+                log.HandingOver(effect.ToString() ?? string.Empty);
+            }
+
             await terminalEffects.RunAsync(effect, CancellationToken.None);
             log.ChildReturned();
             ConsoleRecovery.AfterChildProcess(Console.Out);

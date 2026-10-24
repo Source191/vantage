@@ -1,14 +1,14 @@
 using Source191.Vantage.Adapters.State;
-using Source191.Vantage.Adapters.Terminal;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Launch;
 
 /// <summary>
 /// Everything the launch wizard dialog needs from the rest of the system, behind one door so the dialog stays thin.
 /// </summary>
-public sealed class LaunchWorkflow(RepositoryCatalogue catalogue, StateStore store, LaunchService service, TabOpener tabs, IWindowsTerminal terminal, string claudeExecutable)
+public sealed class LaunchWorkflow(RepositoryCatalogue catalogue, IFolders folders, StateStore store, LaunchService service, TabOpener tabs, IWindowsTerminal terminal, string claudeExecutable)
 {
     /// <summary>The recently used repositories, read once when the wizard opens; filtering is then synchronous.</summary>
     public Task<IReadOnlyList<string>> RecentAsync()
@@ -21,9 +21,9 @@ public sealed class LaunchWorkflow(RepositoryCatalogue catalogue, StateStore sto
         return catalogue.Choices(recent, filter);
     }
 
-    public static LaunchPlanResult Plan(LaunchRequest request)
+    public LaunchPlanResult Plan(LaunchRequest request)
     {
-        return LaunchPlanBuilder.Build(request, Directory.Exists);
+        return LaunchPlanBuilder.Build(request, folders.DirectoryExists);
     }
 
     public Task<LaunchOutcome> LaunchAsync(LaunchPlan plan, CancellationToken cancellationToken)

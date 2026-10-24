@@ -1,21 +1,19 @@
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.UnitTests.TestDoubles;
 
 namespace Source191.Vantage.UnitTests.Application.Launch;
 
-public sealed class RepositoryCatalogueShould : IDisposable
+public sealed class RepositoryCatalogueShould
 {
-    private readonly string root = Path.Combine(Path.GetTempPath(), "vantage-catalogue-" + Guid.NewGuid().ToString("N"));
+    private const string Root = @"C:\Users\me\source\repos";
 
-    public RepositoryCatalogueShould()
-    {
-        Directory.CreateDirectory(Path.Combine(root, "Northwind.Agents", ".git"));
-        Directory.CreateDirectory(Path.Combine(root, "Northwind.Templates", ".git"));
-        Directory.CreateDirectory(Path.Combine(root, "Northwind.Billing"));
-        File.WriteAllText(Path.Combine(root, "Northwind.Billing", ".git"), "gitdir: ../Northwind.Billing-main/.git/worktrees/x");
-        Directory.CreateDirectory(Path.Combine(root, "notes"));
-    }
+    private readonly FakeFolders folders = new FakeFolders()
+        .WithDirectory(Path.Combine(Root, "Northwind.Agents", ".git"))
+        .WithDirectory(Path.Combine(Root, "Northwind.Templates", ".git"))
+        .WithFile(Path.Combine(Root, "Northwind.Billing", ".git"), "gitdir: ../Northwind.Billing-main/.git/worktrees/x")
+        .WithDirectory(Path.Combine(Root, "notes"));
 
-    private RepositoryCatalogue Catalogue => new([root]);
+    private RepositoryCatalogue Catalogue => new(folders, [Root]);
 
     [Fact]
     public void ListEveryGitRepositoryDirectlyUnderTheRootsAlphabetically()
@@ -33,14 +31,14 @@ public sealed class RepositoryCatalogueShould : IDisposable
 
         RepositoryChoice last = choices[^1];
         last.IsRepository.ShouldBeFalse();
-        last.Path.ShouldBe(root);
+        last.Path.ShouldBe(Root);
         last.Name.ShouldContain("no repository");
     }
 
     [Fact]
     public void PutRecentlyUsedRepositoriesFirstInRecentOrder()
     {
-        IReadOnlyList<string> recent = [Path.Combine(root, "Northwind.Agents"), Path.Combine(root, "Northwind.Templates"), Path.Combine(root, "gone")];
+        IReadOnlyList<string> recent = [Path.Combine(Root, "Northwind.Agents"), Path.Combine(Root, "Northwind.Templates"), Path.Combine(Root, "gone")];
 
         IReadOnlyList<RepositoryChoice> choices = Catalogue.Choices(recent, filter: string.Empty);
 
@@ -58,13 +56,8 @@ public sealed class RepositoryCatalogueShould : IDisposable
     [Fact]
     public void IgnoreARootThatDoesNotExist()
     {
-        RepositoryCatalogue catalogue = new([root, Path.Combine(root, "missing")]);
+        RepositoryCatalogue catalogue = new(folders, [Root, Path.Combine(Root, "missing")]);
 
         catalogue.Choices(recent: [], filter: string.Empty).Count(choice => choice.IsRepository).ShouldBe(3);
-    }
-
-    public void Dispose()
-    {
-        Directory.Delete(root, recursive: true);
     }
 }

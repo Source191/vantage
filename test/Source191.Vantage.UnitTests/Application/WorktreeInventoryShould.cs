@@ -1,3 +1,4 @@
+using Source191.Vantage.Adapters.Files;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Application;
@@ -15,7 +16,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     private readonly TemporaryGitRoot root = new();
 
-    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), [root.Path]);
+    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), new Folders(), [root.Path]);
 
     private static Session SessionIn(string directory, string name, int? processId)
     {

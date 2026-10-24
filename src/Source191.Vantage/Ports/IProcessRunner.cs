@@ -1,4 +1,4 @@
-namespace Source191.Vantage.Adapters.Processes;
+namespace Source191.Vantage.Ports;
 
 public sealed record ProcessRequest(string FileName, IReadOnlyList<string> Arguments, string? WorkingDirectory);
 

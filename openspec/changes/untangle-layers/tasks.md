@@ -14,13 +14,13 @@
 
 ## 3. Ports namespace
 
-- [ ] 3.1 Move `IClaudeCli`, `StartResult`, `StartOutcome`, `ResumeResult`, `ITranscripts` to `Ports`; verify build and tests pass
-- [ ] 3.2 Move `IGit`, `GitWorktreeEntry`, `GitException`, `IProcessRunner`, `ProcessRequest`, `ProcessResult`, `IWindowsTerminal`, `TabLaunch`, `TerminalException`, `IProcessRegistry`, `ProcessParent` to `Ports`; move `PowerShellScript.Quote` and `Invoke` to `Application\PowerShellScript` leaving `Encode` with the adapter; verify build and tests pass
-- [ ] 3.3 `HandoffLogShould.LogTheEffectName`: `HandingOver` takes a string; change the signature and the `Program.cs` call
-- [ ] 3.4 `FoldersShould` (integration, temp folder): `Exists`, `Directories`, `Lines`, `HasAnyFile` behave like `System.IO`; define `IFolders` in `Ports` and `Folders` in `Adapters\Files`
-- [ ] 3.5 `WorktreeInventoryShould` uses a new `FakeFolders` instead of temp folders for the orphan, broken and empty cases; thread `IFolders` through `WorktreeInventory` and make the existing tests pass unchanged in intent
-- [ ] 3.6 `RepositoryCatalogueShould` uses `FakeFolders`; thread `IFolders` through `RepositoryCatalogue` and `LaunchWorkflow.Plan`
-- [ ] 3.7 Unskip `KeepFileSystemAndProcessesInsideAdapters` and verify it passes
+- [x] 3.1 Move `IClaudeCli`, `StartResult`, `StartOutcome`, `ResumeResult`, `ITranscripts` to `Ports`; verify build and tests pass
+- [x] 3.2 Move `IGit`, `GitWorktreeEntry`, `GitException`, `IProcessRunner`, `ProcessRequest`, `ProcessResult`, `IWindowsTerminal`, `TabLaunch`, `TerminalException`, `IProcessRegistry`, `ProcessParent` to `Ports`; move `PowerShellScript.Quote` and `Invoke` to `Application\PowerShellScript` leaving `Encode` with the adapter; verify build and tests pass
+- [x] 3.3 `HandoffLogShould.LogTheEffectName`: `HandingOver` takes a string; change the signature and the `Program.cs` call
+- [x] 3.4 `FoldersShould` (integration, temp folder): `Exists`, `Directories`, `Lines`, `HasAnyFile` behave like `System.IO`; define `IFolders` in `Ports` and `Folders` in `Adapters\Files`
+- [x] 3.5 `WorktreeInventoryShould` uses a new `FakeFolders` instead of temp folders for the orphan, broken and empty cases; thread `IFolders` through `WorktreeInventory` and make the existing tests pass unchanged in intent
+- [x] 3.6 `RepositoryCatalogueShould` uses `FakeFolders`; thread `IFolders` through `RepositoryCatalogue` and `LaunchWorkflow.Plan`
+- [x] 3.7 Unskip `KeepFileSystemAndProcessesInsideAdapters` and verify it passes
 
 ## 4. State ports
 

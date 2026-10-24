@@ -1,4 +1,4 @@
-using Source191.Vantage.Adapters.Claude;
+using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.UnitTests.TestDoubles;
 
