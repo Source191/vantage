@@ -15,15 +15,15 @@
 
 ## 3. TableScreen in Tui
 
-- [ ] 3.1 Add `IScreenDefinition<TState, TRow>`, `EffectContext<TState>` and `TableScreen<TState, TRow>` by lifting the shared code from `SessionsScreen` verbatim (lifetime, timer, key mapping, `RunInBackground` with the busy spinner, the waiting indicator, window title, layout, redraw, row colour); verify `dotnet build` passes with both old screens still in place
-- [ ] 3.2 Add `TableSource<TRow>` and `Durations.Age`; `DurationsShould.FormatAges` carries the three cases from the `Age` helper; delete `SessionTableSource` and `WorktreeTableSource`
-- [ ] 3.3 `SessionsScreenDefinition` reproduces the sessions layout, columns, colours, help text and the `StateTransitionNotifier` hook; `SessionsScreen` becomes a thin factory over `TableScreen`; verify `dotnet run --project tools\HeadlessTerminal -- check` passes and a manual pass through the README's sessions key table shows no difference
-- [ ] 3.4 `WorktreesScreenDefinition` the same for worktrees; delete both `Live` classes; verify the hand-off check and a manual pass through the worktrees key table
-- [ ] 3.5 Verify `SessionsScreen.cs` and `WorktreesScreen.cs` together are under 300 lines and that `dotnet format --verify-no-changes` passes
+- [x] 3.1 Add `IScreenDefinition<TState, TRow>`, `EffectContext<TState>` and `TableScreen<TState, TRow>` by lifting the shared code from `SessionsScreen` verbatim (lifetime, timer, key mapping, `RunInBackground` with the busy spinner, the waiting indicator, window title, layout, redraw, row colour); verify `dotnet build` passes with both old screens still in place
+- [x] 3.2 Add `TableSource<TRow>` and `Durations.Age`; `DurationsShould.FormatAges` carries the three cases from the `Age` helper; delete `SessionTableSource` and `WorktreeTableSource`
+- [x] 3.3 `SessionsScreenDefinition` reproduces the sessions layout, columns, colours, help text and the `StateTransitionNotifier` hook; `SessionsScreen` becomes a thin factory over `TableScreen`; verify `dotnet run --project tools\HeadlessTerminal -- check` passes and a manual pass through the README's sessions key table shows no difference
+- [x] 3.4 `WorktreesScreenDefinition` the same for worktrees; delete both `Live` classes; verify the hand-off check and a manual pass through the worktrees key table
+- [x] 3.5 Verify `SessionsScreen.cs` and `WorktreesScreen.cs` together are under 300 lines and that `dotnet format --verify-no-changes` passes
 
 ## 4. Documentation
 
-- [ ] 4.1 Update CLAUDE.md's description of the Tui layer (definitions, `TableScreen`, where a new view starts) and the Terminal.Gui facts if any moved; verify the text matches the code
+- [x] 4.1 Update CLAUDE.md's description of the Tui layer (definitions, `TableScreen`, where a new view starts) and the Terminal.Gui facts if any moved; verify the text matches the code
 
 ## Workflow follow-up
 
