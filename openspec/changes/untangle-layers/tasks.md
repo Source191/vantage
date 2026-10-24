@@ -2,9 +2,9 @@
 
 ## 1. Lock the direction
 
-- [ ] 1.1 Confirm the architecture-test package through `npx ctx7@latest library` (ArchUnitNET or NetArchTest.Rules) and add it to the test project; verify `dotnet build -c Debug` passes
-- [ ] 1.2 `LayeringShould.KeepDomainFreeOfEverythingElse`: Domain types reference no other namespace in the assembly; verify it passes today (red is a sign of a mistake in the rule)
-- [ ] 1.3 `LayeringShould.KeepTerminalGuiInsideTui`, `KeepFileSystemAndProcessesInsideAdapters`, `KeepApplicationFreeOfAdaptersAndTui`, `KeepAdaptersFreeOfApplicationAndTui`: write all four, mark the ones that fail today with `Skip` naming the task that fixes them, and unskip each as its task lands
+- [x] 1.1 Confirm the architecture-test package through `npx ctx7@latest library` (ArchUnitNET or NetArchTest.Rules) and add it to the test project; verify `dotnet build -c Debug` passes
+- [x] 1.2 `LayeringShould.KeepDomainFreeOfEverythingElse`: Domain types reference no other namespace in the assembly; verify it passes today (red is a sign of a mistake in the rule)
+- [x] 1.3 `LayeringShould.KeepTerminalGuiInsideTui`, `KeepFileSystemAndProcessesInsideAdapters`, `KeepApplicationFreeOfAdaptersAndTui`, `KeepAdaptersFreeOfApplicationAndTui`: write all four, mark the ones that fail today with `Skip` naming the task that fixes them, and unskip each as its task lands
 
 ## 2. Application namespace
 
