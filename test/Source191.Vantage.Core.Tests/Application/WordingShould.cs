@@ -16,6 +16,19 @@ public sealed class WordingShould
     private static readonly SessionRow Session = Sessions.Background(Sessions.Repository, isWorktree: false);
     private static readonly WorktreeRow Worktree = Worktrees.Row(WorktreeHealthKind.Ok);
 
+    public static TheoryData<Type> FooterCases => new(typeof(Footer).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(Footer))));
+
+    [Theory]
+    [MemberData(nameof(FooterCases))]
+    public void HaveWordsForEveryFooterCase(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        object[] arguments = [.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))];
+        Footer footer = (Footer)constructor.Invoke(arguments);
+
+        Wording.Describe(footer).ShouldNotBe(footer.ToString(), $"{type.Name} has no arm in Wording.Describe");
+    }
+
     // Standing footers.
 
     [Fact]
@@ -294,6 +307,19 @@ public sealed class WordingShould
     public void FallBackToAPlainWordForAnyOtherEffect()
     {
         Wording.Working(new Quit()).ShouldBe("Working...");
+    }
+
+    private static object Placeholder(Type type)
+    {
+        return type switch
+        {
+            _ when type == typeof(string) => "fix-123",
+            _ when type == typeof(int) => 2,
+            _ when type == typeof(bool) => true,
+            _ when type == typeof(WorktreeHealthKind) => WorktreeHealthKind.Locked,
+            _ when type == typeof(ViewEffect) => new Quit(),
+            _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),
+        };
     }
 
     // The help dialogs.
