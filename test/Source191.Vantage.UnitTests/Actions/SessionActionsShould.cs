@@ -26,7 +26,7 @@ public sealed class SessionActionsShould : IDisposable
         .Answer(request => request.Arguments.Contains("symbolic-ref"), new ProcessResult(0, "origin/main\n", string.Empty))
         .Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(0, string.Empty, string.Empty));
 
-    private StateStore Store => new(stateFolder);
+    private StateStore Store => new(stateFolder, TimeProvider.System);
 
     private readonly FakeProcessRegistry processTable = new FakeProcessRegistry().Running(4242, Noon);
 

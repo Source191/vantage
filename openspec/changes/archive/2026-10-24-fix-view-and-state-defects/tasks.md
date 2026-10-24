@@ -18,9 +18,9 @@
 
 ## 3. State store
 
-- [ ] 3.1 `StateStoreShould.KeepRecentRepositoriesWrittenByTwoWriters`: two stores over one folder each record a repository and both are read back, newest first, capped at ten; implement one record per file with a `UsedAt` timestamp
-- [ ] 3.2 `StateStoreShould.KeepDescriptionsWrittenByTwoWriters`: the same for descriptions keyed by session id
-- [ ] 3.3 `StateStoreShould.ImportLegacyRecentAndSessionsFiles`: a folder holding the old `recent.json` and `sessions.json` reads their contents once and removes the files; implement the import
+- [x] 3.1 `StateStoreShould.KeepRecentRepositoriesWrittenByTwoWriters`: two stores over one folder each record a repository and both are read back, newest first, capped at ten; implement one record per file with a `UsedAt` timestamp
+- [x] 3.2 `StateStoreShould.KeepDescriptionsWrittenByTwoWriters`: the same for descriptions keyed by session id
+- [x] 3.3 `StateStoreShould.ImportLegacyRecentAndSessionsFiles`: a folder holding the old `recent.json` and `sessions.json` reads their contents once and removes the files; implement the import
 
 ## 4. Screens and wiring
 

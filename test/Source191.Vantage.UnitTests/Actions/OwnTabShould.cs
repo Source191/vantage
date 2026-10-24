@@ -14,7 +14,7 @@ public sealed class OwnTabShould : IDisposable
     private readonly string stateFolder = Path.Combine(Path.GetTempPath(), "vantage-owntab-" + Guid.NewGuid().ToString("N"));
     private readonly FakeProcessRegistry registry = new();
 
-    private StateStore Store => new(stateFolder);
+    private StateStore Store => new(stateFolder, TimeProvider.System);
 
     private OwnTab Tab => new(Store, registry, new FakeTimeProvider(Noon));
 

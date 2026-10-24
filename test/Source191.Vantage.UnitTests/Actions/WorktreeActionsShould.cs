@@ -23,7 +23,7 @@ public sealed class WorktreeActionsShould : IDisposable
         .Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(0, string.Empty, string.Empty));
     private readonly FakeWindowsTerminal terminal = new();
 
-    private StateStore Store => new(Path.Combine(scratch, "state"));
+    private StateStore Store => new(Path.Combine(scratch, "state"), TimeProvider.System);
 
     private WorktreeActions Actions => new(new GitCli(processes), Store, terminal);
 
