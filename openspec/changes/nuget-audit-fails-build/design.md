@@ -16,12 +16,12 @@
 
 - **Promote the audit warnings rather than parse `dotnet package list --vulnerable`:** the list command exits 0 even when it finds vulnerabilities, so a workflow step would have to parse its JSON. Removing the exemption reuses the restore that already runs and covers both workflows with one line.
 - **Every severity, not only high and critical:** the user chose to fail on any vulnerability. `NuGetAuditLevel` is left at its default of `low`.
-- **Keep `NU1900` exempt:** it reports that the audit could not run, not that a package is vulnerable; failing on it would tie every build to nuget.org's availability.
+- **`NU1900` fails too:** it reports that the audit could not run; a build that passes without an audit would claim a check it never made. The `WarningsNotAsErrors` property goes entirely, since nothing is left to exempt.
 
 ## Risks / Trade-offs
 
 - [A new advisory blocks unrelated pull requests and releases] → update the package with `dotnet package update --vulnerable` (or find the parent of a transitive package with `dotnet nuget why`), or record an accepted advisory with `<NuGetAuditSuppress Include="<advisory URL>" />`.
-- [`NU1900` hides an audit that never ran] → it still appears as a warning in the build log.
+- [A nuget.org outage, or building offline, fails the restore with `NU1900`] → re-run once the source is reachable; restore already needs nuget.org for any package not in the local cache.
 
 ## Migration Plan
 
