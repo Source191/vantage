@@ -50,10 +50,7 @@ internal static class Palette
         };
     }
 
-    public static Scheme Highlight()
-    {
-        return Pair(new Color(0, 0, 0), Cyan);
-    }
+    public static Scheme Highlight() => Pair(new Color(0, 0, 0), Cyan);
 
     public static Scheme Pair(Color foreground, Color background)
     {
@@ -75,8 +72,5 @@ internal static class Palette
         };
     }
 
-    public static bool IsDimmed(DisplayStateKind kind)
-    {
-        return kind is DisplayStateKind.Completed or DisplayStateKind.Failed or DisplayStateKind.Stopped or DisplayStateKind.Unknown;
-    }
+    public static bool IsDimmed(DisplayStateKind kind) => kind is DisplayStateKind.Completed or DisplayStateKind.Failed or DisplayStateKind.Stopped or DisplayStateKind.Unknown;
 }

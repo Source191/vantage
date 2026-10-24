@@ -138,10 +138,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
         return Leftover(owner, folder, observation, ownerExists);
     }
 
-    private WorktreeRow Leftover(string repository, string folder, WorktreeObservation observation, bool ownerExists)
-    {
-        return new WorktreeRow(repository, folder, null, WorktreeHealth.From(observation), 0, 0, null, null, null, CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder));
-    }
+    private WorktreeRow Leftover(string repository, string folder, WorktreeObservation observation, bool ownerExists) => new WorktreeRow(repository, folder, null, WorktreeHealth.From(observation), 0, 0, null, null, null, CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder));
 
     private string? GitDirOf(string gitFile)
     {
@@ -191,13 +188,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
             .FirstOrDefault(session => (Normalise(session.WorkingDirectory) + IOPath.DirectorySeparatorChar).StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
-    private static WorktreeRow WithLiveSession(WorktreeRow row, Session? live)
-    {
-        return row with { SessionId = live?.SessionId, SessionName = live?.Name };
-    }
+    private static WorktreeRow WithLiveSession(WorktreeRow row, Session? live) => row with { SessionId = live?.SessionId, SessionName = live?.Name };
 
-    private static string Normalise(string path)
-    {
-        return IOPath.GetFullPath(path).TrimEnd(IOPath.DirectorySeparatorChar, IOPath.AltDirectorySeparatorChar);
-    }
+    private static string Normalise(string path) => IOPath.GetFullPath(path).TrimEnd(IOPath.DirectorySeparatorChar, IOPath.AltDirectorySeparatorChar);
 }

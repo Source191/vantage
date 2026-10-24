@@ -16,8 +16,5 @@ public sealed record VantageConfig(IReadOnlyList<string> RepositoryRoots, Worktr
             && RepositoryRoots.SequenceEqual(other.RepositoryRoots);
     }
 
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(DefaultBase, RepositoryRoots.Count);
-    }
+    public override int GetHashCode() => HashCode.Combine(DefaultBase, RepositoryRoots.Count);
 }

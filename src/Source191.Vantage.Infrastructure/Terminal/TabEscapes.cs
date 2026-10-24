@@ -13,10 +13,7 @@ public static class TabEscapes
 
     public const string ResetBackground = "\u001b[2;263;264,|";
 
-    public static string Title(string title)
-    {
-        return $"\u001b]2;{title}\u0007";
-    }
+    public static string Title(string title) => $"\u001b]2;{title}\u0007";
 
     public static string Background(TabColour colour)
     {

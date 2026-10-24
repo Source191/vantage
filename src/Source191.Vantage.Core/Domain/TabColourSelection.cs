@@ -5,10 +5,7 @@ public sealed record ColourChoice(TabColour Colour, bool Reused);
 public sealed class TabColourSelection(IReadOnlyList<TabColour> palette)
 {
     /// <summary>The preferred colour when nothing live uses it; otherwise the usual first free colour.</summary>
-    public ColourChoice Choose(IReadOnlyList<TabColour> inUse, TabColour preferred)
-    {
-        return inUse.Contains(preferred) ? Choose(inUse) : new ColourChoice(preferred, Reused: false);
-    }
+    public ColourChoice Choose(IReadOnlyList<TabColour> inUse, TabColour preferred) => inUse.Contains(preferred) ? Choose(inUse) : new ColourChoice(preferred, Reused: false);
 
     public ColourChoice Choose(IReadOnlyList<TabColour> inUse)
     {

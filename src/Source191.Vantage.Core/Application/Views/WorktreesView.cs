@@ -53,10 +53,7 @@ public sealed record WorktreesViewState(
     public WorktreeRow? Selected => List.Selected;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
-    public WorktreesViewState With(ListSelection<WorktreeRow> list)
-    {
-        return this with { Rows = list.Rows, SelectedPath = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
-    }
+    public WorktreesViewState With(ListSelection<WorktreeRow> list) => this with { Rows = list.Rows, SelectedPath = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 
     /// <summary>The footer to show: the last message, else why the selected row is not healthy, else the standing hint.</summary>
     public Footer Shown => (Footer, Selected) switch
@@ -151,10 +148,7 @@ public static class WorktreesView
         };
     }
 
-    private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove)
-    {
-        return Effect(state with { Footer = new Footer.Working(remove) }, remove);
-    }
+    private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove) => Effect(state with { Footer = new Footer.Working(remove) }, remove);
 
     private static (ViewEffect?, Footer) Prune(WorktreeRow row)
     {
@@ -177,13 +171,7 @@ public static class WorktreesView
             : (new JumpToSession(row.SessionId), Footer.None);
     }
 
-    private static WorktreesViewUpdate Unchanged(WorktreesViewState state)
-    {
-        return new WorktreesViewUpdate(state, []);
-    }
+    private static WorktreesViewUpdate Unchanged(WorktreesViewState state) => new WorktreesViewUpdate(state, []);
 
-    private static WorktreesViewUpdate Effect(WorktreesViewState state, ViewEffect effect)
-    {
-        return new WorktreesViewUpdate(state, [effect]);
-    }
+    private static WorktreesViewUpdate Effect(WorktreesViewState state, ViewEffect effect) => new WorktreesViewUpdate(state, [effect]);
 }

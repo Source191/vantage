@@ -15,8 +15,5 @@ internal sealed class TableSource<TRow>(IReadOnlyList<TRow> rows, IReadOnlyList<
 
     public object this[int row, int col] => cell(rows[row], col);
 
-    public TRow RowAt(int index)
-    {
-        return rows[index];
-    }
+    public TRow RowAt(int index) => rows[index];
 }

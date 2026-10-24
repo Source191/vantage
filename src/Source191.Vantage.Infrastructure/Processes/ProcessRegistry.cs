@@ -11,10 +11,7 @@ namespace Source191.Vantage.Adapters.Processes;
 /// </summary>
 public sealed class ProcessRegistry : IProcessRegistry
 {
-    public DateTimeOffset? StartTimeOf(int processId)
-    {
-        return WithProcess<DateTimeOffset?>(processId, process => new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero));
-    }
+    public DateTimeOffset? StartTimeOf(int processId) => WithProcess<DateTimeOffset?>(processId, process => new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero));
 
     public void Terminate(int processId)
     {

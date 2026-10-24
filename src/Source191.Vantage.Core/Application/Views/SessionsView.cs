@@ -15,10 +15,7 @@ public sealed record Key(KeyName Name, char Character)
     public static readonly Key Backspace = new(KeyName.Backspace, '\0');
     public static readonly Key Slash = new(KeyName.Character, '/');
 
-    public static Key Of(char character)
-    {
-        return new Key(KeyName.Character, character);
-    }
+    public static Key Of(char character) => new Key(KeyName.Character, character);
 }
 
 public enum KeyName
@@ -114,10 +111,7 @@ public sealed record SessionsViewState(
     public Footer Shown => Footer is Footer.Blank ? new Footer.NeedInput(NeedsInputCount) : Footer;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
-    public SessionsViewState With(ListSelection<SessionRow> list)
-    {
-        return this with { Rows = list.Rows, SelectedSessionId = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
-    }
+    public SessionsViewState With(ListSelection<SessionRow> list) => this with { Rows = list.Rows, SelectedSessionId = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 
     private static IEnumerable<SessionRow> ByAttention(IEnumerable<SessionRow> rows)
     {
@@ -275,13 +269,7 @@ public static class SessionsView
         };
     }
 
-    private static ViewUpdate Unchanged(SessionsViewState state)
-    {
-        return new ViewUpdate(state, []);
-    }
+    private static ViewUpdate Unchanged(SessionsViewState state) => new ViewUpdate(state, []);
 
-    private static ViewUpdate Effect(SessionsViewState state, ViewEffect effect)
-    {
-        return new ViewUpdate(state, [effect]);
-    }
+    private static ViewUpdate Effect(SessionsViewState state, ViewEffect effect) => new ViewUpdate(state, [effect]);
 }

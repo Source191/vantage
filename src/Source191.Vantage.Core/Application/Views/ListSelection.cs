@@ -10,10 +10,7 @@ public sealed record ListPolicy<TRow>(
     StringComparison KeyComparison)
 {
     /// <summary>A selection with no rows yet, governed by this policy.</summary>
-    public ListSelection<TRow> EmptyList()
-    {
-        return new ListSelection<TRow>(this, [], SelectedKey: null, RowFilter.None, FilterEditing: false, Loaded: false);
-    }
+    public ListSelection<TRow> EmptyList() => new ListSelection<TRow>(this, [], SelectedKey: null, RowFilter.None, FilterEditing: false, Loaded: false);
 }
 
 /// <summary>
@@ -75,15 +72,9 @@ public sealed record ListSelection<TRow>(
         return this with { SelectedKey = Policy.KeyOf(visible[index]) };
     }
 
-    public ListSelection<TRow> StartFilter()
-    {
-        return this with { FilterEditing = true, Filter = RowFilter.None };
-    }
+    public ListSelection<TRow> StartFilter() => this with { FilterEditing = true, Filter = RowFilter.None };
 
-    public ListSelection<TRow> ClearFilter()
-    {
-        return (this with { FilterEditing = false, Filter = RowFilter.None }).Reselect();
-    }
+    public ListSelection<TRow> ClearFilter() => (this with { FilterEditing = false, Filter = RowFilter.None }).Reselect();
 
     /// <summary>A key typed while the filter is being edited: Enter keeps it, Escape clears it, the rest edit the text and keep a row selected.</summary>
     public ListSelection<TRow> EditFilter(Key key)
@@ -113,18 +104,9 @@ public sealed record ListSelection<TRow>(
             : selected;
     }
 
-    private ListSelection<TRow> Reselect()
-    {
-        return Selected is not null ? this : Load(Rows);
-    }
+    private ListSelection<TRow> Reselect() => Selected is not null ? this : Load(Rows);
 
-    private int IndexOfSelected()
-    {
-        return Math.Max(Visible.ToList().FindIndex(IsSelected), 0);
-    }
+    private int IndexOfSelected() => Math.Max(Visible.ToList().FindIndex(IsSelected), 0);
 
-    private bool IsSelected(TRow row)
-    {
-        return SelectedKey is not null && string.Equals(Policy.KeyOf(row), SelectedKey, Policy.KeyComparison);
-    }
+    private bool IsSelected(TRow row) => SelectedKey is not null && string.Equals(Policy.KeyOf(row), SelectedKey, Policy.KeyComparison);
 }
