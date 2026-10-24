@@ -1,9 +1,10 @@
 namespace Source191.Vantage.Ports;
 
 /// <summary>
-/// The little the read models need from the file system: existence, the folders and files under a path, whether a
-/// folder is empty, and the lines of a small text file such as a .git pointer. Paths in are full paths; paths out are
-/// full paths too. Implemented over System.IO at the boundary and faked in tests.
+/// The little the read models and the worktree actions need from the file system: existence, the folders and files
+/// under a path, whether a folder is empty, the lines of a small text file such as a .git pointer, and deleting a
+/// leftover tree. Paths in are full paths; paths out are full paths too. Implemented over System.IO at the boundary
+/// and faked in tests.
 /// </summary>
 public interface IFolders
 {
@@ -21,4 +22,7 @@ public interface IFolders
     bool IsEmpty(string path);
 
     IEnumerable<string> Lines(string file);
+
+    /// <summary>Deletes a folder tree, including read-only files such as git objects. A missing folder is not an error.</summary>
+    void DeleteTree(string path);
 }

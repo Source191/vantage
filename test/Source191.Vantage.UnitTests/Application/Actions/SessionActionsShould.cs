@@ -1,6 +1,5 @@
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -9,7 +8,7 @@ using Source191.Vantage.UnitTests.TestDoubles;
 
 namespace Source191.Vantage.UnitTests.Application.Actions;
 
-public sealed class SessionActionsShould : IDisposable
+public sealed class SessionActionsShould
 {
     private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
     private const string Repository = @"C:\repos\Northwind.Orders";
@@ -17,7 +16,6 @@ public sealed class SessionActionsShould : IDisposable
 
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
-    private readonly string stateFolder = Path.Combine(Path.GetTempPath(), "vantage-actions-" + Guid.NewGuid().ToString("N"));
     private readonly FakeProcessRunner processes = new FakeProcessRunner()
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
         .Answer(request => request.Arguments.Contains("--porcelain") && request.Arguments.Contains("list"), new ProcessResult(0, $"worktree C:/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n\nworktree C:/repos/Northwind.Orders-fix-123\nHEAD b\nbranch refs/heads/fix-123\n", string.Empty))
@@ -26,7 +24,7 @@ public sealed class SessionActionsShould : IDisposable
         .Answer(request => request.Arguments.Contains("symbolic-ref"), new ProcessResult(0, "origin/main\n", string.Empty))
         .Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(0, string.Empty, string.Empty));
 
-    private StateStore Store => new(stateFolder, TimeProvider.System);
+    private readonly InMemoryState Store = new();
 
     private readonly FakeProcessRegistry processTable = new FakeProcessRegistry().Running(4242, Noon);
 
@@ -283,13 +281,5 @@ public sealed class SessionActionsShould : IDisposable
         resumes.Select(request => request.Arguments[2]).ShouldBe(["sess-1", "sess-2"]);
         resumes.Select(request => request.Arguments[^1]).ShouldAllBe(name => name == "fix-123", "the display name survives the resume");
         message.ShouldContain("Resumed 2");
-    }
-
-    public void Dispose()
-    {
-        if (Directory.Exists(stateFolder))
-        {
-            Directory.Delete(stateFolder, recursive: true);
-        }
     }
 }

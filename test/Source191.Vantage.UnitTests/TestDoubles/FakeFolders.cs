@@ -2,7 +2,7 @@ using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.UnitTests.TestDoubles;
 
-/// <summary>An in-memory folder tree for the read models, keyed case-insensitively like Windows paths.</summary>
+/// <summary>An in-memory folder tree for the read models and worktree actions, keyed case-insensitively like Windows paths.</summary>
 public sealed class FakeFolders : IFolders
 {
     private readonly HashSet<string> directories = new(StringComparer.OrdinalIgnoreCase);
@@ -62,6 +62,17 @@ public sealed class FakeFolders : IFolders
     public IEnumerable<string> Lines(string file)
     {
         return files[Normalise(file)].Split('\n');
+    }
+
+    public void DeleteTree(string path)
+    {
+        string full = Normalise(path);
+        string prefix = full + Path.DirectorySeparatorChar;
+        directories.RemoveWhere(directory => string.Equals(directory, full, StringComparison.OrdinalIgnoreCase) || directory.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
+        foreach (string file in files.Keys.Where(file => file.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToList())
+        {
+            files.Remove(file);
+        }
     }
 
     private static string Normalise(string path)

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Git;
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -9,18 +8,18 @@ using Source191.Vantage.UnitTests.TestDoubles;
 
 namespace Source191.Vantage.UnitTests.Application;
 
-public sealed class SessionRowEnricherShould : IDisposable
+public sealed class SessionRowEnricherShould
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
-    private readonly string stateFolder = Path.Combine(Path.GetTempPath(), "vantage-enrich-" + Guid.NewGuid().ToString("N"));
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(128, string.Empty, "fatal: not a git repository"));
     private readonly FakeProcessRegistry registry = new();
     private readonly FakeTimeProvider clock = new(Noon);
 
     private readonly FakeTranscripts transcripts = new();
+    private readonly InMemoryState store = new();
 
-    private SessionRowEnricher Enricher => new(new GitCli(processes), new StateStore(stateFolder, clock), registry, clock, transcripts);
+    private SessionRowEnricher Enricher => new(new GitCli(processes), store, store, registry, clock, transcripts);
 
     [Fact]
     public async Task SayWhetherASessionHasATranscriptToResumeFrom()
@@ -77,7 +76,7 @@ public sealed class SessionRowEnricherShould : IDisposable
     public async Task AttachTheStoredDescription()
     {
         Session session = Session(@"C:\repos\Northwind.Orders");
-        await new StateStore(stateFolder, clock).WriteDescriptionAsync(session.SessionId, "Replace the hook");
+        await store.WriteDescriptionAsync(session.SessionId, "Replace the hook");
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
@@ -90,14 +89,14 @@ public sealed class SessionRowEnricherShould : IDisposable
         Session session = Session(@"C:\repos\Northwind.Orders");
         TabRegistration live = TabRegistration.Pending(session.SessionId, TabPalette.Default[0], Noon.AddMinutes(-5)).ClaimedBy(7001, Noon.AddMinutes(-5));
         TabRegistration stale = TabRegistration.Pending(session.SessionId, TabPalette.Default[1], Noon.AddHours(-1));
-        await new StateStore(stateFolder, clock).WriteTabAsync(live);
-        await new StateStore(stateFolder, clock).WriteTabAsync(stale);
+        await store.WriteTabAsync(live);
+        await store.WriteTabAsync(stale);
         registry.Running(7001, Noon.AddMinutes(-5));
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         row.HasLiveTab.ShouldBeTrue();
-        (await new StateStore(stateFolder, clock).ReadTabsAsync()).Count.ShouldBe(1, "the stale registration is removed on read");
+        (await store.ReadTabsAsync()).Count.ShouldBe(1, "the stale registration is removed on read");
     }
 
     [Fact]
@@ -130,14 +129,6 @@ public sealed class SessionRowEnricherShould : IDisposable
         IReadOnlyList<SessionRow>[] results = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => enricher.EnrichAsync(sessions, CancellationToken.None)));
 
         results.ShouldAllBe(rows => rows.Count == 20 && rows.All(row => row.Repository == "Northwind.Orders" && row.Branch == "main"));
-    }
-
-    public void Dispose()
-    {
-        if (Directory.Exists(stateFolder))
-        {
-            Directory.Delete(stateFolder, recursive: true);
-        }
     }
 
     private void AnswerGit(string directory, string root, string commonDir, string branch)

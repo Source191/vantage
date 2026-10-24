@@ -1,4 +1,3 @@
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -12,7 +11,7 @@ public sealed record DeleteOutcome(string Message, BranchToConfirm? BranchToConf
 public sealed record ResumePlan(IReadOnlyList<SessionRow> Automatic, IReadOnlyList<SessionRow> ToChoose);
 
 /// <summary>Stop, delete and resume, with the worktree safety rules applied when a deleted session lived in a Vantage worktree.</summary>
-public sealed class SessionActions(IClaudeCli claude, IGit git, StateStore store, IProcessRegistry processes, ITranscripts transcripts)
+public sealed class SessionActions(IClaudeCli claude, IGit git, ICreatedWorktrees createdWorktrees, IProcessRegistry processes, ITranscripts transcripts)
 {
     /// <summary>
     /// Moves a session started as plain claude in another tab under the supervisor: end its process, then resume the
@@ -144,7 +143,7 @@ public sealed class SessionActions(IClaudeCli claude, IGit git, StateStore store
         await claude.RemoveAsync(row.Session.JobId!, cancellationToken);
         string deleted = $"Deleted {row.Session.Name}";
 
-        CreatedWorktree? created = (await store.ReadCreatedWorktreesAsync())
+        CreatedWorktree? created = (await createdWorktrees.ReadCreatedWorktreesAsync())
             .FirstOrDefault(worktree => string.Equals(worktree.Path, row.Session.WorkingDirectory, StringComparison.OrdinalIgnoreCase));
         if (created is null)
         {
@@ -158,7 +157,7 @@ public sealed class SessionActions(IClaudeCli claude, IGit git, StateStore store
         }
 
         await git.RemoveWorktreeAsync(created.Repository, created.Path, decision.Forced, cancellationToken);
-        await store.ForgetCreatedWorktreeAsync(created.Path);
+        await createdWorktrees.ForgetCreatedWorktreeAsync(created.Path);
         if (decision.Branch == BranchAction.Delete)
         {
             await git.DeleteBranchAsync(created.Repository, created.Branch, force: false, cancellationToken);

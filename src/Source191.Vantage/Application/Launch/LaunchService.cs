@@ -1,5 +1,3 @@
-using Source191.Vantage.Adapters.Git;
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
@@ -19,7 +17,7 @@ public sealed record LaunchOutcome(LaunchOutcomeKind Kind, string? JobId, string
 /// Carries out a launch plan: creates the sibling worktree when one is wanted, copies the include files,
 /// starts the named background session, and records what Vantage needs to remember about it.
 /// </summary>
-public sealed class LaunchService(IClaudeCli claude, IGit git, StateStore store, WorktreeIncludeCopier copier, TimeProvider clock)
+public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositories recent, ICreatedWorktrees created, ISessionDescriptions descriptions, IWorktreeIncludeCopier copier, TimeProvider clock)
 {
     public async Task<LaunchOutcome> LaunchAsync(LaunchPlan plan, CancellationToken cancellationToken)
     {
@@ -43,7 +41,7 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, StateStore store,
             return new LaunchOutcome(kind, JobId: null, start.Message);
         }
 
-        await store.RecordRecentRepositoryAsync(plan.Repository.Path);
+        await recent.RecordRecentRepositoryAsync(plan.Repository.Path);
         Session? started = await ListedSessionAsync(start.JobId, cancellationToken);
         await RecordDescriptionAsync(plan, started);
 
@@ -59,7 +57,7 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, StateStore store,
 
         await git.AddWorktreeAsync(repository, worktree.Path, worktree.Branch, baseRef, cancellationToken);
         await copier.CopyAsync(repository, worktree.Path, cancellationToken);
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(worktree.Path, worktree.Branch, repository, clock.GetUtcNow()));
+        await created.RecordCreatedWorktreeAsync(new CreatedWorktree(worktree.Path, worktree.Branch, repository, clock.GetUtcNow()));
     }
 
     /// <summary>The new session as the supervisor lists it, which is where its full session id comes from.</summary>
@@ -77,6 +75,6 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, StateStore store,
             return;
         }
 
-        await store.WriteDescriptionAsync(started.SessionId, plan.Description);
+        await descriptions.WriteDescriptionAsync(started.SessionId, plan.Description);
     }
 }

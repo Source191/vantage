@@ -6,7 +6,7 @@ namespace Source191.Vantage.Adapters.Git;
 /// Copies the gitignored files a repository's .worktreeinclude names into a new worktree, the way Claude Code
 /// does for the worktrees it creates itself. Patterns use the globbing subset of .gitignore syntax.
 /// </summary>
-public sealed class WorktreeIncludeCopier(IGit git)
+public sealed class WorktreeIncludeCopier(IGit git) : IWorktreeIncludeCopier
 {
     private const string IncludeFileName = ".worktreeinclude";
 

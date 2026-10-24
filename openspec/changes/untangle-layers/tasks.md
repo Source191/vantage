@@ -10,7 +10,7 @@
 
 - [x] 2.1 Move `SessionRow`, `WorktreeRow`, `Key`, `KeyName`, `ViewInput`, `ViewEffect` and all effect records, `SessionsView`, `SessionsViewState`, `WorktreesView`, `WorktreesViewState` to `Application\Views`; verify build, tests and format pass with no test edits beyond `using`
 - [x] 2.2 Move `SessionRowEnricher`, `WorktreeInventory`, `StateTransitionNotifier`, `Actions\*` and `Launch\*` to `Application`; verify build, tests and format pass
-- [ ] 2.3 Unskip `KeepApplicationFreeOfAdaptersAndTui` once 3.x lands; until then verify it fails only on `Adapters` references
+- [x] 2.3 Unskip `KeepApplicationFreeOfAdaptersAndTui` once 3.x lands; until then verify it fails only on `Adapters` references
 
 ## 3. Ports namespace
 
@@ -24,10 +24,10 @@
 
 ## 4. State ports
 
-- [ ] 4.1 Define `ITabRegistry`, `IRecentRepositories`, `ICreatedWorktrees`, `ISessionDescriptions`, `IVantageConfig` in `Ports` with the existing method shapes; `JsonFileStore` in `Adapters\State` implements all five; `StateStoreShould` is renamed `JsonFileStoreShould` and passes unchanged in intent
-- [ ] 4.2 Add `InMemoryTabRegistry`, `InMemoryRecentRepositories`, `InMemoryCreatedWorktrees`, `InMemorySessionDescriptions` to `TestDoubles`, each with a one-fact test
-- [ ] 4.3 `TabOpenerShould`, `OwnTabShould`, `SessionActionsShould`, `WorktreeActionsShould`, `LaunchServiceShould`, `LaunchWorkflowShould`, `SessionRowEnricherShould` take the in-memory fakes and no longer create temp folders; verify they pass and that `GetTempPath` appears only in adapter tests and `TemporaryGitRoot`
-- [ ] 4.4 Unskip `KeepApplicationFreeOfAdaptersAndTui` and verify it passes
+- [x] 4.1 Define `ITabRegistry`, `IRecentRepositories`, `ICreatedWorktrees`, `ISessionDescriptions`, `IVantageConfig` in `Ports` with the existing method shapes; `JsonFileStore` in `Adapters\State` implements all five; `StateStoreShould` is renamed `JsonFileStoreShould` and passes unchanged in intent
+- [x] 4.2 One `InMemoryState` in `TestDoubles` implements all five ports with the file store's rules, with a fact per port in `InMemoryStateShould`
+- [x] 4.3 `TabOpenerShould`, `OwnTabShould`, `SessionActionsShould`, `WorktreeActionsShould`, `LaunchServiceShould`, `LaunchWorkflowShould`, `SessionRowEnricherShould` take the in-memory fakes and no longer create temp folders; verify they pass and that `GetTempPath` appears only in adapter tests and `TemporaryGitRoot`
+- [x] 4.4 Unskip `KeepApplicationFreeOfAdaptersAndTui` and verify it passes
 
 ## 5. Program becomes wiring
 

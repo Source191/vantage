@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -12,7 +13,7 @@ namespace Source191.Vantage.Adapters.State;
 /// created, and config. A missing or corrupt file reads as empty. The single-file recent.json and sessions.json of
 /// earlier versions are imported once and removed.
 /// </summary>
-public sealed class StateStore(string folder, TimeProvider clock)
+public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, ISessionDescriptions, IVantageConfig
 {
     private const int RecentLimit = 10;
 

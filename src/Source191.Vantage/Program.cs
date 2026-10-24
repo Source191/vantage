@@ -11,11 +11,12 @@ using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.Tui;
 
 // Composition root. Everything here is wiring; behaviour lives in the tested classes it assembles.
 string stateFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vantage");
-StateStore store = new(stateFolder, TimeProvider.System);
+JsonFileStore store = new(stateFolder, TimeProvider.System);
 
 // VANTAGE_LOG=<file> turns on a diagnostic log of Vantage's hand-offs and Terminal.Gui's internals.
 ILogger log = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
@@ -48,11 +49,11 @@ ClaudeCli claude = new(processes, claudeExecutable);
 GitCli git = new(processes);
 VantageConfig config = await store.ReadConfigAsync();
 ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
-SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts);
+SessionRowEnricher enricher = new(git, store, store, processRegistry, TimeProvider.System, transcripts);
 StateTransitionNotifier notifier = new(Console.Out);
 WindowsTerminal terminal = new(processes);
 Folders folders = new();
-LaunchService launchService = new(claude, git, store, new WorktreeIncludeCopier(git), TimeProvider.System);
+LaunchService launchService = new(claude, git, store, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
 TabOpener tabs = new(store, processRegistry, terminal, TimeProvider.System, claudeExecutable, vantageExecutable);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
 LaunchWorkflow launches = new(new RepositoryCatalogue(folders, config.RepositoryRoots), folders, store, launchService, tabs, terminal, claudeExecutable);
@@ -66,7 +67,7 @@ if (args.Length >= 1 && args[0] == "here")
 
 string context = string.Join('\n', Environment.MachineName, claudeExecutable, string.Join("; ", config.RepositoryRoots));
 SessionsScreen sessionsScreen = new(LoadAsync, notifier, launches, actions, tabs, config.DefaultBase, TimeProvider.System, context);
-WorktreeActions worktreeActions = new(git, store, terminal);
+WorktreeActions worktreeActions = new(git, store, folders, terminal);
 WorktreeInventory inventory = new(git, folders, config.RepositoryRoots);
 WorktreesScreen worktreesScreen = new(ScanAsync, worktreeActions, launches, config.DefaultBase, TimeProvider.System, context);
 SessionsViewState sessions = SessionsViewState.Empty;

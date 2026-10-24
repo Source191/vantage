@@ -38,7 +38,7 @@ public sealed class LayeringShould
             .GetResult().FailingTypeNames.ShouldBeNull();
     }
 
-    [Fact(Skip = "untangle-layers task 4.4: Application still references Adapters for the ports and the state store")]
+    [Fact]
     public void KeepApplicationFreeOfAdaptersAndTui()
     {
         Vantage.That().ResideInNamespaceStartingWith($"{Root}.Application")

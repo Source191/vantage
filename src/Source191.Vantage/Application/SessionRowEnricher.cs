@@ -1,4 +1,3 @@
-using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -9,7 +8,7 @@ namespace Source191.Vantage.Application;
 /// Turns listed sessions into table rows by asking git about each working directory (cached, because that is
 /// three processes per directory), reading descriptions from the state store, and checking for live tabs.
 /// </summary>
-public sealed class SessionRowEnricher(IGit git, StateStore store, IProcessRegistry processes, TimeProvider clock, ITranscripts transcripts)
+public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDescriptions, ITabRegistry tabs, IProcessRegistry processes, TimeProvider clock, ITranscripts transcripts)
 {
     private static readonly TimeSpan CacheWindow = TimeSpan.FromSeconds(30);
 
@@ -18,7 +17,7 @@ public sealed class SessionRowEnricher(IGit git, StateStore store, IProcessRegis
 
     public async Task<IReadOnlyList<SessionRow>> EnrichAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {
-        IReadOnlyDictionary<string, string> descriptions = await store.ReadDescriptionsAsync();
+        IReadOnlyDictionary<string, string> descriptions = await sessionDescriptions.ReadDescriptionsAsync();
         HashSet<string> sessionsWithLiveTabs = await LiveTabSessionsAsync();
 
         List<SessionRow> rows = [];
@@ -40,11 +39,11 @@ public sealed class SessionRowEnricher(IGit git, StateStore store, IProcessRegis
 
     private async Task<HashSet<string>> LiveTabSessionsAsync()
     {
-        IReadOnlyList<TabRegistration> all = await store.ReadTabsAsync();
+        IReadOnlyList<TabRegistration> all = await tabs.ReadTabsAsync();
         IReadOnlyList<TabRegistration> live = new TabRegistrations(all).Live(clock.GetUtcNow(), processes);
         foreach (TabRegistration stale in all.Except(live))
         {
-            await store.RemoveTabAsync(stale.Id);
+            await tabs.RemoveTabAsync(stale.Id);
         }
 
         return [.. live.Select(registration => registration.SessionId)];
