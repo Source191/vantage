@@ -91,10 +91,33 @@ internal sealed class WizardControls
         return moves.Where(move => move.Key == key).Select(move => (int?)move.Delta).FirstOrDefault();
     }
 
+    /// <summary>Tells the dialog which field took focus, by Tab, a click or the dialog itself.</summary>
+    public void WhenFocused(Action<WizardField> focused)
+    {
+        foreach ((WizardField field, View view) in Fields)
+        {
+            view.HasFocusChanged += (_, _) =>
+            {
+                if (view.HasFocus)
+                {
+                    focused(field);
+                }
+            };
+        }
+    }
+
+    /// <summary>Runs a key's or button's action and marks the event handled.</summary>
+    public static bool Handled(Action action)
+    {
+        action();
+
+        return true;
+    }
+
     public static Button Button(string text, Action pressed)
     {
         Button button = new() { Text = text };
-        button.Accepting += (_, accepting) => accepting.Handled = LaunchWizardDialog.Handled(pressed);
+        button.Accepting += (_, accepting) => accepting.Handled = Handled(pressed);
 
         return button;
     }

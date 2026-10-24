@@ -41,7 +41,11 @@ internal static class LaunchWizardDialog
 
             WizardUpdate update = WizardView.Reduce(state, input);
             state = update.State;
-            result = update.Effect is WizardEffect.Launch launch ? new WizardResult(launch.Plan, launch.OpenInTab) : null;
+            if (update.Effect is WizardEffect.Launch launch)
+            {
+                result = new WizardResult(launch.Plan, launch.OpenInTab);
+            }
+
             if (update.Effect is not null)
             {
                 app.RequestStop(dialog);
@@ -69,17 +73,16 @@ internal static class LaunchWizardDialog
             binding = false;
         }
 
-        foreach ((WizardField field, View view) in controls.Fields)
+        // The texts follow their change events; reading them again at Start, as the dialog always did, means no missed event can launch a stale name.
+        void Start(bool openInTab)
         {
-            view.HasFocusChanged += (_, _) =>
-            {
-                if (view.HasFocus)
-                {
-                    Apply(new WizardInput.FieldFocused(field));
-                }
-            };
+            Apply(new WizardInput.NameChanged(controls.Name.Text));
+            Apply(new WizardInput.DescriptionChanged(controls.Description.Text));
+            Apply(new WizardInput.PromptChanged(controls.Prompt.Text));
+            Apply(new WizardInput.Start(openInTab));
         }
 
+        controls.WhenFocused(field => Apply(new WizardInput.FieldFocused(field)));
         controls.Filter.TextChanging += (_, changing) => Apply(new WizardInput.FilterChanged(changing.Result ?? string.Empty));
         controls.Repositories.ValueChanged += (_, _) => Apply(new WizardInput.ChoiceSelected(controls.Repositories.SelectedItem ?? -1));
         controls.Name.TextChanging += (_, changing) => Apply(new WizardInput.NameChanged(changing.Result ?? string.Empty));
@@ -88,28 +91,21 @@ internal static class LaunchWizardDialog
         controls.BaseRef.ValueChanged += (_, _) => Apply(new WizardInput.BaseChanged(controls.BaseRef.Value == 1 ? WorktreeBase.Head : WorktreeBase.RemoteDefault));
         controls.Prompt.ContentsChanged += (_, _) => Apply(new WizardInput.PromptChanged(controls.Prompt.Text));
         // Arrow and page keys typed in the filter drive the list; a letter or Backspace typed in the list is typing in the filter.
-        controls.Filter.KeyDown += (_, key) => key.Handled = controls.ListDelta(key) is int delta && Handled(() => Apply(new WizardInput.ListMoved(delta)));
+        controls.Filter.KeyDown += (_, key) => key.Handled = controls.ListDelta(key) is int delta && WizardControls.Handled(() => Apply(new WizardInput.ListMoved(delta)));
         controls.Repositories.KeyDown += (_, key) => key.Handled = (key == GuiKey.Backspace || (!key.IsAlt && !key.IsCtrl && key.AsRune.Value >= ' ')) && controls.Filter.SetFocus() && controls.Filter.NewKeyDownEvent(key);
-        controls.Filter.Accepting += (_, accepting) => accepting.Handled = Handled(() => Apply(new WizardInput.ConfirmRepository()));
-        controls.Repositories.Accepting += (_, accepting) => accepting.Handled = Handled(() => Apply(new WizardInput.ConfirmRepository()));
-        controls.Name.Accepting += (_, accepting) => accepting.Handled = Handled(() => Apply(new WizardInput.NextField()));
-        controls.Description.Accepting += (_, accepting) => accepting.Handled = Handled(() => Apply(new WizardInput.NextField()));
-        dialog.KeyDown += (_, key) => key.Handled = (key == GuiKey.F5 || key == GuiKey.F6) && Handled(() => Apply(new WizardInput.Start(OpenInTab: key == GuiKey.F6)));
+        controls.Filter.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.ConfirmRepository()));
+        controls.Repositories.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.ConfirmRepository()));
+        controls.Name.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.NextField()));
+        controls.Description.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.NextField()));
+        dialog.KeyDown += (_, key) => key.Handled = (key == GuiKey.F5 || key == GuiKey.F6) && WizardControls.Handled(() => Start(openInTab: key == GuiKey.F6));
         // No default button: Enter never starts anything by itself. The function keys and the buttons do.
-        dialog.AddButton(WizardControls.Button("_Start (F5)", () => Apply(new WizardInput.Start(OpenInTab: false))));
-        dialog.AddButton(WizardControls.Button("Start and open in _tab (F6)", () => Apply(new WizardInput.Start(OpenInTab: true))));
+        dialog.AddButton(WizardControls.Button("_Start (F5)", () => Start(openInTab: false)));
+        dialog.AddButton(WizardControls.Button("Start and open in _tab (F6)", () => Start(openInTab: true)));
         dialog.AddButton(WizardControls.Button("_Cancel (Esc)", () => Apply(new WizardInput.Cancel())));
         dialog.Initialized += (_, _) => Push();
 
         app.Run(dialog);
 
         return result;
-    }
-
-    internal static bool Handled(Action action)
-    {
-        action();
-
-        return true;
     }
 }
