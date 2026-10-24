@@ -1,6 +1,7 @@
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Ports;
+using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Infrastructure.Tests;
 
@@ -46,6 +47,38 @@ public sealed class WorktreeIncludeCopierShould : IDisposable
         copied.ShouldBeEmpty();
     }
 
+    /// <summary>
+    /// Characterisation: git never lists a path outside the repository and the glob matcher drops such paths anyway,
+    /// so this passes today; it fails if either stops being true.
+    /// </summary>
+    [Fact]
+    public async Task SkipParentRelativePathsFromGit()
+    {
+        await CreateRepositoryAsync(gitignore: "*.local.json\n", worktreeInclude: "*\n**/*\n", files: ["app.local.json"]);
+        await File.WriteAllTextAsync(Path.Combine(root, "outside.local.json"), "outside", TestContext.Current.CancellationToken);
+        IReadOnlyList<string> outsideBefore = FilesOutsideTheWorktree();
+
+        IReadOnlyList<string> copied = await CopierOverListing("../outside.local.json", "sub/../../outside.local.json", "app.local.json")
+            .CopyAsync(Repository, Worktree, TestContext.Current.CancellationToken);
+
+        copied.ShouldBe(["app.local.json"]);
+        FilesOutsideTheWorktree().ShouldBe(outsideBefore);
+    }
+
+    [Fact]
+    public async Task SkipRootedAndNetworkPathsFromGit()
+    {
+        await CreateRepositoryAsync(gitignore: "*.local.json\n", worktreeInclude: "*\n**/*\n", files: ["app.local.json"]);
+        IReadOnlyList<string> outsideBefore = FilesOutsideTheWorktree();
+
+        IReadOnlyList<string> copied = await CopierOverListing("C:/Users/me/secrets.local.json", "//server/share/secrets.local.json", "/secrets.local.json", "app.local.json")
+            .CopyAsync(Repository, Worktree, TestContext.Current.CancellationToken);
+
+        copied.ShouldBe(["app.local.json"]);
+        File.Exists(Path.Combine(Worktree, "app.local.json")).ShouldBeTrue();
+        FilesOutsideTheWorktree().ShouldBe(outsideBefore);
+    }
+
     public void Dispose()
     {
         if (!Directory.Exists(root))
@@ -79,6 +112,21 @@ public sealed class WorktreeIncludeCopierShould : IDisposable
         }
 
         await RunGitAsync("init", "-q", "-b", "main");
+    }
+
+    /// <summary>A copier whose git answers the ignored-file listing with exactly these lines.</summary>
+    private static WorktreeIncludeCopier CopierOverListing(params string[] listing)
+    {
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Join('\n', listing) + "\n", string.Empty));
+
+        return new WorktreeIncludeCopier(new GitCli(processes));
+    }
+
+    private IReadOnlyList<string> FilesOutsideTheWorktree()
+    {
+        return [.. Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories)
+            .Where(file => !file.StartsWith(Worktree + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            .Order(StringComparer.OrdinalIgnoreCase)];
     }
 
     private async Task RunGitAsync(params string[] arguments)
