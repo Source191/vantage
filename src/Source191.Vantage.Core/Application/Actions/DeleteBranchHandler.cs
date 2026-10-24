@@ -9,7 +9,7 @@ public sealed class DeleteBranchHandler(IGit git) : IEffectHandler<DeleteBranch>
 {
     public async Task<Outcome> HandleAsync(DeleteBranch effect, CancellationToken cancellationToken)
     {
-        await git.DeleteBranchAsync(effect.Branch.Repository, effect.Branch.Branch, force: true, cancellationToken);
+        await git.DeleteBranchAsync(effect.Branch.Repository.Value, effect.Branch.Branch.Value, force: true, cancellationToken);
 
         return new DeleteBranchOutcome();
     }

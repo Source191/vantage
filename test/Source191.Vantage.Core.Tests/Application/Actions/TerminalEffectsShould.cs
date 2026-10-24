@@ -1,6 +1,7 @@
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
@@ -21,7 +22,7 @@ public sealed class TerminalEffectsShould : IDisposable
     [Fact]
     public async Task PrintTheReturnHintThenAttach()
     {
-        await Effects.RunAsync(new AttachToSession("81cdb0f9"), CancellationToken.None);
+        await Effects.RunAsync(new AttachToSession(new JobId("81cdb0f9")), CancellationToken.None);
 
         console.ToString().ShouldContain("Ctrl+Z returns to Vantage");
         console.ToString().ShouldContain("agent list");

@@ -28,13 +28,14 @@ public sealed class ClaudeAgentsListingShould
     }
 
     [Fact]
-    public void SkipARowWithoutAFullWorkingDirectoryRatherThanFailTheListing()
+    public void SkipARowWithoutASessionIdOrAFullWorkingDirectoryRatherThanFailTheListing()
     {
         const string json = """
             [
               {"pid":51432,"kind":"interactive","startedAt":1792591583841,"sessionId":"82db48ec-63de-49db-9831-b8147075dc3a","name":"no-cwd","status":"idle"},
               {"pid":51433,"cwd":"repos","kind":"interactive","startedAt":1792591583841,"sessionId":"92db48ec-63de-49db-9831-b8147075dc3a","name":"relative-cwd","status":"idle"},
-              {"pid":51434,"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"interactive","startedAt":1792591583841,"sessionId":"a2db48ec-63de-49db-9831-b8147075dc3a","name":"full-cwd","status":"idle"}
+              {"pid":51434,"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"interactive","startedAt":1792591583841,"sessionId":"a2db48ec-63de-49db-9831-b8147075dc3a","name":"full-cwd","status":"idle"},
+              {"pid":51435,"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"interactive","startedAt":1792591583841,"name":"no-session-id","status":"idle"}
             ]
             """;
 
@@ -48,7 +49,7 @@ public sealed class ClaudeAgentsListingShould
 
         interactive.Kind.ShouldBe(SessionKind.Interactive);
         interactive.JobId.ShouldBeNull();
-        interactive.SessionId.ShouldBe("82db48ec-63de-49db-9831-b8147075dc3a");
+        interactive.SessionId.Value.ShouldBe("82db48ec-63de-49db-9831-b8147075dc3a");
         interactive.WorkingDirectory.Value.ShouldBe(@"C:\Users\me\source\repos");
         interactive.State.ShouldBe(DisplayState.Idle);
     }
@@ -59,7 +60,7 @@ public sealed class ClaudeAgentsListingShould
         Session background = Sessions.Single(session => session.Name == "spike-commit-check");
 
         background.Kind.ShouldBe(SessionKind.Background);
-        background.JobId.ShouldBe("1a4d2d86");
+        background.JobId.ShouldBe(new JobId("1a4d2d86"));
         background.State.ShouldBe(DisplayState.Completed);
     }
 

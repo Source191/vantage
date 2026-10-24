@@ -8,7 +8,7 @@ public sealed class StopSessionHandler(IClaudeCli claude) : IEffectHandler<StopS
 {
     public async Task<Outcome> HandleAsync(StopSession effect, CancellationToken cancellationToken)
     {
-        await claude.StopAsync(effect.Row.Session.JobId!, cancellationToken);
+        await claude.StopAsync(effect.Row.Session.JobId!.Value, cancellationToken);
 
         return new StopSessionOutcome(effect.Row.Session.Name);
     }

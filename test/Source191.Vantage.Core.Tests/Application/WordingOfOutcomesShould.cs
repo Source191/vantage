@@ -12,7 +12,7 @@ namespace Source191.Vantage.Core.Tests.Application;
 /// </summary>
 public sealed class WordingOfOutcomesShould
 {
-    private static readonly BranchToConfirm Branch = new(@"C:\repos\Northwind.Orders", "fix-123");
+    private static readonly BranchToConfirm Branch = new(new FolderPath(@"C:\repos\Northwind.Orders"), new BranchName("fix-123"));
 
     public static TheoryData<Type> OutcomeCases => new(
         typeof(Outcome).Assembly.GetTypes().Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(Outcome))));
@@ -82,7 +82,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayHowToResumeAfterARenameAndItsRestoreBothFailed()
     {
-        Wording.Describe(new RenameSessionOutcome.Unsupervised("fix-123", "boom", "sess-1", "bang"))
+        Wording.Describe(new RenameSessionOutcome.Unsupervised("fix-123", "boom", new SessionId("sess-1"), "bang"))
             .ShouldBe("Could not rename fix-123: boom; resume it with claude --bg --resume sess-1 (bang).");
     }
 
@@ -161,7 +161,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayADeletedSessionsWorktreeAndBranchWentToo()
     {
-        Wording.Describe(new DeleteSessionOutcome.RemovedWorktreeAndBranch("fix-123", "fix-123")).ShouldBe("Deleted fix-123 and removed the worktree and branch fix-123.");
+        Wording.Describe(new DeleteSessionOutcome.RemovedWorktreeAndBranch("fix-123", new BranchName("fix-123"))).ShouldBe("Deleted fix-123 and removed the worktree and branch fix-123.");
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayAWorktreeAndItsMergedBranchWereRemoved()
     {
-        Wording.Describe(new RemoveWorktreeOutcome.RemovedAndDeletedBranch("Northwind.Orders-fix-123", "fix-123"))
+        Wording.Describe(new RemoveWorktreeOutcome.RemovedAndDeletedBranch("Northwind.Orders-fix-123", new BranchName("fix-123")))
             .ShouldBe("Removed Northwind.Orders-fix-123 and deleted its merged branch fix-123.");
     }
 
@@ -279,20 +279,20 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASessionStarted()
     {
-        Wording.Describe(new StartSessionOutcome.Started("Fix flaky tests", "81cdb0f9")).ShouldBe("Started Fix flaky tests (81cdb0f9).");
+        Wording.Describe(new StartSessionOutcome.Started("Fix flaky tests", new JobId("81cdb0f9"))).ShouldBe("Started Fix flaky tests (81cdb0f9).");
     }
 
     [Fact]
     public void SayASessionStartedAndWhereItsTabOpened()
     {
-        Wording.Describe(new StartSessionOutcome.StartedAndOpened("Fix flaky tests", "81cdb0f9", new OpenTabOutcome.Opened("Fix flaky tests", "Red", ColourReused: false)))
+        Wording.Describe(new StartSessionOutcome.StartedAndOpened("Fix flaky tests", new JobId("81cdb0f9"), new OpenTabOutcome.Opened("Fix flaky tests", "Red", ColourReused: false)))
             .ShouldBe("Started Fix flaky tests (81cdb0f9). Opened Fix flaky tests in a red tab.");
     }
 
     [Fact]
     public void SayHowToOpenATabForASessionNotListedYet()
     {
-        Wording.Describe(new StartSessionOutcome.NotListedYet("Fix flaky tests", "81cdb0f9"))
+        Wording.Describe(new StartSessionOutcome.NotListedYet("Fix flaky tests", new JobId("81cdb0f9")))
             .ShouldBe("Started Fix flaky tests (81cdb0f9). It is not listed yet: press o on it to open a tab.");
     }
 
@@ -314,7 +314,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayWhereVantageHereStartedTheSession()
     {
-        Wording.Here(new LaunchOutcome(LaunchOutcomeKind.Started, "81cdb0f9", "backgrounded"), "fix-tests", @"C:\repos\Northwind.Orders")
+        Wording.Here(new LaunchOutcome(LaunchOutcomeKind.Started, new JobId("81cdb0f9"), "backgrounded"), "fix-tests", @"C:\repos\Northwind.Orders")
             .ShouldBe(@"Started fix-tests (81cdb0f9) in C:\repos\Northwind.Orders.");
     }
 
@@ -341,6 +341,9 @@ public sealed class WordingOfOutcomesShould
             _ when type == typeof(bool) => true,
             _ when type == typeof(BranchToConfirm) => Branch,
             _ when type == typeof(FolderPath) => new FolderPath(@"C:\repos\Northwind.Orders"),
+            _ when type == typeof(JobId) => new JobId("81cdb0f9"),
+            _ when type == typeof(SessionId) => new SessionId("sess-1"),
+            _ when type == typeof(BranchName) => new BranchName("fix-123"),
             _ when type == typeof(OpenTabOutcome) => new OpenTabOutcome.SwitchedTo("fix-123"),
             _ when type == typeof(IReadOnlyList<string>) => new List<string> { "fix-123" },
             _ when type == typeof(IReadOnlyList<SkippedSession>) => new List<SkippedSession>(),

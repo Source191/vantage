@@ -16,7 +16,7 @@ public sealed class StateTransitionNotifier(TextWriter terminal)
             return;
         }
 
-        Dictionary<string, DisplayStateKind> before = previous.ToDictionary(row => row.Session.SessionId, row => row.Session.State.Kind);
+        Dictionary<SessionId, DisplayStateKind> before = previous.ToDictionary(row => row.Session.SessionId, row => row.Session.State.Kind);
         bool someoneStartedWaiting = current
             .Where(row => row.Session.Kind == SessionKind.Background && row.Session.State.Kind == DisplayStateKind.NeedsInput)
             .Any(row => before.TryGetValue(row.Session.SessionId, out DisplayStateKind was) && was != DisplayStateKind.NeedsInput);

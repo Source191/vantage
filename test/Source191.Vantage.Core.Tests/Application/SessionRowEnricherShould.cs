@@ -25,8 +25,8 @@ public sealed class SessionRowEnricherShould
     public async Task SayWhetherASessionHasATranscriptToResumeFrom()
     {
         Session withMessages = Session(@"C:\repos\Northwind.Orders");
-        Session untouched = Session(@"C:\repos\Northwind.Orders") with { SessionId = "never-sent-anything" };
-        transcripts.WithMessages(withMessages.SessionId);
+        Session untouched = Session(@"C:\repos\Northwind.Orders") with { SessionId = new SessionId("never-sent-anything") };
+        transcripts.WithMessages(withMessages.SessionId.Value);
 
         IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([withMessages, untouched], CancellationToken.None);
 
@@ -43,7 +43,7 @@ public sealed class SessionRowEnricherShould
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         row.Repository.ShouldBe("Northwind.Orders");
-        row.Branch.ShouldBe("feature/x");
+        row.Branch.ShouldBe(new BranchName("feature/x"));
         row.IsWorktree.ShouldBeFalse();
     }
 
@@ -56,7 +56,7 @@ public sealed class SessionRowEnricherShould
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         row.Repository.ShouldBe("Northwind.Orders");
-        row.Branch.ShouldBe("fix");
+        row.Branch.ShouldBe(new BranchName("fix"));
         row.IsWorktree.ShouldBeTrue();
     }
 
@@ -76,7 +76,7 @@ public sealed class SessionRowEnricherShould
     public async Task AttachTheStoredDescription()
     {
         Session session = Session(@"C:\repos\Northwind.Orders");
-        await store.WriteDescriptionAsync(session.SessionId, "Replace the hook");
+        await store.WriteDescriptionAsync(session.SessionId.Value, "Replace the hook");
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
@@ -87,8 +87,8 @@ public sealed class SessionRowEnricherShould
     public async Task MarkASessionWithALiveVantageTab()
     {
         Session session = Session(@"C:\repos\Northwind.Orders");
-        TabRegistration live = TabRegistration.Pending(session.SessionId, TabPalette.Default[0], Noon.AddMinutes(-5)).ClaimedBy(7001, Noon.AddMinutes(-5));
-        TabRegistration stale = TabRegistration.Pending(session.SessionId, TabPalette.Default[1], Noon.AddHours(-1));
+        TabRegistration live = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), TabPalette.Default[0], Noon.AddMinutes(-5)).ClaimedBy(7001, Noon.AddMinutes(-5));
+        TabRegistration stale = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), TabPalette.Default[1], Noon.AddHours(-1));
         await store.WriteTabAsync(live);
         await store.WriteTabAsync(stale);
         registry.Running(7001, Noon.AddMinutes(-5));
@@ -97,6 +97,19 @@ public sealed class SessionRowEnricherShould
 
         row.HasLiveTab.ShouldBeTrue();
         (await store.ReadTabsAsync()).Count.ShouldBe(1, "the stale registration is removed on read");
+    }
+
+    [Fact]
+    public async Task NotTakeVantagesOwnTabForASessionsTab()
+    {
+        Session session = Session(@"C:\repos\Northwind.Orders");
+        await store.WriteTabAsync(TabRegistration.Pending(TabOwner.Vantage, TabPalette.Default[4], Noon.AddMinutes(-5)).ClaimedBy(7001, Noon.AddMinutes(-5)));
+        registry.Running(7001, Noon.AddMinutes(-5));
+
+        SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
+
+        row.HasLiveTab.ShouldBeFalse();
+        (await store.ReadTabsAsync()).ShouldHaveSingleItem("Vantage's own live tab is kept");
     }
 
     [Fact]
@@ -128,7 +141,7 @@ public sealed class SessionRowEnricherShould
 
         IReadOnlyList<SessionRow>[] results = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => enricher.EnrichAsync(sessions, CancellationToken.None)));
 
-        results.ShouldAllBe(rows => rows.Count == 20 && rows.All(row => row.Repository == "Northwind.Orders" && row.Branch == "main"));
+        results.ShouldAllBe(rows => rows.Count == 20 && rows.All(row => row.Repository == "Northwind.Orders" && row.Branch == new BranchName("main")));
     }
 
     private void AnswerGit(string directory, string root, string commonDir, string branch)
@@ -140,6 +153,6 @@ public sealed class SessionRowEnricherShould
 
     private static Session Session(string workingDirectory)
     {
-        return new Session(Guid.NewGuid().ToString(), "job1", "name", new FolderPath(workingDirectory), SessionKind.Background, Noon, DisplayState.Working);
+        return new Session(new SessionId(Guid.NewGuid().ToString()), new JobId("81cdb0f9"), "name", new FolderPath(workingDirectory), SessionKind.Background, Noon, DisplayState.Working);
     }
 }

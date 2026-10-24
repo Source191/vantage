@@ -22,10 +22,10 @@ public static class ClaudeAgentsListing
         return [.. rows.Select(ToSession).OfType<Session>()];
     }
 
-    /// <summary>A row without a full working directory is skipped: the CLI always gives one, and one odd row must not fail the listing.</summary>
+    /// <summary>A row without a session id or a full working directory is skipped: the CLI always gives both, and one odd row must not fail the listing.</summary>
     private static Session? ToSession(Row row)
     {
-        if (FolderPath.TryParse(row.Cwd) is not FolderPath workingDirectory)
+        if (FolderPath.TryParse(row.Cwd) is not FolderPath workingDirectory || SessionId.TryParse(row.SessionId) is not SessionId sessionId)
         {
             return null;
         }
@@ -33,8 +33,8 @@ public static class ClaudeAgentsListing
         SessionListingEntry entry = new(row.Pid, row.Status, row.WaitingFor, row.State);
 
         return new Session(
-            SessionId: row.SessionId ?? string.Empty,
-            JobId: row.Id,
+            SessionId: sessionId,
+            JobId: JobId.TryParse(row.Id),
             Name: row.Name ?? string.Empty,
             WorkingDirectory: workingDirectory,
             Kind: row.Kind == "interactive" ? SessionKind.Interactive : SessionKind.Background,

@@ -53,7 +53,7 @@ public sealed class DialogEffects(LaunchWorkflow launches, WorktreeBase defaultB
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>
     private static Footer AskAboutBranch(IEffectContext context, Outcome removal, BranchToConfirm branch, bool createdByVantage)
     {
-        int? answer = Confirm.Query(context.App, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch, createdByVantage), "Delete branch", "Keep");
+        int? answer = Confirm.Query(context.App, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch.Value, createdByVantage), "Delete branch", "Keep");
         if (answer != 0)
         {
             return new Footer.BranchKept(removal);

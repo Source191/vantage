@@ -3,7 +3,7 @@ using Source191.Vantage.Domain;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>A listed session with what git, the state store and the transcript folder add to it. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then, so every caller must say which it is.</summary>
-public sealed record SessionRow(Session Session, string Repository, string? Branch, bool IsWorktree, string? Description, bool HasLiveTab, bool HasTranscript);
+public sealed record SessionRow(Session Session, string Repository, BranchName? Branch, bool IsWorktree, string? Description, bool HasLiveTab, bool HasTranscript);
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
 public sealed record Key(KeyName Name, char Character)
@@ -37,11 +37,11 @@ public sealed record LoadFailed(string Message) : ViewInput;
 public sealed record KeyPressed(Key Key) : ViewInput;
 
 /// <summary>Select a session by its id, as the worktrees view's Enter asks; a filter hiding it is cleared so it shows.</summary>
-public sealed record SelectSession(string SessionId) : ViewInput;
+public sealed record SelectSession(SessionId SessionId) : ViewInput;
 
 public abstract record ViewEffect;
 
-public sealed record AttachToSession(string JobId) : ViewEffect, ILeavesScreen;
+public sealed record AttachToSession(JobId JobId) : ViewEffect, ILeavesScreen;
 
 /// <summary>The TUI asks for a new name, then raises <see cref="RenameConfirmed"/> with what was typed (null when cancelled).</summary>
 public sealed record AskForNewName(SessionRow Row) : ViewEffect, IDialogEffect;
@@ -91,8 +91,8 @@ public sealed record SessionsViewState(
     public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: Footer.None);
 
     private static readonly ListPolicy<SessionRow> Policy = new(
-        KeyOf: row => row.Session.SessionId,
-        FilterFields: row => [row.Session.Name, row.Repository, row.Branch],
+        KeyOf: row => row.Session.SessionId.Value,
+        FilterFields: row => [row.Session.Name, row.Repository, row.Branch?.Value],
         Order: ByAttention,
         KeyComparison: StringComparison.Ordinal);
 
@@ -117,7 +117,7 @@ public sealed record SessionsViewState(
     {
         List<SessionRow> matching = [.. rows];
         Sessions ordered = new([.. matching.Select(row => row.Session)]);
-        Dictionary<string, SessionRow> bySession = matching.ToDictionary(row => row.Session.SessionId);
+        Dictionary<SessionId, SessionRow> bySession = matching.ToDictionary(row => row.Session.SessionId);
 
         return ordered.OrderedByAttention().Select(session => bySession[session.SessionId]);
     }
@@ -132,7 +132,7 @@ public static class SessionsView
             RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
-            SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId))),
+            SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId.Value))),
             KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key))),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),

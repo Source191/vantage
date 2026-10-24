@@ -23,7 +23,7 @@ public sealed class SiblingWorktreeShould
 
         SiblingWorktree worktree = SiblingWorktree.For(repository, Slug);
 
-        worktree.Branch.ShouldBe("fix-123");
+        worktree.Branch.ShouldBe(new BranchName("fix-123"));
     }
 
     [Fact]

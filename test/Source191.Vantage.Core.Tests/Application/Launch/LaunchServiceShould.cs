@@ -41,7 +41,7 @@ public sealed class LaunchServiceShould
     private static LaunchPlan NewWorktree => CurrentBranch with
     {
         Directory = new FolderPath(@"C:\repos\Northwind.Orders-fix-flaky-tests"),
-        Worktree = new SiblingWorktree(new FolderPath(@"C:\repos\Northwind.Orders-fix-flaky-tests"), "fix-flaky-tests"),
+        Worktree = new SiblingWorktree(new FolderPath(@"C:\repos\Northwind.Orders-fix-flaky-tests"), new BranchName("fix-flaky-tests")),
     };
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class LaunchServiceShould
         LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
         outcome.Kind.ShouldBe(LaunchOutcomeKind.Started);
-        outcome.JobId.ShouldBe("81cdb0f9");
+        outcome.JobId.ShouldBe(new JobId("81cdb0f9"));
         ProcessRequest start = processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg"));
         start.WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
@@ -65,7 +65,7 @@ public sealed class LaunchServiceShould
         add.WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
         add.Arguments.ShouldBe(["worktree", "add", @"C:\repos\Northwind.Orders-fix-flaky-tests", "-b", "fix-flaky-tests", "origin/main"]);
         processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders-fix-flaky-tests");
-        (await Store.ReadCreatedWorktreesAsync()).Single().Branch.ShouldBe("fix-flaky-tests");
+        (await Store.ReadCreatedWorktreesAsync()).Single().Branch.ShouldBe(new BranchName("fix-flaky-tests"));
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class LaunchServiceShould
         LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch with { Description = null }, CancellationToken.None);
 
         outcome.Session.ShouldNotBeNull();
-        outcome.Session.SessionId.ShouldBe("sess-1");
+        outcome.Session.SessionId.Value.ShouldBe("sess-1");
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public sealed class LaunchServiceShould
         LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
         outcome.Kind.ShouldBe(LaunchOutcomeKind.Started);
-        outcome.JobId.ShouldBe("81cdb0f9");
+        outcome.JobId.ShouldBe(new JobId("81cdb0f9"));
         outcome.Session.ShouldBeNull();
         (await Store.ReadDescriptionsAsync()).ShouldBeEmpty();
     }

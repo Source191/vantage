@@ -4,13 +4,11 @@ using Source191.Vantage.Ports;
 namespace Source191.Vantage.Application.Actions;
 
 /// <summary>
-/// Vantage's own tab: registered like a session tab, keyed "vantage" and claimed by Vantage's own process, so the
+/// Vantage's own tab: registered like a session tab, owned by <see cref="TabOwner.Vantage"/> and claimed by Vantage's own process, so the
 /// colour it takes (green when free) is skipped by session tabs and the registration goes stale with the process.
 /// </summary>
 public sealed class OwnTab(ITabRegistry tabs, IProcessRegistry processes, TimeProvider clock)
 {
-    public const string RegistrationKey = "vantage";
-
     private static readonly TabColour Preferred = TabPalette.Default.Single(colour => colour.Name == "Green");
 
     private readonly TabColourSelection colours = new(TabPalette.Default);
@@ -27,7 +25,7 @@ public sealed class OwnTab(ITabRegistry tabs, IProcessRegistry processes, TimePr
         DateTimeOffset now = clock.GetUtcNow();
         IReadOnlyList<TabRegistration> live = new TabRegistrations(await tabs.ReadTabsAsync()).Live(now, processes);
         ColourChoice choice = colours.Choose([.. live.Select(registration => registration.Colour)], Preferred);
-        await tabs.WriteTabAsync(TabRegistration.Pending(RegistrationKey, choice.Colour, now).ClaimedBy(processId, startedAt.Value));
+        await tabs.WriteTabAsync(TabRegistration.Pending(TabOwner.Vantage, choice.Colour, now).ClaimedBy(processId, startedAt.Value));
 
         return choice.Colour;
     }

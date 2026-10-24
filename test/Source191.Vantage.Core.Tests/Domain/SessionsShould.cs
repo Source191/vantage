@@ -54,7 +54,7 @@ public sealed class SessionsShould
     private static Session Session(string name, DisplayState state, DateTimeOffset startedAt)
     {
         return new Session(
-            SessionId: Guid.NewGuid().ToString(),
+            SessionId: new SessionId(Guid.NewGuid().ToString()),
             JobId: null,
             Name: name,
             WorkingDirectory: new FolderPath(@"C:\repos\Northwind.Orders"),

@@ -40,7 +40,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
             0 => row.Session.Name,
             1 => row.Session.State.Label,
             2 => row.Repository,
-            3 => row.Branch ?? "-",
+            3 => row.Branch?.Value ?? "-",
             4 => row.IsWorktree ? "yes" : string.Empty,
             5 => Durations.Age(now - row.Session.StartedAt),
             6 => Tab(row),
