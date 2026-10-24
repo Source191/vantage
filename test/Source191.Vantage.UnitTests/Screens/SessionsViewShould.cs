@@ -112,6 +112,31 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
+    public void SelectASessionByIdWhenAskedTo()
+    {
+        Reduce(Loaded, new SelectSession(Stopped.Session.SessionId)).Selected.ShouldBe(Stopped);
+        Reduce(Loaded, new SelectSession("no-such-session")).Selected.ShouldBe(Waiting);
+    }
+
+    [Fact]
+    public void ClearTheFilterWhenTheSessionToSelectIsHiddenByIt()
+    {
+        SessionsViewState filtered = Press(Loaded, Key.Slash, Key.Of('o'), Key.Of('l'), Key.Enter);
+        filtered.VisibleRows.ShouldBe([Stopped]);
+
+        SessionsViewState selected = Reduce(filtered, new SelectSession(Working.Session.SessionId));
+
+        selected.Selected.ShouldBe(Working);
+        selected.Filter.Text.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void StopCarriesTheSelectedRow()
+    {
+        SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('x'))).Effects.ShouldBe([new StopSession(Waiting)]);
+    }
+
+    [Fact]
     public void AttachToTheSelectedBackgroundSessionOnEnter()
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Enter));

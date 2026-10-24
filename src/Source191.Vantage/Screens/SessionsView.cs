@@ -40,6 +40,9 @@ public sealed record LoadFailed(string Message) : ViewInput;
 
 public sealed record KeyPressed(Key Key) : ViewInput;
 
+/// <summary>Select a session by its id, as the worktrees view's Enter asks; a filter hiding it is cleared so it shows.</summary>
+public sealed record SelectSession(string SessionId) : ViewInput;
+
 public abstract record ViewEffect;
 
 public sealed record AttachToSession(string JobId) : ViewEffect;
@@ -54,7 +57,7 @@ public sealed record RenameSession(SessionRow Row, SessionName NewName) : ViewEf
 
 public sealed record OpenTabForSession(SessionRow Row) : ViewEffect;
 
-public sealed record StopSession(string JobId) : ViewEffect;
+public sealed record StopSession(SessionRow Row) : ViewEffect;
 
 public sealed record DeleteSession(SessionRow Row) : ViewEffect;
 
@@ -130,6 +133,7 @@ public static class SessionsView
             RowsLoaded loaded => Unchanged(Load(state, loaded.Rows)),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
+            SelectSession select => Unchanged(Select(state, select.SessionId)),
             KeyPressed pressed when state.FilterEditing => Unchanged(EditFilter(state, pressed.Key)),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
@@ -156,6 +160,20 @@ public static class SessionsView
         return loaded with { SelectedSessionId = visible[nearest].Session.SessionId };
     }
 
+    private static SessionsViewState Select(SessionsViewState state, string sessionId)
+    {
+        if (!state.Rows.Any(row => row.Session.SessionId == sessionId))
+        {
+            return state;
+        }
+
+        SessionsViewState selected = state with { SelectedSessionId = sessionId };
+
+        return selected.Selected is null
+            ? selected with { Filter = new RowFilter(string.Empty), FilterEditing = false }
+            : selected;
+    }
+
     private static SessionsViewState EditFilter(SessionsViewState state, Key key)
     {
         return key.Name switch
@@ -179,7 +197,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: '/' } => Unchanged(state with { FilterEditing = true, Filter = new RowFilter(string.Empty) }),
             { Name: KeyName.Character, Character: 'o' } => SessionAction(state, row => new OpenTabForSession(row), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
-            { Name: KeyName.Character, Character: 'x' } => SessionAction(state, row => new StopSession(row.Session.JobId!), Attachment.None),
+            { Name: KeyName.Character, Character: 'x' } => SessionAction(state, row => new StopSession(row), Attachment.None),
             { Name: KeyName.Character, Character: 'd' } when state.Selected is { Session.Kind: SessionKind.Interactive, HasTranscript: false } row =>
                 Effect(state with { Footer = string.Empty }, new CloseEmptyTerminals([row])),
             { Name: KeyName.Character, Character: 'C' } => CloseEmpty(state),
