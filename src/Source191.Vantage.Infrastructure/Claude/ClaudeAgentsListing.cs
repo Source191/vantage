@@ -22,7 +22,11 @@ public static class ClaudeAgentsListing
         return [.. rows.Select(ToSession).OfType<Session>()];
     }
 
-    /// <summary>A row without a session id or a full working directory is skipped: the CLI always gives both, and one odd row must not fail the listing.</summary>
+    /// <summary>
+    /// A row without a session id or a full working directory is skipped: the CLI always gives both, and one odd row must
+    /// not fail the listing. An interactive row has a process; any other row is a background job, whose id is the row's
+    /// or, failing that, the session id's first eight characters (a row that has neither is skipped too).
+    /// </summary>
     private static Session? ToSession(Row row)
     {
         if (FolderPath.TryParse(row.Cwd) is not FolderPath workingDirectory || SessionId.TryParse(row.SessionId) is not SessionId sessionId)
@@ -30,17 +34,16 @@ public static class ClaudeAgentsListing
             return null;
         }
 
-        SessionListingEntry entry = new(row.Pid, row.Status, row.WaitingFor, row.State);
+        string name = row.Name ?? string.Empty;
+        DateTimeOffset startedAt = DateTimeOffset.FromUnixTimeMilliseconds(row.StartedAt ?? 0);
+        DisplayState state = DisplayState.From(new SessionListingEntry(row.Pid, row.Status, row.WaitingFor, row.State));
 
-        return new Session(
-            SessionId: sessionId,
-            JobId: JobId.TryParse(row.Id),
-            Name: row.Name ?? string.Empty,
-            WorkingDirectory: workingDirectory,
-            Kind: row.Kind == "interactive" ? SessionKind.Interactive : SessionKind.Background,
-            StartedAt: DateTimeOffset.FromUnixTimeMilliseconds(row.StartedAt ?? 0),
-            State: DisplayState.From(entry),
-            ProcessId: row.Pid);
+        return (row.Kind, row.Pid, JobId.TryParse(row.Id) ?? JobId.Of(sessionId)) switch
+        {
+            ("interactive", int processId, _) => new InteractiveSession(sessionId, name, workingDirectory, startedAt, state, processId),
+            (_, _, JobId jobId) => new BackgroundSession(sessionId, jobId, name, workingDirectory, startedAt, state, row.Pid),
+            _ => null,
+        };
     }
 
     private sealed record Row(

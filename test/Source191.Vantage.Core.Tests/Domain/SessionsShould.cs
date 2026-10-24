@@ -51,14 +51,13 @@ public sealed class SessionsShould
         ordered.Select(session => session.Name).ShouldBe(["newer", "older"]);
     }
 
-    private static Session Session(string name, DisplayState state, DateTimeOffset startedAt)
+    private static BackgroundSession Session(string name, DisplayState state, DateTimeOffset startedAt)
     {
-        return new Session(
+        return new BackgroundSession(
             SessionId: new SessionId(Guid.NewGuid().ToString()),
-            JobId: null,
+            JobId: new JobId("81cdb0f9"),
             Name: name,
             WorkingDirectory: new FolderPath(@"C:\repos\Northwind.Orders"),
-            Kind: SessionKind.Background,
             StartedAt: startedAt,
             State: state);
     }

@@ -42,7 +42,6 @@ public static partial class Wording
     {
         return outcome switch
         {
-            AdoptSessionOutcome.NoProcess none => $"{none.Name} has no process to move; it may have exited.",
             AdoptSessionOutcome.NoMessages empty =>
                 $"{empty.Name} has no messages yet, so there is nothing to move. Send it something in its tab first, or close that tab and start a session from Vantage.",
             AdoptSessionOutcome.Moved moved => $"Moved {moved.Name} under Vantage; its old tab is now a plain shell.",
@@ -66,9 +65,7 @@ public static partial class Wording
 
     private static string Describe(CloseEmptyTerminalsOutcome outcome)
     {
-        IEnumerable<string> skipped = outcome.Skipped.Select(session => session.HasMessages
-            ? $"{session.Name} has messages (press b to move it under Vantage)"
-            : $"{session.Name} has no process");
+        IEnumerable<string> skipped = outcome.Skipped.Select(session => $"{session.Name} has messages (press b to move it under Vantage)");
         if (outcome.Closed.Count == 0 && outcome.Ended.Count == 0)
         {
             return outcome.Skipped.Count == 0 ? "Nothing to close." : $"Nothing closed: {string.Join("; ", skipped)}.";
@@ -135,7 +132,6 @@ public static partial class Wording
     {
         return outcome switch
         {
-            OpenTabOutcome.NotBackground => "Only background sessions can be opened in a tab.",
             OpenTabOutcome.Opened { ColourReused: true } opened =>
                 $"Opened {opened.Name} in a {opened.Colour.ToLowerInvariant()} tab (every palette colour is in use, so one was reused).",
             OpenTabOutcome.Opened opened => $"Opened {opened.Name} in a {opened.Colour.ToLowerInvariant()} tab.",

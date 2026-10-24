@@ -151,8 +151,8 @@ public sealed class SessionRowEnricherShould
         processes.Answer(request => request.WorkingDirectory == directory && request.Arguments.Contains("--show-current"), new ProcessResult(0, branch + "\n", string.Empty));
     }
 
-    private static Session Session(string workingDirectory)
+    private static BackgroundSession Session(string workingDirectory)
     {
-        return new Session(new SessionId(Guid.NewGuid().ToString()), new JobId("81cdb0f9"), "name", new FolderPath(workingDirectory), SessionKind.Background, Noon, DisplayState.Working);
+        return new BackgroundSession(new SessionId(Guid.NewGuid().ToString()), new JobId("81cdb0f9"), "name", new FolderPath(workingDirectory), Noon, DisplayState.Working);
     }
 }

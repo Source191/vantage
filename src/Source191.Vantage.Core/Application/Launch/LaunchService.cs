@@ -11,7 +11,7 @@ public enum LaunchOutcomeKind
 }
 
 /// <summary>The listed session is null when the supervisor had not listed the new job by the time the start returned.</summary>
-public sealed record LaunchOutcome(LaunchOutcomeKind Kind, JobId? JobId, string Message, Session? Session = null);
+public sealed record LaunchOutcome(LaunchOutcomeKind Kind, JobId? JobId, string Message, BackgroundSession? Session = null);
 
 /// <summary>
 /// Carries out a launch plan: creates the sibling worktree when one is wanted, copies the include files,
@@ -43,7 +43,7 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
 
         await recent.RecordRecentRepositoryAsync(plan.Repository.Path.Value);
         JobId? jobId = JobId.TryParse(start.JobId);
-        Session? started = jobId is null ? null : await ListedSessionAsync(jobId, cancellationToken);
+        BackgroundSession? started = jobId is null ? null : await ListedSessionAsync(jobId, cancellationToken);
         await RecordDescriptionAsync(plan, started);
 
         return new LaunchOutcome(LaunchOutcomeKind.Started, jobId, start.Message, started);
@@ -62,11 +62,11 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
     }
 
     /// <summary>The new session as the supervisor lists it, which is where its full session id comes from.</summary>
-    private async Task<Session?> ListedSessionAsync(JobId jobId, CancellationToken cancellationToken)
+    private async Task<BackgroundSession?> ListedSessionAsync(JobId jobId, CancellationToken cancellationToken)
     {
         IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(cancellationToken);
 
-        return sessions.FirstOrDefault(session => session.JobId == jobId);
+        return sessions.OfType<BackgroundSession>().FirstOrDefault(session => session.JobId == jobId);
     }
 
     private async Task RecordDescriptionAsync(LaunchPlan plan, Session? started)

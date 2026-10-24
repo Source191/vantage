@@ -36,8 +36,8 @@ public sealed record JobId
 
     public static JobId? TryParse(string? text) => text is not null && IsJobId(text) ? new JobId(text) : null;
 
-    /// <summary>The job id the CLI gives the session: its id's first eight characters.</summary>
-    public static JobId Of(SessionId session) => new(session.Value.Length >= Length ? session.Value[..Length] : session.Value);
+    /// <summary>The job id the CLI gives the session: its id's first eight characters; null when those are not hex.</summary>
+    public static JobId? Of(SessionId session) => TryParse(session.Value.Length >= Length ? session.Value[..Length] : null);
 
     public override string ToString() => Value;
 

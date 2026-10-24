@@ -12,15 +12,15 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
     public static ResumePlan Plan(IReadOnlyList<SessionRow> rows)
     {
         return new ResumePlan(
-            [.. rows.Where(row => row.Session.State.Kind == DisplayStateKind.Failed)],
-            [.. rows.Where(row => row.Session.State.Kind == DisplayStateKind.Stopped)]);
+            [.. rows.Where(row => row.Session is BackgroundSession { State.Kind: DisplayStateKind.Failed })],
+            [.. rows.Where(row => row.Session is BackgroundSession { State.Kind: DisplayStateKind.Stopped })]);
     }
 
     public async Task<Outcome> HandleAsync(ResumeSessions effect, CancellationToken cancellationToken)
     {
         int continued = 0;
         List<ResumeNote> notes = [];
-        foreach (Session session in effect.Rows.Select(row => row.Session))
+        foreach (BackgroundSession session in effect.Sessions)
         {
             if (!transcripts.HasMessages(session.SessionId.Value))
             {
@@ -36,7 +36,7 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
             }
         }
 
-        return new ResumeSessionsOutcome(continued, effect.Rows.Count, notes);
+        return new ResumeSessionsOutcome(continued, effect.Sessions.Count, notes);
     }
 }
 

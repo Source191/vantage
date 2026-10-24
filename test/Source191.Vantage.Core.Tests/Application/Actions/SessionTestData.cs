@@ -27,9 +27,9 @@ internal static class SessionTestData
     }
 
     /// <summary>A plain claude session in some tab, session id sess-9.</summary>
-    public static SessionRow Interactive(string name, int? processId, DisplayState? state = null)
+    public static SessionRow Interactive(string name, int processId, DisplayState? state = null)
     {
-        Session session = new(new SessionId("sess-9"), JobId: null, name, new FolderPath(Repository), SessionKind.Interactive, Noon, state ?? DisplayState.Idle, processId);
+        InteractiveSession session = new(new SessionId("sess-9"), name, new FolderPath(Repository), Noon, state ?? DisplayState.Idle, processId);
 
         return new SessionRow(session, "Northwind.Orders", new BranchName("main"), IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
     }
@@ -37,7 +37,7 @@ internal static class SessionTestData
     /// <summary>A supervised session named fix-123, job 81cdb0f9, session id sess-1.</summary>
     public static SessionRow Background(string directory, bool isWorktree, DisplayState? state = null)
     {
-        Session session = new(new SessionId("sess-1"), new JobId("81cdb0f9"), "fix-123", new FolderPath(directory), SessionKind.Background, Noon, state ?? DisplayState.Working);
+        BackgroundSession session = new(new SessionId("sess-1"), new JobId("81cdb0f9"), "fix-123", new FolderPath(directory), Noon, state ?? DisplayState.Working);
 
         return new SessionRow(session, "Northwind.Orders", new BranchName(isWorktree ? "fix-123" : "main"), isWorktree, Description: null, HasLiveTab: false, HasTranscript: true);
     }

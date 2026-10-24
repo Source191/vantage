@@ -14,18 +14,13 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
 {
     public async Task<Outcome> HandleAsync(AdoptSession effect, CancellationToken cancellationToken)
     {
-        Session session = effect.Row.Session;
-        if (session.ProcessId is null)
-        {
-            return new AdoptSessionOutcome.NoProcess(session.Name);
-        }
-
+        InteractiveSession session = effect.Session;
         if (!transcripts.HasMessages(session.SessionId.Value))
         {
             return new AdoptSessionOutcome.NoMessages(session.Name);
         }
 
-        processes.Terminate(session.ProcessId.Value);
+        processes.Terminate(session.ProcessId);
         ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
 
         return result.Continued
@@ -37,8 +32,6 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
 /// <summary>What moving a terminal session under the supervisor did.</summary>
 public abstract record AdoptSessionOutcome : Outcome
 {
-    public sealed record NoProcess(string Name) : AdoptSessionOutcome;
-
     public sealed record NoMessages(string Name) : AdoptSessionOutcome;
 
     public sealed record Moved(string Name) : AdoptSessionOutcome;

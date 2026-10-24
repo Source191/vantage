@@ -47,7 +47,7 @@ public sealed class StateTransitionNotifierShould : IDisposable
     [Fact]
     public void IgnoreInteractiveSessionsBecauseClaudeRingsTheirOwnTab()
     {
-        SessionRow working = Row("repos-31", DisplayState.Working, SessionKind.Interactive);
+        SessionRow working = Row("repos-31", DisplayState.Working, interactive: true);
         SessionRow waiting = working with { Session = working.Session with { State = DisplayState.NeedsInput } };
 
         Notifier.Observe([working], [waiting]);
@@ -55,9 +55,13 @@ public sealed class StateTransitionNotifierShould : IDisposable
         terminal.ToString().ShouldBeEmpty();
     }
 
-    private static SessionRow Row(string name, DisplayState state, SessionKind kind = SessionKind.Background)
+    private static SessionRow Row(string name, DisplayState state, bool interactive = false)
     {
-        Session session = new(new SessionId(Guid.NewGuid().ToString()), kind == SessionKind.Background ? new JobId("81cdb0f9") : null, name, new FolderPath(@"C:\repos\Northwind.Orders"), kind, Noon, state);
+        SessionId id = new(Guid.NewGuid().ToString());
+        FolderPath directory = new(@"C:\repos\Northwind.Orders");
+        Session session = interactive
+            ? new InteractiveSession(id, name, directory, Noon, state, ProcessId: 4242)
+            : new BackgroundSession(id, new JobId("81cdb0f9"), name, directory, Noon, state);
 
         return new SessionRow(session, "Northwind.Orders", new BranchName("main"), IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
     }

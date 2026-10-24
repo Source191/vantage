@@ -38,7 +38,7 @@ public sealed class ResumeSessionsHandlerShould
         SessionRow withTranscript = Background(Repository, isWorktree: false, DisplayState.Failed);
         SessionRow stub = withTranscript with { Session = withTranscript.Session with { SessionId = new SessionId("sess-stub"), Name = "repos-f6" } };
 
-        Outcome message = await Handler.HandleAsync(new ResumeSessions([withTranscript, stub]), CancellationToken.None);
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([As.Job(withTranscript), As.Job(stub)]), CancellationToken.None);
 
         processes.CapturedRequests.Count(request => request.Arguments.Contains("--resume")).ShouldBe(1);
         ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
@@ -54,7 +54,7 @@ public sealed class ResumeSessionsHandlerShould
         SessionRow first = Background(Repository, isWorktree: false, DisplayState.Failed);
         SessionRow second = Background(Worktree, isWorktree: true, DisplayState.Stopped) with { Session = Background(Worktree, true).Session with { SessionId = new SessionId("sess-2") } };
 
-        Outcome message = await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([As.Job(first), As.Job(second)]), CancellationToken.None);
 
         List<ProcessRequest> resumes = [.. processes.CapturedRequests.Where(request => request.Arguments.Contains("--resume"))];
         resumes.Select(request => request.WorkingDirectory).ShouldBe([Repository, Worktree]);

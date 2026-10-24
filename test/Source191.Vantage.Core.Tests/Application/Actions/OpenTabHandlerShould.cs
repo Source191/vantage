@@ -22,17 +22,12 @@ public sealed class OpenTabHandlerShould
 
     private OpenTabHandler Handler => new(Store, registry, terminal, new FakeTimeProvider(Noon), Claude, Vantage);
 
-    private static SessionRow Row(bool hasLiveTab = false)
-    {
-        Session session = new(new SessionId("sess-1"), new JobId("81cdb0f9"), "Refund retry policy", new FolderPath(@"C:\repos\Northwind.Orders"), SessionKind.Background, Noon, DisplayState.Working);
-
-        return new SessionRow(session, "Northwind.Orders", new BranchName("main"), IsWorktree: false, Description: null, hasLiveTab, HasTranscript: true);
-    }
+    private static BackgroundSession Job() => new(new SessionId("sess-1"), new JobId("81cdb0f9"), "Refund retry policy", new FolderPath(@"C:\repos\Northwind.Orders"), Noon, DisplayState.Working);
 
     [Fact]
     public async Task OpenATabTitledWithTheSessionNameThatClaimsItselfThenAttaches()
     {
-        Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Row()), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: false), CancellationToken.None);
 
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Refund retry policy");
@@ -48,7 +43,7 @@ public sealed class OpenTabHandlerShould
     [Fact]
     public async Task OpenATabForAJustStartedSessionThatIsNotARowYet()
     {
-        OpenTabOutcome footer = await Handler.OpenAsync(Row().Session, CancellationToken.None);
+        OpenTabOutcome footer = await Handler.OpenAsync(Job(), CancellationToken.None);
 
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Refund retry policy");
@@ -61,7 +56,7 @@ public sealed class OpenTabHandlerShould
     [Fact]
     public async Task RecordAPendingRegistrationForTheTab()
     {
-        await Handler.HandleAsync(new OpenTabForSession(Row()), CancellationToken.None);
+        await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: false), CancellationToken.None);
 
         TabRegistration pending = (await Store.ReadTabsAsync()).Single();
         pending.Owner.ShouldBe(new TabOwner.ForSession(new SessionId("sess-1")));
@@ -75,7 +70,7 @@ public sealed class OpenTabHandlerShould
     {
         await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(new SessionId("other")), TabPalette.Default[0], Noon.AddSeconds(-5)));
 
-        await Handler.HandleAsync(new OpenTabForSession(Row()), CancellationToken.None);
+        await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: false), CancellationToken.None);
 
         terminal.Opened.Single().Colour.ShouldBe(TabPalette.Default[1]);
     }
@@ -86,7 +81,7 @@ public sealed class OpenTabHandlerShould
         registry.Running(100, Noon);
         await Store.WriteTabAsync(TabRegistration.Pending(TabOwner.Vantage, TabPalette.Default[0], Noon).ClaimedBy(100, Noon));
 
-        await Handler.HandleAsync(new OpenTabForSession(Row()), CancellationToken.None);
+        await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: false), CancellationToken.None);
 
         terminal.Opened.Single().Colour.ShouldBe(TabPalette.Default[1]);
     }
@@ -97,7 +92,7 @@ public sealed class OpenTabHandlerShould
         await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(new SessionId("sess-1")), TabPalette.Default[0], Noon).ClaimedBy(4242, Noon));
         registry.Running(4242, Noon).InTree(4242, "pwsh", 777).InTree(777, "WindowsTerminal", 1);
 
-        Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Row(hasLiveTab: true)), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: true), CancellationToken.None);
 
         terminal.Opened.ShouldBeEmpty();
         terminal.Focused.Single().ShouldBe((777, "Refund retry policy"));
@@ -109,7 +104,7 @@ public sealed class OpenTabHandlerShould
     {
         await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(new SessionId("sess-1")), TabPalette.Default[0], Noon));
 
-        await Handler.HandleAsync(new OpenTabForSession(Row(hasLiveTab: true)), CancellationToken.None);
+        await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: true), CancellationToken.None);
 
         terminal.Focused.Single().ShouldBe(((int?)null, "Refund retry policy"));
     }
@@ -120,7 +115,7 @@ public sealed class OpenTabHandlerShould
         terminal.FocusFinds = false;
         await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(new SessionId("sess-1")), TabPalette.Default[0], Noon));
 
-        Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Row(hasLiveTab: true)), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: true), CancellationToken.None);
 
         terminal.Opened.ShouldBeEmpty();
         footer.ShouldBe(new OpenTabOutcome.NotFound("Refund retry policy"));

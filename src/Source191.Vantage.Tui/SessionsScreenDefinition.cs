@@ -87,7 +87,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
     {
         return row switch
         {
-            { Session.Kind: SessionKind.Interactive } => "terminal",
+            { Session: InteractiveSession } => "terminal",
             { HasLiveTab: true } => "open",
             _ => string.Empty,
         };
