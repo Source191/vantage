@@ -129,7 +129,7 @@ Press `n`. The left column lists your repositories (recent ones first, then ever
 A cyan line under the choices says exactly what will happen ("Worktree Northwind.Orders-fix-tests beside the repository, on branch fix-tests."). Then:
 
 - **F5 Start:** start the session and stay in Vantage.
-- **F6 Start and open here:** start it and attach in this tab straight away.
+- **F6 Start and open in tab:** start it and open it in its own Windows Terminal tab straight away, as `o` does; Vantage stays on screen.
 - **Esc:** cancel.
 
 Enter never starts a session, so there is nothing to undo if you press it too soon. If a repository has not been trusted by Claude Code yet, the start is refused with an explanation and Vantage offers to open a plain tab there so you can run `claude` once and accept the trust prompt.
@@ -206,7 +206,7 @@ There are no toasts; the header's Need input count and the amber rows are the ov
 
 ## Common scenarios
 
-**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story, pick `New sibling worktree`, type the opening prompt, F6. You are attached; Ctrl+Z when you want the overview back. The worktree is `<repository>-<name>` beside the repository, and the WT column marks the session.
+**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story, pick `New sibling worktree`, type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` beside the repository, and the WT column marks the session.
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, with a description so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 

@@ -47,6 +47,19 @@ public sealed class TabOpenerShould : IDisposable
     }
 
     [Fact]
+    public async Task OpenATabForAJustStartedSessionThatIsNotARowYet()
+    {
+        string footer = await Opener.OpenAsync(Row().Session, CancellationToken.None);
+
+        TabLaunch tab = terminal.Opened.Single();
+        tab.Title.ShouldBe("Refund retry policy");
+        tab.StartingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
+        tab.Script.ShouldContain($"& '{Claude}' 'attach' '81cdb0f9'");
+        (await Store.ReadTabsAsync()).Single().SessionId.ShouldBe("sess-1");
+        footer.ShouldContain("Opened Refund retry policy in a");
+    }
+
+    [Fact]
     public async Task RecordAPendingRegistrationForTheTab()
     {
         await Opener.OpenAsync(Row(), CancellationToken.None);

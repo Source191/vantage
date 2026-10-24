@@ -17,7 +17,13 @@ public sealed class TabOpener(StateStore store, IProcessRegistry processes, IWin
             return $"{row.Session.Name} is already open in another tab.";
         }
 
-        if (row.Session.JobId is null)
+        return await OpenAsync(row.Session, cancellationToken);
+    }
+
+    /// <summary>Opens a tab for a session that is not a listed row yet, such as one the wizard has just started.</summary>
+    public async Task<string> OpenAsync(Session session, CancellationToken cancellationToken)
+    {
+        if (session.JobId is null)
         {
             return "Only background sessions can be opened in a tab.";
         }
@@ -25,7 +31,7 @@ public sealed class TabOpener(StateStore store, IProcessRegistry processes, IWin
         DateTimeOffset now = clock.GetUtcNow();
         IReadOnlyList<TabRegistration> live = new TabRegistrations(await store.ReadTabsAsync()).Live(now, processes);
         ColourChoice colour = colours.Choose([.. live.Select(registration => registration.Colour)]);
-        TabRegistration pending = TabRegistration.Pending(row.Session.SessionId, colour.Colour, now);
+        TabRegistration pending = TabRegistration.Pending(session.SessionId, colour.Colour, now);
         await store.WriteTabAsync(pending);
 
         // The shell passes its own $PID so the registration is tied to the tab, not to the short-lived claim-tab process.
@@ -33,12 +39,12 @@ public sealed class TabOpener(StateStore store, IProcessRegistry processes, IWin
         string script = string.Join('\n',
             $"{PowerShellScript.Invoke(vantageExecutable, ["claim-tab", pending.Id.ToString("N")])} $PID",
             "Clear-Host",
-            PowerShellScript.Invoke(claudeExecutable, ["attach", row.Session.JobId]));
-        await terminal.OpenTabAsync(new TabLaunch(row.Session.Name, colour.Colour, row.Session.WorkingDirectory, script), cancellationToken);
+            PowerShellScript.Invoke(claudeExecutable, ["attach", session.JobId]));
+        await terminal.OpenTabAsync(new TabLaunch(session.Name, colour.Colour, session.WorkingDirectory, script), cancellationToken);
 
         string warning = colour.Reused ? " (every palette colour is in use, so one was reused)" : string.Empty;
 
-        return $"Opened {row.Session.Name} in a {colour.Colour.Name.ToLowerInvariant()} tab{warning}.";
+        return $"Opened {session.Name} in a {colour.Colour.Name.ToLowerInvariant()} tab{warning}.";
     }
 }
 

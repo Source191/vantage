@@ -12,7 +12,8 @@ public enum LaunchOutcomeKind
     Failed,
 }
 
-public sealed record LaunchOutcome(LaunchOutcomeKind Kind, string? JobId, string Message);
+/// <summary>The listed session is null when the supervisor had not listed the new job by the time the start returned.</summary>
+public sealed record LaunchOutcome(LaunchOutcomeKind Kind, string? JobId, string Message, Session? Session = null);
 
 /// <summary>
 /// Carries out a launch plan: creates the sibling worktree when one is wanted, copies the include files,
@@ -43,9 +44,10 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, StateStore store,
         }
 
         await store.RecordRecentRepositoryAsync(plan.Repository.Path);
-        await RecordDescriptionAsync(plan, start.JobId, cancellationToken);
+        Session? started = await ListedSessionAsync(start.JobId, cancellationToken);
+        await RecordDescriptionAsync(plan, started);
 
-        return new LaunchOutcome(LaunchOutcomeKind.Started, start.JobId, start.Message);
+        return new LaunchOutcome(LaunchOutcomeKind.Started, start.JobId, start.Message, started);
     }
 
     private async Task CreateWorktreeAsync(LaunchPlan plan, SiblingWorktree worktree, CancellationToken cancellationToken)
@@ -60,18 +62,21 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, StateStore store,
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(worktree.Path, worktree.Branch, repository, clock.GetUtcNow()));
     }
 
-    private async Task RecordDescriptionAsync(LaunchPlan plan, string jobId, CancellationToken cancellationToken)
+    /// <summary>The new session as the supervisor lists it, which is where its full session id comes from.</summary>
+    private async Task<Session?> ListedSessionAsync(string jobId, CancellationToken cancellationToken)
     {
-        if (plan.Description is null)
+        IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(cancellationToken);
+
+        return sessions.FirstOrDefault(session => session.JobId == jobId);
+    }
+
+    private async Task RecordDescriptionAsync(LaunchPlan plan, Session? started)
+    {
+        if (plan.Description is null || started is null)
         {
             return;
         }
 
-        IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(cancellationToken);
-        Session? started = sessions.FirstOrDefault(session => session.JobId == jobId);
-        if (started is not null)
-        {
-            await store.WriteDescriptionAsync(started.SessionId, plan.Description);
-        }
+        await store.WriteDescriptionAsync(started.SessionId, plan.Description);
     }
 }

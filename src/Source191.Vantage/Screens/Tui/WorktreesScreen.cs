@@ -187,18 +187,13 @@ public sealed class WorktreesScreen(
             app,
             live,
             $"Starting {wizard.Plan.Name.Text}...",
-            token => launches.LaunchAsync(wizard.Plan, token),
-            outcome =>
+            async token =>
             {
-                if (outcome.Kind == LaunchOutcomeKind.Started && wizard.AttachAfter && outcome.JobId is not null)
-                {
-                    live.Exit = new AttachToSession(outcome.JobId);
-                    app.RequestStop();
-                }
+                LaunchOutcome outcome = await launches.LaunchAsync(wizard.Plan, token);
 
                 return outcome.Kind switch
                 {
-                    LaunchOutcomeKind.Started => $"Started {wizard.Plan.Name.Text} ({outcome.JobId}).",
+                    LaunchOutcomeKind.Started => await launches.StartedAsync(wizard.Plan, outcome, wizard.OpenInTab, token),
                     LaunchOutcomeKind.WorkspaceNotTrusted => $"Could not start: {wizard.Plan.Directory} is not trusted yet. Run claude there once and accept the prompt.",
                     _ => $"Could not start: {outcome.Message}",
                 };

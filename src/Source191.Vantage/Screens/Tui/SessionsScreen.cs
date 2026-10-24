@@ -268,20 +268,15 @@ public sealed class SessionsScreen(
         Task.Run(async () =>
         {
             string footer;
-            ViewEffect? exit = null;
             try
             {
                 LaunchOutcome outcome = await launches.LaunchAsync(wizard.Plan, CancellationToken.None);
                 footer = outcome.Kind switch
                 {
-                    LaunchOutcomeKind.Started => $"Started {wizard.Plan.Name.Text} ({outcome.JobId}).",
+                    LaunchOutcomeKind.Started => await launches.StartedAsync(wizard.Plan, outcome, wizard.OpenInTab, CancellationToken.None),
                     LaunchOutcomeKind.WorkspaceNotTrusted => await launches.OpenTrustTabAsync(wizard.Plan.Directory, CancellationToken.None),
                     _ => $"Could not start: {outcome.Message}",
                 };
-                if (outcome.Kind == LaunchOutcomeKind.Started && wizard.AttachAfter && outcome.JobId is not null)
-                {
-                    exit = new AttachToSession(outcome.JobId);
-                }
             }
             catch (Exception exception)
             {
@@ -291,13 +286,6 @@ public sealed class SessionsScreen(
             app.Invoke(() =>
             {
                 live.State = live.State with { Footer = footer };
-                if (exit is not null)
-                {
-                    live.Exit = exit;
-                    app.RequestStop();
-                    return;
-                }
-
                 live.Redraw(clock.GetUtcNow());
                 TriggerLoad(app, live);
             });
