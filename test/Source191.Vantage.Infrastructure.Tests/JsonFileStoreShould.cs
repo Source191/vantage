@@ -9,6 +9,18 @@ public sealed class JsonFileStoreShould : IDisposable
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
+    /// <summary>created.json exactly as the store wrote it before paths became FolderPath: plain strings.</summary>
+    private const string CreatedJson = """
+        [
+          {
+            "path": "C:\\Users\\me\\source\\repos\\Northwind.Orders-fix-123",
+            "branch": "fix-123",
+            "repository": "C:\\Users\\me\\source\\repos\\Northwind.Orders",
+            "createdAt": "2026-10-23T12:00:00+00:00"
+          }
+        ]
+        """;
+
     private readonly string folder = Path.Combine(Path.GetTempPath(), "vantage-state-" + Guid.NewGuid().ToString("N"));
     private readonly FakeTimeProvider clock = new(Noon);
 
@@ -172,6 +184,27 @@ public sealed class JsonFileStoreShould : IDisposable
         await Store.ForgetCreatedWorktreeAsync(first.Path);
 
         (await Store.ReadCreatedWorktreesAsync()).ShouldBe([second]);
+    }
+
+    [Fact]
+    public async Task ReadFilesWrittenByTheCurrentVersion()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "created.json"), CreatedJson, TestContext.Current.CancellationToken);
+
+        CreatedWorktree created = (await Store.ReadCreatedWorktreesAsync()).Single();
+
+        created.ShouldBe(new CreatedWorktree(@"C:\Users\me\source\repos\Northwind.Orders-fix-123", "fix-123", @"C:\Users\me\source\repos\Northwind.Orders", Noon));
+    }
+
+    [Fact]
+    public async Task WriteFilesTheCurrentVersionCanRead()
+    {
+        await Store.RecordCreatedWorktreeAsync(new CreatedWorktree(@"C:\Users\me\source\repos\Northwind.Orders-fix-123", "fix-123", @"C:\Users\me\source\repos\Northwind.Orders", Noon));
+
+        string written = await File.ReadAllTextAsync(Path.Combine(folder, "created.json"), TestContext.Current.CancellationToken);
+
+        written.ReplaceLineEndings("\n").ShouldBe(CreatedJson.ReplaceLineEndings("\n"));
     }
 
     [Fact]
