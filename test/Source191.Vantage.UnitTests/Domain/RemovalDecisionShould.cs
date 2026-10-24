@@ -144,6 +144,18 @@ public sealed class RemovalDecisionShould
     }
 
     [Fact]
+    public void SayWhetherARefusalCanBeForced()
+    {
+        RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Locked }, forced: false).CanBeForced.ShouldBeFalse();
+        RemovalDecision.For(Clean with { LiveSessionName = "remove-sonar" }, forced: false).CanBeForced.ShouldBeFalse();
+        RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LiveSessionName = "fix-service-tests" }, forced: false).CanBeForced.ShouldBeFalse();
+        RemovalDecision.For(Clean with { DirtyFileCount = 5 }, forced: false).CanBeForced.ShouldBeTrue();
+        RemovalDecision.For(Clean with { UnpushedCommitCount = 2 }, forced: false).CanBeForced.ShouldBeTrue();
+        RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LeftoverFileCount = 12 }, forced: false).CanBeForced.ShouldBeTrue();
+        RemovalDecision.For(Clean, forced: false).CanBeForced.ShouldBeFalse();
+    }
+
+    [Fact]
     public void DeleteABrokenFolderAndPruneItsRegistration()
     {
         RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Broken }, forced: false);

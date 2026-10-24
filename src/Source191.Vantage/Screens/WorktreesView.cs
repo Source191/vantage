@@ -174,7 +174,7 @@ public static class WorktreesView
         RemovalDecision decision = RemovalDecision.For(row.Facts(), forced);
         if (decision.Outcome == RemovalOutcome.Refused)
         {
-            string hint = forced || IsFinal(decision) ? string.Empty : ForceHint;
+            string hint = forced || !decision.CanBeForced ? string.Empty : ForceHint;
 
             return (null, $"Not removed: {decision.Reason}.{hint}");
         }
@@ -196,12 +196,6 @@ public static class WorktreesView
                 Unchanged(state with { Footer = $"You typed {typed}, not {confirmed.ConfirmationText}; nothing removed." }),
             _ => Effect(state with { Footer = $"Removing {confirmed.Row.FolderName}..." }, new RemoveWorktree(confirmed.Row, Forced: true)),
         };
-    }
-
-    /// <summary>Lock and live-session refusals cannot be forced, so the footer must not suggest it.</summary>
-    private static bool IsFinal(RemovalDecision decision)
-    {
-        return decision.Reason.StartsWith("session ", StringComparison.Ordinal) || decision.Reason.Contains("locked", StringComparison.Ordinal);
     }
 
     private static (ViewEffect?, string) Prune(WorktreeRow row)

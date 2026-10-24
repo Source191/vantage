@@ -96,6 +96,17 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
+    public void NotSuggestForceWhenTheRefusalCannotBeForced()
+    {
+        WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path };
+        WorktreesViewState onBusy = Loaded with { SelectedPath = Busy.Path };
+
+        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe("Not removed: the worktree is locked.");
+        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe("Not removed: session fix-the-tests is using it.");
+        WorktreesView.Reduce(Loaded with { SelectedPath = Dirty.Path }, new KeyPressed(Key.Of('d'))).State.Footer.ShouldEndWith("D forces after a typed confirmation.");
+    }
+
+    [Fact]
     public void DeleteAnEmptyLeftoverWithoutConfirmationAndConfirmAnOrphanWithFilesByFolderName()
     {
         WorktreesViewState onOrphan = Press(Loaded, Key.Down);
