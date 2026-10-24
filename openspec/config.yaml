@@ -1,0 +1,23 @@
+schema: spec-driven
+
+context: |
+  Vantage is a terminal console for Claude Code sessions and git worktrees on Windows 11, packaged as the dotnet global tool `vantage`.
+  Windows only: Windows Terminal (wt.exe, 1.25 or later), PowerShell 7, the Claude Code CLI 2.1.309 or later, git. No macOS or Linux support in this version.
+  Sessions Vantage starts are background sessions under Claude Code's supervisor (claude --bg -n <name>). Vantage shells out to claude attach rather than hosting a session itself.
+  Depend only on the documented CLI surface: claude agents --json [--all], claude --bg, claude attach, claude stop, claude rm, claude --bg --resume. Never parse transcript JSONL or the ~/.claude/sessions folder beyond checking that a transcript file exists. Resolve names to IDs before stop or rm, because those take only IDs.
+  Worktrees are siblings of the repository named <repository>-<slug> on a branch named <slug>, never under .claude/worktrees. Vantage creates and removes them itself with git worktree commands.
+  Same branch is the default launch mode; a worktree is an explicit choice.
+  Windows Terminal can open a tab (title, tabColor, startingDirectory, suppressApplicationTitle) but can only focus a tab by index and cannot list tabs. Do not design features that need to find an existing tab. A tab closes by itself when its root shell exits with code 0.
+  Never delete a worktree that has uncommitted changes, unpushed commits, a lock, or a live session inside it without an explicit force confirmation.
+  Attention is the terminal bell: Claude Code's preferredNotifChannel terminal_bell for attached tabs, Vantage's own bell when a background row starts waiting. There are no toasts and no hooks.
+  Technology: C# on .NET 10. Tests with xunit.v3, Shouldly, NSubstitute (with NSubstitute.Analyzers.CSharp) and SonarAnalyzer.CSharp; warnings are errors. Test-driven development; no untested code except Program.cs and dependency injection wiring.
+  Sociable unit tests: real collaborators inside the domain; test doubles only at boundaries (claude CLI, git, wt.exe, file system, process table, clock via TimeProvider).
+  Coding style: concrete types not var, Model model = new() initialisation, never omit braces, primary constructors, records, immutable objects, collection expressions, file-scoped namespaces, nullable enabled, async/await, DateTimeOffset in UTC, pattern matching over if-else chains. British English in all text.
+  The verified Claude Code CLI and Terminal.Gui facts live in CLAUDE.md; keep artifacts consistent with them.
+
+rules:
+  proposal:
+    - State what is out of scope, including multiple Claude accounts, which is a later change
+  tasks:
+    - Each task is one red-green-refactor cycle or smaller, with the test named before the code
+    - Order tasks so the pure domain rules come before adapters and adapters before screens

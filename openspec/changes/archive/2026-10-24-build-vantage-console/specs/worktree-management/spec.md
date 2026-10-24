@@ -1,0 +1,105 @@
+# Spec Delta
+
+## Purpose
+
+Shows every git worktree across the repository roots with its health and lets the user remove stale ones without losing uncommitted or unpushed work.
+
+## ADDED Requirements
+
+### Requirement: Worktrees are listed across all roots
+The worktrees view SHALL list every linked worktree of every git repository found directly under the configured roots, using git's machine-readable worktree listing.
+
+#### Scenario: Two repositories with worktrees
+- **WHEN** two repositories under the roots each have one linked worktree
+- **THEN** the view shows two rows, each naming its repository, path and branch
+
+### Requirement: Leftover folders are detected
+The view SHALL also show folders that git no longer recognises: a folder under a repository's .claude\worktrees that the listing omits is an orphan; a folder whose .git file points at a worktree registration that no longer exists is broken; an empty folder named with a .worktrees suffix directly under a root is empty.
+
+#### Scenario: Orphan folder
+- **WHEN** a folder exists under .claude\worktrees but is absent from git's listing
+- **THEN** the view shows it with health orphan
+
+#### Scenario: Broken registration
+- **WHEN** a sibling folder's .git file names a worktree registration whose repository no longer exists
+- **THEN** the view shows it with health broken
+
+#### Scenario: Empty leftover
+- **WHEN** an empty folder named Northwind.Orders.worktrees sits directly under a root
+- **THEN** the view shows it with health empty
+
+### Requirement: Locked worktrees are marked
+A worktree that git reports as locked SHALL show health locked and SHALL show the lock reason when git provides one.
+
+#### Scenario: Locked by another tool
+- **WHEN** git reports a worktree as locked
+- **THEN** the row shows locked and the lock reason
+
+### Requirement: Each row shows work at risk
+For every registered worktree the view SHALL show the count of changed or untracked files, the count of commits not on any remote branch, the age of the last commit, and the name of any session whose working directory is that worktree.
+
+#### Scenario: Dirty worktree
+- **WHEN** a worktree has five changed files and two unpushed commits
+- **THEN** its row shows dirty 5 and unpushed 2
+
+### Requirement: Removal refuses to destroy work
+Removal SHALL be refused when the worktree has changed or untracked files, unpushed commits, a lock, or a live session inside it, and the refusal SHALL name the reason.
+
+#### Scenario: Unpushed commits
+- **WHEN** the user presses remove on a worktree with unpushed commits
+- **THEN** nothing is removed and the footer names the branch and the number of unpushed commits
+
+#### Scenario: Clean worktree
+- **WHEN** the user presses remove on a worktree with no changes, no unpushed commits, no lock and no session
+- **THEN** the worktree is removed from git and from disc
+
+### Requirement: Forced removal needs a typed confirmation
+The force-remove key SHALL remove a worktree despite changes or unpushed commits only after the user enters the worktree's folder name to confirm (shown selected in the dialog so it can be copied and pasted; a wrong or empty answer keeps the dialog open and says what was typed), and SHALL never force-remove a locked worktree or one with a live session.
+
+#### Scenario: Confirmed force
+- **WHEN** the user presses force-remove and enters the exact folder name
+- **THEN** the worktree is removed along with its changes
+
+#### Scenario: Wrong answer
+- **WHEN** the user enters anything else
+- **THEN** nothing is removed, the dialog stays open and says what was typed, and Esc keeps the worktree
+
+#### Scenario: Live session inside
+- **WHEN** the user presses force-remove on a worktree that a live session is using
+- **THEN** removal is refused and the footer names the session
+
+### Requirement: Branch deletion follows ownership and merge state
+After removing a worktree, Vantage SHALL delete its branch automatically only when Vantage created that branch and it is fully merged into the remote default branch, and SHALL otherwise ask before deleting.
+
+#### Scenario: Vantage-created merged branch
+- **WHEN** the removed worktree's branch was created by Vantage and is merged
+- **THEN** the branch is deleted without asking
+
+#### Scenario: Hand-made branch
+- **WHEN** the removed worktree's branch was not created by Vantage
+- **THEN** Vantage asks whether to delete the branch and keeps it unless the user agrees
+
+### Requirement: Leftover folders can be deleted as plain folders
+For rows with health orphan, broken or empty, the remove key SHALL delete the folder from disc without git, and for broken rows SHALL also prune the stale registration from the owning repository when that repository still exists. An orphan or broken folder that still contains files SHALL be refused unless forced, because git no longer tracks that work, and a leftover folder with a live session inside SHALL be refused even when forced.
+
+#### Scenario: Delete empty leftover
+- **WHEN** the user presses remove on an empty row
+- **THEN** the folder is deleted and the row disappears
+
+#### Scenario: Leftover folder with files
+- **WHEN** the user presses remove on an orphan folder that still holds twelve files
+- **THEN** removal is refused and the footer says twelve untracked files would be lost, and force-remove with the typed confirmation deletes it
+
+### Requirement: Stale registrations can be pruned
+The prune key SHALL run git's worktree prune for the selected row's repository and report how many registrations were removed.
+
+#### Scenario: Prune
+- **WHEN** a repository has a registration whose folder is gone and the user presses prune
+- **THEN** the registration is removed and the footer reports one pruned
+
+### Requirement: A session or shell can be started in a worktree
+From a worktree row the user SHALL be able to start a new session in that worktree through the launch wizard with the directory preselected, or open a plain PowerShell tab there.
+
+#### Scenario: Start session here
+- **WHEN** the user presses the start-session key on a worktree row
+- **THEN** the launch wizard opens with that worktree as the chosen directory and no new worktree option

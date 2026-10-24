@@ -1,0 +1,26 @@
+<Project>
+
+	<!--
+		Static analysis is done at build time by the .NET analysers plus SonarAnalyzer.CSharp.
+		Configuration lives here so no project can opt out, and every warning fails the build.
+	-->
+	<PropertyGroup>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<AnalysisLevel>10.0-recommended</AnalysisLevel>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);CS1591</NoWarn>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
+
+	<!-- Warnings fail the build everywhere; NuGet audit advisories stay warnings so a new advisory cannot block a build. -->
+	<PropertyGroup>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<WarningsNotAsErrors>$(WarningsNotAsErrors);NU1900;NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="SonarAnalyzer.CSharp" Version="10.35.0.4138" PrivateAssets="all" />
+	</ItemGroup>
+
+</Project>

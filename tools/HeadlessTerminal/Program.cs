@@ -1,0 +1,38 @@
+namespace Source191.Vantage.HeadlessTerminal;
+
+/// <summary>
+/// HeadlessTerminal drives a console program inside a Windows pseudo-console (ConPTY) with scripted keystrokes and
+/// captures everything it writes, replays a capture as a screen, counts markers in one, and runs the hand-off check.
+/// <code>
+///   dotnet run --project tools\HeadlessTerminal -- check [exe] [repository]
+///   dotnet run --project tools\HeadlessTerminal -- drive &lt;exe&gt; &lt;script&gt; [args...]
+///   dotnet run --project tools\HeadlessTerminal -- grid &lt;raw-file&gt; &lt;marker&gt; [cols] [rows]
+///   dotnet run --project tools\HeadlessTerminal -- count &lt;raw-file&gt; &lt;marker...&gt;
+/// </code>
+/// </summary>
+public static class Program
+{
+    public static async Task<int> Main(string[] args)
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            await Console.Error.WriteLineAsync("HeadlessTerminal needs Windows: it drives programs through ConPTY.");
+            return 2;
+        }
+
+        return args switch
+        {
+            ["check", .. string[] rest] => await new HandoffCheck(new ClaudeJobs()).RunAsync(rest),
+            ["drive", string exe, string script, .. string[] rest] => await new Driver(DriverOptions.FromEnvironment()).RunAsync(exe, KeystrokeScript.Parse(script), rest),
+            ["grid", string raw, string marker, .. string[] size] => ScreenReplay.PrintFile(raw, marker, size),
+            ["count", string raw, .. string[] markers] => MarkerCount.PrintFile(raw, markers),
+            _ => await UsageAsync(),
+        };
+    }
+
+    private static async Task<int> UsageAsync()
+    {
+        await Console.Error.WriteLineAsync("usage: headless-terminal check [exe] [repository] | drive <exe> <script> [args...] | grid <raw> <marker> [cols] [rows] | count <raw> <marker...>");
+        return 2;
+    }
+}
