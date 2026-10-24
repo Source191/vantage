@@ -208,6 +208,17 @@ public sealed class WorktreesViewShould
         Press(afterDelete, Key.Of('/'), Key.Of('k')).Footer.ShouldBe(string.Empty);
     }
 
+    [Fact]
+    public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
+    {
+        new SwitchToSessions().ShouldBeAssignableTo<ILeavesScreen>();
+        new JumpToSession("sess-1").ShouldBeAssignableTo<ILeavesScreen>();
+        new ConfirmForceRemove(Dirty, "x").ShouldBeAssignableTo<IDialogEffect>();
+        new StartSessionIn(Clean).ShouldBeAssignableTo<IDialogEffect>();
+        new RemoveWorktree(Clean, Forced: false).ShouldNotBeAssignableTo<IDialogEffect>();
+        new PruneRepository(Repository).ShouldNotBeAssignableTo<ILeavesScreen>();
+    }
+
     private static WorktreesViewState Press(WorktreesViewState state, params Key[] keys)
     {
         return keys.Aggregate(state, (current, key) => WorktreesView.Reduce(current, new KeyPressed(key)).State);

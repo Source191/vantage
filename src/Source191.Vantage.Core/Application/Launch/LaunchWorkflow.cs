@@ -7,7 +7,7 @@ namespace Source191.Vantage.Application.Launch;
 /// <summary>
 /// Everything the launch wizard dialog needs from the rest of the system, behind one door so the dialog stays thin.
 /// </summary>
-public sealed class LaunchWorkflow(RepositoryCatalogue catalogue, IFolders folders, IRecentRepositories recent, LaunchService service, TabOpener tabs, IWindowsTerminal terminal, string claudeExecutable)
+public sealed class LaunchWorkflow(RepositoryCatalogue catalogue, IFolders folders, IRecentRepositories recent, LaunchService service, OpenTabHandler tabs, IWindowsTerminal terminal, string claudeExecutable)
 {
     /// <summary>The recently used repositories, read once when the wizard opens; filtering is then synchronous.</summary>
     public Task<IReadOnlyList<string>> RecentAsync()

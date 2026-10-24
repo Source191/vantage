@@ -322,6 +322,21 @@ public sealed class SessionsViewShould
         update.State.Filter.Text.ShouldBe("q");
     }
 
+    [Fact]
+    public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
+    {
+        new AttachToSession("x").ShouldBeAssignableTo<ILeavesScreen>();
+        new OpenAgentView().ShouldBeAssignableTo<ILeavesScreen>();
+        new SwitchToWorktrees().ShouldBeAssignableTo<ILeavesScreen>();
+        new Quit().ShouldBeAssignableTo<ILeavesScreen>();
+        new AskForNewName(Waiting).ShouldBeAssignableTo<IDialogEffect>();
+        new DeleteSession(Waiting).ShouldBeAssignableTo<IDialogEffect>();
+        new ResumeStoppedSessions().ShouldBeAssignableTo<IDialogEffect>();
+        new OpenLaunchWizard().ShouldBeAssignableTo<IDialogEffect>();
+        new StopSession(Waiting).ShouldNotBeAssignableTo<ILeavesScreen>();
+        new StopSession(Waiting).ShouldNotBeAssignableTo<IDialogEffect>();
+    }
+
     private static SessionsViewState Press(SessionsViewState state, params Key[] keys)
     {
         return keys.Aggregate(state, (current, key) => SessionsView.Reduce(current, new KeyPressed(key)).State);

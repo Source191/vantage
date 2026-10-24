@@ -1,5 +1,6 @@
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -8,7 +9,7 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The sessions view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, LaunchWorkflow launches, SessionActions actions, TabOpener tabs, WorktreeBase defaultBase)
+internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, LaunchWorkflow launches, EffectDispatcher dispatcher, DeleteSessionHandler delete, WorktreeBase defaultBase)
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
     private static readonly string[] Columns = ["NAME", "STATE", "REPOSITORY", "BRANCH", "WT", "AGE", "TAB", "DESCRIPTION"];
@@ -105,9 +106,10 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public bool LeavesScreen(ViewEffect effect)
     {
-        return effect is AttachToSession or OpenAgentView or Quit or SwitchToWorktrees;
+        return effect is ILeavesScreen;
     }
 
+    /// <summary>Dialog effects ask first; everything else goes to its handler through the dispatcher.</summary>
     public void Handle(IEffectContext<SessionsViewState> context, ViewEffect effect)
     {
         switch (effect)
@@ -115,32 +117,21 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
             case OpenLaunchWizard:
                 RunWizard(context);
                 break;
-            case OpenTabForSession open:
-                context.RunInBackground($"Opening a tab for {open.Row.Session.Name}...", token => tabs.OpenAsync(open.Row, token));
-                break;
-            case StopSession stop:
-                context.RunInBackground("Stopping...", token => actions.StopAsync(stop.Row, token));
-                break;
-            case AdoptSession adopt:
-                context.RunInBackground($"Moving {adopt.Row.Session.Name} under Vantage...", token => actions.AdoptAsync(adopt.Row, token));
-                break;
             case CloseEmptyTerminals close:
-                CloseEmptyTerminals(context, close.Rows);
+                ConfirmAndClose(context, close);
                 break;
             case AskForNewName ask:
                 string? typed = NameDialog.Show(context.App, "Rename session", $"Rename {ask.Row.Session.Name}. The session restarts under the new name and keeps its conversation.", ask.Row.Session.Name);
                 context.Reduce(new RenameConfirmed(ask.Row, typed));
                 break;
-            case RenameSession rename:
-                context.RunInBackground($"Renaming {rename.Row.Session.Name} to {rename.NewName.Text}...", token => actions.RenameAsync(rename.Row, rename.NewName, token));
-                break;
-            case DeleteSession delete:
-                ConfirmAndDelete(context, delete.Row);
+            case DeleteSession deletion:
+                ConfirmAndDelete(context, deletion.Row);
                 break;
             case ResumeStoppedSessions:
                 ResumeSessions(context);
                 break;
             default:
+                Dispatch(context, effect);
                 break;
         }
     }
@@ -156,10 +147,36 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         };
     }
 
-    private void CloseEmptyTerminals(IEffectContext<SessionsViewState> context, IReadOnlyList<SessionRow> rows)
+    /// <summary>What the footer says while each background effect runs.</summary>
+    private static string Working(ViewEffect effect)
     {
-        string names = string.Join(", ", rows.Select(row => row.Session.Name));
-        string what = rows.Count == 1 ? $"Close the tab of {names}?" : $"Close {rows.Count} tabs: {names}?";
+        return effect switch
+        {
+            OpenTabForSession open => $"Opening a tab for {open.Row.Session.Name}...",
+            StopSession => "Stopping...",
+            AdoptSession adopt => $"Moving {adopt.Row.Session.Name} under Vantage...",
+            RenameSession rename => $"Renaming {rename.Row.Session.Name} to {rename.NewName.Text}...",
+            CloseEmptyTerminals => "Closing...",
+            ResumeSessions resume => $"Resuming {resume.Rows.Count}...",
+            DeleteBranch branch => $"Deleting branch {branch.Branch.Branch}...",
+            _ => "Working...",
+        };
+    }
+
+    private void Dispatch(IEffectContext<SessionsViewState> context, ViewEffect effect)
+    {
+        if (!dispatcher.Handles(effect))
+        {
+            return;
+        }
+
+        context.RunInBackground(Working(effect), token => dispatcher.DispatchAsync(effect, token));
+    }
+
+    private void ConfirmAndClose(IEffectContext<SessionsViewState> context, CloseEmptyTerminals close)
+    {
+        string names = string.Join(", ", close.Rows.Select(row => row.Session.Name));
+        string what = close.Rows.Count == 1 ? $"Close the tab of {names}?" : $"Close {close.Rows.Count} tabs: {names}?";
         int? answer = Confirm.Query(context.App, "Close empty terminal sessions", $"{what}\nNone of them has been sent a message, so nothing is lost.", "Close", "Keep");
         if (answer != 0)
         {
@@ -167,7 +184,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
             return;
         }
 
-        context.RunInBackground("Closing...", token => actions.CloseEmptyTerminalsAsync(rows, token));
+        Dispatch(context, close);
     }
 
     private void ConfirmAndDelete(IEffectContext<SessionsViewState> context, SessionRow row)
@@ -180,7 +197,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
         context.RunInBackground(
             $"Deleting {row.Session.Name}...",
-            token => actions.DeleteAsync(row, forced: false, token),
+            token => delete.DeleteAsync(row, forced: false, token),
             outcome =>
             {
                 if (outcome.BranchToConfirm is null)
@@ -195,20 +212,17 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
                     return $"{outcome.Message} Branch kept.";
                 }
 
-                context.RunInBackground($"Deleting branch {outcome.BranchToConfirm.Branch}...", async token =>
-                {
-                    await actions.DeleteBranchAsync(outcome.BranchToConfirm, token);
-                    return $"{outcome.Message} Branch deleted.";
-                });
+                DeleteBranch deleteBranch = new(outcome.BranchToConfirm);
+                context.RunInBackground(Working(deleteBranch), async token => $"{outcome.Message} {await dispatcher.DispatchAsync(deleteBranch, token)}");
 
-                return $"Deleting branch {outcome.BranchToConfirm.Branch}...";
+                return Working(deleteBranch);
             });
     }
 
     private void ResumeSessions(IEffectContext<SessionsViewState> context)
     {
         // The checklist lists sessions in the order the table shows them, not the order the listing returned them.
-        ResumePlan plan = SessionActions.PlanResume(context.State.VisibleRows);
+        ResumePlan plan = ResumeSessionsHandler.Plan(context.State.VisibleRows);
         IReadOnlyList<SessionRow> chosen = plan.ToChoose.Count == 0 ? [] : ResumeChecklistDialog.Show(context.App, plan.ToChoose);
         List<SessionRow> toResume = [.. plan.Automatic, .. chosen];
         if (toResume.Count == 0)
@@ -217,7 +231,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
             return;
         }
 
-        context.RunInBackground($"Resuming {toResume.Count}...", token => actions.ResumeAsync(toResume, token));
+        Dispatch(context, new ResumeSessions(toResume));
     }
 
     private void RunWizard(IEffectContext<SessionsViewState> context)

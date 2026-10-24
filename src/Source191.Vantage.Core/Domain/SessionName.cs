@@ -11,6 +11,19 @@ public sealed record SessionName
 
     public WorktreeSlug? Slug => WorktreeSlug.From(Text);
 
+    /// <summary>A listing name the CLI would refuse (quotes, semicolons) reads as null rather than failing a resume.</summary>
+    public static SessionName? TryParse(string text)
+    {
+        try
+        {
+            return Parse(text);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
+    }
+
     public static SessionName Parse(string text)
     {
         if (string.IsNullOrWhiteSpace(text))

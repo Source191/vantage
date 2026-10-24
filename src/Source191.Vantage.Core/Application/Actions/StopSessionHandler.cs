@@ -1,0 +1,15 @@
+using Source191.Vantage.Application.Effects;
+using Source191.Vantage.Application.Views;
+using Source191.Vantage.Ports;
+
+namespace Source191.Vantage.Application.Actions;
+
+public sealed class StopSessionHandler(IClaudeCli claude) : IEffectHandler<StopSession>
+{
+    public async Task<string> HandleAsync(StopSession effect, CancellationToken cancellationToken)
+    {
+        await claude.StopAsync(effect.Row.Session.JobId!, cancellationToken);
+
+        return $"Stopped {effect.Row.Session.Name}.";
+    }
+}

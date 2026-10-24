@@ -1,0 +1,64 @@
+using Source191.Vantage.Adapters.Claude;
+using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Views;
+using Source191.Vantage.Ports;
+using Source191.Vantage.TestDoubles;
+using static Source191.Vantage.Core.Tests.Application.Actions.SessionTestData;
+
+namespace Source191.Vantage.Core.Tests.Application.Actions;
+
+public sealed class AdoptSessionHandlerShould
+{
+    private readonly FakeProcessRunner processes = Processes();
+    private readonly FakeProcessRegistry processTable = new FakeProcessRegistry().Running(4242, Noon);
+    private readonly FakeTranscripts transcripts = new FakeTranscripts().WithMessages("sess-9");
+
+    private AdoptSessionHandler Handler => new(new ClaudeCli(processes, Claude), processTable, transcripts);
+
+    [Fact]
+    public async Task AdoptAnInteractiveSessionByEndingItsProcessAndResumingItUnderTheSupervisor()
+    {
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · repos-31", string.Empty));
+
+        string message = await Handler.HandleAsync(new AdoptSession(Interactive("repos-31", 4242)), CancellationToken.None);
+
+        processTable.Terminated.ShouldBe([4242]);
+        ProcessRequest resume = processes.CapturedRequests.Single(request => request.Arguments.Contains("--resume"));
+        resume.WorkingDirectory.ShouldBe(Repository);
+        resume.Arguments.ShouldBe(["--bg", "--resume", "sess-9", "-n", "repos-31"]);
+        message.ShouldBe("Moved repos-31 under Vantage; its old tab is now a plain shell.");
+    }
+
+    [Fact]
+    public async Task ReportWhenTheResumeStartedACopy()
+    {
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 99aa88bb · repos-31\nnote: the session is already running, so a copy was started", string.Empty));
+
+        string message = await Handler.HandleAsync(new AdoptSession(Interactive("repos-31", 4242)), CancellationToken.None);
+
+        message.ShouldStartWith("Could not move repos-31 under Vantage:");
+        message.ShouldContain("copy");
+    }
+
+    [Fact]
+    public async Task RefuseToAdoptASessionThatHasNoMessagesYetBecauseThereIsNothingToResume()
+    {
+        AdoptSessionHandler handler = new(new ClaudeCli(processes, Claude), processTable, new FakeTranscripts());
+
+        string message = await handler.HandleAsync(new AdoptSession(Interactive("repos-f6", 4242)), CancellationToken.None);
+
+        message.ShouldBe("repos-f6 has no messages yet, so there is nothing to move. Send it something in its tab first, or close that tab and start a session from Vantage.");
+        processTable.Terminated.ShouldBeEmpty();
+        processes.CapturedRequests.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task RefuseToAdoptASessionWhoseProcessIsUnknown()
+    {
+        string message = await Handler.HandleAsync(new AdoptSession(Interactive("repos-31", processId: null)), CancellationToken.None);
+
+        message.ShouldBe("repos-31 has no process to move; it may have exited.");
+        processTable.Terminated.ShouldBeEmpty();
+        processes.CapturedRequests.ShouldBeEmpty();
+    }
+}

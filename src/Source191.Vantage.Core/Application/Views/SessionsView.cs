@@ -44,10 +44,10 @@ public sealed record SelectSession(string SessionId) : ViewInput;
 
 public abstract record ViewEffect;
 
-public sealed record AttachToSession(string JobId) : ViewEffect;
+public sealed record AttachToSession(string JobId) : ViewEffect, ILeavesScreen;
 
 /// <summary>The TUI asks for a new name, then raises <see cref="RenameConfirmed"/> with what was typed (null when cancelled).</summary>
-public sealed record AskForNewName(SessionRow Row) : ViewEffect;
+public sealed record AskForNewName(SessionRow Row) : ViewEffect, IDialogEffect;
 
 public sealed record RenameConfirmed(SessionRow Row, string? Name) : ViewInput;
 
@@ -58,25 +58,25 @@ public sealed record OpenTabForSession(SessionRow Row) : ViewEffect;
 
 public sealed record StopSession(SessionRow Row) : ViewEffect;
 
-public sealed record DeleteSession(SessionRow Row) : ViewEffect;
+public sealed record DeleteSession(SessionRow Row) : ViewEffect, IDialogEffect;
 
 /// <summary>Move a session started as plain claude in another tab under the supervisor, so Vantage can manage it.</summary>
 public sealed record AdoptSession(SessionRow Row) : ViewEffect;
 
 /// <summary>Close the tabs of plain claude sessions that were never sent a message: nothing to keep.</summary>
-public sealed record CloseEmptyTerminals(IReadOnlyList<SessionRow> Rows) : ViewEffect;
+public sealed record CloseEmptyTerminals(IReadOnlyList<SessionRow> Rows) : ViewEffect, IDialogEffect;
 
-public sealed record OpenLaunchWizard : ViewEffect;
+public sealed record OpenLaunchWizard : ViewEffect, IDialogEffect;
 
-public sealed record ResumeStoppedSessions : ViewEffect;
+public sealed record ResumeStoppedSessions : ViewEffect, IDialogEffect;
 
-public sealed record OpenAgentView : ViewEffect;
+public sealed record OpenAgentView : ViewEffect, ILeavesScreen;
 
-public sealed record SwitchToWorktrees : ViewEffect;
+public sealed record SwitchToWorktrees : ViewEffect, ILeavesScreen;
 
-public sealed record Quit : ViewEffect;
+public sealed record Quit : ViewEffect, ILeavesScreen;
 
-public sealed record ShowHelp : ViewEffect;
+public sealed record ShowHelp : ViewEffect, IDialogEffect;
 
 public sealed record ViewUpdate(SessionsViewState State, IReadOnlyList<ViewEffect> Effects);
 

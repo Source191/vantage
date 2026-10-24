@@ -1,24 +1,24 @@
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Actions;
 
-/// <summary>Opens a session in its own Windows Terminal tab and records the tab so its colour and liveness are known.</summary>
-public sealed class TabOpener(ITabRegistry tabs, IProcessRegistry processes, IWindowsTerminal terminal, TimeProvider clock, string claudeExecutable, string vantageExecutable)
+/// <summary>
+/// Opens a session in its own Windows Terminal tab and records the tab so its colour and liveness are known; when a
+/// live tab already shows the session, switches to it instead.
+/// </summary>
+public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes, IWindowsTerminal terminal, TimeProvider clock, string claudeExecutable, string vantageExecutable) : IEffectHandler<OpenTabForSession>
 {
     private readonly TabColourSelection colours = new(TabPalette.Default);
 
-    public async Task<string> OpenAsync(SessionRow row, CancellationToken cancellationToken)
+    public Task<string> HandleAsync(OpenTabForSession effect, CancellationToken cancellationToken)
     {
-        if (row.HasLiveTab)
-        {
-            return await SwitchToTabAsync(row.Session, cancellationToken);
-        }
-
-        return await OpenAsync(row.Session, cancellationToken);
+        return effect.Row.HasLiveTab
+            ? SwitchToTabAsync(effect.Row.Session, cancellationToken)
+            : OpenAsync(effect.Row.Session, cancellationToken);
     }
-
 
     /// <summary>Opens a tab for a session that is not a listed row yet, such as one the wizard has just started.</summary>
     public async Task<string> OpenAsync(Session session, CancellationToken cancellationToken)
@@ -46,6 +46,7 @@ public sealed class TabOpener(ITabRegistry tabs, IProcessRegistry processes, IWi
 
         return $"Opened {session.Name} in a {colour.Colour.Name.ToLowerInvariant()} tab{warning}.";
     }
+
     /// <summary>The tab is already open: select it in the Windows Terminal window that owns its shell.</summary>
     private async Task<string> SwitchToTabAsync(Session session, CancellationToken cancellationToken)
     {
