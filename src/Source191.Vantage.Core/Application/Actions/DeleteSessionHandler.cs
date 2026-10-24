@@ -10,6 +10,8 @@ namespace Source191.Vantage.Application.Actions;
 /// </summary>
 public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWorktrees createdWorktrees)
 {
+    private readonly WorktreeInspector inspector = new(git);
+
     public async Task<DeleteSessionOutcome> DeleteAsync(BackgroundSession session, bool forced, CancellationToken cancellationToken)
     {
         await claude.RemoveAsync(session.JobId.Value, cancellationToken);
@@ -42,22 +44,18 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
 
     private async Task<WorktreeRemovalFacts> FactsAsync(CreatedWorktree created, CancellationToken cancellationToken)
     {
-        IReadOnlyList<GitWorktreeEntry> entries = await git.ListWorktreesAsync(created.Repository.Value, cancellationToken);
-        GitWorktreeEntry? entry = entries.FirstOrDefault(candidate => new FolderPath(candidate.Path) == created.Path);
         // Git's listing is the source of truth here: a prunable entry means the folder has gone.
-        WorktreeHealthKind health = entry is null
-            ? WorktreeHealthKind.Broken
-            : WorktreeHealth.From(new WorktreeObservation(true, entry.PrunableReason is null, entry.LockReason, false, null, false)).Kind;
-        string into = await git.DefaultRemoteBranchAsync(created.Repository.Value, cancellationToken) ?? "HEAD";
+        WorktreeHealth health = await inspector.HealthAsync(created.Repository, created.Path, cancellationToken);
+        WorktreeCounts counts = await inspector.CountAsync(created.Path, cancellationToken);
 
         return new WorktreeRemovalFacts(
-            health,
+            health.Kind,
             created.Branch.Value,
-            DirtyFileCount: await git.CountChangedFilesAsync(created.Path.Value, cancellationToken),
-            UnpushedCommitCount: await git.CountUnpushedCommitsAsync(created.Path.Value, cancellationToken),
+            counts.DirtyFiles,
+            counts.UnpushedCommits,
             LiveSessionName: null,
             BranchCreatedByVantage: true,
-            BranchMerged: await git.IsMergedAsync(created.Repository.Value, created.Branch.Value, into, cancellationToken),
+            BranchMerged: await inspector.IsMergedAsync(created.Repository, created.Branch, cancellationToken),
             LeftoverFileCount: 0);
     }
 }

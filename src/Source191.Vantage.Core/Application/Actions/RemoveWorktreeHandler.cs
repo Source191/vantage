@@ -12,11 +12,14 @@ namespace Source191.Vantage.Application.Actions;
 /// </summary>
 public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWorktrees, IFolders folders)
 {
+    private readonly WorktreeInspector inspector = new(git);
+
     public async Task<RemoveWorktreeOutcome> RemoveAsync(WorktreeRow row, bool forced, CancellationToken cancellationToken)
     {
         CreatedWorktree? created = (await createdWorktrees.ReadCreatedWorktreesAsync())
             .FirstOrDefault(candidate => candidate.Path == row.Path);
-        bool merged = created is not null && await IsMergedAsync(row, cancellationToken);
+        // Merge state needs a branch and a repository that still exists.
+        bool merged = created is not null && row is { Branch: BranchName branch, OwnerExists: true } && await inspector.IsMergedAsync(row.Repository, branch, cancellationToken);
         RemovalDecision decision = RemovalDecision.For(row.Facts(created is not null, merged), forced);
 
         return decision.Outcome switch
@@ -25,18 +28,6 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
             RemovalOutcome.DeleteFolder => await DeleteFolderAsync(row, decision, cancellationToken),
             RemovalOutcome.RemoveWorktree => await RemoveThroughGitAsync(row, decision, createdByVantage: created is not null, cancellationToken),
         };
-    }
-
-    private async Task<bool> IsMergedAsync(WorktreeRow row, CancellationToken cancellationToken)
-    {
-        if (row.Branch is null || !row.OwnerExists)
-        {
-            return false;
-        }
-
-        string into = await git.DefaultRemoteBranchAsync(row.Repository.Value, cancellationToken) ?? "HEAD";
-
-        return await git.IsMergedAsync(row.Repository.Value, row.Branch.Value, into, cancellationToken);
     }
 
     private async Task<RemoveWorktreeOutcome> RemoveThroughGitAsync(WorktreeRow row, RemovalDecision decision, bool createdByVantage, CancellationToken cancellationToken)
