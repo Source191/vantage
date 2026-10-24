@@ -76,7 +76,7 @@ The view SHALL order rows by display state: needs input first, then working, idl
 - **THEN** the needs-input row is first and the stopped row is last
 
 ### Requirement: The list refreshes without losing the selection
-Vantage SHALL refresh the list automatically at least every five seconds and on demand, and SHALL keep the selected session selected across a refresh when it still exists.
+Vantage SHALL refresh the list automatically at least every five seconds and on demand, SHALL keep the selected session selected across a refresh when it still exists, and SHALL stay consistent when one refresh is still running as the next begins.
 
 #### Scenario: Selected session survives refresh
 - **WHEN** the user has selected a session and a refresh occurs
@@ -85,6 +85,10 @@ Vantage SHALL refresh the list automatically at least every five seconds and on 
 #### Scenario: Selected session disappears
 - **WHEN** the selected session is no longer in the listing after a refresh
 - **THEN** the selection moves to the nearest remaining row
+
+#### Scenario: Overlapping refreshes
+- **WHEN** a refresh takes longer than the refresh interval and a second refresh starts before it finishes
+- **THEN** the view shows a complete listing from one of the two refreshes and neither refresh fails
 
 ### Requirement: Rows can be filtered
 The view SHALL filter rows by a text typed after the filter key, matching case-insensitively against name, repository and branch.

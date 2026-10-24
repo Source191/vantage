@@ -14,7 +14,7 @@ The wizard SHALL offer every git repository found directly under the configured 
 
 #### Scenario: Recently used first
 - **WHEN** the picker opens
-- **THEN** the five most recently launched repositories appear before the rest
+- **THEN** the ten most recently launched repositories appear before the rest
 
 ### Requirement: A session name is mandatory
 The wizard SHALL require a non-blank name, SHALL reject a name containing a semicolon or a double quote, and SHALL use the name as the session name, the tab title and the Remote Control name.
@@ -89,11 +89,19 @@ When starting the session fails because the directory's workspace is not trusted
 - **THEN** the wizard offers to open a plain Claude Code tab there and retries the start after the user confirms
 
 ### Requirement: Vantage records what it created
-Vantage SHALL record each worktree and branch it created, and each launched repository, in its own state folder.
+Vantage SHALL record each worktree and branch it created, each launched repository and each session description in its own state folder, and SHALL keep every record when two Vantage processes write at the same time.
 
 #### Scenario: Worktree recorded
 - **WHEN** the wizard creates a worktree
 - **THEN** the state folder records the worktree path, branch, repository and creation time
+
+#### Scenario: Two processes record at once
+- **WHEN** `vantage here` records a description while the console records a recent repository
+- **THEN** both records are present on the next read
+
+#### Scenario: Existing state is kept
+- **WHEN** Vantage starts with recent repositories and descriptions saved by an earlier version
+- **THEN** they are still listed and shown
 
 ### Requirement: The session starts under the supervisor and opens where the user chose
 Vantage SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was, and SHALL then open the session in its own Windows Terminal tab or return to the list as the user chose.

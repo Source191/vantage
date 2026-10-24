@@ -58,11 +58,15 @@ Vantage SHALL record each tab it opens with the tab shell's process ID and start
 - **THEN** the record is treated as stale and removed
 
 ### Requirement: Stop and delete resolve the session ID
-Stop and delete SHALL act on the session's ID taken from the listing, never on its name.
+Stop and delete SHALL act on the session's ID taken from the listing, never on its name, and SHALL act on the row that was selected when the key was pressed even if the listing refreshed before the command ran.
 
 #### Scenario: Stop
 - **WHEN** the user presses the stop key on a background session
 - **THEN** the CLI stop command runs with that session's ID and the row shows stopped on the next refresh
+
+#### Scenario: Listing refreshes between key and command
+- **WHEN** the user presses the stop key and a refresh replaces the rows before the stop command runs
+- **THEN** the stop command still runs with the ID of the session that was selected, and nothing fails
 
 ### Requirement: Delete offers to remove the session's worktree
 Deleting a session whose working directory is a worktree Vantage created SHALL offer to remove that worktree under the worktree-management safety rules.
