@@ -1,7 +1,7 @@
 using Source191.Vantage.Adapters.State;
-using Source191.Vantage.Adapters.Terminal;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Launch;
 

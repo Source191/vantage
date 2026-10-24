@@ -1,6 +1,6 @@
-using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using IOPath = System.IO.Path;
 
 namespace Source191.Vantage.Application;

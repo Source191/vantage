@@ -1,6 +1,6 @@
-using Source191.Vantage.Adapters.Terminal;
+using Source191.Vantage.Application;
 
-namespace Source191.Vantage.UnitTests.Adapters;
+namespace Source191.Vantage.UnitTests.Application;
 
 public sealed class PowerShellScriptShould
 {

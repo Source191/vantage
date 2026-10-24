@@ -46,7 +46,7 @@ public sealed class LayeringShould
             .GetResult().FailingTypeNames.ShouldBeNull();
     }
 
-    [Fact(Skip = "untangle-layers task 3.3: HandoffLog still takes a ViewEffect")]
+    [Fact]
     public void KeepAdaptersFreeOfApplicationAndTui()
     {
         Vantage.That().ResideInNamespaceStartingWith($"{Root}.Adapters")

@@ -1,6 +1,6 @@
 using Source191.Vantage.Domain;
 
-namespace Source191.Vantage.Adapters.Claude;
+namespace Source191.Vantage.Ports;
 
 public enum StartOutcome
 {

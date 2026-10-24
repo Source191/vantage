@@ -1,10 +1,9 @@
 using Source191.Vantage.Adapters.Git;
-using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Adapters.State;
-using Source191.Vantage.Adapters.Terminal;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.UnitTests.TestDoubles;
 
 namespace Source191.Vantage.UnitTests.Application.Actions;

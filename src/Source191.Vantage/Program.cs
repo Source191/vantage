@@ -111,7 +111,11 @@ while (true)
             sessions = SessionsView.Reduce(sessions, new SelectSession(jump.SessionId)).State;
             continue;
         default:
-            log.HandingOver(effect);
+            if (log.IsEnabled(LogLevel.Information))
+            {
+                log.HandingOver(effect.ToString() ?? string.Empty);
+            }
+
             await terminalEffects.RunAsync(effect, CancellationToken.None);
             log.ChildReturned();
             ConsoleRecovery.AfterChildProcess(Console.Out);
