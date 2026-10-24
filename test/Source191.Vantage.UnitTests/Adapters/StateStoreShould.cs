@@ -1,0 +1,148 @@
+using Source191.Vantage.Adapters.State;
+using Source191.Vantage.Domain;
+
+namespace Source191.Vantage.UnitTests.Adapters;
+
+public sealed class StateStoreShould : IDisposable
+{
+    private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
+
+    private readonly string folder = Path.Combine(Path.GetTempPath(), "vantage-state-" + Guid.NewGuid().ToString("N"));
+
+    private StateStore Store => new(folder);
+
+    [Fact]
+    public async Task StartEmptyWhenTheFolderDoesNotExist()
+    {
+        (await Store.ReadTabsAsync()).ShouldBeEmpty();
+        (await Store.ReadRecentRepositoriesAsync()).ShouldBeEmpty();
+        (await Store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
+        (await Store.ReadDescriptionsAsync()).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task RoundTripATabRegistration()
+    {
+        TabRegistration pending = TabRegistration.Pending("session-1", TabPalette.Default[2], Noon);
+        TabRegistration claimed = pending.ClaimedBy(4242, Noon.AddSeconds(5));
+
+        await Store.WriteTabAsync(claimed);
+
+        (await Store.ReadTabsAsync()).Single().ShouldBe(claimed);
+    }
+
+    [Fact]
+    public async Task RemoveATabRegistration()
+    {
+        TabRegistration pending = TabRegistration.Pending("session-1", TabPalette.Default[2], Noon);
+        await Store.WriteTabAsync(pending);
+
+        await Store.RemoveTabAsync(pending.Id);
+
+        (await Store.ReadTabsAsync()).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task IgnoreACorruptTabFile()
+    {
+        TabRegistration pending = TabRegistration.Pending("session-1", TabPalette.Default[2], Noon);
+        await Store.WriteTabAsync(pending);
+        await File.WriteAllTextAsync(Path.Combine(folder, "tabs", "broken.json"), "{ not json", TestContext.Current.CancellationToken);
+
+        (await Store.ReadTabsAsync()).Single().ShouldBe(pending);
+    }
+
+    [Fact]
+    public async Task KeepRecentRepositoriesMostRecentFirstWithoutDuplicates()
+    {
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\B");
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+
+        (await Store.ReadRecentRepositoriesAsync()).ShouldBe([@"C:\repos\A", @"C:\repos\B"]);
+    }
+
+    [Fact]
+    public async Task KeepOnlyTheTenMostRecentRepositories()
+    {
+        foreach (int index in Enumerable.Range(1, 12))
+        {
+            await Store.RecordRecentRepositoryAsync($@"C:\repos\R{index}");
+        }
+
+        IReadOnlyList<string> recent = await Store.ReadRecentRepositoriesAsync();
+
+        recent.Count.ShouldBe(10);
+        recent[0].ShouldBe(@"C:\repos\R12");
+    }
+
+    [Fact]
+    public async Task RoundTripCreatedWorktreesAndForgetOne()
+    {
+        CreatedWorktree first = new(@"C:\repos\A-fix", "fix", @"C:\repos\A", Noon);
+        CreatedWorktree second = new(@"C:\repos\B-feat", "feat", @"C:\repos\B", Noon);
+        await Store.RecordCreatedWorktreeAsync(first);
+        await Store.RecordCreatedWorktreeAsync(second);
+
+        await Store.ForgetCreatedWorktreeAsync(first.Path);
+
+        (await Store.ReadCreatedWorktreesAsync()).ShouldBe([second]);
+    }
+
+    [Fact]
+    public async Task RoundTripSessionDescriptions()
+    {
+        await Store.WriteDescriptionAsync("session-1", "Replace the login page");
+        await Store.WriteDescriptionAsync("session-2", "Spike");
+
+        IReadOnlyDictionary<string, string> descriptions = await Store.ReadDescriptionsAsync();
+
+        descriptions["session-1"].ShouldBe("Replace the login page");
+        descriptions.Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task TreatACorruptDescriptionsFileAsEmpty()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "sessions.json"), "<<garbage>>", TestContext.Current.CancellationToken);
+
+        (await Store.ReadDescriptionsAsync()).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ProvideADefaultConfigurationWhenNoneIsSaved()
+    {
+        VantageConfig config = await Store.ReadConfigAsync();
+
+        config.RepositoryRoots.ShouldBe([Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos")]);
+        config.DefaultBase.ShouldBe("RemoteDefault");
+    }
+
+    [Fact]
+    public async Task RoundTripTheConfiguration()
+    {
+        VantageConfig saved = new([@"C:\repos", @"D:\work"], DefaultBase: "Head");
+
+        await Store.WriteConfigAsync(saved);
+
+        (await Store.ReadConfigAsync()).ShouldBe(saved);
+    }
+
+    [Fact]
+    public async Task TreatACorruptConfigurationAsTheDefault()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), "nope", TestContext.Current.CancellationToken);
+
+        (await Store.ReadConfigAsync()).RepositoryRoots.Count.ShouldBe(1);
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(folder))
+        {
+            Directory.Delete(folder, recursive: true);
+        }
+    }
+}

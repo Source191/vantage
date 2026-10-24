@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Source191.Vantage/Source191.Vantage.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Source191.Vantage.UnitTests/Source191.Vantage.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/HeadlessTerminal/HeadlessTerminal.csproj" />
+  </Folder>
+</Solution>
