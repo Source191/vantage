@@ -92,34 +92,36 @@ public sealed record SessionsViewState(
     /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
     public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: string.Empty);
 
-    public IReadOnlyList<SessionRow> VisibleRows
-    {
-        get
-        {
-            Sessions ordered = new([.. Rows.Where(Matches).Select(row => row.Session)]);
-            Dictionary<string, SessionRow> bySession = Rows.ToDictionary(row => row.Session.SessionId);
+    private static readonly ListPolicy<SessionRow> Policy = new(
+        KeyOf: row => row.Session.SessionId,
+        FilterFields: row => [row.Session.Name, row.Repository, row.Branch],
+        Order: ByAttention,
+        KeyComparison: StringComparison.Ordinal);
 
-            return [.. ordered.OrderedByAttention().Select(session => bySession[session.SessionId])];
-        }
-    }
+    /// <summary>The rows, selection, filter and loaded flag as the shared list component, built from this state's fields.</summary>
+    public ListSelection<SessionRow> List => new(Policy, Rows, SelectedSessionId, Filter, FilterEditing, Loaded);
 
-    public SessionRow? Selected => VisibleRows.FirstOrDefault(row => row.Session.SessionId == SelectedSessionId);
+    public IReadOnlyList<SessionRow> VisibleRows => List.Visible;
+
+    public SessionRow? Selected => List.Selected;
 
     public int NeedsInputCount => Rows.Count(row => row.Session.State.Kind == DisplayStateKind.NeedsInput);
 
-    public string Title
-    {
-        get
-        {
-            string scope = string.IsNullOrWhiteSpace(Filter.Text) ? "all" : Filter.Text;
+    public string Title => List.Title("sessions");
 
-            return $"sessions({scope})[{VisibleRows.Count}]";
-        }
+    /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
+    public SessionsViewState With(ListSelection<SessionRow> list)
+    {
+        return this with { Rows = list.Rows, SelectedSessionId = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
     }
 
-    private bool Matches(SessionRow row)
+    private static IEnumerable<SessionRow> ByAttention(IEnumerable<SessionRow> rows)
     {
-        return Filter.Matches([row.Session.Name, row.Repository, row.Branch]);
+        List<SessionRow> matching = [.. rows];
+        Sessions ordered = new([.. matching.Select(row => row.Session)]);
+        Dictionary<string, SessionRow> bySession = matching.ToDictionary(row => row.Session.SessionId);
+
+        return ordered.OrderedByAttention().Select(session => bySession[session.SessionId]);
     }
 }
 
@@ -129,59 +131,13 @@ public static class SessionsView
     {
         return input switch
         {
-            RowsLoaded loaded => Unchanged(Load(state, loaded.Rows)),
+            RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
-            SelectSession select => Unchanged(Select(state, select.SessionId)),
-            KeyPressed pressed when state.FilterEditing => Unchanged(EditFilter(state, pressed.Key)),
+            SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId))),
+            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key))),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
-        };
-    }
-
-    private static SessionsViewState Load(SessionsViewState state, IReadOnlyList<SessionRow> rows)
-    {
-        int previousIndex = IndexOfSelected(state);
-        SessionsViewState loaded = state with { Rows = rows, Banner = null, Loaded = true };
-        if (loaded.Selected is not null)
-        {
-            return loaded;
-        }
-
-        IReadOnlyList<SessionRow> visible = loaded.VisibleRows;
-        if (visible.Count == 0)
-        {
-            return loaded with { SelectedSessionId = null };
-        }
-
-        int nearest = Math.Clamp(previousIndex, 0, visible.Count - 1);
-
-        return loaded with { SelectedSessionId = visible[nearest].Session.SessionId };
-    }
-
-    private static SessionsViewState Select(SessionsViewState state, string sessionId)
-    {
-        if (!state.Rows.Any(row => row.Session.SessionId == sessionId))
-        {
-            return state;
-        }
-
-        SessionsViewState selected = state with { SelectedSessionId = sessionId };
-
-        return selected.Selected is null
-            ? selected with { Filter = new RowFilter(string.Empty), FilterEditing = false }
-            : selected;
-    }
-
-    private static SessionsViewState EditFilter(SessionsViewState state, Key key)
-    {
-        return key.Name switch
-        {
-            KeyName.Enter => state with { FilterEditing = false },
-            KeyName.Escape => Reselect(state with { FilterEditing = false, Filter = new RowFilter(string.Empty) }),
-            KeyName.Backspace => Reselect(state with { Filter = new RowFilter(state.Filter.Text[..Math.Max(0, state.Filter.Text.Length - 1)]) }),
-            KeyName.Character => Reselect(state with { Filter = new RowFilter(state.Filter.Text + key.Character) }),
-            _ => state,
         };
     }
 
@@ -189,11 +145,11 @@ public static class SessionsView
     {
         return key switch
         {
-            { Name: KeyName.Up } => Unchanged(MoveSelection(state, -1)),
-            { Name: KeyName.Down } => Unchanged(MoveSelection(state, +1)),
-            { Name: KeyName.Escape } => Unchanged(Reselect(state with { Filter = new RowFilter(string.Empty) })),
+            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1))),
+            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1))),
+            { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Enter } => SessionAction(state, row => new AttachToSession(row.Session.JobId!), Attachment.Here),
-            { Name: KeyName.Character, Character: '/' } => Unchanged(state with { FilterEditing = true, Filter = new RowFilter(string.Empty) }),
+            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter())),
             { Name: KeyName.Character, Character: 'o' } => SessionAction(state, row => new OpenTabForSession(row), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
             { Name: KeyName.Character, Character: 'x' } => SessionAction(state, row => new StopSession(row), Attachment.None),
@@ -315,32 +271,6 @@ public static class SessionsView
             { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Footer = $"{row.Session.Name} is working; wait until it is idle or needs input, so nothing in flight is lost." }),
             _ => Effect(state with { Footer = string.Empty }, new AdoptSession(row)),
         };
-    }
-
-    private static SessionsViewState MoveSelection(SessionsViewState state, int delta)
-    {
-        IReadOnlyList<SessionRow> visible = state.VisibleRows;
-        if (visible.Count == 0)
-        {
-            return state;
-        }
-
-        int index = Math.Clamp(IndexOfSelected(state) + delta, 0, visible.Count - 1);
-
-        return state with { SelectedSessionId = visible[index].Session.SessionId };
-    }
-
-    private static SessionsViewState Reselect(SessionsViewState state)
-    {
-        return state.Selected is not null ? state : Load(state, state.Rows);
-    }
-
-    private static int IndexOfSelected(SessionsViewState state)
-    {
-        IReadOnlyList<SessionRow> visible = state.VisibleRows;
-        int index = visible.ToList().FindIndex(row => row.Session.SessionId == state.SelectedSessionId);
-
-        return Math.Max(index, 0);
     }
 
     private static ViewUpdate Unchanged(SessionsViewState state)

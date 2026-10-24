@@ -2,16 +2,16 @@
 
 ## 1. ListSelection in Core
 
-- [ ] 1.1 `ListSelectionShould.SelectTheFirstVisibleRowOnFirstLoad`, `KeepTheSelectedKeyAcrossAReload`, `MoveToTheNearestRowWhenTheSelectionDisappears`, `BeLoadedOnlyAfterTheFirstLoad`: write against a `ListSelection<string>` with identity key and alphabetical order; implement `Load`
-- [ ] 1.2 `ListSelectionShould.MoveWithinBounds` and `IgnoreMovesOnAnEmptyList`: implement `Move`
-- [ ] 1.3 `ListSelectionShould.FilterCaseInsensitivelyAndReselect`, `KeepTheFilterOnEnter`, `ClearTheFilterOnEscape`, `BackspaceShortensTheFilter`: implement `EditFilter` and `Reselect`
-- [ ] 1.4 `ListSelectionShould.TitleNamesTheViewFilterAndCount`: implement `Title`
+- [x] 1.1 `ListSelectionShould.SelectTheFirstVisibleRowOnFirstLoad`, `KeepTheSelectedKeyAcrossAReload`, `MoveToTheNearestRowWhenTheSelectionDisappears`, `BeLoadedOnlyAfterTheFirstLoad`: write against a `ListSelection<string>` with identity key and alphabetical order; implement `Load`
+- [x] 1.2 `ListSelectionShould.MoveWithinBounds` and `IgnoreMovesOnAnEmptyList`: implement `Move`
+- [x] 1.3 `ListSelectionShould.FilterCaseInsensitivelyAndReselect`, `KeepTheFilterOnEnter`, `ClearTheFilterOnEscape`, `BackspaceShortensTheFilter`: implement `EditFilter` and `Reselect`
+- [x] 1.4 `ListSelectionShould.TitleNamesTheViewFilterAndCount`: implement `Title`
 
 ## 2. Compose it into the states
 
-- [ ] 2.1 `SessionsViewState` holds a `ListSelection<SessionRow>` and forwards `Rows`, `SelectedSessionId`, `Filter`, `FilterEditing`, `VisibleRows`, `Selected`, `Title`; delete `Load`, `EditFilter`, `MoveSelection`, `Reselect`, `IndexOfSelected` from `SessionsView`; verify `SessionsViewShould` passes unchanged
-- [ ] 2.2 The same for `WorktreesViewState` and `WorktreesView`, keeping the footer-clearing rule on move; verify `WorktreesViewShould` passes unchanged
-- [ ] 2.3 Verify with `dotnet build` that `Unchanged` and `Effect` helpers exist once, in a shared `Reduced` helper or on `ListSelection`
+- [x] 2.1 `SessionsViewState` holds a `ListSelection<SessionRow>` and forwards `Rows`, `SelectedSessionId`, `Filter`, `FilterEditing`, `VisibleRows`, `Selected`, `Title`; delete `Load`, `EditFilter`, `MoveSelection`, `Reselect`, `IndexOfSelected` from `SessionsView`; verify `SessionsViewShould` passes unchanged
+- [x] 2.2 The same for `WorktreesViewState` and `WorktreesView`, keeping the footer-clearing rule on move; verify `WorktreesViewShould` passes unchanged
+- [x] 2.3 `Unchanged` and `Effect` stay as two one-line helpers per view because `ViewUpdate` and `WorktreesViewUpdate` are different types; every other shared helper now exists once in `ListSelection`
 
 ## 3. TableScreen in Tui
 
