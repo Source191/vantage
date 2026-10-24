@@ -73,9 +73,35 @@ public sealed class ScreenLoopShould : IDisposable
         log.Lines.ShouldContain("Handing the terminal to AttachToSession { JobId = 81cdb0f9 }");
     }
 
+    public static TheoryData<Type> EffectsThatLeaveTheScreen => new(
+        typeof(ViewEffect).Assembly.GetTypes().Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(ILeavesScreen))));
+
+    [Theory]
+    [MemberData(nameof(EffectsThatLeaveTheScreen))]
+    public async Task SwitchQuitOrUseTheTerminalForEveryEffectThatLeavesTheScreen(Type type)
+    {
+        ScriptedSessionsScreen sessions = new(state => new ScreenExit(state, Instantiate(type)), state => new ScreenExit(state, new Quit()));
+
+        await Loop(sessions, new ScriptedWorktreesScreen(new SwitchToSessions())).RunAsync(processId: 100, CancellationToken.None);
+
+        bool usedTheTerminalWhenHandedIt = console.Recovered == 0 || processes.InteractiveRequests.Count == 1;
+        usedTheTerminalWhenHandedIt.ShouldBeTrue($"{type.Name} was handed the terminal, which did nothing with it");
+    }
+
     public void Dispose()
     {
         terminal.Dispose();
+    }
+
+    /// <summary>An instance of an effect record whose fields are all strings, such as a job or session id.</summary>
+    private static ViewEffect Instantiate(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single();
+        object[] arguments = [.. constructor.GetParameters().Select(parameter => parameter.ParameterType == typeof(string)
+            ? "81cdb0f9"
+            : throw new InvalidOperationException($"{type.Name} needs a {parameter.ParameterType.Name}; extend {nameof(Instantiate)}."))];
+
+        return (ViewEffect)constructor.Invoke(arguments);
     }
 
     private static SessionRow Row(string sessionId, string name)

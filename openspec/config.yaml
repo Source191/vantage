@@ -24,3 +24,4 @@ rules:
   tasks:
     - Each task is one red-green-refactor cycle or smaller, with the test named before the code
     - Order tasks so the pure domain rules come before adapters and adapters before screens
+    - A task that adds a key or an effect names its handler (the IEffectHandler class and its test) after the adapters it uses and before the screen or dialog that raises it

@@ -215,7 +215,7 @@ public sealed class WorktreesViewShould
         new JumpToSession("sess-1").ShouldBeAssignableTo<ILeavesScreen>();
         new ConfirmForceRemove(Dirty, "x").ShouldBeAssignableTo<IDialogEffect>();
         new StartSessionIn(Clean).ShouldBeAssignableTo<IDialogEffect>();
-        new RemoveWorktree(Clean, Forced: false).ShouldNotBeAssignableTo<IDialogEffect>();
+        new RemoveWorktree(Clean, Forced: false).ShouldBeAssignableTo<IDialogEffect>("a removal can end in the branch question");
         new PruneRepository(Repository).ShouldNotBeAssignableTo<ILeavesScreen>();
     }
 

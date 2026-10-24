@@ -323,6 +323,14 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
+    public void HandTheResumeChecklistTheRowsInTheOrderTheTableShowsThem()
+    {
+        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('R')));
+
+        update.Effects.Single().ShouldBeOfType<ResumeStoppedSessions>().Rows.ShouldBe(Loaded.VisibleRows);
+    }
+
+    [Fact]
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
         new AttachToSession("x").ShouldBeAssignableTo<ILeavesScreen>();
@@ -331,7 +339,7 @@ public sealed class SessionsViewShould
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
         new AskForNewName(Waiting).ShouldBeAssignableTo<IDialogEffect>();
         new DeleteSession(Waiting).ShouldBeAssignableTo<IDialogEffect>();
-        new ResumeStoppedSessions().ShouldBeAssignableTo<IDialogEffect>();
+        new ResumeStoppedSessions([]).ShouldBeAssignableTo<IDialogEffect>();
         new OpenLaunchWizard().ShouldBeAssignableTo<IDialogEffect>();
         new StopSession(Waiting).ShouldNotBeAssignableTo<ILeavesScreen>();
         new StopSession(Waiting).ShouldNotBeAssignableTo<IDialogEffect>();

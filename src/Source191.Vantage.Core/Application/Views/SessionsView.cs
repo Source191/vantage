@@ -68,7 +68,7 @@ public sealed record CloseEmptyTerminals(IReadOnlyList<SessionRow> Rows) : ViewE
 
 public sealed record OpenLaunchWizard : ViewEffect, IDialogEffect;
 
-public sealed record ResumeStoppedSessions : ViewEffect, IDialogEffect;
+public sealed record ResumeStoppedSessions(IReadOnlyList<SessionRow> Rows) : ViewEffect, IDialogEffect;
 
 public sealed record OpenAgentView : ViewEffect, ILeavesScreen;
 
@@ -160,7 +160,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'd' } => SessionAction(state, row => new DeleteSession(row), Attachment.None),
             { Name: KeyName.Character, Character: 'b' } => Adopt(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
-            { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions()),
+            { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
             { Name: KeyName.Character, Character: 'a' } => Effect(state, new OpenAgentView()),
             { Name: KeyName.Character, Character: 'w' } => Effect(state, new SwitchToWorktrees()),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),

@@ -1,7 +1,4 @@
 using Source191.Vantage.Application;
-using Source191.Vantage.Application.Actions;
-using Source191.Vantage.Application.Effects;
-using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.Drawing;
@@ -9,7 +6,7 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The sessions view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, LaunchWorkflow launches, EffectDispatcher dispatcher, DeleteSessionHandler delete, WorktreeBase defaultBase)
+internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
     private static readonly string[] Columns = ["NAME", "STATE", "REPOSITORY", "BRANCH", "WT", "AGE", "TAB", "DESCRIPTION"];
@@ -104,38 +101,6 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         }
     }
 
-    public bool LeavesScreen(ViewEffect effect)
-    {
-        return effect is ILeavesScreen;
-    }
-
-    /// <summary>Dialog effects ask first; everything else goes to its handler through the dispatcher.</summary>
-    public void Handle(IEffectContext<SessionsViewState> context, ViewEffect effect)
-    {
-        switch (effect)
-        {
-            case OpenLaunchWizard:
-                RunWizard(context);
-                break;
-            case CloseEmptyTerminals close:
-                ConfirmAndClose(context, close);
-                break;
-            case AskForNewName ask:
-                string? typed = NameDialog.Show(context.App, "Rename session", $"Rename {ask.Row.Session.Name}. The session restarts under the new name and keeps its conversation.", ask.Row.Session.Name);
-                context.Reduce(new RenameConfirmed(ask.Row, typed));
-                break;
-            case DeleteSession deletion:
-                ConfirmAndDelete(context, deletion.Row);
-                break;
-            case ResumeStoppedSessions:
-                ResumeSessions(context);
-                break;
-            default:
-                Dispatch(context, effect);
-                break;
-        }
-    }
-
     /// <summary>"terminal" marks a session started outside Vantage: it lives in its own tab and cannot be attached to.</summary>
     private static string Tab(SessionRow row)
     {
@@ -145,113 +110,5 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
             { HasLiveTab: true } => "open",
             _ => string.Empty,
         };
-    }
-
-    /// <summary>What the footer says while each background effect runs.</summary>
-    private static string Working(ViewEffect effect)
-    {
-        return effect switch
-        {
-            OpenTabForSession open => $"Opening a tab for {open.Row.Session.Name}...",
-            StopSession => "Stopping...",
-            AdoptSession adopt => $"Moving {adopt.Row.Session.Name} under Vantage...",
-            RenameSession rename => $"Renaming {rename.Row.Session.Name} to {rename.NewName.Text}...",
-            CloseEmptyTerminals => "Closing...",
-            ResumeSessions resume => $"Resuming {resume.Rows.Count}...",
-            DeleteBranch branch => $"Deleting branch {branch.Branch.Branch}...",
-            _ => "Working...",
-        };
-    }
-
-    private void Dispatch(IEffectContext<SessionsViewState> context, ViewEffect effect)
-    {
-        if (!dispatcher.Handles(effect))
-        {
-            return;
-        }
-
-        context.RunInBackground(Working(effect), token => dispatcher.DispatchAsync(effect, token));
-    }
-
-    private void ConfirmAndClose(IEffectContext<SessionsViewState> context, CloseEmptyTerminals close)
-    {
-        string names = string.Join(", ", close.Rows.Select(row => row.Session.Name));
-        string what = close.Rows.Count == 1 ? $"Close the tab of {names}?" : $"Close {close.Rows.Count} tabs: {names}?";
-        int? answer = Confirm.Query(context.App, "Close empty terminal sessions", $"{what}\nNone of them has been sent a message, so nothing is lost.", "Close", "Keep");
-        if (answer != 0)
-        {
-            context.State = context.State with { Footer = "Kept." };
-            return;
-        }
-
-        Dispatch(context, close);
-    }
-
-    private void ConfirmAndDelete(IEffectContext<SessionsViewState> context, SessionRow row)
-    {
-        int? answer = Confirm.Query(context.App, "Delete session", $"Delete {row.Session.Name}?\nIts worktree is removed only when nothing in it would be lost.", "Delete", "Cancel");
-        if (answer != 0)
-        {
-            return;
-        }
-
-        context.RunInBackground(
-            $"Deleting {row.Session.Name}...",
-            token => delete.DeleteAsync(row, forced: false, token),
-            outcome =>
-            {
-                if (outcome.BranchToConfirm is null)
-                {
-                    return outcome.Message;
-                }
-
-                // Back on the UI thread, so the question is asked before the answer is used.
-                int? branchAnswer = Confirm.Query(context.App, "Delete branch", $"Branch {outcome.BranchToConfirm.Branch} is not merged. Delete it anyway?", "Delete branch", "Keep");
-                if (branchAnswer != 0)
-                {
-                    return $"{outcome.Message} Branch kept.";
-                }
-
-                DeleteBranch deleteBranch = new(outcome.BranchToConfirm);
-                context.RunInBackground(Working(deleteBranch), async token => $"{outcome.Message} {await dispatcher.DispatchAsync(deleteBranch, token)}");
-
-                return Working(deleteBranch);
-            });
-    }
-
-    private void ResumeSessions(IEffectContext<SessionsViewState> context)
-    {
-        // The checklist lists sessions in the order the table shows them, not the order the listing returned them.
-        ResumePlan plan = ResumeSessionsHandler.Plan(context.State.VisibleRows);
-        IReadOnlyList<SessionRow> chosen = plan.ToChoose.Count == 0 ? [] : ResumeChecklistDialog.Show(context.App, plan.ToChoose);
-        List<SessionRow> toResume = [.. plan.Automatic, .. chosen];
-        if (toResume.Count == 0)
-        {
-            context.State = context.State with { Footer = "Nothing to resume." };
-            return;
-        }
-
-        Dispatch(context, new ResumeSessions(toResume));
-    }
-
-    private void RunWizard(IEffectContext<SessionsViewState> context)
-    {
-        WizardResult? wizard = LaunchWizardDialog.Show(context.App, launches, defaultBase);
-        if (wizard is null)
-        {
-            return;
-        }
-
-        context.RunInBackground($"Starting {wizard.Plan.Name.Text}...", async token =>
-        {
-            LaunchOutcome outcome = await launches.LaunchAsync(wizard.Plan, token);
-
-            return outcome.Kind switch
-            {
-                LaunchOutcomeKind.Started => await launches.StartedAsync(wizard.Plan, outcome, wizard.OpenInTab, token),
-                LaunchOutcomeKind.WorkspaceNotTrusted => await launches.OpenTrustTabAsync(wizard.Plan.Directory, token),
-                _ => $"Could not start: {outcome.Message}",
-            };
-        });
     }
 }
