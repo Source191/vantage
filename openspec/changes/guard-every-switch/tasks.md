@@ -28,7 +28,7 @@
 ## 5. Documentation and release
 
 - [ ] 5.1 CLAUDE.md code rules: name `DialogEffectsShould` beside `EffectDispatcherShould` and `ScreenLoopShould` in the "a new key" recipe, and add one sentence on the enum stance (no discard arm on a closed enum; CS8524 is suppressed so CS8509 fails the build on a new member); verify `dotnet format --verify-no-changes` and `openspec validate guard-every-switch` pass
-- [ ] 5.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` from 0.4.1 to 0.4.2; verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes
+- [x] 5.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` from 0.4.1 to 0.4.2; verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes
 
 ## Workflow follow-up
 
