@@ -1,4 +1,6 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -217,9 +219,23 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void PassAHandlersOwnSentenceThrough()
+    public void SayWhatAHandlerDid()
     {
-        Wording.Describe(new Footer.Reported("Stopped fix-123.")).ShouldBe("Stopped fix-123.");
+        Wording.Describe(new Footer.Reported(new StopSessionOutcome("fix-123"))).ShouldBe("Stopped fix-123.");
+    }
+
+    [Fact]
+    public void SayTheBranchWasKeptAfterTheRemoval()
+    {
+        Wording.Describe(new Footer.BranchKept(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(Sessions.Repository, "fix-123"))))
+            .ShouldBe("Deleted fix-123 and removed the worktree; branch fix-123 is not merged. Branch kept.");
+    }
+
+    [Fact]
+    public void SayTheBranchWasDeletedAfterTheRemoval()
+    {
+        Wording.Describe(new Footer.Followed(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(Sessions.Repository, "fix-123")), new DeleteBranchOutcome()))
+            .ShouldBe("Deleted fix-123 and removed the worktree; branch fix-123 is not merged. Branch deleted.");
     }
 
     [Fact]
@@ -262,6 +278,12 @@ public sealed class WordingShould
     public void AskBeforeDeletingABranchVantageDidNotCreate()
     {
         Wording.DeleteBranchQuestion("fix-123", createdByVantage: false).ShouldBe("Branch fix-123 was not created by Vantage. Delete it anyway?");
+    }
+
+    [Fact]
+    public void SayHowToComeBackFromAnAttach()
+    {
+        Wording.ReturnHint.ShouldBe("Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.");
     }
 
     [Fact]
@@ -318,6 +340,7 @@ public sealed class WordingShould
             _ when type == typeof(bool) => true,
             _ when type == typeof(WorktreeHealthKind) => WorktreeHealthKind.Locked,
             _ when type == typeof(ViewEffect) => new Quit(),
+            _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123"),
             _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),
         };
     }

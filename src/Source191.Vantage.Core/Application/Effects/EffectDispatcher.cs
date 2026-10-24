@@ -8,7 +8,7 @@ namespace Source191.Vantage.Application.Effects;
 /// </summary>
 public sealed class EffectDispatcher
 {
-    private readonly Dictionary<Type, Func<ViewEffect, CancellationToken, Task<string>>> handlers = [];
+    private readonly Dictionary<Type, Func<ViewEffect, CancellationToken, Task<Outcome>>> handlers = [];
 
     public EffectDispatcher Register<TEffect>(IEffectHandler<TEffect> handler)
         where TEffect : ViewEffect
@@ -24,9 +24,9 @@ public sealed class EffectDispatcher
         return handlers.ContainsKey(effectType);
     }
 
-    public Task<string> DispatchAsync(ViewEffect effect, CancellationToken cancellationToken)
+    public Task<Outcome> DispatchAsync(ViewEffect effect, CancellationToken cancellationToken)
     {
-        if (!handlers.TryGetValue(effect.GetType(), out Func<ViewEffect, CancellationToken, Task<string>>? handler))
+        if (!handlers.TryGetValue(effect.GetType(), out Func<ViewEffect, CancellationToken, Task<Outcome>>? handler))
         {
             throw new InvalidOperationException($"No handler is registered for {effect.GetType().Name}.");
         }

@@ -2,6 +2,7 @@ using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -48,18 +49,18 @@ public sealed class StartSessionHandlerShould
     [Fact]
     public async Task ReportTheStartWithoutATabWhenNoneWasAsked()
     {
-        string footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: false), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: false), CancellationToken.None);
 
-        footer.ShouldBe("Started Fix flaky tests (81cdb0f9).");
+        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", "81cdb0f9"));
         terminal.Opened.ShouldBeEmpty();
     }
 
     [Fact]
     public async Task OpenTheNewSessionInItsOwnTabWhenAsked()
     {
-        string footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe("Started Fix flaky tests (81cdb0f9). Opened Fix flaky tests in a red tab.");
+        footer.ShouldBe(new StartSessionOutcome.StartedAndOpened("Fix flaky tests", "81cdb0f9", new OpenTabOutcome.Opened("Fix flaky tests", "Red", ColourReused: false)));
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Fix flaky tests");
         tab.Script.ShouldContain($"& '{Claude}' 'attach' '81cdb0f9'");
@@ -70,9 +71,9 @@ public sealed class StartSessionHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("agents"), new ProcessResult(0, "[]", string.Empty));
 
-        string footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe("Started Fix flaky tests (81cdb0f9). It is not listed yet: press o on it to open a tab.");
+        footer.ShouldBe(new StartSessionOutcome.NotListedYet("Fix flaky tests", "81cdb0f9"));
         terminal.Opened.ShouldBeEmpty();
     }
 
@@ -81,9 +82,9 @@ public sealed class StartSessionHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "Workspace not trusted. Run `claude` once and accept the trust prompt, then retry."));
 
-        string footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe(TrustRecovery.Explanation(Repository));
+        footer.ShouldBe(new StartSessionOutcome.NotTrusted(Repository));
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Trust Northwind.Orders");
         tab.StartingDirectory.ShouldBe(Repository);
@@ -94,9 +95,9 @@ public sealed class StartSessionHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "supervisor not running"));
 
-        string footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: false), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: false), CancellationToken.None);
 
-        footer.ShouldBe("Could not start: supervisor not running");
+        footer.ShouldBe(new StartSessionOutcome.Failed("supervisor not running"));
         terminal.Opened.ShouldBeEmpty();
     }
 
@@ -105,10 +106,10 @@ public sealed class StartSessionHandlerShould
     {
         LaunchPlan inWorktree = Plan with { Directory = Worktree, Repository = new RepositoryChoice("Northwind.Orders-fix-flaky-tests", Worktree, IsRepository: true) };
 
-        string footer = await Handler.HandleAsync(new StartSession(inWorktree, OpenInTab: false), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(inWorktree, OpenInTab: false), CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(Worktree);
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
-        footer.ShouldBe("Started Fix flaky tests (81cdb0f9).");
+        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", "81cdb0f9"));
     }
 }

@@ -13,11 +13,11 @@
 
 ## 3. Outcomes from the handlers
 
-- [ ] 3.1 `StopSessionHandler`, `PruneRepositoryHandler`, `OpenShellHandler`: return outcome records; their tests assert on the records; `Wording` facts go green
-- [ ] 3.2 `AdoptSessionHandler`, `RenameSessionHandler`, `ResumeSessionsHandler`: the same, including the failure paths
-- [ ] 3.3 `CloseEmptyTerminalsHandler`: `CloseEmptyOutcome` replaces `Summary`; the pluralisation moves into `Wording`
+- [x] 3.1 `StopSessionHandler`, `PruneRepositoryHandler`, `OpenShellHandler`: return outcome records; their tests assert on the records; `Wording` facts go green
+- [x] 3.2 `AdoptSessionHandler`, `RenameSessionHandler`, `ResumeSessionsHandler`: the same, including the failure paths
+- [x] 3.3 `CloseEmptyTerminalsHandler`: `CloseEmptyOutcome` replaces `Summary`; the pluralisation moves into `Wording`
 - [ ] 3.4 `DeleteSessionHandler`, `DeleteBranchHandler`, `RemoveWorktreeHandler`: outcomes keep `BranchToConfirm`; the dialog questions move to `Wording`
-- [ ] 3.5 `OpenTabHandler` and `StartSessionHandler`: outcomes including the palette-reused warning and the trust explanation
+- [x] 3.5 `OpenTabHandler` and `StartSessionHandler`: outcomes including the palette-reused warning and the trust explanation
 - [ ] 3.6 `IEffectHandler<TEffect>` returns `Task<Outcome>` (a marker base record) and `TableScreen` renders through `Wording`; verify every `WordingShould` fact is green and the hand-off check passes
 
 ## 4. Documentation

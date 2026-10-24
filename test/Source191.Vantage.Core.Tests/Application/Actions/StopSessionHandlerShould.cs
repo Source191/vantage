@@ -1,5 +1,6 @@
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.TestDoubles;
 using static Source191.Vantage.Core.Tests.Application.Actions.SessionTestData;
@@ -15,9 +16,9 @@ public sealed class StopSessionHandlerShould
     {
         StopSessionHandler handler = new(new ClaudeCli(processes, Claude));
 
-        string message = await handler.HandleAsync(new StopSession(Background(Repository, isWorktree: false)), CancellationToken.None);
+        Outcome outcome = await handler.HandleAsync(new StopSession(Background(Repository, isWorktree: false)), CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.FileName == Claude).Arguments.ShouldBe(["stop", "81cdb0f9"]);
-        message.ShouldBe("Stopped fix-123.");
+        outcome.ShouldBe(new StopSessionOutcome("fix-123"));
     }
 }

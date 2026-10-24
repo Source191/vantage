@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -15,11 +16,11 @@ public sealed class OpenShellHandlerShould
         FakeWindowsTerminal terminal = new();
         OpenShellHandler handler = new(terminal);
 
-        string message = await handler.HandleAsync(new OpenShellTab(Row(WorktreeHealthKind.Ok)), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new OpenShellTab(Row(WorktreeHealthKind.Ok)), CancellationToken.None);
 
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Northwind.Orders-fix-123");
         tab.StartingDirectory.ShouldBe(Worktree);
-        message.ShouldBe("Opened a shell in Northwind.Orders-fix-123.");
+        message.ShouldBe(new OpenShellOutcome("Northwind.Orders-fix-123"));
     }
 }

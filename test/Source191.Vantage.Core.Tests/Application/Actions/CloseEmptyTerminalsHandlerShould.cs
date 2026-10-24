@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.TestDoubles;
 using static Source191.Vantage.Core.Tests.Application.Actions.SessionTestData;
@@ -16,11 +17,14 @@ public sealed class CloseEmptyTerminalsHandlerShould
         processTable.InTree(1, "WindowsTerminal", 0).InTree(4000, "pwsh", 1).InTree(4242, "claude", 4000);
         CloseEmptyTerminalsHandler handler = new(processTable, new FakeTranscripts());
 
-        string message = await handler.HandleAsync(new CloseEmptyTerminals([Interactive("repos-f6", 4242)]), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([Interactive("repos-f6", 4242)]), CancellationToken.None);
 
         processTable.Terminated.ShouldBe([4242]);
         processTable.EndedCleanly.ShouldBe([4000]);
-        message.ShouldBe("Closed 1 tab: repos-f6.");
+        CloseEmptyTerminalsOutcome close = message.ShouldBeOfType<CloseEmptyTerminalsOutcome>();
+        close.Closed.ShouldBe(["repos-f6"]);
+        close.Ended.ShouldBe([]);
+        close.Skipped.ShouldBe([]);
     }
 
     [Fact]
@@ -29,11 +33,14 @@ public sealed class CloseEmptyTerminalsHandlerShould
         processTable.InTree(4242, "claude", 9);
         CloseEmptyTerminalsHandler handler = new(processTable, new FakeTranscripts());
 
-        string message = await handler.HandleAsync(new CloseEmptyTerminals([Interactive("repos-f6", 4242)]), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([Interactive("repos-f6", 4242)]), CancellationToken.None);
 
         processTable.Terminated.ShouldBe([4242]);
         processTable.EndedCleanly.ShouldBeEmpty();
-        message.ShouldBe("Ended 1 session: repos-f6 (not in a Windows Terminal tab, so nothing to close).");
+        CloseEmptyTerminalsOutcome close = message.ShouldBeOfType<CloseEmptyTerminalsOutcome>();
+        close.Closed.ShouldBe([]);
+        close.Ended.ShouldBe(["repos-f6"]);
+        close.Skipped.ShouldBe([]);
     }
 
     [Fact]
@@ -41,10 +48,13 @@ public sealed class CloseEmptyTerminalsHandlerShould
     {
         CloseEmptyTerminalsHandler handler = new(processTable, new FakeTranscripts().WithMessages("sess-9"));
 
-        string message = await handler.HandleAsync(new CloseEmptyTerminals([Interactive("repos-31", 4242), Interactive("repos-93", processId: null)]), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([Interactive("repos-31", 4242), Interactive("repos-93", processId: null)]), CancellationToken.None);
 
         processTable.Terminated.ShouldBeEmpty();
         processTable.EndedCleanly.ShouldBeEmpty();
-        message.ShouldBe("Nothing closed: repos-31 has messages (press b to move it under Vantage); repos-93 has no process.");
+        CloseEmptyTerminalsOutcome close = message.ShouldBeOfType<CloseEmptyTerminalsOutcome>();
+        close.Closed.ShouldBe([]);
+        close.Ended.ShouldBe([]);
+        close.Skipped.ShouldBe([new SkippedSession("repos-31", HasMessages: true), new SkippedSession("repos-93", HasMessages: false)]);
     }
 }

@@ -11,22 +11,22 @@ namespace Source191.Vantage.Application.Actions;
 /// </summary>
 public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWorktrees createdWorktrees)
 {
-    public async Task<DeleteOutcome> DeleteAsync(SessionRow row, bool forced, CancellationToken cancellationToken)
+    public async Task<DeleteSessionOutcome> DeleteAsync(SessionRow row, bool forced, CancellationToken cancellationToken)
     {
         await claude.RemoveAsync(row.Session.JobId!, cancellationToken);
-        string deleted = $"Deleted {row.Session.Name}";
+        string name = row.Session.Name;
 
         CreatedWorktree? created = (await createdWorktrees.ReadCreatedWorktreesAsync())
             .FirstOrDefault(worktree => string.Equals(worktree.Path, row.Session.WorkingDirectory, StringComparison.OrdinalIgnoreCase));
         if (created is null)
         {
-            return new DeleteOutcome($"{deleted}.", BranchToConfirm: null);
+            return new DeleteSessionOutcome.Deleted(name);
         }
 
         RemovalDecision decision = RemovalDecision.For(await FactsAsync(created, cancellationToken), forced);
         if (decision.Outcome != RemovalOutcome.RemoveWorktree)
         {
-            return new DeleteOutcome($"{deleted}; kept its worktree because {decision.Reason}.", BranchToConfirm: null);
+            return new DeleteSessionOutcome.KeptWorktree(name, decision.Reason);
         }
 
         await git.RemoveWorktreeAsync(created.Repository, created.Path, decision.Forced, cancellationToken);
@@ -35,10 +35,10 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
         {
             await git.DeleteBranchAsync(created.Repository, created.Branch, force: false, cancellationToken);
 
-            return new DeleteOutcome($"{deleted} and removed the worktree and branch {created.Branch}.", BranchToConfirm: null);
+            return new DeleteSessionOutcome.RemovedWorktreeAndBranch(name, created.Branch);
         }
 
-        return new DeleteOutcome($"{deleted} and removed the worktree; branch {created.Branch} is not merged.", new BranchToConfirm(created.Repository, created.Branch));
+        return new DeleteSessionOutcome.BranchNotMerged(name, new BranchToConfirm(created.Repository, created.Branch));
     }
 
     private async Task<WorktreeRemovalFacts> FactsAsync(CreatedWorktree created, CancellationToken cancellationToken)

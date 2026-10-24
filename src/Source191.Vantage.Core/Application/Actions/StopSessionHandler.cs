@@ -6,11 +6,11 @@ namespace Source191.Vantage.Application.Actions;
 
 public sealed class StopSessionHandler(IClaudeCli claude) : IEffectHandler<StopSession>
 {
-    public async Task<string> HandleAsync(StopSession effect, CancellationToken cancellationToken)
+    public async Task<Outcome> HandleAsync(StopSession effect, CancellationToken cancellationToken)
     {
         await claude.StopAsync(effect.Row.Session.JobId!, cancellationToken);
 
-        return $"Stopped {effect.Row.Session.Name}.";
+        return new StopSessionOutcome(effect.Row.Session.Name);
     }
 }
 

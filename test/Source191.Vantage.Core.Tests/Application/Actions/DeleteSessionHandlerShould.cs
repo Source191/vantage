@@ -1,6 +1,7 @@
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -19,12 +20,11 @@ public sealed class DeleteSessionHandlerShould
     [Fact]
     public async Task DeleteASessionOutsideAVantageWorktreeWithoutTouchingGit()
     {
-        DeleteOutcome outcome = await Handler.DeleteAsync(Background(Repository, isWorktree: false), forced: false, CancellationToken.None);
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Repository, isWorktree: false), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.FileName == Claude).Arguments.ShouldBe(["rm", "81cdb0f9"]);
         processes.CapturedRequests.ShouldNotContain(request => request.FileName == "git");
-        outcome.Message.ShouldContain("Deleted fix-123");
-        outcome.BranchToConfirm.ShouldBeNull();
+        outcome.ShouldBe(new DeleteSessionOutcome.Deleted("fix-123"));
     }
 
     [Fact]
@@ -32,12 +32,12 @@ public sealed class DeleteSessionHandlerShould
     {
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
 
-        DeleteOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.Arguments.Contains("remove")).Arguments.ShouldBe(["worktree", "remove", Worktree]);
         processes.CapturedRequests.Single(request => request.Arguments.Contains("branch")).Arguments.ShouldBe(["branch", "-d", "fix-123"]);
         (await store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
-        outcome.Message.ShouldContain("removed the worktree");
+        outcome.ShouldBe(new DeleteSessionOutcome.RemovedWorktreeAndBranch("fix-123", "fix-123"));
     }
 
     [Fact]
@@ -46,11 +46,10 @@ public sealed class DeleteSessionHandlerShould
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
         processes.Answer(request => request.Arguments.Contains("status"), new ProcessResult(0, " M a.cs\n", string.Empty));
 
-        DeleteOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("remove"));
-        outcome.Message.ShouldContain("kept");
-        outcome.Message.ShouldContain("1 changed");
+        outcome.ShouldBeOfType<DeleteSessionOutcome.KeptWorktree>().Reason.ShouldContain("1 changed");
     }
 
     [Fact]
@@ -59,11 +58,11 @@ public sealed class DeleteSessionHandlerShould
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, "fix-123", Repository, Noon));
         processes.Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty));
 
-        DeleteOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Background(Worktree, isWorktree: true), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.ShouldContain(request => request.Arguments.Contains("remove"));
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("branch"));
-        outcome.BranchToConfirm.ShouldBe(new BranchToConfirm(Repository, "fix-123"));
+        outcome.ShouldBe(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(Repository, "fix-123")));
     }
 
     [Fact]
@@ -71,9 +70,9 @@ public sealed class DeleteSessionHandlerShould
     {
         DeleteBranchHandler handler = new(new GitCli(processes));
 
-        string message = await handler.HandleAsync(new DeleteBranch(new BranchToConfirm(Repository, "fix-123")), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new DeleteBranch(new BranchToConfirm(Repository, "fix-123")), CancellationToken.None);
 
         processes.CapturedRequests.Single().Arguments.ShouldBe(["branch", "-D", "fix-123"]);
-        message.ShouldBe("Branch deleted.");
+        message.ShouldBe(new DeleteBranchOutcome());
     }
 }

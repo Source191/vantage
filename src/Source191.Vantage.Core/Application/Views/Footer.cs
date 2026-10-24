@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application.Views;
@@ -75,8 +76,14 @@ public abstract record Footer
     /// <summary>The effect is running off the UI thread.</summary>
     public sealed record Working(ViewEffect Effect) : Footer;
 
-    /// <summary>A handler's own sentence, until the handlers return outcome records.</summary>
-    public sealed record Reported(string Text) : Footer;
+    /// <summary>What a handler did.</summary>
+    public sealed record Reported(Outcome Outcome) : Footer;
+
+    /// <summary>A removal, then the user's answer to keep the branch it left.</summary>
+    public sealed record BranchKept(Outcome Removal) : Footer;
+
+    /// <summary>A removal, then what deleting the branch it left did.</summary>
+    public sealed record Followed(Outcome First, Outcome Then) : Footer;
 
     /// <summary>Background work threw; the message is the exception's.</summary>
     public sealed record Failed(string Message) : Footer;

@@ -12,22 +12,22 @@ namespace Source191.Vantage.Application.Actions;
 /// </summary>
 public sealed class CloseEmptyTerminalsHandler(IProcessRegistry processes, ITranscripts transcripts) : IEffectHandler<CloseEmptyTerminals>
 {
-    public Task<string> HandleAsync(CloseEmptyTerminals effect, CancellationToken cancellationToken)
+    public Task<Outcome> HandleAsync(CloseEmptyTerminals effect, CancellationToken cancellationToken)
     {
         List<string> closed = [];
         List<string> ended = [];
-        List<string> skipped = [];
+        List<SkippedSession> skipped = [];
         foreach (Session session in effect.Rows.Select(row => row.Session))
         {
             if (session.ProcessId is null)
             {
-                skipped.Add($"{session.Name} has no process");
+                skipped.Add(new SkippedSession(session.Name, HasMessages: false));
                 continue;
             }
 
             if (transcripts.HasMessages(session.SessionId))
             {
-                skipped.Add($"{session.Name} has messages (press b to move it under Vantage)");
+                skipped.Add(new SkippedSession(session.Name, HasMessages: true));
                 continue;
             }
 
@@ -43,34 +43,9 @@ public sealed class CloseEmptyTerminalsHandler(IProcessRegistry processes, ITran
             closed.Add(session.Name);
         }
 
-        return Task.FromResult(Summary(closed, ended, skipped));
+        return Task.FromResult<Outcome>(new CloseEmptyTerminalsOutcome(closed, ended, skipped));
     }
 
-    private static string Summary(List<string> closed, List<string> ended, List<string> skipped)
-    {
-        List<string> parts = [];
-        if (closed.Count > 0)
-        {
-            parts.Add($"Closed {closed.Count} {(closed.Count == 1 ? "tab" : "tabs")}: {string.Join(", ", closed)}.");
-        }
-
-        if (ended.Count > 0)
-        {
-            parts.Add($"Ended {ended.Count} {(ended.Count == 1 ? "session" : "sessions")}: {string.Join(", ", ended)} (not in a Windows Terminal tab, so nothing to close).");
-        }
-
-        if (closed.Count == 0 && ended.Count == 0)
-        {
-            return skipped.Count == 0 ? "Nothing to close." : $"Nothing closed: {string.Join("; ", skipped)}.";
-        }
-
-        if (skipped.Count > 0)
-        {
-            parts.Add($"Skipped: {string.Join("; ", skipped)}.");
-        }
-
-        return string.Join(' ', parts);
-    }
 }
 
 /// <summary>Which tabs were closed, which sessions were ended without a tab to close, and which were left alone.</summary>

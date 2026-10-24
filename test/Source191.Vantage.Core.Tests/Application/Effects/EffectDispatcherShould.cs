@@ -22,7 +22,7 @@ public sealed class EffectDispatcherShould
         StopSession stop = new(Background(Repository, isWorktree: false));
 
         dispatcher.Handles(typeof(StopSession)).ShouldBeTrue();
-        (await dispatcher.DispatchAsync(stop, CancellationToken.None)).ShouldBe("Stopped fix-123.");
+        (await dispatcher.DispatchAsync(stop, CancellationToken.None)).ShouldBe(new StopSessionOutcome("fix-123"));
         processes.CapturedRequests.Single().Arguments.ShouldBe(["stop", "81cdb0f9"]);
     }
 
