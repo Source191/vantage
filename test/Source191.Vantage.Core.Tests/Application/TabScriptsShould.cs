@@ -55,6 +55,29 @@ public sealed class TabScriptsShould
     }
 
     [Fact]
+    public void WaitUpdateAndRestartInTheUpdateTab()
+    {
+        FolderPath home = new(@"C:\Users\me");
+
+        TabLaunch tab = scripts.Update(4242, home);
+
+        tab.Title.ShouldBe("Update Vantage");
+        tab.StartingDirectory.ShouldBe(home);
+        string[] lines = tab.Script.Split('\n');
+        lines[0].ShouldBe("Wait-Process -Id '4242' -ErrorAction SilentlyContinue");
+        lines[1].ShouldBe("& 'dotnet' 'tool' 'update' '-g' 'Source191.Vantage'");
+        lines[2].ShouldBe($"if ($LASTEXITCODE -eq 0) {{ & '{Vantage}' }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}");
+    }
+
+    [Fact]
+    public void QuoteTheVantagePathInTheUpdateTab()
+    {
+        TabLaunch tab = new TabScripts(Claude, @"C:\Users\O'Brien\.dotnet\tools\vantage.exe").Update(4242, new FolderPath(@"C:\Users\O'Brien"));
+
+        tab.Script.ShouldContain(@"& 'C:\Users\O''Brien\.dotnet\tools\vantage.exe'");
+    }
+
+    [Fact]
     public void QuoteUserTextSafely()
     {
         TabLaunch tab = scripts.Trust(new FolderPath(@"C:\repos\Bob's tools"));

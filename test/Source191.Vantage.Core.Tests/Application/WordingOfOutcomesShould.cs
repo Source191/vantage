@@ -29,6 +29,12 @@ public sealed class WordingOfOutcomesShould
     }
 
     [Fact]
+    public void SayTheUpdateStarted()
+    {
+        Wording.Describe(new UpdateStartedOutcome("0.10.0")).ShouldBe("Updating to 0.10.0 in a new tab; Vantage starts again there when it is done.");
+    }
+
+    [Fact]
     public void SaySettingsSaved()
     {
         Wording.Describe(new SaveSettingsOutcome()).ShouldBe("Settings saved.");

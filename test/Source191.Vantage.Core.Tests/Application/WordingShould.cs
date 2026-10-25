@@ -211,6 +211,30 @@ public sealed class WordingShould
     // Dialogs and the screen.
 
     [Fact]
+    public void SayVantageIsUpToDate()
+    {
+        Wording.Describe(new Footer.UpToDate()).ShouldBe("Vantage is up to date.");
+    }
+
+    [Fact]
+    public void SayTheUpdateCheckIsOff()
+    {
+        Wording.Describe(new Footer.UpdateCheckOff()).ShouldBe("The update check is off, or this is a development build; nothing to update to.");
+    }
+
+    [Fact]
+    public void AskBeforeUpdating()
+    {
+        Wording.UpdateQuestion(ReleaseVersion.TryParse("0.10.0")!).ShouldBe("Quit Vantage and update to 0.10.0?\nBackground sessions keep running.");
+    }
+
+    [Fact]
+    public void SayTheUpdateTabIsOpening()
+    {
+        Wording.Working(new StartUpdate(ReleaseVersion.TryParse("0.10.0")!)).ShouldBe("Opening a tab to update to 0.10.0...");
+    }
+
+    [Fact]
     public void SayTheEmptyTabsWereKept()
     {
         Wording.Describe(new Footer.Kept()).ShouldBe("Kept.");
