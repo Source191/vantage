@@ -52,7 +52,9 @@ public static class GitWorktreeListing
             }
         }
 
-        return new GitWorktreeEntry(path, head, BranchName.TryParse(branch), isMain, lockReason, prunableReason);
+        BranchName? branchName = BranchName.TryParse(branch, out BranchName? parsed) ? parsed : null;
+
+        return new GitWorktreeEntry(path, head, branchName, isMain, lockReason, prunableReason);
     }
 
     private static (string Key, string Value) SplitLine(string line)

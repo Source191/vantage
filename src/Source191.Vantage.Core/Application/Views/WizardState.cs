@@ -18,7 +18,7 @@ public sealed record WizardState(
     LaunchMode Mode,
     WorktreeBase Base,
     string Prompt,
-    WizardProblem? Problem,
+    WizardProblem Problem,
     WizardField Focus)
 {
     /// <summary>The wizard as it opens. With a fixed directory (the worktrees view's s key) the session starts there: no repository list, no worktree choice.</summary>
@@ -37,7 +37,7 @@ public sealed record WizardState(
             LaunchMode.CurrentBranch,
             defaultBase,
             Prompt: string.Empty,
-            Problem: null,
+            Problem: new WizardProblem.None(),
             fixedChoice is null ? WizardField.RepositoryFilter : WizardField.Name);
     }
 

@@ -80,11 +80,13 @@ public sealed class FolderPathShould
     [InlineData(Repository, Repository)]
     [InlineData("C:/Users/me/source/repos/Northwind.Orders", Repository)]
     [InlineData("", null)]
+    [InlineData(null, null)]
     [InlineData(@"repos\Northwind.Orders", null)]
-    public void ParseTextFromOutsideWithoutThrowing(string text, string? expected)
+    public void ParseTextFromOutsideWithoutThrowing(string? text, string? expected)
     {
-        FolderPath.TryParse(text)?.Value.ShouldBe(expected);
-        (FolderPath.TryParse(text) is null).ShouldBe(expected is null);
+        FolderPath.TryParse(text, out FolderPath? path).ShouldBe(expected is not null);
+        path?.Value.ShouldBe(expected);
+        (path is null).ShouldBe(expected is null);
     }
 
     [Fact]
