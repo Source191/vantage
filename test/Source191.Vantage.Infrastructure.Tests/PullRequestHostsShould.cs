@@ -1,0 +1,50 @@
+using Source191.Vantage.Adapters.PullRequests;
+using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
+using Source191.Vantage.TestDoubles;
+
+namespace Source191.Vantage.Infrastructure.Tests;
+
+public sealed class PullRequestHostsShould : IDisposable
+{
+    private const string Az = @"C:\Users\me\az\az.cmd";
+
+    private static readonly FolderPath Checkout = new(@"C:\Users\me\source\repos\Northwind.Orders");
+
+    private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, "[]", string.Empty));
+    private readonly string folder = Path.Combine(Path.GetTempPath(), "vantage-az-" + Guid.NewGuid().ToString("N"));
+
+    [Theory]
+    [InlineData("gh")]
+    [InlineData(Az)]
+    public async Task SendEachRemoteToItsHost(string expected)
+    {
+        RemoteRepository repository = expected == "gh" ? new GitHubRepository("northwind", "Northwind.Orders") : new AzureDevOpsRepository("northwind", "Trading", "Northwind.Orders");
+        PullRequestHosts hosts = new(new GitHubPullRequests(processes), new AzureDevOpsPullRequests(processes, Az));
+
+        PullRequestListing listing = await hosts.ListAsync(repository, Checkout, CancellationToken.None);
+
+        processes.CapturedRequests.Single().FileName.ShouldBe(expected);
+        listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void FindAzCmdOnThePath()
+    {
+        string bin = Path.Combine(folder, "wbin");
+        Directory.CreateDirectory(bin);
+        File.WriteAllText(Path.Combine(bin, "az.cmd"), "@echo off");
+
+        AzureCliExecutable.Locate($"{Path.Combine(folder, "missing")};{bin}").ShouldBe(Path.Combine(bin, "az.cmd"));
+        AzureCliExecutable.Locate(Path.Combine(folder, "missing")).ShouldBeNull();
+        AzureCliExecutable.Locate(null).ShouldBeNull();
+    }
+
+    public void Dispose()
+    {
+        if (Directory.Exists(folder))
+        {
+            Directory.Delete(folder, recursive: true);
+        }
+    }
+}
