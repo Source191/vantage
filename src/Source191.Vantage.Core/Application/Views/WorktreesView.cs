@@ -98,6 +98,9 @@ public static class WorktreesView
             { Name: KeyName.Character, Character: 'p' } => RowAction(state, Prune),
             { Name: KeyName.Character, Character: 's' } => RowAction(state, row => InRealWorktree(row, new StartSessionIn(row))),
             { Name: KeyName.Character, Character: 'o' } => RowAction(state, row => InRealWorktree(row, new OpenShellTab(row))),
+            { Name: KeyName.Character, Character: 'c' } => RowAction(state, row => WithFolder(row, new CopyFolderPath(row.Path))),
+            { Name: KeyName.Character, Character: 'e' } => RowAction(state, row => WithFolder(row, new OpenFolderInEditor(row.Path))),
+            { Name: KeyName.Character, Character: 'v' } => RowAction(state, row => WithFolder(row, new FindSolution(row.Path, row.RepositoryName))),
             { Name: KeyName.Character, Character: 'w' } => Effect(state, new SwitchToSessions()),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
@@ -165,6 +168,13 @@ public static class WorktreesView
             : (null, new Footer.LeftoverFolder(row.FolderName));
     }
 
+    /// <summary>The folder keys need a folder on disc; a leftover whose folder is gone is refused as the start and shell keys refuse it.</summary>
+    private static (ViewEffect?, Footer) WithFolder(WorktreeRow row, ViewEffect effect)
+    {
+        return row.FolderExists
+            ? (effect, Footer.None)
+            : (null, new Footer.LeftoverFolder(row.FolderName));
+    }
     private static (ViewEffect?, Footer) JumpToSession(WorktreeRow row)
     {
         return row.SessionId is null

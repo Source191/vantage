@@ -34,6 +34,14 @@ public sealed class FoldersShould : IDisposable
     }
 
     [Fact]
+    public void ListOnlyTheFilesDirectlyInAFolder()
+    {
+        folders.FilesIn(Path.Combine(root, "Northwind.Orders")).Select(Path.GetFileName).ShouldBe([".git"]);
+        folders.FilesIn(Path.Combine(root, "Northwind.Orders", "src")).Select(Path.GetFileName).ShouldBe(["Program.cs"]);
+        folders.FilesIn(Path.Combine(root, "missing")).ShouldBeEmpty();
+    }
+
+    [Fact]
     public void KnowAnEmptyFolderAndReadLines()
     {
         folders.IsEmpty(Path.Combine(root, "empty")).ShouldBeTrue();

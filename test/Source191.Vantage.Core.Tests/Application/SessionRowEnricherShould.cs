@@ -84,7 +84,6 @@ public sealed class SessionRowEnricherShould
 
         row.Repository.ShouldBe("Northwind.Orders");
         row.Branch.ShouldBe(new BranchName("feature/x"));
-        row.IsWorktree.ShouldBeFalse();
     }
 
     [Fact]
@@ -97,7 +96,6 @@ public sealed class SessionRowEnricherShould
 
         row.Repository.ShouldBe("Northwind.Orders");
         row.Branch.ShouldBe(new BranchName("fix"));
-        row.IsWorktree.ShouldBeTrue();
     }
 
     [Fact]
@@ -110,7 +108,6 @@ public sealed class SessionRowEnricherShould
         row.Repository.ShouldBe("repos");
         row.Branch.ShouldBeNull();
         row.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
-        row.IsWorktree.ShouldBeFalse();
     }
 
     [Fact]

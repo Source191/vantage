@@ -28,7 +28,6 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
                 session,
                 location.Repository,
                 location.Branch,
-                location.IsWorktree,
                 sessionsWithLiveTabs.Contains(session.SessionId),
                 transcripts.HasMessages(session.SessionId.Value));
             rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, location.Branch) });
@@ -72,7 +71,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         string? root = await git.RepositoryRootAsync(directory.Value, cancellationToken);
         if (root is null)
         {
-            return new Location(directory.Name, Branch: null, IsWorktree: false, Checkout: null);
+            return new Location(directory.Name, Branch: null, Checkout: null);
         }
 
         string? main = await git.MainCheckoutOfAsync(directory.Value, cancellationToken);
@@ -80,12 +79,11 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         FolderPath? mainCheckout = FolderPath.TryParse(main, out FolderPath? parsedMain) ? parsedMain : null;
         FolderPath? rootPath = FolderPath.TryParse(root, out FolderPath? parsedRoot) ? parsedRoot : null;
         BranchName? currentBranch = BranchName.TryParse(branch, out BranchName? parsedBranch) ? parsedBranch : null;
-        bool isWorktree = mainCheckout is not null && mainCheckout != rootPath;
         FolderPath? repository = mainCheckout ?? rootPath;
 
-        return new Location(repository?.Name ?? root, currentBranch, isWorktree, repository);
+        return new Location(repository?.Name ?? root, currentBranch, repository);
     }
 
     /// <summary>Checkout is the main checkout (or the root when git names none), where the pull request lookup runs.</summary>
-    private sealed record Location(string Repository, BranchName? Branch, bool IsWorktree, FolderPath? Checkout);
+    private sealed record Location(string Repository, BranchName? Branch, FolderPath? Checkout);
 }

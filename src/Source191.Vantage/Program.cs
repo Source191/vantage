@@ -88,14 +88,17 @@ PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPull
 SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
 StateTransitionNotifier notifier = new(Console.Out);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
-EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System);
+FolderPath home = new(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+ScreenClipboard clipboard = new();
+EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
 EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings);
-DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
+DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
 WorktreeInventory inventory = new(git, folders, settings, pullRequests);
 string? claudeVersionText = await claudeVersion;
-ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeVersionText, settings.Value));
-SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable);
-WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context);
+ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeVersionText, settings.Value), clipboard);
+FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
+SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
+WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context, folderLabels);
 ScreenLoop loop = new(sessionsScreen, worktreesScreen, ownTab, console, terminalEffects, log);
 
 return await loop.RunAsync(Environment.ProcessId, CancellationToken.None);

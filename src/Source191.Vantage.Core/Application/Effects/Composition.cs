@@ -13,7 +13,11 @@ public sealed record EffectPorts(
     ITranscripts Transcripts,
     IWindowsTerminal Terminal,
     ITabRegistry Tabs,
-    TimeProvider Clock);
+    TimeProvider Clock,
+    IClipboard Clipboard,
+    IDesktop Desktop,
+    IEditorLocator Editors,
+    IFolders Folders);
 
 /// <summary>
 /// Every background effect's handler, registered in one place: <c>Program.cs</c> builds the real dispatcher here and
@@ -36,6 +40,9 @@ public static class Composition
             .Register(new PruneRepositoryHandler(ports.Git))
             .Register(new OpenShellHandler(ports.Terminal))
             .Register(new StartSessionHandler(launches, tabs, ports.Terminal, scripts))
+            .Register(new CopyFolderPathHandler(ports.Clipboard))
+            .Register(new OpenSolutionHandler(ports.Desktop))
+            .Register(new OpenInEditorHandler(ports.Editors, ports.Desktop, ports.Folders, settings))
             .Register(new SaveSettingsHandler(settings));
     }
 }
