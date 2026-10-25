@@ -41,8 +41,8 @@ public abstract record Footer
 
     public sealed record RenameCancelled : Footer;
 
-    /// <summary>The typed name was refused; the reason is the domain's.</summary>
-    public sealed record InvalidName(string Reason) : Footer;
+    /// <summary>The typed name was refused, for the domain's reason.</summary>
+    public sealed record InvalidName(NameProblem Problem) : Footer;
 
     public sealed record AlreadyUnderVantage(string Name) : Footer;
 

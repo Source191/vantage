@@ -15,8 +15,6 @@ public sealed record Usage(string Message) : VantageCommand;
 
 public static class CommandLine
 {
-    public const string ClaimTabUsage = "Usage: vantage claim-tab <registration id> <process id>";
-
     public static VantageCommand Parse(string[] arguments)
     {
         return arguments switch
@@ -24,7 +22,7 @@ public static class CommandLine
             [] => new OpenConsole(),
             ["here", .. string[] rest] => new StartHere(rest),
             ["claim-tab", string id, string pid] when Guid.TryParse(id, out Guid registrationId) && int.TryParse(pid, out int processId) => new ClaimTab(registrationId, processId),
-            ["claim-tab", ..] => new Usage(ClaimTabUsage),
+            ["claim-tab", ..] => new Usage(Wording.ClaimTabUsage),
             _ => new OpenConsole(),
         };
     }

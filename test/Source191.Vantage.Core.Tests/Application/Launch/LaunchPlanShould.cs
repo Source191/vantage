@@ -67,8 +67,7 @@ public sealed class LaunchPlanShould
         LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = "!!!", Mode = LaunchMode.NewWorktree }, _ => false);
 
         result.Plan.ShouldBeNull();
-        result.Problem.ShouldNotBeNull();
-        result.Problem.ShouldContain("letters or digits");
+        result.Problem.ShouldBe(new LaunchProblem.WorktreeNeedsLetters());
     }
 
     [Fact]
@@ -77,19 +76,17 @@ public sealed class LaunchPlanShould
         LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { Repository = NoRepository, Mode = LaunchMode.NewWorktree }, _ => false);
 
         result.Plan.ShouldBeNull();
-        result.Problem.ShouldNotBeNull();
-        result.Problem.ShouldContain("repository");
+        result.Problem.ShouldBe(new LaunchProblem.WorktreeNeedsRepository());
     }
 
     [Theory]
-    [InlineData("", "required")]
-    [InlineData("a; b", "semicolon")]
-    public void ReportAnInvalidName(string name, string expected)
+    [InlineData("", NameProblem.Missing)]
+    [InlineData("a; b", NameProblem.UnsafeCharacters)]
+    public void ReportAnInvalidName(string name, NameProblem expected)
     {
         LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = name }, _ => false);
 
         result.Plan.ShouldBeNull();
-        result.Problem.ShouldNotBeNull();
-        result.Problem.ShouldContain(expected);
+        result.Problem.ShouldBe(new LaunchProblem.InvalidName(expected));
     }
 }

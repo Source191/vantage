@@ -238,20 +238,15 @@ public static class SessionsView
             return Unchanged(state with { Footer = new Footer.RenameCancelled() });
         }
 
-        try
+        return SessionName.Validate(confirmed.Name.Trim()) switch
         {
-            SessionName name = SessionName.Parse(confirmed.Name.Trim());
-
-            RenameSession rename = new(confirmed.Session, name);
-
-            return Effect(state with { Footer = new Footer.Working(rename) }, rename);
-        }
-        catch (ArgumentException invalid)
-        {
-            // ArgumentException appends " (Parameter 'text')" to the message; the footer wants only the sentence.
-            return Unchanged(state with { Footer = new Footer.InvalidName(invalid.Message.Split(" (Parameter")[0]) });
-        }
+            SessionNameValidation.Valid valid => Renamed(state, new RenameSession(confirmed.Session, valid.Name)),
+            SessionNameValidation.Refused refused => Unchanged(state with { Footer = new Footer.InvalidName(refused.Problem) }),
+            _ => Unchanged(state),
+        };
     }
+
+    private static ViewUpdate Renamed(SessionsViewState state, RenameSession rename) => Effect(state with { Footer = new Footer.Working(rename) }, rename);
 
     /// <summary>
     /// Adoption ends the interactive process and resumes the conversation under the supervisor, so it is refused

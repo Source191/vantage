@@ -78,7 +78,17 @@ public sealed class HereCommandRunnerShould : IDisposable
         int exitCode = await Runner.RunAsync(Directory, ["--bogus"], CancellationToken.None);
 
         exitCode.ShouldBe(2);
-        error.ToString().ShouldContain(HereCommand.Usage);
+        error.ToString().ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]" + Environment.NewLine);
+        processes.CapturedRequests.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task PrintOnlyTheSentenceForARefusedName()
+    {
+        int exitCode = await Runner.RunAsync(Directory, ["a;b"], CancellationToken.None);
+
+        exitCode.ShouldBe(2);
+        error.ToString().ShouldBe("A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely." + Environment.NewLine);
         processes.CapturedRequests.ShouldBeEmpty();
     }
 

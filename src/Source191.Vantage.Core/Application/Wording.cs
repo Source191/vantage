@@ -1,4 +1,6 @@
+using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application;
 
@@ -31,6 +33,10 @@ public static partial class Wording
     /// <summary>Printed before an attach. Attach lands on Claude's agent list when the session has no messages yet; that screen leaves with Esc, not Ctrl+Z.</summary>
     public static string ReturnHint => "Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.";
 
+    public static string HereUsage => "Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]";
+
+    public static string ClaimTabUsage => "Usage: vantage claim-tab <registration id> <process id>";
+
     public static string ForceRemoveWarning => "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:";
 
     public static string Describe(Footer footer)
@@ -52,10 +58,35 @@ public static partial class Wording
             Footer.NoMessagesToRename rename => $"{rename.Name} has no messages yet, so it cannot be renamed; send it something first.",
             Footer.WorkingSoRenameWaits rename => $"{rename.Name} is working; wait until it is idle or needs input, because renaming restarts it.",
             Footer.RenameCancelled => "Rename cancelled.",
-            Footer.InvalidName invalid => invalid.Reason,
+            Footer.InvalidName invalid => Describe(invalid.Problem),
             Footer.AlreadyUnderVantage adopted => $"{adopted.Name} already runs in the background under Vantage.",
             Footer.WorkingSoAdoptWaits adopt => $"{adopt.Name} is working; wait until it is idle or needs input, so nothing in flight is lost.",
             _ => DescribeWorktreesAndScreen(footer),
+        };
+    }
+
+    /// <summary>Why a typed session name is refused, in the rename footer, the wizard and vantage here alike.</summary>
+    public static string Describe(NameProblem problem)
+    {
+        return problem switch
+        {
+            NameProblem.Missing => "A session name is required.",
+            NameProblem.UnsafeCharacters => "A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.",
+        };
+    }
+
+    /// <summary>Why a launch is refused, in the wizard and from vantage here; the command line's refusals end with its usage line.</summary>
+    public static string Describe(LaunchProblem problem)
+    {
+        return problem switch
+        {
+            LaunchProblem.InvalidName invalid => Describe(invalid.Problem),
+            LaunchProblem.WorktreeNeedsRepository => "A worktree needs a repository; choose one or start on the current branch.",
+            LaunchProblem.WorktreeNeedsLetters => "A worktree needs a name with some letters or digits in it.",
+            LaunchProblem.OptionNeedsValue missing => $"{missing.Option} needs a value. {HereUsage}",
+            LaunchProblem.UnknownOption unknown => $"Unknown option {unknown.Option}. {HereUsage}",
+            LaunchProblem.UnexpectedArgument unexpected => $"Unexpected argument {unexpected.Argument}. {HereUsage}",
+            _ => problem.ToString(),
         };
     }
 
@@ -66,7 +97,7 @@ public static partial class Wording
         {
             WizardProblem.NoRepository => "Choose a repository: type part of its name, then ↑↓.",
             WizardProblem.NoName => "Session name is required: a short, human-readable label for the session.",
-            WizardProblem.Refused refused => refused.Reason ?? "That cannot be launched.",
+            WizardProblem.Refused refused => Describe(refused.Problem),
             _ => problem.ToString(),
         };
     }
