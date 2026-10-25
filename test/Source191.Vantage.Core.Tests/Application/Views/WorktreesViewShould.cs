@@ -10,7 +10,7 @@ public sealed class WorktreesViewShould
 
     private static readonly WorktreeRow Clean = Row(@"C:\repos\Northwind.Orders-fix-1", "fix-1", WorktreeHealthKind.Ok);
     private static readonly WorktreeRow Dirty = Row(@"C:\repos\Northwind.Orders-fix-2", "fix-2", WorktreeHealthKind.Ok) with { DirtyFiles = 5, UnpushedCommits = 2 };
-    private static readonly WorktreeRow Locked = Row(@"C:\repos\Northwind.Orders-locked", "maintenance", WorktreeHealthKind.Locked, "another tool is using it");
+    private static readonly WorktreeRow Locked = Row(@"C:\repos\Northwind.Orders-locked", "maintenance", WorktreeHealthKind.Locked, new HealthReason.Locked("another tool is using it"));
     private static readonly WorktreeRow Orphan = Row(@"C:\repos\Northwind.Orders\.claude\worktrees\fix-service-tests", null, WorktreeHealthKind.Orphan) with { LeftoverFileCount = 12 };
     private static readonly WorktreeRow Empty = Row(@"C:\repos\Northwind.Orders.worktrees", null, WorktreeHealthKind.Empty) with { Repository = new FolderPath(@"C:\repos") };
     private static readonly WorktreeRow Gone = Row(@"C:\repos\Northwind.Retired-republish", null, WorktreeHealthKind.Broken) with { Repository = new FolderPath(@"C:\repos\Northwind.Retired"), OwnerExists = false };
@@ -72,7 +72,7 @@ public sealed class WorktreesViewShould
         WorktreesViewUpdate update = WorktreesView.Reduce(onDirty, new KeyPressed(Key.Of('d')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new Footer.NotRemoved("5 changed or untracked files would be lost", OfferForce: true));
+        update.State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.ChangesWouldBeLost(5), OfferForce: true));
     }
 
     [Fact]
@@ -91,8 +91,8 @@ public sealed class WorktreesViewShould
         WorktreesViewState onLocked = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down, Key.Down);
         WorktreesViewState onBusy = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down);
 
-        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved("the worktree is locked", OfferForce: false));
-        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved("session fix-the-tests is using it", OfferForce: false));
+        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.Locked(), OfferForce: false));
+        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.LiveSession("fix-the-tests"), OfferForce: false));
         WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('D'))).Effects.ShouldBeEmpty();
     }
 
@@ -102,8 +102,8 @@ public sealed class WorktreesViewShould
         WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path.Key };
         WorktreesViewState onBusy = Loaded with { SelectedPath = Busy.Path.Key };
 
-        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved("the worktree is locked", OfferForce: false));
-        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved("session fix-the-tests is using it", OfferForce: false));
+        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.Locked(), OfferForce: false));
+        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.LiveSession("fix-the-tests"), OfferForce: false));
         WorktreesView.Reduce(Loaded with { SelectedPath = Dirty.Path.Key }, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBeOfType<Footer.NotRemoved>().OfferForce.ShouldBeTrue();
     }
 
@@ -113,7 +113,7 @@ public sealed class WorktreesViewShould
         WorktreesViewState onOrphan = Press(Loaded, Key.Down);
 
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('d'))).Effects.ShouldBe([new RemoveWorktree(Empty, Forced: false)]);
-        WorktreesView.Reduce(onOrphan, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved("12 files that git no longer tracks would be lost", OfferForce: true));
+        WorktreesView.Reduce(onOrphan, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.LeftoverFilesWouldBeLost(12, AtLeast: false), OfferForce: true));
         WorktreesView.Reduce(onOrphan, new KeyPressed(Key.Of('D'))).Effects.ShouldBe([new ConfirmForceRemove(Orphan, ConfirmationText: "fix-service-tests")]);
     }
 
@@ -200,9 +200,18 @@ public sealed class WorktreesViewShould
         WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path.Key };
         WorktreesViewState onClean = Loaded with { SelectedPath = Clean.Path.Key };
 
-        onLocked.Shown.ShouldBe(new Footer.Unhealthy("Northwind.Orders-locked", WorktreeHealthKind.Locked, "another tool is using it"));
+        onLocked.Shown.ShouldBe(new Footer.Unhealthy("Northwind.Orders-locked", WorktreeHealthKind.Locked, new HealthReason.Locked("another tool is using it")));
         onClean.Shown.ShouldBe(new Footer.RemoveHint());
         (onLocked with { Footer = new Footer.Kept() }).Shown.ShouldBe(new Footer.Kept());
+    }
+
+    [Fact]
+    public void SayNothingAboutALockGitGaveNoReasonFor()
+    {
+        WorktreeRow lockedWithoutReason = Row(@"C:\repos\Northwind.Orders-locked-quietly", "maintenance", WorktreeHealthKind.Locked, new HealthReason.Locked(string.Empty));
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([lockedWithoutReason]));
+
+        state.Shown.ShouldBe(new Footer.RemoveHint());
     }
 
     [Fact]
@@ -236,8 +245,8 @@ public sealed class WorktreesViewShould
         return WorktreesView.Reduce(state, input).State;
     }
 
-    private static WorktreeRow Row(string path, string? branch, WorktreeHealthKind health, string reason = "")
+    private static WorktreeRow Row(string path, string? branch, WorktreeHealthKind health, HealthReason? reason = null)
     {
-        return new WorktreeRow(new FolderPath(Repository), new FolderPath(path), branch is null ? null : new BranchName(branch), new WorktreeHealth(health, reason), 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: true);
+        return new WorktreeRow(new FolderPath(Repository), new FolderPath(path), branch is null ? null : new BranchName(branch), new WorktreeHealth(health, reason ?? new HealthReason.None()), 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: true);
     }
 }

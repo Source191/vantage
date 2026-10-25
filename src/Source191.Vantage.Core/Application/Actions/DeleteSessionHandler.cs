@@ -65,7 +65,7 @@ public abstract record DeleteSessionOutcome : Outcome
 {
     public sealed record Deleted(string Name) : DeleteSessionOutcome;
 
-    public sealed record KeptWorktree(string Name, string Reason) : DeleteSessionOutcome;
+    public sealed record KeptWorktree(string Name, RemovalReason Reason) : DeleteSessionOutcome;
 
     public sealed record RemovedWorktreeAndBranch(string Name, BranchName Branch) : DeleteSessionOutcome;
 

@@ -49,7 +49,7 @@ public sealed class DeleteSessionHandlerShould
         DeleteSessionOutcome outcome = await Handler.DeleteAsync(Job(Worktree), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("remove"));
-        outcome.ShouldBeOfType<DeleteSessionOutcome.KeptWorktree>().Reason.ShouldContain("1 changed");
+        outcome.ShouldBeOfType<DeleteSessionOutcome.KeptWorktree>().Reason.ShouldBe(new RemovalReason.ChangesWouldBeLost(1));
     }
 
     [Fact]

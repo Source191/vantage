@@ -58,7 +58,7 @@ public sealed class RemoveWorktreeHandlerShould
 
         RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(dirty, forced: false, CancellationToken.None);
 
-        outcome.ShouldBe(new RemoveWorktreeOutcome.Refused("3 changed or untracked files would be lost"));
+        outcome.ShouldBe(new RemoveWorktreeOutcome.Refused(new RemovalReason.ChangesWouldBeLost(3)));
         GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("remove"));
     }
 

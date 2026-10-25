@@ -106,7 +106,7 @@ public static partial class Wording
         return outcome switch
         {
             DeleteSessionOutcome.Deleted deleted => $"Deleted {deleted.Name}.",
-            DeleteSessionOutcome.KeptWorktree kept => $"Deleted {kept.Name}; kept its worktree because {kept.Reason}.",
+            DeleteSessionOutcome.KeptWorktree kept => $"Deleted {kept.Name}; kept its worktree because {Describe(kept.Reason)}.",
             DeleteSessionOutcome.RemovedWorktreeAndBranch removed => $"Deleted {removed.Name} and removed the worktree and branch {removed.Branch}.",
             DeleteSessionOutcome.BranchNotMerged unmerged => $"Deleted {unmerged.Name} and removed the worktree; branch {unmerged.Branch.Branch} is not merged.",
             _ => outcome.ToString(),
@@ -117,7 +117,7 @@ public static partial class Wording
     {
         return outcome switch
         {
-            RemoveWorktreeOutcome.Refused refused => $"Not removed: {refused.Reason}.",
+            RemoveWorktreeOutcome.Refused refused => $"Not removed: {Describe(refused.Reason)}.",
             RemoveWorktreeOutcome.Removed removed => $"Removed {removed.FolderName}.",
             RemoveWorktreeOutcome.RemovedAndDeletedBranch removed => $"Removed {removed.FolderName} and deleted its merged branch {removed.Branch}.",
             RemoveWorktreeOutcome.BranchKept { CreatedByVantage: true } kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} is not merged.",

@@ -59,7 +59,7 @@ public sealed record WorktreesViewState(
     public Footer Shown => (Footer, Selected) switch
     {
         (not Footer.Blank, _) => Footer,
-        (_, { Health.Reason.Length: > 0 } selected) => new Footer.Unhealthy(selected.FolderName, selected.Health.Kind, selected.Health.Reason),
+        (_, { Health.Reason: not (HealthReason.None or HealthReason.Locked { LockReason: "" }) } selected) => new Footer.Unhealthy(selected.FolderName, selected.Health.Kind, selected.Health.Reason),
         _ => new Footer.RemoveHint(),
     };
 

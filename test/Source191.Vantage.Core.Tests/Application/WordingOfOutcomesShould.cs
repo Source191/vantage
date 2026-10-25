@@ -155,8 +155,8 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayWhyADeletedSessionsWorktreeWasKept()
     {
-        Wording.Describe(new DeleteSessionOutcome.KeptWorktree("fix-123", "1 changed or untracked file would be lost"))
-            .ShouldBe("Deleted fix-123; kept its worktree because 1 changed or untracked file would be lost.");
+        Wording.Describe(new DeleteSessionOutcome.KeptWorktree("fix-123", new RemovalReason.ChangesWouldBeLost(1)))
+            .ShouldBe("Deleted fix-123; kept its worktree because 1 changed or untracked files would be lost.");
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void GiveTheReasonARemovalWasRefused()
     {
-        Wording.Describe(new RemoveWorktreeOutcome.Refused("3 changed or untracked files would be lost")).ShouldBe("Not removed: 3 changed or untracked files would be lost.");
+        Wording.Describe(new RemoveWorktreeOutcome.Refused(new RemovalReason.ChangesWouldBeLost(3))).ShouldBe("Not removed: 3 changed or untracked files would be lost.");
     }
 
     [Fact]
@@ -333,6 +333,7 @@ public sealed class WordingOfOutcomesShould
         return type switch
         {
             _ when type == typeof(string) => "fix-123",
+            _ when type == typeof(RemovalReason) => new RemovalReason.Locked(),
             _ when type == typeof(int) => 2,
             _ when type == typeof(bool) => true,
             _ when type == typeof(BranchToConfirm) => Branch,

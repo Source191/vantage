@@ -150,7 +150,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
 
-        row.Health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Locked, "another tool is using it"));
+        row.Health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Locked, new HealthReason.Locked("another tool is using it")));
     }
 
     [Fact]
