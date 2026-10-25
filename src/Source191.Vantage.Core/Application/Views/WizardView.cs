@@ -84,12 +84,11 @@ public static class WizardView
         }
 
         LaunchRequest request = new(repository, state.Name, state.Mode, state.Base, state.Prompt);
-        LaunchPlanResult planned = LaunchPlanBuilder.Build(request, state.Folders.DirectoryExists);
 
-        return planned switch
+        return LaunchPlanBuilder.Build(request, state.Folders.DirectoryExists) switch
         {
-            { Plan: LaunchPlan plan } => new WizardUpdate(state, new WizardEffect.Launch(plan, openInTab)),
-            { Problem: LaunchProblem problem } => Changed(state with { Problem = new WizardProblem.Refused(problem), Focus = WizardField.Name }),
+            LaunchPlanResult.Planned planned => new WizardUpdate(state, new WizardEffect.Launch(planned.Plan, openInTab)),
+            LaunchPlanResult.Refused refused => Changed(state with { Problem = new WizardProblem.Refused(refused.Problem), Focus = WizardField.Name }),
             _ => throw new UnreachableException(),
         };
     }

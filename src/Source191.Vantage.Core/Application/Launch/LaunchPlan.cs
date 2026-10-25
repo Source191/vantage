@@ -45,9 +45,11 @@ public abstract record LaunchProblem
 }
 
 /// <summary>A plan, or the reason there is none.</summary>
-public sealed record LaunchPlanResult(LaunchPlan? Plan, LaunchProblem? Problem)
+public abstract record LaunchPlanResult
 {
-    public static LaunchPlanResult Refused(LaunchProblem problem) => new LaunchPlanResult(Plan: null, problem);
+    public sealed record Planned(LaunchPlan Plan) : LaunchPlanResult;
+
+    public sealed record Refused(LaunchProblem Problem) : LaunchPlanResult;
 }
 
 public static class LaunchPlanBuilder
@@ -57,7 +59,7 @@ public static class LaunchPlanBuilder
         return SessionName.Validate(request.NameText) switch
         {
             SessionNameValidation.Valid valid => Build(request, valid.Name, folderExists),
-            SessionNameValidation.Refused refused => LaunchPlanResult.Refused(new LaunchProblem.InvalidName(refused.Problem)),
+            SessionNameValidation.Refused refused => new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(refused.Problem)),
             _ => throw new UnreachableException(),
         };
     }
@@ -68,26 +70,24 @@ public static class LaunchPlanBuilder
 
         if (request.Mode == LaunchMode.CurrentBranch)
         {
-            return Ok(new LaunchPlan(request.Repository.Path, name, Worktree: null, ReuseExistingWorktree: false, request.Base, prompt, request.Repository));
+            return new LaunchPlanResult.Planned(new LaunchPlan(request.Repository.Path, name, Worktree: null, ReuseExistingWorktree: false, request.Base, prompt, request.Repository));
         }
 
         if (!request.Repository.IsRepository)
         {
-            return LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsRepository());
+            return new LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsRepository());
         }
 
         if (!WorktreeSlug.TryParse(name.Value, out WorktreeSlug? slug))
         {
-            return LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsLetters());
+            return new LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsLetters());
         }
 
         SiblingWorktree worktree = SiblingWorktree.For(request.Repository.Path, slug);
         bool reuse = folderExists(worktree.Path.Value);
 
-        return Ok(new LaunchPlan(worktree.Path, name, worktree, reuse, request.Base, prompt, request.Repository));
+        return new LaunchPlanResult.Planned(new LaunchPlan(worktree.Path, name, worktree, reuse, request.Base, prompt, request.Repository));
     }
-
-    private static LaunchPlanResult Ok(LaunchPlan plan) => new LaunchPlanResult(plan, Problem: null);
 
     private static bool Blank(string text) => string.IsNullOrWhiteSpace(text);
 }

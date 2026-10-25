@@ -1,6 +1,7 @@
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Launch;
 
@@ -12,13 +13,16 @@ public sealed class HereCommandRunner(IFolders folders, LaunchService launches, 
 {
     public async Task<int> RunAsync(string directory, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
-        LaunchPlanResult planned = HereCommand.Plan(directory, arguments, IsRepository);
-        if (planned.Plan is not LaunchPlan plan)
+        return HereCommand.Plan(directory, arguments, IsRepository) switch
         {
-            await error.WriteLineAsync(planned.Problem is null ? null : Wording.Describe(planned.Problem));
-            return 2;
-        }
+            LaunchPlanResult.Planned planned => await LaunchAsync(planned.Plan, directory, cancellationToken),
+            LaunchPlanResult.Refused refused => await RefuseAsync(refused.Problem),
+            _ => throw new UnreachableException(),
+        };
+    }
 
+    private async Task<int> LaunchAsync(LaunchPlan plan, string directory, CancellationToken cancellationToken)
+    {
         LaunchOutcome outcome = await launches.LaunchAsync(plan, cancellationToken);
         switch (outcome.Kind)
         {
@@ -32,6 +36,12 @@ public sealed class HereCommandRunner(IFolders folders, LaunchService launches, 
                 await error.WriteLineAsync(Wording.Here(outcome, plan.Name.Value, directory));
                 return 1;
         }
+    }
+
+    private async Task<int> RefuseAsync(LaunchProblem problem)
+    {
+        await error.WriteLineAsync(Wording.Describe(problem));
+        return 2;
     }
 
     private bool IsRepository(string path)
