@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Rename without attaching
-The rename key SHALL ask for a new name in a dialog and then, because the CLI has no rename verb and resuming a listed background job with new flags starts a copy, SHALL remove the job and resume it by session ID under the new name, which keeps the session ID and its conversation. Renaming SHALL be refused while the session is working or when it has never been sent a message, and SHALL resume the job under its old name when the resume under the new name fails. A new name the wizard would refuse SHALL be refused before anything runs, with the same sentence the wizard gives.
+The rename key SHALL ask for a new name in a dialog and then, because the CLI has no rename verb and resuming a listed background job with new flags starts a copy, SHALL remove the job and resume it by session ID under the new name, which keeps the session ID and its conversation. Renaming SHALL be refused while the session is working or when it has never been sent a message, and SHALL resume the job under its old name when the resume under the new name fails. A new name the launch rules would refuse SHALL be refused before anything runs, with the same sentence `vantage here` gives for that name.
 
 #### Scenario: Rename an idle session
 - **WHEN** the user presses the rename key on an idle background session and types a new name
@@ -15,4 +15,4 @@ The rename key SHALL ask for a new name in a dialog and then, because the CLI ha
 
 #### Scenario: New name refused
 - **WHEN** the user leaves the new name blank, or types one containing a semicolon or a double quote
-- **THEN** nothing runs and the footer shows exactly the wizard's sentence for that name, such as "A session name is required."
+- **THEN** nothing runs and the footer shows exactly the sentence for that name, such as "A session name is required.", with nothing after it

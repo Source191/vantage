@@ -8,13 +8,15 @@
 ## 2. The callers
 
 - [ ] 2.1 `SessionsViewShould`: the blank and unsafe rename cases assert `Footer.InvalidName(NameProblem.Missing)` and `NameProblem.UnsafeCharacters` (red first). `RenameWith` matches on `Validate`, and its `catch (ArgumentException)` and suffix split go. Verify the test passes.
-- [ ] 2.2 `LaunchPlanShould` and `HereCommandShould`: the blank and semicolon cases assert the whole sentence with `ShouldBe` (red first, because of the " (Parameter 'text')" suffix). `LaunchPlanBuilder` matches on `Validate` and takes the sentence from `Wording`, and its `catch (ArgumentException)` goes. Verify both pass, and that `grep "catch (ArgumentException"` finds only the process registry's adapter.
+- [ ] 2.2 `LaunchPlanShould`: the blank, semicolon, no-repository and no-letters cases assert `LaunchProblem` values (red first). Implement `LaunchProblem`; `LaunchPlanBuilder` matches on `Validate`, its `catch (ArgumentException)` goes, and `LaunchPlanResult.Problem` is a `LaunchProblem`. `WizardProblem.Refused` carries a `LaunchProblem` and the "That cannot be launched." fallback goes; `WizardViewShould` asserts the fact. Verify both pass.
+- [ ] 2.3 `HereCommandShould` and `HereCommandRunnerShould`: the argument cases assert `OptionNeedsValue`, `UnknownOption`, `UnexpectedArgument` and `InvalidName`, and the runner prints exactly the sentence (red first, because of the " (Parameter 'text')" suffix). `HereCommand` returns facts and `HereCommandRunner` prints `Wording.Describe`. Verify both pass.
+- [ ] 2.4 `WordingShould`: one verbatim fact per `LaunchProblem` case, the usage lines, and `HaveWordsForEveryLaunchProblem`. Implement `Wording.Describe(LaunchProblem)`, `Wording.HereUsage` and `Wording.ClaimTabUsage`; `HereCommand.Usage` goes and `CommandLine` uses `Wording.ClaimTabUsage`. Verify `WordingShould` and `CommandLineShould` pass, and that `grep "catch (ArgumentException"` finds only the process registry's adapter.
 
 ## 3. Documentation and release
 
-- [ ] 3.1 CLAUDE.md Code rules: user text never comes from an exception message, and typed text is checked with a `Validate` that returns a reason. Raise `Version` as a patch. Verify `openspec validate` passes for every open change, and the version check passes.
+- [ ] 3.1 CLAUDE.md code rules: user text never comes from an exception message, typed text is checked by a `Validate` or `TryParse` that returns a reason, and a failure's message is shown only as what failed. Raise `Version` as a patch, to the next one after `main`'s. Run the Release build's `vantage here "a;b"` and `vantage here ""` from a repository folder (both refuse before anything starts) and check each prints only its sentence. Verify `openspec validate` passes and the version check passes.
 
 ## Workflow follow-up
 
-- One pull request: task groups 1 to 3, archived in the same pull request. It can go before or after `value-objects` PR 16. Both touch `SessionsView.cs`, so whichever merges second takes `main` in first.
-- Manual check: start the wizard and confirm a blank name and a name with a semicolon show only the sentence. Do the same for `vantage here 'a;b'` and for `r` with a blank name.
+- One pull request: task groups 1 to 3, archived in the same pull request.
+- Manual check: in the wizard, a name with a semicolon shows only the sentence, and a blank name shows the wizard's own sentence. `r` with a blank name shows "A session name is required." in the footer.
