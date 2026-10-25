@@ -13,7 +13,7 @@ namespace Source191.Vantage.Tui;
 /// Every effect that needs a dialog, for both views. Each flow asks its question, then hands the answer back through
 /// the reducer or dispatches the effect it settles on; the work itself is always a handler's.
 /// </summary>
-public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
+public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, UpdateCheck updates, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
 {
     /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
@@ -28,6 +28,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(ConfirmForceRemove)] = (_, context, effect) => ConfirmForce(context, (ConfirmForceRemove)effect),
         [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
         [typeof(OpenSettings)] = (self, context, _) => self.EditSettings(context),
+        [typeof(UpdateVantage)] = (self, context, _) => self.ConfirmUpdate(context),
     }.ToFrozenDictionary();
 
     /// <summary>Whether an effect of this type has a dialog flow.</summary>
@@ -102,6 +103,32 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             confirm.ConfirmationText,
             "folder name");
         context.Reduce(new ForceConfirmed(confirm.Row, confirm.ConfirmationText, typed));
+    }
+
+    /// <summary>
+    /// Asks before updating; on a yes the handler opens the update tab, then the screen leaves with Quit so this process
+    /// releases its files. A failure to open the tab keeps Vantage open and says why.
+    /// </summary>
+    private void ConfirmUpdate(IEffectContext context)
+    {
+        UpdateStatus status = updates.Status;
+        if (status is not UpdateStatus.Available available)
+        {
+            context.ShowFooter(UpdateVantage.Refusal(status) ?? new Footer.UpToDate());
+            return;
+        }
+
+        int? answer = Confirm.Query(context.App, "Update Vantage", Wording.UpdateQuestion(available.Newest), "Update", "Cancel");
+        if (answer != 0)
+        {
+            return;
+        }
+
+        context.Dispatch(new StartUpdate(available.Newest), outcome =>
+        {
+            context.Reduce(new UpdateTabOpened());
+            return new Footer.Reported(outcome);
+        });
     }
 
     private void StartSession(IEffectContext context, FolderPath? fixedDirectory)

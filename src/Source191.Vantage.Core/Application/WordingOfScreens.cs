@@ -14,8 +14,12 @@ public static partial class Wording
     public static string TabTitle(ToolVersion version) => $"Vantage ({version.Text})";
 
     /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
-    public static string HeaderValues(ToolVersion vantage, string? claudeVersion, Settings settings)
-    => string.Join('\n', vantage.Text, claudeVersion ?? UnknownVersion, string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
+    public static string HeaderValues(ToolVersion vantage, string? claudeVersion, Settings settings, UpdateStatus update)
+    => string.Join('\n', VantageVersion(vantage, update), claudeVersion ?? UnknownVersion, string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
+
+    /// <summary>The Vantage header value: the running version, and the newer release with the update key when one is known.</summary>
+    private static string VantageVersion(ToolVersion vantage, UpdateStatus update)
+        => update is UpdateStatus.Available available ? $"{vantage.Text} ({available.Newest} available, U to update)" : vantage.Text;
 
     /// <summary>The table's title: "7 sessions, selected: fix-123", or "2 of 7 sessions match "templates", selected: templates-sync" while a filter is set.</summary>
     public static string Describe(TableTitle title)

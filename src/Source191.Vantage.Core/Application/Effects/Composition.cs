@@ -15,13 +15,16 @@ public sealed record EffectPorts(
     ITabRegistry Tabs,
     TimeProvider Clock);
 
+/// <summary>This Vantage's process, which the update tab waits for, and the folder that tab starts in.</summary>
+public sealed record VantageProcess(int ProcessId, FolderPath Home);
+
 /// <summary>
 /// Every background effect's handler, registered in one place: <c>Program.cs</c> builds the real dispatcher here and
 /// <c>EffectDispatcherShould</c> checks that no effect a reducer can produce is missing.
 /// </summary>
 public static class Composition
 {
-    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts, CurrentSettings settings)
+    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts, CurrentSettings settings, VantageProcess vantage)
     {
         OpenTabHandler tabs = new(ports.Tabs, ports.Processes, ports.Terminal, ports.Clock, scripts);
 
@@ -36,6 +39,7 @@ public static class Composition
             .Register(new PruneRepositoryHandler(ports.Git))
             .Register(new OpenShellHandler(ports.Terminal))
             .Register(new StartSessionHandler(launches, tabs, ports.Terminal, scripts))
-            .Register(new SaveSettingsHandler(settings));
+            .Register(new SaveSettingsHandler(settings))
+            .Register(new StartUpdateHandler(ports.Terminal, scripts, vantage.ProcessId, vantage.Home));
     }
 }

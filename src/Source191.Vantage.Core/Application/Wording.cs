@@ -174,9 +174,16 @@ public static partial class Wording
             OpenShellTab shell => $"Opening a shell in {shell.Row.FolderName}...",
             StartSession start => $"Starting {start.Plan.Name.Value}...",
             SaveSettings => "Saving settings...",
+            StartUpdate update => $"Opening a tab to update to {update.Newest}...",
             _ => "Working...",
         };
     }
+
+    /// <summary>The update key's question, once a newer release is known.</summary>
+    public static string UpdateQuestion(ReleaseVersion newest) => $"Quit Vantage and update to {newest}?\nBackground sessions keep running.";
+
+    /// <summary>What the update tab says when dotnet tool update fails, under dotnet's own message.</summary>
+    public static string UpdateFailedHint => "Vantage: the update failed. Quit every Vantage that is still open, then press U in Vantage again.";
 
     public static string WizardTitle(WizardState wizard) => wizard.FixedChoice is null ? "New session" : $"New session in {wizard.FixedChoice.Name}";
 
@@ -289,6 +296,8 @@ public static partial class Wording
             Footer.NothingToPrune prune => $"Nothing to prune: the repository {prune.RepositoryName} no longer exists.",
             Footer.LeftoverFolder leftover => $"{leftover.FolderName} is a leftover folder, not a worktree.",
             Footer.NoSessionIn none => $"No session is running in {none.FolderName}.",
+            Footer.UpToDate => "Vantage is up to date.",
+            Footer.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",
             Footer.Kept => "Kept.",
             Footer.NothingChosenToResume => "Nothing to resume.",
             Footer.NoDialogFor missing => $"No dialog is defined for {missing.EffectName}.",
