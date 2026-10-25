@@ -188,7 +188,7 @@ public static partial class Wording
 
     public static string TerminalSetupPlan(string fragmentPath, TerminalProfiles profiles)
     {
-        return string.Join('\n',
+        return string.Join(Environment.NewLine,
             $"Two Windows Terminal profiles will be written to {fragmentPath}",
             "Your Windows Terminal settings file is not changed.",
             $"  {TerminalProfiles.VantageProfileName,-15}  runs {profiles.VantageExecutable}; bell sound {SoundText(profiles.VantageSound)}",
@@ -202,7 +202,7 @@ public static partial class Wording
 
     public static string ClaudeBellPlan(string settingsPath)
     {
-        return string.Join('\n',
+        return string.Join(Environment.NewLine,
             "Claude Code can ring the terminal bell when a session finishes or needs permission.",
             $"This sets \"preferredNotifChannel\": \"terminal_bell\" in {settingsPath} and keeps every other setting.");
     }
