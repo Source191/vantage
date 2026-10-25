@@ -223,7 +223,7 @@ public static class SessionsView
             SessionRow row => Effect(state with { Footer = Footer.None }, effect(row.Session.WorkingDirectory, row.Repository)),
         };
     }
-/// <summary>The row's pull request in the browser, or a footer saying why it has none.</summary>
+    /// <summary>The row's pull request in the browser, or a footer saying why it has none.</summary>
     private static ViewUpdate OpenPullRequest(SessionsViewState state)
     {
         return state.Selected switch
