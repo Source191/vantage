@@ -8,8 +8,6 @@ namespace Source191.Vantage.Application.Launch;
 /// </summary>
 public static class HereCommand
 {
-    public const string Usage = "Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]";
-
     public static LaunchPlanResult Plan(string directory, IReadOnlyList<string> arguments, Func<string, bool> isRepository)
     {
         FolderPath path = new(directory);
@@ -31,14 +29,14 @@ public static class HereCommand
                     description = remaining.Dequeue();
                     break;
                 case "-p" or "--prompt" or "-d" or "--description":
-                    return new LaunchPlanResult(Plan: null, $"{argument} needs a value. {Usage}");
+                    return LaunchPlanResult.Refused(new LaunchProblem.OptionNeedsValue(argument));
                 case var option when option.StartsWith('-'):
-                    return new LaunchPlanResult(Plan: null, $"Unknown option {option}. {Usage}");
+                    return LaunchPlanResult.Refused(new LaunchProblem.UnknownOption(option));
                 case var text when name is null:
                     name = text;
                     break;
                 default:
-                    return new LaunchPlanResult(Plan: null, $"Unexpected argument {argument}. {Usage}");
+                    return LaunchPlanResult.Refused(new LaunchProblem.UnexpectedArgument(argument));
             }
         }
 

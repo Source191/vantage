@@ -92,9 +92,12 @@ public static class WizardView
         LaunchRequest request = new(repository, state.Name, state.Description, state.Mode, state.Base, state.Prompt);
         LaunchPlanResult planned = LaunchPlanBuilder.Build(request, state.Folders.DirectoryExists);
 
-        return planned.Plan is null
-            ? Changed(state with { Problem = new WizardProblem.Refused(planned.Problem), Focus = WizardField.Name })
-            : new WizardUpdate(state, new WizardEffect.Launch(planned.Plan, openInTab));
+        return planned switch
+        {
+            { Plan: LaunchPlan plan } => new WizardUpdate(state, new WizardEffect.Launch(plan, openInTab)),
+            { Problem: LaunchProblem problem } => Changed(state with { Problem = new WizardProblem.Refused(problem), Focus = WizardField.Name }),
+            _ => Changed(state),
+        };
     }
 
     private static WizardUpdate Changed(WizardState state) => new WizardUpdate(state, Effect: null);

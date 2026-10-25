@@ -159,7 +159,7 @@ public sealed class WizardViewShould
         WizardUpdate refused = WizardView.Reduce(noRepositoryWorktree, new WizardInput.Start(OpenInTab: false));
         refused.ShouldSatisfyAllConditions(
             update => update.Effect.ShouldBeNull(),
-            update => update.State.Problem.ShouldBe(new WizardProblem.Refused("A worktree needs a repository; choose one or start on the current branch.")),
+            update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.WorktreeNeedsRepository())),
             update => update.State.Focus.ShouldBe(WizardField.Name));
     }
 

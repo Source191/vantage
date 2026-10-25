@@ -13,23 +13,23 @@ public sealed class HereCommandRunner(IFolders folders, LaunchService launches, 
     public async Task<int> RunAsync(string directory, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
         LaunchPlanResult planned = HereCommand.Plan(directory, arguments, IsRepository);
-        if (planned.Plan is null)
+        if (planned.Plan is not LaunchPlan plan)
         {
-            await error.WriteLineAsync(planned.Problem);
+            await error.WriteLineAsync(planned.Problem is null ? null : Wording.Describe(planned.Problem));
             return 2;
         }
 
-        LaunchOutcome outcome = await launches.LaunchAsync(planned.Plan, cancellationToken);
+        LaunchOutcome outcome = await launches.LaunchAsync(plan, cancellationToken);
         switch (outcome.Kind)
         {
             case LaunchOutcomeKind.Started when outcome.JobId is not null:
-                await output.WriteLineAsync(Wording.Here(outcome, planned.Plan.Name.Text, directory));
+                await output.WriteLineAsync(Wording.Here(outcome, plan.Name.Text, directory));
                 await effects.RunAsync(new AttachToSession(outcome.JobId), cancellationToken);
                 console.RecoverAfterChild();
                 return 0;
             default:
                 // Not trusted or failed: Wording says which.
-                await error.WriteLineAsync(Wording.Here(outcome, planned.Plan.Name.Text, directory));
+                await error.WriteLineAsync(Wording.Here(outcome, plan.Name.Text, directory));
                 return 1;
         }
     }

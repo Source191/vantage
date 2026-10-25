@@ -44,10 +44,12 @@ public sealed class HereCommandShould
     }
 
     [Fact]
-    public void RefuseAnUnknownOptionAndABadNameWithTheUsageLine()
+    public void RefuseBadArgumentsAndABadNameAsFacts()
     {
-        HereCommand.Plan(Directory, ["--bogus"], isRepository: _ => true).Problem.ShouldBe("Unknown option --bogus. " + HereCommand.Usage);
-        HereCommand.Plan(Directory, ["-p"], isRepository: _ => true).Problem.ShouldBe("-p needs a value. " + HereCommand.Usage);
-        HereCommand.Plan(Directory, ["a;b"], isRepository: _ => true).Problem.ShouldStartWith("A session name cannot contain a semicolon");
+        HereCommand.Plan(Directory, ["--bogus"], isRepository: _ => true).Problem.ShouldBe(new LaunchProblem.UnknownOption("--bogus"));
+        HereCommand.Plan(Directory, ["-p"], isRepository: _ => true).Problem.ShouldBe(new LaunchProblem.OptionNeedsValue("-p"));
+        HereCommand.Plan(Directory, ["fix-123", "extra"], isRepository: _ => true).Problem.ShouldBe(new LaunchProblem.UnexpectedArgument("extra"));
+        HereCommand.Plan(Directory, ["a;b"], isRepository: _ => true).Problem.ShouldBe(new LaunchProblem.InvalidName(NameProblem.UnsafeCharacters));
+        HereCommand.Plan(Directory, [""], isRepository: _ => true).Problem.ShouldBe(new LaunchProblem.InvalidName(NameProblem.Missing));
     }
 }

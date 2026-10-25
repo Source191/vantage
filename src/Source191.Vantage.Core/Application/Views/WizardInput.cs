@@ -68,8 +68,8 @@ public abstract record WizardProblem
 
     public sealed record NoName : WizardProblem;
 
-    /// <summary>The plan builder said no; the reason is its own.</summary>
-    public sealed record Refused(string? Reason) : WizardProblem;
+    /// <summary>The plan builder said no, for its own reason.</summary>
+    public sealed record Refused(LaunchProblem Problem) : WizardProblem;
 }
 
 public sealed record WizardUpdate(WizardState State, WizardEffect? Effect);

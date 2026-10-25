@@ -28,22 +28,43 @@ public sealed record LaunchPlan(
     string? OpeningPrompt,
     RepositoryChoice Repository);
 
-public sealed record LaunchPlanResult(LaunchPlan? Plan, string? Problem);
+/// <summary>Why a launch request is refused, as a fact; <see cref="Wording"/> says it, in the wizard and from vantage here.</summary>
+public abstract record LaunchProblem
+{
+    public sealed record InvalidName(NameProblem Problem) : LaunchProblem;
+
+    public sealed record WorktreeNeedsRepository : LaunchProblem;
+
+    public sealed record WorktreeNeedsLetters : LaunchProblem;
+
+    /// <summary>vantage here: an option was given without its value.</summary>
+    public sealed record OptionNeedsValue(string Option) : LaunchProblem;
+
+    public sealed record UnknownOption(string Option) : LaunchProblem;
+
+    public sealed record UnexpectedArgument(string Argument) : LaunchProblem;
+}
+
+/// <summary>A plan, or the reason there is none.</summary>
+public sealed record LaunchPlanResult(LaunchPlan? Plan, LaunchProblem? Problem)
+{
+    public static LaunchPlanResult Refused(LaunchProblem problem) => new LaunchPlanResult(Plan: null, problem);
+}
 
 public static class LaunchPlanBuilder
 {
     public static LaunchPlanResult Build(LaunchRequest request, Func<string, bool> folderExists)
     {
-        SessionName name;
-        try
+        return SessionName.Validate(request.NameText) switch
         {
-            name = SessionName.Parse(request.NameText);
-        }
-        catch (ArgumentException invalid)
-        {
-            return new LaunchPlanResult(Plan: null, invalid.Message);
-        }
+            SessionNameValidation.Valid valid => Build(request, valid.Name, folderExists),
+            SessionNameValidation.Refused refused => LaunchPlanResult.Refused(new LaunchProblem.InvalidName(refused.Problem)),
+            _ => LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)),
+        };
+    }
 
+    private static LaunchPlanResult Build(LaunchRequest request, SessionName name, Func<string, bool> folderExists)
+    {
         string? description = Blank(request.DescriptionText) ? null : request.DescriptionText.Trim();
         string? prompt = Blank(request.OpeningPromptText) ? null : request.OpeningPromptText.Trim();
 
@@ -54,12 +75,12 @@ public static class LaunchPlanBuilder
 
         if (!request.Repository.IsRepository)
         {
-            return new LaunchPlanResult(Plan: null, "A worktree needs a repository; choose one or start on the current branch.");
+            return LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsRepository());
         }
 
         if (name.Slug is null)
         {
-            return new LaunchPlanResult(Plan: null, "A worktree needs a name with some letters or digits in it.");
+            return LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsLetters());
         }
 
         SiblingWorktree worktree = SiblingWorktree.For(request.Repository.Path, name.Slug);

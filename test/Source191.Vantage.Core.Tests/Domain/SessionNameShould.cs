@@ -4,22 +4,42 @@ namespace Source191.Vantage.Core.Tests.Domain;
 
 public sealed class SessionNameShould
 {
-    [Fact]
-    public void RejectABlankName()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void RefuseABlankNameAsMissing(string text)
     {
-        ArgumentException exception = Should.Throw<ArgumentException>(() => SessionName.Parse("   "));
-
-        exception.Message.ShouldContain("required");
+        SessionName.Validate(text).ShouldBe(new SessionNameValidation.Refused(NameProblem.Missing));
     }
 
     [Theory]
     [InlineData("fix; rm -rf")]
     [InlineData("say \"hello\"")]
-    public void RejectANameWindowsTerminalCannotPassSafely(string text)
+    public void RefuseASemicolonOrDoubleQuoteAsUnsafe(string text)
     {
-        ArgumentException exception = Should.Throw<ArgumentException>(() => SessionName.Parse(text));
+        SessionName.Validate(text).ShouldBe(new SessionNameValidation.Refused(NameProblem.UnsafeCharacters));
+    }
 
-        exception.Message.ShouldContain("semicolon or a double quote");
+    [Fact]
+    public void AcceptAnyOtherName()
+    {
+        SessionName.Validate("Fix #123: flaky tests!").ShouldBeOfType<SessionNameValidation.Valid>().Name.Text.ShouldBe("Fix #123: flaky tests!");
+    }
+
+    [Fact]
+    public void CheckBlankBeforeUnsafe()
+    {
+        SessionName.Validate(" ").ShouldBe(new SessionNameValidation.Refused(NameProblem.Missing));
+        SessionName.Validate("; ").ShouldBe(new SessionNameValidation.Refused(NameProblem.UnsafeCharacters));
+    }
+
+    [Theory]
+    [InlineData("   ")]
+    [InlineData("fix; rm -rf")]
+    public void ReadARefusedNameAsNothingAndRefuseToParseIt(string text)
+    {
+        SessionName.TryParse(text).ShouldBeNull();
+        Should.Throw<ArgumentException>(() => SessionName.Parse(text));
     }
 
     [Fact]

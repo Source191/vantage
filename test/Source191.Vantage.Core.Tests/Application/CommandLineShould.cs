@@ -13,8 +13,8 @@ public sealed class CommandLineShould
         CommandLine.Parse(["here"]).ShouldBeOfType<StartHere>().Arguments.ShouldBeEmpty();
         CommandLine.Parse(["here", "fix-tests", "-p", "Fix them"]).ShouldBeOfType<StartHere>().Arguments.ShouldBe(["fix-tests", "-p", "Fix them"]);
         CommandLine.Parse(["claim-tab", registration.ToString("N"), "4242"]).ShouldBe(new ClaimTab(registration, 4242));
-        CommandLine.Parse(["claim-tab", "not-a-guid", "4242"]).ShouldBe(new Usage(CommandLine.ClaimTabUsage));
-        CommandLine.Parse(["claim-tab", registration.ToString("N")]).ShouldBe(new Usage(CommandLine.ClaimTabUsage));
+        CommandLine.Parse(["claim-tab", "not-a-guid", "4242"]).ShouldBe(new Usage(Wording.ClaimTabUsage));
+        CommandLine.Parse(["claim-tab", registration.ToString("N")]).ShouldBe(new Usage(Wording.ClaimTabUsage));
         CommandLine.Parse(["anything-else"]).ShouldBe(new OpenConsole());
     }
 }

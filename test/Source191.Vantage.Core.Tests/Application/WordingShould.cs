@@ -122,9 +122,19 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void GiveTheReasonANameWasRefused()
+    public void SayANameIsRequired()
     {
-        Wording.Describe(new Footer.InvalidName("A session name cannot be empty.")).ShouldBe("A session name cannot be empty.");
+        Wording.Describe(NameProblem.Missing).ShouldBe("A session name is required.");
+        Wording.Describe(new Footer.InvalidName(NameProblem.Missing)).ShouldBe("A session name is required.");
+    }
+
+    [Fact]
+    public void SayANameCannotHoldUnsafeCharacters()
+    {
+        Wording.Describe(NameProblem.UnsafeCharacters)
+            .ShouldBe("A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.");
+        Wording.Describe(new Footer.InvalidName(NameProblem.UnsafeCharacters))
+            .ShouldBe("A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.");
     }
 
     [Fact]
@@ -344,6 +354,8 @@ public sealed class WordingShould
             _ when type == typeof(int) => 2,
             _ when type == typeof(bool) => true,
             _ when type == typeof(WorktreeHealthKind) => WorktreeHealthKind.Locked,
+            _ when type == typeof(NameProblem) => NameProblem.UnsafeCharacters,
+            _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
             _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123"),
             _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),
@@ -379,9 +391,65 @@ public sealed class WordingShould
     [Fact]
     public void GiveThePlanBuildersReasonInTheWizard()
     {
-        Wording.Describe(new WizardProblem.Refused("A worktree needs a name with some letters or digits in it."))
+        Wording.Describe(new WizardProblem.Refused(new LaunchProblem.WorktreeNeedsLetters()))
             .ShouldBe("A worktree needs a name with some letters or digits in it.");
-        Wording.Describe(new WizardProblem.Refused(Reason: null)).ShouldBe("That cannot be launched.");
+    }
+
+    // Refusals on the launch path, in the wizard and vantage here.
+
+    public static TheoryData<Type> LaunchProblems => new(typeof(LaunchProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(LaunchProblem))));
+
+    [Theory]
+    [MemberData(nameof(LaunchProblems))]
+    public void HaveWordsForEveryLaunchProblem(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        LaunchProblem problem = (LaunchProblem)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+
+        Wording.Describe(problem).ShouldNotBe(problem.ToString(), $"{type.Name} has no arm in Wording.Describe");
+    }
+
+    [Fact]
+    public void GiveTheNameSentenceForARefusedLaunchName()
+    {
+        Wording.Describe(new LaunchProblem.InvalidName(NameProblem.Missing)).ShouldBe("A session name is required.");
+    }
+
+    [Fact]
+    public void SayAWorktreeNeedsARepository()
+    {
+        Wording.Describe(new LaunchProblem.WorktreeNeedsRepository()).ShouldBe("A worktree needs a repository; choose one or start on the current branch.");
+    }
+
+    [Fact]
+    public void SayAWorktreeNeedsLettersOrDigits()
+    {
+        Wording.Describe(new LaunchProblem.WorktreeNeedsLetters()).ShouldBe("A worktree needs a name with some letters or digits in it.");
+    }
+
+    [Fact]
+    public void SayAnOptionNeedsAValueWithTheUsageLine()
+    {
+        Wording.Describe(new LaunchProblem.OptionNeedsValue("-p")).ShouldBe("-p needs a value. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+    }
+
+    [Fact]
+    public void NameAnUnknownOptionWithTheUsageLine()
+    {
+        Wording.Describe(new LaunchProblem.UnknownOption("--bogus")).ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+    }
+
+    [Fact]
+    public void NameAnUnexpectedArgumentWithTheUsageLine()
+    {
+        Wording.Describe(new LaunchProblem.UnexpectedArgument("extra")).ShouldBe("Unexpected argument extra. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+    }
+
+    [Fact]
+    public void GiveTheUsageLines()
+    {
+        Wording.HereUsage.ShouldBe("Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+        Wording.ClaimTabUsage.ShouldBe("Usage: vantage claim-tab <registration id> <process id>");
     }
 
     [Fact]
