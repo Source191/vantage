@@ -73,11 +73,11 @@ When a branch has more than one pull request, the row SHALL show the open (or ac
 - **THEN** the row shows !4460 completed
 
 ### Requirement: The pull request key opens it in the browser
-The pull request key SHALL open the selected row's pull request in the default browser and the footer SHALL name it, in both views.
+The pull request key SHALL open the selected row's pull request in the default browser, without passing Vantage's Claude Code session markers to it, and the footer SHALL name it, in both views.
 
 #### Scenario: Open from the sessions view
-- **WHEN** the user presses the pull request key on a row showing !4521 active
-- **THEN** that pull request's page opens in the default browser and the footer says !4521 was opened
+- **WHEN** the user presses the pull request key on a row whose pull request is !4521
+- **THEN** that pull request's page opens in the default browser, without Vantage's Claude Code session markers in the browser's environment, and the footer says !4521 was opened
 
 ### Requirement: A missing pull request is explained
 When the selected row shows no pull request, the pull request key SHALL open nothing and the footer SHALL say why: no row is selected, the row has no branch, the repository has no origin remote, the host is not GitHub or Azure DevOps, the `gh` or `az` CLI is not installed, the user is not signed in to it, the lookup is still running, it failed, or the branch has no pull request.
