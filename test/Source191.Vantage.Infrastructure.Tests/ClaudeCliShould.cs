@@ -36,6 +36,43 @@ public sealed class ClaudeCliShould
     }
 
     [Fact]
+    public async Task ReadTheVersionFromVersionOutput()
+    {
+        processes.AnswerAll(new ProcessResult(0, "2.1.310 (Claude Code)\n", string.Empty));
+
+        string? version = await Cli.VersionAsync(CancellationToken.None);
+
+        version.ShouldBe("2.1.310");
+        processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
+            request => request.FileName.ShouldBe(Executable),
+            request => request.Arguments.ShouldBe(["--version"]));
+    }
+
+    [Fact]
+    public async Task AnswerNullWhenVersionFails()
+    {
+        processes.AnswerAll(new ProcessResult(1, string.Empty, "boom"));
+
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task AnswerNullWhenNoVersionIsPrinted()
+    {
+        processes.AnswerAll(new ProcessResult(0, "Claude Code\n", string.Empty));
+
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task AnswerNullWhenTheProgramCannotBeStarted()
+    {
+        processes.Fail(new System.ComponentModel.Win32Exception("The system cannot find the file specified"));
+
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+    }
+
+    [Fact]
     public async Task StartABackgroundSessionNamedInTheChosenDirectory()
     {
         processes.AnswerAll(new ProcessResult(0, StartedOutput, string.Empty));

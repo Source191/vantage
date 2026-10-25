@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Terminal.Gui.App;
@@ -24,16 +25,11 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>The words before the banner's failure message, such as "listing failed".</summary>
     string LoadFailurePrefix { get; }
 
-    /// <summary>The five header row names, newline separated; the first three are machine, Claude and roots.</summary>
+    /// <summary>The five header row names, newline separated; the first three are Vantage, Claude and roots.</summary>
     string HeaderNames { get; }
 
-    string Keys { get; }
-
-    string KeyNames { get; }
-
-    string Keys2 { get; }
-
-    string KeyNames2 { get; }
+    /// <summary>The keys the view answers to; the header draws a hint for each that has one and shows its line as a tooltip.</summary>
+    IReadOnlyList<KeyHelp> Keys { get; }
 
     string HelpText { get; }
 

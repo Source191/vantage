@@ -31,4 +31,75 @@ public static partial class Wording
     }
 
     private static string Counted(int count, string noun) => count == 1 ? $"{count} {noun}" : $"{count} {noun}s";
+
+    public static IReadOnlyList<KeyHelp> SessionsKeys { get; } =
+    [
+        new("enter", "Attach", "attach to the session (Ctrl+Z or Esc comes back)", Column: 0),
+        new("o", "Open in tab", "open it in its own tab, or switch to the tab that shows it", Column: 0),
+        new("n", "New session", "new session", Column: 0),
+        new("r", "Rename", "rename (restarts the session under the new name)", Column: 0),
+        new("x", "Stop", "stop", Column: 0),
+        new("d", "Delete", "delete (and its worktree, safely); closes the tab of a terminal session with no messages", Column: 0),
+        new("R", "Resume stopped", "resume after a reboot", Column: 1),
+        new("C", "Close empty tabs", "close every tab whose claude has never been sent a message", Column: 1),
+        new("b", Hint: null, "move a terminal session under Vantage (its tab becomes a shell)", Column: 1),
+        new("a", "Agent view", "native agent view", Column: 1),
+        new("w", "Worktrees", "worktrees view", Column: 1),
+        new("/", "Filter", "filter", Column: 1),
+        new("?", "Help", "help", Column: 1),
+        new("q", "Quit", "quit", Column: 1),
+    ];
+
+    public static IReadOnlyList<KeyHelp> WorktreesKeys { get; } =
+    [
+        new("d", "Remove", "remove (refused when work would be lost)", Column: 0),
+        new("D", "Force remove", "force remove after typing the branch or folder name", Column: 0),
+        new("p", "Prune", "prune stale registrations in its repository", Column: 0),
+        new("s", "Start session", "start a session in this worktree", Column: 0),
+        new("o", "Open shell", "open a PowerShell tab there", Column: 0),
+        new("enter", "Go to session", "go to the session running in it", Column: 0),
+        new("w", "Sessions", "back to sessions", Column: 1),
+        new("esc", "Sessions", "back to sessions (clears a filter first)", Column: 1),
+        new("/", "Filter", "filter", Column: 1),
+        new("?", "Help", "help", Column: 1),
+        new("q", "Quit", "quit", Column: 1),
+    ];
+
+    public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =
+    [
+        new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
+        new("STATE", "needs input (amber), working (cyan), idle (white),\ncompleted (green), failed (red), stopped (grey)"),
+        new("REPOSITORY", "the repository the session runs in"),
+        new("BRANCH", "the branch checked out there"),
+        new("WT", "yes when the session runs in a linked worktree"),
+        new("AGE", "time since the session started"),
+        new("TAB", "terminal for a plain claude started in its own tab, open while a Vantage tab shows it"),
+    ];
+
+    public static IReadOnlyList<ColumnHelp> WorktreesColumns { get; } =
+    [
+        new("REPOSITORY", "the repository that owns the worktree"),
+        new("FOLDER", "the worktree's folder name"),
+        new("BRANCH", "the branch checked out there"),
+        new("DIRTY", "changed or untracked files"),
+        new("UNPUSHED", "commits on its branch that no remote has"),
+        new("LAST COMMIT", "time since the last commit"),
+        new("SESSION", "the session running in it, if any"),
+        new("HEALTH", "ok; locked (by another tool); orphan (a folder git has forgotten);\nbroken (registration or owner gone); empty (a leftover folder)"),
+    ];
+
+    /// <summary>The sessions view's help: its keys and columns, then the Claude Code executable Vantage drives.</summary>
+    public static string SessionsHelp(string claudeExecutable) => $"{Help(SessionsKeys, SessionsColumns)}\n\nClaude Code: {claudeExecutable}";
+
+    public static string WorktreesHelp => Help(WorktreesKeys, WorktreesColumns);
+
+    private static string Help(IReadOnlyList<KeyHelp> keys, IReadOnlyList<ColumnHelp> columns)
+    {
+        int width = columns.Max(column => column.Name.Length) + 2;
+        string indent = new(' ', width);
+        IEnumerable<string> keyLines = keys.Select(key => $"{key.HelpKey,-7}{key.Line}");
+        IEnumerable<string> columnLines = columns.Select(column => $"{column.Name.PadRight(width)}{column.Meaning.Replace("\n", "\n" + indent, StringComparison.Ordinal)}");
+
+        return string.Join('\n', ["Keys", .. keyLines, string.Empty, "Columns", .. columnLines]);
+    }
 }

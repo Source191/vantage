@@ -1,5 +1,6 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 namespace Source191.Vantage.Adapters.Claude;
@@ -11,6 +12,21 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         ProcessResult result = await processes.RunAsync(Request(["agents", "--json", "--all"]), cancellationToken);
 
         return ClaudeAgentsListing.Parse(result.StandardOutput);
+    }
+
+    public async Task<string?> VersionAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            ProcessResult result = await processes.RunAsync(Request(["--version"]), cancellationToken);
+            Match version = LeadingVersion().Match(result.StandardOutput);
+
+            return result.ExitCode == 0 && version.Success ? version.Value : null;
+        }
+        catch (Win32Exception)
+        {
+            return null;
+        }
     }
 
     public async Task<StartResult> StartBackgroundAsync(string directory, SessionName name, string? openingPrompt, CancellationToken cancellationToken)
@@ -73,6 +89,9 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
 
         return new StartResult(outcome, JobId: null, message);
     }
+
+    [GeneratedRegex(@"^\s*\d+(\.\d+)+")]
+    private static partial Regex LeadingVersion();
 
     // The separator is a middle dot; matched loosely so a mis-decoded byte cannot hide a successful start.
     [GeneratedRegex(@"backgrounded\s+\S+\s+(?<id>[0-9a-f]{8})\b")]

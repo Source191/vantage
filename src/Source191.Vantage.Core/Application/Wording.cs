@@ -11,25 +11,6 @@ namespace Source191.Vantage.Application;
 /// </summary>
 public static partial class Wording
 {
-    public static string SessionsHelp => """
-        Enter  attach (Ctrl+Z/Esc back)    o  open in its own tab, or switch to it when it is open
-        n      new session                 r  rename (restarts the session under the new name)
-        x      stop                        d  delete (and its worktree, safely); closes the tab of a terminal session with no messages
-        C      close every tab whose claude has never been sent a message
-        b      move a terminal session under Vantage (its tab becomes a shell)
-        R      resume after a reboot       a  native agent view
-        w      worktrees view              /  filter    ?  help    q  quit
-        """;
-
-    public static string WorktreesHelp => """
-        d      remove (refused when work would be lost)   D  force remove after typing the branch or folder name
-        p      prune stale registrations in its repository
-        s      start a session in this worktree            o  open a PowerShell tab there
-        Enter  go to the session running in it             w or Esc  back to sessions
-        /      filter    ?  help    q  quit
-        Health: ok, locked (by another tool), orphan (folder git forgot), broken (registration or owner gone), empty (leftover folder)
-        """;
-
     /// <summary>Printed before an attach. Attach lands on Claude's agent list when the session has no messages yet; that screen leaves with Esc, not Ctrl+Z.</summary>
     public static string ReturnHint => "Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.";
 

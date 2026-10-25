@@ -12,6 +12,7 @@ public sealed class FakeProcessRunner : IProcessRunner
     private readonly List<Rule> rules = [];
     private readonly List<ProcessRequest> captured = [];
     private readonly List<ProcessRequest> interactive = [];
+    private Exception? failure;
 
     public IReadOnlyList<ProcessRequest> CapturedRequests
     {
@@ -46,12 +47,24 @@ public sealed class FakeProcessRunner : IProcessRunner
         return this;
     }
 
+    /// <summary>Makes every captured run throw this, as a program that cannot be started does.</summary>
+    public FakeProcessRunner Fail(Exception exception)
+    {
+        failure = exception;
+        return this;
+    }
+
     public async Task<ProcessResult> RunAsync(ProcessRequest request, CancellationToken cancellationToken)
     {
         await Task.Yield();
         lock (gate)
         {
             captured.Add(request);
+            if (failure is not null)
+            {
+                throw failure;
+            }
+
             return rules.First(rule => rule.Matches(request)).Next();
         }
     }

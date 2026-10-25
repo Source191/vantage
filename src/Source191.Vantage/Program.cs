@@ -14,6 +14,7 @@ using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using Source191.Vantage.Tui;
+using System.Reflection;
 
 // Composition root. Everything here is wiring; behaviour lives in the tested classes it assembles.
 string stateFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vantage");
@@ -54,12 +55,14 @@ if (claudeExecutable is null)
 string vantageExecutable = Environment.ProcessPath ?? "vantage";
 ProcessRunner processes = new();
 ClaudeCli claude = new(processes, claudeExecutable);
+ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
+string tabTitle = Wording.TabTitle(version);
 GitCli git = new(processes);
 VantageConfig config = await store.ReadConfigAsync();
 ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
 WindowsTerminal terminal = new(processes);
 Folders folders = new();
-TerminalConsole console = new(Console.Out);
+TerminalConsole console = new(Console.Out, tabTitle);
 LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
 TerminalEffects terminalEffects = new(claude, Console.Out);
 
@@ -70,6 +73,8 @@ if (command is StartHere here)
     return await runner.RunAsync(Directory.GetCurrentDirectory(), here.Arguments, CancellationToken.None);
 }
 
+// Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
+Task<string?> claudeVersion = claude.VersionAsync(CancellationToken.None);
 SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts);
 StateTransitionNotifier notifier = new(Console.Out);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
@@ -77,8 +82,8 @@ EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, sto
 EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable));
 DialogEffects dialogs = new(new RepositoryCatalogue(folders, config.RepositoryRoots), store, folders, config.DefaultBase, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
 WorktreeInventory inventory = new(git, folders, config.RepositoryRoots);
-string context = string.Join('\n', Environment.MachineName, claudeExecutable, string.Join("; ", config.RepositoryRoots));
-SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context);
+ScreenContext context = new(tabTitle, Wording.HeaderValues(version, await claudeVersion, config.RepositoryRoots));
+SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable);
 WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context);
 ScreenLoop loop = new(sessionsScreen, worktreesScreen, ownTab, console, terminalEffects, log);
 
