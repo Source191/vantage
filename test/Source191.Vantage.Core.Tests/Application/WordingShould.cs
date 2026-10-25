@@ -383,12 +383,6 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void AskForASessionNameInTheWizard()
-    {
-        Wording.Describe(new WizardProblem.NoName()).ShouldBe("Session name is required: a short, human-readable label for the session.");
-    }
-
-    [Fact]
     public void GiveThePlanBuildersReasonInTheWizard()
     {
         Wording.Describe(new WizardProblem.Refused(new LaunchProblem.WorktreeNeedsLetters()))

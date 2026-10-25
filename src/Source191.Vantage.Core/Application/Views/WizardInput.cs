@@ -63,7 +63,6 @@ public abstract record WizardProblem
 {
     public sealed record NoRepository : WizardProblem;
 
-    public sealed record NoName : WizardProblem;
 
     /// <summary>The plan builder said no, for its own reason.</summary>
     public sealed record Refused(LaunchProblem Problem) : WizardProblem;
