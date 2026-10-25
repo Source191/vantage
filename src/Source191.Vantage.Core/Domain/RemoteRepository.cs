@@ -9,6 +9,9 @@ namespace Source191.Vantage.Domain;
 /// </summary>
 public abstract partial record RemoteRepository
 {
+    /// <summary>The host whose CLI lists this repository's pull requests.</summary>
+    public abstract PullRequestHost Host { get; }
+
     public static RemoteRepository? Parse(string? url)
     {
         string text = url?.Trim() ?? string.Empty;
@@ -44,7 +47,13 @@ public abstract partial record RemoteRepository
 }
 
 /// <summary>A repository on github.com.</summary>
-public sealed record GitHubRepository(string Owner, string Name) : RemoteRepository;
+public sealed record GitHubRepository(string Owner, string Name) : RemoteRepository
+{
+    public override PullRequestHost Host => PullRequestHost.GitHub;
+}
 
 /// <summary>A repository in Azure DevOps.</summary>
-public sealed record AzureDevOpsRepository(string Organisation, string Project, string Name) : RemoteRepository;
+public sealed record AzureDevOpsRepository(string Organisation, string Project, string Name) : RemoteRepository
+{
+    public override PullRequestHost Host => PullRequestHost.AzureDevOps;
+}

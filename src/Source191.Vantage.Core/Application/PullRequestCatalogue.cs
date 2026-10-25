@@ -18,12 +18,12 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
     private readonly ConcurrentDictionary<string, Answer> answers = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, Lazy<Task>> running = new(StringComparer.Ordinal);
 
-    public PullRequestLookup Find(FolderPath checkout, BranchName? branch) => (branch, answers.TryGetValue(checkout.Key, out Answer? answer) ? answer.Listing : null) switch
+    public PullRequestLookup Find(FolderPath checkout, BranchName? branch) => (branch, answers.TryGetValue(checkout.Key, out Answer? answer) ? answer : null) switch
     {
         (null, _) => new PullRequestLookup.Missing(PullRequestGap.NoBranch),
         (_, null) => new PullRequestLookup.Missing(PullRequestGap.Looking),
-        (BranchName named, PullRequestListing.Listed listed) => ForBranch(listed, named),
-        (_, PullRequestListing.Unavailable unavailable) => new PullRequestLookup.Missing(unavailable.Gap),
+        (BranchName named, { Listing: PullRequestListing.Listed listed }) => ForBranch(listed, named),
+        (_, { Listing: PullRequestListing.Unavailable unavailable, Host: var host }) => new PullRequestLookup.Missing(unavailable.Gap, host),
         _ => new PullRequestLookup.Missing(PullRequestGap.Failed),
     };
 
@@ -53,13 +53,13 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
     {
         try
         {
-            PullRequestListing listing = await ListAsync(checkout);
-            answers[checkout.Key] = new Answer(listing, clock.GetUtcNow());
+            (PullRequestListing listing, PullRequestHost? host) = await ListAsync(checkout);
+            answers[checkout.Key] = new Answer(listing, host, clock.GetUtcNow());
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             // Nothing awaits a refresh started by a row, so a failure is kept as an answer the footer can explain.
-            answers[checkout.Key] = new Answer(new PullRequestListing.Unavailable(PullRequestGap.Failed), clock.GetUtcNow());
+            answers[checkout.Key] = new Answer(new PullRequestListing.Unavailable(PullRequestGap.Failed), Host: null, clock.GetUtcNow());
         }
         finally
         {
@@ -67,18 +67,18 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         }
     }
 
-    private async Task<PullRequestListing> ListAsync(FolderPath checkout)
+    private async Task<(PullRequestListing Listing, PullRequestHost? Host)> ListAsync(FolderPath checkout)
     {
         string? url = await git.OriginUrlAsync(checkout.Value, CancellationToken.None);
         if (url is null)
         {
-            return new PullRequestListing.Unavailable(PullRequestGap.NoRemote);
+            return (new PullRequestListing.Unavailable(PullRequestGap.NoRemote), null);
         }
 
         return RemoteRepository.Parse(url) is RemoteRepository repository
-            ? await hosts.ListAsync(repository, checkout, CancellationToken.None)
-            : new PullRequestListing.Unavailable(PullRequestGap.UnknownHost);
+            ? (await hosts.ListAsync(repository, checkout, CancellationToken.None), repository.Host)
+            : (new PullRequestListing.Unavailable(PullRequestGap.UnknownHost), null);
     }
 
-    private sealed record Answer(PullRequestListing Listing, DateTimeOffset At);
+    private sealed record Answer(PullRequestListing Listing, PullRequestHost? Host, DateTimeOffset At);
 }

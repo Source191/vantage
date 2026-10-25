@@ -37,6 +37,13 @@ public sealed class RemoteRepositoryShould
         RemoteRepository.Parse(url).ShouldBe(new AzureDevOpsRepository("northwind", "Northwind Trading", "Northwind.Orders"));
     }
 
+    [Fact]
+    public void NameItsHost()
+    {
+        new GitHubRepository("northwind", "Northwind.Orders").Host.ShouldBe(PullRequestHost.GitHub);
+        new AzureDevOpsRepository("northwind", "Trading", "Northwind.Orders").Host.ShouldBe(PullRequestHost.AzureDevOps);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

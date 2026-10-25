@@ -103,7 +103,7 @@ public sealed class PullRequestCatalogueShould
         await catalogue.RefreshStaleAsync([Checkout]);
 
         hosts.Calls.Count.ShouldBe(1);
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NotSignedIn));
+        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, PullRequestHost.GitHub), "the footer names the host's CLI");
     }
 
     [Theory]
