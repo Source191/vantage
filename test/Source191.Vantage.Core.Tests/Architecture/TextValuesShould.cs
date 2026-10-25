@@ -61,4 +61,12 @@ public sealed class TextValuesShould
 
         methods.Concat(properties).Concat(fields).ShouldBeEmpty();
     }
+
+    [Fact]
+    public void ParseEveryGoodTextAndSkipTheRest()
+    {
+        string?[] texts = [@"C:\Users\me\source\repos\Northwind.Orders", null, @"repos\Northwind.Billing", "C:/Users/me/source/repos/Northwind.Billing"];
+
+        texts.Parsed<FolderPath>().ShouldBe([new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), new FolderPath(@"C:\Users\me\source\repos\Northwind.Billing")]);
+    }
 }
