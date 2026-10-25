@@ -20,5 +20,6 @@
 
 ## Workflow follow-up
 
+- P4 in `public-release`'s sequence: the refactors stream, stacked on P3 (`text-value-doors`) so the two do not race for `Wording`.
 - One pull request, archived in it. Independent of the text-value changes; after `remove-session-descriptions` to avoid a merge of the wizard area for nothing.
 - Manual check: `d` on a dirty worktree shows "Not removed: 3 changed or untracked files would be lost. D forces after a typed confirmation."; `D` with nothing typed shows the nothing-typed line inside the dialog; F2 shows the copied line.

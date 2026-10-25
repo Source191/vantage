@@ -13,5 +13,6 @@
 
 ## Workflow follow-up
 
+- Part of P13 in `public-release`'s sequence: the spike runs during the final manual test session.
 - Independent of the other agreed changes; one pull request, archived in it.
 - Needs the product owner at the terminal; nothing here can run inside a Claude Code session.

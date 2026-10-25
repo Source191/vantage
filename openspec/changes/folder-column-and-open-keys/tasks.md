@@ -50,5 +50,6 @@
 
 ## Workflow follow-up
 
+- P8 in `public-release`'s sequence: the features stream, stacked on P7 (`settings-and-worktree-root`).
 - Merge after `remove-session-descriptions` and `settings-and-worktree-root`; rename `EditorChoice` and the config reader here to whatever those changes settled on.
 - Archive the change in the same pull request that completes it, so `openspec\specs` gains `folder-actions` and the modified session-listing requirement.

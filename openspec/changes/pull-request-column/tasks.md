@@ -47,5 +47,6 @@
 
 ## Workflow follow-up
 
+- P9 in `public-release`'s sequence: the features stream, stacked on P8 (`folder-column-and-open-keys`).
 - Merge after `folder-column-and-open-keys`; rebase the column lists and help text on `main` if `header-and-help` or `remove-session-descriptions` landed in between.
 - Archive the change in the same pull request (`/opsx:archive`), so `openspec\specs\pull-requests` describes `main`; verify `openspec validate --all` passes after archiving.

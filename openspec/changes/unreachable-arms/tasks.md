@@ -14,5 +14,6 @@
 
 ## Workflow follow-up
 
+- P2 in `public-release`'s sequence: the refactors stream, branched from `main` after P1.
 - One pull request, archived in it. After `remove-session-descriptions` and before `text-value-doors`; both neighbours touch `WizardView`, so whichever merges second takes `main` first.
 - Manual check: F5 in the wizard with a blank name shows "A session name is required." and leaves the cursor in the name field.

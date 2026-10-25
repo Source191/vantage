@@ -28,6 +28,7 @@
 
 ## Workflow follow-up
 
+- P6 in `public-release`'s sequence: the features stream, branched from `main` after P1; may be developed while the refactors stream is in flight.
 - One pull request, merged before the other five UI changes; archive the change in it with `/opsx:archive`.
 - `settings-and-worktree-root` rebases its header requirement on this change's "The header shows the versions and the roots"; `folder-column-and-open-keys` extends `Wording.SessionsKeys`, `Wording.WorktreesKeys` and the glossaries rather than the header strings.
 - `tools\HeadlessTerminal.Tests\TerminalQueriesShould.cs` uses `sessions(all)[4]` only as sample screen text; leave it or change it to the new title, either passes.

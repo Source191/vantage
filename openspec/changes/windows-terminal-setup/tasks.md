@@ -42,4 +42,5 @@
 
 ## Workflow follow-up
 
+- P10 in `public-release`'s sequence: standalone, branched from `main` any time after P1; its terminal checks wait for P13.
 - Archive the change in the same pull request that completes it (`/opsx:archive`), so `openspec\specs` describes the code on `main`.

@@ -24,5 +24,6 @@
 
 ## Workflow follow-up
 
+- P1 in `public-release`'s sequence: the gate, branched from `main` and merged before every other change.
 - One pull request, the first of the agreed set; archive the change in it so the specs lose the requirements with the code.
 - Manual check: the wizard has no Description field and Enter in the name lands on Where; `vantage here -d x` exits 2 with the usage line; the sessions view has no DESCRIPTION column; a state folder with an old `descriptions\` folder still opens.
