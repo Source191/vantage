@@ -22,7 +22,7 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
-        Converters = { new JsonStringEnumConverter(), new FolderPathJsonConverter(), new BranchNameJsonConverter(), new TabOwnerJsonConverter() },
+        Converters = { new JsonStringEnumConverter(), new TextValueJsonConverter<FolderPath>(), new TextValueJsonConverter<BranchName>(), new TabOwnerJsonConverter() },
         TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver { Modifiers = { StateFileNames.KeepTabOwnerAsSessionId } },
     };
 

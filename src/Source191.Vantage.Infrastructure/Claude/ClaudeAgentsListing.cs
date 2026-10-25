@@ -25,7 +25,7 @@ public static class ClaudeAgentsListing
     /// </summary>
     private static Session? ToSession(Row row)
     {
-        if (FolderPath.TryParse(row.Cwd) is not FolderPath workingDirectory || SessionId.TryParse(row.SessionId) is not SessionId sessionId)
+        if (!FolderPath.TryParse(row.Cwd, out FolderPath? workingDirectory) || !SessionId.TryParse(row.SessionId, out SessionId? sessionId))
         {
             return null;
         }
@@ -33,13 +33,14 @@ public static class ClaudeAgentsListing
         string name = row.Name ?? string.Empty;
         DateTimeOffset startedAt = DateTimeOffset.FromUnixTimeMilliseconds(row.StartedAt ?? 0);
         DisplayState state = ClaudeStates.From(row.Pid, row.Status, row.State);
-
-        return (row.Kind, row.Pid, JobId.TryParse(row.Id) ?? JobId.Of(sessionId)) switch
+        if (row is { Kind: "interactive", Pid: int processId })
         {
-            ("interactive", int processId, _) => new InteractiveSession(sessionId, name, workingDirectory, startedAt, state, processId),
-            (_, _, JobId jobId) => new BackgroundSession(sessionId, jobId, name, workingDirectory, startedAt, state, row.Pid),
-            _ => null,
-        };
+            return new InteractiveSession(sessionId, name, workingDirectory, startedAt, state, processId);
+        }
+
+        return JobId.TryParse(row.Id, out JobId? jobId) || JobId.TryParse(sessionId, out jobId)
+            ? new BackgroundSession(sessionId, jobId, name, workingDirectory, startedAt, state, row.Pid)
+            : null;
     }
 
     private sealed record Row(

@@ -33,9 +33,6 @@ public sealed record FolderPath : ITextValue<FolderPath>
     /// <summary>The containing folder; null for a drive root.</summary>
     public FolderPath? Parent => IOPath.GetDirectoryName(Value) is string parent ? new FolderPath(parent) : null;
 
-    /// <summary>A path from outside Vantage (git output, the CLI's listing, a state file); null when it is not a full path.</summary>
-    public static FolderPath? TryParse(string? text) => text is not null && IOPath.IsPathFullyQualified(text) ? new FolderPath(text) : null;
-
     /// <summary>A path from outside Vantage (git output, the CLI's listing, a state file); false when it is not a full path.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out FolderPath value)
     {

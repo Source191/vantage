@@ -20,7 +20,6 @@ public sealed record SessionId : ITextValue<SessionId>
         return value is not null;
     }
 
-    public static SessionId? TryParse(string? text) => string.IsNullOrWhiteSpace(text) ? null : new SessionId(text);
 
     public override string ToString() => Value;
 }
@@ -52,10 +51,6 @@ public sealed record JobId : ITextValue<JobId>
     /// <summary>The job id the CLI gives the session: its id's first eight characters; false when those are not hex.</summary>
     public static bool TryParse(SessionId session, [MaybeNullWhen(false)] out JobId value) => TryParse(session.Value.Length >= Length ? session.Value[..Length] : null, out value);
 
-    public static JobId? TryParse(string? text) => text is not null && IsJobId(text) ? new JobId(text) : null;
-
-    /// <summary>The job id the CLI gives the session: its id's first eight characters; null when those are not hex.</summary>
-    public static JobId? Of(SessionId session) => TryParse(session.Value.Length >= Length ? session.Value[..Length] : null);
 
     public override string ToString() => Value;
 
@@ -84,7 +79,6 @@ public sealed record BranchName : ITextValue<BranchName>
         return value is not null;
     }
 
-    public static BranchName? TryParse(string? text) => text is not null && IsBranchName(text) ? new BranchName(text) : null;
 
     public override string ToString() => Value;
 

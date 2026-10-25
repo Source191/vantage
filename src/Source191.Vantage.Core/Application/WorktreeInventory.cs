@@ -56,7 +56,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
     }
 
     /// <summary>The paths among folder listings and configured roots that are full paths; anything else is skipped.</summary>
-    private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Select(FolderPath.TryParse).OfType<FolderPath>();
+    private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Parsed<FolderPath>();
 
     private async Task<IReadOnlyList<WorktreeRow>> RegisteredRowsAsync(FolderPath repository, HashSet<FolderPath> registered, CancellationToken cancellationToken)
     {
@@ -74,7 +74,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
         List<WorktreeRow> rows = [];
         foreach (GitWorktreeEntry entry in entries.Where(entry => !entry.IsMain))
         {
-            if (FolderPath.TryParse(entry.Path) is not FolderPath path)
+            if (!FolderPath.TryParse(entry.Path, out FolderPath? path))
             {
                 continue;
             }
@@ -163,7 +163,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
     {
         int at = gitDir?.IndexOf(WorktreesSegment, StringComparison.OrdinalIgnoreCase) ?? -1;
 
-        return at < 0 ? null : FolderPath.TryParse(gitDir![..at]);
+        return at >= 0 && FolderPath.TryParse(gitDir![..at], out FolderPath? owner) ? owner : null;
     }
 
     private bool IsEmptyLeftover(FolderPath folder)

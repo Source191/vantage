@@ -22,7 +22,7 @@ public sealed class WorktreeInspector(IGit git)
     public async Task<WorktreeHealth> HealthAsync(FolderPath repository, FolderPath worktree, CancellationToken cancellationToken)
     {
         IReadOnlyList<GitWorktreeEntry> entries = await git.ListWorktreesAsync(repository.Value, cancellationToken);
-        GitWorktreeEntry? entry = entries.FirstOrDefault(candidate => FolderPath.TryParse(candidate.Path) == worktree);
+        GitWorktreeEntry? entry = entries.FirstOrDefault(candidate => FolderPath.TryParse(candidate.Path, out FolderPath? path) && path.Equals(worktree));
 
         return entry is null
             ? WorktreeHealth.From(new WorktreeObservation(true, false, null, false, null, false))
