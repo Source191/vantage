@@ -76,6 +76,7 @@ public static class WorktreesView
             WorktreeRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
             ForceConfirmed confirmed => Force(state, confirmed),
+            UpdateTabOpened => Effect(state, new Quit()),
             KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key))),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
@@ -95,12 +96,18 @@ public static class WorktreesView
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
             { Name: KeyName.Character, Character: 'd' } => RowAction(state, row => Remove(row, forced: false)),
             { Name: KeyName.Character, Character: 'D' } => RowAction(state, row => Remove(row, forced: true)),
-            { Name: KeyName.Character, Character: 'p' } => RowAction(state, Prune),
+            { Name: KeyName.Character, Character: 'P' } => RowAction(state, Prune),
+            { Name: KeyName.Character, Character: 'p' } => RowAction(state, PullRequestOf),
             { Name: KeyName.Character, Character: 's' } => RowAction(state, row => InRealWorktree(row, new StartSessionIn(row))),
             { Name: KeyName.Character, Character: 'o' } => RowAction(state, row => InRealWorktree(row, new OpenShellTab(row))),
+            { Name: KeyName.Character, Character: 'c' } => RowAction(state, row => WithFolder(row, new CopyFolderPath(row.Path))),
+            { Name: KeyName.Character, Character: 'e' } => RowAction(state, row => WithFolder(row, new OpenFolderInEditor(row.Path))),
+            { Name: KeyName.Character, Character: 'v' } => RowAction(state, row => WithFolder(row, new FindSolution(row.Path, row.RepositoryName))),
             { Name: KeyName.Character, Character: 'w' } => Effect(state, new SwitchToSessions()),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
+            { Name: KeyName.Character, Character: ',' } => Effect(state, new OpenSettings()),
+            { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
             _ => Unchanged(state),
         };
     }
@@ -150,6 +157,13 @@ public static class WorktreesView
 
     private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove) => Effect(state with { Footer = new Footer.Working(remove) }, remove);
 
+    private static (ViewEffect?, Footer) PullRequestOf(WorktreeRow row) => row.PullRequest switch
+    {
+        PullRequestLookup.Found found => (new OpenPullRequest(found.PullRequest), Footer.None),
+        PullRequestLookup.Missing missing => (null, new Footer.NoPullRequest(row.FolderName, missing.Gap, missing.Host)),
+        _ => (null, Footer.None),
+    };
+
     private static (ViewEffect?, Footer) Prune(WorktreeRow row)
     {
         return row.OwnerExists
@@ -164,6 +178,13 @@ public static class WorktreesView
             : (null, new Footer.LeftoverFolder(row.FolderName));
     }
 
+    /// <summary>The folder keys need a folder on disc; a leftover whose folder is gone is refused as the start and shell keys refuse it.</summary>
+    private static (ViewEffect?, Footer) WithFolder(WorktreeRow row, ViewEffect effect)
+    {
+        return row.FolderExists
+            ? (effect, Footer.None)
+            : (null, new Footer.LeftoverFolder(row.FolderName));
+    }
     private static (ViewEffect?, Footer) JumpToSession(WorktreeRow row)
     {
         return row.SessionId is null

@@ -44,15 +44,15 @@ Vantage SHALL map each session's process presence, status, waitingFor and state 
 - **THEN** its row shows the raw value rather than guessing a display state
 
 ### Requirement: Rows show repository, branch and worktree
-For each session Vantage SHALL derive the repository, the checked-out branch and whether the working directory is a linked git worktree.
+For each session Vantage SHALL derive the repository, the checked-out branch and the folder it runs in, and SHALL show the folder relative to its root as the folder-actions spec describes; a session in a linked git worktree is recognisable because its folder differs from its repository's, so the row carries no separate worktree marker.
 
 #### Scenario: Session in a sibling worktree
-- **WHEN** a session's working directory is a linked worktree of a repository
-- **THEN** the row shows the parent repository's name, the worktree's branch, and marks the row as a worktree
+- **WHEN** a session's working directory is the linked worktree C:\Users\me\source\worktrees\Northwind.Orders-fix-123 of Northwind.Orders
+- **THEN** the row shows Northwind.Orders as the repository, the worktree's branch, and Northwind.Orders-fix-123 as the folder
 
 #### Scenario: Session outside any repository
 - **WHEN** a session's working directory is not inside a git repository
-- **THEN** the row shows the folder name as the repository and leaves the branch blank
+- **THEN** the row shows the folder name as the repository, leaves the branch blank, and shows the folder relative to its root
 
 ### Requirement: Interactive sessions are shown with limited actions
 Sessions whose kind is interactive SHALL appear in the list with their kind marked, and SHALL NOT accept attach, open-in-tab, stop or rename actions; the adopt key moves them under the supervisor and, for one never sent a message, the delete key closes its tab (session-attach spec).
@@ -139,11 +139,11 @@ The sessions view SHALL show a spinner with the words "Listing sessions" in the 
 - **THEN** the spinner is replaced by the failure banner
 
 ### Requirement: The header shows the versions and the roots
-The header's context SHALL show the Vantage version, the Claude Code CLI version and the repository roots, and SHALL NOT show the machine name or the Claude executable's path. A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown.
+The header's context SHALL show the Vantage version, the Claude Code CLI version, the repository roots and the worktree root, and SHALL NOT show the machine name or the Claude executable's path. A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown. The roots and the worktree root SHALL be the settings saved now, so a save from the settings dialog shows at once.
 
 #### Scenario: Released versions
 - **WHEN** Vantage 0.5.0 runs with Claude Code 2.1.310 and the root C:\Users\me\source\repos
-- **THEN** the header reads Vantage: 0.5.0, Claude: 2.1.310 and Roots: C:\Users\me\source\repos above the session counts
+- **THEN** the header reads Vantage: 0.5.0, Claude: 2.1.310, Roots: C:\Users\me\source\repos and Worktree root: C:\Users\me\source\worktrees above the session counts
 
 #### Scenario: Local build
 - **WHEN** the installed tool's version is 0.5.0-local.20261025T101500
@@ -152,6 +152,10 @@ The header's context SHALL show the Vantage version, the Claude Code CLI version
 #### Scenario: Claude version unreadable
 - **WHEN** the Claude Code CLI's version command fails or prints something without a version
 - **THEN** the header reads Claude: unknown and the view works as usual
+
+#### Scenario: Default worktree root
+- **WHEN** Vantage starts with no settings file
+- **THEN** the header shows C:\Users\me\source\worktrees as the worktree root on both views
 
 ### Requirement: Help explains the columns
 The help key SHALL show, beneath the keys, one line for each column of the current view saying what it shows, and the path of the Claude Code executable Vantage drives.

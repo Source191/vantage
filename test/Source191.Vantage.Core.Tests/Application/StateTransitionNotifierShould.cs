@@ -63,6 +63,6 @@ public sealed class StateTransitionNotifierShould : IDisposable
             ? new InteractiveSession(id, name, directory, Noon, state, ProcessId: 4242)
             : new BackgroundSession(id, JobId.From("81cdb0f9"), name, directory, Noon, state);
 
-        return new SessionRow(session, "Northwind.Orders", BranchName.From("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, "Northwind.Orders", BranchName.From("main"), HasLiveTab: false, HasTranscript: true);
     }
 }

@@ -10,10 +10,10 @@ namespace Source191.Vantage.Adapters.State;
 /// <summary>
 /// The only state Vantage owns, under one folder: tab registrations, recent repositories
 /// (one file each, so two Vantage processes writing at once cannot lose each other's records), worktrees Vantage
-/// created, and config. A missing or corrupt file reads as empty. The single-file recent.json of earlier
+/// created, config, and the last update check. A missing or corrupt file reads as empty. The single-file recent.json of earlier
 /// versions is imported once and removed; the descriptions\ folder and sessions.json of earlier versions are no longer read.
 /// </summary>
-public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig
+public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig, IUpdateCheckRecords
 {
     private const int RecentLimit = 10;
 
@@ -35,6 +35,8 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     private string CreatedFile => Path.Combine(folder, "created.json");
 
     private string ConfigFile => Path.Combine(folder, "config.json");
+
+    private string UpdateCheckFile => Path.Combine(folder, "update-check.json");
 
     public async Task<IReadOnlyList<TabRegistration>> ReadTabsAsync() => await ReadAllAsync<TabRegistration>(TabsFolder);
 
@@ -78,9 +80,13 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         await WriteJsonAsync(CreatedFile, existing.Where(created => created.Path != path).ToList());
     }
 
-    public async Task<VantageConfig> ReadConfigAsync() => await ReadJsonAsync<VantageConfig>(ConfigFile) ?? VantageConfig.Default;
+    public Task<VantageConfig?> ReadConfigAsync() => ReadJsonAsync<VantageConfig>(ConfigFile);
 
     public Task WriteConfigAsync(VantageConfig config) => WriteJsonAsync(ConfigFile, config);
+
+    public Task<UpdateCheckRecord?> ReadUpdateCheckAsync() => ReadJsonAsync<UpdateCheckRecord>(UpdateCheckFile);
+
+    public Task WriteUpdateCheckAsync(UpdateCheckRecord record) => WriteJsonAsync(UpdateCheckFile, record);
 
     private string RecentFile(string repository) => Path.Combine(RecentFolder, $"{FileKey(repository.ToUpperInvariant())}.json");
 

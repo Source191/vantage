@@ -18,6 +18,9 @@ public interface IFolders
     /// <summary>Every file under <paramref name="path"/> at any depth, enumerated lazily so a caller can stop early.</summary>
     IEnumerable<string> Files(string path);
 
+    /// <summary>The files directly in <paramref name="path"/>, none of the folders beneath it; nothing when the folder is missing.</summary>
+    IEnumerable<string> FilesIn(string path);
+
     /// <summary>True when the folder holds neither files nor folders.</summary>
     bool IsEmpty(string path);
 

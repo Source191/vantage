@@ -70,6 +70,16 @@ public sealed class GitCliIntegrationShould : IDisposable
     }
 
     [Fact]
+    public async Task AnswerTheOriginUrlOnlyOnceARemoteIsAdded()
+    {
+        await CreateRepositoryWithOneCommitAsync();
+
+        (await git.OriginUrlAsync(Repository, TestContext.Current.CancellationToken)).ShouldBeNull();
+        await RunGitAsync("remote", "add", "origin", "https://github.com/northwind/Northwind.Orders.git");
+        (await git.OriginUrlAsync(Repository, TestContext.Current.CancellationToken)).ShouldBe("https://github.com/northwind/Northwind.Orders.git");
+    }
+
+    [Fact]
     public async Task AnswerRepositoryQuestionsOutsideAndInsideARepository()
     {
         await CreateRepositoryWithOneCommitAsync();
@@ -79,6 +89,17 @@ public sealed class GitCliIntegrationShould : IDisposable
         (await git.RepositoryRootAsync(nested, TestContext.Current.CancellationToken)).ShouldBe(Repository, StringCompareShould.IgnoreCase);
         (await git.RepositoryRootAsync(root, TestContext.Current.CancellationToken)).ShouldBeNull();
         (await git.DefaultRemoteBranchAsync(Repository, TestContext.Current.CancellationToken)).ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task AddAWorktreeUnderAFolderThatDoesNotExistYet()
+    {
+        await CreateRepositoryWithOneCommitAsync();
+        string worktree = Path.Combine(root, "worktrees", "Northwind.Orders-fix-123");
+
+        await git.AddWorktreeAsync(Repository, worktree, "fix-123", "main", TestContext.Current.CancellationToken);
+
+        File.Exists(Path.Combine(worktree, "README.md")).ShouldBeTrue("git creates the missing worktree root");
     }
 
     public void Dispose()

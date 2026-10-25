@@ -13,7 +13,7 @@ namespace Source191.Vantage.Tui;
 /// Every effect that needs a dialog, for both views. Each flow asks its question, then hands the answer back through
 /// the reducer or dispatches the effect it settles on; the work itself is always a handler's.
 /// </summary>
-public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, WorktreeBase defaultBase, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
+public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, SolutionFinder solutions, UpdateCheck updates, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
 {
     /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
@@ -27,6 +27,9 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(ResumeStoppedSessions)] = (_, context, effect) => ChooseSessionsToResume(context, ((ResumeStoppedSessions)effect).Rows),
         [typeof(ConfirmForceRemove)] = (_, context, effect) => ConfirmForce(context, (ConfirmForceRemove)effect),
         [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
+        [typeof(FindSolution)] = (self, context, effect) => self.OpenSolutionOf(context, (FindSolution)effect),
+        [typeof(OpenSettings)] = (self, context, _) => self.EditSettings(context),
+        [typeof(UpdateVantage)] = (self, context, _) => self.ConfirmUpdate(context),
     }.ToFrozenDictionary();
 
     /// <summary>Whether an effect of this type has a dialog flow.</summary>
@@ -103,15 +106,53 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         context.Reduce(new ForceConfirmed(confirm.Row, confirm.ConfirmationText, typed));
     }
 
+    /// <summary>
+    /// Asks before updating; on a yes the handler opens the update tab, then the screen leaves with Quit so this process
+    /// releases its files. A failure to open the tab keeps Vantage open and says why.
+    /// </summary>
+    private void ConfirmUpdate(IEffectContext context)
+    {
+        UpdateStatus status = updates.Status;
+        if (status is not UpdateStatus.Available available)
+        {
+            context.ShowFooter(UpdateVantage.Refusal(status) ?? new Footer.UpToDate());
+            return;
+        }
+
+        int? answer = Confirm.Query(context.App, "Update Vantage", Wording.UpdateQuestion(available.Newest), "Update", "Cancel");
+        if (answer != 0)
+        {
+            return;
+        }
+
+        context.Dispatch(new StartUpdate(available.Newest), outcome =>
+        {
+            context.Reduce(new UpdateTabOpened());
+            return new Footer.Reported(outcome);
+        });
+    }
+
     private void StartSession(IEffectContext context, FolderPath? fixedDirectory)
     {
-        WizardResult? wizard = LaunchWizardDialog.Show(context.App, catalogue, recent, folders, defaultBase, fixedDirectory);
+        WizardResult? wizard = LaunchWizardDialog.Show(context.App, catalogue, recent, folders, settings.Value, fixedDirectory);
         if (wizard is null)
         {
             return;
         }
 
         context.Dispatch(new StartSession(wizard.Plan, wizard.OpenInTab));
+    }
+
+    /// <summary>The settings dialog over the settings saved now; a save is dispatched, so the footer confirms it and the refresh after it uses the new values.</summary>
+    private void EditSettings(IEffectContext context)
+    {
+        Settings? saved = SettingsDialog.Show(context.App, settings.Value, folders.DirectoryExists);
+        if (saved is null)
+        {
+            return;
+        }
+
+        context.Dispatch(new SaveSettings(saved));
     }
 
     private void ConfirmDelete(IEffectContext context, DeleteSession deletion)
@@ -139,5 +180,37 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             outcome => outcome is RemoveWorktreeOutcome.BranchKept kept
                 ? AskAboutBranch(context, outcome, kept.Branch, kept.CreatedByVantage)
                 : new Footer.Reported(outcome));
+    }
+
+    /// <summary>Looks off the UI thread; back on it, one solution opens, none says so, and several are asked about.</summary>
+    private void OpenSolutionOf(IEffectContext context, FindSolution find)
+    {
+        context.RunInBackground(
+            new Footer.Working(find),
+            _ => Task.FromResult(solutions.Find(find.Folder, find.RepositoryName)),
+            search => search switch
+            {
+                SolutionSearch.One one => Open(context, one.File),
+                SolutionSearch.Several several => ChooseSolution(context, find, several.Files),
+                _ => new Footer.NoSolution(find.Folder.Name),
+            });
+    }
+
+    private static Footer ChooseSolution(IEffectContext context, FindSolution find, IReadOnlyList<string> files)
+    {
+        string[] buttons = [.. files.Select(Path.GetFileName)!, "Cancel"];
+        int? answer = Confirm.Query(context.App, Wording.ChooseSolutionTitle, Wording.ChooseSolutionQuestion(find.Folder.Name), buttons);
+
+        return answer is int chosen && chosen < files.Count
+            ? Open(context, files[chosen])
+            : Footer.None;
+    }
+
+    private static Footer.Working Open(IEffectContext context, string file)
+    {
+        OpenSolution open = new(file);
+        context.Dispatch(open);
+
+        return new Footer.Working(open);
     }
 }

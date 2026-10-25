@@ -265,4 +265,25 @@ public sealed class GitCliShould
         Only.Arguments.ShouldBe(["rev-parse", "--path-format=absolute", "--git-common-dir"]);
         main.ShouldBe(@"C:\repos\Northwind.Orders");
     }
+
+    [Fact]
+    public async Task AnswerTheOriginUrl()
+    {
+        processes.AnswerAll(new ProcessResult(0, "https://github.com/northwind/Northwind.Orders.git\n", string.Empty));
+
+        string? url = await Git.OriginUrlAsync(Repository, CancellationToken.None);
+
+        Only.ShouldSatisfyAllConditions(
+            request => request.WorkingDirectory.ShouldBe(Repository),
+            request => request.Arguments.ShouldBe(["remote", "get-url", "origin"]));
+        url.ShouldBe("https://github.com/northwind/Northwind.Orders.git");
+    }
+
+    [Fact]
+    public async Task AnswerNullWithoutAnOrigin()
+    {
+        processes.AnswerAll(new ProcessResult(2, string.Empty, "error: No such remote 'origin'"));
+
+        (await Git.OriginUrlAsync(Repository, CancellationToken.None)).ShouldBeNull();
+    }
 }

@@ -208,7 +208,81 @@ public sealed class WordingShould
         Wording.Describe(new Footer.NoSessionIn("Northwind.Orders-fix-123")).ShouldBe("No session is running in Northwind.Orders-fix-123.");
     }
 
+    [Fact]
+    public void SayNoSolutionWasFound()
+    {
+        Wording.Describe(new Footer.NoSolution("Northwind.Orders-fix-123")).ShouldBe("No solution found in Northwind.Orders-fix-123 or its src folder.");
+    }
+
+    [Fact]
+    public void SayThePullRequestCell()
+    {
+        DateTimeOffset at = new(2026, 10, 20, 9, 0, 0, TimeSpan.Zero);
+        PullRequest gitHub = new(PullRequestHost.GitHub, 123, new Uri("https://github.com/northwind/Northwind.Orders/pull/123"), PullRequestState.Open, at);
+        PullRequest azure = new(PullRequestHost.AzureDevOps, 4521, new Uri("https://dev.azure.com/northwind/Trading/_git/Northwind.Orders/pullrequest/4521"), PullRequestState.Draft, at);
+
+        Wording.PullRequestCell(new PullRequestLookup.Found(gitHub)).ShouldBe("#123 open");
+        Wording.PullRequestCell(new PullRequestLookup.Found(gitHub with { Number = 88, State = PullRequestState.Merged })).ShouldBe("#88 merged");
+        Wording.PullRequestCell(new PullRequestLookup.Found(gitHub with { State = PullRequestState.Closed })).ShouldBe("#123 closed");
+        Wording.PullRequestCell(new PullRequestLookup.Found(gitHub with { State = PullRequestState.Draft })).ShouldBe("#123 draft");
+        Wording.PullRequestCell(new PullRequestLookup.Found(azure)).ShouldBe("!4521 draft");
+        Wording.PullRequestCell(new PullRequestLookup.Found(azure with { Number = 4460, State = PullRequestState.Completed })).ShouldBe("!4460 completed");
+        Wording.PullRequestCell(new PullRequestLookup.Found(azure with { State = PullRequestState.Active })).ShouldBe("!4521 active");
+        Wording.PullRequestCell(new PullRequestLookup.Found(azure with { State = PullRequestState.Abandoned })).ShouldBe("!4521 abandoned");
+        Enum.GetValues<PullRequestGap>().ShouldAllBe(gap => Wording.PullRequestCell(new PullRequestLookup.Missing(gap, null)) == string.Empty);
+    }
+
+    [Theory]
+    [InlineData(PullRequestGap.NoBranch, null, "fix-123 has no branch, so it has no pull request.")]
+    [InlineData(PullRequestGap.NoRemote, null, "fix-123's repository has no origin remote to look up pull requests on.")]
+    [InlineData(PullRequestGap.UnknownHost, null, "fix-123's origin is on neither GitHub nor Azure DevOps, so Vantage cannot look up its pull requests.")]
+    [InlineData(PullRequestGap.CliMissing, PullRequestHost.GitHub, "Install the GitHub CLI (gh) to see fix-123's pull request.")]
+    [InlineData(PullRequestGap.CliMissing, PullRequestHost.AzureDevOps, "Install the Azure CLI (az) with the azure-devops extension to see fix-123's pull request.")]
+    [InlineData(PullRequestGap.NotSignedIn, PullRequestHost.GitHub, "Sign in with gh auth login to see fix-123's pull request.")]
+    [InlineData(PullRequestGap.NotSignedIn, PullRequestHost.AzureDevOps, "Sign in with az login to see fix-123's pull request.")]
+    [InlineData(PullRequestGap.CliMissing, null, "Install the GitHub CLI (gh) or the Azure CLI (az) to see fix-123's pull request.")]
+    [InlineData(PullRequestGap.NotSignedIn, null, "Sign in with gh auth login or az login to see fix-123's pull request.")]
+    [InlineData(PullRequestGap.Looking, null, "Still looking up fix-123's pull request; try again in a moment.")]
+    [InlineData(PullRequestGap.Failed, PullRequestHost.GitHub, "The GitHub CLI (gh) could not list fix-123's pull requests.")]
+    [InlineData(PullRequestGap.Failed, null, "Could not look up fix-123's pull requests.")]
+    [InlineData(PullRequestGap.NoPullRequest, PullRequestHost.AzureDevOps, "No pull request found for fix-123's branch among the latest 100.")]
+    public void SayWhyThereIsNoPullRequest(PullRequestGap gap, PullRequestHost? host, string expected)
+    {
+        Wording.Describe(new Footer.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);
+    }
+
+    [Fact]
+    public void SayAPullRequestIsOpening()
+    {
+        PullRequest azure = new(PullRequestHost.AzureDevOps, 4521, new Uri("https://dev.azure.com/northwind/Trading/_git/Northwind.Orders/pullrequest/4521"), PullRequestState.Active, DateTimeOffset.UnixEpoch);
+
+        Wording.Working(new OpenPullRequest(azure)).ShouldBe("Opening !4521...");
+    }
     // Dialogs and the screen.
+
+    [Fact]
+    public void SayVantageIsUpToDate()
+    {
+        Wording.Describe(new Footer.UpToDate()).ShouldBe("Vantage is up to date.");
+    }
+
+    [Fact]
+    public void SayTheUpdateCheckIsOff()
+    {
+        Wording.Describe(new Footer.UpdateCheckOff()).ShouldBe("The update check is off, or this is a development build; nothing to update to.");
+    }
+
+    [Fact]
+    public void AskBeforeUpdating()
+    {
+        Wording.UpdateQuestion(ReleaseVersion.TryParse("0.10.0")!).ShouldBe("Quit Vantage and update to 0.10.0?\nBackground sessions keep running.");
+    }
+
+    [Fact]
+    public void SayTheUpdateTabIsOpening()
+    {
+        Wording.Working(new StartUpdate(ReleaseVersion.TryParse("0.10.0")!)).ShouldBe("Opening a tab to update to 0.10.0...");
+    }
 
     [Fact]
     public void SayTheEmptyTabsWereKept()
@@ -331,6 +405,23 @@ public sealed class WordingShould
         Wording.Working(new OpenShellTab(Worktree)).ShouldBe("Opening a shell in Northwind.Orders-fix-123...");
     }
 
+    [Fact]
+    public void SayWhatEachFolderEffectIsDoingWhileItRuns()
+    {
+        FolderPath folder = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123");
+
+        Wording.Working(new CopyFolderPath(folder)).ShouldBe("Copying...");
+        Wording.Working(new OpenFolderInEditor(folder)).ShouldBe("Opening Northwind.Orders-fix-123 in the editor...");
+        Wording.Working(new FindSolution(folder, "Northwind.Orders")).ShouldBe("Looking for a solution in Northwind.Orders-fix-123...");
+        Wording.Working(new OpenSolution(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123\Northwind.Orders.slnx")).ShouldBe("Opening Northwind.Orders.slnx...");
+    }
+
+    [Fact]
+    public void AskWhichSolutionToOpen()
+    {
+        Wording.ChooseSolutionTitle.ShouldBe("Open solution");
+        Wording.ChooseSolutionQuestion("Northwind.Orders-fix-123").ShouldBe("Northwind.Orders-fix-123 holds more than one solution. Which one?");
+    }
     [Fact]
     public void NameTheSessionBeingStarted()
     {
@@ -500,9 +591,12 @@ public sealed class WordingShould
             _ when type == typeof(RemovalReason) => new RemovalReason.Locked(),
             _ when type == typeof(HealthReason) => new HealthReason.FolderGone(),
             _ when type == typeof(NameProblem) => NameProblem.UnsafeCharacters,
+            _ when type == typeof(FolderPath) => FolderPath.From(@"D:\nowhere"),
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
             _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123"),
+            _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
+            _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
             _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),
         };
     }
@@ -540,8 +634,52 @@ public sealed class WordingShould
             .ShouldBe("A worktree needs a name with some letters or digits in it.");
     }
 
-    // Refusals on the launch path, in the wizard and vantage here.
+    // The settings dialog.
 
+    public static TheoryData<Type> SettingsProblems => new(typeof(SettingsProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(SettingsProblem))));
+
+    [Theory]
+    [MemberData(nameof(SettingsProblems))]
+    public void HaveWordsForEverySettingsProblem(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        SettingsProblem problem = (SettingsProblem)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+
+        Wording.Describe(problem).ShouldNotBe(problem.ToString(), $"{type.Name} has no arm in Wording.Describe");
+    }
+
+    [Fact]
+    public void SaySettingsProblems()
+    {
+        Wording.Describe(new SettingsProblem.NoRoots()).ShouldBe("Give at least one repository root, one per line.");
+        Wording.Describe(new SettingsProblem.RootNotFullPath("repos")).ShouldBe(@"The repository root repos is not a full path, such as C:\Users\me\source\repos.");
+        Wording.Describe(new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere"))).ShouldBe(@"D:\nowhere does not exist.");
+        Wording.Describe(new SettingsProblem.WorktreeRootNotFullPath()).ShouldBe(@"The worktree root must be a full path, such as C:\Users\me\source\worktrees.");
+        Wording.Describe(new SettingsProblem.NoExecutable()).ShouldBe("A custom editor needs an executable.");
+        Wording.Describe(new SettingsProblem.BatchFileExecutable()).ShouldBe("A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.");
+        Wording.Describe(new SettingsProblem.NoFolderPlaceholder()).ShouldBe("A custom editor's arguments need {folder} where the folder goes.");
+    }
+
+    [Fact]
+    public void SaySettingsAreBeingSaved()
+    {
+        Wording.Working(new SaveSettings(TestSettings.For(@"C:\Users\me\source\repos"))).ShouldBe("Saving settings...");
+    }
+
+    [Fact]
+    public void NameEveryEditorPreset()
+    {
+        Enum.GetValues<EditorPreset>().Select(Wording.Describe).ShouldBe(["VS Code", "Cursor", "Rider", "Visual Studio", "Explorer", "Custom"]);
+    }
+
+    [Fact]
+    public void SayTheSettingsKeyInHelp()
+    {
+        Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe").ShouldContain(",      edit roots, worktree root and editor");
+        Wording.WorktreesHelp.ShouldContain(",      edit roots, worktree root and editor");
+    }
+
+    // Refusals on the launch path, in the wizard and vantage here.
     public static TheoryData<Type> LaunchProblems => new(typeof(LaunchProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(LaunchProblem))));
 
     [Theory]
@@ -630,7 +768,7 @@ public sealed class WordingShould
     {
         FakeFolders folders = new();
 
-        return WizardState.Open(new RepositoryCatalogue(folders, []), [], folders, WorktreeBase.RemoteDefault, fixedDirectory is null ? null : FolderPath.From(fixedDirectory));
+        return WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current()), [], folders, TestSettings.For(), fixedDirectory is null ? null : FolderPath.From(fixedDirectory));
     }
 
     // vantage setup-terminal.

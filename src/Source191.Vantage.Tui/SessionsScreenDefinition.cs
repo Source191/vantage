@@ -6,7 +6,7 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The sessions view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, string claudeExecutable)
+internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, string claudeExecutable, FolderLabels folders)
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(5);
@@ -17,7 +17,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public string LoadFailurePrefix => "listing failed";
 
-    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nSessions:\nNeed input:";
+    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nWorktree root:\nSessions:\nNeed input:";
 
     public IReadOnlyList<KeyHelp> Keys => Wording.SessionsKeys;
 
@@ -32,19 +32,20 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
             0 => row.Session.Name,
             1 => row.Session.State.Label,
             2 => row.Repository,
-            3 => row.Branch?.Value ?? "-",
-            4 => row.IsWorktree ? "yes" : string.Empty,
-            5 => Durations.Age(now - row.Session.StartedAt),
+            3 => folders.For(row.Session.WorkingDirectory),
+            4 => row.Branch?.Value ?? "-",
+            5 => Wording.PullRequestCell(row.PullRequest),
+            6 => Durations.Age(now - row.Session.StartedAt),
             _ => Tab(row),
         };
     }
 
     public Color RowColour(SessionRow row) => Palette.ForState(row.Session.State.Kind);
 
-    /// <summary>The sessions line (48 columns at most, so it never wraps into the "Need input" row) and the needs-input count.</summary>
+    /// <summary>The sessions line (45 columns at most, so it never wraps into the "Need input" row) and the needs-input count.</summary>
     public string ContextLines(SessionsViewState state)
     {
-        const int width = 48;
+        const int width = 45;
         IEnumerable<string> byState = state.Rows
             .Where(row => row.Session.State.Kind != DisplayStateKind.NeedsInput)
             .GroupBy(row => row.Session.State.Label)

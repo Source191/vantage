@@ -40,8 +40,8 @@ public sealed class LaunchServiceShould
 
     private static LaunchPlan NewWorktree => CurrentBranch with
     {
-        Directory = FolderPath.From(@"C:\repos\Northwind.Orders-fix-flaky-tests"),
-        Worktree = new SiblingWorktree(FolderPath.From(@"C:\repos\Northwind.Orders-fix-flaky-tests"), BranchName.From("fix-flaky-tests")),
+        Directory = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"),
+        Worktree = new PlannedWorktree(FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"), BranchName.From("fix-flaky-tests")),
     };
 
     [Fact]
@@ -57,15 +57,25 @@ public sealed class LaunchServiceShould
     }
 
     [Fact]
-    public async Task CreateTheSiblingWorktreeFromTheRemoteDefaultBeforeStarting()
+    public async Task CreateTheWorktreeUnderTheWorktreeRootFromTheRemoteDefaultBeforeStarting()
     {
         await Service.LaunchAsync(NewWorktree, CancellationToken.None);
 
         ProcessRequest add = processes.CapturedRequests.Single(request => request.Arguments.Contains("add"));
         add.WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
-        add.Arguments.ShouldBe(["worktree", "add", @"C:\repos\Northwind.Orders-fix-flaky-tests", "-b", "fix-flaky-tests", "origin/main"]);
-        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders-fix-flaky-tests");
+        add.Arguments.ShouldBe(["worktree", "add", @"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests", "-b", "fix-flaky-tests", "origin/main"]);
+        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests");
         (await Store.ReadCreatedWorktreesAsync()).Single().Branch.ShouldBe(BranchName.From("fix-flaky-tests"));
+    }
+
+    [Fact]
+    public async Task RecordAWorktreeCreatedUnderTheWorktreeRoot()
+    {
+        await Service.LaunchAsync(NewWorktree, CancellationToken.None);
+
+        CreatedWorktree created = (await Store.ReadCreatedWorktreesAsync()).Single();
+        created.Path.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"));
+        created.Repository.ShouldBe(Repository.Path);
     }
 
     [Fact]

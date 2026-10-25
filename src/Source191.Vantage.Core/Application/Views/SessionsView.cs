@@ -4,7 +4,11 @@ using System.Diagnostics;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>A listed session with what git, the state store and the transcript folder add to it. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then, so every caller must say which it is.</summary>
-public sealed record SessionRow(Session Session, string Repository, BranchName? Branch, bool IsWorktree, bool HasLiveTab, bool HasTranscript);
+public sealed record SessionRow(Session Session, string Repository, BranchName? Branch, bool HasLiveTab, bool HasTranscript)
+{
+    /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
+    public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
+}
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
 public sealed record Key(KeyName Name, char Character)
@@ -134,6 +138,7 @@ public static class SessionsView
             RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
+            UpdateTabOpened => Effect(state, new Quit()),
             SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId.Value))),
             KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key))),
             KeyPressed pressed => Act(state, pressed.Key),
@@ -158,12 +163,18 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'C' } => CloseEmpty(state),
             { Name: KeyName.Character, Character: 'd' } => SessionAction(state, (_, session) => new DeleteSession(session), Attachment.None),
             { Name: KeyName.Character, Character: 'b' } => Adopt(state),
+            { Name: KeyName.Character, Character: 'c' } => FolderAction(state, (folder, _) => new CopyFolderPath(folder)),
+            { Name: KeyName.Character, Character: 'e' } => FolderAction(state, (folder, _) => new OpenFolderInEditor(folder)),
+            { Name: KeyName.Character, Character: 'v' } => FolderAction(state, (folder, repository) => new FindSolution(folder, repository)),
+            { Name: KeyName.Character, Character: 'p' } => OpenPullRequest(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
             { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
             { Name: KeyName.Character, Character: 'a' } => Effect(state, new OpenAgentView()),
             { Name: KeyName.Character, Character: 'w' } => Effect(state, new SwitchToWorktrees()),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
+            { Name: KeyName.Character, Character: ',' } => Effect(state, new OpenSettings()),
+            { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
             _ => Unchanged(state),
         };
     }
@@ -203,6 +214,27 @@ public static class SessionsView
         }
 
         return Effect(state with { Footer = Footer.None }, effect(row, session));
+    }
+
+    /// <summary>A key that takes the row's folder to another tool; every row has one, whatever kind of session it is.</summary>
+    private static ViewUpdate FolderAction(SessionsViewState state, Func<FolderPath, string, ViewEffect> effect)
+    {
+        return state.Selected switch
+        {
+            null => Unchanged(state with { Footer = new Footer.NoSessionSelected() }),
+            SessionRow row => Effect(state with { Footer = Footer.None }, effect(row.Session.WorkingDirectory, row.Repository)),
+        };
+    }
+    /// <summary>The row's pull request in the browser, or a footer saying why it has none.</summary>
+    private static ViewUpdate OpenPullRequest(SessionsViewState state)
+    {
+        return state.Selected switch
+        {
+            null => Unchanged(state with { Footer = new Footer.NoSessionSelected() }),
+            { PullRequest: PullRequestLookup.Found found } => Effect(state with { Footer = Footer.None }, new OpenPullRequest(found.PullRequest)),
+            { PullRequest: PullRequestLookup.Missing missing } row => Unchanged(state with { Footer = new Footer.NoPullRequest(row.Session.Name, missing.Gap, missing.Host) }),
+            _ => Unchanged(state),
+        };
     }
 
     /// <summary>Every plain claude session that was never sent a message, in one go; the TUI confirms before closing.</summary>

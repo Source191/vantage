@@ -114,6 +114,36 @@ public static partial class Wording
         };
     }
 
+    /// <summary>Why the settings dialog will not save.</summary>
+    public static string Describe(SettingsProblem problem)
+    {
+        return problem switch
+        {
+            SettingsProblem.NoRoots => "Give at least one repository root, one per line.",
+            SettingsProblem.RootNotFullPath relative => $@"The repository root {relative.Text} is not a full path, such as C:\Users\me\source\repos.",
+            SettingsProblem.RootMissing missing => $"{missing.Path} does not exist.",
+            SettingsProblem.WorktreeRootNotFullPath => @"The worktree root must be a full path, such as C:\Users\me\source\worktrees.",
+            SettingsProblem.NoExecutable => "A custom editor needs an executable.",
+            SettingsProblem.BatchFileExecutable => "A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.",
+            SettingsProblem.NoFolderPlaceholder => $"A custom editor's arguments need {EditorChoice.FolderPlaceholder} where the folder goes.",
+            _ => problem.ToString(),
+        };
+    }
+
+    /// <summary>An editor preset as the settings dialog names it.</summary>
+    public static string Describe(EditorPreset preset)
+    {
+        return preset switch
+        {
+            EditorPreset.VsCode => "VS Code",
+            EditorPreset.Cursor => "Cursor",
+            EditorPreset.Rider => "Rider",
+            EditorPreset.VisualStudio => "Visual Studio",
+            EditorPreset.Explorer => "Explorer",
+            EditorPreset.Custom => "Custom",
+        };
+    }
+
     /// <summary>Why the wizard will not go on.</summary>
     public static string Describe(WizardProblem problem)
     {
@@ -143,9 +173,22 @@ public static partial class Wording
             PruneRepository => "Pruning...",
             OpenShellTab shell => $"Opening a shell in {shell.Row.FolderName}...",
             StartSession start => $"Starting {start.Plan.Name.Value}...",
+            CopyFolderPath => "Copying...",
+            OpenFolderInEditor open => $"Opening {open.Folder.Name} in the editor...",
+            FindSolution find => $"Looking for a solution in {find.Folder.Name}...",
+            OpenSolution solution => $"Opening {Path.GetFileName(solution.File)}...",
+            OpenPullRequest open => $"Opening {PullRequestNumber(open.PullRequest.Host, open.PullRequest.Number)}...",
+            SaveSettings => "Saving settings...",
+            StartUpdate update => $"Opening a tab to update to {update.Newest}...",
             _ => "Working...",
         };
     }
+
+    /// <summary>The update key's question, once a newer release is known.</summary>
+    public static string UpdateQuestion(ReleaseVersion newest) => $"Quit Vantage and update to {newest}?\nBackground sessions keep running.";
+
+    /// <summary>What the update tab says when dotnet tool update fails, under dotnet's own message.</summary>
+    public static string UpdateFailedHint => "Vantage: the update failed. Quit every Vantage that is still open, then press U in Vantage again.";
 
     public static string WizardTitle(WizardState wizard) => wizard.FixedChoice is null ? "New session" : $"New session in {wizard.FixedChoice.Name}";
 
@@ -159,6 +202,10 @@ public static partial class Wording
 
         return wizard.ShowsChooser ? $"Type to filter, ↑↓ to choose, Enter confirms the repository   {Fields}" : Fields;
     }
+
+    public static string ChooseSolutionTitle => "Open solution";
+
+    public static string ChooseSolutionQuestion(string folderName) => $"{folderName} holds more than one solution. Which one?";
 
     public static string RenamePrompt(string name) => $"Rename {name}. The session restarts under the new name and keeps its conversation.";
 
@@ -258,6 +305,10 @@ public static partial class Wording
             Footer.NothingToPrune prune => $"Nothing to prune: the repository {prune.RepositoryName} no longer exists.",
             Footer.LeftoverFolder leftover => $"{leftover.FolderName} is a leftover folder, not a worktree.",
             Footer.NoSessionIn none => $"No session is running in {none.FolderName}.",
+            Footer.NoSolution none => $"No solution found in {none.FolderName} or its src folder.",
+            Footer.NoPullRequest none => Describe(none),
+            Footer.UpToDate => "Vantage is up to date.",
+            Footer.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",
             Footer.Kept => "Kept.",
             Footer.NothingChosenToResume => "Nothing to resume.",
             Footer.NoDialogFor missing => $"No dialog is defined for {missing.EffectName}.",

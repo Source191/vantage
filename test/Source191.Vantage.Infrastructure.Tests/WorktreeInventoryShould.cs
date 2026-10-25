@@ -4,6 +4,7 @@ using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Infrastructure.Tests;
@@ -16,7 +17,35 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     private readonly TemporaryGitRoot root = new();
 
-    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), new Folders(), [root.Path]);
+    private readonly FakePullRequests hosts = new();
+    private readonly FakeProcessRunner remotes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, "https://github.com/northwind/Northwind.Orders.git", string.Empty));
+    private readonly PullRequestCatalogue catalogue;
+
+    public WorktreeInventoryShould()
+    {
+        // The origin comes from a fake: a real git still running in the folder in the background would stop Dispose deleting it.
+        catalogue = new PullRequestCatalogue(new GitCli(remotes), hosts, TimeProvider.System);
+    }
+
+    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), new Folders(), TestSettings.Current(TestSettings.For([root.Path], root.WorktreeRoot)), catalogue);
+
+    [Fact]
+    public async Task CarryEachRowsPullRequest()
+    {
+        string repository = await root.CreateRepositoryAsync("Northwind.Orders");
+        await root.AddSiblingWorktreeAsync(repository, "fix-1");
+        PullRequest open = new(PullRequestHost.GitHub, 7, new Uri("https://github.com/northwind/Northwind.Orders/pull/7"), PullRequestState.Open, Noon);
+        hosts.Answer(new GitHubRepository("northwind", "Northwind.Orders"), new PullRequestListing.Listed([new BranchPullRequest(BranchName.From("fix-1"), open)]));
+
+        WorktreeRow first = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
+        await catalogue.RefreshStaleAsync([FolderPath.From(repository)]);
+        WorktreeRow second = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
+
+        first.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
+        second.PullRequest.ShouldBe(new PullRequestLookup.Found(open));
+        hosts.Calls.Count.ShouldBe(1);
+        remotes.CapturedRequests.ShouldAllBe(request => request.WorkingDirectory == repository);
+    }
 
     /// <summary>Plain claude running in the folder, or a stopped job there when it has no process.</summary>
     private static Session SessionIn(string directory, string name, int? processId)
@@ -48,6 +77,18 @@ public sealed class WorktreeInventoryShould : IDisposable
             ("Northwind.First", FolderPath.From(firstWorktree), BranchName.From("fix-1"), WorktreeHealthKind.Ok),
             ("Northwind.Second", FolderPath.From(secondWorktree), BranchName.From("fix-2"), WorktreeHealthKind.Ok),
         ]);
+    }
+
+    [Fact]
+    public async Task ListWorktreesInBothPlacements()
+    {
+        string repository = await root.CreateRepositoryAsync("Northwind.Orders");
+        string beside = await root.AddSiblingWorktreeAsync(repository, "fix-1");
+        string under = await root.AddWorktreeUnderTheWorktreeRootAsync(repository, "fix-2");
+
+        IReadOnlyList<WorktreeRow> rows = await Inventory.ScanAsync([], TestContext.Current.CancellationToken);
+
+        rows.Select(row => (row.Path, row.Health.Kind)).ShouldBe([(FolderPath.From(beside), WorktreeHealthKind.Ok), (FolderPath.From(under), WorktreeHealthKind.Ok)], ignoreOrder: true);
     }
 
     [Fact]

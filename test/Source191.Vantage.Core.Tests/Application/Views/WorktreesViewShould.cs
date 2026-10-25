@@ -118,14 +118,46 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
-    public void PruneTheSelectedRowsRepositoryUnlessItHasGone()
+    public void PruneWithCapitalPUnlessTheRepositoryHasGone()
     {
         WorktreesViewState onGone = Press(Loaded, Enumerable.Repeat(Key.Down, 6).ToArray());
 
-        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Of('p'))).Effects.ShouldBe([new PruneRepository(FolderPath.From(Repository))]);
-        WorktreesViewUpdate refused = WorktreesView.Reduce(onGone, new KeyPressed(Key.Of('p')));
+        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Of('P'))).Effects.ShouldBe([new PruneRepository(FolderPath.From(Repository))]);
+        WorktreesViewUpdate refused = WorktreesView.Reduce(onGone, new KeyPressed(Key.Of('P')));
         refused.Effects.ShouldBeEmpty();
         refused.State.Footer.ShouldBe(new Footer.NothingToPrune("Northwind.Retired"));
+    }
+
+    [Fact]
+    public void NotPruneWithLowerP()
+    {
+        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Of('p'))).Effects.ShouldNotContain(effect => effect is PruneRepository);
+    }
+
+    [Fact]
+    public void OpenTheSelectedRowsPullRequest()
+    {
+        PullRequest open = new(PullRequestHost.GitHub, 123, new Uri("https://github.com/northwind/Northwind.Orders/pull/123"), PullRequestState.Open, DateTimeOffset.UnixEpoch);
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean with { PullRequest = new PullRequestLookup.Found(open) }]));
+
+        WorktreesView.Reduce(state, new KeyPressed(Key.Of('p'))).Effects.ShouldBe([new OpenPullRequest(open)]);
+    }
+
+    [Fact]
+    public void ExplainAMissingPullRequest()
+    {
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean with { PullRequest = new PullRequestLookup.Missing(PullRequestGap.Looking) }]));
+
+        WorktreesViewUpdate update = WorktreesView.Reduce(state, new KeyPressed(Key.Of('p')));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.NoPullRequest("Northwind.Orders-fix-1", PullRequestGap.Looking, null));
+    }
+
+    [Fact]
+    public void NeedASelectionToOpenAPullRequest()
+    {
+        WorktreesView.Reduce(WorktreesViewState.Empty, new KeyPressed(Key.Of('p'))).State.Footer.ShouldBe(new Footer.NoWorktreeSelected());
     }
 
     [Fact]
@@ -145,6 +177,24 @@ public sealed class WorktreesViewShould
 
         WorktreesView.Reduce(onBusy, new KeyPressed(Key.Enter)).Effects.ShouldBe([new JumpToSession(SessionId.From("sess-fix-3"))]);
         WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Enter)).State.Footer.ShouldBe(new Footer.NoSessionIn("Northwind.Orders-fix-1"));
+    }
+
+    [Fact]
+    public void AskToUpdateOnCapitalU()
+    {
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('U'))).Effects.ShouldBe([new UpdateVantage()]);
+    }
+
+    [Fact]
+    public void QuitOnceTheUpdateTabIsOpen()
+    {
+        WorktreesView.Reduce(Loaded, new UpdateTabOpened()).Effects.ShouldBe([new Quit()]);
+    }
+
+    [Fact]
+    public void OpenSettingsOnComma()
+    {
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of(','))).Effects.ShouldBe([new OpenSettings()]);
     }
 
     [Fact]
@@ -229,6 +279,57 @@ public sealed class WorktreesViewShould
         new PruneRepository(FolderPath.From(Repository)).ShouldNotBeAssignableTo<ILeavesScreen>();
     }
 
+    [Fact]
+    public void CopyTheSelectedWorktreesFolder()
+    {
+        WorktreesViewState onClean = Press(Loaded, Key.Down, Key.Down);
+
+        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('c'))).Effects.ShouldBe([new CopyFolderPath(Clean.Path)]);
+    }
+
+    [Fact]
+    public void OpenTheSelectedWorktreeInTheEditorAndFindItsSolution()
+    {
+        WorktreesViewState onClean = Press(Loaded, Key.Down, Key.Down);
+
+        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Clean.Path)]);
+        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('v'))).Effects.ShouldBe([new FindSolution(Clean.Path, "Northwind.Orders")]);
+    }
+
+    [Theory]
+    [InlineData('c')]
+    [InlineData('e')]
+    [InlineData('v')]
+    public void RefuseAFolderKeyOnALeftoverWhoseFolderIsGone(char key)
+    {
+        WorktreeRow vanished = Orphan with { FolderExists = false };
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([vanished]));
+
+        WorktreesViewUpdate update = WorktreesView.Reduce(state, new KeyPressed(Key.Of(key)));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.LeftoverFolder("fix-service-tests"));
+    }
+
+    [Fact]
+    public void ActOnALeftoverWhoseFolderStillExists()
+    {
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Orphan]));
+
+        WorktreesView.Reduce(state, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Orphan.Path)]);
+    }
+
+    [Theory]
+    [InlineData('c')]
+    [InlineData('e')]
+    [InlineData('v')]
+    public void SayNoWorktreeIsSelectedWhenAFolderKeyIsPressedOnAnEmptyTable(char key)
+    {
+        WorktreesViewUpdate update = WorktreesView.Reduce(WorktreesViewState.Empty, new KeyPressed(Key.Of(key)));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.NoWorktreeSelected());
+    }
     private static WorktreesViewState Press(WorktreesViewState state, params Key[] keys)
     {
         return keys.Aggregate(state, (current, key) => WorktreesView.Reduce(current, new KeyPressed(key)).State);

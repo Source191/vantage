@@ -14,14 +14,14 @@
 - [x] 3.1 P2 `unreachable-arms` merged and archived (patch); verify `openspec list` no longer shows it
 - [x] 3.2 P3 `text-value-doors` merged and archived (patch), stacked on P2; verify `openspec list` no longer shows it
 - [x] 3.3 P4 `facts-not-sentences` merged and archived (patch), stacked on P3; verify `openspec list` no longer shows it
-- [ ] 3.4 P5 `from-factory-spike` decided on its diff: merged (patch) or closed unmerged, with the reason in its tasks.md, and archived either way; verify `openspec list` no longer shows it
+- [x] 3.4 P5 `from-factory-spike` decided on its diff: merged (patch) or closed unmerged, with the reason in its tasks.md, and archived either way; verify `openspec list` no longer shows it. Merged: the product owner keeps `From`; the contract theory over all six types is worth the spelling change.
 
 ## 4. P6 to P9: features stream
 
 - [x] 4.1 P6 `header-and-help` merged and archived (minor); verify `openspec list` no longer shows it
-- [ ] 4.2 P7 `settings-and-worktree-root` merged and archived (minor), stacked on P6 and started after P3 (and P5, if merged) are on `main`; verify `openspec\specs\settings` exists
-- [ ] 4.3 P8 `folder-column-and-open-keys` merged and archived (minor), stacked on P7; verify `openspec\specs\folder-actions` exists
-- [ ] 4.4 P9 `pull-request-column` merged and archived (minor), stacked on P8; verify `openspec\specs\pull-requests` exists
+- [x] 4.2 P7 `settings-and-worktree-root` merged and archived (minor), stacked on P6 and started after P3 (and P5, if merged) are on `main`; verify `openspec\specs\settings` exists
+- [x] 4.3 P8 `folder-column-and-open-keys` merged and archived (minor), stacked on P7; verify `openspec\specs\folder-actions` exists
+- [x] 4.4 P9 `pull-request-column` merged and archived (minor), stacked on P8; verify `openspec\specs\pull-requests` exists
 
 ## 5. P10: standalone
 
@@ -38,7 +38,7 @@
 
 ## 7. P12: update notice
 
-- [ ] 7.1 `update-notice` merged and archived (minor), after P6 and P7; verify `openspec\specs\tool-updates` exists
+- [x] 7.1 `update-notice` merged and archived (minor), after P6 and P7; verify `openspec\specs\tool-updates` exists
 
 ## 8. P13: final manual test
 

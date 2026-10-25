@@ -65,11 +65,23 @@ public abstract record Footer
 
     public sealed record NoSessionIn(string FolderName) : Footer;
 
+    /// <summary>The pull request key found none for the row: Gap says why, and Host names the CLI when the remote was read.</summary>
+    public sealed record NoPullRequest(string RowName, PullRequestGap Gap, PullRequestHost? Host) : Footer;
+
+    /// <summary>The solution key found no .sln or .slnx in the folder or its src folder.</summary>
+    public sealed record NoSolution(string FolderName) : Footer;
+
     /// <summary>The close-empty-tabs question was answered with Keep.</summary>
     public sealed record Kept : Footer;
 
     /// <summary>The resume checklist ended with nothing to resume.</summary>
     public sealed record NothingChosenToResume : Footer;
+
+    /// <summary>The update key found no newer release.</summary>
+    public sealed record UpToDate : Footer;
+
+    /// <summary>The update key on a build that never checks: the setting is off, or it is a development build.</summary>
+    public sealed record UpdateCheckOff : Footer;
 
     public sealed record NoDialogFor(string EffectName) : Footer;
 

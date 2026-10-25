@@ -313,11 +313,19 @@ public sealed class SessionsViewShould
     [InlineData('w', typeof(SwitchToWorktrees))]
     [InlineData('q', typeof(Quit))]
     [InlineData('?', typeof(ShowHelp))]
+    [InlineData(',', typeof(OpenSettings))]
+    [InlineData('U', typeof(UpdateVantage))]
     public void EmitTheEffectForTheKey(char key, Type effect)
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of(key)));
 
         update.Effects.Single().ShouldBeOfType(effect);
+    }
+
+    [Fact]
+    public void QuitOnceTheUpdateTabIsOpen()
+    {
+        SessionsView.Reduce(Loaded, new UpdateTabOpened()).Effects.ShouldBe([new Quit()]);
     }
 
     [Fact]
@@ -346,6 +354,88 @@ public sealed class SessionsViewShould
         update.Effects.Single().ShouldBeOfType<ResumeStoppedSessions>().Rows.ShouldBe(Loaded.VisibleRows);
     }
 
+    [Fact]
+    public void OpenTheSelectedRowsPullRequest()
+    {
+        PullRequest active = new(PullRequestHost.AzureDevOps, 4521, new Uri("https://dev.azure.com/northwind/Trading/_git/Northwind.Shipping/pullrequest/4521"), PullRequestState.Active, Noon);
+        SessionsViewState state = Reduce(SessionsViewState.Empty, new RowsLoaded([Waiting with { PullRequest = new PullRequestLookup.Found(active) }]));
+
+        SessionsView.Reduce(state, new KeyPressed(Key.Of('p'))).Effects.ShouldBe([new OpenPullRequest(active)]);
+    }
+
+    [Fact]
+    public void ExplainAMissingPullRequest()
+    {
+        SessionsViewState state = Reduce(SessionsViewState.Empty, new RowsLoaded([Waiting with { PullRequest = new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, PullRequestHost.GitHub) }]));
+
+        ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('p')));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.NoPullRequest("change-feed", PullRequestGap.NotSignedIn, PullRequestHost.GitHub));
+    }
+
+    [Fact]
+    public void NeedASelectionToOpenAPullRequest()
+    {
+        SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of('p'))).State.Footer.ShouldBe(new Footer.NoSessionSelected());
+    }
+
+    [Fact]
+    public void CopyTheSelectedSessionsFolder()
+    {
+        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('c')));
+
+        update.Effects.ShouldBe([new CopyFolderPath(Waiting.Session.WorkingDirectory)]);
+    }
+
+    [Fact]
+    public void OpenTheSelectedSessionsFolderInTheEditorWhateverKindOfSessionItIs()
+    {
+        SessionsViewState onTerminal = Press(Loaded, Key.Down, Key.Down);
+        SessionsViewState onStopped = Press(Loaded, Key.Down, Key.Down, Key.Down);
+
+        onTerminal.Selected.ShouldBe(Interactive);
+        SessionsView.Reduce(onTerminal, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Interactive.Session.WorkingDirectory)]);
+        onStopped.Selected.ShouldBe(Stopped);
+        SessionsView.Reduce(onStopped, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Stopped.Session.WorkingDirectory)]);
+    }
+
+    [Fact]
+    public void FindTheSelectedSessionsSolutionByItsFolderAndRepository()
+    {
+        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('v')));
+
+        update.Effects.ShouldBe([new FindSolution(Waiting.Session.WorkingDirectory, "Northwind.Shipping")]);
+    }
+
+    [Theory]
+    [InlineData('c')]
+    [InlineData('e')]
+    [InlineData('v')]
+    public void SayNoSessionIsSelectedWhenAFolderKeyIsPressedOnAnEmptyTable(char key)
+    {
+        ViewUpdate update = SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of(key)));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.NoSessionSelected());
+    }
+
+    [Fact]
+    public void ClearTheLastMessageWhenAFolderKeyActs()
+    {
+        SessionsViewState withMessage = Loaded with { Footer = new Footer.RenameCancelled() };
+
+        SessionsView.Reduce(withMessage, new KeyPressed(Key.Of('c'))).State.Footer.ShouldBe(Footer.None);
+    }
+
+    [Fact]
+    public void MarkTheSolutionSearchAsAskingFirstAndTheOtherFolderEffectsAsBackground()
+    {
+        new FindSolution(Waiting.Session.WorkingDirectory, "Northwind.Shipping").ShouldBeAssignableTo<IDialogEffect>();
+        new CopyFolderPath(Waiting.Session.WorkingDirectory).ShouldNotBeAssignableTo<IDialogEffect>();
+        new OpenFolderInEditor(Waiting.Session.WorkingDirectory).ShouldNotBeAssignableTo<IDialogEffect>();
+        new OpenSolution(@"C:\repos\Northwind.Shipping\Northwind.Shipping.sln").ShouldNotBeAssignableTo<IDialogEffect>();
+    }
     [Fact]
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
@@ -382,7 +472,7 @@ public sealed class SessionsViewShould
     /// <summary>The session in its repository's folder, on main.</summary>
     private static SessionRow Row(Session session)
     {
-        return new SessionRow(session, session.WorkingDirectory.Name, BranchName.From("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, session.WorkingDirectory.Name, BranchName.From("main"), HasLiveTab: false, HasTranscript: true);
     }
 
     private static BackgroundSession Job(string name, DisplayState state, string repository, string jobId)

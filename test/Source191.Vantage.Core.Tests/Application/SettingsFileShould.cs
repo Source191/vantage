@@ -1,0 +1,93 @@
+using Source191.Vantage.Application;
+using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
+
+namespace Source191.Vantage.Core.Tests.Application;
+
+public sealed class SettingsFileShould
+{
+    private static readonly FolderPath Home = FolderPath.From(@"C:\Users\me");
+
+    [Fact]
+    public void ResolveAMissingFileToEveryDefault()
+    {
+        Settings settings = SettingsFile.From(config: null, Home);
+
+        settings.RepositoryRoots.ShouldBe([FolderPath.From(@"C:\Users\me\source\repos")]);
+        settings.WorktreeRoot.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees"));
+        settings.Editor.ShouldBe(EditorChoice.VsCode);
+        settings.DefaultBase.ShouldBe(WorktreeBase.RemoteDefault);
+    }
+
+    [Fact]
+    public void CheckForUpdatesWhenTheFileSaysNothing()
+    {
+        SettingsFile.From(config: null, Home).CheckForUpdates.ShouldBeTrue();
+        SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null), Home).CheckForUpdates.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ReadAndWriteTheUpdateCheckTurnedOff()
+    {
+        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null, CheckForUpdates: false), Home);
+
+        settings.CheckForUpdates.ShouldBeFalse();
+        SettingsFile.ToConfig(settings).CheckForUpdates.ShouldBe(false);
+        SettingsFile.ToConfig(SettingsFile.From(config: null, Home)).CheckForUpdates.ShouldBe(true);
+    }
+
+    [Fact]
+    public void ResolveAFileFromAnEarlierVersion()
+    {
+        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null), Home);
+
+        settings.RepositoryRoots.ShouldBe([FolderPath.From(@"D:\work")]);
+        settings.DefaultBase.ShouldBe(WorktreeBase.Head);
+        settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
+        settings.Editor.ShouldBe(EditorChoice.VsCode);
+    }
+
+    [Fact]
+    public void SkipRootsThatAreNotFullPaths()
+    {
+        Settings settings = SettingsFile.From(new VantageConfig(["repos", @"D:\work"], DefaultBase: null, WorktreeRoot: "trees", Editor: null), Home);
+
+        settings.RepositoryRoots.ShouldBe([FolderPath.From(@"D:\work")]);
+        settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
+    }
+
+    [Fact]
+    public void ReadTheEditorPresetByName()
+    {
+        SettingsFile.From(new VantageConfig(null, null, null, new EditorSetting("rider", null, null)), Home).Editor.ShouldBe(EditorChoice.Of(EditorPreset.Rider));
+    }
+
+    [Fact]
+    public void ReadAnUnknownEditorPresetAsVsCode()
+    {
+        SettingsFile.From(new VantageConfig(null, null, null, new EditorSetting("Notepad", null, null)), Home).Editor.ShouldBe(EditorChoice.VsCode);
+    }
+
+    [Fact]
+    public void ReadACustomEditorWithoutAPlaceholderAsVsCode()
+    {
+        SettingsFile.From(new VantageConfig(null, null, null, new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n"])), Home).Editor.ShouldBe(EditorChoice.VsCode);
+    }
+
+    [Fact]
+    public void RoundTripThroughTheFileRecord()
+    {
+        Settings settings = Settings.Resolve([FolderPath.From(@"C:\repos"), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home);
+
+        VantageConfig config = SettingsFile.ToConfig(settings);
+
+        config.ShouldBe(new VantageConfig([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"E:\trees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"]), CheckForUpdates: true));
+        SettingsFile.From(config, Home).ShouldBe(settings);
+    }
+
+    [Fact]
+    public void WriteAPresetWithoutACommand()
+    {
+        SettingsFile.ToConfig(SettingsFile.From(config: null, Home)).Editor.ShouldBe(new EditorSetting("VsCode", Executable: null, Arguments: null));
+    }
+}

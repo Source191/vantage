@@ -22,6 +22,9 @@ public sealed record WorktreeRow(
     bool OwnerExists,
     bool FolderExists)
 {
+    /// <summary>The branch's pull request, or why there is none; a leftover has no branch to look up.</summary>
+    public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
+
     public string RepositoryName => Repository.Name;
 
     public string FolderName => Path.Name;
