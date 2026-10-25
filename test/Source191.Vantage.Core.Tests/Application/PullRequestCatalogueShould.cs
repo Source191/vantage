@@ -120,6 +120,16 @@ public sealed class PullRequestCatalogueShould
     }
 
     [Fact]
+    public async Task AnswerFailedWhenTheLookupThrows()
+    {
+        processes.Fail(new System.ComponentModel.Win32Exception(2, "The system cannot find the file specified."));
+
+        await catalogue.RefreshStaleAsync([Checkout]);
+
+        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Failed));
+    }
+
+    [Fact]
     public async Task AnswerNoBranchForADetachedHead()
     {
         await catalogue.RefreshStaleAsync([Checkout]);
