@@ -37,12 +37,21 @@ public sealed class TerminalSetupRunner(
             return 2;
         }
 
-        return request.Remove ? await RemoveAsync(cancellationToken) : await SetUpAsync(request, cancellationToken);
+        return request.Remove ? await RemoveAsync(cancellationToken) : await SetUpAsync(request with { Sound = FullPath(request.Sound), SessionSound = FullPath(request.SessionSound) }, cancellationToken);
     }
+
+    /// <summary>Windows Terminal does not share our working directory, so a sound is written as a full path.</summary>
+    private static string? FullPath(string? sound) => string.IsNullOrWhiteSpace(sound) ? sound : Path.GetFullPath(sound);
 
     private async Task<int> RemoveAsync(CancellationToken cancellationToken)
     {
-        bool removed = await fragment.RemoveAsync(cancellationToken);
+        bool removed = false;
+        Step step = await TryWriteAsync(fragment.Location, async () => removed = await fragment.RemoveAsync(cancellationToken));
+        if (step == Step.Failed)
+        {
+            return 1;
+        }
+
         await output.WriteLineAsync(removed ? Wording.ProfilesRemoved(fragment.Location) : Wording.NothingToRemove);
 
         return 0;
@@ -141,13 +150,14 @@ public sealed class TerminalSetupRunner(
                 await output.WriteLineAsync(Wording.ClaudeSettingsUnreadable(claudeSettings.Location, unreadable.Reason));
                 return Step.Skipped;
             default:
-                return await AskAndEnableBellAsync(request, cancellationToken);
+                return await AskAndEnableBellAsync(state, request, cancellationToken);
         }
     }
 
-    private async Task<Step> AskAndEnableBellAsync(TerminalSetupRequest request, CancellationToken cancellationToken)
+    private async Task<Step> AskAndEnableBellAsync(NotificationChannelState state, TerminalSetupRequest request, CancellationToken cancellationToken)
     {
-        await output.WriteLineAsync(Wording.ClaudeBellPlan(claudeSettings.Location));
+        string? replacing = (state as NotificationChannelState.Configured)?.Value;
+        await output.WriteLineAsync(Wording.ClaudeBellPlan(claudeSettings.Location, replacing));
         if (!await ConfirmedAsync(request, Wording.TurnOnClaudeBellQuestion))
         {
             return Step.Skipped;

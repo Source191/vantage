@@ -79,6 +79,41 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     }
 
     [Fact]
+    public async Task WriteARelativeSoundAsAFullPathBecauseWindowsTerminalWillNotShareOurFolder()
+    {
+        string full = Path.GetFullPath("ding.wav");
+        folders.WithFile(full);
+
+        int exitCode = await RunAsync(string.Empty, "--yes", "--sound", "ding.wav");
+
+        exitCode.ShouldBe(0);
+        fragment.Written.Single().VantageSound.ShouldBe(full);
+    }
+
+    [Fact]
+    public async Task NameTheValueItReplacesWhenClaudeUsesAnotherChannel()
+    {
+        FakeClaudeSettings other = new(new NotificationChannelState.Configured("iterm2"));
+        TerminalSetupRunner runner = new(folders, fragment, other, Vantage, Media, new StringReader("n\nn\n"), output, error);
+
+        await runner.RunAsync([], CancellationToken.None);
+
+        output.ToString().ShouldContain(Wording.ClaudeBellPlan(other.Location, replacing: "iterm2"));
+    }
+
+    [Fact]
+    public async Task ReturnOneWhenTheFragmentCannotBeRemoved()
+    {
+        fragment.Installed();
+        fragment.FailTheRemovalWith = new IOException("in use");
+
+        int exitCode = await RunAsync(string.Empty, "--remove");
+
+        exitCode.ShouldBe(1);
+        error.ToString().ShouldContain(Wording.TerminalSetupFailed(fragment.Location, "in use"));
+    }
+
+    [Fact]
     public async Task LeaveOutAMissingDefaultAndSaySo()
     {
         FakeFolders withoutDefault = new FakeFolders().WithFile(ProximityNotification);
@@ -132,7 +167,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
 
         await runner.RunAsync([], CancellationToken.None);
 
-        output.ToString().ShouldContain(Wording.ClaudeBellPlan(other.Location));
+        output.ToString().ShouldContain(Wording.ClaudeBellPlan(other.Location, current));
         output.ToString().ShouldContain(Wording.TurnOnClaudeBellQuestion);
     }
 

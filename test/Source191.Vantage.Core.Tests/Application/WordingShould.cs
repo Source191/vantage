@@ -589,9 +589,13 @@ public sealed class WordingShould
     [Fact]
     public void ShowTheClaudeSettingBeforeAskingForIt()
     {
-        Wording.ClaudeBellPlan(@"C:\Users\me\.claude\settings.json").ShouldBe("""
+        Wording.ClaudeBellPlan(@"C:\Users\me\.claude\settings.json", replacing: null).ShouldBe("""
             Claude Code can ring the terminal bell when a session finishes or needs permission.
             This sets "preferredNotifChannel": "terminal_bell" in C:\Users\me\.claude\settings.json and keeps every other setting.
+            """);
+        Wording.ClaudeBellPlan(@"C:\Users\me\.claude\settings.json", replacing: "iterm2").ShouldBe("""
+            Claude Code can ring the terminal bell when a session finishes or needs permission.
+            This replaces "preferredNotifChannel": "iterm2" with "terminal_bell" in C:\Users\me\.claude\settings.json and keeps every other setting.
             """);
         Wording.TurnOnClaudeBellQuestion.ShouldBe("Turn on Claude Code's terminal bell? [y/N] ");
     }

@@ -19,6 +19,9 @@ public sealed class FakeTerminalFragment : ITerminalFragment
     /// <summary>When set, the next write throws it.</summary>
     public IOException? FailTheWriteWith { get; set; }
 
+    /// <summary>When set, removing throws it.</summary>
+    public IOException? FailTheRemovalWith { get; set; }
+
     public FakeTerminalFragment Installed()
     {
         Exists = true;
@@ -41,6 +44,11 @@ public sealed class FakeTerminalFragment : ITerminalFragment
 
     public Task<bool> RemoveAsync(CancellationToken cancellationToken)
     {
+        if (FailTheRemovalWith is not null)
+        {
+            throw FailTheRemovalWith;
+        }
+
         bool removed = Exists;
         Exists = false;
         Removals++;

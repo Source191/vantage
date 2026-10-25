@@ -200,11 +200,16 @@ public static partial class Wording
 
     public static string DefaultSoundMissing(string profileName, string path) => $"{path} was not found, so the {profileName} profile uses Windows Terminal's own bell sound.";
 
-    public static string ClaudeBellPlan(string settingsPath)
+    /// <summary>What turning the bell on will do to the settings file; <paramref name="replacing"/> is the other channel it displaces, if any.</summary>
+    public static string ClaudeBellPlan(string settingsPath, string? replacing)
     {
+        string change = replacing is null
+            ? "This sets \"preferredNotifChannel\": \"terminal_bell\""
+            : $"This replaces \"preferredNotifChannel\": \"{replacing}\" with \"terminal_bell\"";
+
         return string.Join(Environment.NewLine,
             "Claude Code can ring the terminal bell when a session finishes or needs permission.",
-            $"This sets \"preferredNotifChannel\": \"terminal_bell\" in {settingsPath} and keeps every other setting.");
+            $"{change} in {settingsPath} and keeps every other setting.");
     }
 
     public static string ClaudeBellEnabled(string settingsPath) => $"Set preferredNotifChannel to terminal_bell in {settingsPath}. It applies to sessions started from now on.";
