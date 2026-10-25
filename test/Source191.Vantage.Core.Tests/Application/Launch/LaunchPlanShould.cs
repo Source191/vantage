@@ -11,7 +11,6 @@ public sealed class LaunchPlanShould
     private static readonly LaunchRequest Default = new(
         Repository,
         NameText: "Fix #123: flaky tests!",
-        DescriptionText: "  Stabilise the retry test  ",
         Mode: LaunchMode.CurrentBranch,
         Base: WorktreeBase.RemoteDefault,
         OpeningPromptText: string.Empty);
@@ -24,13 +23,6 @@ public sealed class LaunchPlanShould
         plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders");
         plan.Worktree.ShouldBeNull();
         plan.Name.Text.ShouldBe("Fix #123: flaky tests!");
-    }
-
-    [Fact]
-    public void TrimTheDescriptionAndDropItWhenBlank()
-    {
-        LaunchPlanBuilder.Build(Default, _ => false).Plan!.Description.ShouldBe("Stabilise the retry test");
-        LaunchPlanBuilder.Build(Default with { DescriptionText = "   " }, _ => false).Plan!.Description.ShouldBeNull();
     }
 
     [Fact]

@@ -68,7 +68,6 @@ public sealed class JsonFileStoreShould : IDisposable
         (await Store.ReadTabsAsync()).ShouldBeEmpty();
         (await Store.ReadRecentRepositoriesAsync()).ShouldBeEmpty();
         (await Store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
-        (await Store.ReadDescriptionsAsync()).ShouldBeEmpty();
     }
 
     [Fact]
@@ -166,20 +165,6 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task KeepDescriptionsWrittenByTwoWriters()
-    {
-        JsonFileStore console = Store;
-        JsonFileStore here = Store;
-
-        await Task.WhenAll(console.WriteDescriptionAsync("session-1", "Replace the login page"), here.WriteDescriptionAsync("session-2", "Spike"));
-
-        IReadOnlyDictionary<string, string> descriptions = await Store.ReadDescriptionsAsync();
-        descriptions.Count.ShouldBe(2);
-        descriptions["session-1"].ShouldBe("Replace the login page");
-        descriptions["session-2"].ShouldBe("Spike");
-    }
-
-    [Fact]
     public async Task SkipARecordAnotherProcessIsStillWritingInsteadOfFailingTheRead()
     {
         await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
@@ -195,41 +180,55 @@ public sealed class JsonFileStoreShould : IDisposable
     [Fact]
     public async Task WriteARecordWhileAnotherProcessHasItOpenForReading()
     {
-        await Store.WriteDescriptionAsync("session-1", "first");
-        string file = Directory.EnumerateFiles(Path.Combine(folder, "descriptions")).Single();
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+        string file = Directory.EnumerateFiles(Path.Combine(folder, "recent")).Single();
         await using FileStream reading = new(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        clock.Advance(TimeSpan.FromSeconds(1));
 
-        await Store.WriteDescriptionAsync("session-1", "second");
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\B");
 
-        (await Store.ReadDescriptionsAsync())["session-1"].ShouldBe("second");
+        (await Store.ReadRecentRepositoriesAsync()).ShouldBe([@"C:\repos\B", @"C:\repos\A"]);
     }
 
     [Fact]
     public async Task TreatAHalfWrittenRecordAsAbsentUntilItIsFinished()
     {
         await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
-        Directory.CreateDirectory(Path.Combine(folder, "descriptions"));
-        await File.WriteAllTextAsync(Path.Combine(folder, "descriptions", "half.json"), """{ "sessionId": "session-9", "descr""", TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(folder, "recent", "half.json"), """{ "path": "C:\\repos\\Half", "usedA""", TestContext.Current.CancellationToken);
 
-        (await Store.ReadDescriptionsAsync()).ShouldBeEmpty();
         (await Store.ReadRecentRepositoriesAsync()).ShouldBe([@"C:\repos\A"]);
     }
 
     [Fact]
-    public async Task ImportLegacyRecentAndSessionsFiles()
+    public async Task ImportTheLegacyRecentFile()
     {
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "recent.json"), """["C:\\repos\\Newest", "C:\\repos\\Older"]""", TestContext.Current.CancellationToken);
-        await File.WriteAllTextAsync(Path.Combine(folder, "sessions.json"), """{ "session-1": "Replace the login page" }""", TestContext.Current.CancellationToken);
 
         IReadOnlyList<string> recent = await Store.ReadRecentRepositoriesAsync();
-        IReadOnlyDictionary<string, string> descriptions = await Store.ReadDescriptionsAsync();
-
         recent.ShouldBe([@"C:\repos\Newest", @"C:\repos\Older"]);
-        descriptions.Count.ShouldBe(1);
-        descriptions["session-1"].ShouldBe("Replace the login page");
         File.Exists(Path.Combine(folder, "recent.json")).ShouldBeFalse();
-        File.Exists(Path.Combine(folder, "sessions.json")).ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task LeaveOldDescriptionFilesUntouched()
+    {
+        Directory.CreateDirectory(Path.Combine(folder, "descriptions"));
+        string descriptionFile = Path.Combine(folder, "descriptions", "old.json");
+        string sessionsFile = Path.Combine(folder, "sessions.json");
+        await File.WriteAllTextAsync(descriptionFile, """{ "sessionId": "session-1", "description": "Replace the login page" }""", TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(sessionsFile, """{ "session-1": "Replace the login page" }""", TestContext.Current.CancellationToken);
+        byte[] descriptionBytes = await File.ReadAllBytesAsync(descriptionFile, TestContext.Current.CancellationToken);
+        byte[] sessionsBytes = await File.ReadAllBytesAsync(sessionsFile, TestContext.Current.CancellationToken);
+
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+        await Store.ReadRecentRepositoriesAsync();
+        await Store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(@"C:\repos\A-fix"), new BranchName("fix"), new FolderPath(@"C:\repos\A"), Noon));
+        await Store.ReadCreatedWorktreesAsync();
+
+        (await File.ReadAllBytesAsync(descriptionFile, TestContext.Current.CancellationToken)).ShouldBe(descriptionBytes);
+        (await File.ReadAllBytesAsync(sessionsFile, TestContext.Current.CancellationToken)).ShouldBe(sessionsBytes);
     }
 
     [Fact]
@@ -273,27 +272,6 @@ public sealed class JsonFileStoreShould : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "created.json"), CreatedJson.Replace(@"C:\\Users\\me\\source\\repos\\Northwind.Orders-fix-123", @"Northwind.Orders-fix-123", StringComparison.Ordinal), TestContext.Current.CancellationToken);
 
         (await Store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
-    }
-
-    [Fact]
-    public async Task RoundTripSessionDescriptions()
-    {
-        await Store.WriteDescriptionAsync("session-1", "Replace the login page");
-        await Store.WriteDescriptionAsync("session-2", "Spike");
-
-        IReadOnlyDictionary<string, string> descriptions = await Store.ReadDescriptionsAsync();
-
-        descriptions["session-1"].ShouldBe("Replace the login page");
-        descriptions.Count.ShouldBe(2);
-    }
-
-    [Fact]
-    public async Task TreatACorruptDescriptionsFileAsEmpty()
-    {
-        Directory.CreateDirectory(folder);
-        await File.WriteAllTextAsync(Path.Combine(folder, "sessions.json"), "<<garbage>>", TestContext.Current.CancellationToken);
-
-        (await Store.ReadDescriptionsAsync()).ShouldBeEmpty();
     }
 
     [Fact]

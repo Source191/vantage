@@ -6,9 +6,9 @@ namespace Source191.Vantage.Application;
 
 /// <summary>
 /// Turns listed sessions into table rows by asking git about each working directory (cached, because that is
-/// three processes per directory), reading descriptions from the state store, and checking for live tabs.
+/// three processes per directory); and checking for live tabs.
 /// </summary>
-public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDescriptions, ITabRegistry tabs, IProcessRegistry processes, TimeProvider clock, ITranscripts transcripts)
+public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegistry processes, TimeProvider clock, ITranscripts transcripts)
 {
     private static readonly TimeSpan CacheWindow = TimeSpan.FromSeconds(30);
 
@@ -17,7 +17,6 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
 
     public async Task<IReadOnlyList<SessionRow>> EnrichAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {
-        IReadOnlyDictionary<string, string> descriptions = await sessionDescriptions.ReadDescriptionsAsync();
         HashSet<SessionId> sessionsWithLiveTabs = await LiveTabSessionsAsync();
 
         List<SessionRow> rows = [];
@@ -29,7 +28,6 @@ public sealed class SessionRowEnricher(IGit git, ISessionDescriptions sessionDes
                 location.Repository,
                 location.Branch,
                 location.IsWorktree,
-                descriptions.GetValueOrDefault(session.SessionId.Value),
                 sessionsWithLiveTabs.Contains(session.SessionId),
                 transcripts.HasMessages(session.SessionId.Value)));
         }
