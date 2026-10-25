@@ -6,6 +6,7 @@ using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 using static Source191.Vantage.Core.Tests.Application.Actions.SessionTestData;
@@ -47,7 +48,7 @@ public sealed class EffectDispatcherShould
         FakeTimeProvider clock = new(Noon);
         LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);
         EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders());
-        EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, @"C:\Users\me\.dotnet\tools\vantage.exe"), TestSettings.Current());
+        EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, @"C:\Users\me\.dotnet\tools\vantage.exe"), TestSettings.Current(), new VantageProcess(4242, new FolderPath(@"C:\Users\me")));
         // A dialog effect that is dispatched itself once its dialog has been answered.
         Type[] dispatchedAfterTheirDialog = [typeof(CloseEmptyTerminals)];
 

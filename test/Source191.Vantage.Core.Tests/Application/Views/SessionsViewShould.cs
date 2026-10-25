@@ -314,11 +314,18 @@ public sealed class SessionsViewShould
     [InlineData('q', typeof(Quit))]
     [InlineData('?', typeof(ShowHelp))]
     [InlineData(',', typeof(OpenSettings))]
+    [InlineData('U', typeof(UpdateVantage))]
     public void EmitTheEffectForTheKey(char key, Type effect)
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of(key)));
 
         update.Effects.Single().ShouldBeOfType(effect);
+    }
+
+    [Fact]
+    public void QuitOnceTheUpdateTabIsOpen()
+    {
+        SessionsView.Reduce(Loaded, new UpdateTabOpened()).Effects.ShouldBe([new Quit()]);
     }
 
     [Fact]

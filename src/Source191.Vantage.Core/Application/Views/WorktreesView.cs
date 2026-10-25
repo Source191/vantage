@@ -76,6 +76,7 @@ public static class WorktreesView
             WorktreeRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
             ForceConfirmed confirmed => Force(state, confirmed),
+            UpdateTabOpened => Effect(state, new Quit()),
             KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key))),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
@@ -106,6 +107,7 @@ public static class WorktreesView
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
             { Name: KeyName.Character, Character: ',' } => Effect(state, new OpenSettings()),
+            { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
             _ => Unchanged(state),
         };
     }

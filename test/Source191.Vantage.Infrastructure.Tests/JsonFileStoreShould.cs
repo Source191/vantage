@@ -303,6 +303,17 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
+    public async Task WriteCheckForUpdates()
+    {
+        VantageConfig saved = new([@"C:\repos"], WorktreeBase.RemoteDefault, @"C:\worktrees", new EditorSetting("VsCode", Executable: null, Arguments: null), CheckForUpdates: false);
+
+        await Store.WriteConfigAsync(saved);
+
+        (await Store.ReadConfigAsync()).ShouldBe(saved);
+        (await File.ReadAllTextAsync(Path.Combine(folder, "config.json"), TestContext.Current.CancellationToken)).ShouldContain("\"checkForUpdates\": false");
+    }
+
+    [Fact]
     public async Task ReadAConfigWithoutABaseAsHavingNone()
     {
         Directory.CreateDirectory(folder);
@@ -358,6 +369,28 @@ public sealed class JsonFileStoreShould : IDisposable
         await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), "nope", TestContext.Current.CancellationToken);
 
         (await Store.ReadConfigAsync()).ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task RoundTripTheUpdateCheckRecord()
+    {
+        UpdateCheckRecord record = new(Noon, "0.10.0");
+
+        await Store.WriteUpdateCheckAsync(record);
+
+        (await Store.ReadUpdateCheckAsync()).ShouldBe(record);
+        File.Exists(Path.Combine(folder, "update-check.json")).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task AnswerNoUpdateCheckRecordWhenTheFileIsMissingOrCorrupt()
+    {
+        (await Store.ReadUpdateCheckAsync()).ShouldBeNull();
+
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "update-check.json"), "{ not json", TestContext.Current.CancellationToken);
+
+        (await Store.ReadUpdateCheckAsync()).ShouldBeNull();
     }
 
     public void Dispose()

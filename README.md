@@ -21,6 +21,7 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 - [Common scenarios](#common-scenarios)
 - [Where Vantage keeps things](#where-vantage-keeps-things)
 - [Settings](#settings)
+- [Updates](#updates)
 - [Troubleshooting](#troubleshooting)
 - [Developing Vantage](#developing-vantage)
 - [Continuous integration](#continuous-integration)
@@ -113,7 +114,8 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | e | Open the folder in your editor (VS Code unless you chose another in [Settings](#settings)); works on terminal and stopped sessions too |
 | v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which; none says so in the footer |
 | p | Open the row's pull request in your default browser; with none, the footer says why (no origin remote, a host Vantage does not know, `gh` or `az` missing or signed out, no pull request for the branch, or the lookup still running) |
-| , | Settings: the repository roots, the worktree root, the editor and the default worktree base (see [Settings](#settings)) |
+| , | Settings: the repository roots, the worktree root, the editor, the default worktree base and the update check (see [Settings](#settings)) |
+| U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | w | Switch to the worktrees view |
 | / | Filter by name, repository or branch; Enter keeps the filter, Esc clears it |
 | ? | Help |
@@ -179,7 +181,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | --- | --- |
 | d | Remove the worktree, or delete a leftover folder. Refused, with the reason, when it has changed files, unpushed commits, a lock or a live session. A broken leftover also has its stale registration pruned from the repository. Junctions and links inside a leftover (pnpm's `node_modules`, for one) are removed as links and never followed, so nothing outside the folder is touched. A leftover's files are counted up to 1,000, so a large one is refused as "at least 1000 files" |
 | D | Force removal: the folder name opens selected in a read-only box, so Ctrl+C copies it (F2 also copies, from anywhere in the dialog); Tab or Enter moves to the answer box, Ctrl+V pastes, Enter confirms. There is no Remove button; a wrong or empty answer keeps the dialog open and says what was typed, and Esc cancels. Never forces a locked worktree or one with a live session |
-| P | Prune stale registrations in the row's repository (`p` before 0.10.0) |
+| P | Prune stale registrations in the row's repository (`p` before 0.11.0) |
 | p | Open the row's pull request in your default browser, as in the sessions view |
 | s | Start a session in this worktree (the wizard opens with the directory fixed) |
 | o | Open a plain PowerShell tab in the worktree |
@@ -188,6 +190,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | / | Filter by repository, folder, branch or health |
 | c, e, v | Copy the folder path, open the folder in your editor, open its solution, as in the sessions view; refused for a leftover whose folder is gone |
 | , | Settings, as in the sessions view |
+| U | Update Vantage, as in the sessions view |
 
 Branches: when a removed worktree's branch was created by Vantage and is merged, the branch is deleted too; when Vantage created it but it is not merged, or you created it by hand, Vantage asks before deleting it.
 
@@ -276,7 +279,8 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 
 | File or folder | Contents |
 | --- | --- |
-| `config.json` | Your settings: `repositoryRoots` (default `~\source\repos`), `worktreeRoot` (default `worktrees` beside the first root, so `~\source\worktrees`), `editor` (default VS Code) and `defaultBase` (`RemoteDefault` or `Head`); see [Settings](#settings) |
+| `config.json` | Your settings: `repositoryRoots` (default `~\source\repos`), `worktreeRoot` (default `worktrees` beside the first root, so `~\source\worktrees`), `editor` (default VS Code), `defaultBase` (`RemoteDefault` or `Head`) and `checkForUpdates` (default `true`); see [Settings](#settings) |
+| `update-check.json` | When Vantage last asked nuget.org for a newer release of itself and the newest release it found; see [Updates](#updates) |
 | `recent\` | One file per recently used repository, with when it was last used; the ten most recent are shown first in the wizard |
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
 | `tabs\` | One file per tab Vantage opened, so a second `o` switches to the tab instead of opening another |
@@ -293,6 +297,7 @@ Press `,` in either view. The dialog shows:
 - **Worktree root:** where new worktrees go, as `<worktree root>\<repository>-<name>`. It must be a full path; it is created when the first worktree goes there. Worktrees made beside their repository by earlier versions stay where they are and are still listed, removed and opened as before.
 - **Editor:** VS Code, Cursor, Rider, Visual Studio, Explorer, or Custom: an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The The `e` key opens the selected row's folder in this editor.
 - **Worktree base:** where a new worktree's branch starts by default, origin's default branch or the current HEAD.
+- **Check for updates daily:** whether Vantage asks nuget.org once a day for a newer release of itself (see [Updates](#updates)); on unless you turn it off.
 
 F5 saves: the dialog checks everything first, names any problem and keeps the dialog open; once saved, `config.json` is written and the next scan, wizard and header use the new values at once, without a restart. Esc closes the dialog without changing anything.
 
@@ -303,9 +308,18 @@ F5 saves: the dialog checks everything first, names any problem and keeps the di
   "repositoryRoots": ["C:\\Users\\you\\source\\repos", "D:\\work"],
   "defaultBase": "RemoteDefault",
   "worktreeRoot": "C:\\Users\\you\\source\\worktrees",
-  "editor": { "preset": "Custom", "executable": "C:\\Tools\\subl.exe", "arguments": ["-n", "{folder}"] }
+  "editor": { "preset": "Custom", "executable": "C:\\Tools\\subl.exe", "arguments": ["-n", "{folder}"] },
+  "checkForUpdates": true
 }
 ```
+
+## Updates
+
+A dotnet global tool never updates itself, so Vantage looks for you. Once a day at most, after the first screen is up, it asks nuget.org for the versions of `Source191.Vantage`; when a higher release exists the header's Vantage line says so, for example `Vantage: 0.9.0 (0.10.0 available, U to update)`. The check runs in the background with a 3 second timeout: a slow or failed request shows nothing, delays nothing and is tried again on the next start. Prerelease versions on nuget.org are ignored, and a local or CI build (a prerelease version itself) never checks.
+
+`U` in either view asks "Quit Vantage and update to 0.10.0?". On yes Vantage opens a tab titled "Update Vantage" and quits; the tab waits for that Vantage to exit (a running `vantage.exe` locks its own files), runs `dotnet tool update -g Source191.Vantage`, and starts Vantage again when the update succeeds. When it fails, typically because another Vantage is still open in some tab, the tab stays open with dotnet's message: quit every Vantage and press `U` again, or run the command yourself. Background sessions run under Claude's supervisor and keep running throughout. With no newer release known, `U` says Vantage is up to date, or that the check is off.
+
+**What the check sends:** one anonymous HTTPS request to `https://api.nuget.org/v3-flatcontainer/source191.vantage/index.json`, the public list of the package's versions, with a `Vantage/<version>` user agent and nothing else that identifies you or your machine. Turn it off with **Check for updates daily** in [Settings](#settings) or `"checkForUpdates": false` in `config.json`.
 
 ## Troubleshooting
 

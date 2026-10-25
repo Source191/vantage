@@ -20,6 +20,23 @@ public sealed class SettingsFileShould
     }
 
     [Fact]
+    public void CheckForUpdatesWhenTheFileSaysNothing()
+    {
+        SettingsFile.From(config: null, Home).CheckForUpdates.ShouldBeTrue();
+        SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null), Home).CheckForUpdates.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ReadAndWriteTheUpdateCheckTurnedOff()
+    {
+        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null, CheckForUpdates: false), Home);
+
+        settings.CheckForUpdates.ShouldBeFalse();
+        SettingsFile.ToConfig(settings).CheckForUpdates.ShouldBe(false);
+        SettingsFile.ToConfig(SettingsFile.From(config: null, Home)).CheckForUpdates.ShouldBe(true);
+    }
+
+    [Fact]
     public void ResolveAFileFromAnEarlierVersion()
     {
         Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null), Home);
@@ -64,7 +81,7 @@ public sealed class SettingsFileShould
 
         VantageConfig config = SettingsFile.ToConfig(settings);
 
-        config.ShouldBe(new VantageConfig([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"E:\trees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"])));
+        config.ShouldBe(new VantageConfig([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"E:\trees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"]), CheckForUpdates: true));
         SettingsFile.From(config, Home).ShouldBe(settings);
     }
 

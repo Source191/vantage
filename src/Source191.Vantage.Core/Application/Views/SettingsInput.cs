@@ -11,6 +11,7 @@ public enum SettingsField
     Executable,
     Arguments,
     Base,
+    CheckForUpdates,
 }
 
 /// <summary>What happened in the settings dialog: each case is one control event or button, raised by the dialog that binds them.</summary>
@@ -27,6 +28,8 @@ public abstract record SettingsInput
     public sealed record ArgumentsChanged(string Text) : SettingsInput;
 
     public sealed record BaseChanged(WorktreeBase Base) : SettingsInput;
+
+    public sealed record CheckForUpdatesChanged(bool Checked) : SettingsInput;
 
     /// <summary>A field took focus, by Tab, a click or the dialog itself.</summary>
     public sealed record FieldFocused(SettingsField Field) : SettingsInput;

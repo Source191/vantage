@@ -16,14 +16,23 @@ public sealed class WordingOfScreensShould
     [Fact]
     public void ShowVersionsAndRootsInTheHeader()
     {
-        Wording.HeaderValues(new ToolVersion("0.5.0"), "2.1.310", Roots(@"C:\Users\me\source\repos", @"D:\work"))
+        Wording.HeaderValues(new ToolVersion("0.5.0"), "2.1.310", Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate())
             .ShouldBe("0.5.0\n2.1.310\nC:\\Users\\me\\source\\repos; D:\\work\nC:\\Users\\me\\source\\worktrees");
+    }
+
+    [Fact]
+    public void NameAnAvailableUpdateInTheHeader()
+    {
+        UpdateStatus available = new UpdateStatus.Available(ReleaseVersion.TryParse("0.9.0")!, ReleaseVersion.TryParse("0.10.0")!);
+
+        Wording.HeaderValues(new ToolVersion("0.9.0"), "2.1.310", Roots(@"C:\Users\me\source\repos"), available)
+            .ShouldStartWith("0.9.0 (0.10.0 available, U to update)\n2.1.310\n");
     }
 
     [Fact]
     public void ShowAnUnreadableClaudeVersionAsUnknown()
     {
-        Wording.HeaderValues(new ToolVersion("0.5.0-local"), claudeVersion: null, Roots(@"C:\Users\me\source\repos"))
+        Wording.HeaderValues(new ToolVersion("0.5.0-local"), claudeVersion: null, Roots(@"C:\Users\me\source\repos"), new UpdateStatus.Off())
             .ShouldBe("0.5.0-local\nunknown\nC:\\Users\\me\\source\\repos\nC:\\Users\\me\\source\\worktrees");
     }
 

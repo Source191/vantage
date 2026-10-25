@@ -180,6 +180,18 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
+    public void AskToUpdateOnCapitalU()
+    {
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('U'))).Effects.ShouldBe([new UpdateVantage()]);
+    }
+
+    [Fact]
+    public void QuitOnceTheUpdateTabIsOpen()
+    {
+        WorktreesView.Reduce(Loaded, new UpdateTabOpened()).Effects.ShouldBe([new Quit()]);
+    }
+
+    [Fact]
     public void OpenSettingsOnComma()
     {
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of(','))).Effects.ShouldBe([new OpenSettings()]);

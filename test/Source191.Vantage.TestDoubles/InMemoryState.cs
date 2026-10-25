@@ -7,13 +7,14 @@ namespace Source191.Vantage.TestDoubles;
 /// Every state port in memory, with the same rules as the file store: recent repositories most recent first and
 /// capped at ten, one created-worktree record per path.
 /// </summary>
-public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig
+public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig, IUpdateCheckRecords
 {
     private const int RecentLimit = 10;
 
     private readonly Dictionary<Guid, TabRegistration> tabs = [];
     private readonly List<string> recent = [];
     private readonly List<CreatedWorktree> created = [];
+    private UpdateCheckRecord? updateCheck;
     private VantageConfig? config;
 
     public Task<IReadOnlyList<TabRegistration>> ReadTabsAsync()
@@ -76,6 +77,17 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
     public Task WriteConfigAsync(VantageConfig config)
     {
         this.config = config;
+        return Task.CompletedTask;
+    }
+
+    public Task<UpdateCheckRecord?> ReadUpdateCheckAsync()
+    {
+        return Task.FromResult(updateCheck);
+    }
+
+    public Task WriteUpdateCheckAsync(UpdateCheckRecord record)
+    {
+        updateCheck = record;
         return Task.CompletedTask;
     }
 }

@@ -77,6 +77,12 @@ public abstract record Footer
     /// <summary>The resume checklist ended with nothing to resume.</summary>
     public sealed record NothingChosenToResume : Footer;
 
+    /// <summary>The update key found no newer release.</summary>
+    public sealed record UpToDate : Footer;
+
+    /// <summary>The update key on a build that never checks: the setting is off, or it is a development build.</summary>
+    public sealed record UpdateCheckOff : Footer;
+
     public sealed record NoDialogFor(string EffectName) : Footer;
 
     /// <summary>The effect is running off the UI thread.</summary>

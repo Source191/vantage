@@ -30,6 +30,7 @@ public static partial class Wording
             OpenTabOutcome tab => Describe(tab),
             StartSessionOutcome start => Describe(start),
             SaveSettingsOutcome => "Settings saved.",
+            UpdateStartedOutcome update => $"Updating to {update.Newest} in a new tab; Vantage starts again there when it is done.",
             _ => outcome.ToString(),
         };
     }

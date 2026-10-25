@@ -20,6 +20,7 @@ public static class SettingsView
             SettingsInput.ExecutableChanged changed => Changed(state with { Text = state.Text with { Executable = changed.Text } }),
             SettingsInput.ArgumentsChanged changed => Changed(state with { Text = state.Text with { Arguments = changed.Text } }),
             SettingsInput.BaseChanged changed => Changed(state with { Text = state.Text with { Base = changed.Base } }),
+            SettingsInput.CheckForUpdatesChanged changed => Changed(state with { Text = state.Text with { CheckForUpdates = changed.Checked } }),
             SettingsInput.FieldFocused focused => Changed(state with { Focus = focused.Field }),
             SettingsInput.Save => Saved(state),
             SettingsInput.Cancel => new SettingsUpdate(state, new SettingsEffect.Close()),
