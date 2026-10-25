@@ -24,6 +24,8 @@ public sealed record DriverOptions(bool PretendWindowsTerminal, bool AnswerQueri
             environment[(string)entry.Key] = (string?)entry.Value ?? string.Empty;
         }
 
+        environment["VANTAGE_NO_UPDATE_CHECK"] = "1";
+
         if (PretendWindowsTerminal)
         {
             environment["TERM_PROGRAM"] = "WindowsTerminal";
