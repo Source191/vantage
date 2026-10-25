@@ -91,7 +91,7 @@ The resume-all key SHALL run the CLI's background resume for every session in th
 - **THEN** they are listed with unticked boxes and only the ones the user ticks are resumed
 
 ### Requirement: Rename without attaching
-The rename key SHALL ask for a new name in a dialog and then, because the CLI has no rename verb and resuming a listed background job with new flags starts a copy, SHALL remove the job and resume it by session ID under the new name, which keeps the session ID and its conversation. Renaming SHALL be refused while the session is working or when it has never been sent a message, and SHALL resume the job under its old name when the resume under the new name fails.
+The rename key SHALL ask for a new name in a dialog and then, because the CLI has no rename verb and resuming a listed background job with new flags starts a copy, SHALL remove the job and resume it by session ID under the new name, which keeps the session ID and its conversation. Renaming SHALL be refused while the session is working or when it has never been sent a message, and SHALL resume the job under its old name when the resume under the new name fails. A new name the launch rules would refuse SHALL be refused before anything runs, with the same sentence `vantage here` gives for that name.
 
 #### Scenario: Rename an idle session
 - **WHEN** the user presses the rename key on an idle background session and types a new name
@@ -100,6 +100,10 @@ The rename key SHALL ask for a new name in a dialog and then, because the CLI ha
 #### Scenario: Session is working
 - **WHEN** the user presses the rename key on a working session
 - **THEN** nothing happens and the footer explains that renaming restarts the session
+
+#### Scenario: New name refused
+- **WHEN** the user leaves the new name blank, or types one containing a semicolon or a double quote
+- **THEN** nothing runs and the footer shows exactly the sentence for that name, such as "A session name is required.", with nothing after it
 
 ### Requirement: Terminal sessions can be adopted
 The adopt key on an interactive session that is idle or waiting and has at least one message SHALL end its process and resume its transcript under the supervisor with its name, after which the row is a background session; it SHALL be refused while the session is working or before its first message.

@@ -17,7 +17,7 @@ The wizard SHALL offer every git repository found directly under the configured 
 - **THEN** the ten most recently launched repositories appear before the rest
 
 ### Requirement: A session name is mandatory
-The wizard SHALL require a non-blank name, SHALL reject a name containing a semicolon or a double quote, and SHALL use the name as the session name, the tab title and the Remote Control name.
+The wizard SHALL require a non-blank name, SHALL reject a name containing a semicolon or a double quote, and SHALL use the name as the session name, the tab title and the Remote Control name. A refused name SHALL be explained in a plain sentence, in the wizard and by `vantage here`, with nothing after it.
 
 #### Scenario: Blank name
 - **WHEN** the user submits a blank name
@@ -26,6 +26,14 @@ The wizard SHALL require a non-blank name, SHALL reject a name containing a semi
 #### Scenario: Name with a semicolon
 - **WHEN** the user submits a name containing a semicolon
 - **THEN** the wizard refuses it because Windows Terminal treats semicolons as command separators
+
+#### Scenario: The explanation is only the sentence
+- **WHEN** the wizard or `vantage here` refuses a name containing a semicolon or a double quote
+- **THEN** the explanation is exactly "A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.", with no parameter name or other technical text after it
+
+#### Scenario: A blank name given to vantage here
+- **WHEN** `vantage here ""` is run
+- **THEN** it prints exactly "A session name is required." and starts nothing
 
 ### Requirement: A description is optional and travels with the session
 The wizard SHALL accept an optional free-text description of what the session is for, and Vantage SHALL store it against the session's ID in its own state so that the listing and the notification toast can show it.
