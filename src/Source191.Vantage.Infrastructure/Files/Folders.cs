@@ -13,6 +13,8 @@ public sealed class Folders : IFolders
 
     public IEnumerable<string> Files(string path) => Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories);
 
+    public IEnumerable<string> FilesIn(string path) => Directory.Exists(path) ? Directory.EnumerateFiles(path) : [];
+
     public bool IsEmpty(string path) => !Directory.EnumerateFileSystemEntries(path).Any();
 
     public IEnumerable<string> Lines(string file) => File.ReadLines(file);
