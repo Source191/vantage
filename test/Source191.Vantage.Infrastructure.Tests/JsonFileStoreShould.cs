@@ -360,6 +360,28 @@ public sealed class JsonFileStoreShould : IDisposable
         (await Store.ReadConfigAsync()).ShouldBeNull();
     }
 
+    [Fact]
+    public async Task RoundTripTheUpdateCheckRecord()
+    {
+        UpdateCheckRecord record = new(Noon, "0.10.0");
+
+        await Store.WriteUpdateCheckAsync(record);
+
+        (await Store.ReadUpdateCheckAsync()).ShouldBe(record);
+        File.Exists(Path.Combine(folder, "update-check.json")).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task AnswerNoUpdateCheckRecordWhenTheFileIsMissingOrCorrupt()
+    {
+        (await Store.ReadUpdateCheckAsync()).ShouldBeNull();
+
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "update-check.json"), "{ not json", TestContext.Current.CancellationToken);
+
+        (await Store.ReadUpdateCheckAsync()).ShouldBeNull();
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(folder))
