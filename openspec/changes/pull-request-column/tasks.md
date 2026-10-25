@@ -6,7 +6,7 @@
 - [x] 1.2 `RemoteRepositoryShould.ParseAzureDevOpsRemotes` (`https://northwind@dev.azure.com/...`, `https://northwind.visualstudio.com/...` with and without `DefaultCollection`, `git@ssh.dev.azure.com:v3/...`, `northwind@vs-ssh.visualstudio.com:v3/...`) and `DecodeEscapedProjectNames` (`Northwind%20Trading`): implement `AzureDevOpsRepository(Organisation, Project, Name)`; verify the facts pass
 - [x] 1.3 `RemoteRepositoryShould.AnswerNullForOtherHostsBlankTextAndUnsafeAzureNames` (GitLab, a local path, null, a project holding `&`, `%26` decoded to `&`, `|`, `^`): implement the host check and the `[A-Za-z0-9 ._-]` allowlist; verify the facts pass
 - [x] 1.4 `PullRequestsShould.PreferTheOpenOneCountingDraftsAndActive` and `OtherwiseTakeTheMostRecent`, `AnswerNothingForNoPullRequests`: implement `PullRequest`, `PullRequestHost`, `PullRequestState` (with `IsOpen`) and `PullRequests.ForBranch`; verify the facts pass
-- [ ] 1.5 Run Stryker scoped to the new Domain files (`--mutate "**/Domain/RemoteRepository.cs"` and `"**/Domain/PullRequest*.cs"`, `--test-runner mtp`); verify no surviving mutant is left unexplained
+- [x] 1.5 Run Stryker scoped to the new Domain files (`--mutate "**/Domain/RemoteRepository.cs"` and `"**/Domain/PullRequest*.cs"`, `--test-runner mtp`); verify no surviving mutant is left unexplained
 
 ## 2. Ports and adapters
 
