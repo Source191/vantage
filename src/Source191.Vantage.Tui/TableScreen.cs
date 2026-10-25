@@ -24,7 +24,7 @@ internal sealed class TableScreen<TState, TRow>(
     EffectDispatcher dispatcher,
     Func<CancellationToken, Task<ViewInput>> load,
     TimeProvider clock,
-    string context)
+    ScreenContext context)
     where TState : IListViewState<TRow>
 {
     private readonly IScreenDefinition<TState, TRow> definition = definition;
@@ -32,7 +32,7 @@ internal sealed class TableScreen<TState, TRow>(
     private readonly EffectDispatcher dispatcher = dispatcher;
     private readonly Func<CancellationToken, Task<ViewInput>> load = load;
     private readonly TimeProvider clock = clock;
-    private readonly string context = context;
+    private readonly ScreenContext context = context;
 
     public ScreenRun<TState> Run(TState initial)
     {
@@ -44,6 +44,7 @@ internal sealed class TableScreen<TState, TRow>(
         }
 
         using Live live = new(definition, context);
+        live.ShowToolTips(app);
         Running running = new(this, app, live, initial);
         live.Window.KeyDown += (_, key) => running.OnKey(key);
         running.Redraw();
@@ -173,7 +174,8 @@ internal sealed class TableScreen<TState, TRow>(
     private sealed class Live : IDisposable
     {
         private readonly IScreenDefinition<TState, TRow> definition;
-        private readonly string context;
+        private readonly ScreenContext context;
+        private readonly List<(Label Label, KeyHelp Key)> keyLabels = [];
         private readonly TableView table;
         private readonly Label contextValues;
         private readonly Label title;
@@ -182,22 +184,21 @@ internal sealed class TableScreen<TState, TRow>(
         private readonly SpinnerView busy;
         private readonly WaitingIndicator waiting;
         private TRow? selected;
+        private readonly string[] columnNames;
+        private int? headerUnderMouse;
 
-        public Live(IScreenDefinition<TState, TRow> definition, string context)
+        public Live(IScreenDefinition<TState, TRow> definition, ScreenContext context)
         {
             this.definition = definition;
             this.context = context;
+            columnNames = [.. definition.Columns.Select(column => column.Name)];
 
             // Terminal.Gui writes the top-level's Title to the terminal (OSC 0) on every run, so this is what the tab shows.
-            Window = new Window { BorderStyle = LineStyle.None, Title = "Vantage" };
+            Window = new Window { BorderStyle = LineStyle.None, Title = context.Title };
             Window.SetScheme(Palette.Plain(Palette.White));
 
             Label contextNames = Text(1, 0, 11, definition.HeaderNames, Palette.Orange);
-            contextValues = Text(13, 0, 48, context, Palette.White);
-            Label keys = Text(62, 0, 10, definition.Keys, Palette.Blue);
-            Label keyNames = Text(72, 0, 16, definition.KeyNames, Palette.White);
-            Label keys2 = Text(90, 0, 8, definition.Keys2, Palette.Blue);
-            Label keyNames2 = Text(98, 0, 20, definition.KeyNames2, Palette.White);
+            contextValues = Text(13, 0, 48, context.HeaderValues, Palette.White);
             Label logo = Text(Pos.AnchorEnd(12), 0, 11, " VANTAGE\n ◢◤◢◤◢◤\n", Palette.Orange);
 
             banner = Text(1, 6, Dim.Fill(), string.Empty, Palette.Red);
@@ -227,7 +228,8 @@ internal sealed class TableScreen<TState, TRow>(
             waiting = new WaitingIndicator(definition.WaitingText);
             footer = Text(crumbWidth + 4, Pos.AnchorEnd(2), Dim.Fill(), string.Empty, Palette.Cyan);
 
-            Window.Add(contextNames, contextValues, keys, keyNames, keys2, keyNames2, logo, banner, title, table, crumb, busy, footer, waiting);
+            AddKeyHints();
+            Window.Add(contextNames, contextValues, logo, banner, title, table, crumb, busy, footer, waiting);
         }
 
         public Window Window { get; }
@@ -239,9 +241,10 @@ internal sealed class TableScreen<TState, TRow>(
         {
             IReadOnlyList<TRow> rows = state.List.Visible;
             selected = state.List.Selected;
-            table.Table = new TableSource<TRow>(rows, definition.ColumnNames, (row, column) => definition.Cell(row, column, now));
-            contextValues.Text = $"{context}\n{definition.ContextLines(state)}";
-            title.Text = state.List.FilterEditing ? $"{state.Title}  filter: {state.List.Filter.Text}_" : state.Title;
+            table.Table = new TableSource<TRow>(rows, columnNames, (row, column) => definition.Cell(row, column, now));
+            contextValues.Text = $"{context.HeaderValues}\n{definition.ContextLines(state)}";
+            string described = Wording.Describe(state.Title);
+            title.Text = state.List.FilterEditing ? $"{described}  filter: {state.List.Filter.Text}_" : described;
             banner.Text = state.Banner is null ? string.Empty : $"  {definition.LoadFailurePrefix}: {state.Banner}";
             footer.Text = Wording.Describe(state.Shown);
             if (rows.Count > 0)
@@ -254,7 +257,71 @@ internal sealed class TableScreen<TState, TRow>(
             Window.SetNeedsDraw();
         }
 
+        /// <summary>Shows each key hint's help line as a tooltip while the mouse rests on its key or its words, and a column's meaning while it rests on the column's header.</summary>
+        public void ShowToolTips(IApplication app)
+        {
+            foreach ((Label label, KeyHelp key) in keyLabels)
+            {
+                app.ToolTips?.SetToolTip(label, key.Line);
+            }
+
+            table.MousePositionTracking = true;
+            table.MouseEvent += (_, mouse) => ShowColumnToolTip(app, mouse);
+            table.MouseLeave += (_, _) => HideColumnToolTip(app);
+        }
+
         public void Dispose() => Window.Dispose();
+
+        private void HideColumnToolTip(IApplication app)
+        {
+            if (headerUnderMouse is not null)
+            {
+                app.ToolTips?.Hide();
+            }
+
+            headerUnderMouse = null;
+        }
+
+        private void ShowColumnToolTip(IApplication app, Terminal.Gui.Input.Mouse mouse)
+        {
+            int? header = null;
+            if (mouse.Position is System.Drawing.Point position)
+            {
+                table.ScreenToCell(position, out header);
+            }
+
+            if (header == headerUnderMouse)
+            {
+                return;
+            }
+
+            HideColumnToolTip(app);
+            headerUnderMouse = header;
+            if (header is int column && column < definition.Columns.Count)
+            {
+                ColumnHelp help = definition.Columns[column];
+                app.ToolTips?.ShowFor(table, new ToolTipProvider($"{help.Name}: {help.Meaning.Replace("\n", " ", StringComparison.Ordinal)}"));
+            }
+        }
+
+        /// <summary>One key label and one hint label per row, in the columns the keys name.</summary>
+        private void AddKeyHints()
+        {
+            foreach (IGrouping<int, KeyHelp> column in definition.Keys.Where(key => key.Hint is not null).GroupBy(key => key.Column))
+            {
+                (int keyX, int keyWidth, int hintX, int hintWidth) = KeyHintColumns.Layout[column.Key];
+                int row = 0;
+                foreach (KeyHelp key in column)
+                {
+                    Label keyLabel = Text(keyX, row, keyWidth, key.HeaderKey, Palette.Blue);
+                    Label hintLabel = Text(hintX, row, hintWidth, key.Hint!, Palette.White);
+                    keyLabels.Add((keyLabel, key));
+                    keyLabels.Add((hintLabel, key));
+                    Window.Add(keyLabel, hintLabel);
+                    row++;
+                }
+            }
+        }
 
         private Scheme? RowColour(RowColorGetterArgs args)
         {

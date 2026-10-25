@@ -69,13 +69,13 @@ New shells pick up `~\.dotnet\tools` on the PATH; a shell that was open before t
 
 Open a tab and run `vantage` (or `v`). The screen has three parts:
 
-- **Header:** the machine, the Claude executable, the repository roots being scanned, counts of sessions by state, and the key hints.
-- **Table:** one row per session, titled `sessions(all)[n]`, or `sessions(<filter>)[n]` when a filter is set. The selection bar is cyan.
+- **Header:** Vantage's version, the Claude Code version (`unknown` when `claude --version` cannot be read), the repository roots being scanned, counts of sessions by state, and the key hints. A local install shows its prerelease label without the build timestamp (`0.6.0-local`). Rest the mouse on a key hint to see what the key does.
+- **Table:** one row per session, titled with what it counts and which row is selected: `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set. The selection bar is cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears below the table.
 - **Footer:** the current view as a crumb, then the last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside it while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
 
-The table refreshes every five seconds. `?` shows the keys for the current view and `q` quits. Quitting Vantage never stops a session.
+The table refreshes every five seconds. `?` shows the keys and the columns of the current view (and, in the sessions view, the path of the Claude Code executable Vantage drives) and `q` quits. Quitting Vantage never stops a session.
 
-Vantage names its own tab `Vantage` and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab.
+Vantage names its own tab `Vantage (<version>)`, such as `Vantage (0.6.0)`, and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab.
 
 ## The sessions view
 
@@ -145,7 +145,7 @@ Press `w`. Vantage lists every linked worktree under your repository roots, plus
  Worktrees:  4 (3 ok, 1 broken)                               <s>       Start session     <?>     Help
  At risk:    1 with changes, 2 with unpushed commits          <o>       Open shell        <q>     Quit
                                                               <enter>   Go to session
-  worktrees(all)[4]
+  4 worktrees, selected: Northwind.Billing-invoice-pdf
  ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
  ││REPOSITORY          │FOLDER                        │BRANCH                   │DIRTY│UNPUSHED│LAST COMMIT│SESSION   │HEALTH │
  │ Northwind.Billing    Northwind.Billing-invoice-pdf   invoice-pdf                     12       3d4h       invoice-pdf ok    │
@@ -323,7 +323,7 @@ The runner drives Vantage inside a pseudo-console, which is the same plumbing Wi
 3. `d` on that session ends claude and the tab closes by itself.
 4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
 5. Ctrl+Z from an attached session returns to the table with the keys still working.
-6. The tab Vantage runs in is titled `Vantage` and green, and goes back to the profile's title and colour on `q`.
+6. The tab Vantage runs in is titled `Vantage (<version>)`, with `-local` after the version for a local install, and green, keeps that title after attaching and pressing Ctrl+Z, and goes back to the profile's title and colour on `q`.
 
 ## Working with OpenSpec
 

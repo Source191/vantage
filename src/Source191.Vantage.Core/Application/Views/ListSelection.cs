@@ -30,14 +30,13 @@ public sealed record ListSelection<TRow>(
 
     public TRow? Selected => Visible.FirstOrDefault(IsSelected);
 
-    /// <summary>"name(all)[7]", or "name(filter text)[2]" while a filter is set.</summary>
-    public string Title(string name)
+    /// <summary>What the table's title says: how many rows show of how many, the filter if one is set, and the selected row's label.</summary>
+    public TableTitle Title(string noun, Func<TRow, string> labelOf)
     {
-        string scope = string.IsNullOrWhiteSpace(Filter.Text) ? "all" : Filter.Text;
+        TRow? current = Selected;
 
-        return $"{name}({scope})[{Visible.Count}]";
+        return new TableTitle(noun, Visible.Count, Rows.Count, Filter.Text, current is null ? null : labelOf(current));
     }
-
     /// <summary>New rows keep the selected key when it is still visible, otherwise the nearest row by position; the first load selects the first row.</summary>
     public ListSelection<TRow> Load(IReadOnlyList<TRow> rows)
     {
@@ -111,3 +110,5 @@ public sealed record ListSelection<TRow>(
 
     private bool IsSelected(TRow row) => SelectedKey is not null && string.Equals(Policy.KeyOf(row), SelectedKey, Policy.KeyComparison);
 }
+/// <summary>The fact behind a table's title: <see cref="Noun"/> is singular (session), <see cref="Filter"/> empty when none is set and <see cref="Selected"/> null when no row is.</summary>
+public sealed record TableTitle(string Noun, int Shown, int Total, string Filter, string? Selected);
