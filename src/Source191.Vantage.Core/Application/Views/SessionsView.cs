@@ -158,6 +158,9 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'C' } => CloseEmpty(state),
             { Name: KeyName.Character, Character: 'd' } => SessionAction(state, (_, session) => new DeleteSession(session), Attachment.None),
             { Name: KeyName.Character, Character: 'b' } => Adopt(state),
+            { Name: KeyName.Character, Character: 'c' } => FolderAction(state, (folder, _) => new CopyFolderPath(folder)),
+            { Name: KeyName.Character, Character: 'e' } => FolderAction(state, (folder, _) => new OpenFolderInEditor(folder)),
+            { Name: KeyName.Character, Character: 'v' } => FolderAction(state, (folder, repository) => new FindSolution(folder, repository)),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
             { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
             { Name: KeyName.Character, Character: 'a' } => Effect(state, new OpenAgentView()),
@@ -205,6 +208,15 @@ public static class SessionsView
         return Effect(state with { Footer = Footer.None }, effect(row, session));
     }
 
+    /// <summary>A key that takes the row's folder to another tool; every row has one, whatever kind of session it is.</summary>
+    private static ViewUpdate FolderAction(SessionsViewState state, Func<FolderPath, string, ViewEffect> effect)
+    {
+        return state.Selected switch
+        {
+            null => Unchanged(state with { Footer = new Footer.NoSessionSelected() }),
+            SessionRow row => Effect(state with { Footer = Footer.None }, effect(row.Session.WorkingDirectory, row.Repository)),
+        };
+    }
     /// <summary>Every plain claude session that was never sent a message, in one go; the TUI confirms before closing.</summary>
     private static ViewUpdate CloseEmpty(SessionsViewState state)
     {

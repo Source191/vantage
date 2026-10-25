@@ -229,6 +229,57 @@ public sealed class WorktreesViewShould
         new PruneRepository(new FolderPath(Repository)).ShouldNotBeAssignableTo<ILeavesScreen>();
     }
 
+    [Fact]
+    public void CopyTheSelectedWorktreesFolder()
+    {
+        WorktreesViewState onClean = Press(Loaded, Key.Down, Key.Down);
+
+        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('c'))).Effects.ShouldBe([new CopyFolderPath(Clean.Path)]);
+    }
+
+    [Fact]
+    public void OpenTheSelectedWorktreeInTheEditorAndFindItsSolution()
+    {
+        WorktreesViewState onClean = Press(Loaded, Key.Down, Key.Down);
+
+        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Clean.Path)]);
+        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('v'))).Effects.ShouldBe([new FindSolution(Clean.Path, "Northwind.Orders")]);
+    }
+
+    [Theory]
+    [InlineData('c')]
+    [InlineData('e')]
+    [InlineData('v')]
+    public void RefuseAFolderKeyOnALeftoverWhoseFolderIsGone(char key)
+    {
+        WorktreeRow vanished = Orphan with { FolderExists = false };
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([vanished]));
+
+        WorktreesViewUpdate update = WorktreesView.Reduce(state, new KeyPressed(Key.Of(key)));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.LeftoverFolder("fix-service-tests"));
+    }
+
+    [Fact]
+    public void ActOnALeftoverWhoseFolderStillExists()
+    {
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Orphan]));
+
+        WorktreesView.Reduce(state, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Orphan.Path)]);
+    }
+
+    [Theory]
+    [InlineData('c')]
+    [InlineData('e')]
+    [InlineData('v')]
+    public void SayNoWorktreeIsSelectedWhenAFolderKeyIsPressedOnAnEmptyTable(char key)
+    {
+        WorktreesViewUpdate update = WorktreesView.Reduce(WorktreesViewState.Empty, new KeyPressed(Key.Of(key)));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.NoWorktreeSelected());
+    }
     private static WorktreesViewState Press(WorktreesViewState state, params Key[] keys)
     {
         return keys.Aggregate(state, (current, key) => WorktreesView.Reduce(current, new KeyPressed(key)).State);

@@ -347,6 +347,62 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
+    public void CopyTheSelectedSessionsFolder()
+    {
+        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('c')));
+
+        update.Effects.ShouldBe([new CopyFolderPath(Waiting.Session.WorkingDirectory)]);
+    }
+
+    [Fact]
+    public void OpenTheSelectedSessionsFolderInTheEditorWhateverKindOfSessionItIs()
+    {
+        SessionsViewState onTerminal = Press(Loaded, Key.Down, Key.Down);
+        SessionsViewState onStopped = Press(Loaded, Key.Down, Key.Down, Key.Down);
+
+        onTerminal.Selected.ShouldBe(Interactive);
+        SessionsView.Reduce(onTerminal, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Interactive.Session.WorkingDirectory)]);
+        onStopped.Selected.ShouldBe(Stopped);
+        SessionsView.Reduce(onStopped, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Stopped.Session.WorkingDirectory)]);
+    }
+
+    [Fact]
+    public void FindTheSelectedSessionsSolutionByItsFolderAndRepository()
+    {
+        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('v')));
+
+        update.Effects.ShouldBe([new FindSolution(Waiting.Session.WorkingDirectory, "Northwind.Shipping")]);
+    }
+
+    [Theory]
+    [InlineData('c')]
+    [InlineData('e')]
+    [InlineData('v')]
+    public void SayNoSessionIsSelectedWhenAFolderKeyIsPressedOnAnEmptyTable(char key)
+    {
+        ViewUpdate update = SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of(key)));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.NoSessionSelected());
+    }
+
+    [Fact]
+    public void ClearTheLastMessageWhenAFolderKeyActs()
+    {
+        SessionsViewState withMessage = Loaded with { Footer = new Footer.RenameCancelled() };
+
+        SessionsView.Reduce(withMessage, new KeyPressed(Key.Of('c'))).State.Footer.ShouldBe(Footer.None);
+    }
+
+    [Fact]
+    public void MarkTheSolutionSearchAsAskingFirstAndTheOtherFolderEffectsAsBackground()
+    {
+        new FindSolution(Waiting.Session.WorkingDirectory, "Northwind.Shipping").ShouldBeAssignableTo<IDialogEffect>();
+        new CopyFolderPath(Waiting.Session.WorkingDirectory).ShouldNotBeAssignableTo<IDialogEffect>();
+        new OpenFolderInEditor(Waiting.Session.WorkingDirectory).ShouldNotBeAssignableTo<IDialogEffect>();
+        new OpenSolution(@"C:\repos\Northwind.Shipping\Northwind.Shipping.sln").ShouldNotBeAssignableTo<IDialogEffect>();
+    }
+    [Fact]
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
         new AttachToSession(new JobId("81cdb0f9")).ShouldBeAssignableTo<ILeavesScreen>();

@@ -56,7 +56,16 @@ internal sealed class TableScreen<TState, TRow>(
         });
         running.TriggerLoad();
 
-        app.Run(live.Window);
+        context.Clipboard.Attach(app);
+        try
+        {
+            app.Run(live.Window);
+        }
+        finally
+        {
+            context.Clipboard.Detach();
+        }
+
         if (timer is not null)
         {
             app.RemoveTimeout(timer);

@@ -237,6 +237,26 @@ public sealed class WordingOfOutcomesShould
         Wording.Describe(new OpenShellOutcome("Northwind.Orders-fix-123")).ShouldBe("Opened a shell in Northwind.Orders-fix-123.");
     }
 
+    // Folder keys.
+
+    [Fact]
+    public void SayAFolderPathWasCopied()
+    {
+        Wording.Describe(new FolderPathCopied(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123"))
+            .ShouldBe(@"Copied C:\Users\me\source\worktrees\Northwind.Orders-fix-123 to the clipboard.");
+    }
+
+    [Fact]
+    public void SayTheClipboardWasBusy()
+    {
+        Wording.Describe(new ClipboardBusy()).ShouldBe("The clipboard is in use by another program; try again.");
+    }
+
+    [Fact]
+    public void SayASolutionWasOpened()
+    {
+        Wording.Describe(new OpenedSolution("Northwind.Orders.slnx")).ShouldBe("Opened Northwind.Orders.slnx.");
+    }
     // Tabs and starting.
 
 

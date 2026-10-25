@@ -65,6 +65,9 @@ public abstract record Footer
 
     public sealed record NoSessionIn(string FolderName) : Footer;
 
+    /// <summary>The solution key found no .sln or .slnx in the folder or its src folder.</summary>
+    public sealed record NoSolution(string FolderName) : Footer;
+
     /// <summary>The close-empty-tabs question was answered with Keep.</summary>
     public sealed record Kept : Footer;
 
