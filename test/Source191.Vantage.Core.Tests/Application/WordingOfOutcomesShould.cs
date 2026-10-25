@@ -243,6 +243,46 @@ public sealed class WordingOfOutcomesShould
         Wording.Describe(new OpenShellOutcome("Northwind.Orders-fix-123")).ShouldBe("Opened a shell in Northwind.Orders-fix-123.");
     }
 
+    // Folder keys.
+
+    [Fact]
+    public void SayAFolderPathWasCopied()
+    {
+        Wording.Describe(new FolderPathCopied(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123"))
+            .ShouldBe(@"Copied C:\Users\me\source\worktrees\Northwind.Orders-fix-123 to the clipboard.");
+    }
+
+    [Fact]
+    public void SayTheClipboardWasBusy()
+    {
+        Wording.Describe(new ClipboardBusy()).ShouldBe("The clipboard is in use by another program; try again.");
+    }
+
+    [Fact]
+    public void SayWhichEditorOpenedWhichFolder()
+    {
+        Wording.Describe(new OpenInEditorOutcome.Opened("Northwind.Orders", EditorChoice.VsCode)).ShouldBe("Opened Northwind.Orders in VS Code.");
+        Wording.Describe(new OpenInEditorOutcome.Opened("Northwind.Orders", EditorChoice.Of(EditorPreset.VisualStudio))).ShouldBe("Opened Northwind.Orders in Visual Studio.");
+        Wording.Describe(new OpenInEditorOutcome.Opened("Northwind.Orders", EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]))).ShouldBe("Opened Northwind.Orders in subl.");
+    }
+
+    [Fact]
+    public void SayWhichEditorCouldNotBeFound()
+    {
+        Wording.Describe(new OpenInEditorOutcome.EditorNotFound(EditorChoice.Of(EditorPreset.Rider)))
+            .ShouldBe("Could not find Rider; press , to choose another editor in settings.");
+    }
+
+    [Fact]
+    public void SayTheFolderIsGone()
+    {
+        Wording.Describe(new OpenInEditorOutcome.FolderMissing("Northwind.Orders-fix-123")).ShouldBe("Northwind.Orders-fix-123 no longer exists, so nothing was opened.");
+    }
+    [Fact]
+    public void SayASolutionWasOpened()
+    {
+        Wording.Describe(new OpenedSolution("Northwind.Orders.slnx")).ShouldBe("Opened Northwind.Orders.slnx.");
+    }
     // Tabs and starting.
 
 
@@ -337,6 +377,7 @@ public sealed class WordingOfOutcomesShould
             _ when type == typeof(int) => 2,
             _ when type == typeof(bool) => true,
             _ when type == typeof(BranchToConfirm) => Branch,
+            _ when type == typeof(EditorChoice) => EditorChoice.VsCode,
             _ when type == typeof(FolderPath) => new FolderPath(@"C:\repos\Northwind.Orders"),
             _ when type == typeof(JobId) => new JobId("81cdb0f9"),
             _ when type == typeof(SessionId) => new SessionId("sess-1"),

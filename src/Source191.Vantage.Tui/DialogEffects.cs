@@ -13,7 +13,7 @@ namespace Source191.Vantage.Tui;
 /// Every effect that needs a dialog, for both views. Each flow asks its question, then hands the answer back through
 /// the reducer or dispatches the effect it settles on; the work itself is always a handler's.
 /// </summary>
-public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
+public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, SolutionFinder solutions, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
 {
     /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
@@ -27,6 +27,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(ResumeStoppedSessions)] = (_, context, effect) => ChooseSessionsToResume(context, ((ResumeStoppedSessions)effect).Rows),
         [typeof(ConfirmForceRemove)] = (_, context, effect) => ConfirmForce(context, (ConfirmForceRemove)effect),
         [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
+        [typeof(FindSolution)] = (self, context, effect) => self.OpenSolutionOf(context, (FindSolution)effect),
         [typeof(OpenSettings)] = (self, context, _) => self.EditSettings(context),
     }.ToFrozenDictionary();
 
@@ -152,5 +153,37 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             outcome => outcome is RemoveWorktreeOutcome.BranchKept kept
                 ? AskAboutBranch(context, outcome, kept.Branch, kept.CreatedByVantage)
                 : new Footer.Reported(outcome));
+    }
+
+    /// <summary>Looks off the UI thread; back on it, one solution opens, none says so, and several are asked about.</summary>
+    private void OpenSolutionOf(IEffectContext context, FindSolution find)
+    {
+        context.RunInBackground(
+            new Footer.Working(find),
+            _ => Task.FromResult(solutions.Find(find.Folder, find.RepositoryName)),
+            search => search switch
+            {
+                SolutionSearch.One one => Open(context, one.File),
+                SolutionSearch.Several several => ChooseSolution(context, find, several.Files),
+                _ => new Footer.NoSolution(find.Folder.Name),
+            });
+    }
+
+    private static Footer ChooseSolution(IEffectContext context, FindSolution find, IReadOnlyList<string> files)
+    {
+        string[] buttons = [.. files.Select(Path.GetFileName)!, "Cancel"];
+        int? answer = Confirm.Query(context.App, Wording.ChooseSolutionTitle, Wording.ChooseSolutionQuestion(find.Folder.Name), buttons);
+
+        return answer is int chosen && chosen < files.Count
+            ? Open(context, files[chosen])
+            : Footer.None;
+    }
+
+    private static Footer.Working Open(IEffectContext context, string file)
+    {
+        OpenSolution open = new(file);
+        context.Dispatch(open);
+
+        return new Footer.Working(open);
     }
 }

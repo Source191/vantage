@@ -34,7 +34,7 @@ public sealed class ProcessRunner : IProcessRunner
         return process.ExitCode;
     }
 
-    private static ProcessStartInfo StartInfo(ProcessRequest request, bool capture)
+    internal static ProcessStartInfo StartInfo(ProcessRequest request, bool capture)
     {
         // Redirected streams decode with the console code page unless told otherwise; Claude Code prints UTF-8
         // (its start line uses a middle dot), so both streams are read as UTF-8.
