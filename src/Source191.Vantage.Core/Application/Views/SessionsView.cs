@@ -4,7 +4,11 @@ using System.Diagnostics;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>A listed session with what git, the state store and the transcript folder add to it. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then, so every caller must say which it is.</summary>
-public sealed record SessionRow(Session Session, string Repository, BranchName? Branch, bool HasLiveTab, bool HasTranscript);
+public sealed record SessionRow(Session Session, string Repository, BranchName? Branch, bool HasLiveTab, bool HasTranscript)
+{
+    /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
+    public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
+}
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
 public sealed record Key(KeyName Name, char Character)
@@ -162,6 +166,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'c' } => FolderAction(state, (folder, _) => new CopyFolderPath(folder)),
             { Name: KeyName.Character, Character: 'e' } => FolderAction(state, (folder, _) => new OpenFolderInEditor(folder)),
             { Name: KeyName.Character, Character: 'v' } => FolderAction(state, (folder, repository) => new FindSolution(folder, repository)),
+            { Name: KeyName.Character, Character: 'p' } => OpenPullRequest(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
             { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
             { Name: KeyName.Character, Character: 'a' } => Effect(state, new OpenAgentView()),
@@ -220,6 +225,18 @@ public static class SessionsView
             SessionRow row => Effect(state with { Footer = Footer.None }, effect(row.Session.WorkingDirectory, row.Repository)),
         };
     }
+    /// <summary>The row's pull request in the browser, or a footer saying why it has none.</summary>
+    private static ViewUpdate OpenPullRequest(SessionsViewState state)
+    {
+        return state.Selected switch
+        {
+            null => Unchanged(state with { Footer = new Footer.NoSessionSelected() }),
+            { PullRequest: PullRequestLookup.Found found } => Effect(state with { Footer = Footer.None }, new OpenPullRequest(found.PullRequest)),
+            { PullRequest: PullRequestLookup.Missing missing } row => Unchanged(state with { Footer = new Footer.NoPullRequest(row.Session.Name, missing.Gap, missing.Host) }),
+            _ => Unchanged(state),
+        };
+    }
+
     /// <summary>Every plain claude session that was never sent a message, in one go; the TUI confirms before closing.</summary>
     private static ViewUpdate CloseEmpty(SessionsViewState state)
     {

@@ -14,6 +14,7 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 - [The new session wizard](#the-new-session-wizard)
 - [Attaching, tabs and getting back](#attaching-tabs-and-getting-back)
 - [The worktrees view](#the-worktrees-view)
+- [Pull requests](#pull-requests)
 - [vantage here](#vantage-here)
 - [Notifications](#notifications)
 - [Windows Terminal setup](#windows-terminal-setup)
@@ -90,6 +91,7 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | REPOSITORY | The repository the session runs in (a linked worktree shows its main checkout) |
 | FOLDER | The folder the session runs in, relative to the repository root or the worktree root that holds it (`Northwind.Orders-fix-123`), else relative to your home folder (`~\scratch\notes`), else in full. A worktree is recognisable because its folder name differs from its repository |
 | BRANCH | The branch checked out there |
+| PR | The branch's pull request: `#123 open` on GitHub (open, draft, merged, closed), `!123 active` on Azure DevOps (active, draft, completed, abandoned); an open one wins, else the most recent. Blank when there is none or it cannot be looked up; `p` says why. See [Pull requests](#pull-requests) |
 | AGE | Time since the session started |
 | TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session |
 
@@ -111,6 +113,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | c | Copy the selected row's full folder path to the clipboard |
 | e | Open the folder in your editor (VS Code unless you chose another in [Settings](#settings)); works on terminal and stopped sessions too |
 | v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which; none says so in the footer |
+| p | Open the row's pull request in your default browser; with none, the footer says why (no origin remote, a host Vantage does not know, `gh` or `az` missing or signed out, no pull request for the branch, or the lookup still running) |
 | , | Settings: the repository roots, the worktree root, the editor, the default worktree base and the update check (see [Settings](#settings)) |
 | U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | w | Switch to the worktrees view |
@@ -168,6 +171,7 @@ Press `w`. Vantage lists every linked worktree of the repositories under your ro
 | DIRTY | Changed or untracked files in the worktree |
 | UNPUSHED | Commits on its branch that no remote has |
 | LAST COMMIT | Age of the last commit |
+| PR | The branch's pull request, as in the sessions view |
 | SESSION | The session running inside it, if any |
 | HEALTH | `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it) |
 
@@ -177,7 +181,8 @@ When nothing else needs saying, the footer explains the selected row's health in
 | --- | --- |
 | d | Remove the worktree, or delete a leftover folder. Refused, with the reason, when it has changed files, unpushed commits, a lock or a live session. A broken leftover also has its stale registration pruned from the repository. Junctions and links inside a leftover (pnpm's `node_modules`, for one) are removed as links and never followed, so nothing outside the folder is touched. A leftover's files are counted up to 1,000, so a large one is refused as "at least 1000 files" |
 | D | Force removal: the folder name opens selected in a read-only box, so Ctrl+C copies it (F2 also copies, from anywhere in the dialog); Tab or Enter moves to the answer box, Ctrl+V pastes, Enter confirms. There is no Remove button; a wrong or empty answer keeps the dialog open and says what was typed, and Esc cancels. Never forces a locked worktree or one with a live session |
-| p | Prune stale registrations in the row's repository |
+| P | Prune stale registrations in the row's repository (`p` before 0.11.0) |
+| p | Open the row's pull request in your default browser, as in the sessions view |
 | s | Start a session in this worktree (the wizard opens with the directory fixed) |
 | o | Open a plain PowerShell tab in the worktree |
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
@@ -188,6 +193,14 @@ When nothing else needs saying, the footer explains the selected row's health in
 | U | Update Vantage, as in the sessions view |
 
 Branches: when a removed worktree's branch was created by Vantage and is merged, the branch is deleted too; when Vantage created it but it is not merged, or you created it by hand, Vantage asks before deleting it.
+
+## Pull requests
+
+The PR column in both views shows the pull request for each row's branch, read from the repository's `origin` remote: a `github.com` remote is asked through the GitHub CLI, an Azure DevOps remote (`dev.azure.com`, `*.visualstudio.com`, HTTPS or SSH) through the Azure CLI. Any other host leaves the column blank.
+
+- **Signing in:** run `gh auth login` once for GitHub; for Azure DevOps install the Azure CLI, run `az extension add --name azure-devops` and `az login`. Vantage never signs in for you and stores no credential.
+- **Refreshing:** each repository is listed in one call (its latest 100 pull requests) at most once every three minutes, in the background; the rows never wait for it, so the column fills on the refresh after the answer lands.
+- **Which one:** a branch with an open (or draft, or active) pull request shows that one; otherwise its most recent.
 
 ## vantage here
 

@@ -289,6 +289,13 @@ public sealed class WordingOfOutcomesShould
     {
         Wording.Describe(new OpenedSolution("Northwind.Orders.slnx")).ShouldBe("Opened Northwind.Orders.slnx.");
     }
+
+    [Fact]
+    public void SayThePullRequestWasOpened()
+    {
+        Wording.Describe(new OpenPullRequestOutcome(PullRequestHost.AzureDevOps, 4521)).ShouldBe("Opened !4521 in the browser.");
+        Wording.Describe(new OpenPullRequestOutcome(PullRequestHost.GitHub, 123)).ShouldBe("Opened #123 in the browser.");
+    }
     // Tabs and starting.
 
 
@@ -392,6 +399,7 @@ public sealed class WordingOfOutcomesShould
             _ when type == typeof(IReadOnlyList<string>) => new List<string> { "fix-123" },
             _ when type == typeof(IReadOnlyList<SkippedSession>) => new List<SkippedSession>(),
             _ when type == typeof(IReadOnlyList<ResumeNote>) => new List<ResumeNote>(),
+            _ when type == typeof(PullRequestHost) => PullRequestHost.AzureDevOps,
             _ => throw new InvalidOperationException($"An outcome field of type {type.Name} needs a placeholder."),
         };
     }

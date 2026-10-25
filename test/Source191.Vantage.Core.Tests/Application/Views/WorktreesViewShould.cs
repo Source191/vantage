@@ -118,14 +118,46 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
-    public void PruneTheSelectedRowsRepositoryUnlessItHasGone()
+    public void PruneWithCapitalPUnlessTheRepositoryHasGone()
     {
         WorktreesViewState onGone = Press(Loaded, Enumerable.Repeat(Key.Down, 6).ToArray());
 
-        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Of('p'))).Effects.ShouldBe([new PruneRepository(new FolderPath(Repository))]);
-        WorktreesViewUpdate refused = WorktreesView.Reduce(onGone, new KeyPressed(Key.Of('p')));
+        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Of('P'))).Effects.ShouldBe([new PruneRepository(new FolderPath(Repository))]);
+        WorktreesViewUpdate refused = WorktreesView.Reduce(onGone, new KeyPressed(Key.Of('P')));
         refused.Effects.ShouldBeEmpty();
         refused.State.Footer.ShouldBe(new Footer.NothingToPrune("Northwind.Retired"));
+    }
+
+    [Fact]
+    public void NotPruneWithLowerP()
+    {
+        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Of('p'))).Effects.ShouldNotContain(effect => effect is PruneRepository);
+    }
+
+    [Fact]
+    public void OpenTheSelectedRowsPullRequest()
+    {
+        PullRequest open = new(PullRequestHost.GitHub, 123, new Uri("https://github.com/northwind/Northwind.Orders/pull/123"), PullRequestState.Open, DateTimeOffset.UnixEpoch);
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean with { PullRequest = new PullRequestLookup.Found(open) }]));
+
+        WorktreesView.Reduce(state, new KeyPressed(Key.Of('p'))).Effects.ShouldBe([new OpenPullRequest(open)]);
+    }
+
+    [Fact]
+    public void ExplainAMissingPullRequest()
+    {
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean with { PullRequest = new PullRequestLookup.Missing(PullRequestGap.Looking) }]));
+
+        WorktreesViewUpdate update = WorktreesView.Reduce(state, new KeyPressed(Key.Of('p')));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.NoPullRequest("Northwind.Orders-fix-1", PullRequestGap.Looking, null));
+    }
+
+    [Fact]
+    public void NeedASelectionToOpenAPullRequest()
+    {
+        WorktreesView.Reduce(WorktreesViewState.Empty, new KeyPressed(Key.Of('p'))).State.Footer.ShouldBe(new Footer.NoWorktreeSelected());
     }
 
     [Fact]

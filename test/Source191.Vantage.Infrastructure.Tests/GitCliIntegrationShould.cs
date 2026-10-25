@@ -70,6 +70,16 @@ public sealed class GitCliIntegrationShould : IDisposable
     }
 
     [Fact]
+    public async Task AnswerTheOriginUrlOnlyOnceARemoteIsAdded()
+    {
+        await CreateRepositoryWithOneCommitAsync();
+
+        (await git.OriginUrlAsync(Repository, TestContext.Current.CancellationToken)).ShouldBeNull();
+        await RunGitAsync("remote", "add", "origin", "https://github.com/northwind/Northwind.Orders.git");
+        (await git.OriginUrlAsync(Repository, TestContext.Current.CancellationToken)).ShouldBe("https://github.com/northwind/Northwind.Orders.git");
+    }
+
+    [Fact]
     public async Task AnswerRepositoryQuestionsOutsideAndInsideARepository()
     {
         await CreateRepositoryWithOneCommitAsync();

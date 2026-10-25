@@ -355,6 +355,32 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
+    public void OpenTheSelectedRowsPullRequest()
+    {
+        PullRequest active = new(PullRequestHost.AzureDevOps, 4521, new Uri("https://dev.azure.com/northwind/Trading/_git/Northwind.Shipping/pullrequest/4521"), PullRequestState.Active, Noon);
+        SessionsViewState state = Reduce(SessionsViewState.Empty, new RowsLoaded([Waiting with { PullRequest = new PullRequestLookup.Found(active) }]));
+
+        SessionsView.Reduce(state, new KeyPressed(Key.Of('p'))).Effects.ShouldBe([new OpenPullRequest(active)]);
+    }
+
+    [Fact]
+    public void ExplainAMissingPullRequest()
+    {
+        SessionsViewState state = Reduce(SessionsViewState.Empty, new RowsLoaded([Waiting with { PullRequest = new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, PullRequestHost.GitHub) }]));
+
+        ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('p')));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.NoPullRequest("change-feed", PullRequestGap.NotSignedIn, PullRequestHost.GitHub));
+    }
+
+    [Fact]
+    public void NeedASelectionToOpenAPullRequest()
+    {
+        SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of('p'))).State.Footer.ShouldBe(new Footer.NoSessionSelected());
+    }
+
+    [Fact]
     public void CopyTheSelectedSessionsFolder()
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('c')));

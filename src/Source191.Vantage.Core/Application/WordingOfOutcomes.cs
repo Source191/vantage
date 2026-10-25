@@ -25,6 +25,7 @@ public static partial class Wording
             FolderPathCopied copied => $"Copied {copied.Path} to the clipboard.",
             ClipboardBusy => "The clipboard is in use by another program; try again.",
             OpenedSolution solution => $"Opened {solution.FileName}.",
+            OpenPullRequestOutcome opened => $"Opened {PullRequestNumber(opened.Host, opened.Number)} in the browser.",
             OpenInEditorOutcome editor => Describe(editor),
             OpenTabOutcome tab => Describe(tab),
             StartSessionOutcome start => Describe(start),

@@ -10,7 +10,7 @@ namespace Source191.Vantage.Application;
 /// leftovers git has forgotten (orphans under .claude\worktrees, folders under a root or the worktree root whose registration is gone, empty folders
 /// that worktree tools leave behind). Read-only: nothing here prunes, deletes or touches git state.
 /// </summary>
-public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSettings settings)
+public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSettings settings, PullRequestCatalogue pullRequests)
 {
     private readonly WorktreeInspector inspector = new(git);
 
@@ -55,8 +55,14 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
 
         rows.AddRange(candidates.Where(candidate => !registered.Contains(candidate)).Select(BrokenWorktree));
 
-        return [.. rows.Select(row => WithLiveSession(row, LiveSessionIn(row.Path, sessions)))];
+        // Never awaited: the rows show what the catalogue already holds, and the next rescan picks up what lands.
+        _ = pullRequests.RefreshStaleAsync(repositories);
+
+        return [.. rows.Select(row => WithPullRequest(WithLiveSession(row, LiveSessionIn(row.Path, sessions))))];
     }
+
+    /// <summary>A leftover has no branch, so it keeps the row's default of no branch to look up.</summary>
+    private WorktreeRow WithPullRequest(WorktreeRow row) => row.Branch is null ? row : row with { PullRequest = pullRequests.Find(row.Repository, row.Branch) };
 
     /// <summary>The paths among folder listings that are full paths; anything else is skipped.</summary>
     private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Parsed<FolderPath>();

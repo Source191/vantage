@@ -60,6 +60,7 @@ public static partial class Wording
         new("c", "Copy path", "copy the folder path", Column: 2),
         new("e", "Editor", "open the folder in your editor", Column: 2),
         new("v", "Solution", "open its solution", Column: 2),
+        new("p", "Open PR", "open its pull request in the browser", Column: 2),
         new("U", Hint: null, UpdateLine, Column: 1),
     ];
 
@@ -67,7 +68,7 @@ public static partial class Wording
     [
         new("d", "Remove", "remove (refused when work would be lost)", Column: 0),
         new("D", "Force remove", "force remove after typing its name", Column: 0),
-        new("p", "Prune", "prune stale registrations in its repository", Column: 0),
+        new("P", "Prune", "prune stale registrations in its repository", Column: 0),
         new("s", "Start session", "start a session in this worktree", Column: 0),
         new("o", "Open shell", "open a PowerShell tab there", Column: 0),
         new("enter", "Go to session", "go to the session running in it", Column: 0),
@@ -80,6 +81,7 @@ public static partial class Wording
         new("c", "Copy path", "copy the folder path", Column: 2),
         new("e", "Editor", "open the folder in your editor", Column: 2),
         new("v", "Solution", "open its solution", Column: 2),
+        new("p", "Open PR", "open its pull request in the browser", Column: 2),
         new("U", Hint: null, UpdateLine, Column: 1),
     ];
 
@@ -90,6 +92,7 @@ public static partial class Wording
         new("REPOSITORY", "the repository the session runs in"),
         new("FOLDER", "where it runs, relative to the repository or worktree root that holds it, else ~\\ from your home folder, else in full"),
         new("BRANCH", "the branch checked out there"),
+        new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed), !123 on Azure DevOps\n(active, draft, completed, abandoned); blank when there is none or it is still being looked up"),
         new("AGE", "time since the session started"),
         new("TAB", "terminal for a plain claude started in its own tab, open while a Vantage tab shows it"),
     ];
@@ -99,6 +102,7 @@ public static partial class Wording
         new("REPOSITORY", "the repository that owns the worktree"),
         new("FOLDER", "the worktree's folder, relative to the root that holds it"),
         new("BRANCH", "the branch checked out there"),
+        new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed), !123 on Azure DevOps\n(active, draft, completed, abandoned); blank when there is none or it is still being looked up"),
         new("DIRTY", "changed or untracked files"),
         new("UNPUSHED", "commits on its branch that no remote has"),
         new("LAST COMMIT", "time since the last commit"),

@@ -31,10 +31,11 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
             0 => row.RepositoryName,
             1 => folders.For(row.Path),
             2 => row.Branch?.Value ?? "-",
-            3 => Count(row.DirtyFiles),
-            4 => Count(row.UnpushedCommits),
-            5 => row.LastCommitAt is null ? "-" : Durations.Age(now - row.LastCommitAt.Value),
-            6 => row.SessionName ?? string.Empty,
+            3 => Wording.PullRequestCell(row.PullRequest),
+            4 => Count(row.DirtyFiles),
+            5 => Count(row.UnpushedCommits),
+            6 => row.LastCommitAt is null ? "-" : Durations.Age(now - row.LastCommitAt.Value),
+            7 => row.SessionName ?? string.Empty,
             // The kind only: the reason goes in the footer for the selected row, so a long one is never cut off.
             _ => row.Health.Kind.ToString().ToLowerInvariant(),
         };
