@@ -39,6 +39,7 @@ public static class HereCommand
         RepositoryChoice repository = new(path.Name, path, isRepository(directory));
         LaunchRequest request = new(repository, name ?? path.Name, LaunchMode.CurrentBranch, WorktreeBase.RemoteDefault, prompt);
 
-        return LaunchPlanBuilder.Build(request, _ => false);
+        // On the current branch no worktree is placed, so the folder itself stands in for the worktree root.
+        return LaunchPlanBuilder.Build(request, worktreeRoot: path, _ => false);
     }
 }

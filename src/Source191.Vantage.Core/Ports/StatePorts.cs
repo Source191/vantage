@@ -30,10 +30,10 @@ public interface ICreatedWorktrees
     Task ForgetCreatedWorktreeAsync(FolderPath path);
 }
 
-/// <summary>User configuration: repository roots and the default worktree base.</summary>
+/// <summary>User configuration (config.json): null when there is no file or it cannot be read.</summary>
 public interface IVantageConfig
 {
-    Task<VantageConfig> ReadConfigAsync();
+    Task<VantageConfig?> ReadConfigAsync();
 
     Task WriteConfigAsync(VantageConfig config);
 }

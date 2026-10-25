@@ -275,22 +275,40 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task ProvideADefaultConfigurationWhenNoneIsSaved()
+    public async Task ReadNoConfigurationWhenNoneIsSaved()
     {
-        VantageConfig config = await Store.ReadConfigAsync();
-
-        config.RepositoryRoots.ShouldBe([Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos")]);
-        config.DefaultBase.ShouldBe(WorktreeBase.RemoteDefault);
+        (await Store.ReadConfigAsync()).ShouldBeNull();
     }
 
     [Fact]
     public async Task RoundTripTheConfiguration()
     {
-        VantageConfig saved = new([@"C:\repos", @"D:\work"], WorktreeBase.Head);
+        VantageConfig saved = new([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"D:\worktrees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"]));
 
         await Store.WriteConfigAsync(saved);
 
         (await Store.ReadConfigAsync()).ShouldBe(saved);
+    }
+
+    [Fact]
+    public async Task ReadAnEarlierConfigWithoutTheNewProperties()
+    {
+        Directory.CreateDirectory(folder);
+        string configFile = Path.Combine(folder, "config.json");
+        await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["D:\\work"], "defaultBase": "Head" }""", TestContext.Current.CancellationToken);
+
+        VantageConfig read = (await Store.ReadConfigAsync())!;
+
+        read.ShouldBe(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null));
+    }
+
+    [Fact]
+    public async Task ReadAConfigWithoutABaseAsHavingNone()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), """{ "repositoryRoots": ["D:\\work"] }""", TestContext.Current.CancellationToken);
+
+        (await Store.ReadConfigAsync())!.DefaultBase.ShouldBeNull();
     }
 
     [Fact]
@@ -300,7 +318,7 @@ public sealed class JsonFileStoreShould : IDisposable
         string configFile = Path.Combine(folder, "config.json");
         await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["C:\\repos"], "defaultBase": "Head" }""", TestContext.Current.CancellationToken);
 
-        VantageConfig read = await Store.ReadConfigAsync();
+        VantageConfig read = (await Store.ReadConfigAsync())!;
         await Store.WriteConfigAsync(read);
 
         read.DefaultBase.ShouldBe(WorktreeBase.Head);
@@ -308,12 +326,38 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task TreatACorruptConfigurationAsTheDefault()
+    public async Task WriteTheEditorAsAPresetObject()
+    {
+        await Store.WriteConfigAsync(new VantageConfig([@"C:\repos"], WorktreeBase.RemoteDefault, @"C:\worktrees", new EditorSetting("VsCode", Executable: null, Arguments: null)));
+
+        string written = await File.ReadAllTextAsync(Path.Combine(folder, "config.json"), TestContext.Current.CancellationToken);
+
+        written.ShouldContain("\"repositoryRoots\"");
+        written.ShouldContain("\"worktreeRoot\": \"C:\\\\worktrees\"");
+        written.ShouldContain("\"defaultBase\": \"RemoteDefault\"");
+        written.ShouldContain("\"editor\": {");
+        written.ShouldContain("\"preset\": \"VsCode\"");
+    }
+
+    [Fact]
+    public async Task WriteACustomEditorWithItsArgumentList()
+    {
+        await Store.WriteConfigAsync(new VantageConfig([@"C:\repos"], WorktreeBase.RemoteDefault, @"C:\worktrees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"])));
+
+        string written = await File.ReadAllTextAsync(Path.Combine(folder, "config.json"), TestContext.Current.CancellationToken);
+
+        written.ShouldContain("\"executable\": \"C:\\\\Tools\\\\subl.exe\"");
+        written.ShouldContain("\"arguments\": [");
+        written.ShouldContain("\"{folder}\"");
+    }
+
+    [Fact]
+    public async Task ReadACorruptConfigAsAbsent()
     {
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), "nope", TestContext.Current.CancellationToken);
 
-        (await Store.ReadConfigAsync()).RepositoryRoots.Count.ShouldBe(1);
+        (await Store.ReadConfigAsync()).ShouldBeNull();
     }
 
     public void Dispose()

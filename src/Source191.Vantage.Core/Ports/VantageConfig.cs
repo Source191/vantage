@@ -2,19 +2,34 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Ports;
 
-/// <summary>User configuration kept beside the state: where repositories live and how new worktrees branch.</summary>
-public sealed record VantageConfig(IReadOnlyList<string> RepositoryRoots, WorktreeBase DefaultBase)
+/// <summary>
+/// config.json as written: every member may be missing, as it is in a file from an earlier version or one edited by
+/// hand, and <c>SettingsFile</c> resolves what is missing to its default. A file written by this version names all four.
+/// </summary>
+public sealed record VantageConfig(IReadOnlyList<string>? RepositoryRoots, WorktreeBase? DefaultBase, string? WorktreeRoot, EditorSetting? Editor)
 {
-    public static VantageConfig Default => new(
-        [Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos")],
-        WorktreeBase.RemoteDefault);
-
     public bool Equals(VantageConfig? other)
     {
         return other is not null
             && DefaultBase == other.DefaultBase
-            && RepositoryRoots.SequenceEqual(other.RepositoryRoots);
+            && string.Equals(WorktreeRoot, other.WorktreeRoot, StringComparison.Ordinal)
+            && Equals(Editor, other.Editor)
+            && (RepositoryRoots ?? []).SequenceEqual(other.RepositoryRoots ?? []);
     }
 
-    public override int GetHashCode() => HashCode.Combine(DefaultBase, RepositoryRoots.Count);
+    public override int GetHashCode() => HashCode.Combine(DefaultBase, WorktreeRoot, RepositoryRoots?.Count);
+}
+
+/// <summary>The editor as config.json holds it: <c>{ "preset": "VsCode" }</c>, or a custom executable and its argument list.</summary>
+public sealed record EditorSetting(string? Preset, string? Executable, IReadOnlyList<string>? Arguments)
+{
+    public bool Equals(EditorSetting? other)
+    {
+        return other is not null
+            && string.Equals(Preset, other.Preset, StringComparison.Ordinal)
+            && string.Equals(Executable, other.Executable, StringComparison.Ordinal)
+            && (Arguments ?? []).SequenceEqual(other.Arguments ?? []);
+    }
+
+    public override int GetHashCode() => HashCode.Combine(Preset, Executable);
 }

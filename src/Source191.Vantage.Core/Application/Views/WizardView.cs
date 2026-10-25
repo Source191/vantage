@@ -84,7 +84,7 @@ public static class WizardView
         }
 
         LaunchRequest request = new(repository, state.Name, state.Mode, state.Base, state.Prompt);
-        LaunchPlanResult planned = LaunchPlanBuilder.Build(request, state.Folders.DirectoryExists);
+        LaunchPlanResult planned = LaunchPlanBuilder.Build(request, state.WorktreeRoot, state.Folders.DirectoryExists);
 
         return planned switch
         {

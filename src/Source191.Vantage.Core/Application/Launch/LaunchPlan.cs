@@ -21,7 +21,7 @@ public sealed record LaunchRequest(
 public sealed record LaunchPlan(
     FolderPath Directory,
     SessionName Name,
-    SiblingWorktree? Worktree,
+    PlannedWorktree? Worktree,
     bool ReuseExistingWorktree,
     WorktreeBase Base,
     string? OpeningPrompt,
@@ -52,17 +52,17 @@ public sealed record LaunchPlanResult(LaunchPlan? Plan, LaunchProblem? Problem)
 
 public static class LaunchPlanBuilder
 {
-    public static LaunchPlanResult Build(LaunchRequest request, Func<string, bool> folderExists)
+    public static LaunchPlanResult Build(LaunchRequest request, FolderPath worktreeRoot, Func<string, bool> folderExists)
     {
         return SessionName.Validate(request.NameText) switch
         {
-            SessionNameValidation.Valid valid => Build(request, valid.Name, folderExists),
+            SessionNameValidation.Valid valid => Build(request, valid.Name, worktreeRoot, folderExists),
             SessionNameValidation.Refused refused => LaunchPlanResult.Refused(new LaunchProblem.InvalidName(refused.Problem)),
             _ => throw new UnreachableException(),
         };
     }
 
-    private static LaunchPlanResult Build(LaunchRequest request, SessionName name, Func<string, bool> folderExists)
+    private static LaunchPlanResult Build(LaunchRequest request, SessionName name, FolderPath worktreeRoot, Func<string, bool> folderExists)
     {
         string? prompt = Blank(request.OpeningPromptText) ? null : request.OpeningPromptText.Trim();
 
@@ -81,7 +81,7 @@ public static class LaunchPlanBuilder
             return LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsLetters());
         }
 
-        SiblingWorktree worktree = SiblingWorktree.For(request.Repository.Path, name.Slug);
+        PlannedWorktree worktree = PlannedWorktree.For(worktreeRoot, request.Repository.Path, name.Slug);
         bool reuse = folderExists(worktree.Path.Value);
 
         return Ok(new LaunchPlan(worktree.Path, name, worktree, reuse, request.Base, prompt, request.Repository));

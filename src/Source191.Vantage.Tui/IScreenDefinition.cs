@@ -25,7 +25,7 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>The words before the banner's failure message, such as "listing failed".</summary>
     string LoadFailurePrefix { get; }
 
-    /// <summary>The five header row names, newline separated; the first three are Vantage, Claude and roots.</summary>
+    /// <summary>The six header row names, newline separated; the first four are Vantage, Claude, the roots and the worktree root.</summary>
     string HeaderNames { get; }
 
     /// <summary>The keys the view answers to; the header draws a hint for each that has one and shows its line as a tooltip.</summary>
@@ -40,7 +40,7 @@ internal interface IScreenDefinition<TState, TRow>
 
     Color RowColour(TRow row);
 
-    /// <summary>The fourth and fifth header lines, newline separated: counts drawn from the state.</summary>
+    /// <summary>The fifth and sixth header lines, newline separated: counts drawn from the state.</summary>
     string ContextLines(TState state);
 
     TState WithFooter(TState state, Footer footer);

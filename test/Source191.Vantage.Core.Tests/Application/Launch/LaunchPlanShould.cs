@@ -8,6 +8,8 @@ public sealed class LaunchPlanShould
     private static readonly RepositoryChoice Repository = new("Northwind.Orders", new FolderPath(@"C:\repos\Northwind.Orders"), IsRepository: true);
     private static readonly RepositoryChoice NoRepository = new("repos (no repository)", new FolderPath(@"C:\repos"), IsRepository: false);
 
+    private static readonly FolderPath WorktreeRoot = new(@"C:\Users\me\source\worktrees");
+
     private static readonly LaunchRequest Default = new(
         Repository,
         NameText: "Fix #123: flaky tests!",
@@ -18,7 +20,7 @@ public sealed class LaunchPlanShould
     [Fact]
     public void StartInTheRepositoryOnTheCurrentBranchByDefault()
     {
-        LaunchPlan plan = LaunchPlanBuilder.Build(Default, folderExists: _ => false).Plan!;
+        LaunchPlan plan = LaunchPlanBuilder.Build(Default, WorktreeRoot, folderExists: _ => false).Plan!;
 
         plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders");
         plan.Worktree.ShouldBeNull();
@@ -28,16 +30,16 @@ public sealed class LaunchPlanShould
     [Fact]
     public void DropABlankOpeningPromptSoTheSessionStartsIdle()
     {
-        LaunchPlanBuilder.Build(Default, _ => false).Plan!.OpeningPrompt.ShouldBeNull();
-        LaunchPlanBuilder.Build(Default with { OpeningPromptText = "Fix the test" }, _ => false).Plan!.OpeningPrompt.ShouldBe("Fix the test");
+        LaunchPlanBuilder.Build(Default, WorktreeRoot, _ => false).Plan!.OpeningPrompt.ShouldBeNull();
+        LaunchPlanBuilder.Build(Default with { OpeningPromptText = "Fix the test" }, WorktreeRoot, _ => false).Plan!.OpeningPrompt.ShouldBe("Fix the test");
     }
 
     [Fact]
-    public void PlaceANewWorktreeBesideTheRepositoryOnTheSlugBranch()
+    public void PlaceANewWorktreeUnderTheWorktreeRoot()
     {
-        LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, _ => false).Plan!;
+        LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, WorktreeRoot, _ => false).Plan!;
 
-        plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders-fix-123-flaky-tests");
+        plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123-flaky-tests");
         plan.Worktree.ShouldNotBeNull();
         plan.Worktree.Branch.ShouldBe(new BranchName("fix-123-flaky-tests"));
         plan.ReuseExistingWorktree.ShouldBeFalse();
@@ -45,18 +47,18 @@ public sealed class LaunchPlanShould
     }
 
     [Fact]
-    public void ReuseAnExistingWorktreeFolderInsteadOfCreatingOne()
+    public void ReuseAnExistingFolderUnderTheWorktreeRoot()
     {
-        LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, folderExists: path => path.EndsWith("flaky-tests", StringComparison.Ordinal)).Plan!;
+        LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, WorktreeRoot, folderExists: path => path.EndsWith("flaky-tests", StringComparison.Ordinal)).Plan!;
 
         plan.ReuseExistingWorktree.ShouldBeTrue();
-        plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders-fix-123-flaky-tests");
+        plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123-flaky-tests");
     }
 
     [Fact]
     public void RefuseAWorktreeWhenTheNameHasNoLettersOrDigits()
     {
-        LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = "!!!", Mode = LaunchMode.NewWorktree }, _ => false);
+        LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = "!!!", Mode = LaunchMode.NewWorktree }, WorktreeRoot, _ => false);
 
         result.Plan.ShouldBeNull();
         result.Problem.ShouldBe(new LaunchProblem.WorktreeNeedsLetters());
@@ -65,7 +67,7 @@ public sealed class LaunchPlanShould
     [Fact]
     public void RefuseAWorktreeForTheNoRepositoryChoice()
     {
-        LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { Repository = NoRepository, Mode = LaunchMode.NewWorktree }, _ => false);
+        LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { Repository = NoRepository, Mode = LaunchMode.NewWorktree }, WorktreeRoot, _ => false);
 
         result.Plan.ShouldBeNull();
         result.Problem.ShouldBe(new LaunchProblem.WorktreeNeedsRepository());
@@ -76,7 +78,7 @@ public sealed class LaunchPlanShould
     [InlineData("a; b", NameProblem.UnsafeCharacters)]
     public void ReportAnInvalidName(string name, NameProblem expected)
     {
-        LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = name }, _ => false);
+        LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = name }, WorktreeRoot, _ => false);
 
         result.Plan.ShouldBeNull();
         result.Problem.ShouldBe(new LaunchProblem.InvalidName(expected));

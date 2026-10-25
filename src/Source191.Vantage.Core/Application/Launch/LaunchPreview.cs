@@ -8,7 +8,7 @@ namespace Source191.Vantage.Application.Launch;
 /// </summary>
 public static class LaunchPreview
 {
-    public static string Describe(RepositoryChoice repository, string nameText, LaunchMode mode)
+    public static string Describe(RepositoryChoice repository, string nameText, LaunchMode mode, FolderPath worktreeRoot)
     {
         if (mode == LaunchMode.CurrentBranch)
         {
@@ -23,11 +23,11 @@ public static class LaunchPreview
         WorktreeSlug? slug = WorktreeSlug.From(nameText);
         if (slug is null)
         {
-            return $"The name becomes the worktree folder {repository.Name}-<name> and its branch.";
+            return $"The name becomes the worktree folder {repository.Name}-<name> under {worktreeRoot} and its branch.";
         }
 
-        SiblingWorktree worktree = SiblingWorktree.For(repository.Path, slug);
+        PlannedWorktree worktree = PlannedWorktree.For(worktreeRoot, repository.Path, slug);
 
-        return $"Worktree {worktree.Path.Name} beside the repository, on branch {worktree.Branch}.";
+        return $"Worktree {worktree.Path.Name} under {worktreeRoot}, on branch {worktree.Branch}.";
     }
 }

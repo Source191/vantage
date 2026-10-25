@@ -11,9 +11,9 @@ public static partial class Wording
     /// <summary>The title of Vantage's own tab; every writer of it uses this one value.</summary>
     public static string TabTitle(ToolVersion version) => $"Vantage ({version.Text})";
 
-    /// <summary>The header's first three values, one per line: Vantage's version, the Claude Code version and the repository roots.</summary>
-    public static string HeaderValues(ToolVersion vantage, string? claudeVersion, IReadOnlyList<string> roots)
-    => string.Join('\n', vantage.Text, claudeVersion ?? UnknownVersion, string.Join("; ", roots));
+    /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
+    public static string HeaderValues(ToolVersion vantage, string? claudeVersion, Settings settings)
+    => string.Join('\n', vantage.Text, claudeVersion ?? UnknownVersion, string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
 
     /// <summary>The table's title: "7 sessions, selected: fix-123", or "2 of 7 sessions match "templates", selected: templates-sync" while a filter is set.</summary>
     public static string Describe(TableTitle title)

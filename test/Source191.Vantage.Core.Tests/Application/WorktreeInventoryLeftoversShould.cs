@@ -18,7 +18,7 @@ public sealed class WorktreeInventoryLeftoversShould
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
         .Answer(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/Users/me/source/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n", string.Empty));
 
-    private WorktreeInventory Inventory => new(new GitCli(processes), folders, [Root]);
+    private WorktreeInventory Inventory => new(new GitCli(processes), folders, TestSettings.Current(Root));
 
     [Fact]
     public async Task AskGitThreeThingsPerRegisteredWorktreeAndNothingAboutMergeState()

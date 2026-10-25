@@ -16,7 +16,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     private readonly TemporaryGitRoot root = new();
 
-    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), new Folders(), [root.Path]);
+    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), new Folders(), TestSettings.Current(root.Path));
 
     /// <summary>Plain claude running in the folder, or a stopped job there when it has no process.</summary>
     private static Session SessionIn(string directory, string name, int? processId)

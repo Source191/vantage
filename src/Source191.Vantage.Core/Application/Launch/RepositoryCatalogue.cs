@@ -10,17 +10,18 @@ public sealed record RepositoryChoice(string Name, FolderPath Path, bool IsRepos
 }
 
 /// <summary>
-/// The repositories the wizard offers: every git checkout directly under the configured roots, recently used
-/// ones first, and each root itself as a "no repository" choice for cross-repository work.
+/// The repositories the wizard offers: every main checkout directly under the roots saved now, recently used ones
+/// first, and each root itself as a "no repository" choice for cross-repository work. A linked worktree (a .git
+/// file rather than a folder) under a root is not offered as a repository.
 /// </summary>
-public sealed class RepositoryCatalogue(IFolders folders, IReadOnlyList<string> roots)
+public sealed class RepositoryCatalogue(IFolders folders, CurrentSettings settings)
 {
     public IReadOnlyList<RepositoryChoice> Choices(IReadOnlyList<string> recent, string filter)
     {
+        List<FolderPath> roots = [.. settings.Value.RepositoryRoots.Where(root => folders.DirectoryExists(root.Value))];
         List<RepositoryChoice> repositories = [.. Paths(roots
-            .Where(folders.DirectoryExists)
-            .SelectMany(folders.Directories)
-            .Where(IsGitCheckout))
+            .SelectMany(root => folders.Directories(root.Value))
+            .Where(IsMainCheckout))
             .Select(path => new RepositoryChoice(path.Name, path, IsRepository: true))
             .OrderBy(choice => choice.Name, StringComparer.OrdinalIgnoreCase)];
 
@@ -28,20 +29,15 @@ public sealed class RepositoryCatalogue(IFolders folders, IReadOnlyList<string> 
             .Select(path => repositories.FirstOrDefault(choice => choice.Path == path))
             .OfType<RepositoryChoice>()];
         IEnumerable<RepositoryChoice> rest = repositories.Where(choice => !recentFirst.Contains(choice));
-        IEnumerable<RepositoryChoice> noRepository = Paths(roots.Where(folders.DirectoryExists))
+        IEnumerable<RepositoryChoice> noRepository = roots
             .Select(root => new RepositoryChoice($"{root.Name} (no repository)", root, IsRepository: false));
 
         return [.. recentFirst.Concat(rest).Concat(noRepository)
             .Where(choice => choice.Matches(filter))];
     }
 
-    private bool IsGitCheckout(string path)
-    {
-        string git = System.IO.Path.Combine(path, ".git");
+    private bool IsMainCheckout(string path) => folders.DirectoryExists(System.IO.Path.Combine(path, ".git"));
 
-        return folders.DirectoryExists(git) || folders.FileExists(git);
-    }
-
-    /// <summary>The configured, listed and recorded paths that are full paths; anything else is skipped.</summary>
+    /// <summary>The listed and recorded paths that are full paths; anything else is skipped.</summary>
     private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Select(FolderPath.TryParse).OfType<FolderPath>();
 }
