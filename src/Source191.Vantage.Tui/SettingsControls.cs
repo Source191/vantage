@@ -43,10 +43,10 @@ internal sealed class SettingsControls
             Roots,
             Caption(LeftColumn, 6, "Worktree root (new worktrees go here; created when first used)"),
             WorktreeRoot,
-            Caption(LeftColumn, 9, "Editor (↑↓ to change)"),
+            Caption(LeftColumn, 9, "Editor (↑↓ then Space to choose)"),
             Editor,
             .. Custom,
-            Caption(BaseColumn, 9, "Worktree base (↑↓ to change)"),
+            Caption(BaseColumn, 9, "Worktree base (↑↓ then Space)"),
             BaseRef,
             Problem,
         ];
@@ -67,7 +67,7 @@ internal sealed class SettingsControls
 
     public OptionSelector BaseRef { get; } = new() { X = BaseColumn, Y = 10, Labels = ["origin default branch", "current HEAD"], Value = 0 };
 
-    public Label Problem { get; } = Text(LeftColumn, Pos.AnchorEnd(3), Palette.Red, Dim.Fill(1));
+    public Label Problem { get; } = Text(LeftColumn, 17, Palette.Red, Dim.Fill(1));
 
     /// <summary>The control that shows each field, so the dialog can follow focus both ways.</summary>
     public IReadOnlyDictionary<SettingsField, View> Fields { get; }

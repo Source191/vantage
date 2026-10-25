@@ -21,7 +21,7 @@ internal static class SettingsDialog
         Settings? result = null;
         bool binding = false;
         SettingsControls controls = new(state);
-        using Dialog dialog = new() { Title = "Settings", Width = Dim.Percent(90), Height = 24 };
+        using Dialog dialog = new() { Title = "Settings", Width = Dim.Percent(90), Height = 26 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
         dialog.Add(controls.All);
 
