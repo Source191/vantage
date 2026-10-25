@@ -31,7 +31,7 @@ public sealed class HereCommandRunnerShould : IDisposable
             ClaudeCli claude = new(processes, Claude);
             GitCli git = new(processes);
             InMemoryState state = new();
-            LaunchService launches = new(claude, git, state, state, state, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
+            LaunchService launches = new(claude, git, state, state, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
 
             return new HereCommandRunner(folders, launches, new TerminalEffects(claude, output), console, output, error);
         }
@@ -78,7 +78,7 @@ public sealed class HereCommandRunnerShould : IDisposable
         int exitCode = await Runner.RunAsync(Directory, ["--bogus"], CancellationToken.None);
 
         exitCode.ShouldBe(2);
-        error.ToString().ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]" + Environment.NewLine);
+        error.ToString().ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"]" + Environment.NewLine);
         processes.CapturedRequests.ShouldBeEmpty();
     }
 

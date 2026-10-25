@@ -30,12 +30,12 @@ public sealed class LaunchServiceShould
         get
         {
             GitCli git = new(processes);
-            return new LaunchService(new ClaudeCli(processes, Claude), git, Store, Store, Store, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
+            return new LaunchService(new ClaudeCli(processes, Claude), git, Store, Store, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
         }
     }
 
     private static LaunchPlan CurrentBranch => new(
-        Repository.Path, SessionName.Parse("Fix flaky tests"), "Stabilise the retry test", Worktree: null,
+        Repository.Path, SessionName.Parse("Fix flaky tests"), Worktree: null,
         ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, Repository);
 
     private static LaunchPlan NewWorktree => CurrentBranch with
@@ -89,18 +89,17 @@ public sealed class LaunchServiceShould
     }
 
     [Fact]
-    public async Task RecordTheDescriptionAgainstTheNewSessionAndTheRepositoryAsRecent()
+    public async Task RecordTheRepositoryAsRecent()
     {
         await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
-        (await Store.ReadDescriptionsAsync())["sess-1"].ShouldBe("Stabilise the retry test");
         (await Store.ReadRecentRepositoriesAsync()).ShouldBe([@"C:\repos\Northwind.Orders"]);
     }
 
     [Fact]
     public async Task ReportTheListedSessionAfterAStart()
     {
-        LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch with { Description = null }, CancellationToken.None);
+        LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
         outcome.Session.ShouldNotBeNull();
         outcome.Session.SessionId.Value.ShouldBe("sess-1");
@@ -116,7 +115,6 @@ public sealed class LaunchServiceShould
         outcome.Kind.ShouldBe(LaunchOutcomeKind.Started);
         outcome.JobId.ShouldBe(new JobId("81cdb0f9"));
         outcome.Session.ShouldBeNull();
-        (await Store.ReadDescriptionsAsync()).ShouldBeEmpty();
     }
 
     [Fact]

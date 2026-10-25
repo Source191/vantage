@@ -77,7 +77,6 @@ internal static class LaunchWizardDialog
         void Start(bool openInTab)
         {
             Apply(new WizardInput.NameChanged(controls.Name.Text));
-            Apply(new WizardInput.DescriptionChanged(controls.Description.Text));
             Apply(new WizardInput.PromptChanged(controls.Prompt.Text));
             Apply(new WizardInput.Start(openInTab));
         }
@@ -86,7 +85,6 @@ internal static class LaunchWizardDialog
         controls.Filter.TextChanging += (_, changing) => Apply(new WizardInput.FilterChanged(changing.Result ?? string.Empty));
         controls.Repositories.ValueChanged += (_, _) => Apply(new WizardInput.ChoiceSelected(controls.Repositories.SelectedItem ?? -1));
         controls.Name.TextChanging += (_, changing) => Apply(new WizardInput.NameChanged(changing.Result ?? string.Empty));
-        controls.Description.TextChanging += (_, changing) => Apply(new WizardInput.DescriptionChanged(changing.Result ?? string.Empty));
         controls.Mode.ValueChanged += (_, _) => Apply(new WizardInput.ModeChanged(controls.Mode.Value == 1 ? LaunchMode.NewWorktree : LaunchMode.CurrentBranch));
         controls.BaseRef.ValueChanged += (_, _) => Apply(new WizardInput.BaseChanged(controls.BaseRef.Value == 1 ? WorktreeBase.Head : WorktreeBase.RemoteDefault));
         controls.Prompt.ContentsChanged += (_, _) => Apply(new WizardInput.PromptChanged(controls.Prompt.Text));
@@ -96,7 +94,6 @@ internal static class LaunchWizardDialog
         controls.Filter.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.ConfirmRepository()));
         controls.Repositories.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.ConfirmRepository()));
         controls.Name.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.NextField()));
-        controls.Description.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.NextField()));
         dialog.KeyDown += (_, key) => key.Handled = (key == GuiKey.F5 || key == GuiKey.F6) && WizardControls.Handled(() => Start(openInTab: key == GuiKey.F6));
         // No default button: Enter never starts anything by itself. The function keys and the buttons do.
         dialog.AddButton(WizardControls.Button("_Start (F5)", () => Start(openInTab: false)));

@@ -5,16 +5,15 @@ namespace Source191.Vantage.TestDoubles;
 
 /// <summary>
 /// Every state port in memory, with the same rules as the file store: recent repositories most recent first and
-/// capped at ten, one created-worktree record per path, descriptions keyed by session id.
+/// capped at ten, one created-worktree record per path.
 /// </summary>
-public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedWorktrees, ISessionDescriptions, IVantageConfig
+public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig
 {
     private const int RecentLimit = 10;
 
     private readonly Dictionary<Guid, TabRegistration> tabs = [];
     private readonly List<string> recent = [];
     private readonly List<CreatedWorktree> created = [];
-    private readonly Dictionary<string, string> descriptions = [];
     private VantageConfig config = VantageConfig.Default;
 
     public Task<IReadOnlyList<TabRegistration>> ReadTabsAsync()
@@ -66,17 +65,6 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
     public Task ForgetCreatedWorktreeAsync(FolderPath path)
     {
         created.RemoveAll(existing => existing.Path == path);
-        return Task.CompletedTask;
-    }
-
-    public Task<IReadOnlyDictionary<string, string>> ReadDescriptionsAsync()
-    {
-        return Task.FromResult<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>(descriptions));
-    }
-
-    public Task WriteDescriptionAsync(string sessionId, string description)
-    {
-        descriptions[sessionId] = description;
         return Task.CompletedTask;
     }
 

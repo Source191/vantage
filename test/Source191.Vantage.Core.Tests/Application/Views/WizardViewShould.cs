@@ -120,13 +120,11 @@ public sealed class WizardViewShould
     // 1.4 Enter moves on.
 
     [Fact]
-    public void NextFieldMovesNameToDescriptionToMode()
+    public void NextFieldMovesNameToMode()
     {
         WizardState inName = Reduce(InAgents, new WizardInput.ConfirmRepository());
 
-        WizardState inDescription = Reduce(inName, new WizardInput.NextField());
-        inDescription.Focus.ShouldBe(WizardField.Description);
-        Reduce(inDescription, new WizardInput.NextField()).Focus.ShouldBe(WizardField.Mode);
+        Reduce(inName, new WizardInput.NextField()).Focus.ShouldBe(WizardField.Mode);
         Reduce(Reduce(inName, new WizardInput.FieldFocused(WizardField.Prompt)), new WizardInput.NextField()).Focus.ShouldBe(WizardField.Prompt, "Enter in the prompt is a new line, not a move");
     }
 
@@ -175,7 +173,6 @@ public sealed class WizardViewShould
         launch.Plan.ShouldSatisfyAllConditions(
             plan => plan.Directory.Value.ShouldBe(@"C:\Users\me\source\repos\Northwind.Agents-fix-123"),
             plan => plan.Name.Text.ShouldBe("Fix 123"),
-            plan => plan.Description.ShouldBe("Retry refunds"),
             plan => plan.Worktree.ShouldNotBeNull(),
             plan => plan.ReuseExistingWorktree.ShouldBeFalse(),
             plan => plan.Base.ShouldBe(WorktreeBase.Head),
@@ -220,8 +217,8 @@ public sealed class WizardViewShould
         fixedInBilling.Focus.ShouldBe(WizardField.Name);
         fixedInBilling.Chosen.ShouldBe(new RepositoryChoice("Northwind.Billing", new FolderPath(Billing), IsRepository: true));
         fixedInBilling.Base.ShouldBe(WorktreeBase.Head, "the default base still comes from settings");
-        Reduce(Reduce(fixedInBilling, new WizardInput.FieldFocused(WizardField.Description)), new WizardInput.NextField())
-            .Focus.ShouldBe(WizardField.Description, "the Where choice is hidden, so Enter has nowhere to go");
+        Reduce(fixedInBilling, new WizardInput.NextField())
+            .Focus.ShouldBe(WizardField.Name, "the Where choice is hidden, so Enter has nowhere to go");
     }
 
     [Fact]
@@ -259,11 +256,10 @@ public sealed class WizardViewShould
         new WizardInput.FilterChanged("north"),
         new WizardInput.ChoiceSelected(1),
         new WizardInput.NameChanged("Fix 123"),
-        new WizardInput.DescriptionChanged("Retry refunds"),
         new WizardInput.ModeChanged(LaunchMode.NewWorktree),
         new WizardInput.BaseChanged(WorktreeBase.Head),
         new WizardInput.PromptChanged("Read the README"),
-        new WizardInput.FieldFocused(WizardField.Description),
+        new WizardInput.FieldFocused(WizardField.Prompt),
         new WizardInput.ConfirmRepository(),
     ];
 
@@ -290,7 +286,6 @@ public sealed class WizardViewShould
         return new WizardInput[]
         {
             new WizardInput.NameChanged("Fix 123"),
-            new WizardInput.DescriptionChanged("  Retry refunds  "),
             new WizardInput.ModeChanged(LaunchMode.NewWorktree),
             new WizardInput.BaseChanged(WorktreeBase.Head),
             new WizardInput.PromptChanged("Read the README"),

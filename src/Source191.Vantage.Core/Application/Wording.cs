@@ -33,7 +33,7 @@ public static partial class Wording
     /// <summary>Printed before an attach. Attach lands on Claude's agent list when the session has no messages yet; that screen leaves with Esc, not Ctrl+Z.</summary>
     public static string ReturnHint => "Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.";
 
-    public static string HereUsage => "Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]";
+    public static string HereUsage => "Usage: vantage here [name] [-p \"opening prompt\"]";
 
     public static string ClaimTabUsage => "Usage: vantage claim-tab <registration id> <process id>";
 

@@ -60,7 +60,7 @@ ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
 WindowsTerminal terminal = new(processes);
 Folders folders = new();
 TerminalConsole console = new(Console.Out);
-LaunchService launchService = new(claude, git, store, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
+LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
 TerminalEffects terminalEffects = new(claude, Console.Out);
 
 if (command is StartHere here)
@@ -70,7 +70,7 @@ if (command is StartHere here)
     return await runner.RunAsync(Directory.GetCurrentDirectory(), here.Arguments, CancellationToken.None);
 }
 
-SessionRowEnricher enricher = new(git, store, store, processRegistry, TimeProvider.System, transcripts);
+SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts);
 StateTransitionNotifier notifier = new(Console.Out);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
 EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System);

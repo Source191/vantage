@@ -17,20 +17,29 @@ public sealed class HereCommandShould
         result.Plan.Directory.Value.ShouldBe(Directory);
         result.Plan.Name.Text.ShouldBe("Northwind.Orders");
         result.Plan.Worktree.ShouldBeNull();
-        result.Plan.Description.ShouldBeNull();
         result.Plan.OpeningPrompt.ShouldBeNull();
         result.Plan.Repository.ShouldBe(new RepositoryChoice("Northwind.Orders", new FolderPath(Directory), IsRepository: true));
     }
 
     [Fact]
-    public void TakeANameAnOpeningPromptAndADescriptionFromTheArguments()
+    public void TakeANameAndAnOpeningPromptFromTheArguments()
     {
-        LaunchPlanResult result = HereCommand.Plan(Directory, ["fix-tests", "-p", "Fix the failing tests", "-d", "The flaky suite"], isRepository: _ => true);
+        LaunchPlanResult result = HereCommand.Plan(Directory, ["fix-tests", "-p", "Fix the failing tests"], isRepository: _ => true);
 
         result.Plan.ShouldNotBeNull();
         result.Plan.Name.Text.ShouldBe("fix-tests");
         result.Plan.OpeningPrompt.ShouldBe("Fix the failing tests");
-        result.Plan.Description.ShouldBe("The flaky suite");
+    }
+
+    [Theory]
+    [InlineData("-d")]
+    [InlineData("--description")]
+    public void RefuseTheRemovedDescriptionOptionAsUnknown(string option)
+    {
+        LaunchPlanResult result = HereCommand.Plan(Directory, [option, "The flaky suite"], isRepository: _ => true);
+
+        result.Plan.ShouldBeNull();
+        result.Problem.ShouldBe(new LaunchProblem.UnknownOption(option));
     }
 
     [Fact]

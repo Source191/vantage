@@ -9,7 +9,6 @@ public enum WizardField
     RepositoryFilter,
     RepositoryList,
     Name,
-    Description,
     Mode,
     Base,
     Prompt,
@@ -28,8 +27,6 @@ public abstract record WizardInput
     public sealed record ChoiceSelected(int Index) : WizardInput;
 
     public sealed record NameChanged(string Text) : WizardInput;
-
-    public sealed record DescriptionChanged(string Text) : WizardInput;
 
     public sealed record ModeChanged(LaunchMode Mode) : WizardInput;
 

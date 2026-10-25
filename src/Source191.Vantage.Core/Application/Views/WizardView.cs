@@ -18,7 +18,6 @@ public static class WizardView
             WizardInput.ListMoved moved => Changed(Moved(state, moved.Delta)),
             WizardInput.ChoiceSelected selected => Changed(Selected(state, selected.Index)),
             WizardInput.NameChanged changed => Changed(state with { Name = changed.Text }),
-            WizardInput.DescriptionChanged changed => Changed(state with { Description = changed.Text }),
             WizardInput.ModeChanged changed => Changed(state with { Mode = changed.Mode }),
             WizardInput.BaseChanged changed => Changed(state with { Base = changed.Base }),
             WizardInput.PromptChanged changed => Changed(state with { Prompt = changed.Text }),
@@ -62,13 +61,12 @@ public static class WizardView
             : state with { Problem = null, Focus = WizardField.Name };
     }
 
-    /// <summary>Enter in the name moves to the description, and in the description to the Where choice when it shows; anywhere else it stays.</summary>
+    /// <summary>Enter in the name moves to the Where choice when it shows; anywhere else it stays.</summary>
     private static WizardField Next(WizardState state)
     {
         return state.Focus switch
         {
-            WizardField.Name => WizardField.Description,
-            WizardField.Description => state.ShowsChooser ? WizardField.Mode : WizardField.Description,
+            WizardField.Name => state.ShowsChooser ? WizardField.Mode : WizardField.Name,
             WizardField.RepositoryFilter => WizardField.RepositoryFilter,
             WizardField.RepositoryList => WizardField.RepositoryList,
             WizardField.Mode => WizardField.Mode,
@@ -89,7 +87,7 @@ public static class WizardView
             return Changed(state with { Problem = new WizardProblem.NoName(), Focus = WizardField.Name });
         }
 
-        LaunchRequest request = new(repository, state.Name, state.Description, state.Mode, state.Base, state.Prompt);
+        LaunchRequest request = new(repository, state.Name, state.Mode, state.Base, state.Prompt);
         LaunchPlanResult planned = LaunchPlanBuilder.Build(request, state.Folders.DirectoryExists);
 
         return planned switch

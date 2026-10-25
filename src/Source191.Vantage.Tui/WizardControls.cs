@@ -27,12 +27,11 @@ internal sealed class WizardControls
             [WizardField.RepositoryFilter] = Filter,
             [WizardField.RepositoryList] = Repositories,
             [WizardField.Name] = Name,
-            [WizardField.Description] = Description,
             [WizardField.Mode] = Mode,
             [WizardField.Base] = BaseRef,
             [WizardField.Prompt] = Prompt,
         };
-        View[] chooser = [Caption(LeftColumn, 0, "Repository (type to filter, ↑↓ to choose)"), Filter, Repositories, Caption(RightColumn, 9, "Where (↑↓ to change)"), Mode, Caption(RightColumn, 12, "Worktree base (↑↓ to change)"), BaseRef];
+        View[] chooser = [Caption(LeftColumn, 0, "Repository (type to filter, ↑↓ to choose)"), Filter, Repositories, Caption(RightColumn, 6, "Where (↑↓ to change)"), Mode, Caption(RightColumn, 9, "Worktree base (↑↓ to change)"), BaseRef];
         Array.ForEach(chooser, view => view.Visible = state.ShowsChooser);
         All =
         [
@@ -41,10 +40,8 @@ internal sealed class WizardControls
             Chosen,
             Caption(RightColumn, 3, "Session name (required)"),
             Name,
-            Caption(RightColumn, 6, "Description (optional)"),
-            Description,
             Preview,
-            Caption(RightColumn, 17, "Opening prompt (wraps; blank opens on the agent list until you send one)"),
+            Caption(RightColumn, 14, "Opening prompt (wraps; blank opens on the agent list until you send one)"),
             Prompt,
             Problem,
             Hint,
@@ -59,17 +56,15 @@ internal sealed class WizardControls
 
     public TextField Name { get; } = new() { X = RightColumn, Y = 4, Width = ColumnWidth };
 
-    public TextField Description { get; } = new() { X = RightColumn, Y = 7, Width = ColumnWidth };
+    public OptionSelector Mode { get; } = new() { X = RightColumn, Y = 7, Labels = ["Current branch", "New sibling worktree"], Value = 0 };
 
-    public OptionSelector Mode { get; } = new() { X = RightColumn, Y = 10, Labels = ["Current branch", "New sibling worktree"], Value = 0 };
+    public OptionSelector BaseRef { get; } = new() { X = RightColumn, Y = 10, Labels = ["origin default branch", "current HEAD"], Value = 0 };
 
-    public OptionSelector BaseRef { get; } = new() { X = RightColumn, Y = 13, Labels = ["origin default branch", "current HEAD"], Value = 0 };
-
-    public Label Preview { get; } = Text(RightColumn, 15, Palette.Cyan, Dim.Fill(1));
+    public Label Preview { get; } = Text(RightColumn, 12, Palette.Cyan, Dim.Fill(1));
 
     // TextView is marked obsolete in favour of the separate tui-cs Editor package; a wrapping prompt box does not justify another dependency.
 #pragma warning disable CS0618
-    public TextView Prompt { get; } = new() { X = RightColumn, Y = 18, Width = Dim.Fill(2), Height = 5, WordWrap = true, TabKeyAddsTab = false };
+    public TextView Prompt { get; } = new() { X = RightColumn, Y = 15, Width = Dim.Fill(2), Height = 5, WordWrap = true, TabKeyAddsTab = false };
 #pragma warning restore CS0618
 
     public Label Problem { get; } = Text(LeftColumn, Pos.AnchorEnd(3), Palette.Red, Dim.Fill(1));

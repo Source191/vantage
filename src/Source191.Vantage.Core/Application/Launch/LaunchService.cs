@@ -17,7 +17,7 @@ public sealed record LaunchOutcome(LaunchOutcomeKind Kind, JobId? JobId, string 
 /// Carries out a launch plan: creates the sibling worktree when one is wanted, copies the include files,
 /// starts the named background session, and records what Vantage needs to remember about it.
 /// </summary>
-public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositories recent, ICreatedWorktrees created, ISessionDescriptions descriptions, IWorktreeIncludeCopier copier, TimeProvider clock)
+public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositories recent, ICreatedWorktrees created, IWorktreeIncludeCopier copier, TimeProvider clock)
 {
     public async Task<LaunchOutcome> LaunchAsync(LaunchPlan plan, CancellationToken cancellationToken)
     {
@@ -44,7 +44,6 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
         await recent.RecordRecentRepositoryAsync(plan.Repository.Path.Value);
         JobId? jobId = JobId.TryParse(start.JobId);
         BackgroundSession? started = jobId is null ? null : await ListedSessionAsync(jobId, cancellationToken);
-        await RecordDescriptionAsync(plan, started);
 
         return new LaunchOutcome(LaunchOutcomeKind.Started, jobId, start.Message, started);
     }
@@ -67,15 +66,5 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
         IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(cancellationToken);
 
         return sessions.OfType<BackgroundSession>().FirstOrDefault(session => session.JobId == jobId);
-    }
-
-    private async Task RecordDescriptionAsync(LaunchPlan plan, Session? started)
-    {
-        if (plan.Description is null || started is null)
-        {
-            return;
-        }
-
-        await descriptions.WriteDescriptionAsync(started.SessionId.Value, plan.Description);
     }
 }

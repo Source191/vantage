@@ -3,7 +3,7 @@ using Source191.Vantage.Domain;
 namespace Source191.Vantage.Application.Launch;
 
 /// <summary>
-/// <c>vantage here [name] [-p prompt] [-d description]</c>: a supervised session in the current folder, on its current
+/// <c>vantage here [name] [-p prompt]</c>: a supervised session in the current folder, on its current
 /// branch, attached in the same tab. Sessions started this way are Vantage-managed from the outset.
 /// </summary>
 public static class HereCommand
@@ -13,7 +13,6 @@ public static class HereCommand
         FolderPath path = new(directory);
         string? name = null;
         string prompt = string.Empty;
-        string description = string.Empty;
 
         Queue<string> remaining = new(arguments);
         while (remaining.Count > 0)
@@ -25,10 +24,7 @@ public static class HereCommand
                 case "-p" or "--prompt" when hasValue:
                     prompt = remaining.Dequeue();
                     break;
-                case "-d" or "--description" when hasValue:
-                    description = remaining.Dequeue();
-                    break;
-                case "-p" or "--prompt" or "-d" or "--description":
+                case "-p" or "--prompt":
                     return LaunchPlanResult.Refused(new LaunchProblem.OptionNeedsValue(argument));
                 case var option when option.StartsWith('-'):
                     return LaunchPlanResult.Refused(new LaunchProblem.UnknownOption(option));
@@ -41,7 +37,7 @@ public static class HereCommand
         }
 
         RepositoryChoice repository = new(path.Name, path, isRepository(directory));
-        LaunchRequest request = new(repository, name ?? path.Name, description, LaunchMode.CurrentBranch, WorktreeBase.RemoteDefault, prompt);
+        LaunchRequest request = new(repository, name ?? path.Name, LaunchMode.CurrentBranch, WorktreeBase.RemoteDefault, prompt);
 
         return LaunchPlanBuilder.Build(request, _ => false);
     }
