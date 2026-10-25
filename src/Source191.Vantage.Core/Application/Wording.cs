@@ -22,6 +22,15 @@ public static partial class Wording
 
     public static string ForceRemoveWarning => "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:";
 
+    /// <summary>The typed-confirmation dialog's line when Enter is pressed on an empty box; expectedKind names what must be typed.</summary>
+    public static string NothingTypedYet(string expectedKind, string expected) => $"Nothing typed yet; the {expectedKind} is {expected}.";
+
+    public static string NotTheSame(string typed) => $"Not the same: you typed {typed}.";
+
+    public static string CopiedToClipboard(string expected) => $"Copied {expected} to the clipboard; Ctrl+V pastes it into the box.";
+
+    public static string ClipboardUnavailable => "The clipboard is not available here; Shift+drag selects text in Windows Terminal.";
+
     public static string Describe(Footer footer)
     {
         return footer switch
@@ -29,7 +38,7 @@ public static partial class Wording
             Footer.Blank => string.Empty,
             Footer.NeedInput need => $"{need.Count} need input",
             Footer.RemoveHint => "d removes only what is safe to remove",
-            Footer.Unhealthy unhealthy => $"{unhealthy.FolderName} is {unhealthy.Kind.ToString().ToLowerInvariant()}: {unhealthy.Reason}.",
+            Footer.Unhealthy unhealthy => $"{unhealthy.FolderName} is {unhealthy.Kind.ToString().ToLowerInvariant()}: {Describe(unhealthy.Reason)}.",
             Footer.NoSessionSelected => "No session selected.",
             Footer.RunsInOwnTerminal { HasTranscript: true } terminal =>
                 $"{terminal.Name} runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there.",
@@ -55,6 +64,38 @@ public static partial class Wording
         {
             NameProblem.Missing => "A session name is required.",
             NameProblem.UnsafeCharacters => "A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.",
+        };
+    }
+
+    /// <summary>Why the removal rules said no, or what they did instead; the footer and the outcomes wrap it in their own sentence.</summary>
+    public static string Describe(RemovalReason reason)
+    {
+        return reason switch
+        {
+            RemovalReason.None => string.Empty,
+            RemovalReason.LiveSession live => $"session {live.Name} is using it",
+            RemovalReason.Locked => "the worktree is locked",
+            RemovalReason.LeftoverFilesWouldBeLost leftover => $"{(leftover.AtLeast ? "at least " : string.Empty)}{leftover.Count} files that git no longer tracks would be lost",
+            RemovalReason.ChangesWouldBeLost changes => $"{changes.Count} changed or untracked files would be lost",
+            RemovalReason.UnpushedCommits unpushed => $"branch {unpushed.Branch} has {unpushed.Count} unpushed commits",
+            RemovalReason.LeftoverFolder => "leftover folder",
+            _ => reason.ToString(),
+        };
+    }
+
+    /// <summary>What is wrong with a worktree; a lock keeps git's own words.</summary>
+    public static string Describe(HealthReason reason)
+    {
+        return reason switch
+        {
+            HealthReason.None => string.Empty,
+            HealthReason.FolderGone => "registered with git but the folder is gone",
+            HealthReason.Locked locked => locked.LockReason,
+            HealthReason.RegistrationGone => "its .git file points at a registration that no longer exists",
+            HealthReason.UnderClaudeWorktrees => @"under .claude\worktrees but git no longer lists it",
+            HealthReason.EmptyLeftover => "leftover folder with nothing in it",
+            HealthReason.NotRegistered => "folder is not registered with git",
+            _ => reason.ToString(),
         };
     }
 
@@ -209,8 +250,8 @@ public static partial class Wording
         return footer switch
         {
             Footer.NoWorktreeSelected => "No worktree selected.",
-            Footer.NotRemoved { OfferForce: true } refused => $"Not removed: {refused.Reason}. D forces after a typed confirmation.",
-            Footer.NotRemoved refused => $"Not removed: {refused.Reason}.",
+            Footer.NotRemoved { OfferForce: true } refused => $"Not removed: {Describe(refused.Reason)}. D forces after a typed confirmation.",
+            Footer.NotRemoved refused => $"Not removed: {Describe(refused.Reason)}.",
             Footer.ForceCancelled => "Cancelled; nothing removed.",
             Footer.NothingTyped => "Nothing was typed; nothing removed.",
             Footer.TypedWrongName wrong => $"You typed {wrong.Typed}, not {wrong.Expected}; nothing removed.",

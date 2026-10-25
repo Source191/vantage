@@ -21,7 +21,7 @@ public abstract record Footer
     public sealed record RemoveHint : Footer;
 
     /// <summary>The worktrees view's standing footer when the selected row is not healthy; the reason comes from the domain.</summary>
-    public sealed record Unhealthy(string FolderName, WorktreeHealthKind Kind, string Reason) : Footer;
+    public sealed record Unhealthy(string FolderName, WorktreeHealthKind Kind, HealthReason Reason) : Footer;
 
     public sealed record NoSessionSelected : Footer;
 
@@ -51,7 +51,7 @@ public abstract record Footer
     public sealed record NoWorktreeSelected : Footer;
 
     /// <summary>The removal rules said no; the reason is the domain's, and the force key is offered when the rules allow it.</summary>
-    public sealed record NotRemoved(string Reason, bool OfferForce) : Footer;
+    public sealed record NotRemoved(RemovalReason Reason, bool OfferForce) : Footer;
 
     public sealed record ForceCancelled : Footer;
 
