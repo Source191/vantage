@@ -81,6 +81,17 @@ public sealed class GitCliIntegrationShould : IDisposable
         (await git.DefaultRemoteBranchAsync(Repository, TestContext.Current.CancellationToken)).ShouldBeNull();
     }
 
+    [Fact]
+    public async Task AddAWorktreeUnderAFolderThatDoesNotExistYet()
+    {
+        await CreateRepositoryWithOneCommitAsync();
+        string worktree = Path.Combine(root, "worktrees", "Northwind.Orders-fix-123");
+
+        await git.AddWorktreeAsync(Repository, worktree, "fix-123", "main", TestContext.Current.CancellationToken);
+
+        File.Exists(Path.Combine(worktree, "README.md")).ShouldBeTrue("git creates the missing worktree root");
+    }
+
     public void Dispose()
     {
         if (!Directory.Exists(root))
