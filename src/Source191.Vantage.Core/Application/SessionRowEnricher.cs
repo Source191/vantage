@@ -6,7 +6,7 @@ namespace Source191.Vantage.Application;
 
 /// <summary>
 /// Turns listed sessions into table rows by asking git about each working directory (cached, because that is
-/// three processes per directory); and checking for live tabs.
+/// three processes per directory) and checking for live tabs.
 /// </summary>
 public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegistry processes, TimeProvider clock, ITranscripts transcripts)
 {
