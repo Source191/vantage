@@ -9,11 +9,13 @@ namespace Source191.Vantage.Adapters.Terminal;
 /// </summary>
 public static class WindowsTerminalArguments
 {
-    public static IReadOnlyList<string> ForTab(TabLaunch launch)
+    /// <summary>The arguments for a new tab; a profile name adds <c>--profile</c>, null leaves the tab in the default profile.</summary>
+    public static IReadOnlyList<string> ForTab(TabLaunch launch, string? profile)
     {
         return
         [
             "-w", "0", "new-tab",
+            .. profile is null ? (string[])[] : ["--profile", profile],
             "--title", launch.Title,
             "--tabColor", launch.Colour.Hex,
             "--suppressApplicationTitle",
@@ -29,11 +31,17 @@ public static class EncodedCommand
     public static string Encode(string script) => Convert.ToBase64String(Encoding.Unicode.GetBytes(script));
 }
 
-public sealed class WindowsTerminal(IProcessRunner processes) : IWindowsTerminal
+/// <summary>
+/// Opens tabs through wt.exe. When Vantage's fragment is installed the tab asks for the "Vantage session" profile, so
+/// its bell sounds different from other tabs; the file is checked on each open, so a setup run while Vantage is open
+/// takes effect at once.
+/// </summary>
+public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment fragment) : IWindowsTerminal
 {
     public async Task OpenTabAsync(TabLaunch launch, CancellationToken cancellationToken)
     {
-        ProcessRequest request = new("wt.exe", WindowsTerminalArguments.ForTab(launch), launch.StartingDirectory.Value);
+        string? profile = fragment.Exists ? TerminalProfiles.SessionProfileName : null;
+        ProcessRequest request = new("wt.exe", WindowsTerminalArguments.ForTab(launch, profile), launch.StartingDirectory.Value);
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
         {

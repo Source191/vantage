@@ -31,7 +31,7 @@ internal static class SessionTestData
     {
         InteractiveSession session = new(new SessionId("sess-9"), name, new FolderPath(Repository), Noon, state ?? DisplayState.Idle, processId);
 
-        return new SessionRow(session, "Northwind.Orders", new BranchName("main"), IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, "Northwind.Orders", new BranchName("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
     }
 
     /// <summary>A supervised session named fix-123, job 81cdb0f9, session id sess-1.</summary>
@@ -39,6 +39,6 @@ internal static class SessionTestData
     {
         BackgroundSession session = new(new SessionId("sess-1"), new JobId("81cdb0f9"), "fix-123", new FolderPath(directory), Noon, state ?? DisplayState.Working);
 
-        return new SessionRow(session, "Northwind.Orders", new BranchName(isWorktree ? "fix-123" : "main"), isWorktree, Description: null, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, "Northwind.Orders", new BranchName(isWorktree ? "fix-123" : "main"), isWorktree, HasLiveTab: false, HasTranscript: true);
     }
 }

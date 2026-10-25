@@ -5,6 +5,13 @@ namespace Source191.Vantage.Core.Tests.Application;
 public sealed class CommandLineShould
 {
     [Fact]
+    public void ParseSetupTerminalWithItsArguments()
+    {
+        CommandLine.Parse(["setup-terminal"]).ShouldBeOfType<SetupTerminal>().Arguments.ShouldBeEmpty();
+        CommandLine.Parse(["setup-terminal", "--yes", "--sound", @"C:\Windows\Media\chimes.wav"]).ShouldBeOfType<SetupTerminal>().Arguments.ShouldBe(["--yes", "--sound", @"C:\Windows\Media\chimes.wav"]);
+    }
+
+    [Fact]
     public void ParseConsoleHereClaimTabAndUsage()
     {
         Guid registration = Guid.NewGuid();

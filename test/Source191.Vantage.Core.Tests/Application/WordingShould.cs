@@ -2,9 +2,11 @@ using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Core.Tests.Application.Actions;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 using Sessions = Source191.Vantage.Core.Tests.Application.Actions.SessionTestData;
 using Worktrees = Source191.Vantage.Core.Tests.Application.Actions.WorktreeTestData;
@@ -334,7 +336,7 @@ public sealed class WordingShould
     public void NameTheSessionBeingStarted()
     {
         LaunchPlan plan = new(
-            new FolderPath(Sessions.Repository), SessionName.Parse("Fix flaky tests"), Description: null, Worktree: null,
+            new FolderPath(Sessions.Repository), SessionName.Parse("Fix flaky tests"), Worktree: null,
             ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", new FolderPath(Sessions.Repository), IsRepository: true));
 
         Wording.Working(new StartSession(plan, OpenInTab: true)).ShouldBe("Starting Fix flaky tests...");
@@ -383,12 +385,6 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void AskForASessionNameInTheWizard()
-    {
-        Wording.Describe(new WizardProblem.NoName()).ShouldBe("Session name is required: a short, human-readable label for the session.");
-    }
-
-    [Fact]
     public void GiveThePlanBuildersReasonInTheWizard()
     {
         Wording.Describe(new WizardProblem.Refused(new LaunchProblem.WorktreeNeedsLetters()))
@@ -430,25 +426,25 @@ public sealed class WordingShould
     [Fact]
     public void SayAnOptionNeedsAValueWithTheUsageLine()
     {
-        Wording.Describe(new LaunchProblem.OptionNeedsValue("-p")).ShouldBe("-p needs a value. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+        Wording.Describe(new LaunchProblem.OptionNeedsValue("-p")).ShouldBe("-p needs a value. Usage: vantage here [name] [-p \"opening prompt\"]");
     }
 
     [Fact]
     public void NameAnUnknownOptionWithTheUsageLine()
     {
-        Wording.Describe(new LaunchProblem.UnknownOption("--bogus")).ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+        Wording.Describe(new LaunchProblem.UnknownOption("--bogus")).ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"]");
     }
 
     [Fact]
     public void NameAnUnexpectedArgumentWithTheUsageLine()
     {
-        Wording.Describe(new LaunchProblem.UnexpectedArgument("extra")).ShouldBe("Unexpected argument extra. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+        Wording.Describe(new LaunchProblem.UnexpectedArgument("extra")).ShouldBe("Unexpected argument extra. Usage: vantage here [name] [-p \"opening prompt\"]");
     }
 
     [Fact]
     public void GiveTheUsageLines()
     {
-        Wording.HereUsage.ShouldBe("Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+        Wording.HereUsage.ShouldBe("Usage: vantage here [name] [-p \"opening prompt\"]");
         Wording.ClaimTabUsage.ShouldBe("Usage: vantage claim-tab <registration id> <process id>");
     }
 
@@ -515,5 +511,113 @@ public sealed class WordingShould
             /      filter    ?  help    q  quit
             Health: ok, locked (by another tool), orphan (folder git forgot), broken (registration or owner gone), empty (leftover folder)
             """);
+    }
+
+    // vantage setup-terminal.
+
+    private const string SetupUsage = "Usage: vantage setup-terminal [--sound <wav>] [--session-sound <wav>] [--yes] [--remove]";
+
+    [Fact]
+    public void GiveTheSetupTerminalUsageLine()
+    {
+        Wording.SetupTerminalUsage.ShouldBe(SetupUsage);
+    }
+
+    public static TheoryData<Type> SetupProblems => new(typeof(TerminalSetupProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(TerminalSetupProblem))));
+
+    [Theory]
+    [MemberData(nameof(SetupProblems))]
+    public void HaveWordsForEveryTerminalSetupProblem(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        TerminalSetupProblem problem = (TerminalSetupProblem)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+
+        Wording.DescribeSetupProblem(problem).ShouldEndWith(SetupUsage);
+        Wording.DescribeSetupProblem(problem).ShouldNotBe(problem.ToString());
+    }
+
+    [Fact]
+    public void SayWhyTerminalSetupWillNotRun()
+    {
+        Wording.DescribeSetupProblem(new TerminalSetupProblem.UnknownOption("--loud")).ShouldBe($"Unknown option --loud. {SetupUsage}");
+        Wording.DescribeSetupProblem(new TerminalSetupProblem.OptionNeedsValue("--sound")).ShouldBe($"--sound needs a value. {SetupUsage}");
+        Wording.DescribeSetupProblem(new TerminalSetupProblem.UnexpectedArgument("extra")).ShouldBe($"Unexpected argument extra. {SetupUsage}");
+        Wording.DescribeSetupProblem(new TerminalSetupProblem.RemoveWithSound()).ShouldBe($"--remove cannot be combined with --sound or --session-sound. {SetupUsage}");
+        Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotFound(@"C:\Users\me\missing.wav")).ShouldBe($@"The sound file C:\Users\me\missing.wav does not exist. {SetupUsage}");
+        Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotWav(@"C:\Windows\Media\notes.txt")).ShouldBe($@"The sound file C:\Windows\Media\notes.txt is not a .wav file. {SetupUsage}");
+    }
+
+    [Fact]
+    public void ShowWhatTheProfilesWillBe()
+    {
+        TerminalProfiles profiles = new(@"C:\Users\me\.dotnet\tools\vantage.exe", @"C:\Windows\Media\Windows Notify Messaging.wav", SessionSound: null);
+
+        Wording.TerminalSetupPlan(@"C:\Users\me\AppData\Local\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json", profiles).ShouldBe("""
+            Two Windows Terminal profiles will be written to C:\Users\me\AppData\Local\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json
+            Your Windows Terminal settings file is not changed.
+              Vantage          runs C:\Users\me\.dotnet\tools\vantage.exe; bell sound C:\Windows\Media\Windows Notify Messaging.wav
+              Vantage session  runs PowerShell; bell sound is Windows Terminal's own
+            Both ring the bell and flash the window and the taskbar.
+            """);
+    }
+
+    [Fact]
+    public void AskBeforeWritingTheProfiles()
+    {
+        Wording.WriteProfilesQuestion.ShouldBe("Write the Windows Terminal profiles? [y/N] ");
+    }
+
+    [Fact]
+    public void SayWhatWasWrittenAndToRestart()
+    {
+        Wording.ProfilesWritten(@"C:\f\vantage.json").ShouldBe(@"Wrote C:\f\vantage.json. Restart Windows Terminal to see the Vantage and Vantage session profiles.");
+    }
+
+    [Fact]
+    public void SayAMissingDefaultSoundIsLeftOut()
+    {
+        Wording.DefaultSoundMissing("Vantage", @"C:\Windows\Media\Windows Notify Messaging.wav")
+            .ShouldBe(@"C:\Windows\Media\Windows Notify Messaging.wav was not found, so the Vantage profile uses Windows Terminal's own bell sound.");
+    }
+
+    [Fact]
+    public void ShowTheClaudeSettingBeforeAskingForIt()
+    {
+        Wording.ClaudeBellPlan(@"C:\Users\me\.claude\settings.json", replacing: null).ShouldBe("""
+            Claude Code can ring the terminal bell when a session finishes or needs permission.
+            This sets "preferredNotifChannel": "terminal_bell" in C:\Users\me\.claude\settings.json and keeps every other setting.
+            """);
+        Wording.ClaudeBellPlan(@"C:\Users\me\.claude\settings.json", replacing: "iterm2").ShouldBe("""
+            Claude Code can ring the terminal bell when a session finishes or needs permission.
+            This replaces "preferredNotifChannel": "iterm2" with "terminal_bell" in C:\Users\me\.claude\settings.json and keeps every other setting.
+            """);
+        Wording.TurnOnClaudeBellQuestion.ShouldBe("Turn on Claude Code's terminal bell? [y/N] ");
+    }
+
+    [Fact]
+    public void SayWhatBecameOfClaudesSetting()
+    {
+        Wording.ClaudeBellAlreadyOn.ShouldBe("Claude Code's terminal bell is already on.");
+        Wording.ClaudeBellEnabled(@"C:\Users\me\.claude\settings.json").ShouldBe(@"Set preferredNotifChannel to terminal_bell in C:\Users\me\.claude\settings.json. It applies to sessions started from now on.");
+        Wording.ClaudeSettingsUnreadable(@"C:\Users\me\.claude\settings.json", "bad json").ShouldBe(@"Could not read C:\Users\me\.claude\settings.json (bad json), so it was left alone.");
+    }
+
+    [Fact]
+    public void SayNothingWasWritten()
+    {
+        Wording.NothingWritten.ShouldBe("Nothing was written.");
+    }
+
+    [Fact]
+    public void SayWhatRemovingDid()
+    {
+        Wording.ProfilesRemoved(@"C:\f\vantage.json").ShouldBe(@"Removed C:\f\vantage.json. Restart Windows Terminal to drop the Vantage profiles.");
+        Wording.NothingToRemove.ShouldBe("There is nothing to remove.");
+    }
+
+    [Fact]
+    public void ReportAFailedSetupWrite()
+    {
+        Wording.TerminalSetupFailed(@"C:\f\vantage.json", "access denied").ShouldBe(@"Could not write C:\f\vantage.json: access denied");
     }
 }
