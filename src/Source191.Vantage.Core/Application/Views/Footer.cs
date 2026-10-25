@@ -65,6 +65,9 @@ public abstract record Footer
 
     public sealed record NoSessionIn(string FolderName) : Footer;
 
+    /// <summary>The pull request key found none for the row: Gap says why, and Host names the CLI when the remote was read.</summary>
+    public sealed record NoPullRequest(string RowName, PullRequestGap Gap, PullRequestHost? Host) : Footer;
+
     /// <summary>The solution key found no .sln or .slnx in the folder or its src folder.</summary>
     public sealed record NoSolution(string FolderName) : Footer;
 

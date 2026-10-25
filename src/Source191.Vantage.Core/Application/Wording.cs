@@ -177,6 +177,7 @@ public static partial class Wording
             OpenFolderInEditor open => $"Opening {open.Folder.Name} in the editor...",
             FindSolution find => $"Looking for a solution in {find.Folder.Name}...",
             OpenSolution solution => $"Opening {Path.GetFileName(solution.File)}...",
+            OpenPullRequest open => $"Opening {PullRequestNumber(open.PullRequest.Host, open.PullRequest.Number)}...",
             SaveSettings => "Saving settings...",
             _ => "Working...",
         };
@@ -298,6 +299,7 @@ public static partial class Wording
             Footer.LeftoverFolder leftover => $"{leftover.FolderName} is a leftover folder, not a worktree.",
             Footer.NoSessionIn none => $"No session is running in {none.FolderName}.",
             Footer.NoSolution none => $"No solution found in {none.FolderName} or its src folder.",
+            Footer.NoPullRequest none => Describe(none),
             Footer.Kept => "Kept.",
             Footer.NothingChosenToResume => "Nothing to resume.",
             Footer.NoDialogFor missing => $"No dialog is defined for {missing.EffectName}.",

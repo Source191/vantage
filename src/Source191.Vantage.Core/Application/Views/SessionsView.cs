@@ -165,6 +165,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'c' } => FolderAction(state, (folder, _) => new CopyFolderPath(folder)),
             { Name: KeyName.Character, Character: 'e' } => FolderAction(state, (folder, _) => new OpenFolderInEditor(folder)),
             { Name: KeyName.Character, Character: 'v' } => FolderAction(state, (folder, repository) => new FindSolution(folder, repository)),
+            { Name: KeyName.Character, Character: 'p' } => OpenPullRequest(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
             { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
             { Name: KeyName.Character, Character: 'a' } => Effect(state, new OpenAgentView()),
@@ -222,6 +223,18 @@ public static class SessionsView
             SessionRow row => Effect(state with { Footer = Footer.None }, effect(row.Session.WorkingDirectory, row.Repository)),
         };
     }
+/// <summary>The row's pull request in the browser, or a footer saying why it has none.</summary>
+    private static ViewUpdate OpenPullRequest(SessionsViewState state)
+    {
+        return state.Selected switch
+        {
+            null => Unchanged(state with { Footer = new Footer.NoSessionSelected() }),
+            { PullRequest: PullRequestLookup.Found found } => Effect(state with { Footer = Footer.None }, new OpenPullRequest(found.PullRequest)),
+            { PullRequest: PullRequestLookup.Missing missing } row => Unchanged(state with { Footer = new Footer.NoPullRequest(row.Session.Name, missing.Gap, missing.Host) }),
+            _ => Unchanged(state),
+        };
+    }
+
     /// <summary>Every plain claude session that was never sent a message, in one go; the TUI confirms before closing.</summary>
     private static ViewUpdate CloseEmpty(SessionsViewState state)
     {

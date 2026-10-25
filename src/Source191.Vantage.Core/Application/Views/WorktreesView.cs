@@ -95,7 +95,8 @@ public static class WorktreesView
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
             { Name: KeyName.Character, Character: 'd' } => RowAction(state, row => Remove(row, forced: false)),
             { Name: KeyName.Character, Character: 'D' } => RowAction(state, row => Remove(row, forced: true)),
-            { Name: KeyName.Character, Character: 'p' } => RowAction(state, Prune),
+            { Name: KeyName.Character, Character: 'P' } => RowAction(state, Prune),
+            { Name: KeyName.Character, Character: 'p' } => RowAction(state, PullRequestOf),
             { Name: KeyName.Character, Character: 's' } => RowAction(state, row => InRealWorktree(row, new StartSessionIn(row))),
             { Name: KeyName.Character, Character: 'o' } => RowAction(state, row => InRealWorktree(row, new OpenShellTab(row))),
             { Name: KeyName.Character, Character: 'c' } => RowAction(state, row => WithFolder(row, new CopyFolderPath(row.Path))),
@@ -153,6 +154,13 @@ public static class WorktreesView
     }
 
     private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove) => Effect(state with { Footer = new Footer.Working(remove) }, remove);
+
+    private static (ViewEffect?, Footer) PullRequestOf(WorktreeRow row) => row.PullRequest switch
+    {
+        PullRequestLookup.Found found => (new OpenPullRequest(found.PullRequest), Footer.None),
+        PullRequestLookup.Missing missing => (null, new Footer.NoPullRequest(row.FolderName, missing.Gap, missing.Host)),
+        _ => (null, Footer.None),
+    };
 
     private static (ViewEffect?, Footer) Prune(WorktreeRow row)
     {
