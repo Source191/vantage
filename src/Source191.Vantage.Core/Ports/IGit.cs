@@ -47,6 +47,9 @@ public interface IGit
     /// <summary>The main checkout a linked worktree belongs to; null when git fails.</summary>
     Task<string?> MainCheckoutOfAsync(string directory, CancellationToken cancellationToken);
 
+    /// <summary>The origin remote's URL as git has it; null when git fails, as it does when there is no origin.</summary>
+    Task<string?> OriginUrlAsync(string repository, CancellationToken cancellationToken);
+
     /// <summary>Repository-relative paths, with forward slashes, of every file git ignores in the checkout. Throws <see cref="GitException"/> when git fails.</summary>
     Task<IReadOnlyList<string>> ListIgnoredFilesAsync(string repository, CancellationToken cancellationToken);
 }

@@ -106,6 +106,8 @@ public sealed class GitCli(IProcessRunner processes) : IGit
         return Path.GetDirectoryName(ToWindowsPath(result.StandardOutput));
     }
 
+    public Task<string?> OriginUrlAsync(string repository, CancellationToken cancellationToken) => Task.FromResult<string?>(null);
+
     public async Task<IReadOnlyList<string>> ListIgnoredFilesAsync(string repository, CancellationToken cancellationToken)
     {
         ProcessResult result = await RunOrThrowAsync(repository, ["ls-files", "--others", "--ignored", "--exclude-standard"], cancellationToken);
