@@ -95,6 +95,7 @@ public static partial class Wording
     {
         return problem switch
         {
+            WizardProblem.None => string.Empty,
             WizardProblem.NoRepository => "Choose a repository: type part of its name, then ↑↓.",
             WizardProblem.Refused refused => Describe(refused.Problem),
             _ => problem.ToString(),

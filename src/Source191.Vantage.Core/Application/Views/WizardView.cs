@@ -59,7 +59,7 @@ public static class WizardView
     {
         return state.Chosen is null
             ? state with { Problem = new WizardProblem.NoRepository(), Focus = WizardField.RepositoryFilter }
-            : state with { Problem = null, Focus = WizardField.Name };
+            : state with { Problem = new WizardProblem.None(), Focus = WizardField.Name };
     }
 
     /// <summary>Enter in the name moves to the Where choice when it shows; anywhere else it stays.</summary>
@@ -93,5 +93,5 @@ public static class WizardView
         };
     }
 
-    private static WizardUpdate Changed(WizardState state) => new WizardUpdate(state, Effect: null);
+    private static WizardUpdate Changed(WizardState state) => new WizardUpdate(state, new WizardEffect.None());
 }

@@ -73,4 +73,4 @@ public abstract record WizardProblem
     public sealed record Refused(LaunchProblem Problem) : WizardProblem;
 }
 
-public sealed record WizardUpdate(WizardState State, WizardEffect? Effect);
+public sealed record WizardUpdate(WizardState State, WizardEffect Effect);
