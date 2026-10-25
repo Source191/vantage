@@ -46,7 +46,7 @@ public sealed class EffectDispatcherShould
         GitCli git = new(processes);
         ClaudeCli claude = new(processes, Claude);
         FakeTimeProvider clock = new(Noon);
-        LaunchService launches = new(claude, git, store, store, store, new WorktreeIncludeCopier(git), clock);
+        LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);
         EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock);
         EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, @"C:\Users\me\.dotnet\tools\vantage.exe"));
         // A dialog effect that is dispatched itself once its dialog has been answered.

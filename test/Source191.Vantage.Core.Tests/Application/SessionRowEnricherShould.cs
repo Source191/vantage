@@ -19,7 +19,7 @@ public sealed class SessionRowEnricherShould
     private readonly FakeTranscripts transcripts = new();
     private readonly InMemoryState store = new();
 
-    private SessionRowEnricher Enricher => new(new GitCli(processes), store, store, registry, clock, transcripts);
+    private SessionRowEnricher Enricher => new(new GitCli(processes), store, registry, clock, transcripts);
 
     [Fact]
     public async Task SayWhetherASessionHasATranscriptToResumeFrom()
@@ -70,17 +70,6 @@ public sealed class SessionRowEnricherShould
         row.Repository.ShouldBe("repos");
         row.Branch.ShouldBeNull();
         row.IsWorktree.ShouldBeFalse();
-    }
-
-    [Fact]
-    public async Task AttachTheStoredDescription()
-    {
-        Session session = Session(@"C:\repos\Northwind.Orders");
-        await store.WriteDescriptionAsync(session.SessionId.Value, "Replace the hook");
-
-        SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
-
-        row.Description.ShouldBe("Replace the hook");
     }
 
     [Fact]

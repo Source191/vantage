@@ -11,21 +11,45 @@ public sealed class WindowsTerminalShould
     public async Task OpenATabByRunningWtWithTheBuiltArguments()
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
-        WindowsTerminal terminal = new(processes);
+        WindowsTerminal terminal = new(processes, new FakeTerminalFragment());
         TabLaunch launch = new("Title", TabPalette.Default[0], new FolderPath(@"C:\repos\Northwind.Orders"), "Write-Host hi");
 
         await terminal.OpenTabAsync(launch, CancellationToken.None);
 
         ProcessRequest request = processes.CapturedRequests.Single();
         request.FileName.ShouldBe("wt.exe");
-        request.Arguments.ShouldBe(WindowsTerminalArguments.ForTab(launch));
+        request.Arguments.ShouldBe(WindowsTerminalArguments.ForTab(launch, profile: null));
+    }
+
+    [Fact]
+    public async Task OpenTabsInTheSessionProfileWhenTheFragmentExists()
+    {
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
+        WindowsTerminal terminal = new(processes, new FakeTerminalFragment().Installed());
+        TabLaunch launch = new("Title", TabPalette.Default[0], new FolderPath(@"C:\repos\Northwind.Orders"), "Write-Host hi");
+
+        await terminal.OpenTabAsync(launch, CancellationToken.None);
+
+        processes.CapturedRequests.Single().Arguments.ShouldBe(WindowsTerminalArguments.ForTab(launch, "Vantage session"));
+    }
+
+    [Fact]
+    public async Task OpenTabsInTheDefaultProfileOtherwise()
+    {
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
+        WindowsTerminal terminal = new(processes, new FakeTerminalFragment());
+        TabLaunch launch = new("Title", TabPalette.Default[0], new FolderPath(@"C:\repos\Northwind.Orders"), "Write-Host hi");
+
+        await terminal.OpenTabAsync(launch, CancellationToken.None);
+
+        processes.CapturedRequests.Single().Arguments.ShouldNotContain("--profile");
     }
 
     [Fact]
     public async Task ThrowWhenWindowsTerminalRefusesTheTab()
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(1, string.Empty, "bad args"));
-        WindowsTerminal terminal = new(processes);
+        WindowsTerminal terminal = new(processes, new FakeTerminalFragment());
         TabLaunch launch = new("Title", TabPalette.Default[0], new FolderPath(@"C:\repos\Northwind.Orders"), "Write-Host hi");
 
         TerminalException exception = await Should.ThrowAsync<TerminalException>(() => terminal.OpenTabAsync(launch, CancellationToken.None));

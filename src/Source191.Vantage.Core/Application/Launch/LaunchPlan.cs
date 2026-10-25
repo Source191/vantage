@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Launch;
 
@@ -12,7 +13,6 @@ public enum LaunchMode
 public sealed record LaunchRequest(
     RepositoryChoice Repository,
     string NameText,
-    string DescriptionText,
     LaunchMode Mode,
     WorktreeBase Base,
     string OpeningPromptText);
@@ -21,7 +21,6 @@ public sealed record LaunchRequest(
 public sealed record LaunchPlan(
     FolderPath Directory,
     SessionName Name,
-    string? Description,
     SiblingWorktree? Worktree,
     bool ReuseExistingWorktree,
     WorktreeBase Base,
@@ -59,18 +58,17 @@ public static class LaunchPlanBuilder
         {
             SessionNameValidation.Valid valid => Build(request, valid.Name, folderExists),
             SessionNameValidation.Refused refused => LaunchPlanResult.Refused(new LaunchProblem.InvalidName(refused.Problem)),
-            _ => LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)),
+            _ => throw new UnreachableException(),
         };
     }
 
     private static LaunchPlanResult Build(LaunchRequest request, SessionName name, Func<string, bool> folderExists)
     {
-        string? description = Blank(request.DescriptionText) ? null : request.DescriptionText.Trim();
         string? prompt = Blank(request.OpeningPromptText) ? null : request.OpeningPromptText.Trim();
 
         if (request.Mode == LaunchMode.CurrentBranch)
         {
-            return Ok(new LaunchPlan(request.Repository.Path, name, description, Worktree: null, ReuseExistingWorktree: false, request.Base, prompt, request.Repository));
+            return Ok(new LaunchPlan(request.Repository.Path, name, Worktree: null, ReuseExistingWorktree: false, request.Base, prompt, request.Repository));
         }
 
         if (!request.Repository.IsRepository)
@@ -86,7 +84,7 @@ public static class LaunchPlanBuilder
         SiblingWorktree worktree = SiblingWorktree.For(request.Repository.Path, name.Slug);
         bool reuse = folderExists(worktree.Path.Value);
 
-        return Ok(new LaunchPlan(worktree.Path, name, description, worktree, reuse, request.Base, prompt, request.Repository));
+        return Ok(new LaunchPlan(worktree.Path, name, worktree, reuse, request.Base, prompt, request.Repository));
     }
 
     private static LaunchPlanResult Ok(LaunchPlan plan) => new LaunchPlanResult(plan, Problem: null);

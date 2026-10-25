@@ -30,14 +30,6 @@ public interface ICreatedWorktrees
     Task ForgetCreatedWorktreeAsync(FolderPath path);
 }
 
-/// <summary>Free-text descriptions keyed by session id.</summary>
-public interface ISessionDescriptions
-{
-    Task<IReadOnlyDictionary<string, string>> ReadDescriptionsAsync();
-
-    Task WriteDescriptionAsync(string sessionId, string description);
-}
-
 /// <summary>User configuration: repository roots and the default worktree base.</summary>
 public interface IVantageConfig
 {

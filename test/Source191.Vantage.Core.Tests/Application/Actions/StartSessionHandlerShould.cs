@@ -30,7 +30,7 @@ public sealed class StartSessionHandlerShould
     private readonly FakeWindowsTerminal terminal = new();
 
     private static LaunchPlan Plan => new(
-        new FolderPath(Repository), SessionName.Parse("Fix flaky tests"), Description: null, Worktree: null,
+        new FolderPath(Repository), SessionName.Parse("Fix flaky tests"), Worktree: null,
         ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", new FolderPath(Repository), IsRepository: true));
 
     private StartSessionHandler Handler
@@ -40,7 +40,7 @@ public sealed class StartSessionHandlerShould
             InMemoryState store = new();
             GitCli git = new(processes);
             FakeTimeProvider clock = new(Noon);
-            LaunchService service = new(new ClaudeCli(processes, Claude), git, store, store, store, new WorktreeIncludeCopier(git), clock);
+            LaunchService service = new(new ClaudeCli(processes, Claude), git, store, store, new WorktreeIncludeCopier(git), clock);
             OpenTabHandler tabs = new(store, new FakeProcessRegistry(), terminal, clock, new TabScripts(Claude, Vantage));
 
             return new StartSessionHandler(service, tabs, terminal, new TabScripts(Claude, Vantage));

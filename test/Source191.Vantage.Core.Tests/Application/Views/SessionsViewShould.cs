@@ -375,6 +375,6 @@ public sealed class SessionsViewShould
             ? new InteractiveSession(id, name, directory, Noon, state, ProcessId: 4242)
             : new BackgroundSession(id, new JobId(jobId ?? throw new ArgumentNullException(nameof(jobId))), name, directory, Noon, state);
 
-        return new SessionRow(session, repository, new BranchName("main"), IsWorktree: false, Description: null, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, repository, new BranchName("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
     }
 }

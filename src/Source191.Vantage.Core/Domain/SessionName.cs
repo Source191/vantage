@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Source191.Vantage.Domain;
 
 /// <summary>Why a typed session name is refused; <c>Wording</c> says it.</summary>
@@ -49,7 +51,7 @@ public sealed record SessionName
         {
             SessionNameValidation.Valid valid => valid.Name,
             SessionNameValidation.Refused refused => throw new ArgumentException($"'{text}' is not a session name: {refused.Problem}.", nameof(text)),
-            _ => throw new ArgumentException($"'{text}' is not a session name.", nameof(text)),
+            _ => throw new UnreachableException(),
         };
     }
 }
