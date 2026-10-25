@@ -11,12 +11,27 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vantage</ToolCommandName>
     <PackageId>Source191.Vantage</PackageId>
-    <Version>0.4.10</Version>
+    <Version>0.4.11</Version>
     <Authors>Simon Vane</Authors>
     <Description>A terminal console for Claude Code sessions and git worktrees on Windows.</Description>
+    <Copyright>Copyright 2026 Simon Vane</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageProjectUrl>https://github.com/Source191/vantage</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Source191/vantage</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>claude-code;worktrees;windows-terminal;tui;dotnet-tool</PackageTags>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\packages</PackageOutputPath>
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
+
+  <!-- The README is the package readme and the notices travel beside the tool, as the licences of the packed dependencies ask. -->
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Source191.Vantage.Core\Source191.Vantage.Core.csproj" />
