@@ -73,6 +73,22 @@ public sealed class ClaudeCliShould
     }
 
     [Fact]
+    public async Task AnswerNullWhenTheRunIsCancelled()
+    {
+        processes.Fail(new OperationCanceledException());
+
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task AnswerNullWhenTheRunFailsToReadItsOutput()
+    {
+        processes.Fail(new IOException("The pipe has been ended"));
+
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+    }
+
+    [Fact]
     public async Task StartABackgroundSessionNamedInTheChosenDirectory()
     {
         processes.AnswerAll(new ProcessResult(0, StartedOutput, string.Empty));

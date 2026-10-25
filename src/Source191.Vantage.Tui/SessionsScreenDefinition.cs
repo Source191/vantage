@@ -23,8 +23,6 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public string HelpText => Wording.SessionsHelp(claudeExecutable);
 
-    public IReadOnlyList<string> ColumnNames { get; } = [.. Wording.SessionsColumns.Select(column => column.Name)];
-
     public IReadOnlyList<ColumnHelp> Columns => Wording.SessionsColumns;
 
     public string Cell(SessionRow row, int column, DateTimeOffset now)

@@ -184,12 +184,14 @@ internal sealed class TableScreen<TState, TRow>(
         private readonly SpinnerView busy;
         private readonly WaitingIndicator waiting;
         private TRow? selected;
+        private readonly string[] columnNames;
         private int? headerUnderMouse;
 
         public Live(IScreenDefinition<TState, TRow> definition, ScreenContext context)
         {
             this.definition = definition;
             this.context = context;
+            columnNames = [.. definition.Columns.Select(column => column.Name)];
 
             // Terminal.Gui writes the top-level's Title to the terminal (OSC 0) on every run, so this is what the tab shows.
             Window = new Window { BorderStyle = LineStyle.None, Title = context.Title };
@@ -239,9 +241,10 @@ internal sealed class TableScreen<TState, TRow>(
         {
             IReadOnlyList<TRow> rows = state.List.Visible;
             selected = state.List.Selected;
-            table.Table = new TableSource<TRow>(rows, definition.ColumnNames, (row, column) => definition.Cell(row, column, now));
+            table.Table = new TableSource<TRow>(rows, columnNames, (row, column) => definition.Cell(row, column, now));
             contextValues.Text = $"{context.HeaderValues}\n{definition.ContextLines(state)}";
-            title.Text = state.List.FilterEditing ? $"{Wording.Describe(state.Title)}  filter: {state.List.Filter.Text}_" : Wording.Describe(state.Title);
+            string described = Wording.Describe(state.Title);
+            title.Text = state.List.FilterEditing ? $"{described}  filter: {state.List.Filter.Text}_" : described;
             banner.Text = state.Banner is null ? string.Empty : $"  {definition.LoadFailurePrefix}: {state.Banner}";
             footer.Text = Wording.Describe(state.Shown);
             if (rows.Count > 0)
@@ -271,8 +274,12 @@ internal sealed class TableScreen<TState, TRow>(
 
         private void HideColumnToolTip(IApplication app)
         {
+            if (headerUnderMouse is not null)
+            {
+                app.ToolTips?.Hide();
+            }
+
             headerUnderMouse = null;
-            app.ToolTips?.Hide();
         }
 
         private void ShowColumnToolTip(IApplication app, Terminal.Gui.Input.Mouse mouse)

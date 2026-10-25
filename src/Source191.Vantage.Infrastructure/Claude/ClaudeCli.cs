@@ -23,8 +23,9 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
 
             return result.ExitCode == 0 && version.Success ? version.Value : null;
         }
-        catch (Win32Exception)
+        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException or IOException or OperationCanceledException)
         {
+            // A cosmetic header value: a program that cannot start, fails to answer or is given up on reads as unknown.
             return null;
         }
     }

@@ -33,8 +33,7 @@ internal interface IScreenDefinition<TState, TRow>
 
     string HelpText { get; }
 
-    IReadOnlyList<string> ColumnNames { get; }
-
+    /// <summary>The table's columns, in cell order: their names head the table and their meanings are the tooltips and the help.</summary>
     IReadOnlyList<ColumnHelp> Columns { get; }
 
     string Cell(TRow row, int column, DateTimeOffset now);
