@@ -6,8 +6,8 @@ using IOPath = System.IO.Path;
 namespace Source191.Vantage.Application;
 
 /// <summary>
-/// Everything under the repository roots that is, or was, a worktree: git's own listing per repository, plus the
-/// leftovers git has forgotten (orphans under .claude\worktrees, siblings whose registration is gone, empty folders
+/// Everything under the repository roots and the worktree root that is, or was, a worktree: git's own listing per repository, plus the
+/// leftovers git has forgotten (orphans under .claude\worktrees, folders under a root or the worktree root whose registration is gone, empty folders
 /// that worktree tools leave behind). Read-only: nothing here prunes, deletes or touches git state.
 /// </summary>
 public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSettings settings)
@@ -53,7 +53,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             rows.AddRange(OrphanRows(repository, registered));
         }
 
-        rows.AddRange(candidates.Where(candidate => !registered.Contains(candidate)).Select(BrokenSibling));
+        rows.AddRange(candidates.Where(candidate => !registered.Contains(candidate)).Select(BrokenWorktree));
 
         return [.. rows.Select(row => WithLiveSession(row, LiveSessionIn(row.Path, sessions)))];
     }
@@ -156,8 +156,8 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         }
     }
 
-    /// <summary>A direct child of a root with a .git file that no repository under the roots lists.</summary>
-    private WorktreeRow BrokenSibling(FolderPath folder)
+    /// <summary>A direct child of a root or the worktree root with a .git file that no repository under the roots lists.</summary>
+    private WorktreeRow BrokenWorktree(FolderPath folder)
     {
         string? gitDir = GitDirOf(IOPath.Combine(folder.Value, ".git"));
         FolderPath owner = OwnerOf(gitDir) ?? folder.Parent ?? folder;
