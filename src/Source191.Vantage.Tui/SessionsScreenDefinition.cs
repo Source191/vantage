@@ -9,7 +9,7 @@ namespace Source191.Vantage.Tui;
 internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
-    private static readonly string[] Columns = ["NAME", "STATE", "REPOSITORY", "BRANCH", "WT", "AGE", "TAB", "DESCRIPTION"];
+    private static readonly string[] Columns = ["NAME", "STATE", "REPOSITORY", "BRANCH", "WT", "AGE", "TAB"];
 
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(5);
 
@@ -43,8 +43,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
             3 => row.Branch?.Value ?? "-",
             4 => row.IsWorktree ? "yes" : string.Empty,
             5 => Durations.Age(now - row.Session.StartedAt),
-            6 => Tab(row),
-            _ => row.Description ?? string.Empty,
+            _ => Tab(row),
         };
     }
 

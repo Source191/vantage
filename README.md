@@ -2,7 +2,7 @@
 
 A terminal console for Claude Code sessions and git worktrees on Windows.
 
-Supervise your Claude Code sessions from one terminal tab: start, attach, rename, stop, and clean up the worktrees they leave behind. Vantage lists every Claude Code session on the machine on one screen, with its state, repository, branch and description, and lets you attach to a session, open it in its own coloured Windows Terminal tab, start new sessions in a repository or a fresh sibling worktree, and tidy up the worktrees that sessions leave behind. Sessions run under Claude Code's own background supervisor (`claude --bg`), so they keep working when no terminal shows them, and the terminal bell tells you when one needs you.
+Supervise your Claude Code sessions from one terminal tab: start, attach, rename, stop, and clean up the worktrees they leave behind. Vantage lists every Claude Code session on the machine on one screen, with its state, repository and branch, and lets you attach to a session, open it in its own coloured Windows Terminal tab, start new sessions in a repository or a fresh sibling worktree, and tidy up the worktrees that sessions leave behind. Sessions run under Claude Code's own background supervisor (`claude --bg`), so they keep working when no terminal shows them, and the terminal bell tells you when one needs you.
 
 > **To do:** add a screenshot of the sessions view here before the repository is made public.
 
@@ -29,7 +29,15 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 
 Prerequisites: Windows 11, Windows Terminal, PowerShell 7, .NET 10 SDK, git, and Claude Code 2.1.309 or later installed at `~\.local\bin\claude.exe` or on the PATH.
 
-1. Pack and install the tool from this repository:
+1. Install the tool from nuget.org:
+
+   ```powershell
+   dotnet tool install -g Source191.Vantage
+   ```
+
+   Update it later with `dotnet tool update -g Source191.Vantage`. To try a build that is not on nuget.org yet, install a GitHub Release's `.nupkg` instead: download it into a folder, then `dotnet tool install -g Source191.Vantage --add-source <folder> --version <version>`.
+
+   To work on Vantage itself, pack and install the tool from this repository:
 
    ```powershell
    .\tools\install-local.ps1
@@ -81,7 +89,6 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | WT | `yes` when the session runs in a linked worktree rather than the repository itself |
 | AGE | Time since the session started |
 | TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session |
-| DESCRIPTION | The free-text description given in the wizard or with `vantage here -d` |
 
 Keys (every key is dispatched by the tested reducer, so this table is the reference):
 
@@ -110,7 +117,6 @@ Rows marked `terminal` are sessions started by hand with `claude` in some tab. V
 Press `n`. The left column lists your repositories (recent ones first, then everything under the roots, then the roots themselves for a session with no repository); type to filter it and use the arrows to choose, then Enter confirms the repository and moves to the form. The right column is the form:
 
 - **Session name (required):** the label shown in the NAME column. It also names the worktree folder and branch when you choose a worktree.
-- **Description (optional):** shown in the DESCRIPTION column so sessions with similar names can be told apart.
 - **Where:** `Current branch` runs the session in the repository as it is; `New sibling worktree` creates `<repository>-<name>` beside the repository on branch `<name>`, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too. Use the arrows to change the choice.
 - **Worktree base:** the branch the new worktree starts from, `origin` default branch or the current HEAD.
 - **Opening prompt:** sent to the session as soon as it starts. It wraps as you type. Leave it blank and the session opens on Claude's agent list until you send it something.
@@ -182,7 +188,7 @@ vantage here fix-tests -p "Make the failing tests in OrdersShould pass" -d "Flak
 vh fix-tests          # with the profile shortcut
 ```
 
-Options: `-p`/`--prompt` sends an opening prompt (without one the session opens on the agent list), `-d`/`--description` sets the DESCRIPTION column. Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder), 2 for a usage error.
+Options: `-p`/`--prompt` sends an opening prompt (without one the session opens on the agent list). Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder), 2 for a usage error.
 
 ## Notifications
 
@@ -227,7 +233,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 **Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story, pick `New sibling worktree`, type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` beside the repository, and the WT column marks the session.
 
-**Kick off several sessions and let them run.** Use `n` with F5 for each, with a description so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
+**Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
 **Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows `open`; `o` again switches to that tab until it is closed.
 
@@ -250,14 +256,13 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 | File or folder | Contents |
 | --- | --- |
 | `config.json` | `repositoryRoots` (default `~\source\repos`) and `defaultBase` (`RemoteDefault` or `Head`) |
-| `descriptions\` | One file per session description |
 | `recent\` | One file per recently used repository, with when it was last used; the ten most recent are shown first in the wizard |
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
 | `tabs\` | One file per tab Vantage opened, so a second `o` switches to the tab instead of opening another |
 
 `vantage setup-terminal` also writes `%LOCALAPPDATA%\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json`, which belongs to Windows Terminal's fragment mechanism rather than to Vantage's own folder, and can set one line in `~\.claude\settings.json` (see [Windows Terminal setup](#windows-terminal-setup)).
 
-A missing or corrupt file is treated as empty. Descriptions and recent repositories are one file each so that `vantage here` and the console can record at the same time without losing a write; the `sessions.json` and `recent.json` files of versions before 0.3.0 are imported once and removed. Sessions themselves belong to Claude Code (`claude agents --json`), never to Vantage.
+A missing or corrupt file is treated as empty. Recent repositories are one file each so that `vantage here` and the console can record at the same time without losing a write; the `recent.json` file of versions before 0.3.0 is imported once and removed. The `descriptions\` folder and `sessions.json` left by earlier versions are no longer used and can be deleted. Sessions themselves belong to Claude Code (`claude agents --json`), never to Vantage.
 
 To scan more than one roots folder, edit `config.json`:
 
@@ -295,7 +300,9 @@ dotnet run --project tools\HeadlessTerminal -- check               # the hand-of
 
 `.github\workflows\check.yml` runs on every pull request and every push to `main`, on a `windows-latest` runner because the code uses P/Invoke, ConPTY and `cmd.exe` in its integration tests. Its `check` job builds in Release (warnings are errors), runs the whole test suite against that build, runs `dotnet format --verify-no-changes`, packs the tool as `<Version>-ci.<run number>` and uploads the `.nupkg` as a workflow artefact named `Source191.Vantage-<that version>`, so a working package is downloadable from any commit and each run's package is a version the tool cache has never seen (see Install). Branch protection on `main` requires `check`, so a red pull request cannot merge. Administrators can still push to `main` directly; do not, because the release check below only looks at the last commit of a push.
 
-**Releases.** `.github\workflows\release.yml` runs on every push to `main` and is a no-op unless that push changed `Version` in `src\Source191.Vantage\Source191.Vantage.csproj`. When it did, it builds, tests and packs again and publishes a GitHub Release tagged `v<version>` with the `.nupkg` attached. Bumping `Version` is therefore the release action, and every pull request that changes the packaged tool makes it, so each merge of a tool change is a release. The tool is not on nuget.org yet (see Roadmap), so the release is provenance, an immutable package tied to a commit, rather than a distribution route.
+**Releases.** `.github\workflows\release.yml` runs on every push to `main` and is a no-op unless that push changed `Version` in `src\Source191.Vantage\Source191.Vantage.csproj`. When it did, it builds, tests and packs again and publishes a GitHub Release tagged `v<version>` with the `.nupkg` attached. Bumping `Version` is therefore the release action, and every pull request that changes the packaged tool makes it, so each merge of a tool change is a release. A release is not published to nuget.org: that is a separate, manual step (below), so a package is tried by hand before it goes where a version can never be replaced.
+
+**Publishing to nuget.org.** `.github\workflows\publish.yml` is run by hand (Actions, "publish", with the release tag, e.g. `v0.5.0`). It downloads that GitHub Release's `.nupkg` and pushes it to nuget.org without building anything, so what is published is the package that was built, tested and released from `main`. It needs no stored API key: the `NuGet/login` action swaps the run's GitHub identity for a one-hour key through a Trusted Publishing policy on nuget.org (owner `Source191`, repository `vantage`, workflow `publish.yml`), and the nuget.org profile name is the `NUGET_USER` repository secret. nuget.org versions cannot be replaced, only unlisted, so a bad publish is unlisted and fixed by a higher patch version.
 
 **Version bumps.** The first step of the `check` job, on pull requests only, runs `.github\scripts\Assert-VersionBumped.ps1` against the two parents of the pull request's merge commit. It fails when the pull request changes anything under `src\`, or `Directory.Build.props`, `global.json` or `nuget.config`, without raising `Version` above `main`'s (compared as semantic versions, so 0.10.0 is above 0.9.0). Pull requests touching only docs, CI, `openspec\`, `test\` or `tools\` need no bump. Run it locally with `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD`. Versions follow [semantic versioning](https://semver.org/):
 
@@ -324,7 +331,7 @@ The repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-
 
 - **Propose:** `/opsx:propose <name>` (or `openspec new change`) writes the proposal, design, delta specs and tasks for a feature or fix, in that order.
 - **Apply:** `/opsx:apply <name>` works through the tasks test-first, ticking each one; `openspec status --change <name>` shows progress.
-- **Archive:** `/opsx:archive <name>` when the tasks are done; the delta specs are merged into `openspec\specs` so they stay the single description of current behaviour.
+- **Archive:** `/opsx:archive <name>` when the tasks are done; the delta specs are merged into `openspec\specs` so they stay the single account of current behaviour.
 - `openspec\config.yaml` holds the project context every change inherits (platform, CLI surface, worktree conventions, coding style); update it when a rule changes rather than repeating the rule in each proposal.
 
 ## Roadmap and known limits
@@ -335,4 +342,3 @@ The repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-
 - Multiple Claude accounts: Claude Code's `CLAUDE_CONFIG_DIR` selects a configuration directory with its own login, settings, sessions and supervisor; Vantage would gain a profile column and set the variable when starting a session.
 - A per-path cache for the worktree scan, so the first press of `w` is quick on a large roots folder.
 - Pinning sessions, once the CLI exposes it outside the native agent view; configurable palette and Windows Terminal profile for the tabs Vantage opens.
-- Publish to nuget.org: planned in the `public-release` change (`openspec\changes\public-release`), which also holds the order the open changes merge in; a hand-run `publish.yml` pushes a tested release through Trusted Publishing, and the Install section drops `--add-source`.

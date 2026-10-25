@@ -5,7 +5,7 @@ public abstract record VantageCommand;
 
 public sealed record OpenConsole : VantageCommand;
 
-/// <summary><c>vantage here [name] [-p prompt] [-d description]</c>; the arguments after <c>here</c> are parsed by <see cref="Launch.HereCommand"/>.</summary>
+/// <summary><c>vantage here [name] [-p prompt]</c>; the arguments after <c>here</c> are parsed by <see cref="Launch.HereCommand"/>.</summary>
 public sealed record StartHere(IReadOnlyList<string> Arguments) : VantageCommand;
 
 /// <summary><c>vantage claim-tab &lt;registration id&gt; &lt;process id&gt;</c>, run by the shell inside a tab Vantage opened.</summary>

@@ -336,7 +336,7 @@ public sealed class WordingShould
     public void NameTheSessionBeingStarted()
     {
         LaunchPlan plan = new(
-            new FolderPath(Sessions.Repository), SessionName.Parse("Fix flaky tests"), Description: null, Worktree: null,
+            new FolderPath(Sessions.Repository), SessionName.Parse("Fix flaky tests"), Worktree: null,
             ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", new FolderPath(Sessions.Repository), IsRepository: true));
 
         Wording.Working(new StartSession(plan, OpenInTab: true)).ShouldBe("Starting Fix flaky tests...");
@@ -432,25 +432,25 @@ public sealed class WordingShould
     [Fact]
     public void SayAnOptionNeedsAValueWithTheUsageLine()
     {
-        Wording.Describe(new LaunchProblem.OptionNeedsValue("-p")).ShouldBe("-p needs a value. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+        Wording.Describe(new LaunchProblem.OptionNeedsValue("-p")).ShouldBe("-p needs a value. Usage: vantage here [name] [-p \"opening prompt\"]");
     }
 
     [Fact]
     public void NameAnUnknownOptionWithTheUsageLine()
     {
-        Wording.Describe(new LaunchProblem.UnknownOption("--bogus")).ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+        Wording.Describe(new LaunchProblem.UnknownOption("--bogus")).ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"]");
     }
 
     [Fact]
     public void NameAnUnexpectedArgumentWithTheUsageLine()
     {
-        Wording.Describe(new LaunchProblem.UnexpectedArgument("extra")).ShouldBe("Unexpected argument extra. Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+        Wording.Describe(new LaunchProblem.UnexpectedArgument("extra")).ShouldBe("Unexpected argument extra. Usage: vantage here [name] [-p \"opening prompt\"]");
     }
 
     [Fact]
     public void GiveTheUsageLines()
     {
-        Wording.HereUsage.ShouldBe("Usage: vantage here [name] [-p \"opening prompt\"] [-d \"description\"]");
+        Wording.HereUsage.ShouldBe("Usage: vantage here [name] [-p \"opening prompt\"]");
         Wording.ClaimTabUsage.ShouldBe("Usage: vantage claim-tab <registration id> <process id>");
     }
 

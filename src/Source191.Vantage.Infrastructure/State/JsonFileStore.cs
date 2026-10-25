@@ -8,12 +8,12 @@ using System.Text.Json.Serialization;
 namespace Source191.Vantage.Adapters.State;
 
 /// <summary>
-/// The only state Vantage owns, under one folder: tab registrations, recent repositories and session descriptions
+/// The only state Vantage owns, under one folder: tab registrations, recent repositories
 /// (one file each, so two Vantage processes writing at once cannot lose each other's records), worktrees Vantage
-/// created, and config. A missing or corrupt file reads as empty. The single-file recent.json and sessions.json of
-/// earlier versions are imported once and removed.
+/// created, and config. A missing or corrupt file reads as empty. The single-file recent.json of earlier
+/// versions is imported once and removed; the descriptions\ folder and sessions.json of earlier versions are no longer read.
 /// </summary>
-public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, ISessionDescriptions, IVantageConfig
+public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig
 {
     private const int RecentLimit = 10;
 
@@ -30,11 +30,7 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
     private string RecentFolder => Path.Combine(folder, "recent");
 
-    private string DescriptionsFolder => Path.Combine(folder, "descriptions");
-
     private string LegacyRecentFile => Path.Combine(folder, "recent.json");
-
-    private string LegacySessionsFile => Path.Combine(folder, "sessions.json");
 
     private string CreatedFile => Path.Combine(folder, "created.json");
 
@@ -82,27 +78,11 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         await WriteJsonAsync(CreatedFile, existing.Where(created => created.Path != path).ToList());
     }
 
-    public async Task<IReadOnlyDictionary<string, string>> ReadDescriptionsAsync()
-    {
-        await ImportLegacyDescriptionsAsync();
-        IReadOnlyList<SessionDescription> descriptions = await ReadAllAsync<SessionDescription>(DescriptionsFolder);
-
-        return descriptions.ToDictionary(description => description.SessionId, description => description.Description);
-    }
-
-    public async Task WriteDescriptionAsync(string sessionId, string description)
-    {
-        await ImportLegacyDescriptionsAsync();
-        await WriteJsonAsync(DescriptionFile(sessionId), new SessionDescription(sessionId, description));
-    }
-
     public async Task<VantageConfig> ReadConfigAsync() => await ReadJsonAsync<VantageConfig>(ConfigFile) ?? VantageConfig.Default;
 
     public Task WriteConfigAsync(VantageConfig config) => WriteJsonAsync(ConfigFile, config);
 
     private string RecentFile(string repository) => Path.Combine(RecentFolder, $"{FileKey(repository.ToUpperInvariant())}.json");
-
-    private string DescriptionFile(string sessionId) => Path.Combine(DescriptionsFolder, $"{FileKey(sessionId)}.json");
 
     /// <summary>The old single list, most recent first, becomes one file each with descending timestamps so the order survives.</summary>
     private async Task ImportLegacyRecentAsync()
@@ -120,22 +100,6 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         }
 
         TryDelete(LegacyRecentFile);
-    }
-
-    private async Task ImportLegacyDescriptionsAsync()
-    {
-        Dictionary<string, string>? legacy = await ReadJsonAsync<Dictionary<string, string>>(LegacySessionsFile);
-        if (legacy is null)
-        {
-            return;
-        }
-
-        foreach ((string sessionId, string description) in legacy)
-        {
-            await WriteJsonAsync(DescriptionFile(sessionId), new SessionDescription(sessionId, description));
-        }
-
-        TryDelete(LegacySessionsFile);
     }
 
     private async Task TrimRecentAsync()
@@ -225,6 +189,4 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     }
 
     private sealed record RecentRepository(string Path, DateTimeOffset UsedAt);
-
-    private sealed record SessionDescription(string SessionId, string Description);
 }

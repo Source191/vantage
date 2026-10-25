@@ -35,17 +35,6 @@ The wizard SHALL require a non-blank name, SHALL reject a name containing a semi
 - **WHEN** `vantage here ""` is run
 - **THEN** it prints exactly "A session name is required." and starts nothing
 
-### Requirement: A description is optional and travels with the session
-The wizard SHALL accept an optional free-text description of what the session is for, and Vantage SHALL store it against the session's ID in its own state so that the listing and the notification toast can show it.
-
-#### Scenario: Description given
-- **WHEN** the user enters "Replace the login page" as the description
-- **THEN** the description is stored against the new session's ID and appears in the listing's peek text for that session
-
-#### Scenario: Description left blank
-- **WHEN** the user leaves the description blank
-- **THEN** the session starts normally and the listing shows no description for it
-
 ### Requirement: The current branch is the default launch mode
 The wizard SHALL default to starting the session in the repository's main checkout on whatever branch is checked out, and SHALL offer a new worktree as the alternative.
 
@@ -83,11 +72,15 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 - **THEN** the file exists in the new worktree before the session starts
 
 ### Requirement: A session can be started from the shell in the current folder
-`vantage here [name] [-p prompt] [-d description]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the description and the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed and 2 for a usage error.
+`vantage here [name] [-p prompt]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed and 2 for a usage error.
 
 #### Scenario: Start here with a prompt
 - **WHEN** the user runs vantage here fix-tests -p "Fix the tests" in a trusted repository
 - **THEN** a background session named fix-tests starts there with that opening prompt and the shell is attached to it until Ctrl+Z
+
+#### Scenario: The removed description option
+- **WHEN** the user runs vantage here with -d or --description
+- **THEN** it exits 2 with the unknown-option sentence and the usage line, and starts nothing
 
 ### Requirement: Untrusted workspaces are handled
 When starting the session fails because the directory's workspace is not trusted, the wizard SHALL say so and offer to open a plain Claude Code tab in that directory so the trust dialog can be accepted, then retry.
@@ -101,19 +94,23 @@ When starting the session fails because the directory's workspace is not trusted
 - **THEN** the trust tab shows its message with the folder name exactly as it is and starts Claude Code there
 
 ### Requirement: Vantage records what it created
-Vantage SHALL record each worktree and branch it created, each launched repository and each session description in its own state folder, and SHALL keep every record when two Vantage processes write at the same time.
+Vantage SHALL record each worktree and branch it created and each launched repository in its own state folder, and SHALL keep every record when two Vantage processes write at the same time.
 
 #### Scenario: Worktree recorded
 - **WHEN** the wizard creates a worktree
 - **THEN** the state folder records the worktree path, branch, repository and creation time
 
 #### Scenario: Two processes record at once
-- **WHEN** `vantage here` records a description while the console records a recent repository
-- **THEN** both records are present on the next read
+- **WHEN** `vantage here` records a recent repository while the console records another recent repository and a created worktree
+- **THEN** all three records are present on the next read
 
 #### Scenario: Existing state is kept
-- **WHEN** Vantage starts with recent repositories and descriptions saved by an earlier version
-- **THEN** they are still listed and shown
+- **WHEN** Vantage starts with recent repositories and created worktrees saved by an earlier version
+- **THEN** the recent repositories are still listed first in the wizard and the created worktrees still decide the branch-deletion rules
+
+#### Scenario: Old description files are ignored
+- **WHEN** the state folder holds a `descriptions` folder or a `sessions.json` written by an earlier version
+- **THEN** Vantage neither reads nor deletes them
 
 ### Requirement: The session starts under the supervisor and opens where the user chose
 Vantage SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was, and SHALL then open the session in its own Windows Terminal tab or return to the list as the user chose.
