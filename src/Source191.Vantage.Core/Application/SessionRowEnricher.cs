@@ -71,10 +71,13 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
 
         string? main = await git.MainCheckoutOfAsync(directory.Value, cancellationToken);
         string? branch = await git.CurrentBranchAsync(directory.Value, cancellationToken);
-        FolderPath? mainCheckout = FolderPath.TryParse(main);
-        bool isWorktree = mainCheckout is not null && mainCheckout != FolderPath.TryParse(root);
+        FolderPath? mainCheckout = FolderPath.TryParse(main, out FolderPath? parsedMain) ? parsedMain : null;
+        FolderPath? rootPath = FolderPath.TryParse(root, out FolderPath? parsedRoot) ? parsedRoot : null;
+        BranchName? currentBranch = BranchName.TryParse(branch, out BranchName? parsedBranch) ? parsedBranch : null;
+        bool isWorktree = mainCheckout is not null && mainCheckout != rootPath;
+        FolderPath? repository = mainCheckout ?? rootPath;
 
-        return new Location((mainCheckout ?? FolderPath.TryParse(root))?.Name ?? root, BranchName.TryParse(branch), isWorktree);
+        return new Location(repository?.Name ?? root, currentBranch, isWorktree);
     }
 
     private sealed record Location(string Repository, BranchName? Branch, bool IsWorktree);

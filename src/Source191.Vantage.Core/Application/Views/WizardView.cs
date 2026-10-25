@@ -59,7 +59,7 @@ public static class WizardView
     {
         return state.Chosen is null
             ? state with { Problem = new WizardProblem.NoRepository(), Focus = WizardField.RepositoryFilter }
-            : state with { Problem = null, Focus = WizardField.Name };
+            : state with { Problem = new WizardProblem.None(), Focus = WizardField.Name };
     }
 
     /// <summary>Enter in the name moves to the Where choice when it shows; anywhere else it stays.</summary>
@@ -84,15 +84,14 @@ public static class WizardView
         }
 
         LaunchRequest request = new(repository, state.Name, state.Mode, state.Base, state.Prompt);
-        LaunchPlanResult planned = LaunchPlanBuilder.Build(request, state.Folders.DirectoryExists);
 
-        return planned switch
+        return LaunchPlanBuilder.Build(request, state.Folders.DirectoryExists) switch
         {
-            { Plan: LaunchPlan plan } => new WizardUpdate(state, new WizardEffect.Launch(plan, openInTab)),
-            { Problem: LaunchProblem problem } => Changed(state with { Problem = new WizardProblem.Refused(problem), Focus = WizardField.Name }),
+            LaunchPlanResult.Planned planned => new WizardUpdate(state, new WizardEffect.Launch(planned.Plan, openInTab)),
+            LaunchPlanResult.Refused refused => Changed(state with { Problem = new WizardProblem.Refused(refused.Problem), Focus = WizardField.Name }),
             _ => throw new UnreachableException(),
         };
     }
 
-    private static WizardUpdate Changed(WizardState state) => new WizardUpdate(state, Effect: null);
+    private static WizardUpdate Changed(WizardState state) => new WizardUpdate(state, new WizardEffect.None());
 }

@@ -46,7 +46,7 @@ internal static class LaunchWizardDialog
                 result = new WizardResult(launch.Plan, launch.OpenInTab);
             }
 
-            if (update.Effect is not null)
+            if (update.Effect is not WizardEffect.None)
             {
                 app.RequestStop(dialog);
                 return;
@@ -68,7 +68,7 @@ internal static class LaunchWizardDialog
             controls.Repositories.SelectedItem = state.SelectedIndex;
             controls.Chosen.Text = Wording.WizardChosen(state);
             controls.Preview.Text = state.Preview;
-            controls.Problem.Text = state.Problem is null ? string.Empty : Wording.Describe(state.Problem);
+            controls.Problem.Text = Wording.Describe(state.Problem);
             controls.Fields[state.Focus].SetFocus();
             binding = false;
         }

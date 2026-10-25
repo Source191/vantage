@@ -35,10 +35,10 @@ public sealed class ResumeSessionsHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
         transcripts.WithMessages("sess-1");
-        SessionRow withTranscript = Background(Repository, isWorktree: false, DisplayState.Failed);
-        SessionRow stub = withTranscript with { Session = withTranscript.Session with { SessionId = new SessionId("sess-stub"), Name = "repos-f6" } };
+        BackgroundSession withTranscript = Job(Repository, DisplayState.Failed);
+        BackgroundSession stub = withTranscript with { SessionId = new SessionId("sess-stub"), Name = "repos-f6" };
 
-        Outcome message = await Handler.HandleAsync(new ResumeSessions([As.Job(withTranscript), As.Job(stub)]), CancellationToken.None);
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([withTranscript, stub]), CancellationToken.None);
 
         processes.CapturedRequests.Count(request => request.Arguments.Contains("--resume")).ShouldBe(1);
         ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
@@ -51,10 +51,10 @@ public sealed class ResumeSessionsHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
         transcripts.WithMessages("sess-1").WithMessages("sess-2");
-        SessionRow first = Background(Repository, isWorktree: false, DisplayState.Failed);
-        SessionRow second = Background(Worktree, isWorktree: true, DisplayState.Stopped) with { Session = Background(Worktree, true).Session with { SessionId = new SessionId("sess-2") } };
+        BackgroundSession first = Job(Repository, DisplayState.Failed);
+        BackgroundSession second = Job(Worktree, DisplayState.Stopped) with { SessionId = new SessionId("sess-2") };
 
-        Outcome message = await Handler.HandleAsync(new ResumeSessions([As.Job(first), As.Job(second)]), CancellationToken.None);
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
 
         List<ProcessRequest> resumes = [.. processes.CapturedRequests.Where(request => request.Arguments.Contains("--resume"))];
         resumes.Select(request => request.WorkingDirectory).ShouldBe([Repository, Worktree]);

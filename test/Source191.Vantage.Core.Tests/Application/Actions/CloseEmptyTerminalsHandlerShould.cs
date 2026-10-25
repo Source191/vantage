@@ -17,7 +17,7 @@ public sealed class CloseEmptyTerminalsHandlerShould
         processTable.InTree(1, "WindowsTerminal", 0).InTree(4000, "pwsh", 1).InTree(4242, "claude", 4000);
         CloseEmptyTerminalsHandler handler = new(processTable, new FakeTranscripts());
 
-        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([As.Terminal(Interactive("repos-f6", 4242))]), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([SessionTestData.Terminal("repos-f6", 4242)]), CancellationToken.None);
 
         processTable.Terminated.ShouldBe([4242]);
         processTable.EndedCleanly.ShouldBe([4000]);
@@ -33,7 +33,7 @@ public sealed class CloseEmptyTerminalsHandlerShould
         processTable.InTree(4242, "claude", 9);
         CloseEmptyTerminalsHandler handler = new(processTable, new FakeTranscripts());
 
-        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([As.Terminal(Interactive("repos-f6", 4242))]), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([SessionTestData.Terminal("repos-f6", 4242)]), CancellationToken.None);
 
         processTable.Terminated.ShouldBe([4242]);
         processTable.EndedCleanly.ShouldBeEmpty();
@@ -48,7 +48,7 @@ public sealed class CloseEmptyTerminalsHandlerShould
     {
         CloseEmptyTerminalsHandler handler = new(processTable, new FakeTranscripts().WithMessages("sess-9"));
 
-        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([As.Terminal(Interactive("repos-31", 4242))]), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([SessionTestData.Terminal("repos-31", 4242)]), CancellationToken.None);
 
         processTable.Terminated.ShouldBeEmpty();
         processTable.EndedCleanly.ShouldBeEmpty();

@@ -27,18 +27,26 @@ internal static class SessionTestData
     }
 
     /// <summary>A plain claude session in some tab, session id sess-9.</summary>
-    public static SessionRow Interactive(string name, int processId, DisplayState? state = null)
+    public static InteractiveSession Terminal(string name, int processId, DisplayState? state = null)
     {
-        InteractiveSession session = new(new SessionId("sess-9"), name, new FolderPath(Repository), Noon, state ?? DisplayState.Idle, processId);
-
-        return new SessionRow(session, "Northwind.Orders", new BranchName("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
+        return new InteractiveSession(new SessionId("sess-9"), name, new FolderPath(Repository), Noon, state ?? DisplayState.Idle, processId);
     }
 
     /// <summary>A supervised session named fix-123, job 81cdb0f9, session id sess-1.</summary>
+    public static BackgroundSession Job(string directory, DisplayState? state = null)
+    {
+        return new BackgroundSession(new SessionId("sess-1"), new JobId("81cdb0f9"), "fix-123", new FolderPath(directory), Noon, state ?? DisplayState.Working);
+    }
+
+    /// <summary>The <see cref="Terminal"/> session as a row on main.</summary>
+    public static SessionRow Interactive(string name, int processId, DisplayState? state = null)
+    {
+        return new SessionRow(Terminal(name, processId, state), "Northwind.Orders", new BranchName("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
+    }
+
+    /// <summary>The <see cref="Job"/> session as a row, on its own branch in a worktree or on main.</summary>
     public static SessionRow Background(string directory, bool isWorktree, DisplayState? state = null)
     {
-        BackgroundSession session = new(new SessionId("sess-1"), new JobId("81cdb0f9"), "fix-123", new FolderPath(directory), Noon, state ?? DisplayState.Working);
-
-        return new SessionRow(session, "Northwind.Orders", new BranchName(isWorktree ? "fix-123" : "main"), isWorktree, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(Job(directory, state), "Northwind.Orders", new BranchName(isWorktree ? "fix-123" : "main"), isWorktree, HasLiveTab: false, HasTranscript: true);
     }
 }

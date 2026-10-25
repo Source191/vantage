@@ -1,5 +1,4 @@
 using Source191.Vantage.Application.Views;
-using Source191.Vantage.Core.Tests.Application.Actions;
 using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Core.Tests.Application.Views;
@@ -9,9 +8,11 @@ public sealed class SessionsViewShould
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
     private static readonly SessionRow Working = Row("remove-sonar", DisplayState.Working, "Northwind.Templates", jobId: "aaaa1111");
-    private static readonly SessionRow Waiting = Row("change-feed", DisplayState.NeedsInput, "Northwind.Shipping", jobId: "bbbb2222");
+    private static readonly BackgroundSession WaitingJob = Job("change-feed", DisplayState.NeedsInput, "Northwind.Shipping", "bbbb2222");
+    private static readonly SessionRow Waiting = Row(WaitingJob);
     private static readonly SessionRow Stopped = Row("old-spike", DisplayState.Stopped, "Source191.Vantage", jobId: "cccc3333");
-    private static readonly SessionRow Interactive = Row("repos-93", DisplayState.Idle, "repos", jobId: null, interactive: true);
+    private static readonly InteractiveSession InteractiveTerminal = Terminal("repos-93", DisplayState.Idle, "repos");
+    private static readonly SessionRow Interactive = Row(InteractiveTerminal);
 
     private static readonly SessionsViewState Loaded = SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([Stopped, Working, Interactive, Waiting])).State;
 
@@ -134,7 +135,7 @@ public sealed class SessionsViewShould
     [Fact]
     public void StopCarriesTheSelectedRow()
     {
-        SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('x'))).Effects.ShouldBe([new StopSession(As.Job(Waiting))]);
+        SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('x'))).Effects.ShouldBe([new StopSession(WaitingJob)]);
     }
 
     [Fact]
@@ -164,7 +165,7 @@ public sealed class SessionsViewShould
 
         ViewUpdate update = SessionsView.Reduce(onInteractive, new KeyPressed(Key.Of('b')));
 
-        update.Effects.ShouldBe([new AdoptSession(As.Terminal(Interactive))]);
+        update.Effects.ShouldBe([new AdoptSession(InteractiveTerminal)]);
     }
 
     [Fact]
@@ -191,7 +192,8 @@ public sealed class SessionsViewShould
     [Fact]
     public void RefuseToOpenAStoppedSessionThatWasNeverSentAMessageBecauseNothingCanResume()
     {
-        SessionRow stub = Row("repos-f6", DisplayState.Failed, "repos", "5a4a7350") with { HasTranscript = false };
+        BackgroundSession stubJob = Job("repos-f6", DisplayState.Failed, "repos", "5a4a7350");
+        SessionRow stub = Row(stubJob) with { HasTranscript = false };
         SessionsViewState withStub = Reduce(Loaded, new RowsLoaded([stub]));
 
         foreach (Key key in new[] { Key.Enter, Key.Of('o'), Key.Of('r') })
@@ -202,13 +204,14 @@ public sealed class SessionsViewShould
             update.State.Footer.ShouldBe(new Footer.NeverSentAMessage("repos-f6"));
         }
 
-        SessionsView.Reduce(withStub, new KeyPressed(Key.Of('d'))).Effects.ShouldBe([new DeleteSession(As.Job(stub))]);
+        SessionsView.Reduce(withStub, new KeyPressed(Key.Of('d'))).Effects.ShouldBe([new DeleteSession(stubJob)]);
     }
 
     [Fact]
     public void OfferToCloseATerminalSessionThatHasNoMessagesAndCloseItOnX()
     {
-        SessionRow untouched = Row("repos-f6", DisplayState.Idle, "repos", jobId: null, interactive: true) with { HasTranscript = false };
+        InteractiveSession untouchedTerminal = Terminal("repos-f6", DisplayState.Idle, "repos");
+        SessionRow untouched = Row(untouchedTerminal) with { HasTranscript = false };
         SessionsViewState onUntouched = Reduce(SessionsViewState.Empty, new RowsLoaded([untouched]));
 
         ViewUpdate enter = SessionsView.Reduce(onUntouched, new KeyPressed(Key.Enter));
@@ -216,21 +219,23 @@ public sealed class SessionsViewShould
 
         enter.Effects.ShouldBeEmpty();
         enter.State.Footer.ShouldBe(new Footer.RunsInOwnTerminal("repos-f6", HasTranscript: false));
-        closed.Effects.Single().ShouldBeOfType<CloseEmptyTerminals>().Sessions.ShouldBe([As.Terminal(untouched)]);
+        closed.Effects.Single().ShouldBeOfType<CloseEmptyTerminals>().Sessions.ShouldBe([untouchedTerminal]);
     }
 
     [Fact]
     public void CloseEveryTerminalSessionWithNoMessagesOnCAndSayWhenThereAreNone()
     {
-        SessionRow first = Row("repos-f6", DisplayState.Idle, "repos", jobId: null, interactive: true) with { HasTranscript = false };
-        SessionRow second = Row("repos-f7", DisplayState.Idle, "repos", jobId: null, interactive: true) with { HasTranscript = false };
+        InteractiveSession firstTerminal = Terminal("repos-f6", DisplayState.Idle, "repos");
+        SessionRow first = Row(firstTerminal) with { HasTranscript = false };
+        InteractiveSession secondTerminal = Terminal("repos-f7", DisplayState.Idle, "repos");
+        SessionRow second = Row(secondTerminal) with { HasTranscript = false };
         SessionRow withMessages = Row("repos-31", DisplayState.Idle, "repos", jobId: null, interactive: true);
         SessionsViewState mixed = Reduce(SessionsViewState.Empty, new RowsLoaded([withMessages, first, Waiting, second]));
 
         ViewUpdate update = SessionsView.Reduce(mixed, new KeyPressed(Key.Of('C')));
         ViewUpdate none = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('C')));
 
-        update.Effects.Single().ShouldBeOfType<CloseEmptyTerminals>().Sessions.ShouldBe([As.Terminal(first), As.Terminal(second)], ignoreOrder: true);
+        update.Effects.Single().ShouldBeOfType<CloseEmptyTerminals>().Sessions.ShouldBe([firstTerminal, secondTerminal], ignoreOrder: true);
         none.Effects.ShouldBeEmpty();
         none.State.Footer.ShouldBe(new Footer.NoEmptyTerminals());
     }
@@ -263,21 +268,21 @@ public sealed class SessionsViewShould
         SessionRow shown = Waiting with { HasLiveTab = true };
         SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([shown]));
 
-        SessionsView.Reduce(withTab, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenTabForSession(As.Job(shown), shown.HasLiveTab)]);
+        SessionsView.Reduce(withTab, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenTabForSession(WaitingJob, shown.HasLiveTab)]);
     }
 
     [Fact]
     public void AskForANewNameOnRAndRenameOnceOneIsGiven()
     {
-        SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('r'))).Effects.ShouldBe([new AskForNewName(As.Job(Waiting))]);
+        SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('r'))).Effects.ShouldBe([new AskForNewName(WaitingJob)]);
 
-        ViewUpdate renamed = SessionsView.Reduce(Loaded, new RenameConfirmed(As.Job(Waiting), "fix the tests"));
-        ViewUpdate blank = SessionsView.Reduce(Loaded, new RenameConfirmed(As.Job(Waiting), "   "));
-        ViewUpdate unsafeName = SessionsView.Reduce(Loaded, new RenameConfirmed(As.Job(Waiting), "fix; rm -rf"));
-        ViewUpdate cancelled = SessionsView.Reduce(Loaded, new RenameConfirmed(As.Job(Waiting), null));
+        ViewUpdate renamed = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "fix the tests"));
+        ViewUpdate blank = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "   "));
+        ViewUpdate unsafeName = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "fix; rm -rf"));
+        ViewUpdate cancelled = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, null));
 
-        renamed.Effects.ShouldBe([new RenameSession(As.Job(Waiting), SessionName.Parse("fix the tests"))]);
-        renamed.State.Footer.ShouldBe(new Footer.Working(new RenameSession(As.Job(Waiting), SessionName.Parse("fix the tests"))));
+        renamed.Effects.ShouldBe([new RenameSession(WaitingJob, new SessionName("fix the tests"))]);
+        renamed.State.Footer.ShouldBe(new Footer.Working(new RenameSession(WaitingJob, new SessionName("fix the tests"))));
         blank.Effects.ShouldBeEmpty();
         blank.State.Footer.ShouldBe(new Footer.InvalidName(NameProblem.Missing));
         unsafeName.Effects.ShouldBeEmpty();
@@ -348,12 +353,12 @@ public sealed class SessionsViewShould
         new OpenAgentView().ShouldBeAssignableTo<ILeavesScreen>();
         new SwitchToWorktrees().ShouldBeAssignableTo<ILeavesScreen>();
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
-        new AskForNewName(As.Job(Waiting)).ShouldBeAssignableTo<IDialogEffect>();
-        new DeleteSession(As.Job(Waiting)).ShouldBeAssignableTo<IDialogEffect>();
+        new AskForNewName(WaitingJob).ShouldBeAssignableTo<IDialogEffect>();
+        new DeleteSession(WaitingJob).ShouldBeAssignableTo<IDialogEffect>();
         new ResumeStoppedSessions([]).ShouldBeAssignableTo<IDialogEffect>();
         new OpenLaunchWizard().ShouldBeAssignableTo<IDialogEffect>();
-        new StopSession(As.Job(Waiting)).ShouldNotBeAssignableTo<ILeavesScreen>();
-        new StopSession(As.Job(Waiting)).ShouldNotBeAssignableTo<IDialogEffect>();
+        new StopSession(WaitingJob).ShouldNotBeAssignableTo<ILeavesScreen>();
+        new StopSession(WaitingJob).ShouldNotBeAssignableTo<IDialogEffect>();
     }
 
     private static SessionsViewState Press(SessionsViewState state, params Key[] keys)
@@ -369,12 +374,24 @@ public sealed class SessionsViewShould
     /// <summary>A background job with the given job id, or plain claude in a tab (process 4242) when <paramref name="interactive"/>.</summary>
     private static SessionRow Row(string name, DisplayState state, string repository, string? jobId, bool interactive = false)
     {
-        SessionId id = new(Guid.NewGuid().ToString());
-        FolderPath directory = new($@"C:\repos\{repository}");
-        Session session = interactive
-            ? new InteractiveSession(id, name, directory, Noon, state, ProcessId: 4242)
-            : new BackgroundSession(id, new JobId(jobId ?? throw new ArgumentNullException(nameof(jobId))), name, directory, Noon, state);
+        return interactive
+            ? Row(Terminal(name, state, repository))
+            : Row(Job(name, state, repository, jobId ?? throw new ArgumentNullException(nameof(jobId))));
+    }
 
-        return new SessionRow(session, repository, new BranchName("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
+    /// <summary>The session in its repository's folder, on main.</summary>
+    private static SessionRow Row(Session session)
+    {
+        return new SessionRow(session, session.WorkingDirectory.Name, new BranchName("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
+    }
+
+    private static BackgroundSession Job(string name, DisplayState state, string repository, string jobId)
+    {
+        return new BackgroundSession(new SessionId(Guid.NewGuid().ToString()), new JobId(jobId), name, new FolderPath($@"C:\repos\{repository}"), Noon, state);
+    }
+
+    private static InteractiveSession Terminal(string name, DisplayState state, string repository)
+    {
+        return new InteractiveSession(new SessionId(Guid.NewGuid().ToString()), name, new FolderPath($@"C:\repos\{repository}"), Noon, state, ProcessId: 4242);
     }
 }

@@ -32,7 +32,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
 
     public async Task<StartResult> StartBackgroundAsync(string directory, SessionName name, string? openingPrompt, CancellationToken cancellationToken)
     {
-        List<string> arguments = ["--bg", "-n", name.Text];
+        List<string> arguments = ["--bg", "-n", name.Value];
         if (openingPrompt is not null)
         {
             arguments.Add(openingPrompt);
@@ -54,7 +54,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         List<string> arguments = ["--bg", "--resume", sessionId];
         if (name is not null)
         {
-            arguments.AddRange(["-n", name.Text]);
+            arguments.AddRange(["-n", name.Value]);
         }
 
         ProcessResult result = await processes.RunAsync(Request(arguments, directory), cancellationToken);

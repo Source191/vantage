@@ -25,14 +25,14 @@ public static class HereCommand
                     prompt = remaining.Dequeue();
                     break;
                 case "-p" or "--prompt":
-                    return LaunchPlanResult.Refused(new LaunchProblem.OptionNeedsValue(argument));
+                    return new LaunchPlanResult.Refused(new LaunchProblem.OptionNeedsValue(argument));
                 case var option when option.StartsWith('-'):
-                    return LaunchPlanResult.Refused(new LaunchProblem.UnknownOption(option));
+                    return new LaunchPlanResult.Refused(new LaunchProblem.UnknownOption(option));
                 case var text when name is null:
                     name = text;
                     break;
                 default:
-                    return LaunchPlanResult.Refused(new LaunchProblem.UnexpectedArgument(argument));
+                    return new LaunchPlanResult.Refused(new LaunchProblem.UnexpectedArgument(argument));
             }
         }
 
