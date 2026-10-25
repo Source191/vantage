@@ -56,7 +56,7 @@ public sealed class GitWorktreeListingShould
     [Fact]
     public void StripTheRefsHeadsPrefixFromBranches()
     {
-        Entries[1].Branch.ShouldBe(new BranchName("release/event-contract-nested-objects"));
+        Entries[1].Branch.ShouldBe(BranchName.From("release/event-contract-nested-objects"));
     }
 
     [Fact]

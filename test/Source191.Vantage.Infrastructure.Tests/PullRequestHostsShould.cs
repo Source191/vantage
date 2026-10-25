@@ -9,7 +9,7 @@ public sealed class PullRequestHostsShould : IDisposable
 {
     private const string Az = @"C:\Users\me\az\az.cmd";
 
-    private static readonly FolderPath Checkout = new(@"C:\Users\me\source\repos\Northwind.Orders");
+    private static readonly FolderPath Checkout = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, "[]", string.Empty));
     private readonly string folder = Path.Combine(Path.GetTempPath(), "vantage-az-" + Guid.NewGuid().ToString("N"));

@@ -5,17 +5,17 @@ namespace Source191.Vantage.Core.Tests.Application;
 
 public sealed class FolderLabelsShould
 {
-    private static readonly FolderPath Home = new(@"C:\Users\me");
-    private static readonly FolderPath Repos = new(@"C:\Users\me\source\repos");
-    private static readonly FolderPath Worktrees = new(@"C:\Users\me\source\worktrees");
+    private static readonly FolderPath Home = FolderPath.From(@"C:\Users\me");
+    private static readonly FolderPath Repos = FolderPath.From(@"C:\Users\me\source\repos");
+    private static readonly FolderPath Worktrees = FolderPath.From(@"C:\Users\me\source\worktrees");
 
     [Fact]
     public void UseTheRepositoryRootsAndTheWorktreeRoot()
     {
         FolderLabels labels = new(() => [Repos, Worktrees], Home);
 
-        labels.For(new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders")).ShouldBe("Northwind.Orders");
-        labels.For(new FolderPath(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123")).ShouldBe("Northwind.Orders-fix-123");
+        labels.For(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders")).ShouldBe("Northwind.Orders");
+        labels.For(FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123")).ShouldBe("Northwind.Orders-fix-123");
     }
 
     [Fact]
@@ -23,7 +23,7 @@ public sealed class FolderLabelsShould
     {
         List<FolderPath> roots = [Repos];
         FolderLabels labels = new(() => roots, Home);
-        FolderPath worktree = new(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123");
+        FolderPath worktree = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123");
 
         labels.For(worktree).ShouldBe(@"~\source\worktrees\Northwind.Orders-fix-123");
         roots.Add(Worktrees);

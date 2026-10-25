@@ -24,31 +24,31 @@ public sealed class RemoveWorktreeHandlerShould
         GitCalls(processes).Single(request => request.Arguments.Contains("remove")).ShouldSatisfyAllConditions(
             request => request.WorkingDirectory.ShouldBe(Repository),
             request => request.Arguments.ShouldBe(["worktree", "remove", Worktree]));
-        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(new FolderPath(Repository), new BranchName("fix-123")), CreatedByVantage: false));
+        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123")), CreatedByVantage: false));
     }
 
     [Fact]
     public async Task DeleteTheBranchWhenVantageCreatedItAndItIsMerged()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), new BranchName("fix-123"), new FolderPath(Repository), Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Noon));
 
         RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok), forced: false, CancellationToken.None);
 
         GitCalls(processes).Single(request => request.Arguments.Contains("branch")).Arguments.ShouldBe(["branch", "-d", "fix-123"]);
-        outcome.ShouldBe(new RemoveWorktreeOutcome.RemovedAndDeletedBranch("Northwind.Orders-fix-123", new BranchName("fix-123")));
+        outcome.ShouldBe(new RemoveWorktreeOutcome.RemovedAndDeletedBranch("Northwind.Orders-fix-123", BranchName.From("fix-123")));
         (await store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
     }
 
     [Fact]
     public async Task KeepAnUnmergedBranchVantageCreatedAndSayVantageCreatedIt()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), new BranchName("fix-123"), new FolderPath(Repository), Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Noon));
         processes.Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty));
 
         RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok), forced: false, CancellationToken.None);
 
         GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("branch"));
-        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(new FolderPath(Repository), new BranchName("fix-123")), CreatedByVantage: true));
+        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123")), CreatedByVantage: true));
     }
 
     [Fact]

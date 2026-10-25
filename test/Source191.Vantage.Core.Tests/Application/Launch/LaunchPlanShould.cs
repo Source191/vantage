@@ -5,10 +5,10 @@ namespace Source191.Vantage.Core.Tests.Application.Launch;
 
 public sealed class LaunchPlanShould
 {
-    private static readonly RepositoryChoice Repository = new("Northwind.Orders", new FolderPath(@"C:\repos\Northwind.Orders"), IsRepository: true);
-    private static readonly RepositoryChoice NoRepository = new("repos (no repository)", new FolderPath(@"C:\repos"), IsRepository: false);
+    private static readonly RepositoryChoice Repository = new("Northwind.Orders", FolderPath.From(@"C:\repos\Northwind.Orders"), IsRepository: true);
+    private static readonly RepositoryChoice NoRepository = new("repos (no repository)", FolderPath.From(@"C:\repos"), IsRepository: false);
 
-    private static readonly FolderPath WorktreeRoot = new(@"C:\Users\me\source\worktrees");
+    private static readonly FolderPath WorktreeRoot = FolderPath.From(@"C:\Users\me\source\worktrees");
 
     private static readonly LaunchRequest Default = new(
         Repository,
@@ -41,7 +41,7 @@ public sealed class LaunchPlanShould
 
         plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123-flaky-tests");
         plan.Worktree.ShouldNotBeNull();
-        plan.Worktree.Branch.ShouldBe(new BranchName("fix-123-flaky-tests"));
+        plan.Worktree.Branch.ShouldBe(BranchName.From("fix-123-flaky-tests"));
         plan.ReuseExistingWorktree.ShouldBeFalse();
         plan.Base.ShouldBe(WorktreeBase.RemoteDefault);
     }

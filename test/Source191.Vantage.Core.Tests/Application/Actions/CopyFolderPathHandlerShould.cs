@@ -8,7 +8,7 @@ namespace Source191.Vantage.Core.Tests.Application.Actions;
 
 public sealed class CopyFolderPathHandlerShould
 {
-    private static readonly FolderPath Folder = new(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123");
+    private static readonly FolderPath Folder = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123");
 
     [Fact]
     public async Task ReportThePathCopied()

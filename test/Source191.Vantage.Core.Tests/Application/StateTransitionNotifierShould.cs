@@ -57,12 +57,12 @@ public sealed class StateTransitionNotifierShould : IDisposable
 
     private static SessionRow Row(string name, DisplayState state, bool interactive = false)
     {
-        SessionId id = new(Guid.NewGuid().ToString());
-        FolderPath directory = new(@"C:\repos\Northwind.Orders");
+        SessionId id = SessionId.From(Guid.NewGuid().ToString());
+        FolderPath directory = FolderPath.From(@"C:\repos\Northwind.Orders");
         Session session = interactive
             ? new InteractiveSession(id, name, directory, Noon, state, ProcessId: 4242)
-            : new BackgroundSession(id, new JobId("81cdb0f9"), name, directory, Noon, state);
+            : new BackgroundSession(id, JobId.From("81cdb0f9"), name, directory, Noon, state);
 
-        return new SessionRow(session, "Northwind.Orders", new BranchName("main"), HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, "Northwind.Orders", BranchName.From("main"), HasLiveTab: false, HasTranscript: true);
     }
 }

@@ -8,7 +8,7 @@ public sealed class SolutionFinderShould
 {
     private const string Orders = @"C:\Users\me\source\repos\Northwind.Orders";
 
-    private static readonly FolderPath Folder = new(Orders);
+    private static readonly FolderPath Folder = FolderPath.From(Orders);
 
     [Fact]
     public void FindTheOnlySolutionInTheFolder()

@@ -19,7 +19,7 @@ public sealed class GitHubPullRequestsShould
         """;
 
     private static readonly GitHubRepository Orders = new("northwind", "Northwind.Orders");
-    private static readonly FolderPath Checkout = new(@"C:\Users\me\source\repos\Northwind.Orders");
+    private static readonly FolderPath Checkout = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, Recorded, string.Empty));
 
@@ -70,6 +70,6 @@ public sealed class GitHubPullRequestsShould
     }
 
     private static BranchPullRequest Row(string branch, int number, PullRequestState state, string createdAt) =>
-        new(new BranchName(branch), new PullRequest(PullRequestHost.GitHub, number, new Uri($"https://github.com/northwind/Northwind.Orders/pull/{number}"), state, DateTimeOffset.Parse(createdAt, System.Globalization.CultureInfo.InvariantCulture)));
+        new(BranchName.From(branch), new PullRequest(PullRequestHost.GitHub, number, new Uri($"https://github.com/northwind/Northwind.Orders/pull/{number}"), state, DateTimeOffset.Parse(createdAt, System.Globalization.CultureInfo.InvariantCulture)));
 
 }

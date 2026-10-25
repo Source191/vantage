@@ -4,13 +4,13 @@ namespace Source191.Vantage.Core.Tests.Domain;
 
 public sealed class PlannedWorktreeShould
 {
-    private static readonly WorktreeSlug Slug = new("fix 123");
-    private static readonly FolderPath WorktreeRoot = new(@"C:\Users\me\source\worktrees");
+    private static readonly WorktreeSlug Slug = WorktreeSlug.From("fix 123");
+    private static readonly FolderPath WorktreeRoot = FolderPath.From(@"C:\Users\me\source\worktrees");
 
     [Fact]
     public void PlaceTheWorktreeUnderTheWorktreeRoot()
     {
-        FolderPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders");
+        FolderPath repository = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
 
         PlannedWorktree worktree = PlannedWorktree.For(WorktreeRoot, repository, Slug);
 
@@ -20,17 +20,17 @@ public sealed class PlannedWorktreeShould
     [Fact]
     public void CheckOutABranchNamedAfterTheSlug()
     {
-        FolderPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders");
+        FolderPath repository = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
 
         PlannedWorktree worktree = PlannedWorktree.For(WorktreeRoot, repository, Slug);
 
-        worktree.Branch.ShouldBe(new BranchName("fix-123"));
+        worktree.Branch.ShouldBe(BranchName.From("fix-123"));
     }
 
     [Fact]
     public void IgnoreATrailingSeparatorOnTheRepositoryPath()
     {
-        FolderPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders\");
+        FolderPath repository = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders\");
 
         PlannedWorktree worktree = PlannedWorktree.For(WorktreeRoot, repository, Slug);
 
@@ -40,9 +40,9 @@ public sealed class PlannedWorktreeShould
     [Fact]
     public void PlaceTheWorktreeOnAnotherDrive()
     {
-        FolderPath repository = new(@"C:\Users\me\source\repos\Northwind.Orders");
+        FolderPath repository = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
 
-        PlannedWorktree worktree = PlannedWorktree.For(new FolderPath(@"D:\worktrees"), repository, Slug);
+        PlannedWorktree worktree = PlannedWorktree.For(FolderPath.From(@"D:\worktrees"), repository, Slug);
 
         worktree.Path.Value.ShouldBe(@"D:\worktrees\Northwind.Orders-fix-123");
     }

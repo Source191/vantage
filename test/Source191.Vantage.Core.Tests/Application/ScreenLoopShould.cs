@@ -48,7 +48,7 @@ public sealed class ScreenLoopShould : IDisposable
             state => new ScreenExit(SessionsView.Reduce(state, new RowsLoaded([First, Second])).State, new SwitchToWorktrees()),
             state => new ScreenExit(state, new SwitchToWorktrees()),
             state => new ScreenExit(state, null));
-        ScriptedWorktreesScreen worktrees = new(new JumpToSession(new SessionId("sess-2")), new SwitchToSessions());
+        ScriptedWorktreesScreen worktrees = new(new JumpToSession(SessionId.From("sess-2")), new SwitchToSessions());
 
         await Loop(sessions, worktrees).RunAsync(processId: 100, CancellationToken.None);
 
@@ -61,7 +61,7 @@ public sealed class ScreenLoopShould : IDisposable
     public async Task RunTerminalEffectsBetweenScreensAndRelabelTheTabAfterwards()
     {
         ScriptedSessionsScreen sessions = new(
-            state => new ScreenExit(state, new AttachToSession(new JobId("81cdb0f9"))),
+            state => new ScreenExit(state, new AttachToSession(JobId.From("81cdb0f9"))),
             state => new ScreenExit(state, new OpenAgentView()),
             state => new ScreenExit(state, new Quit()));
 
@@ -99,8 +99,8 @@ public sealed class ScreenLoopShould : IDisposable
         System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single();
         object[] arguments = [.. constructor.GetParameters().Select(parameter => parameter.ParameterType switch
         {
-            Type id when id == typeof(JobId) => new JobId("81cdb0f9"),
-            Type id when id == typeof(SessionId) => (object)new SessionId("sess-1"),
+            Type id when id == typeof(JobId) => JobId.From("81cdb0f9"),
+            Type id when id == typeof(SessionId) => (object)SessionId.From("sess-1"),
             _ => throw new InvalidOperationException($"{type.Name} needs a {parameter.ParameterType.Name}; extend {nameof(Instantiate)}."),
         })];
 
@@ -109,8 +109,8 @@ public sealed class ScreenLoopShould : IDisposable
 
     private static SessionRow Row(string sessionId, string name)
     {
-        BackgroundSession session = new(new SessionId(sessionId), new JobId(sessionId == "sess-1" ? "81cdb0f9" : "92ddc1a0"), name, new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders"), Noon, DisplayState.Idle);
+        BackgroundSession session = new(SessionId.From(sessionId), JobId.From(sessionId == "sess-1" ? "81cdb0f9" : "92ddc1a0"), name, FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), Noon, DisplayState.Idle);
 
-        return new SessionRow(session, "Northwind.Orders", new BranchName("main"), HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, "Northwind.Orders", BranchName.From("main"), HasLiveTab: false, HasTranscript: true);
     }
 }

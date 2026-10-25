@@ -52,7 +52,7 @@ public sealed class ClaudeAgentsListingShould
         interactive.SessionId.Value.ShouldBe("82db48ec-63de-49db-9831-b8147075dc3a");
         interactive.WorkingDirectory.Value.ShouldBe(@"C:\Users\me\source\repos");
         interactive.State.ShouldBe(DisplayState.Idle);
-        background.JobId.ShouldBe(new JobId("1a4d2d86"));
+        background.JobId.ShouldBe(JobId.From("1a4d2d86"));
         background.ProcessId.ShouldBe(57456);
         background.State.ShouldBe(DisplayState.Completed);
         Sessions.Single(session => session.Name == "spike-permission").ShouldBeOfType<BackgroundSession>().ProcessId.ShouldBeNull("a stopped job has no process");
@@ -76,8 +76,8 @@ public sealed class ClaudeAgentsListingShould
         IReadOnlyList<Session> sessions = ClaudeAgentsListing.Parse(json);
 
         sessions.Select(session => session.Name).ShouldBe(["no-job", "interactive-ended"]);
-        sessions[0].ShouldBeOfType<BackgroundSession>().JobId.ShouldBe(new JobId("fa82d736"));
-        sessions[1].ShouldBeOfType<BackgroundSession>().JobId.ShouldBe(new JobId("b2db48ec"), "an interactive row without a process cannot be its own terminal");
+        sessions[0].ShouldBeOfType<BackgroundSession>().JobId.ShouldBe(JobId.From("fa82d736"));
+        sessions[1].ShouldBeOfType<BackgroundSession>().JobId.ShouldBe(JobId.From("b2db48ec"), "an interactive row without a process cannot be its own terminal");
         sessions.ShouldAllBe(session => session.State == DisplayState.Stopped);
     }
 

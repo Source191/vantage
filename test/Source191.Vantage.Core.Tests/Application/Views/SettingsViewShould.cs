@@ -55,7 +55,7 @@ public sealed class SettingsViewShould
     {
         { [new SettingsInput.RootsChanged(" ")], new SettingsProblem.NoRoots(), SettingsField.Roots },
         { [new SettingsInput.RootsChanged("repos")], new SettingsProblem.RootNotFullPath("repos"), SettingsField.Roots },
-        { [new SettingsInput.RootsChanged(@"D:\nowhere")], new SettingsProblem.RootMissing(new FolderPath(@"D:\nowhere")), SettingsField.Roots },
+        { [new SettingsInput.RootsChanged(@"D:\nowhere")], new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere")), SettingsField.Roots },
         { [new SettingsInput.WorktreeRootChanged("worktrees")], new SettingsProblem.WorktreeRootNotFullPath(), SettingsField.WorktreeRoot },
         { [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.NoExecutable(), SettingsField.Executable },
         { [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\edit.cmd"), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.BatchFileExecutable(), SettingsField.Executable },

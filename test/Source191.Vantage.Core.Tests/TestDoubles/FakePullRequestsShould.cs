@@ -7,7 +7,7 @@ namespace Source191.Vantage.Core.Tests.TestDoubles;
 public sealed class FakePullRequestsShould
 {
     private static readonly GitHubRepository Orders = new("northwind", "Northwind.Orders");
-    private static readonly FolderPath Checkout = new(@"C:\Users\me\source\repos\Northwind.Orders");
+    private static readonly FolderPath Checkout = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
 
     [Fact]
     public async Task HoldACallOpenUntilReleased()

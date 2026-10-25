@@ -20,8 +20,8 @@ public sealed class ResumeSessionsHandlerShould
     public void SeparateFailedSessionsFromStoppedOnesWhenPlanningAResume()
     {
         SessionRow failed = Background(Repository, isWorktree: false, DisplayState.Failed);
-        SessionRow stopped = Background(Repository, isWorktree: false, DisplayState.Stopped) with { Session = Background(Repository, false).Session with { SessionId = new SessionId("sess-2"), State = DisplayState.Stopped } };
-        SessionRow stoppedLater = stopped with { Session = stopped.Session with { SessionId = new SessionId("sess-3"), Name = "later" } };
+        SessionRow stopped = Background(Repository, isWorktree: false, DisplayState.Stopped) with { Session = Background(Repository, false).Session with { SessionId = SessionId.From("sess-2"), State = DisplayState.Stopped } };
+        SessionRow stoppedLater = stopped with { Session = stopped.Session with { SessionId = SessionId.From("sess-3"), Name = "later" } };
         SessionRow working = Background(Repository, isWorktree: false);
 
         ResumePlan plan = ResumeSessionsHandler.Plan([failed, stoppedLater, stopped, working]);
@@ -36,7 +36,7 @@ public sealed class ResumeSessionsHandlerShould
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
         transcripts.WithMessages("sess-1");
         BackgroundSession withTranscript = Job(Repository, DisplayState.Failed);
-        BackgroundSession stub = withTranscript with { SessionId = new SessionId("sess-stub"), Name = "repos-f6" };
+        BackgroundSession stub = withTranscript with { SessionId = SessionId.From("sess-stub"), Name = "repos-f6" };
 
         Outcome message = await Handler.HandleAsync(new ResumeSessions([withTranscript, stub]), CancellationToken.None);
 
@@ -52,7 +52,7 @@ public sealed class ResumeSessionsHandlerShould
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
         transcripts.WithMessages("sess-1").WithMessages("sess-2");
         BackgroundSession first = Job(Repository, DisplayState.Failed);
-        BackgroundSession second = Job(Worktree, DisplayState.Stopped) with { SessionId = new SessionId("sess-2") };
+        BackgroundSession second = Job(Worktree, DisplayState.Stopped) with { SessionId = SessionId.From("sess-2") };
 
         Outcome message = await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
 

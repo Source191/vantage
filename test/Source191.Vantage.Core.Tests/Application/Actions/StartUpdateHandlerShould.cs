@@ -11,7 +11,7 @@ namespace Source191.Vantage.Core.Tests.Application.Actions;
 public sealed class StartUpdateHandlerShould
 {
     private const string Vantage = @"C:\Users\me\.dotnet\tools\vantage.exe";
-    private static readonly FolderPath Home = new(@"C:\Users\me");
+    private static readonly FolderPath Home = FolderPath.From(@"C:\Users\me");
 
     [Fact]
     public async Task OpenTheUpdateTabAndReportIt()

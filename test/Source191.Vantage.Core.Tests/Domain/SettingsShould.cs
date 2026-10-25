@@ -4,7 +4,7 @@ namespace Source191.Vantage.Core.Tests.Domain;
 
 public sealed class SettingsShould
 {
-    private static readonly FolderPath Home = new(@"C:\Users\me");
+    private static readonly FolderPath Home = FolderPath.From(@"C:\Users\me");
     private const string Root = @"C:\Users\me\source\repos";
 
     private static readonly SettingsText Typed = new(
@@ -20,8 +20,8 @@ public sealed class SettingsShould
     {
         Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
 
-        settings.RepositoryRoots.ShouldBe([new FolderPath(Root)]);
-        settings.WorktreeRoot.ShouldBe(new FolderPath(@"C:\Users\me\source\worktrees"));
+        settings.RepositoryRoots.ShouldBe([FolderPath.From(Root)]);
+        settings.WorktreeRoot.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees"));
         settings.Editor.ShouldBe(EditorChoice.VsCode);
         settings.DefaultBase.ShouldBe(WorktreeBase.RemoteDefault);
     }
@@ -29,10 +29,10 @@ public sealed class SettingsShould
     [Fact]
     public void ResolveAFileFromAnEarlierVersion()
     {
-        Settings settings = Settings.Resolve([new FolderPath(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, WorktreeBase.Head, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, WorktreeBase.Head, Home);
 
-        settings.RepositoryRoots.ShouldBe([new FolderPath(@"D:\work")]);
-        settings.WorktreeRoot.ShouldBe(new FolderPath(@"D:\worktrees"));
+        settings.RepositoryRoots.ShouldBe([FolderPath.From(@"D:\work")]);
+        settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
         settings.Editor.ShouldBe(EditorChoice.VsCode);
         settings.DefaultBase.ShouldBe(WorktreeBase.Head);
     }
@@ -42,30 +42,30 @@ public sealed class SettingsShould
     {
         Settings settings = Settings.Resolve([], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
 
-        settings.RepositoryRoots.ShouldBe([new FolderPath(Root)]);
+        settings.RepositoryRoots.ShouldBe([FolderPath.From(Root)]);
     }
 
     [Fact]
     public void PutTheWorktreeRootInsideARootWithNoParent()
     {
-        Settings settings = Settings.Resolve([new FolderPath(@"D:\")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(@"D:\")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
 
-        settings.WorktreeRoot.ShouldBe(new FolderPath(@"D:\worktrees"));
+        settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
     }
 
     [Fact]
     public void KeepAWorktreeRootThatIsGiven()
     {
-        Settings settings = Settings.Resolve([new FolderPath(Root)], new FolderPath(@"E:\trees"), EditorChoice.VsCode, defaultBase: null, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(Root)], FolderPath.From(@"E:\trees"), EditorChoice.VsCode, defaultBase: null, Home);
 
-        settings.WorktreeRoot.ShouldBe(new FolderPath(@"E:\trees"));
+        settings.WorktreeRoot.ShouldBe(FolderPath.From(@"E:\trees"));
     }
 
     [Fact]
     public void CompareByValue()
     {
-        Settings first = Settings.Resolve([new FolderPath(Root)], worktreeRoot: null, EditorChoice.Custom("subl.exe", ["{folder}"]), defaultBase: null, Home);
-        Settings second = Settings.Resolve([new FolderPath(Root)], worktreeRoot: null, EditorChoice.Custom("subl.exe", ["{folder}"]), defaultBase: null, Home);
+        Settings first = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.Custom("subl.exe", ["{folder}"]), defaultBase: null, Home);
+        Settings second = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.Custom("subl.exe", ["{folder}"]), defaultBase: null, Home);
 
         first.ShouldBe(second);
     }
@@ -77,8 +77,8 @@ public sealed class SettingsShould
 
         Settings settings = Settings.Validate(typed, Exists(Root, @"D:\work")).ShouldBeOfType<SettingsValidation.Valid>().Settings;
 
-        settings.RepositoryRoots.ShouldBe([new FolderPath(Root), new FolderPath(@"D:\work")]);
-        settings.WorktreeRoot.ShouldBe(new FolderPath(@"C:\Users\me\source\worktrees"));
+        settings.RepositoryRoots.ShouldBe([FolderPath.From(Root), FolderPath.From(@"D:\work")]);
+        settings.WorktreeRoot.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees"));
         settings.DefaultBase.ShouldBe(WorktreeBase.Head);
     }
 
@@ -97,7 +97,7 @@ public sealed class SettingsShould
     [Fact]
     public void RefuseAMissingRoot()
     {
-        Refusal(Typed with { Roots = $"{Root}\nD:\\nowhere" }).ShouldBe(new SettingsProblem.RootMissing(new FolderPath(@"D:\nowhere")));
+        Refusal(Typed with { Roots = $"{Root}\nD:\\nowhere" }).ShouldBe(new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere")));
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public sealed class SettingsShould
     public void AcceptAWorktreeRootThatDoesNotExistYet()
     {
         Settings.Validate(Typed with { WorktreeRoot = @"D:\worktrees" }, Exists(Root))
-            .ShouldBeOfType<SettingsValidation.Valid>().Settings.WorktreeRoot.ShouldBe(new FolderPath(@"D:\worktrees"));
+            .ShouldBeOfType<SettingsValidation.Valid>().Settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public sealed class SettingsShould
     [Fact]
     public void GiveBackTheTextItWasTypedFrom()
     {
-        Settings settings = Settings.Resolve([new FolderPath(Root), new FolderPath(@"D:\work")], new FolderPath(@"E:\trees"), EditorChoice.Custom("subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom("subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home);
 
         settings.ToText().ShouldBe(new SettingsText($"{Root}\nD:\\work", @"E:\trees", EditorPreset.Custom, "subl.exe", "-n {folder}", WorktreeBase.Head));
     }

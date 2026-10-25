@@ -18,7 +18,7 @@ public sealed class ClaudeCliShould
         """;
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
-    private readonly SessionName name = new SessionName("Refund retry policy");
+    private readonly SessionName name = SessionName.From("Refund retry policy");
 
     private ClaudeCli Cli => new(processes, Executable);
 
@@ -172,7 +172,7 @@ public sealed class ClaudeCliShould
     {
         processes.AnswerAll(new ProcessResult(0, "backgrounded · 81cdb0f9 · cc-spike", string.Empty));
 
-        await Cli.ResumeBackgroundAsync("81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6", Directory, new SessionName("cc-spike"), CancellationToken.None);
+        await Cli.ResumeBackgroundAsync("81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6", Directory, SessionName.From("cc-spike"), CancellationToken.None);
 
         processes.CapturedRequests.Single().Arguments.ShouldBe(["--bg", "--resume", "81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6", "-n", "cc-spike"]);
     }

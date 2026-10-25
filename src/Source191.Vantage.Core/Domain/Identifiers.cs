@@ -5,18 +5,20 @@ namespace Source191.Vantage.Domain;
 /// <summary>A Claude Code session's id. The CLI does not document its format, so the only rule is that it is not blank.</summary>
 public sealed record SessionId : ITextValue<SessionId>
 {
-    public SessionId(string text)
+    private SessionId(string text)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(text);
         Value = text;
     }
+
+    public static SessionId From(string text) => new(text);
 
     public string Value { get; }
 
     /// <summary>An id from outside Vantage (the CLI's listing, a state file); false when it is blank.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out SessionId value)
     {
-        value = string.IsNullOrWhiteSpace(text) ? null : new SessionId(text);
+        value = string.IsNullOrWhiteSpace(text) ? null : SessionId.From(text);
         return value is not null;
     }
 
@@ -28,7 +30,7 @@ public sealed record JobId : ITextValue<JobId>
 {
     private const int Length = 8;
 
-    public JobId(string text)
+    private JobId(string text)
     {
         if (!IsJobId(text))
         {
@@ -38,12 +40,14 @@ public sealed record JobId : ITextValue<JobId>
         Value = text;
     }
 
+    public static JobId From(string text) => new(text);
+
     public string Value { get; }
 
     /// <summary>A job id from outside Vantage (the CLI's listing or its answer to a start); false when it is not one.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out JobId value)
     {
-        value = text is not null && IsJobId(text) ? new JobId(text) : null;
+        value = text is not null && IsJobId(text) ? JobId.From(text) : null;
         return value is not null;
     }
 
@@ -58,7 +62,7 @@ public sealed record JobId : ITextValue<JobId>
 /// <summary>A git branch name: not blank and without whitespace, which git refuses in a branch name.</summary>
 public sealed record BranchName : ITextValue<BranchName>
 {
-    public BranchName(string text)
+    private BranchName(string text)
     {
         if (!IsBranchName(text))
         {
@@ -68,12 +72,14 @@ public sealed record BranchName : ITextValue<BranchName>
         Value = text;
     }
 
+    public static BranchName From(string text) => new(text);
+
     public string Value { get; }
 
     /// <summary>A branch name from outside Vantage (git's output, a state file); false when it is not one.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out BranchName value)
     {
-        value = text is not null && IsBranchName(text) ? new BranchName(text) : null;
+        value = text is not null && IsBranchName(text) ? BranchName.From(text) : null;
         return value is not null;
     }
 
