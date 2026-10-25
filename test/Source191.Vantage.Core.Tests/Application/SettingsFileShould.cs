@@ -81,7 +81,7 @@ public sealed class SettingsFileShould
 
         VantageConfig config = SettingsFile.ToConfig(settings);
 
-        config.ShouldBe(new VantageConfig([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"E:\trees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"])));
+        config.ShouldBe(new VantageConfig([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"E:\trees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"]), CheckForUpdates: true));
         SettingsFile.From(config, Home).ShouldBe(settings);
     }
 

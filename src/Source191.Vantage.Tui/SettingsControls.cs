@@ -9,7 +9,7 @@ namespace Source191.Vantage.Tui;
 
 /// <summary>
 /// The settings dialog's controls and where they sit: the roots and the worktree root across the top, the editor on
-/// the left with a custom editor's command beside it, and the worktree base on the right. <see cref="SettingsDialog"/>
+/// the left with a custom editor's command beside it, and the worktree base and the update check on the right. <see cref="SettingsDialog"/>
 /// binds them to the reducer.
 /// </summary>
 internal sealed class SettingsControls
@@ -27,6 +27,7 @@ internal sealed class SettingsControls
         Executable.Text = text.Executable;
         Arguments.Text = text.Arguments;
         BaseRef.Value = text.Base == WorktreeBase.Head ? 1 : 0;
+        CheckForUpdates.Value = text.CheckForUpdates ? CheckState.Checked : CheckState.UnChecked;
         Fields = new Dictionary<SettingsField, View>
         {
             [SettingsField.Roots] = Roots,
@@ -35,6 +36,7 @@ internal sealed class SettingsControls
             [SettingsField.Executable] = Executable,
             [SettingsField.Arguments] = Arguments,
             [SettingsField.Base] = BaseRef,
+            [SettingsField.CheckForUpdates] = CheckForUpdates,
         };
         Custom = [Caption(RightColumn, 10, "Executable (not a .cmd or .bat)"), Executable, Caption(RightColumn, 13, $"Arguments ({EditorChoice.FolderPlaceholder} is the folder)"), Arguments];
         All =
@@ -48,6 +50,7 @@ internal sealed class SettingsControls
             .. Custom,
             Caption(BaseColumn, 9, "Worktree base (↑↓ then Space)"),
             BaseRef,
+            CheckForUpdates,
             Problem,
         ];
     }
@@ -66,6 +69,9 @@ internal sealed class SettingsControls
     public TextField Arguments { get; } = new() { X = RightColumn, Y = 14, Width = 40 };
 
     public OptionSelector BaseRef { get; } = new() { X = BaseColumn, Y = 10, Labels = ["origin default branch", "current HEAD"], Value = 0 };
+
+    /// <summary>Space toggles it; nuget.org is asked at most once a day while it is checked.</summary>
+    public CheckBox CheckForUpdates { get; } = new() { X = BaseColumn, Y = 13, Text = "Check for updates daily" };
 
     public Label Problem { get; } = Text(LeftColumn, 17, Palette.Red, Dim.Fill(1));
 

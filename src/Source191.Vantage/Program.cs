@@ -89,7 +89,7 @@ SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.Syst
 StateTransitionNotifier notifier = new(Console.Out);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
 using NuGetPackageVersions packageVersions = new(version);
-UpdateCheck updates = new(version, () => true, store, packageVersions, TimeProvider.System);
+UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates, store, packageVersions, TimeProvider.System);
 EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System);
 EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home));
 DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, updates, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
