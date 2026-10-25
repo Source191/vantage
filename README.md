@@ -28,7 +28,15 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 
 Prerequisites: Windows 11, Windows Terminal, PowerShell 7, .NET 10 SDK, git, and Claude Code 2.1.309 or later installed at `~\.local\bin\claude.exe` or on the PATH.
 
-1. Pack and install the tool from this repository:
+1. Install the tool from nuget.org:
+
+   ```powershell
+   dotnet tool install -g Source191.Vantage
+   ```
+
+   Update it later with `dotnet tool update -g Source191.Vantage`. To try a build that is not on nuget.org yet, install a GitHub Release's `.nupkg` instead: download it into a folder, then `dotnet tool install -g Source191.Vantage --add-source <folder> --version <version>`.
+
+   To work on Vantage itself, pack and install the tool from this repository:
 
    ```powershell
    .\tools\install-local.ps1
@@ -273,7 +281,9 @@ dotnet run --project tools\HeadlessTerminal -- check               # the hand-of
 
 `.github\workflows\check.yml` runs on every pull request and every push to `main`, on a `windows-latest` runner because the code uses P/Invoke, ConPTY and `cmd.exe` in its integration tests. Its `check` job builds in Release (warnings are errors), runs the whole test suite against that build, runs `dotnet format --verify-no-changes`, packs the tool as `<Version>-ci.<run number>` and uploads the `.nupkg` as a workflow artefact named `Source191.Vantage-<that version>`, so a working package is downloadable from any commit and each run's package is a version the tool cache has never seen (see Install). Branch protection on `main` requires `check`, so a red pull request cannot merge. Administrators can still push to `main` directly; do not, because the release check below only looks at the last commit of a push.
 
-**Releases.** `.github\workflows\release.yml` runs on every push to `main` and is a no-op unless that push changed `Version` in `src\Source191.Vantage\Source191.Vantage.csproj`. When it did, it builds, tests and packs again and publishes a GitHub Release tagged `v<version>` with the `.nupkg` attached. Bumping `Version` is therefore the release action, and every pull request that changes the packaged tool makes it, so each merge of a tool change is a release. The tool is not on nuget.org yet (see Roadmap), so the release is provenance, an immutable package tied to a commit, rather than a distribution route.
+**Releases.** `.github\workflows\release.yml` runs on every push to `main` and is a no-op unless that push changed `Version` in `src\Source191.Vantage\Source191.Vantage.csproj`. When it did, it builds, tests and packs again and publishes a GitHub Release tagged `v<version>` with the `.nupkg` attached. Bumping `Version` is therefore the release action, and every pull request that changes the packaged tool makes it, so each merge of a tool change is a release. A release is not published to nuget.org: that is a separate, manual step (below), so a package is tried by hand before it goes where a version can never be replaced.
+
+**Publishing to nuget.org.** `.github\workflows\publish.yml` is run by hand (Actions, "publish", with the release tag, e.g. `v0.5.0`). It downloads that GitHub Release's `.nupkg` and pushes it to nuget.org without building anything, so what is published is the package that was built, tested and released from `main`. It needs no stored API key: the `NuGet/login` action swaps the run's GitHub identity for a one-hour key through a Trusted Publishing policy on nuget.org (owner `Source191`, repository `vantage`, workflow `publish.yml`), and the nuget.org profile name is the `NUGET_USER` repository secret. nuget.org versions cannot be replaced, only unlisted, so a bad publish is unlisted and fixed by a higher patch version.
 
 **Version bumps.** The first step of the `check` job, on pull requests only, runs `.github\scripts\Assert-VersionBumped.ps1` against the two parents of the pull request's merge commit. It fails when the pull request changes anything under `src\`, or `Directory.Build.props`, `global.json` or `nuget.config`, without raising `Version` above `main`'s (compared as semantic versions, so 0.10.0 is above 0.9.0). Pull requests touching only docs, CI, `openspec\`, `test\` or `tools\` need no bump. Run it locally with `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD`. Versions follow [semantic versioning](https://semver.org/):
 
@@ -313,4 +323,3 @@ The repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-
 - Multiple Claude accounts: Claude Code's `CLAUDE_CONFIG_DIR` selects a configuration directory with its own login, settings, sessions and supervisor; Vantage would gain a profile column and set the variable when starting a session.
 - A per-path cache for the worktree scan, so the first press of `w` is quick on a large roots folder.
 - Pinning sessions, once the CLI exposes it outside the native agent view; configurable palette and Windows Terminal profile for the tabs Vantage opens.
-- Publish to nuget.org: planned in the `public-release` change (`openspec\changes\public-release`), which also holds the order the open changes merge in; a hand-run `publish.yml` pushes a tested release through Trusted Publishing, and the Install section drops `--add-source`.

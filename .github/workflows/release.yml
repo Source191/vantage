@@ -3,8 +3,10 @@ name: release
 # Runs only on a push to main, never on a pull request: a release comes from a merge. It is a
 # no-op unless this push changed Version in src/Source191.Vantage/Source191.Vantage.csproj, so
 # bumping the version (already required because the tool cache keeps a version for ever) is the
-# same action that decides whether a release happens. Publishing to nuget.org is on the README
-# roadmap; until then the GitHub Release is provenance, an immutable package tied to a commit.
+# same action that decides whether a release happens. Publishing to nuget.org is never done from
+# here: publish.yml pushes a tested release's package by hand, so nuget.org (where a version cannot
+# be replaced) only gets what was tried first. The GitHub Release is the immutable package tied to
+# a commit that publish.yml starts from.
 on:
   push:
     branches: [main]

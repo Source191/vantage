@@ -29,12 +29,12 @@
 
 ## 6. P11: package ready
 
-- [ ] 6.1 Tool csproj: `PackageLicenseExpression`, `PackageReadmeFile`, `PackageIcon`, `PackageProjectUrl`, `RepositoryUrl`, `PackageTags` and `Copyright` as in design.md, with the README and a 128 x 128 PNG icon packed; verify `dotnet pack src\Source191.Vantage -c Release` succeeds and the nupkg holds the readme, icon and licence expression (open it as a zip)
-- [ ] 6.2 `THIRD-PARTY-NOTICES.txt` naming each packed dependency with its licence and full notice text, packed beside the tool; check each transitive licence on its nuget.org page or repository (stop and ask if any is not permissive); verify it lists every package from `dotnet list src\Source191.Vantage package --include-transitive` that ships, and every DLL in the packed `tools\net10.0\any` folder
-- [ ] 6.3 `.github\workflows\publish.yml` as in design.md, with comments in the style of `release.yml`; verify it parses (`actionlint` if installed, else a dry run with a step that lists the downloaded nupkg instead of pushing)
-- [ ] 6.4 `SECURITY.md` (report through GitHub private vulnerability reporting) and `.github\dependabot.yml` (nuget and github-actions, weekly); update `release.yml`'s comment about nuget.org; verify `check` passes on the pull request
-- [ ] 6.5 README: Install leads with `dotnet tool install -g Source191.Vantage` and keeps the local build steps for contributors; Continuous integration describes `publish.yml`; the Roadmap loses the nuget.org item. CLAUDE.md: publishing is `publish.yml` on a tested release tag, never from `release.yml`; verify every command in Install runs as written against a locally packed nupkg
-- [ ] 6.6 Raise `Version` to the next patch after `main`'s; verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes
+- [x] 6.1 Tool csproj: `PackageLicenseExpression`, `PackageReadmeFile`, `PackageIcon`, `PackageProjectUrl`, `RepositoryUrl`, `PackageTags` and `Copyright` as in design.md, with the README and a 128 x 128 PNG icon packed; verify `dotnet pack src\Source191.Vantage -c Release` succeeds and the nupkg holds the readme, icon and licence expression (open it as a zip)
+- [x] 6.2 `THIRD-PARTY-NOTICES.txt` naming each packed dependency with its licence and full notice text, packed beside the tool; check each transitive licence on its nuget.org page or repository (stop and ask if any is not permissive); verify it lists every package from `dotnet list src\Source191.Vantage package --include-transitive` that ships, and every DLL in the packed `tools\net10.0\any` folder
+- [x] 6.3 `.github\workflows\publish.yml` as in design.md, with comments in the style of `release.yml`; verify it parses (`actionlint` if installed, else a dry run with a step that lists the downloaded nupkg instead of pushing)
+- [x] 6.4 `SECURITY.md` (report through GitHub private vulnerability reporting) and `.github\dependabot.yml` (nuget and github-actions, weekly); update `release.yml`'s comment about nuget.org; verify `check` passes on the pull request
+- [x] 6.5 README: Install leads with `dotnet tool install -g Source191.Vantage` and keeps the local build steps for contributors; Continuous integration describes `publish.yml`; the Roadmap loses the nuget.org item. CLAUDE.md: publishing is `publish.yml` on a tested release tag, never from `release.yml`; verify every command in Install runs as written against a locally packed nupkg
+- [x] 6.6 Raise `Version` to the next patch after `main`'s; verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes
 
 ## 7. P12: update notice
 
