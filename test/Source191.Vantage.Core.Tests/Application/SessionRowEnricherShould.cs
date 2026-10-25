@@ -19,7 +19,47 @@ public sealed class SessionRowEnricherShould
     private readonly FakeTranscripts transcripts = new();
     private readonly InMemoryState store = new();
 
-    private SessionRowEnricher Enricher => new(new GitCli(processes), store, registry, clock, transcripts);
+    private readonly FakeProcessRunner remotes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, "https://github.com/northwind/Northwind.Orders.git\n", string.Empty));
+    private readonly FakePullRequests hosts = new();
+    private readonly PullRequestCatalogue catalogue;
+
+    public SessionRowEnricherShould()
+    {
+        catalogue = new PullRequestCatalogue(new GitCli(remotes), hosts, clock);
+    }
+
+    private SessionRowEnricher Enricher => new(new GitCli(processes), store, registry, clock, transcripts, catalogue);
+
+    [Fact]
+    public async Task CarryEachRowsPullRequest()
+    {
+        PullRequest open = new(PullRequestHost.GitHub, 123, new Uri("https://github.com/northwind/Northwind.Orders/pull/123"), PullRequestState.Open, Noon);
+        hosts.Answer(new GitHubRepository("northwind", "Northwind.Orders"), new PullRequestListing.Listed([new BranchPullRequest(new BranchName("fix"), open)]));
+        AnswerGit(@"C:\repos\Northwind.Orders-fix", root: "C:/repos/Northwind.Orders-fix", commonDir: "C:/repos/Northwind.Orders/.git", branch: "fix");
+        Session session = Session(@"C:\repos\Northwind.Orders-fix");
+        SessionRowEnricher enricher = Enricher;
+
+        SessionRow first = (await enricher.EnrichAsync([session], CancellationToken.None)).Single();
+        await catalogue.RefreshStaleAsync([new FolderPath(@"C:\repos\Northwind.Orders")]);
+        SessionRow second = (await enricher.EnrichAsync([session], CancellationToken.None)).Single();
+
+        first.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
+        second.PullRequest.ShouldBe(new PullRequestLookup.Found(open));
+        hosts.Calls.Count.ShouldBe(1);
+        remotes.CapturedRequests.Single().WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
+    }
+
+    [Fact]
+    public async Task NotWaitForTheLookup()
+    {
+        hosts.Hold();
+        AnswerGit(@"C:\repos\Northwind.Orders", root: "C:/repos/Northwind.Orders", commonDir: "C:/repos/Northwind.Orders/.git", branch: "main");
+
+        IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([Session(@"C:\repos\Northwind.Orders")], CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        rows.Single().PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
+        hosts.Release();
+    }
 
     [Fact]
     public async Task SayWhetherASessionHasATranscriptToResumeFrom()
@@ -69,6 +109,7 @@ public sealed class SessionRowEnricherShould
 
         row.Repository.ShouldBe("repos");
         row.Branch.ShouldBeNull();
+        row.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
         row.IsWorktree.ShouldBeFalse();
     }
 

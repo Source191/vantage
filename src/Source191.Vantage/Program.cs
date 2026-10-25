@@ -4,6 +4,7 @@ using Source191.Vantage.Adapters.Diagnostics;
 using Source191.Vantage.Adapters.Files;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.Processes;
+using Source191.Vantage.Adapters.PullRequests;
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Adapters.Terminal;
 using Source191.Vantage.Application;
@@ -83,7 +84,8 @@ if (command is StartHere here)
 // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
 using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
 Task<string?> claudeVersion = claude.VersionAsync(versionTimeout.Token);
-SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts);
+PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
+SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
 StateTransitionNotifier notifier = new(Console.Out);
 OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
 EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System);

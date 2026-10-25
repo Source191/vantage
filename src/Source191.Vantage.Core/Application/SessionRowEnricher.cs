@@ -8,7 +8,7 @@ namespace Source191.Vantage.Application;
 /// Turns listed sessions into table rows by asking git about each working directory (cached, because that is
 /// three processes per directory) and checking for live tabs.
 /// </summary>
-public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegistry processes, TimeProvider clock, ITranscripts transcripts)
+public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegistry processes, TimeProvider clock, ITranscripts transcripts, PullRequestCatalogue pullRequests)
 {
     private static readonly TimeSpan CacheWindow = TimeSpan.FromSeconds(30);
 
@@ -20,17 +20,23 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         HashSet<SessionId> sessionsWithLiveTabs = await LiveTabSessionsAsync();
 
         List<SessionRow> rows = [];
+        List<FolderPath> checkouts = [];
         foreach (Session session in sessions)
         {
             Location location = await LocateAsync(session.WorkingDirectory, cancellationToken);
-            rows.Add(new SessionRow(
+            SessionRow row = new(
                 session,
                 location.Repository,
                 location.Branch,
                 location.IsWorktree,
                 sessionsWithLiveTabs.Contains(session.SessionId),
-                transcripts.HasMessages(session.SessionId.Value)));
+                transcripts.HasMessages(session.SessionId.Value));
+            rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, location.Branch) });
+            checkouts.AddRange(location.Checkout is null ? [] : [location.Checkout]);
         }
+
+        // Never awaited: the rows show what the catalogue already holds, and a later refresh picks up what lands.
+        _ = pullRequests.RefreshStaleAsync(checkouts);
 
         return rows;
     }
@@ -66,7 +72,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         string? root = await git.RepositoryRootAsync(directory.Value, cancellationToken);
         if (root is null)
         {
-            return new Location(directory.Name, Branch: null, IsWorktree: false);
+            return new Location(directory.Name, Branch: null, IsWorktree: false, Checkout: null);
         }
 
         string? main = await git.MainCheckoutOfAsync(directory.Value, cancellationToken);
@@ -77,8 +83,9 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         bool isWorktree = mainCheckout is not null && mainCheckout != rootPath;
         FolderPath? repository = mainCheckout ?? rootPath;
 
-        return new Location(repository?.Name ?? root, currentBranch, isWorktree);
+        return new Location(repository?.Name ?? root, currentBranch, isWorktree, repository);
     }
 
-    private sealed record Location(string Repository, BranchName? Branch, bool IsWorktree);
+    /// <summary>Checkout is the main checkout (or the root when git names none), where the pull request lookup runs.</summary>
+    private sealed record Location(string Repository, BranchName? Branch, bool IsWorktree, FolderPath? Checkout);
 }
