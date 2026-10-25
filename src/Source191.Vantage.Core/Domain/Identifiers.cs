@@ -13,11 +13,11 @@ public sealed record SessionId : ITextValue<SessionId>
 
     public string Value { get; }
 
-    /// <summary>An id from outside Vantage (the CLI's listing, a state file); null when it is blank.</summary>
+    /// <summary>An id from outside Vantage (the CLI's listing, a state file); false when it is blank.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out SessionId value)
     {
-        value = null;
-        return false;
+        value = string.IsNullOrWhiteSpace(text) ? null : new SessionId(text);
+        return value is not null;
     }
 
     public static SessionId? TryParse(string? text) => string.IsNullOrWhiteSpace(text) ? null : new SessionId(text);
@@ -42,17 +42,15 @@ public sealed record JobId : ITextValue<JobId>
 
     public string Value { get; }
 
+    /// <summary>A job id from outside Vantage (the CLI's listing or its answer to a start); false when it is not one.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out JobId value)
     {
-        value = null;
-        return false;
+        value = text is not null && IsJobId(text) ? new JobId(text) : null;
+        return value is not null;
     }
 
-    public static bool TryParse(SessionId session, [MaybeNullWhen(false)] out JobId value)
-    {
-        value = null;
-        return false;
-    }
+    /// <summary>The job id the CLI gives the session: its id's first eight characters; false when those are not hex.</summary>
+    public static bool TryParse(SessionId session, [MaybeNullWhen(false)] out JobId value) => TryParse(session.Value.Length >= Length ? session.Value[..Length] : null, out value);
 
     public static JobId? TryParse(string? text) => text is not null && IsJobId(text) ? new JobId(text) : null;
 
@@ -79,11 +77,11 @@ public sealed record BranchName : ITextValue<BranchName>
 
     public string Value { get; }
 
-    /// <summary>A branch name from outside Vantage (git's output, a state file); null when it is not one.</summary>
+    /// <summary>A branch name from outside Vantage (git's output, a state file); false when it is not one.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out BranchName value)
     {
-        value = null;
-        return false;
+        value = text is not null && IsBranchName(text) ? new BranchName(text) : null;
+        return value is not null;
     }
 
     public static BranchName? TryParse(string? text) => text is not null && IsBranchName(text) ? new BranchName(text) : null;

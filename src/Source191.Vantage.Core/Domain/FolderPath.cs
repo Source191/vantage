@@ -36,10 +36,11 @@ public sealed record FolderPath : ITextValue<FolderPath>
     /// <summary>A path from outside Vantage (git output, the CLI's listing, a state file); null when it is not a full path.</summary>
     public static FolderPath? TryParse(string? text) => text is not null && IOPath.IsPathFullyQualified(text) ? new FolderPath(text) : null;
 
+    /// <summary>A path from outside Vantage (git output, the CLI's listing, a state file); false when it is not a full path.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out FolderPath value)
     {
-        value = null;
-        return false;
+        value = text is not null && IOPath.IsPathFullyQualified(text) ? new FolderPath(text) : null;
+        return value is not null;
     }
 
     public FolderPath Combine(string child) => new FolderPath(IOPath.Combine(Value, child));
