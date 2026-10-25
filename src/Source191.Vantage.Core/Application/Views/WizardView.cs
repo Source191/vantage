@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Launch;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
@@ -89,7 +90,7 @@ public static class WizardView
         {
             { Plan: LaunchPlan plan } => new WizardUpdate(state, new WizardEffect.Launch(plan, openInTab)),
             { Problem: LaunchProblem problem } => Changed(state with { Problem = new WizardProblem.Refused(problem), Focus = WizardField.Name }),
-            _ => Changed(state),
+            _ => throw new UnreachableException(),
         };
     }
 

@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
@@ -242,7 +243,7 @@ public static class SessionsView
         {
             SessionNameValidation.Valid valid => Renamed(state, new RenameSession(confirmed.Session, valid.Name)),
             SessionNameValidation.Refused refused => Unchanged(state with { Footer = new Footer.InvalidName(refused.Problem) }),
-            _ => Unchanged(state),
+            _ => throw new UnreachableException(),
         };
     }
 
