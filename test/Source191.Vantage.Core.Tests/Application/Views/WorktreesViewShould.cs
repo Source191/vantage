@@ -23,7 +23,7 @@ public sealed class WorktreesViewShould
     {
         Loaded.VisibleRows.Select(row => row.FolderName).ShouldBe(["Northwind.Orders.worktrees", "fix-service-tests", "Northwind.Orders-fix-1", "Northwind.Orders-fix-2", "Northwind.Orders-fix-3", "Northwind.Orders-locked", "Northwind.Retired-republish"]);
         Loaded.Selected.ShouldBe(Empty);
-        Loaded.Title.ShouldBe("worktrees(all)[7]");
+        Loaded.Title.ShouldBe(new TableTitle("worktree", Shown: 7, Total: 7, Filter: string.Empty, Selected: "Northwind.Orders.worktrees"));
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class WorktreesViewShould
         WorktreesViewState filtered = Press(Loaded, Key.Slash, Key.Of('o'), Key.Of('r'), Key.Of('p'), Key.Enter);
 
         filtered.VisibleRows.ShouldBe([Orphan]);
-        filtered.Title.ShouldBe("worktrees(orp)[1]");
+        filtered.Title.ShouldBe(new TableTitle("worktree", Shown: 1, Total: 7, Filter: "orp", Selected: "fix-service-tests"));
         Press(filtered, Key.Escape).VisibleRows.Count.ShouldBe(7);
     }
 

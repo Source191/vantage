@@ -241,7 +241,7 @@ internal sealed class TableScreen<TState, TRow>(
             selected = state.List.Selected;
             table.Table = new TableSource<TRow>(rows, definition.ColumnNames, (row, column) => definition.Cell(row, column, now));
             contextValues.Text = $"{context}\n{definition.ContextLines(state)}";
-            title.Text = state.List.FilterEditing ? $"{state.Title}  filter: {state.List.Filter.Text}_" : state.Title;
+            title.Text = state.List.FilterEditing ? $"{Wording.Describe(state.Title)}  filter: {state.List.Filter.Text}_" : Wording.Describe(state.Title);
             banner.Text = state.Banner is null ? string.Empty : $"  {definition.LoadFailurePrefix}: {state.Banner}";
             footer.Text = Wording.Describe(state.Shown);
             if (rows.Count > 0)

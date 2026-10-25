@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application;
@@ -13,4 +14,21 @@ public static partial class Wording
     /// <summary>The header's first three values, one per line: Vantage's version, the Claude Code version and the repository roots.</summary>
     public static string HeaderValues(ToolVersion vantage, string? claudeVersion, IReadOnlyList<string> roots)
     => string.Join('\n', vantage.Text, claudeVersion ?? UnknownVersion, string.Join("; ", roots));
+
+    /// <summary>The table's title: "7 sessions, selected: fix-123", or "2 of 7 sessions match "templates", selected: templates-sync" while a filter is set.</summary>
+    public static string Describe(TableTitle title)
+    {
+        string selection = title.Selected is null ? string.Empty : $", selected: {title.Selected}";
+
+        if (string.IsNullOrWhiteSpace(title.Filter))
+        {
+            return $"{Counted(title.Shown, title.Noun)}{selection}";
+        }
+
+        string verb = title.Total == 1 ? "matches" : "match";
+
+        return $"{title.Shown} of {Counted(title.Total, title.Noun)} {verb} \"{title.Filter}\"{selection}";
+    }
+
+    private static string Counted(int count, string noun) => count == 1 ? $"{count} {noun}" : $"{count} {noun}s";
 }

@@ -106,7 +106,7 @@ public sealed record SessionsViewState(
 
     public int NeedsInputCount => Rows.Count(row => row.Session.State.Kind == DisplayStateKind.NeedsInput);
 
-    public string Title => List.Title("sessions");
+    public TableTitle Title => List.Title("session", row => row.Session.Name);
 
     /// <summary>The footer to show: the last message, else how many sessions need input.</summary>
     public Footer Shown => Footer is Footer.Blank ? new Footer.NeedInput(NeedsInputCount) : Footer;
