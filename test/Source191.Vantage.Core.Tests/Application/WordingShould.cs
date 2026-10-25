@@ -377,6 +377,12 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void SayNothingWhenTheWizardHasNoProblem()
+    {
+        Wording.Describe(new WizardProblem.None()).ShouldBeEmpty();
+    }
+
+    [Fact]
     public void AskForARepositoryInTheWizard()
     {
         Wording.Describe(new WizardProblem.NoRepository()).ShouldBe("Choose a repository: type part of its name, then ↑↓.");
