@@ -27,4 +27,18 @@ public sealed class PowerShellQuotingShould
         result.StandardError.ShouldBeEmpty("nothing in the text may run as a command");
         result.StandardOutput.TrimEnd('\r', '\n').ShouldBe(Text);
     }
+
+    /// <summary>The update tab's script is only parsed, never run: running it would update the installed tool.</summary>
+    [Fact]
+    public async Task ParseTheUpdateTabScriptWithoutErrors()
+    {
+        string update = new TabScripts(@"C:\Users\O'Neill\.local\bin\claude.exe", @"C:\Users\O'Neill\.dotnet\tools\vantage.exe").Update(4242, new Domain.FolderPath(@"C:\Users\O'Neill")).Script;
+        string script = $"$errors = $null\n[void][System.Management.Automation.Language.Parser]::ParseInput({PowerShellScript.Quote(update)}, [ref]$null, [ref]$errors)\nWrite-Output $errors.Count";
+        ProcessRequest request = new("pwsh.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(script)], WorkingDirectory: null);
+
+        ProcessResult result = await new ProcessRunner().RunAsync(request, TestContext.Current.CancellationToken);
+
+        result.ExitCode.ShouldBe(0, result.StandardError);
+        result.StandardOutput.Trim().ShouldBe("0");
+    }
 }
