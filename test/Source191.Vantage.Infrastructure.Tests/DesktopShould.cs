@@ -61,6 +61,21 @@ public sealed class DesktopShould : IDisposable
     }
 
     [Fact]
+    public async Task ReturnWithoutWaitingForTheOpenedProgramToEnd()
+    {
+        string file = Path.Combine(folder, "slow.cmd");
+        string report = Path.Combine(folder, "finished.txt");
+        await File.WriteAllTextAsync(file, $"@ping -n 9 127.0.0.1 > nul\r\n@echo done > \"{report}\"", TestContext.Current.CancellationToken);
+        System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
+        await new Desktop(new ProcessRunner()).OpenAsync(file, TestContext.Current.CancellationToken);
+
+        stopwatch.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(5), "the call must not wait for the program it opened");
+        File.Exists(report).ShouldBeFalse("the opened program was still running");
+        await WaitForAsync(report);
+    }
+
+    [Fact]
     public async Task ThrowWithTheReasonWhenTheFileIsGone()
     {
         string gone = Path.Combine(folder, "Northwind.Orders.slnx");
