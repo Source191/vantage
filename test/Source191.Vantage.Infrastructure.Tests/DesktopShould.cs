@@ -1,5 +1,6 @@
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Ports;
+using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Infrastructure.Tests;
 
@@ -45,7 +46,8 @@ public sealed class DesktopShould : IDisposable
     {
         string report = Path.Combine(folder, "environment.txt");
         string file = Path.Combine(folder, name + ".cmd");
-        await File.WriteAllTextAsync(file, $"@set > \"{report}\"", TestContext.Current.CancellationToken);
+        // The report is renamed into place once set has finished writing it, so a reader never sees half of it.
+        await File.WriteAllTextAsync(file, $"@set > \"{report}.tmp\"\r\n@ren \"{report}.tmp\" \"{Path.GetFileName(report)}\"", TestContext.Current.CancellationToken);
 
         await new Desktop(new ProcessRunner()).OpenAsync(file, TestContext.Current.CancellationToken);
 
@@ -83,6 +85,26 @@ public sealed class DesktopShould : IDisposable
         InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(new ProcessRunner()).OpenAsync(gone, TestContext.Current.CancellationToken));
 
         failure.Message.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task PassTheChildsReasonOn()
+    {
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(1, string.Empty, "Cannot find the file.\r\n"));
+
+        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
+
+        failure.Message.ShouldBe("Cannot find the file.");
+    }
+
+    [Fact]
+    public async Task NameTheExitCodeWhenTheChildSaysNothing()
+    {
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(5, string.Empty, string.Empty));
+
+        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
+
+        failure.Message.ShouldContain("5");
     }
 
     public void Dispose()

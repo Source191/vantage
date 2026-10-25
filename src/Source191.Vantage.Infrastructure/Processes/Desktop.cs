@@ -19,7 +19,8 @@ public sealed class Desktop(IProcessRunner processes) : IDesktop
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
         {
-            throw new InvalidOperationException(result.StandardError.Trim());
+            string reason = result.StandardError.Trim();
+            throw new InvalidOperationException(reason.Length > 0 ? reason : $"PowerShell stopped with exit code {result.ExitCode} before Windows opened it.");
         }
     }
 
