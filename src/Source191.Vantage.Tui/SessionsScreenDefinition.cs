@@ -34,7 +34,8 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
             2 => row.Repository,
             3 => folders.For(row.Session.WorkingDirectory),
             4 => row.Branch?.Value ?? "-",
-            5 => Durations.Age(now - row.Session.StartedAt),
+            5 => Wording.PullRequestCell(row.PullRequest),
+            6 => Durations.Age(now - row.Session.StartedAt),
             _ => Tab(row),
         };
     }
