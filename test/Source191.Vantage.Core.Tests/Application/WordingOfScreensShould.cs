@@ -36,7 +36,7 @@ public sealed class WordingOfScreensShould
             .ShouldBe("0.5.0-local\nunknown\nC:\\Users\\me\\source\\repos\nC:\\Users\\me\\source\\worktrees");
     }
 
-    private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => new FolderPath(root))], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, new FolderPath(@"C:\Users\me"));
+    private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => FolderPath.From(root))], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me"));
 
     [Fact]
     public void DescribeTableTitles()

@@ -54,10 +54,10 @@ public sealed class SessionsShould
     private static BackgroundSession Session(string name, DisplayState state, DateTimeOffset startedAt)
     {
         return new BackgroundSession(
-            SessionId: new SessionId(Guid.NewGuid().ToString()),
-            JobId: new JobId("81cdb0f9"),
+            SessionId: SessionId.From(Guid.NewGuid().ToString()),
+            JobId: JobId.From("81cdb0f9"),
             Name: name,
-            WorkingDirectory: new FolderPath(@"C:\repos\Northwind.Orders"),
+            WorkingDirectory: FolderPath.From(@"C:\repos\Northwind.Orders"),
             StartedAt: startedAt,
             State: state);
     }

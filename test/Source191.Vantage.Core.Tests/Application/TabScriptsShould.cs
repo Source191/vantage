@@ -11,14 +11,14 @@ public sealed class TabScriptsShould
     private const string Vantage = @"C:\Users\me\.dotnet\tools\vantage.exe";
 
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
-    private static readonly FolderPath Repository = new(@"C:\repos\Northwind.Orders");
+    private static readonly FolderPath Repository = FolderPath.From(@"C:\repos\Northwind.Orders");
 
     private readonly TabScripts scripts = new(Claude, Vantage);
 
     [Fact]
     public void BuildTheAttachScript()
     {
-        BackgroundSession session = new(new SessionId("sess-1"), new JobId("81cdb0f9"), "Refund retry policy", Repository, Noon, DisplayState.Working);
+        BackgroundSession session = new(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "Refund retry policy", Repository, Noon, DisplayState.Working);
         TabRegistration registration = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), TabPalette.Default[0], Noon);
 
         TabLaunch tab = scripts.Attach(session, registration);
@@ -47,7 +47,7 @@ public sealed class TabScriptsShould
     [Fact]
     public void BuildTheShellScript()
     {
-        FolderPath worktree = new(@"C:\repos\Northwind.Orders-fix-123");
+        FolderPath worktree = FolderPath.From(@"C:\repos\Northwind.Orders-fix-123");
 
         TabLaunch tab = TabScripts.Shell(worktree);
 
@@ -57,7 +57,7 @@ public sealed class TabScriptsShould
     [Fact]
     public void WaitUpdateAndRestartInTheUpdateTab()
     {
-        FolderPath home = new(@"C:\Users\me");
+        FolderPath home = FolderPath.From(@"C:\Users\me");
 
         TabLaunch tab = scripts.Update(4242, home);
 
@@ -72,7 +72,7 @@ public sealed class TabScriptsShould
     [Fact]
     public void QuoteTheVantagePathInTheUpdateTab()
     {
-        TabLaunch tab = new TabScripts(Claude, @"C:\Users\O'Brien\.dotnet\tools\vantage.exe").Update(4242, new FolderPath(@"C:\Users\O'Brien"));
+        TabLaunch tab = new TabScripts(Claude, @"C:\Users\O'Brien\.dotnet\tools\vantage.exe").Update(4242, FolderPath.From(@"C:\Users\O'Brien"));
 
         tab.Script.ShouldContain(@"& 'C:\Users\O''Brien\.dotnet\tools\vantage.exe'");
     }
@@ -80,7 +80,7 @@ public sealed class TabScriptsShould
     [Fact]
     public void QuoteUserTextSafely()
     {
-        TabLaunch tab = scripts.Trust(new FolderPath(@"C:\repos\Bob's tools"));
+        TabLaunch tab = scripts.Trust(FolderPath.From(@"C:\repos\Bob's tools"));
 
         tab.Script.Split('\n')[0].ShouldBe(
             "Write-Host 'Vantage: accept the trust prompt for Bob''s tools, then exit Claude and press n in Vantage to retry.' -ForegroundColor Cyan");

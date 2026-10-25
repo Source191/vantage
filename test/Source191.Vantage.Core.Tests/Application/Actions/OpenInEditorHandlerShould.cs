@@ -20,7 +20,7 @@ public sealed class OpenInEditorHandlerShould
     {
         OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(EditorChoice.VsCode));
 
-        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(new FolderPath(Orders)), CancellationToken.None);
+        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(FolderPath.From(Orders)), CancellationToken.None);
 
         desktop.Started.Single().FileName.ShouldBe(@"C:\Code\Code.exe");
         desktop.Started.Single().Arguments.ShouldBe([Orders]);
@@ -33,7 +33,7 @@ public sealed class OpenInEditorHandlerShould
         EditorChoice custom = EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]);
         OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(custom));
 
-        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(new FolderPath(Orders)), CancellationToken.None);
+        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(FolderPath.From(Orders)), CancellationToken.None);
 
         desktop.Started.Single().FileName.ShouldBe(@"C:\Tools\subl.exe");
         desktop.Started.Single().Arguments.ShouldBe(["-n", Orders]);
@@ -46,7 +46,7 @@ public sealed class OpenInEditorHandlerShould
         EditorChoice cursor = EditorChoice.Of(EditorPreset.Cursor);
         OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(cursor));
 
-        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(new FolderPath(Orders)), CancellationToken.None);
+        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(FolderPath.From(Orders)), CancellationToken.None);
 
         desktop.Started.ShouldBeEmpty();
         outcome.ShouldBe(new OpenInEditorOutcome.EditorNotFound(cursor));
@@ -57,7 +57,7 @@ public sealed class OpenInEditorHandlerShould
     {
         OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(EditorChoice.VsCode));
 
-        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(new FolderPath(@"C:\Users\me\source\repos\Northwind.Gone")), CancellationToken.None);
+        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Gone")), CancellationToken.None);
 
         desktop.Started.ShouldBeEmpty();
         outcome.ShouldBe(new OpenInEditorOutcome.FolderMissing("Northwind.Gone"));
@@ -65,6 +65,6 @@ public sealed class OpenInEditorHandlerShould
 
     private static CurrentSettings CurrentWith(EditorChoice editor)
     {
-        return TestSettings.Current(Source191.Vantage.Domain.Settings.Resolve([new FolderPath(@"C:\Users\me\source\repos")], worktreeRoot: null, editor, defaultBase: null, TestSettings.Home));
+        return TestSettings.Current(Source191.Vantage.Domain.Settings.Resolve([FolderPath.From(@"C:\Users\me\source\repos")], worktreeRoot: null, editor, defaultBase: null, TestSettings.Home));
     }
 }

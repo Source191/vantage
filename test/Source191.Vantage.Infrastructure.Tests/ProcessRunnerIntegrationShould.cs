@@ -54,7 +54,7 @@ public sealed class ProcessRunnerIntegrationShould
         string trustedRepository = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
         ClaudeCli cli = new(runner, executable);
 
-        StartResult started = await cli.StartBackgroundAsync(trustedRepository, new SessionName("vantage-encoding-check"), openingPrompt: null, TestContext.Current.CancellationToken);
+        StartResult started = await cli.StartBackgroundAsync(trustedRepository, SessionName.From("vantage-encoding-check"), openingPrompt: null, TestContext.Current.CancellationToken);
         try
         {
             started.Outcome.ShouldBe(StartOutcome.Started, started.Message);

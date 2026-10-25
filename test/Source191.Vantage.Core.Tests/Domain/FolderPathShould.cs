@@ -9,41 +9,41 @@ public sealed class FolderPathShould
     [Fact]
     public void EqualIgnoringCaseAndTrailingSeparators()
     {
-        FolderPath typed = new(Repository);
-        FolderPath other = new(@"c:\users\ME\source\repos\northwind.orders\");
+        FolderPath typed = FolderPath.From(Repository);
+        FolderPath other = FolderPath.From(@"c:\users\ME\source\repos\northwind.orders\");
 
         other.ShouldBe(typed);
         other.GetHashCode().ShouldBe(typed.GetHashCode());
         new HashSet<FolderPath> { typed }.ShouldContain(other);
-        new FolderPath(@"C:\Users\me\source\repos\Northwind.Billing").ShouldNotBe(typed);
+        FolderPath.From(@"C:\Users\me\source\repos\Northwind.Billing").ShouldNotBe(typed);
     }
 
     [Fact]
     public void ConvertForwardSlashes()
     {
-        new FolderPath("C:/Users/me/source/repos/Northwind.Orders").Value.ShouldBe(Repository);
+        FolderPath.From("C:/Users/me/source/repos/Northwind.Orders").Value.ShouldBe(Repository);
     }
 
     [Fact]
     public void KeepTheCaseItWasGiven()
     {
-        new FolderPath(@"C:\Users\me\source\repos\Northwind.Orders\").Value.ShouldBe(Repository);
+        FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders\").Value.ShouldBe(Repository);
     }
 
     [Fact]
     public void ExposeNameAndParent()
     {
-        FolderPath path = new(Repository);
+        FolderPath path = FolderPath.From(Repository);
 
         path.Name.ShouldBe("Northwind.Orders");
-        path.Parent.ShouldBe(new FolderPath(@"C:\Users\me\source\repos"));
+        path.Parent.ShouldBe(FolderPath.From(@"C:\Users\me\source\repos"));
         path.Combine("Northwind.Orders-fix-123").Value.ShouldBe(@"C:\Users\me\source\repos\Northwind.Orders\Northwind.Orders-fix-123");
     }
 
     [Fact]
     public void KeepADriveRootWholeAndGiveItNoParent()
     {
-        FolderPath root = new(@"C:\");
+        FolderPath root = FolderPath.From(@"C:\");
 
         root.Value.ShouldBe(@"C:\");
         root.Parent.ShouldBeNull();
@@ -52,12 +52,12 @@ public sealed class FolderPathShould
     [Fact]
     public void KnowWhenItIsUnderAnother()
     {
-        FolderPath repository = new(Repository);
+        FolderPath repository = FolderPath.From(Repository);
 
-        new FolderPath(Repository + @"\src\Orders").IsUnder(repository).ShouldBeTrue();
+        FolderPath.From(Repository + @"\src\Orders").IsUnder(repository).ShouldBeTrue();
         repository.IsUnder(repository).ShouldBeTrue("a folder is under itself, as a session started in it is");
-        new FolderPath(Repository + "-fix-123").IsUnder(repository).ShouldBeFalse("a sibling that shares the name as a prefix is not inside it");
-        repository.IsUnder(new FolderPath(Repository + @"\src")).ShouldBeFalse();
+        FolderPath.From(Repository + "-fix-123").IsUnder(repository).ShouldBeFalse("a sibling that shares the name as a prefix is not inside it");
+        repository.IsUnder(FolderPath.From(Repository + @"\src")).ShouldBeFalse();
     }
 
     [Theory]
@@ -66,14 +66,14 @@ public sealed class FolderPathShould
     [InlineData(@"C:repos\Northwind.Orders")]
     public void RejectRelativePaths(string text)
     {
-        Should.Throw<ArgumentException>(() => new FolderPath(text));
+        Should.Throw<ArgumentException>(() => FolderPath.From(text));
     }
 
     [Fact]
     public void GiveTheSameKeyToPathsThatAreTheSameFolder()
     {
-        new FolderPath(@"c:\users\ME\source\repos\northwind.orders\").Key.ShouldBe(new FolderPath(Repository).Key);
-        new FolderPath(@"C:\Users\me\source\repos\Northwind.Billing").Key.ShouldNotBe(new FolderPath(Repository).Key);
+        FolderPath.From(@"c:\users\ME\source\repos\northwind.orders\").Key.ShouldBe(FolderPath.From(Repository).Key);
+        FolderPath.From(@"C:\Users\me\source\repos\Northwind.Billing").Key.ShouldNotBe(FolderPath.From(Repository).Key);
     }
 
     [Theory]
@@ -92,6 +92,6 @@ public sealed class FolderPathShould
     [Fact]
     public void ReadAsThePathItself()
     {
-        $"{new FolderPath(Repository)}".ShouldBe(Repository);
+        $"{FolderPath.From(Repository)}".ShouldBe(Repository);
     }
 }

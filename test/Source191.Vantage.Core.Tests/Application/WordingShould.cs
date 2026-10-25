@@ -317,14 +317,14 @@ public sealed class WordingShould
     [Fact]
     public void SayTheBranchWasKeptAfterTheRemoval()
     {
-        Wording.Describe(new Footer.BranchKept(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(new FolderPath(Sessions.Repository), new BranchName("fix-123")))))
+        Wording.Describe(new Footer.BranchKept(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(FolderPath.From(Sessions.Repository), BranchName.From("fix-123")))))
             .ShouldBe("Deleted fix-123 and removed the worktree; branch fix-123 is not merged. Branch kept.");
     }
 
     [Fact]
     public void SayTheBranchWasDeletedAfterTheRemoval()
     {
-        Wording.Describe(new Footer.Followed(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(new FolderPath(Sessions.Repository), new BranchName("fix-123"))), new DeleteBranchOutcome()))
+        Wording.Describe(new Footer.Followed(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(FolderPath.From(Sessions.Repository), BranchName.From("fix-123"))), new DeleteBranchOutcome()))
             .ShouldBe("Deleted fix-123 and removed the worktree; branch fix-123 is not merged. Branch deleted.");
     }
 
@@ -390,25 +390,25 @@ public sealed class WordingShould
         Wording.Working(new OpenTabForSession(Job, HasLiveTab: false)).ShouldBe("Opening a tab for fix-123...");
         Wording.Working(new StopSession(Job)).ShouldBe("Stopping...");
         Wording.Working(new AdoptSession(Terminal)).ShouldBe("Moving fix-123 under Vantage...");
-        Wording.Working(new RenameSession(Job, new SessionName("fix-124"))).ShouldBe("Renaming fix-123 to fix-124...");
+        Wording.Working(new RenameSession(Job, SessionName.From("fix-124"))).ShouldBe("Renaming fix-123 to fix-124...");
         Wording.Working(new CloseEmptyTerminals([Terminal])).ShouldBe("Closing...");
         Wording.Working(new ResumeSessions([Job, Job])).ShouldBe("Resuming 2...");
         Wording.Working(new DeleteSession(Job)).ShouldBe("Deleting fix-123...");
-        Wording.Working(new DeleteBranch(new BranchToConfirm(new FolderPath(Sessions.Repository), new BranchName("fix-123")))).ShouldBe("Deleting branch fix-123...");
+        Wording.Working(new DeleteBranch(new BranchToConfirm(FolderPath.From(Sessions.Repository), BranchName.From("fix-123")))).ShouldBe("Deleting branch fix-123...");
     }
 
     [Fact]
     public void SayWhatEachWorktreeEffectIsDoingWhileItRuns()
     {
         Wording.Working(new RemoveWorktree(Worktree, Forced: false)).ShouldBe("Removing Northwind.Orders-fix-123...");
-        Wording.Working(new PruneRepository(new FolderPath(Worktrees.Repository))).ShouldBe("Pruning...");
+        Wording.Working(new PruneRepository(FolderPath.From(Worktrees.Repository))).ShouldBe("Pruning...");
         Wording.Working(new OpenShellTab(Worktree)).ShouldBe("Opening a shell in Northwind.Orders-fix-123...");
     }
 
     [Fact]
     public void SayWhatEachFolderEffectIsDoingWhileItRuns()
     {
-        FolderPath folder = new(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123");
+        FolderPath folder = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123");
 
         Wording.Working(new CopyFolderPath(folder)).ShouldBe("Copying...");
         Wording.Working(new OpenFolderInEditor(folder)).ShouldBe("Opening Northwind.Orders-fix-123 in the editor...");
@@ -426,8 +426,8 @@ public sealed class WordingShould
     public void NameTheSessionBeingStarted()
     {
         LaunchPlan plan = new(
-            new FolderPath(Sessions.Repository), new SessionName("Fix flaky tests"), Worktree: null,
-            ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", new FolderPath(Sessions.Repository), IsRepository: true));
+            FolderPath.From(Sessions.Repository), SessionName.From("Fix flaky tests"), Worktree: null,
+            ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", FolderPath.From(Sessions.Repository), IsRepository: true));
 
         Wording.Working(new StartSession(plan, OpenInTab: true)).ShouldBe("Starting Fix flaky tests...");
     }
@@ -591,7 +591,7 @@ public sealed class WordingShould
             _ when type == typeof(RemovalReason) => new RemovalReason.Locked(),
             _ when type == typeof(HealthReason) => new HealthReason.FolderGone(),
             _ when type == typeof(NameProblem) => NameProblem.UnsafeCharacters,
-            _ when type == typeof(FolderPath) => new FolderPath(@"D:\nowhere"),
+            _ when type == typeof(FolderPath) => FolderPath.From(@"D:\nowhere"),
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
             _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123"),
@@ -653,7 +653,7 @@ public sealed class WordingShould
     {
         Wording.Describe(new SettingsProblem.NoRoots()).ShouldBe("Give at least one repository root, one per line.");
         Wording.Describe(new SettingsProblem.RootNotFullPath("repos")).ShouldBe(@"The repository root repos is not a full path, such as C:\Users\me\source\repos.");
-        Wording.Describe(new SettingsProblem.RootMissing(new FolderPath(@"D:\nowhere"))).ShouldBe(@"D:\nowhere does not exist.");
+        Wording.Describe(new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere"))).ShouldBe(@"D:\nowhere does not exist.");
         Wording.Describe(new SettingsProblem.WorktreeRootNotFullPath()).ShouldBe(@"The worktree root must be a full path, such as C:\Users\me\source\worktrees.");
         Wording.Describe(new SettingsProblem.NoExecutable()).ShouldBe("A custom editor needs an executable.");
         Wording.Describe(new SettingsProblem.BatchFileExecutable()).ShouldBe("A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.");
@@ -768,7 +768,7 @@ public sealed class WordingShould
     {
         FakeFolders folders = new();
 
-        return WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current()), [], folders, TestSettings.For(), fixedDirectory is null ? null : new FolderPath(fixedDirectory));
+        return WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current()), [], folders, TestSettings.For(), fixedDirectory is null ? null : FolderPath.From(fixedDirectory));
     }
 
     // vantage setup-terminal.

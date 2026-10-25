@@ -10,7 +10,7 @@ public sealed class WindowsTerminalArgumentsShould
     private static readonly TabLaunch Launch = new(
         Title: "Refund retry policy",
         Colour: TabPalette.Default[1],
-        StartingDirectory: new FolderPath(@"C:\repos\Northwind.Orders"),
+        StartingDirectory: FolderPath.From(@"C:\repos\Northwind.Orders"),
         Script: "& 'C:\\Users\\me\\.local\\bin\\claude.exe' attach 81cdb0f9");
 
     private static readonly List<string> Arguments = [.. WindowsTerminalArguments.ForTab(Launch, profile: null)];

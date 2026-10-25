@@ -23,7 +23,7 @@ public sealed class OpenTabHandlerShould
 
     private OpenTabHandler Handler => new(Store, registry, terminal, new FakeTimeProvider(Noon), new TabScripts(Claude, Vantage));
 
-    private static BackgroundSession Job() => new(new SessionId("sess-1"), new JobId("81cdb0f9"), "Refund retry policy", new FolderPath(@"C:\repos\Northwind.Orders"), Noon, DisplayState.Working);
+    private static BackgroundSession Job() => new(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "Refund retry policy", FolderPath.From(@"C:\repos\Northwind.Orders"), Noon, DisplayState.Working);
 
     [Fact]
     public async Task OpenATabTitledWithTheSessionNameThatClaimsItselfThenAttaches()
@@ -50,7 +50,7 @@ public sealed class OpenTabHandlerShould
         tab.Title.ShouldBe("Refund retry policy");
         tab.StartingDirectory.Value.ShouldBe(@"C:\repos\Northwind.Orders");
         tab.Script.ShouldContain($"& '{Claude}' 'attach' '81cdb0f9'");
-        (await Store.ReadTabsAsync()).Single().Owner.ShouldBe(new TabOwner.ForSession(new SessionId("sess-1")));
+        (await Store.ReadTabsAsync()).Single().Owner.ShouldBe(new TabOwner.ForSession(SessionId.From("sess-1")));
         footer.ShouldBeOfType<OpenTabOutcome.Opened>().Name.ShouldBe("Refund retry policy");
     }
 
@@ -60,7 +60,7 @@ public sealed class OpenTabHandlerShould
         await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: false), CancellationToken.None);
 
         TabRegistration pending = (await Store.ReadTabsAsync()).Single();
-        pending.Owner.ShouldBe(new TabOwner.ForSession(new SessionId("sess-1")));
+        pending.Owner.ShouldBe(new TabOwner.ForSession(SessionId.From("sess-1")));
         pending.ProcessId.ShouldBeNull();
         pending.CreatedAt.ShouldBe(Noon);
         terminal.Opened.Single().Script.ShouldContain(pending.Id.ToString("N"));
@@ -69,7 +69,7 @@ public sealed class OpenTabHandlerShould
     [Fact]
     public async Task ChooseAColourNoLiveTabIsUsing()
     {
-        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(new SessionId("other")), TabPalette.Default[0], Noon.AddSeconds(-5)));
+        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("other")), TabPalette.Default[0], Noon.AddSeconds(-5)));
 
         await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: false), CancellationToken.None);
 
@@ -90,7 +90,7 @@ public sealed class OpenTabHandlerShould
     [Fact]
     public async Task SwitchToTheLiveTabInsteadOfOpeningAnother()
     {
-        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(new SessionId("sess-1")), TabPalette.Default[0], Noon).ClaimedBy(4242, Noon));
+        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("sess-1")), TabPalette.Default[0], Noon).ClaimedBy(4242, Noon));
         registry.Running(4242, Noon).InTree(4242, "pwsh", 777).InTree(777, "WindowsTerminal", 1);
 
         Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: true), CancellationToken.None);
@@ -103,7 +103,7 @@ public sealed class OpenTabHandlerShould
     [Fact]
     public async Task SearchEveryWindowWhenTheTabShellHasNoKnownParent()
     {
-        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(new SessionId("sess-1")), TabPalette.Default[0], Noon));
+        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("sess-1")), TabPalette.Default[0], Noon));
 
         await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: true), CancellationToken.None);
 
@@ -114,7 +114,7 @@ public sealed class OpenTabHandlerShould
     public async Task SayWhenTheLiveTabCannotBeFound()
     {
         terminal.FocusFinds = false;
-        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(new SessionId("sess-1")), TabPalette.Default[0], Noon));
+        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("sess-1")), TabPalette.Default[0], Noon));
 
         Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: true), CancellationToken.None);
 
@@ -125,7 +125,7 @@ public sealed class OpenTabHandlerShould
     [Fact]
     public async Task ClaimARegistrationWithTheTabProcess()
     {
-        TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(new SessionId("sess-1")), TabPalette.Default[0], Noon);
+        TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("sess-1")), TabPalette.Default[0], Noon);
         await Store.WriteTabAsync(pending);
         registry.Running(4242, Noon.AddSeconds(2));
 

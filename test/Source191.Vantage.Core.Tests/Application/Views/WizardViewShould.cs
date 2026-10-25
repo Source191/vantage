@@ -23,7 +23,7 @@ public sealed class WizardViewShould
 
     private WizardState InAgents => Reduce(Opened, new WizardInput.FilterChanged("agents"));
 
-    private WizardState FixedInBilling => WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, TestSettings.For([Root], WorktreeRoot, WorktreeBase.Head), new FolderPath(Billing));
+    private WizardState FixedInBilling => WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, TestSettings.For([Root], WorktreeRoot, WorktreeBase.Head), FolderPath.From(Billing));
 
     // 1.1 Choices, filter and the list.
 
@@ -106,7 +106,7 @@ public sealed class WizardViewShould
     {
         WizardState opened = WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, TestSettings.For([Root], WorktreeRoot, WorktreeBase.Head));
 
-        opened.WorktreeRoot.ShouldBe(new FolderPath(WorktreeRoot));
+        opened.WorktreeRoot.ShouldBe(FolderPath.From(WorktreeRoot));
         opened.Base.ShouldBe(WorktreeBase.Head);
         Reduce(Reduce(opened, new WizardInput.NameChanged("fix 123")), new WizardInput.ModeChanged(LaunchMode.NewWorktree))
             .Preview.ShouldBe(@"Worktree Northwind.Agents-fix-123 under D:\worktrees, on branch fix-123.");
@@ -227,7 +227,7 @@ public sealed class WizardViewShould
         fixedInBilling.ShowsChooser.ShouldBeFalse();
         Opened.ShowsChooser.ShouldBeTrue();
         fixedInBilling.Focus.ShouldBe(WizardField.Name);
-        fixedInBilling.Chosen.ShouldBe(new RepositoryChoice("Northwind.Billing", new FolderPath(Billing), IsRepository: true));
+        fixedInBilling.Chosen.ShouldBe(new RepositoryChoice("Northwind.Billing", FolderPath.From(Billing), IsRepository: true));
         fixedInBilling.Base.ShouldBe(WorktreeBase.Head, "the default base still comes from settings");
         Reduce(fixedInBilling, new WizardInput.NextField())
             .Focus.ShouldBe(WizardField.Name, "the Where choice is hidden, so Enter has nowhere to go");

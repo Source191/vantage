@@ -8,7 +8,7 @@ public sealed class EditorCommandShould
     [Fact]
     public void PassTheFolderAsOneArgument()
     {
-        FolderPath folder = new(@"C:\Users\me\source\repos\Northwind & Co's ""tools""");
+        FolderPath folder = FolderPath.From(@"C:\Users\me\source\repos\Northwind & Co's ""tools""");
 
         Ports.ProcessRequest request = EditorCommand.For(EditorChoice.VsCode, @"C:\Code\Code.exe", folder);
 
@@ -20,7 +20,7 @@ public sealed class EditorCommandShould
     public void ReplaceFolderInsideACustomArgument()
     {
         EditorChoice editor = EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "--folder={folder}", "--wait"]);
-        FolderPath folder = new(@"C:\Users\me\source\repos\Northwind.Orders");
+        FolderPath folder = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
 
         Ports.ProcessRequest request = EditorCommand.For(editor, editor.Executable, folder);
 

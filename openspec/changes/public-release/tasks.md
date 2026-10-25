@@ -14,7 +14,7 @@
 - [x] 3.1 P2 `unreachable-arms` merged and archived (patch); verify `openspec list` no longer shows it
 - [x] 3.2 P3 `text-value-doors` merged and archived (patch), stacked on P2; verify `openspec list` no longer shows it
 - [x] 3.3 P4 `facts-not-sentences` merged and archived (patch), stacked on P3; verify `openspec list` no longer shows it
-- [ ] 3.4 P5 `from-factory-spike` decided on its diff: merged (patch) or closed unmerged, with the reason in its tasks.md, and archived either way; verify `openspec list` no longer shows it
+- [x] 3.4 P5 `from-factory-spike` decided on its diff: merged (patch) or closed unmerged, with the reason in its tasks.md, and archived either way; verify `openspec list` no longer shows it. Merged: the product owner keeps `From`; the contract theory over all six types is worth the spelling change.
 
 ## 4. P6 to P9: features stream
 

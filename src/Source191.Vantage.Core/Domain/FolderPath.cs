@@ -10,7 +10,7 @@ namespace Source191.Vantage.Domain;
 /// </summary>
 public sealed record FolderPath : ITextValue<FolderPath>
 {
-    public FolderPath(string text)
+    private FolderPath(string text)
     {
         if (!IOPath.IsPathFullyQualified(text))
         {
@@ -22,6 +22,8 @@ public sealed record FolderPath : ITextValue<FolderPath>
         Value = full.Length > root.Length ? full.TrimEnd(IOPath.DirectorySeparatorChar) : full;
     }
 
+    public static FolderPath From(string text) => new(text);
+
     public string Value { get; }
 
     /// <summary>The same for every spelling of this folder: for keys and ordering that compare text ordinally.</summary>
@@ -31,16 +33,16 @@ public sealed record FolderPath : ITextValue<FolderPath>
     public string Name => IOPath.GetFileName(Value);
 
     /// <summary>The containing folder; null for a drive root.</summary>
-    public FolderPath? Parent => IOPath.GetDirectoryName(Value) is string parent ? new FolderPath(parent) : null;
+    public FolderPath? Parent => IOPath.GetDirectoryName(Value) is string parent ? FolderPath.From(parent) : null;
 
     /// <summary>A path from outside Vantage (git output, the CLI's listing, a state file); false when it is not a full path.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out FolderPath value)
     {
-        value = text is not null && IOPath.IsPathFullyQualified(text) ? new FolderPath(text) : null;
+        value = text is not null && IOPath.IsPathFullyQualified(text) ? FolderPath.From(text) : null;
         return value is not null;
     }
 
-    public FolderPath Combine(string child) => new FolderPath(IOPath.Combine(Value, child));
+    public FolderPath Combine(string child) => FolderPath.From(IOPath.Combine(Value, child));
 
     /// <summary>True for this folder itself or anything inside it; a sibling that shares a name prefix is not inside.</summary>
     public bool IsUnder(FolderPath other) => Equals(other) || Value.StartsWith(Inside(other.Value), StringComparison.OrdinalIgnoreCase);

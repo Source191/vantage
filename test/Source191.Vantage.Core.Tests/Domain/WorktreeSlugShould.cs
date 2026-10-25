@@ -12,7 +12,7 @@ public sealed class WorktreeSlugShould
     {
         WorktreeSlug.TryParse(text, out WorktreeSlug? slug).ShouldBeTrue();
         slug.Value.ShouldBe(expected);
-        new WorktreeSlug(text).ShouldBe(slug);
+        WorktreeSlug.From(text).ShouldBe(slug);
     }
 
     [Theory]
@@ -28,6 +28,6 @@ public sealed class WorktreeSlugShould
     [Fact]
     public void RefuseToBuildASlugFromTextWithNoLettersOrDigits()
     {
-        Should.Throw<ArgumentException>(() => new WorktreeSlug("!!!"));
+        Should.Throw<ArgumentException>(() => WorktreeSlug.From("!!!"));
     }
 }

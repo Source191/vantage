@@ -35,7 +35,7 @@ public sealed class OwnTabShould
     public async Task TakeTheFirstFreeColourWhenGreenIsUsed()
     {
         registry.Running(100, Noon);
-        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(new SessionId("sess-1")), Green, Noon));
+        await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("sess-1")), Green, Noon));
 
         TabColour? colour = await Tab.ClaimAsync(processId: 100);
 

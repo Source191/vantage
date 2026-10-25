@@ -9,9 +9,9 @@ namespace Source191.Vantage.Core.Tests.Application;
 
 public sealed class PullRequestCatalogueShould
 {
-    private static readonly FolderPath Checkout = new(@"C:\Users\me\source\repos\Northwind.Orders");
+    private static readonly FolderPath Checkout = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
     private static readonly GitHubRepository Orders = new("northwind", "Northwind.Orders");
-    private static readonly BranchName Fix = new("fix-123");
+    private static readonly BranchName Fix = BranchName.From("fix-123");
     private static readonly PullRequest Open = new(PullRequestHost.GitHub, 123, new Uri("https://github.com/northwind/Northwind.Orders/pull/123"), PullRequestState.Open, new DateTimeOffset(2026, 10, 20, 9, 0, 0, TimeSpan.Zero));
     private static readonly PullRequest Merged = Open with { State = PullRequestState.Merged };
 
@@ -39,16 +39,16 @@ public sealed class PullRequestCatalogueShould
         await catalogue.RefreshStaleAsync([Checkout]);
 
         catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
-        catalogue.Find(Checkout, new BranchName("spike-cache")).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
+        catalogue.Find(Checkout, BranchName.From("spike-cache")).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
     }
 
     [Fact]
     public async Task CallOncePerRepositoryForManyBranches()
     {
-        await catalogue.RefreshStaleAsync([Checkout, new FolderPath(@"c:\users\me\source\repos\Northwind.Orders\")]);
+        await catalogue.RefreshStaleAsync([Checkout, FolderPath.From(@"c:\users\me\source\repos\Northwind.Orders\")]);
 
         catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
-        catalogue.Find(Checkout, new BranchName("spike-cache")).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
+        catalogue.Find(Checkout, BranchName.From("spike-cache")).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
         hosts.Calls.ShouldBe([Orders]);
     }
 

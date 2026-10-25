@@ -8,8 +8,8 @@ namespace Source191.Vantage.Core.Tests.Application;
 
 public sealed class WorktreeInspectorShould
 {
-    private static readonly FolderPath Repository = new(@"C:\Users\me\source\repos\Northwind.Orders");
-    private static readonly FolderPath Worktree = new(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
+    private static readonly FolderPath Repository = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
+    private static readonly FolderPath Worktree = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders-fix-123");
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
 
@@ -55,7 +55,7 @@ public sealed class WorktreeInspectorShould
     {
         processes.Answer(request => request.Arguments.Contains("symbolic-ref"), new ProcessResult(0, "origin/main\n", string.Empty));
 
-        bool merged = await Inspector.IsMergedAsync(Repository, new BranchName("fix-123"), CancellationToken.None);
+        bool merged = await Inspector.IsMergedAsync(Repository, BranchName.From("fix-123"), CancellationToken.None);
 
         merged.ShouldBeTrue();
         processes.CapturedRequests.Single(request => request.Arguments.Contains("merge-base")).Arguments.ShouldBe(["merge-base", "--is-ancestor", "fix-123", "origin/main"]);
@@ -68,7 +68,7 @@ public sealed class WorktreeInspectorShould
             .Answer(request => request.Arguments.Contains("symbolic-ref"), new ProcessResult(128, string.Empty, "fatal: ref refs/remotes/origin/HEAD is not a symbolic ref"))
             .Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty));
 
-        bool merged = await Inspector.IsMergedAsync(Repository, new BranchName("fix-123"), CancellationToken.None);
+        bool merged = await Inspector.IsMergedAsync(Repository, BranchName.From("fix-123"), CancellationToken.None);
 
         merged.ShouldBeFalse();
         processes.CapturedRequests.Single(request => request.Arguments.Contains("merge-base")).Arguments[^1].ShouldBe("HEAD");

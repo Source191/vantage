@@ -15,7 +15,7 @@ public sealed class LaunchServiceShould
     private const string Listing = """[{"pid":1,"id":"81cdb0f9","cwd":"C:\\repos\\Northwind.Orders","kind":"background","startedAt":1,"sessionId":"sess-1","name":"Fix flaky tests","status":"idle","state":"blocked"}]""";
 
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
-    private static readonly RepositoryChoice Repository = new("Northwind.Orders", new FolderPath(@"C:\repos\Northwind.Orders"), IsRepository: true);
+    private static readonly RepositoryChoice Repository = new("Northwind.Orders", FolderPath.From(@"C:\repos\Northwind.Orders"), IsRepository: true);
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner()
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
@@ -35,13 +35,13 @@ public sealed class LaunchServiceShould
     }
 
     private static LaunchPlan CurrentBranch => new(
-        Repository.Path, new SessionName("Fix flaky tests"), Worktree: null,
+        Repository.Path, SessionName.From("Fix flaky tests"), Worktree: null,
         ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, Repository);
 
     private static LaunchPlan NewWorktree => CurrentBranch with
     {
-        Directory = new FolderPath(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"),
-        Worktree = new PlannedWorktree(new FolderPath(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"), new BranchName("fix-flaky-tests")),
+        Directory = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"),
+        Worktree = new PlannedWorktree(FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"), BranchName.From("fix-flaky-tests")),
     };
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class LaunchServiceShould
         LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
         outcome.Kind.ShouldBe(LaunchOutcomeKind.Started);
-        outcome.JobId.ShouldBe(new JobId("81cdb0f9"));
+        outcome.JobId.ShouldBe(JobId.From("81cdb0f9"));
         ProcessRequest start = processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg"));
         start.WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
@@ -65,7 +65,7 @@ public sealed class LaunchServiceShould
         add.WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
         add.Arguments.ShouldBe(["worktree", "add", @"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests", "-b", "fix-flaky-tests", "origin/main"]);
         processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests");
-        (await Store.ReadCreatedWorktreesAsync()).Single().Branch.ShouldBe(new BranchName("fix-flaky-tests"));
+        (await Store.ReadCreatedWorktreesAsync()).Single().Branch.ShouldBe(BranchName.From("fix-flaky-tests"));
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public sealed class LaunchServiceShould
         await Service.LaunchAsync(NewWorktree, CancellationToken.None);
 
         CreatedWorktree created = (await Store.ReadCreatedWorktreesAsync()).Single();
-        created.Path.ShouldBe(new FolderPath(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"));
+        created.Path.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"));
         created.Repository.ShouldBe(Repository.Path);
     }
 
@@ -123,7 +123,7 @@ public sealed class LaunchServiceShould
         LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
         outcome.Kind.ShouldBe(LaunchOutcomeKind.Started);
-        outcome.JobId.ShouldBe(new JobId("81cdb0f9"));
+        outcome.JobId.ShouldBe(JobId.From("81cdb0f9"));
         outcome.Session.ShouldBeNull();
     }
 

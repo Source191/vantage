@@ -22,7 +22,7 @@ public sealed class TerminalEffectsShould : IDisposable
     [Fact]
     public async Task PrintTheReturnHintThenAttach()
     {
-        await Effects.RunAsync(new AttachToSession(new JobId("81cdb0f9")), CancellationToken.None);
+        await Effects.RunAsync(new AttachToSession(JobId.From("81cdb0f9")), CancellationToken.None);
 
         console.ToString().ShouldContain("Ctrl+Z returns to Vantage");
         console.ToString().ShouldContain("agent list");

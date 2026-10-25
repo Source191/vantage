@@ -29,24 +29,24 @@ internal static class SessionTestData
     /// <summary>A plain claude session in some tab, session id sess-9.</summary>
     public static InteractiveSession Terminal(string name, int processId, DisplayState? state = null)
     {
-        return new InteractiveSession(new SessionId("sess-9"), name, new FolderPath(Repository), Noon, state ?? DisplayState.Idle, processId);
+        return new InteractiveSession(SessionId.From("sess-9"), name, FolderPath.From(Repository), Noon, state ?? DisplayState.Idle, processId);
     }
 
     /// <summary>A supervised session named fix-123, job 81cdb0f9, session id sess-1.</summary>
     public static BackgroundSession Job(string directory, DisplayState? state = null)
     {
-        return new BackgroundSession(new SessionId("sess-1"), new JobId("81cdb0f9"), "fix-123", new FolderPath(directory), Noon, state ?? DisplayState.Working);
+        return new BackgroundSession(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "fix-123", FolderPath.From(directory), Noon, state ?? DisplayState.Working);
     }
 
     /// <summary>The <see cref="Terminal"/> session as a row on main.</summary>
     public static SessionRow Interactive(string name, int processId, DisplayState? state = null)
     {
-        return new SessionRow(Terminal(name, processId, state), "Northwind.Orders", new BranchName("main"), HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(Terminal(name, processId, state), "Northwind.Orders", BranchName.From("main"), HasLiveTab: false, HasTranscript: true);
     }
 
     /// <summary>The <see cref="Job"/> session as a row, on its own branch in a worktree or on main.</summary>
     public static SessionRow Background(string directory, bool isWorktree, DisplayState? state = null)
     {
-        return new SessionRow(Job(directory, state), "Northwind.Orders", new BranchName(isWorktree ? "fix-123" : "main"), HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(Job(directory, state), "Northwind.Orders", BranchName.From(isWorktree ? "fix-123" : "main"), HasLiveTab: false, HasTranscript: true);
     }
 }

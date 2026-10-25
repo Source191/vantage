@@ -30,8 +30,8 @@ public sealed class StartSessionHandlerShould
     private readonly FakeWindowsTerminal terminal = new();
 
     private static LaunchPlan Plan => new(
-        new FolderPath(Repository), new SessionName("Fix flaky tests"), Worktree: null,
-        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", new FolderPath(Repository), IsRepository: true));
+        FolderPath.From(Repository), SessionName.From("Fix flaky tests"), Worktree: null,
+        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", FolderPath.From(Repository), IsRepository: true));
 
     private StartSessionHandler Handler
     {
@@ -52,7 +52,7 @@ public sealed class StartSessionHandlerShould
     {
         Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: false), CancellationToken.None);
 
-        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", new JobId("81cdb0f9")));
+        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", JobId.From("81cdb0f9")));
         terminal.Opened.ShouldBeEmpty();
     }
 
@@ -61,7 +61,7 @@ public sealed class StartSessionHandlerShould
     {
         Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe(new StartSessionOutcome.StartedAndOpened("Fix flaky tests", new JobId("81cdb0f9"), new OpenTabOutcome.Opened("Fix flaky tests", "Red", ColourReused: false)));
+        footer.ShouldBe(new StartSessionOutcome.StartedAndOpened("Fix flaky tests", JobId.From("81cdb0f9"), new OpenTabOutcome.Opened("Fix flaky tests", "Red", ColourReused: false)));
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Fix flaky tests");
         tab.Script.ShouldContain($"& '{Claude}' 'attach' '81cdb0f9'");
@@ -74,7 +74,7 @@ public sealed class StartSessionHandlerShould
 
         Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe(new StartSessionOutcome.NotListedYet("Fix flaky tests", new JobId("81cdb0f9")));
+        footer.ShouldBe(new StartSessionOutcome.NotListedYet("Fix flaky tests", JobId.From("81cdb0f9")));
         terminal.Opened.ShouldBeEmpty();
     }
 
@@ -85,7 +85,7 @@ public sealed class StartSessionHandlerShould
 
         Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
 
-        footer.ShouldBe(new StartSessionOutcome.NotTrusted(new FolderPath(Repository)));
+        footer.ShouldBe(new StartSessionOutcome.NotTrusted(FolderPath.From(Repository)));
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Trust Northwind.Orders");
         tab.StartingDirectory.Value.ShouldBe(Repository);
@@ -105,12 +105,12 @@ public sealed class StartSessionHandlerShould
     [Fact]
     public async Task StartInTheWorktreeTheWizardWasFixedTo()
     {
-        LaunchPlan inWorktree = Plan with { Directory = new FolderPath(Worktree), Repository = new RepositoryChoice("Northwind.Orders-fix-flaky-tests", new FolderPath(Worktree), IsRepository: true) };
+        LaunchPlan inWorktree = Plan with { Directory = FolderPath.From(Worktree), Repository = new RepositoryChoice("Northwind.Orders-fix-flaky-tests", FolderPath.From(Worktree), IsRepository: true) };
 
         Outcome footer = await Handler.HandleAsync(new StartSession(inWorktree, OpenInTab: false), CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(Worktree);
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
-        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", new JobId("81cdb0f9")));
+        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", JobId.From("81cdb0f9")));
     }
 }
