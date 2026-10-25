@@ -11,6 +11,9 @@ public sealed record StartHere(IReadOnlyList<string> Arguments) : VantageCommand
 /// <summary><c>vantage claim-tab &lt;registration id&gt; &lt;process id&gt;</c>, run by the shell inside a tab Vantage opened.</summary>
 public sealed record ClaimTab(Guid RegistrationId, int ProcessId) : VantageCommand;
 
+/// <summary><c>vantage setup-terminal [--sound wav] [--session-sound wav] [--yes] [--remove]</c>; the arguments after it are parsed by <see cref="TerminalSetup.TerminalSetupCommand"/>.</summary>
+public sealed record SetupTerminal(IReadOnlyList<string> Arguments) : VantageCommand;
+
 public sealed record Usage(string Message) : VantageCommand;
 
 public static class CommandLine
@@ -23,6 +26,7 @@ public static class CommandLine
             ["here", .. string[] rest] => new StartHere(rest),
             ["claim-tab", string id, string pid] when Guid.TryParse(id, out Guid registrationId) && int.TryParse(pid, out int processId) => new ClaimTab(registrationId, processId),
             ["claim-tab", ..] => new Usage(Wording.ClaimTabUsage),
+            ["setup-terminal", .. string[] rest] => new SetupTerminal(rest),
             _ => new OpenConsole(),
         };
     }
