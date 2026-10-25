@@ -54,13 +54,6 @@ For each session Vantage SHALL derive the repository, the checked-out branch and
 - **WHEN** a session's working directory is not inside a git repository
 - **THEN** the row shows the folder name as the repository and leaves the branch blank
 
-### Requirement: Descriptions are shown with their session
-When Vantage holds a description for a session's ID, the listing SHALL show it in the row, truncated to the available width, and in full in the peek text; when it holds none the row shows nothing there.
-
-#### Scenario: Description present
-- **WHEN** a session was launched with a description
-- **THEN** its row shows the description and the peek text shows it in full
-
 ### Requirement: Interactive sessions are shown with limited actions
 Sessions whose kind is interactive SHALL appear in the list with their kind marked, and SHALL NOT accept attach, open-in-tab, stop or rename actions; the adopt key moves them under the supervisor and, for one never sent a message, the delete key closes its tab (session-attach spec).
 

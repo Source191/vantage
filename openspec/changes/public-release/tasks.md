@@ -7,7 +7,7 @@
 
 ## 2. P1: gate
 
-- [ ] 2.1 `remove-session-descriptions` merged and archived (minor); verify `openspec list` no longer shows it and `openspec\specs\session-launch` has no description requirement
+- [x] 2.1 `remove-session-descriptions` merged and archived (minor); verify `openspec list` no longer shows it and `openspec\specs\session-launch` has no description requirement
 
 ## 3. P2 to P5: refactors stream
 
