@@ -47,7 +47,7 @@ public sealed class WorktreeInspectorShould
         WorktreeHealth health = await Inspector.HealthAsync(Repository, Worktree, CancellationToken.None);
 
         health.Kind.ShouldBe(WorktreeHealthKind.Locked);
-        health.Reason.ShouldContain("in use by another tool");
+        health.Reason.ShouldBe(new HealthReason.Locked("in use by another tool"));
     }
 
     [Fact]

@@ -22,7 +22,7 @@ public sealed class RemovalDecisionShould
         decision.Outcome.ShouldBe(RemovalOutcome.RemoveWorktree);
         decision.Forced.ShouldBeFalse();
         decision.PruneRegistration.ShouldBeFalse();
-        decision.Reason.ShouldBeEmpty();
+        decision.Reason.ShouldBe(new RemovalReason.None());
     }
 
     [Fact]
@@ -31,8 +31,7 @@ public sealed class RemovalDecisionShould
         RemovalDecision decision = RemovalDecision.For(Clean with { UnpushedCommitCount = 2 }, forced: false);
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
-        decision.Reason.ShouldContain("fix-123");
-        decision.Reason.ShouldContain("2 unpushed");
+        decision.Reason.ShouldBe(new RemovalReason.UnpushedCommits("fix-123", 2));
         decision.Forced.ShouldBeFalse();
         decision.PruneRegistration.ShouldBeFalse();
         decision.Branch.ShouldBe(BranchAction.None);
@@ -44,7 +43,7 @@ public sealed class RemovalDecisionShould
         RemovalDecision decision = RemovalDecision.For(Clean with { DirtyFileCount = 5 }, forced: false);
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
-        decision.Reason.ShouldContain("5 changed");
+        decision.Reason.ShouldBe(new RemovalReason.ChangesWouldBeLost(5));
     }
 
     [Fact]
@@ -62,7 +61,7 @@ public sealed class RemovalDecisionShould
         RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Locked }, forced: true);
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
-        decision.Reason.ShouldContain("locked");
+        decision.Reason.ShouldBe(new RemovalReason.Locked());
         decision.Forced.ShouldBeFalse();
         decision.PruneRegistration.ShouldBeFalse();
     }
@@ -73,7 +72,7 @@ public sealed class RemovalDecisionShould
         RemovalDecision decision = RemovalDecision.For(Clean with { LiveSessionName = "remove-sonar" }, forced: true);
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
-        decision.Reason.ShouldContain("remove-sonar");
+        decision.Reason.ShouldBe(new RemovalReason.LiveSession("remove-sonar"));
     }
 
     [Fact]
@@ -111,7 +110,7 @@ public sealed class RemovalDecisionShould
         decision.Branch.ShouldBe(BranchAction.None);
         decision.PruneRegistration.ShouldBeFalse();
         decision.Forced.ShouldBeFalse();
-        decision.Reason.ShouldBe("leftover folder");
+        decision.Reason.ShouldBe(new RemovalReason.LeftoverFolder());
     }
 
     [Theory]
@@ -122,7 +121,7 @@ public sealed class RemovalDecisionShould
         RemovalDecision decision = RemovalDecision.For(Clean with { Health = health, LeftoverFileCount = 12 }, forced: false);
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
-        decision.Reason.ShouldContain("12 files");
+        decision.Reason.ShouldBe(new RemovalReason.LeftoverFilesWouldBeLost(12, AtLeast: false));
     }
 
     [Fact]
@@ -131,7 +130,7 @@ public sealed class RemovalDecisionShould
         RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LeftoverFileCount = WorktreeRemovalFacts.LeftoverFileLimit }, forced: false);
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
-        decision.Reason.ShouldBe("at least 1000 files that git no longer tracks would be lost");
+        decision.Reason.ShouldBe(new RemovalReason.LeftoverFilesWouldBeLost(WorktreeRemovalFacts.LeftoverFileLimit, AtLeast: true));
     }
 
     [Fact]
@@ -149,7 +148,7 @@ public sealed class RemovalDecisionShould
         RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LiveSessionName = "fix-service-tests" }, forced: true);
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
-        decision.Reason.ShouldContain("fix-service-tests");
+        decision.Reason.ShouldBe(new RemovalReason.LiveSession("fix-service-tests"));
     }
 
     [Fact]

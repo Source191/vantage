@@ -73,7 +73,7 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
 /// <summary>What removing a worktree did, and in one case the branch the user is asked about.</summary>
 public abstract record RemoveWorktreeOutcome : Outcome
 {
-    public sealed record Refused(string Reason) : RemoveWorktreeOutcome;
+    public sealed record Refused(RemovalReason Reason) : RemoveWorktreeOutcome;
 
     public sealed record Removed(string FolderName) : RemoveWorktreeOutcome;
 

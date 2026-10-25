@@ -18,7 +18,7 @@ public sealed class WorktreeHealthShould
         WorktreeHealth health = WorktreeHealth.From(Registered);
 
         health.Kind.ShouldBe(WorktreeHealthKind.Ok);
-        health.Reason.ShouldBeEmpty();
+        health.Reason.ShouldBe(new HealthReason.None());
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public sealed class WorktreeHealthShould
         WorktreeHealth health = WorktreeHealth.From(Registered with { LockReason = "maintenance" });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Locked);
-        health.Reason.ShouldBe("maintenance");
+        health.Reason.ShouldBe(new HealthReason.Locked("maintenance"));
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class WorktreeHealthShould
         WorktreeHealth health = WorktreeHealth.From(Registered with { FolderExists = false });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Broken);
-        health.Reason.ShouldContain("folder");
+        health.Reason.ShouldBe(new HealthReason.FolderGone());
     }
 
     [Fact]
@@ -53,7 +53,7 @@ public sealed class WorktreeHealthShould
         WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = false });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Broken);
-        health.Reason.ShouldContain("registration");
+        health.Reason.ShouldBe(new HealthReason.RegistrationGone());
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public sealed class WorktreeHealthShould
         WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, UnderClaudeWorktrees = true, GitFileTargetExists = null });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Orphan);
-        health.Reason.ShouldBe(@"under .claude\worktrees but git no longer lists it");
+        health.Reason.ShouldBe(new HealthReason.UnderClaudeWorktrees());
     }
 
     [Fact]
@@ -71,7 +71,7 @@ public sealed class WorktreeHealthShould
         WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = null, EmptyLeftoverFolder = true });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Empty);
-        health.Reason.ShouldBe("leftover folder with nothing in it");
+        health.Reason.ShouldBe(new HealthReason.EmptyLeftover());
     }
 
     [Fact]
@@ -80,6 +80,6 @@ public sealed class WorktreeHealthShould
         WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = null });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Orphan);
-        health.Reason.ShouldBe("folder is not registered with git");
+        health.Reason.ShouldBe(new HealthReason.NotRegistered());
     }
 }

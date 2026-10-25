@@ -60,8 +60,8 @@ public sealed class WordingShould
     [Fact]
     public void ExplainWhyTheSelectedWorktreeIsNotHealthy()
     {
-        Wording.Describe(new Footer.Unhealthy("Northwind.Orders-stale", WorktreeHealthKind.Broken, "its repository has gone"))
-            .ShouldBe("Northwind.Orders-stale is broken: its repository has gone.");
+        Wording.Describe(new Footer.Unhealthy("Northwind.Orders-stale", WorktreeHealthKind.Broken, new HealthReason.FolderGone()))
+            .ShouldBe("Northwind.Orders-stale is broken: registered with git but the folder is gone.");
     }
 
     // The sessions view.
@@ -161,15 +161,15 @@ public sealed class WordingShould
     [Fact]
     public void GiveTheReasonARemovalWasRefusedAndOfferTheForceKey()
     {
-        Wording.Describe(new Footer.NotRemoved("3 changed or untracked files would be lost", OfferForce: true))
+        Wording.Describe(new Footer.NotRemoved(new RemovalReason.ChangesWouldBeLost(3), OfferForce: true))
             .ShouldBe("Not removed: 3 changed or untracked files would be lost. D forces after a typed confirmation.");
     }
 
     [Fact]
     public void GiveTheReasonARemovalWasRefusedWithoutTheForceKey()
     {
-        Wording.Describe(new Footer.NotRemoved("it is locked: in use by another tool", OfferForce: false))
-            .ShouldBe("Not removed: it is locked: in use by another tool.");
+        Wording.Describe(new Footer.NotRemoved(new RemovalReason.Locked(), OfferForce: false))
+            .ShouldBe("Not removed: the worktree is locked.");
     }
 
     [Fact]
@@ -347,6 +347,122 @@ public sealed class WordingShould
         Wording.Working(new Quit()).ShouldBe("Working...");
     }
 
+    // Why a worktree cannot be removed, and what is wrong with it.
+
+    public static TheoryData<Type> RemovalReasons => new(typeof(RemovalReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(RemovalReason))));
+
+    [Theory]
+    [MemberData(nameof(RemovalReasons))]
+    public void HaveWordsForEveryRemovalReason(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        RemovalReason reason = (RemovalReason)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+
+        Wording.Describe(reason).ShouldNotBe(reason.ToString(), $"{type.Name} has no arm in Wording.Describe");
+    }
+
+    [Fact]
+    public void SayNothingForAPlainRemoval()
+    {
+        Wording.Describe(new RemovalReason.None()).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void NameTheSessionUsingTheWorktree()
+    {
+        Wording.Describe(new RemovalReason.LiveSession("fix-123")).ShouldBe("session fix-123 is using it");
+    }
+
+    [Fact]
+    public void SayTheWorktreeIsLocked()
+    {
+        Wording.Describe(new RemovalReason.Locked()).ShouldBe("the worktree is locked");
+    }
+
+    [Fact]
+    public void CountTheLeftoverFilesThatWouldBeLost()
+    {
+        Wording.Describe(new RemovalReason.LeftoverFilesWouldBeLost(12, AtLeast: false)).ShouldBe("12 files that git no longer tracks would be lost");
+    }
+
+    [Fact]
+    public void SayAtLeastWhenTheLeftoverFilesWereCountedUpToALimit()
+    {
+        Wording.Describe(new RemovalReason.LeftoverFilesWouldBeLost(1000, AtLeast: true)).ShouldBe("at least 1000 files that git no longer tracks would be lost");
+    }
+
+    [Fact]
+    public void CountTheChangesThatWouldBeLost()
+    {
+        Wording.Describe(new RemovalReason.ChangesWouldBeLost(3)).ShouldBe("3 changed or untracked files would be lost");
+    }
+
+    [Fact]
+    public void CountTheUnpushedCommitsOnTheBranch()
+    {
+        Wording.Describe(new RemovalReason.UnpushedCommits("fix-123", 2)).ShouldBe("branch fix-123 has 2 unpushed commits");
+    }
+
+    [Fact]
+    public void CallALeftoverFolderByThatName()
+    {
+        Wording.Describe(new RemovalReason.LeftoverFolder()).ShouldBe("leftover folder");
+    }
+
+    public static TheoryData<Type> HealthReasons => new(typeof(HealthReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(HealthReason))));
+
+    [Theory]
+    [MemberData(nameof(HealthReasons))]
+    public void HaveWordsForEveryHealthReason(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        HealthReason reason = (HealthReason)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+
+        Wording.Describe(reason).ShouldNotBe(reason.ToString(), $"{type.Name} has no arm in Wording.Describe");
+    }
+
+    [Fact]
+    public void SayNothingForAHealthyWorktree()
+    {
+        Wording.Describe(new HealthReason.None()).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void SayTheFolderIsGone()
+    {
+        Wording.Describe(new HealthReason.FolderGone()).ShouldBe("registered with git but the folder is gone");
+    }
+
+    [Fact]
+    public void GiveGitsOwnWordsForALock()
+    {
+        Wording.Describe(new HealthReason.Locked("in use by another tool")).ShouldBe("in use by another tool");
+    }
+
+    [Fact]
+    public void SayTheRegistrationIsGone()
+    {
+        Wording.Describe(new HealthReason.RegistrationGone()).ShouldBe("its .git file points at a registration that no longer exists");
+    }
+
+    [Fact]
+    public void SayAFolderUnderClaudeWorktreesIsNoLongerListed()
+    {
+        Wording.Describe(new HealthReason.UnderClaudeWorktrees()).ShouldBe(@"under .claude\worktrees but git no longer lists it");
+    }
+
+    [Fact]
+    public void SayALeftoverFolderIsEmpty()
+    {
+        Wording.Describe(new HealthReason.EmptyLeftover()).ShouldBe("leftover folder with nothing in it");
+    }
+
+    [Fact]
+    public void SayAFolderIsNotRegistered()
+    {
+        Wording.Describe(new HealthReason.NotRegistered()).ShouldBe("folder is not registered with git");
+    }
+
     private static object Placeholder(Type type)
     {
         return type switch
@@ -355,6 +471,8 @@ public sealed class WordingShould
             _ when type == typeof(int) => 2,
             _ when type == typeof(bool) => true,
             _ when type == typeof(WorktreeHealthKind) => WorktreeHealthKind.Locked,
+            _ when type == typeof(RemovalReason) => new RemovalReason.Locked(),
+            _ when type == typeof(HealthReason) => new HealthReason.FolderGone(),
             _ when type == typeof(NameProblem) => NameProblem.UnsafeCharacters,
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
