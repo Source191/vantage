@@ -25,11 +25,21 @@ public sealed record PullRequest(PullRequestHost Host, int Number, Uri Url, Pull
 public static class PullRequestStates
 {
     /// <summary>Whether the pull request can still merge: open, draft or active.</summary>
-    public static bool IsOpen(this PullRequestState state) => false;
+    public static bool IsOpen(this PullRequestState state) => state switch
+    {
+        PullRequestState.Open => true,
+        PullRequestState.Draft => true,
+        PullRequestState.Active => true,
+        PullRequestState.Merged => false,
+        PullRequestState.Closed => false,
+        PullRequestState.Completed => false,
+        PullRequestState.Abandoned => false,
+    };
 }
 
-/// <summary>Which of a branch's pull requests the tables show.</summary>
+/// <summary>Which of a branch's pull requests the tables show: the open one, otherwise the most recent.</summary>
 public static class PullRequests
 {
-    public static PullRequest? ForBranch(IReadOnlyList<PullRequest> forBranch) => null;
+    public static PullRequest? ForBranch(IReadOnlyList<PullRequest> forBranch) =>
+        forBranch.FirstOrDefault(pullRequest => pullRequest.State.IsOpen()) ?? forBranch.MaxBy(pullRequest => pullRequest.CreatedAt);
 }
