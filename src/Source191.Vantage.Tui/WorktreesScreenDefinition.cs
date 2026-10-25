@@ -8,8 +8,6 @@ namespace Source191.Vantage.Tui;
 /// <summary>The worktrees view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
 internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesViewState, WorktreeRow>
 {
-    private static readonly string[] Columns = ["REPOSITORY", "FOLDER", "BRANCH", "DIRTY", "UNPUSHED", "LAST COMMIT", "SESSION", "HEALTH"];
-
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(15);
 
     public string Crumb => " <worktrees> ";
@@ -18,19 +16,13 @@ internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesVie
 
     public string LoadFailurePrefix => "scan failed";
 
-    public string HeaderNames => "Machine:\nClaude:\nRoots:\nWorktrees:\nAt risk:";
+    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nWorktrees:\nAt risk:";
 
-    public string Keys => "<d>\n<D>\n<p>\n<s>\n<o>\n<enter>";
-
-    public string KeyNames => "Remove\nForce remove\nPrune\nStart session\nOpen shell\nGo to session";
-
-    public string Keys2 => "<w>\n<esc>\n</>\n<?>\n<q>";
-
-    public string KeyNames2 => "Sessions\nSessions\nFilter\nHelp\nQuit";
+    public IReadOnlyList<KeyHelp> Keys => Wording.WorktreesKeys;
 
     public string HelpText => Wording.WorktreesHelp;
 
-    public IReadOnlyList<string> ColumnNames => Columns;
+    public IReadOnlyList<ColumnHelp> Columns => Wording.WorktreesColumns;
 
     public string Cell(WorktreeRow row, int column, DateTimeOffset now)
     {

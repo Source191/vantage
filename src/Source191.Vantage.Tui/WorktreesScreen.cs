@@ -9,7 +9,7 @@ public sealed class WorktreesScreen(
     DialogEffects dialogs,
     EffectDispatcher dispatcher,
     TimeProvider clock,
-    string context)
+    ScreenContext context)
     : IWorktreesScreen
 {
     public WorktreesScreenExit Run(WorktreesViewState initial)

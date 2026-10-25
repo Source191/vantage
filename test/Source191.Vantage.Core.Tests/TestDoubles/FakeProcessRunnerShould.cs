@@ -20,4 +20,15 @@ public sealed class FakeProcessRunnerShould
 
         new[] { one, two, three }.ShouldBe(["first", "second", "second"]);
     }
+
+    [Fact]
+    public async Task ThrowWhatItWasToldToFailWith()
+    {
+        FakeProcessRunner runner = new FakeProcessRunner().Fail(new InvalidOperationException("no such program"));
+
+        InvalidOperationException thrown = await Should.ThrowAsync<InvalidOperationException>(() => runner.RunAsync(Listing, CancellationToken.None));
+
+        thrown.Message.ShouldBe("no such program");
+        runner.CapturedRequests.Single().ShouldBe(Listing);
+    }
 }
