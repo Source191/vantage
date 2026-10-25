@@ -5,8 +5,8 @@
 
 .DESCRIPTION
     Compares two commits: check.yml passes the two parents of a pull request's merge ref, so Base is the
-    tip of main the merge was computed against and Head is what main would become. Run it locally with
-    any two refs, for example -Base main -Head HEAD. Exit code 0 means no bump is needed or the version
+    tip of the base branch the merge was computed against (main, or the parent of a stacked pull request) and
+    Head is what that branch would become. Run it locally with any two refs, for example -Base main -Head HEAD. Exit code 0 means no bump is needed or the version
     was raised; 1 means a bump is missing, lower, or not a semantic version.
 
 .EXAMPLE

@@ -316,4 +316,4 @@ The repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-
 - Multiple Claude accounts: Claude Code's `CLAUDE_CONFIG_DIR` selects a configuration directory with its own login, settings, sessions and supervisor; Vantage would gain a profile column and set the variable when starting a session.
 - A per-path cache for the worktree scan, so the first press of `w` is quick on a large roots folder.
 - Pinning sessions, once the CLI exposes it outside the native agent view; configurable palette and Windows Terminal profile for the tabs Vantage opens.
-- Publish to nuget.org: an API key secret, `dotnet nuget push` of the packed tool in `release.yml`, package icon and readme metadata, and the Install section dropping `--add-source`.
+- Publish to nuget.org: planned in the `public-release` change (`openspec\changes\public-release`), which also holds the order the open changes merge in; a hand-run `publish.yml` pushes a tested release through Trusted Publishing, and the Install section drops `--add-source`.

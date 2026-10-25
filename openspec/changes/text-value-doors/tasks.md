@@ -27,5 +27,6 @@
 
 ## Workflow follow-up
 
+- P3 in `public-release`'s sequence: the refactors stream, stacked on P2 (`unreachable-arms`).
 - One pull request, archived in it. After `remove-session-descriptions` and `unreachable-arms`; before `from-factory-spike`.
 - Manual check: none beyond the hand-off check; the wizard binder changes two comparisons and the `wizard-as-reducer` drive can be rerun to confirm the screens.

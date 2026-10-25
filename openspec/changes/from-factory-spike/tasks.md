@@ -12,5 +12,6 @@
 
 ## Workflow follow-up
 
+- P5 in `public-release`'s sequence: the refactors stream, stacked on P4 (`facts-not-sentences`), decided before the features stream continues past P6.
 - After `text-value-doors`; the only change in its pull request.
 - Archive the change whichever way the decision goes, so the record stays with the other decisions.

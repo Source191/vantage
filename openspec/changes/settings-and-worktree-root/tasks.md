@@ -45,5 +45,6 @@
 
 ## Workflow follow-up
 
+- P7 in `public-release`'s sequence: the features stream, stacked on P6 (`header-and-help`), started once P3 (and P5, if merged) are on `main`.
 - Merge after `header-and-help` and `remove-session-descriptions`; rebase the header context and `LaunchRequest` edits if either lands later.
 - Archive the change in the same pull request (`/opsx:archive settings-and-worktree-root`), so `openspec\specs` gains `settings` and the modified `session-launch` and `worktree-management` requirements.
