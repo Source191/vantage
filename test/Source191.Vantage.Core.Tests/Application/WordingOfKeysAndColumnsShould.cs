@@ -60,7 +60,7 @@ public sealed class WordingOfKeysAndColumnsShould
             b      move a terminal session under Vantage   a      native agent view
             w      worktrees view                          /      filter
             ?      help                                    q      quit
-            ,      edit roots, worktree root and editor
+            ,      edit roots, worktree root and editor    U      update Vantage in a new tab (quits first)
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one
@@ -87,6 +87,7 @@ public sealed class WordingOfKeysAndColumnsShould
             w      back to sessions                              Esc    back to sessions (clears a filter first)
             /      filter                                        ?      help
             q      quit                                          ,      edit roots, worktree root and editor
+            U      update Vantage in a new tab (quits first)
 
             Columns
             REPOSITORY   the repository that owns the worktree
