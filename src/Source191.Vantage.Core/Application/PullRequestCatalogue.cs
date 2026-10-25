@@ -56,6 +56,11 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
             PullRequestListing listing = await ListAsync(checkout);
             answers[checkout.Key] = new Answer(listing, clock.GetUtcNow());
         }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Nothing awaits a refresh started by a row, so a failure is kept as an answer the footer can explain.
+            answers[checkout.Key] = new Answer(new PullRequestListing.Unavailable(PullRequestGap.Failed), clock.GetUtcNow());
+        }
         finally
         {
             running.TryRemove(checkout.Key, out _);
