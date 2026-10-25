@@ -30,20 +30,20 @@ public sealed class DeleteSessionHandlerShould
     [Fact]
     public async Task DeleteASessionAndRemoveItsCleanVantageWorktreeAndMergedBranch()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), new BranchName("fix-123"), new FolderPath(Repository), Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Noon));
 
         DeleteSessionOutcome outcome = await Handler.DeleteAsync(Job(Worktree), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.Arguments.Contains("remove")).Arguments.ShouldBe(["worktree", "remove", Worktree]);
         processes.CapturedRequests.Single(request => request.Arguments.Contains("branch")).Arguments.ShouldBe(["branch", "-d", "fix-123"]);
         (await store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
-        outcome.ShouldBe(new DeleteSessionOutcome.RemovedWorktreeAndBranch("fix-123", new BranchName("fix-123")));
+        outcome.ShouldBe(new DeleteSessionOutcome.RemovedWorktreeAndBranch("fix-123", BranchName.From("fix-123")));
     }
 
     [Fact]
     public async Task KeepAVantageWorktreeThatStillHasChanges()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), new BranchName("fix-123"), new FolderPath(Repository), Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Noon));
         processes.Answer(request => request.Arguments.Contains("status"), new ProcessResult(0, " M a.cs\n", string.Empty));
 
         DeleteSessionOutcome outcome = await Handler.DeleteAsync(Job(Worktree), forced: false, CancellationToken.None);
@@ -55,14 +55,14 @@ public sealed class DeleteSessionHandlerShould
     [Fact]
     public async Task AskAboutTheBranchWhenItIsNotMerged()
     {
-        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(new FolderPath(Worktree), new BranchName("fix-123"), new FolderPath(Repository), Noon));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Noon));
         processes.Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty));
 
         DeleteSessionOutcome outcome = await Handler.DeleteAsync(Job(Worktree), forced: false, CancellationToken.None);
 
         processes.CapturedRequests.ShouldContain(request => request.Arguments.Contains("remove"));
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("branch"));
-        outcome.ShouldBe(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(new FolderPath(Repository), new BranchName("fix-123"))));
+        outcome.ShouldBe(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123"))));
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public sealed class DeleteSessionHandlerShould
     {
         DeleteBranchHandler handler = new(new GitCli(processes));
 
-        Outcome message = await handler.HandleAsync(new DeleteBranch(new BranchToConfirm(new FolderPath(Repository), new BranchName("fix-123"))), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new DeleteBranch(new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123"))), CancellationToken.None);
 
         processes.CapturedRequests.Single().Arguments.ShouldBe(["branch", "-D", "fix-123"]);
         message.ShouldBe(new DeleteBranchOutcome());

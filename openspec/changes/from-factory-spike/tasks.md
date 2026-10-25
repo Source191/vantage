@@ -2,9 +2,9 @@
 
 ## 1. The spelling
 
-- [ ] 1.1 `Architecture\TextValuesShould` flips: no public constructors on a text value and `From` declared on the interface (red first). Add `static abstract TSelf From(string text)` to `ITextValue<TSelf>`, implement it on the five types and make their constructors private. Verify the Domain tests fail only at construction sites.
-- [ ] 1.2 `Domain\TextValueContractShould`: one theory over the five types, with refused text making `From` throw `ArgumentException`, accepted text giving a value equal to `TryParse`'s, and `Value` equal to the text given. Verify it passes.
-- [ ] 1.3 Replace every `new X(text)` on a text value with `X.From(text)` in `src` and `test`. Verify `dotnet build`, the solution suite and `dotnet format --verify-no-changes` pass.
+- [x] 1.1 `Architecture\TextValuesShould` flips: no public constructors on a text value and `From` declared on the interface (red first). Add `static abstract TSelf From(string text)` to `ITextValue<TSelf>`, implement it on the five types and make their constructors private. Verify the Domain tests fail only at construction sites.
+- [x] 1.2 `Domain\TextValueContractShould`: one theory over the five types, with refused text making `From` throw `ArgumentException`, accepted text giving a value equal to `TryParse`'s, and `Value` equal to the text given. Verify it passes.
+- [x] 1.3 Replace every `new X(text)` on a text value with `X.From(text)` in `src` and `test`. Verify `dotnet build`, the solution suite and `dotnet format --verify-no-changes` pass.
 
 ## 2. The decision
 

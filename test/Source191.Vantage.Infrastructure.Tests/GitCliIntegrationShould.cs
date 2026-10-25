@@ -27,7 +27,7 @@ public sealed class GitCliIntegrationShould : IDisposable
 
         entries.Single().ShouldSatisfyAllConditions(
             entry => entry.IsMain.ShouldBeTrue(),
-            entry => entry.Branch.ShouldBe(new BranchName("main")),
+            entry => entry.Branch.ShouldBe(BranchName.From("main")),
             entry => entry.Path.ShouldBe(Repository, StringCompareShould.IgnoreCase));
     }
 
@@ -41,7 +41,7 @@ public sealed class GitCliIntegrationShould : IDisposable
 
         IReadOnlyList<GitWorktreeEntry> entries = await git.ListWorktreesAsync(Repository, TestContext.Current.CancellationToken);
         entries.Count.ShouldBe(2);
-        entries[1].Branch.ShouldBe(new BranchName("fix-123"));
+        entries[1].Branch.ShouldBe(BranchName.From("fix-123"));
         (await git.CountChangedFilesAsync(Worktree, TestContext.Current.CancellationToken)).ShouldBe(1);
         (await git.CountUnpushedCommitsAsync(Worktree, TestContext.Current.CancellationToken)).ShouldBe(1);
         (await git.LastCommitAtAsync(Worktree, TestContext.Current.CancellationToken)).ShouldNotBeNull();

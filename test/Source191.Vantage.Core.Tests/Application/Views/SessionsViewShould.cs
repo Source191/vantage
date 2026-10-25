@@ -117,7 +117,7 @@ public sealed class SessionsViewShould
     public void SelectASessionByIdWhenAskedTo()
     {
         Reduce(Loaded, new SelectSession(Stopped.Session.SessionId)).Selected.ShouldBe(Stopped);
-        Reduce(Loaded, new SelectSession(new SessionId("no-such-session"))).Selected.ShouldBe(Waiting);
+        Reduce(Loaded, new SelectSession(SessionId.From("no-such-session"))).Selected.ShouldBe(Waiting);
     }
 
     [Fact]
@@ -143,7 +143,7 @@ public sealed class SessionsViewShould
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Enter));
 
-        update.Effects.ShouldBe([new AttachToSession(new JobId("bbbb2222"))]);
+        update.Effects.ShouldBe([new AttachToSession(JobId.From("bbbb2222"))]);
     }
 
     [Fact]
@@ -281,8 +281,8 @@ public sealed class SessionsViewShould
         ViewUpdate unsafeName = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "fix; rm -rf"));
         ViewUpdate cancelled = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, null));
 
-        renamed.Effects.ShouldBe([new RenameSession(WaitingJob, new SessionName("fix the tests"))]);
-        renamed.State.Footer.ShouldBe(new Footer.Working(new RenameSession(WaitingJob, new SessionName("fix the tests"))));
+        renamed.Effects.ShouldBe([new RenameSession(WaitingJob, SessionName.From("fix the tests"))]);
+        renamed.State.Footer.ShouldBe(new Footer.Working(new RenameSession(WaitingJob, SessionName.From("fix the tests"))));
         blank.Effects.ShouldBeEmpty();
         blank.State.Footer.ShouldBe(new Footer.InvalidName(NameProblem.Missing));
         unsafeName.Effects.ShouldBeEmpty();
@@ -349,7 +349,7 @@ public sealed class SessionsViewShould
     [Fact]
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
-        new AttachToSession(new JobId("81cdb0f9")).ShouldBeAssignableTo<ILeavesScreen>();
+        new AttachToSession(JobId.From("81cdb0f9")).ShouldBeAssignableTo<ILeavesScreen>();
         new OpenAgentView().ShouldBeAssignableTo<ILeavesScreen>();
         new SwitchToWorktrees().ShouldBeAssignableTo<ILeavesScreen>();
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
@@ -382,16 +382,16 @@ public sealed class SessionsViewShould
     /// <summary>The session in its repository's folder, on main.</summary>
     private static SessionRow Row(Session session)
     {
-        return new SessionRow(session, session.WorkingDirectory.Name, new BranchName("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, session.WorkingDirectory.Name, BranchName.From("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
     }
 
     private static BackgroundSession Job(string name, DisplayState state, string repository, string jobId)
     {
-        return new BackgroundSession(new SessionId(Guid.NewGuid().ToString()), new JobId(jobId), name, new FolderPath($@"C:\repos\{repository}"), Noon, state);
+        return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From(jobId), name, FolderPath.From($@"C:\repos\{repository}"), Noon, state);
     }
 
     private static InteractiveSession Terminal(string name, DisplayState state, string repository)
     {
-        return new InteractiveSession(new SessionId(Guid.NewGuid().ToString()), name, new FolderPath($@"C:\repos\{repository}"), Noon, state, ProcessId: 4242);
+        return new InteractiveSession(SessionId.From(Guid.NewGuid().ToString()), name, FolderPath.From($@"C:\repos\{repository}"), Noon, state, ProcessId: 4242);
     }
 }

@@ -19,7 +19,7 @@ public sealed class PruneRepositoryHandlerShould
         processes.AnswerInTurn(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/a\nHEAD a\nbranch refs/heads/main\n\nworktree C:/b\nHEAD b\nbranch refs/heads/x\n\nworktree C:/c\nHEAD c\nbranch refs/heads/y\n", string.Empty), new ProcessResult(0, "worktree C:/a\nHEAD a\nbranch refs/heads/main\n", string.Empty));
         PruneRepositoryHandler handler = new(new GitCli(processes));
 
-        Outcome message = await handler.HandleAsync(new PruneRepository(new FolderPath(Repository)), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new PruneRepository(FolderPath.From(Repository)), CancellationToken.None);
 
         message.ShouldBe(new PruneRepositoryOutcome(2, "Northwind.Orders"));
     }

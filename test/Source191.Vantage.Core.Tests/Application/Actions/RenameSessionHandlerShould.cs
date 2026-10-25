@@ -16,7 +16,7 @@ public sealed class RenameSessionHandlerShould
 
     private RenameSessionHandler Handler => new(new ClaudeCli(processes, Claude), transcripts);
 
-    private static RenameSession Rename => new(Job(Repository, DisplayState.Idle), new SessionName("fix-124"));
+    private static RenameSession Rename => new(Job(Repository, DisplayState.Idle), SessionName.From("fix-124"));
 
     [Fact]
     public async Task RenameBySwappingTheJobForOneResumedUnderTheNewNameKeepingTheSessionId()

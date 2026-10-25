@@ -9,6 +9,6 @@ public sealed record SiblingWorktree(FolderPath Path, BranchName Branch)
             throw new ArgumentException($"{repository.Value} has no parent folder for a sibling worktree to sit in.", nameof(repository));
         }
 
-        return new SiblingWorktree(parent.Combine($"{repository.Name}-{slug.Value}"), new BranchName(slug.Value));
+        return new SiblingWorktree(parent.Combine($"{repository.Name}-{slug.Value}"), BranchName.From(slug.Value));
     }
 }

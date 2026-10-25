@@ -10,7 +10,7 @@ public static class HereCommand
 {
     public static LaunchPlanResult Plan(string directory, IReadOnlyList<string> arguments, Func<string, bool> isRepository)
     {
-        FolderPath path = new(directory);
+        FolderPath path = FolderPath.From(directory);
         string? name = null;
         string prompt = string.Empty;
 

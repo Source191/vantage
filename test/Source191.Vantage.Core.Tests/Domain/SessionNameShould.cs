@@ -49,13 +49,13 @@ public sealed class SessionNameShould
     [InlineData("say \"hello\"")]
     public void RefuseToBuildANameValidateRefuses(string text)
     {
-        Should.Throw<ArgumentException>(() => new SessionName(text));
+        Should.Throw<ArgumentException>(() => SessionName.From(text));
     }
 
     [Fact]
     public void KeepTheTextExactlyAsTyped()
     {
-        SessionName name = new("Refund retry policy");
+        SessionName name = SessionName.From("Refund retry policy");
 
         name.Value.ShouldBe("Refund retry policy");
         SessionName.TryParse("Refund retry policy", out SessionName? parsed).ShouldBeTrue();

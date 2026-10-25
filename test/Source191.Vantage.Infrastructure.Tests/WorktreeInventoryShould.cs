@@ -21,11 +21,11 @@ public sealed class WorktreeInventoryShould : IDisposable
     /// <summary>Plain claude running in the folder, or a stopped job there when it has no process.</summary>
     private static Session SessionIn(string directory, string name, int? processId)
     {
-        SessionId id = new(Guid.NewGuid().ToString());
+        SessionId id = SessionId.From(Guid.NewGuid().ToString());
 
         return processId is int running
-            ? new InteractiveSession(id, name, new FolderPath(directory), Noon, DisplayState.Idle, running)
-            : new BackgroundSession(id, new JobId("81cdb0f9"), name, new FolderPath(directory), Noon, DisplayState.Stopped);
+            ? new InteractiveSession(id, name, FolderPath.From(directory), Noon, DisplayState.Idle, running)
+            : new BackgroundSession(id, JobId.From("81cdb0f9"), name, FolderPath.From(directory), Noon, DisplayState.Stopped);
     }
 
     public void Dispose()
@@ -45,8 +45,8 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         rows.Select(row => (row.RepositoryName, row.Path, row.Branch, row.Health.Kind)).ShouldBe(
         [
-            ("Northwind.First", new FolderPath(firstWorktree), new BranchName("fix-1"), WorktreeHealthKind.Ok),
-            ("Northwind.Second", new FolderPath(secondWorktree), new BranchName("fix-2"), WorktreeHealthKind.Ok),
+            ("Northwind.First", FolderPath.From(firstWorktree), BranchName.From("fix-1"), WorktreeHealthKind.Ok),
+            ("Northwind.Second", FolderPath.From(secondWorktree), BranchName.From("fix-2"), WorktreeHealthKind.Ok),
         ]);
     }
 

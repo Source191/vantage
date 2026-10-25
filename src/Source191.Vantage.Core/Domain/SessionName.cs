@@ -23,7 +23,7 @@ public abstract record SessionNameValidation
 /// </summary>
 public sealed record SessionName : ITextValue<SessionName>
 {
-    public SessionName(string text)
+    private SessionName(string text)
     {
         if (ProblemWith(text) is NameProblem problem)
         {
@@ -33,6 +33,8 @@ public sealed record SessionName : ITextValue<SessionName>
         Value = text;
     }
 
+    public static SessionName From(string text) => new(text);
+
     public string Value { get; }
 
     /// <summary>Checks typed text: blank first, then the semicolon and double quote Windows Terminal cannot pass safely.</summary>
@@ -41,14 +43,14 @@ public sealed record SessionName : ITextValue<SessionName>
         return ProblemWith(text) switch
         {
             NameProblem problem => new SessionNameValidation.Refused(problem),
-            null => new SessionNameValidation.Valid(new SessionName(text)),
+            null => new SessionNameValidation.Valid(SessionName.From(text)),
         };
     }
 
     /// <summary>A listing name the CLI would refuse (quotes, semicolons) answers false rather than failing a resume.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out SessionName value)
     {
-        value = text is not null && ProblemWith(text) is null ? new SessionName(text) : null;
+        value = text is not null && ProblemWith(text) is null ? SessionName.From(text) : null;
         return value is not null;
     }
 

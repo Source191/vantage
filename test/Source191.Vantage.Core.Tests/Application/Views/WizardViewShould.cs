@@ -22,7 +22,7 @@ public sealed class WizardViewShould
 
     private WizardState InAgents => Reduce(Opened, new WizardInput.FilterChanged("agents"));
 
-    private WizardState FixedInBilling => WizardState.Open(new RepositoryCatalogue(folders, [Root]), [], folders, WorktreeBase.Head, new FolderPath(Billing));
+    private WizardState FixedInBilling => WizardState.Open(new RepositoryCatalogue(folders, [Root]), [], folders, WorktreeBase.Head, FolderPath.From(Billing));
 
     // 1.1 Choices, filter and the list.
 
@@ -215,7 +215,7 @@ public sealed class WizardViewShould
         fixedInBilling.ShowsChooser.ShouldBeFalse();
         Opened.ShowsChooser.ShouldBeTrue();
         fixedInBilling.Focus.ShouldBe(WizardField.Name);
-        fixedInBilling.Chosen.ShouldBe(new RepositoryChoice("Northwind.Billing", new FolderPath(Billing), IsRepository: true));
+        fixedInBilling.Chosen.ShouldBe(new RepositoryChoice("Northwind.Billing", FolderPath.From(Billing), IsRepository: true));
         fixedInBilling.Base.ShouldBe(WorktreeBase.Head, "the default base still comes from settings");
         Reduce(fixedInBilling, new WizardInput.NextField())
             .Focus.ShouldBe(WizardField.Name, "the Where choice is hidden, so Enter has nowhere to go");

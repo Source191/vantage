@@ -16,7 +16,7 @@ public sealed class HereCommandShould
         plan.Name.Value.ShouldBe("Northwind.Orders");
         plan.Worktree.ShouldBeNull();
         plan.OpeningPrompt.ShouldBeNull();
-        plan.Repository.ShouldBe(new RepositoryChoice("Northwind.Orders", new FolderPath(Directory), IsRepository: true));
+        plan.Repository.ShouldBe(new RepositoryChoice("Northwind.Orders", FolderPath.From(Directory), IsRepository: true));
     }
 
     [Fact]

@@ -30,6 +30,6 @@ internal static class WorktreeTestData
 
     public static WorktreeRow Row(WorktreeHealthKind health, string path = Worktree, string? branch = "fix-123", bool ownerExists = true)
     {
-        return new WorktreeRow(new FolderPath(Repository), new FolderPath(path), branch is null ? null : new BranchName(branch), new WorktreeHealth(health, new HealthReason.None()), 0, 0, Noon, null, null, 0, ownerExists, FolderExists: true);
+        return new WorktreeRow(FolderPath.From(Repository), FolderPath.From(path), branch is null ? null : BranchName.From(branch), new WorktreeHealth(health, new HealthReason.None()), 0, 0, Noon, null, null, 0, ownerExists, FolderExists: true);
     }
 }

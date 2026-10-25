@@ -11,7 +11,7 @@ namespace Source191.Vantage.Domain;
 public sealed partial record WorktreeSlug : ITextValue<WorktreeSlug>
 {
     /// <summary>The slug of text known to hold letters or digits; throws otherwise.</summary>
-    public WorktreeSlug(string text)
+    private WorktreeSlug(string text)
     {
         string slug = Slugged(text);
         if (slug.Length == 0)
@@ -22,12 +22,14 @@ public sealed partial record WorktreeSlug : ITextValue<WorktreeSlug>
         Value = slug;
     }
 
+    public static WorktreeSlug From(string text) => new(text);
+
     public string Value { get; }
 
     /// <summary>The slug of a name being typed or planned; false when it has no letters or digits.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out WorktreeSlug value)
     {
-        value = text is not null && Slugged(text).Length > 0 ? new WorktreeSlug(text) : null;
+        value = text is not null && Slugged(text).Length > 0 ? WorktreeSlug.From(text) : null;
         return value is not null;
     }
 

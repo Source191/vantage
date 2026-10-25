@@ -5,8 +5,8 @@ namespace Source191.Vantage.Core.Tests.Application.Launch;
 
 public sealed class LaunchPreviewShould
 {
-    private static readonly RepositoryChoice Repository = new("Northwind.Orders", new FolderPath(@"C:\repos\Northwind.Orders"), IsRepository: true);
-    private static readonly RepositoryChoice NoRepository = new("repos (no repository)", new FolderPath(@"C:\repos"), IsRepository: false);
+    private static readonly RepositoryChoice Repository = new("Northwind.Orders", FolderPath.From(@"C:\repos\Northwind.Orders"), IsRepository: true);
+    private static readonly RepositoryChoice NoRepository = new("repos (no repository)", FolderPath.From(@"C:\repos"), IsRepository: false);
 
     [Fact]
     public void SayTheSessionRunsOnTheCurrentBranchWhenNoWorktreeIsWanted()

@@ -25,7 +25,7 @@ public sealed class SessionRowEnricherShould
     public async Task SayWhetherASessionHasATranscriptToResumeFrom()
     {
         Session withMessages = Session(@"C:\repos\Northwind.Orders");
-        Session untouched = Session(@"C:\repos\Northwind.Orders") with { SessionId = new SessionId("never-sent-anything") };
+        Session untouched = Session(@"C:\repos\Northwind.Orders") with { SessionId = SessionId.From("never-sent-anything") };
         transcripts.WithMessages(withMessages.SessionId.Value);
 
         IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([withMessages, untouched], CancellationToken.None);
@@ -43,7 +43,7 @@ public sealed class SessionRowEnricherShould
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         row.Repository.ShouldBe("Northwind.Orders");
-        row.Branch.ShouldBe(new BranchName("feature/x"));
+        row.Branch.ShouldBe(BranchName.From("feature/x"));
         row.IsWorktree.ShouldBeFalse();
     }
 
@@ -56,7 +56,7 @@ public sealed class SessionRowEnricherShould
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         row.Repository.ShouldBe("Northwind.Orders");
-        row.Branch.ShouldBe(new BranchName("fix"));
+        row.Branch.ShouldBe(BranchName.From("fix"));
         row.IsWorktree.ShouldBeTrue();
     }
 
@@ -130,7 +130,7 @@ public sealed class SessionRowEnricherShould
 
         IReadOnlyList<SessionRow>[] results = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => enricher.EnrichAsync(sessions, CancellationToken.None)));
 
-        results.ShouldAllBe(rows => rows.Count == 20 && rows.All(row => row.Repository == "Northwind.Orders" && row.Branch == new BranchName("main")));
+        results.ShouldAllBe(rows => rows.Count == 20 && rows.All(row => row.Repository == "Northwind.Orders" && row.Branch == BranchName.From("main")));
     }
 
     private void AnswerGit(string directory, string root, string commonDir, string branch)
@@ -142,6 +142,6 @@ public sealed class SessionRowEnricherShould
 
     private static BackgroundSession Session(string workingDirectory)
     {
-        return new BackgroundSession(new SessionId(Guid.NewGuid().ToString()), new JobId("81cdb0f9"), "name", new FolderPath(workingDirectory), Noon, DisplayState.Working);
+        return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From("81cdb0f9"), "name", FolderPath.From(workingDirectory), Noon, DisplayState.Working);
     }
 }
