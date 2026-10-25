@@ -6,7 +6,7 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The worktrees view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesViewState, WorktreeRow>
+internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenDefinition<WorktreesViewState, WorktreeRow>
 {
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(15);
 
@@ -29,7 +29,7 @@ internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesVie
         return column switch
         {
             0 => row.RepositoryName,
-            1 => row.FolderName,
+            1 => folders.For(row.Path),
             2 => row.Branch?.Value ?? "-",
             3 => Count(row.DirtyFiles),
             4 => Count(row.UnpushedCommits),

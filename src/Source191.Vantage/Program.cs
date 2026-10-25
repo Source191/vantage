@@ -93,8 +93,9 @@ EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new Tab
 DialogEffects dialogs = new(new RepositoryCatalogue(folders, config.RepositoryRoots), store, folders, config.DefaultBase, new SolutionFinder(folders), new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
 WorktreeInventory inventory = new(git, folders, config.RepositoryRoots);
 ScreenContext context = new(tabTitle, Wording.HeaderValues(version, await claudeVersion, config.RepositoryRoots), clipboard);
-SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable);
-WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context);
+FolderLabels folderLabels = new(() => [.. config.RepositoryRoots.Select(root => FolderPath.TryParse(root, out FolderPath? parsed) ? parsed : null).OfType<FolderPath>()], new FolderPath(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)));
+SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
+WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context, folderLabels);
 ScreenLoop loop = new(sessionsScreen, worktreesScreen, ownTab, console, terminalEffects, log);
 
 return await loop.RunAsync(Environment.ProcessId, CancellationToken.None);

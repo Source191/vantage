@@ -48,6 +48,9 @@ public static partial class Wording
         new("/", "Filter", "filter", Column: 1),
         new("?", "Help", "help", Column: 1),
         new("q", "Quit", "quit", Column: 1),
+        new("c", "Copy path", "copy the folder path", Column: 2),
+        new("e", "Editor", "open the folder in your editor", Column: 2),
+        new("v", "Solution", "open its solution", Column: 2),
     ];
 
     public static IReadOnlyList<KeyHelp> WorktreesKeys { get; } =
@@ -63,6 +66,9 @@ public static partial class Wording
         new("/", "Filter", "filter", Column: 1),
         new("?", "Help", "help", Column: 1),
         new("q", "Quit", "quit", Column: 1),
+        new("c", "Copy path", "copy the folder path", Column: 2),
+        new("e", "Editor", "open the folder in your editor", Column: 2),
+        new("v", "Solution", "open its solution", Column: 2),
     ];
 
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =
@@ -70,8 +76,8 @@ public static partial class Wording
         new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
         new("STATE", "needs input (amber), working (cyan), idle (white),\ncompleted (green), failed (red), stopped (grey)"),
         new("REPOSITORY", "the repository the session runs in"),
+        new("FOLDER", "where it runs, relative to the repository or worktree root that holds it, else ~\\ from your home folder, else in full"),
         new("BRANCH", "the branch checked out there"),
-        new("WT", "yes when the session runs in a linked worktree"),
         new("AGE", "time since the session started"),
         new("TAB", "terminal for a plain claude started in its own tab, open while a Vantage tab shows it"),
     ];
@@ -79,7 +85,7 @@ public static partial class Wording
     public static IReadOnlyList<ColumnHelp> WorktreesColumns { get; } =
     [
         new("REPOSITORY", "the repository that owns the worktree"),
-        new("FOLDER", "the worktree's folder name"),
+        new("FOLDER", "the worktree's folder, relative to the root that holds it"),
         new("BRANCH", "the branch checked out there"),
         new("DIRTY", "changed or untracked files"),
         new("UNPUSHED", "commits on its branch that no remote has"),

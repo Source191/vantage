@@ -438,7 +438,7 @@ public sealed class SessionsViewShould
     /// <summary>The session in its repository's folder, on main.</summary>
     private static SessionRow Row(Session session)
     {
-        return new SessionRow(session, session.WorkingDirectory.Name, new BranchName("main"), IsWorktree: false, HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, session.WorkingDirectory.Name, new BranchName("main"), HasLiveTab: false, HasTranscript: true);
     }
 
     private static BackgroundSession Job(string name, DisplayState state, string repository, string jobId)

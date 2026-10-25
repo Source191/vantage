@@ -27,7 +27,6 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
                 session,
                 location.Repository,
                 location.Branch,
-                location.IsWorktree,
                 sessionsWithLiveTabs.Contains(session.SessionId),
                 transcripts.HasMessages(session.SessionId.Value)));
         }
@@ -66,7 +65,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         string? root = await git.RepositoryRootAsync(directory.Value, cancellationToken);
         if (root is null)
         {
-            return new Location(directory.Name, Branch: null, IsWorktree: false);
+            return new Location(directory.Name, Branch: null);
         }
 
         string? main = await git.MainCheckoutOfAsync(directory.Value, cancellationToken);
@@ -74,11 +73,10 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         FolderPath? mainCheckout = FolderPath.TryParse(main, out FolderPath? parsedMain) ? parsedMain : null;
         FolderPath? rootPath = FolderPath.TryParse(root, out FolderPath? parsedRoot) ? parsedRoot : null;
         BranchName? currentBranch = BranchName.TryParse(branch, out BranchName? parsedBranch) ? parsedBranch : null;
-        bool isWorktree = mainCheckout is not null && mainCheckout != rootPath;
         FolderPath? repository = mainCheckout ?? rootPath;
 
-        return new Location(repository?.Name ?? root, currentBranch, isWorktree);
+        return new Location(repository?.Name ?? root, currentBranch);
     }
 
-    private sealed record Location(string Repository, BranchName? Branch, bool IsWorktree);
+    private sealed record Location(string Repository, BranchName? Branch);
 }

@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 
@@ -9,12 +10,13 @@ public sealed class WorktreesScreen(
     DialogEffects dialogs,
     EffectDispatcher dispatcher,
     TimeProvider clock,
-    ScreenContext context)
+    ScreenContext context,
+    FolderLabels folders)
     : IWorktreesScreen
 {
     public WorktreesScreenExit Run(WorktreesViewState initial)
     {
-        TableScreen<WorktreesViewState, WorktreeRow> screen = new(new WorktreesScreenDefinition(), dialogs, dispatcher, load, clock, context);
+        TableScreen<WorktreesViewState, WorktreeRow> screen = new(new WorktreesScreenDefinition(folders), dialogs, dispatcher, load, clock, context);
         ScreenRun<WorktreesViewState> run = screen.Run(initial);
 
         return new WorktreesScreenExit(run.State, run.Exit);

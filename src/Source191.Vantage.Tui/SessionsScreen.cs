@@ -12,12 +12,13 @@ public sealed class SessionsScreen(
     EffectDispatcher dispatcher,
     TimeProvider clock,
     ScreenContext context,
-    string claudeExecutable)
+    string claudeExecutable,
+    FolderLabels folders)
     : ISessionsScreen
 {
     public ScreenExit Run(SessionsViewState initial)
     {
-        TableScreen<SessionsViewState, SessionRow> screen = new(new SessionsScreenDefinition(notifier, claudeExecutable), dialogs, dispatcher, load, clock, context);
+        TableScreen<SessionsViewState, SessionRow> screen = new(new SessionsScreenDefinition(notifier, claudeExecutable, folders), dialogs, dispatcher, load, clock, context);
         ScreenRun<SessionsViewState> run = screen.Run(initial);
 
         return new ScreenExit(run.State, run.Exit);

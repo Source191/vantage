@@ -6,7 +6,7 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The sessions view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, string claudeExecutable)
+internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, string claudeExecutable, FolderLabels folders)
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(5);
@@ -32,8 +32,8 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
             0 => row.Session.Name,
             1 => row.Session.State.Label,
             2 => row.Repository,
-            3 => row.Branch?.Value ?? "-",
-            4 => row.IsWorktree ? "yes" : string.Empty,
+            3 => folders.For(row.Session.WorkingDirectory),
+            4 => row.Branch?.Value ?? "-",
             5 => Durations.Age(now - row.Session.StartedAt),
             _ => Tab(row),
         };
