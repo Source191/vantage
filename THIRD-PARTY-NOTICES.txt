@@ -1,0 +1,164 @@
+Third-party notices for Source191.Vantage
+=========================================
+
+Vantage itself is licensed under the Apache License 2.0 (see the package licence).
+The tool package ships the libraries below beside it. Each is used under the licence named, and its copyright and licence notice is reproduced here as that licence requires.
+
+Packages
+--------
+
+ColorHelper 1.8.1 (ColorHelper.dll)
+  Licence: MIT
+  Copyright (c) 2020 Artyom Gritsuk
+
+Interop.UIAutomationClient 10.19041.0 (Interop.UIAutomationClient.dll)
+  Licence: MIT
+  Copyright (c) 2019 Roman
+
+JetBrains.Annotations 2026.2.0 (JetBrains.Annotations.dll)
+  Licence: MIT
+  Copyright (c) 2016-2025 JetBrains s.r.o.
+
+Markdig 1.3.2 (Markdig.dll)
+  Licence: BSD-2-Clause
+  Copyright (c) 2016-2026, Alexandre Mutel
+
+Microsoft.Extensions.Configuration 10.0.11 (Microsoft.Extensions.Configuration.dll, Microsoft.Extensions.Configuration.Abstractions.dll, Microsoft.Extensions.Configuration.Binder.dll, Microsoft.Extensions.Configuration.FileExtensions.dll, Microsoft.Extensions.Configuration.Json.dll)
+  Licence: MIT
+  Copyright (c) .NET Foundation and Contributors; (c) Microsoft Corporation
+
+Microsoft.Extensions.DependencyInjection.Abstractions 10.0.13 (Microsoft.Extensions.DependencyInjection.Abstractions.dll)
+  Licence: MIT
+  Copyright (c) .NET Foundation and Contributors; (c) Microsoft Corporation
+
+Microsoft.Extensions.FileProviders.Abstractions and Microsoft.Extensions.FileProviders.Physical 10.0.11 (Microsoft.Extensions.FileProviders.Abstractions.dll, Microsoft.Extensions.FileProviders.Physical.dll)
+  Licence: MIT
+  Copyright (c) .NET Foundation and Contributors; (c) Microsoft Corporation
+
+Microsoft.Extensions.FileSystemGlobbing 10.0.13 (Microsoft.Extensions.FileSystemGlobbing.dll)
+  Licence: MIT
+  Copyright (c) .NET Foundation and Contributors; (c) Microsoft Corporation
+
+Microsoft.Extensions.Logging.Abstractions 10.0.13 (Microsoft.Extensions.Logging.Abstractions.dll)
+  Licence: MIT
+  Copyright (c) .NET Foundation and Contributors; (c) Microsoft Corporation
+
+Microsoft.Extensions.Options 10.0.11 (Microsoft.Extensions.Options.dll)
+  Licence: MIT
+  Copyright (c) .NET Foundation and Contributors; (c) Microsoft Corporation
+
+Microsoft.Extensions.Primitives 10.0.11 (Microsoft.Extensions.Primitives.dll)
+  Licence: MIT
+  Copyright (c) .NET Foundation and Contributors; (c) Microsoft Corporation
+
+Onigwrap 1.0.11 (Onigwrap.dll and the native libonigwrap library under runtimes)
+  Licence: MIT
+  Copyright (c) 2024 Aikawa Yataro; Copyright (c) 2015 Fluent Solutions. The native library embeds Oniguruma, BSD-2-Clause, noticed separately below.
+
+System.IO.Abstractions 22.2.0 (System.IO.Abstractions.dll)
+  Licence: MIT
+  Copyright (c) Tatham Oddie and Contributors
+
+TestableIO.System.IO.Abstractions 22.2.0 (TestableIO.System.IO.Abstractions.dll)
+  Licence: MIT
+  Copyright (c) Tatham Oddie and Contributors
+
+TestableIO.System.IO.Abstractions.Wrappers 22.2.0 (TestableIO.System.IO.Abstractions.Wrappers.dll)
+  Licence: MIT
+  Copyright (c) Tatham Oddie and Contributors
+
+Terminal.Gui 2.5.0 (Terminal.Gui.dll)
+  Licence: MIT
+  Copyright 2007-2011 Novell Inc; Copyright 2017 Microsoft Corp
+
+Testably.Abstractions.FileSystem.Interface 10.3.0 (Testably.Abstractions.FileSystem.Interface.dll)
+  Licence: MIT
+  Copyright (c) 2022 Valentin Breuss
+
+TextMateSharp 2.0.4 (TextMateSharp.dll)
+  Licence: MIT
+  Copyright (c) 2021 Daniel Penalba
+
+TextMateSharp.Grammars 2.0.4 (TextMateSharp.Grammars.dll, which embeds TextMate grammars and themes)
+  Licence: MIT
+  Copyright (c) 2021 Daniel Penalba. The embedded grammars and themes come from other projects, mainly Visual Studio Code extensions, whose own licences are not reproduced here.
+
+Wcwidth 4.0.1 (Wcwidth.dll)
+  Licence: MIT
+  Copyright Patrik Svensson, Phil Scott
+
+
+The MIT licence (applies to every package above marked MIT, each with the copyright line given for it)
+---------------------------------------------------------------------------------------------------
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Markdig: BSD 2-Clause licence
+-----------------------------
+
+Copyright (c) 2016-2026, Alexandre Mutel
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+THE POSSIBILITY OF SUCH DAMAGE.
+
+
+Oniguruma (inside the native library of Onigwrap): BSD 2-Clause licence
+---------------------------------------------------------------------
+
+Copyright (c) 2002-2021  K.Kosako  <kkosako0@gmail.com>
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS' AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGE.
