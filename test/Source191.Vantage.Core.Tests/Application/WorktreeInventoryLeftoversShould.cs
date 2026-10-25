@@ -12,13 +12,14 @@ public sealed class WorktreeInventoryLeftoversShould
 {
     private const string Root = @"C:\Users\me\source\repos";
     private const string Repository = @"C:\Users\me\source\repos\Northwind.Orders";
+    private const string WorktreeRoot = @"C:\Users\me\source\worktrees";
 
     private readonly FakeFolders folders = new FakeFolders().WithDirectory(Path.Combine(Repository, ".git", "objects"));
     private readonly FakeProcessRunner processes = new FakeProcessRunner()
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
         .Answer(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/Users/me/source/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n", string.Empty));
 
-    private WorktreeInventory Inventory => new(new GitCli(processes), folders, [Root]);
+    private WorktreeInventory Inventory => new(new GitCli(processes), folders, TestSettings.Current(Root));
 
     [Fact]
     public async Task AskGitThreeThingsPerRegisteredWorktreeAndNothingAboutMergeState()
@@ -86,5 +87,50 @@ public sealed class WorktreeInventoryLeftoversShould
         row.Repository.Value.ShouldBe(Repository);
         row.OwnerExists.ShouldBeTrue();
         row.LeftoverFileCount.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task FindABrokenWorktreeUnderTheWorktreeRoot()
+    {
+        string worktree = Path.Combine(WorktreeRoot, "Northwind.Orders-republish");
+        folders.WithFile(Path.Combine(worktree, ".git"), "gitdir: C:/Users/me/source/repos/Northwind.Orders/.git/worktrees/republish\n");
+
+        WorktreeRow row = (await Inventory.ScanAsync([], CancellationToken.None)).Single();
+
+        row.Path.Value.ShouldBe(worktree);
+        row.Health.Kind.ShouldBe(WorktreeHealthKind.Broken);
+        row.Repository.Value.ShouldBe(Repository);
+    }
+
+    [Fact]
+    public async Task NotLookForEmptyLeftoversUnderTheWorktreeRoot()
+    {
+        folders.WithDirectory(Path.Combine(WorktreeRoot, "Northwind.Orders.worktrees"));
+
+        (await Inventory.ScanAsync([], CancellationToken.None)).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task NotListAFolderTwiceWhenTheWorktreeRootIsARoot()
+    {
+        string sibling = Path.Combine(Root, "Northwind.Orders-republish");
+        folders.WithFile(Path.Combine(sibling, ".git"), "gitdir: C:/Users/me/source/repos/Northwind.Orders/.git/worktrees/republish\n");
+        WorktreeInventory inventory = new(new GitCli(processes), folders, TestSettings.Current(TestSettings.For([Root], worktreeRoot: Root)));
+
+        (await inventory.ScanAsync([], CancellationToken.None)).Select(row => row.Path.Value).ShouldBe([sibling]);
+    }
+
+    [Fact]
+    public async Task ScanTheRootsSavedAfterItWasBuilt()
+    {
+        const string Work = @"D:\work";
+        string sibling = Path.Combine(Work, "Northwind.Ledger-republish");
+        folders.WithFile(Path.Combine(sibling, ".git"), "gitdir: D:/work/Northwind.Ledger/.git/worktrees/republish\n");
+        CurrentSettings settings = TestSettings.Current(Root);
+        WorktreeInventory inventory = new(new GitCli(processes), folders, settings);
+
+        await settings.SaveAsync(TestSettings.For(Root, Work));
+
+        (await inventory.ScanAsync([], CancellationToken.None)).Select(row => row.Path.Value).ShouldBe([sibling]);
     }
 }

@@ -1,6 +1,7 @@
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application;
 
@@ -24,8 +25,10 @@ public static partial class Wording
             FolderPathCopied copied => $"Copied {copied.Path} to the clipboard.",
             ClipboardBusy => "The clipboard is in use by another program; try again.",
             OpenedSolution solution => $"Opened {solution.FileName}.",
+            OpenInEditorOutcome editor => Describe(editor),
             OpenTabOutcome tab => Describe(tab),
             StartSessionOutcome start => Describe(start),
+            SaveSettingsOutcome => "Settings saved.",
             _ => outcome.ToString(),
         };
     }
@@ -38,6 +41,17 @@ public static partial class Wording
             LaunchOutcomeKind.Started => $"Started {name} ({outcome.JobId}) in {directory}.",
             LaunchOutcomeKind.WorkspaceNotTrusted => $"Could not start: {directory} is not trusted yet. Run claude here once and accept the prompt.",
             LaunchOutcomeKind.Failed => $"Could not start: {outcome.Message}",
+        };
+    }
+
+    private static string Describe(OpenInEditorOutcome outcome)
+    {
+        return outcome switch
+        {
+            OpenInEditorOutcome.Opened opened => $"Opened {opened.FolderName} in {EditorName(opened.Editor)}.",
+            OpenInEditorOutcome.EditorNotFound missing => $"Could not find {EditorName(missing.Editor)}; press , to choose another editor in settings.",
+            OpenInEditorOutcome.FolderMissing gone => $"{gone.FolderName} no longer exists, so nothing was opened.",
+            _ => outcome.ToString(),
         };
     }
 
@@ -163,4 +177,17 @@ public static partial class Wording
     private static string Registrations(int number) => number == 1 ? "1 stale registration" : $"{number} stale registrations";
 
     private static string Count(int number, string noun) => number == 1 ? $"1 {noun}" : $"{number} {noun}s";
+
+    private static string EditorName(EditorChoice editor)
+    {
+        return editor.Preset switch
+        {
+            EditorPreset.VsCode => "VS Code",
+            EditorPreset.Cursor => "Cursor",
+            EditorPreset.Rider => "Rider",
+            EditorPreset.VisualStudio => "Visual Studio",
+            EditorPreset.Explorer => "Explorer",
+            EditorPreset.Custom => Path.GetFileNameWithoutExtension(editor.Executable),
+        };
+    }
 }

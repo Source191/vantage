@@ -13,7 +13,7 @@ namespace Source191.Vantage.Tui;
 /// Every effect that needs a dialog, for both views. Each flow asks its question, then hands the answer back through
 /// the reducer or dispatches the effect it settles on; the work itself is always a handler's.
 /// </summary>
-public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, WorktreeBase defaultBase, SolutionFinder solutions, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
+public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, SolutionFinder solutions, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
 {
     /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
@@ -28,6 +28,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(ConfirmForceRemove)] = (_, context, effect) => ConfirmForce(context, (ConfirmForceRemove)effect),
         [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
         [typeof(FindSolution)] = (self, context, effect) => self.OpenSolutionOf(context, (FindSolution)effect),
+        [typeof(OpenSettings)] = (self, context, _) => self.EditSettings(context),
     }.ToFrozenDictionary();
 
     /// <summary>Whether an effect of this type has a dialog flow.</summary>
@@ -106,13 +107,25 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private void StartSession(IEffectContext context, FolderPath? fixedDirectory)
     {
-        WizardResult? wizard = LaunchWizardDialog.Show(context.App, catalogue, recent, folders, defaultBase, fixedDirectory);
+        WizardResult? wizard = LaunchWizardDialog.Show(context.App, catalogue, recent, folders, settings.Value, fixedDirectory);
         if (wizard is null)
         {
             return;
         }
 
         context.Dispatch(new StartSession(wizard.Plan, wizard.OpenInTab));
+    }
+
+    /// <summary>The settings dialog over the settings saved now; a save is dispatched, so the footer confirms it and the refresh after it uses the new values.</summary>
+    private void EditSettings(IEffectContext context)
+    {
+        Settings? saved = SettingsDialog.Show(context.App, settings.Value, folders.DirectoryExists);
+        if (saved is null)
+        {
+            return;
+        }
+
+        context.Dispatch(new SaveSettings(saved));
     }
 
     private void ConfirmDelete(IEffectContext context, DeleteSession deletion)

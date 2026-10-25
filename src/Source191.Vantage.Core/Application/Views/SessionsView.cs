@@ -167,6 +167,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'w' } => Effect(state, new SwitchToWorktrees()),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
+            { Name: KeyName.Character, Character: ',' } => Effect(state, new OpenSettings()),
             _ => Unchanged(state),
         };
     }

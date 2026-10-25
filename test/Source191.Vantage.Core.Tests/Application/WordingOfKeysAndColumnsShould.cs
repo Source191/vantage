@@ -10,13 +10,13 @@ public sealed class WordingOfKeysAndColumnsShould
         Wording.SessionsKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
         [
             "0 enter Attach", "0 o Open in tab", "0 n New session", "0 r Rename", "0 x Stop", "0 d Delete",
-            "1 R Resume stopped", "1 C Close empty tabs", "1 b ", "1 a Agent view", "1 w Worktrees", "1 / Filter", "1 ? Help", "1 q Quit",
+            "1 R Resume stopped", "1 C Close empty tabs", "1 b ", "1 a Agent view", "1 w Worktrees", "1 / Filter", "1 ? Help", "1 q Quit", "0 , Settings",
             "2 c Copy path", "2 e Editor", "2 v Solution",
         ]);
         Wording.WorktreesKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
         [
             "0 d Remove", "0 D Force remove", "0 p Prune", "0 s Start session", "0 o Open shell", "0 enter Go to session",
-            "1 w Sessions", "1 esc Sessions", "1 / Filter", "1 ? Help", "1 q Quit",
+            "1 w Sessions", "1 esc Sessions", "1 / Filter", "1 ? Help", "1 q Quit", "1 , Settings",
             "2 c Copy path", "2 e Editor", "2 v Solution",
         ]);
     }
@@ -62,8 +62,8 @@ public sealed class WordingOfKeysAndColumnsShould
             b      move a terminal session under Vantage   a      native agent view
             w      worktrees view                          /      filter
             ?      help                                    q      quit
-            c      copy the folder path                    e      open the folder in your editor
-            v      open its solution
+            ,      edit roots, worktree root and editor    c      copy the folder path
+            e      open the folder in your editor          v      open its solution
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one
@@ -89,8 +89,9 @@ public sealed class WordingOfKeysAndColumnsShould
             o      open a PowerShell tab there                   Enter  go to the session running in it
             w      back to sessions                              Esc    back to sessions (clears a filter first)
             /      filter                                        ?      help
-            q      quit                                          c      copy the folder path
-            e      open the folder in your editor                v      open its solution
+            q      quit                                          ,      edit roots, worktree root and editor
+            c      copy the folder path                          e      open the folder in your editor
+            v      open its solution
 
             Columns
             REPOSITORY   the repository that owns the worktree

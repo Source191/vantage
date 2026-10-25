@@ -56,7 +56,7 @@ internal sealed class WizardControls
 
     public TextField Name { get; } = new() { X = RightColumn, Y = 4, Width = ColumnWidth };
 
-    public OptionSelector Mode { get; } = new() { X = RightColumn, Y = 7, Labels = ["Current branch", "New sibling worktree"], Value = 0 };
+    public OptionSelector Mode { get; } = new() { X = RightColumn, Y = 7, Labels = ["Current branch", "New worktree"], Value = 0 };
 
     public OptionSelector BaseRef { get; } = new() { X = RightColumn, Y = 10, Labels = ["origin default branch", "current HEAD"], Value = 0 };
 

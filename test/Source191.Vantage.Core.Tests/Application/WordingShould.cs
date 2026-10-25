@@ -522,6 +522,7 @@ public sealed class WordingShould
             _ when type == typeof(RemovalReason) => new RemovalReason.Locked(),
             _ when type == typeof(HealthReason) => new HealthReason.FolderGone(),
             _ when type == typeof(NameProblem) => NameProblem.UnsafeCharacters,
+            _ when type == typeof(FolderPath) => new FolderPath(@"D:\nowhere"),
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
             _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123"),
@@ -562,8 +563,52 @@ public sealed class WordingShould
             .ShouldBe("A worktree needs a name with some letters or digits in it.");
     }
 
-    // Refusals on the launch path, in the wizard and vantage here.
+    // The settings dialog.
 
+    public static TheoryData<Type> SettingsProblems => new(typeof(SettingsProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(SettingsProblem))));
+
+    [Theory]
+    [MemberData(nameof(SettingsProblems))]
+    public void HaveWordsForEverySettingsProblem(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        SettingsProblem problem = (SettingsProblem)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+
+        Wording.Describe(problem).ShouldNotBe(problem.ToString(), $"{type.Name} has no arm in Wording.Describe");
+    }
+
+    [Fact]
+    public void SaySettingsProblems()
+    {
+        Wording.Describe(new SettingsProblem.NoRoots()).ShouldBe("Give at least one repository root, one per line.");
+        Wording.Describe(new SettingsProblem.RootNotFullPath("repos")).ShouldBe(@"The repository root repos is not a full path, such as C:\Users\me\source\repos.");
+        Wording.Describe(new SettingsProblem.RootMissing(new FolderPath(@"D:\nowhere"))).ShouldBe(@"D:\nowhere does not exist.");
+        Wording.Describe(new SettingsProblem.WorktreeRootNotFullPath()).ShouldBe(@"The worktree root must be a full path, such as C:\Users\me\source\worktrees.");
+        Wording.Describe(new SettingsProblem.NoExecutable()).ShouldBe("A custom editor needs an executable.");
+        Wording.Describe(new SettingsProblem.BatchFileExecutable()).ShouldBe("A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.");
+        Wording.Describe(new SettingsProblem.NoFolderPlaceholder()).ShouldBe("A custom editor's arguments need {folder} where the folder goes.");
+    }
+
+    [Fact]
+    public void SaySettingsAreBeingSaved()
+    {
+        Wording.Working(new SaveSettings(TestSettings.For(@"C:\Users\me\source\repos"))).ShouldBe("Saving settings...");
+    }
+
+    [Fact]
+    public void NameEveryEditorPreset()
+    {
+        Enum.GetValues<EditorPreset>().Select(Wording.Describe).ShouldBe(["VS Code", "Cursor", "Rider", "Visual Studio", "Explorer", "Custom"]);
+    }
+
+    [Fact]
+    public void SayTheSettingsKeyInHelp()
+    {
+        Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe").ShouldContain(",      edit roots, worktree root and editor");
+        Wording.WorktreesHelp.ShouldContain(",      edit roots, worktree root and editor");
+    }
+
+    // Refusals on the launch path, in the wizard and vantage here.
     public static TheoryData<Type> LaunchProblems => new(typeof(LaunchProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(LaunchProblem))));
 
     [Theory]
@@ -652,7 +697,7 @@ public sealed class WordingShould
     {
         FakeFolders folders = new();
 
-        return WizardState.Open(new RepositoryCatalogue(folders, []), [], folders, WorktreeBase.RemoteDefault, fixedDirectory is null ? null : new FolderPath(fixedDirectory));
+        return WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current()), [], folders, TestSettings.For(), fixedDirectory is null ? null : new FolderPath(fixedDirectory));
     }
 
     // vantage setup-terminal.

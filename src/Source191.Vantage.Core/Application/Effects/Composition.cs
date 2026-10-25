@@ -15,7 +15,9 @@ public sealed record EffectPorts(
     ITabRegistry Tabs,
     TimeProvider Clock,
     IClipboard Clipboard,
-    IDesktop Desktop);
+    IDesktop Desktop,
+    IEditorLocator Editors,
+    IFolders Folders);
 
 /// <summary>
 /// Every background effect's handler, registered in one place: <c>Program.cs</c> builds the real dispatcher here and
@@ -23,7 +25,7 @@ public sealed record EffectPorts(
 /// </summary>
 public static class Composition
 {
-    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts)
+    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts, CurrentSettings settings)
     {
         OpenTabHandler tabs = new(ports.Tabs, ports.Processes, ports.Terminal, ports.Clock, scripts);
 
@@ -39,6 +41,8 @@ public static class Composition
             .Register(new OpenShellHandler(ports.Terminal))
             .Register(new StartSessionHandler(launches, tabs, ports.Terminal, scripts))
             .Register(new CopyFolderPathHandler(ports.Clipboard))
-            .Register(new OpenSolutionHandler(ports.Desktop));
+            .Register(new OpenSolutionHandler(ports.Desktop))
+            .Register(new OpenInEditorHandler(ports.Editors, ports.Desktop, ports.Folders, settings))
+            .Register(new SaveSettingsHandler(settings));
     }
 }

@@ -313,6 +313,7 @@ public sealed class SessionsViewShould
     [InlineData('w', typeof(SwitchToWorktrees))]
     [InlineData('q', typeof(Quit))]
     [InlineData('?', typeof(ShowHelp))]
+    [InlineData(',', typeof(OpenSettings))]
     public void EmitTheEffectForTheKey(char key, Type effect)
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of(key)));

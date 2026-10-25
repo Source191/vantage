@@ -17,7 +17,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public string LoadFailurePrefix => "listing failed";
 
-    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nSessions:\nNeed input:";
+    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nWorktree root:\nSessions:\nNeed input:";
 
     public IReadOnlyList<KeyHelp> Keys => Wording.SessionsKeys;
 
@@ -41,10 +41,10 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public Color RowColour(SessionRow row) => Palette.ForState(row.Session.State.Kind);
 
-    /// <summary>The sessions line (48 columns at most, so it never wraps into the "Need input" row) and the needs-input count.</summary>
+    /// <summary>The sessions line (45 columns at most, so it never wraps into the "Need input" row) and the needs-input count.</summary>
     public string ContextLines(SessionsViewState state)
     {
-        const int width = 48;
+        const int width = 45;
         IEnumerable<string> byState = state.Rows
             .Where(row => row.Session.State.Kind != DisplayStateKind.NeedsInput)
             .GroupBy(row => row.Session.State.Label)

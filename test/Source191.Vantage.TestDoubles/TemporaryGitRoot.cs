@@ -40,6 +40,17 @@ public sealed class TemporaryGitRoot : IDisposable
         return worktree;
     }
 
+    /// <summary>The worktree root for this throwaway root, inside it so nothing outside the temp folder is scanned; git creates it on first use.</summary>
+    public string WorktreeRoot => System.IO.Path.Combine(Path, "worktrees");
+
+    public async Task<string> AddWorktreeUnderTheWorktreeRootAsync(string repository, string branch)
+    {
+        string worktree = System.IO.Path.Combine(WorktreeRoot, $"{System.IO.Path.GetFileName(repository)}-{branch}");
+        await GitAsync(repository, "worktree", "add", worktree, "-b", branch, "main");
+
+        return worktree;
+    }
+
     public async Task CommitAFileAsync(string checkout, string fileName)
     {
         await File.WriteAllTextAsync(System.IO.Path.Combine(checkout, fileName), fileName);

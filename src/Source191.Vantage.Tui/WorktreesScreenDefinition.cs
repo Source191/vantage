@@ -16,7 +16,7 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
 
     public string LoadFailurePrefix => "scan failed";
 
-    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nWorktrees:\nAt risk:";
+    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nWorktree root:\nWorktrees:\nAt risk:";
 
     public IReadOnlyList<KeyHelp> Keys => Wording.WorktreesKeys;
 

@@ -46,8 +46,8 @@ public sealed class EffectDispatcherShould
         ClaudeCli claude = new(processes, Claude);
         FakeTimeProvider clock = new(Noon);
         LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);
-        EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop());
-        EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, @"C:\Users\me\.dotnet\tools\vantage.exe"));
+        EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders());
+        EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, @"C:\Users\me\.dotnet\tools\vantage.exe"), TestSettings.Current());
         // A dialog effect that is dispatched itself once its dialog has been answered.
         Type[] dispatchedAfterTheirDialog = [typeof(CloseEmptyTerminals)];
 

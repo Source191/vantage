@@ -72,10 +72,3 @@ Saving SHALL write `config.json` and SHALL make every later scan, wizard, worktr
 #### Scenario: Change the worktree root
 - **WHEN** the user sets the worktree root to `D:\worktrees` and saves, then starts a session in a new worktree
 - **THEN** the worktree is created under `D:\worktrees`
-
-### Requirement: The header shows the worktree root
-Both views SHALL show the worktree root in the header beside the repository roots.
-
-#### Scenario: Default worktree root
-- **WHEN** Vantage starts with no settings file
-- **THEN** the header shows `C:\Users\me\source\worktrees` as the worktree root
