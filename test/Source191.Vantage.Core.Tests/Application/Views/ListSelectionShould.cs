@@ -102,12 +102,17 @@ public sealed class ListSelectionShould
     }
 
     [Fact]
-    public void TitleNamesTheViewFilterAndCount()
+    public void CountShownAndTotalRowsAndLabelTheSelection()
     {
-        Loaded.Title("fruit").ShouldBe("fruit(all)[3]");
-        Loaded.StartFilter().EditFilter(Key.Of('p')).Title("fruit").ShouldBe("fruit(p)[2]");
+        Loaded.Title("fruit", row => row.ToUpperInvariant()).ShouldBe(new TableTitle("fruit", Shown: 3, Total: 3, Filter: string.Empty, Selected: "APPLE"));
+        Loaded.StartFilter().EditFilter(Key.Of('p')).Title("fruit", row => row).ShouldBe(new TableTitle("fruit", Shown: 2, Total: 3, Filter: "p", Selected: "apple"));
     }
 
+    [Fact]
+    public void LeaveTheSelectionOutWhenNothingIsSelected()
+    {
+        Alphabetical.EmptyList().Load([]).Title("fruit", row => row).ShouldBe(new TableTitle("fruit", Shown: 0, Total: 0, Filter: string.Empty, Selected: null));
+    }
     [Fact]
     public void SelectAKeyAndClearAFilterThatHidesIt()
     {

@@ -91,7 +91,7 @@ public sealed class SessionsViewShould
 
         typing.FilterEditing.ShouldBeTrue();
         typing.VisibleRows.Select(row => row.Session.Name).ShouldBe(["old-spike"]);
-        typing.Title.ShouldBe("sessions(ol)[1]");
+        typing.Title.ShouldBe(new TableTitle("session", Shown: 1, Total: 4, Filter: "ol", Selected: "old-spike"));
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class SessionsViewShould
 
         SessionsViewState cleared = Press(committed, Key.Escape);
         cleared.VisibleRows.Count.ShouldBe(4);
-        cleared.Title.ShouldBe("sessions(all)[4]");
+        cleared.Title.ShouldBe(new TableTitle("session", Shown: 4, Total: 4, Filter: string.Empty, Selected: "change-feed"));
     }
 
     [Fact]

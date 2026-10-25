@@ -14,5 +14,5 @@ public interface IListViewState<TRow>
 
     bool Loaded { get; }
 
-    string Title { get; }
+    TableTitle Title { get; }
 }

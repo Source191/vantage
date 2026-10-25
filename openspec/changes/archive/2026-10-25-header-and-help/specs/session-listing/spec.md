@@ -51,3 +51,14 @@ Each key hint in the header SHALL show the key's help line as a tooltip while th
 #### Scenario: Hover over a key hint
 - **WHEN** the mouse pointer rests on the hint for x in the sessions view
 - **THEN** a tooltip shows the help line for x, saying it stops the session
+
+### Requirement: Column headers explain themselves on hover
+A table column header SHALL show what the column shows as a tooltip while the mouse pointer rests on it, using the same words as the help key, and SHALL show nothing while the pointer rests on a row.
+
+#### Scenario: Hover over a column header
+- **WHEN** the mouse pointer rests on the STATE header in the sessions view
+- **THEN** a tooltip names the column and lists the state words with their colours
+
+#### Scenario: Hover over a row
+- **WHEN** the mouse pointer rests on a row of the table
+- **THEN** no column tooltip is shown

@@ -32,4 +32,7 @@ public interface IClaudeCli
     Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, SessionName? name, CancellationToken cancellationToken);
 
     Task<int> OpenAgentViewAsync(CancellationToken cancellationToken);
+
+    /// <summary>The Claude Code version, such as "2.1.310"; null when the CLI cannot be run, is cancelled or prints none.</summary>
+    Task<string?> VersionAsync(CancellationToken cancellationToken);
 }
