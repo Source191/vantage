@@ -185,4 +185,5 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         context.Dispatch(open);
 
         return new Footer.Working(open);
-    }}
+    }
+}

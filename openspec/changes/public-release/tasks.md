@@ -20,7 +20,7 @@
 
 - [x] 4.1 P6 `header-and-help` merged and archived (minor); verify `openspec list` no longer shows it
 - [x] 4.2 P7 `settings-and-worktree-root` merged and archived (minor), stacked on P6 and started after P3 (and P5, if merged) are on `main`; verify `openspec\specs\settings` exists
-- [ ] 4.3 P8 `folder-column-and-open-keys` merged and archived (minor), stacked on P7; verify `openspec\specs\folder-actions` exists
+- [x] 4.3 P8 `folder-column-and-open-keys` merged and archived (minor), stacked on P7; verify `openspec\specs\folder-actions` exists
 - [ ] 4.4 P9 `pull-request-column` merged and archived (minor), stacked on P8; verify `openspec\specs\pull-requests` exists
 
 ## 5. P10: standalone
