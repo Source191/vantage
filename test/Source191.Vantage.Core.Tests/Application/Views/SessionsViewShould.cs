@@ -276,8 +276,8 @@ public sealed class SessionsViewShould
         ViewUpdate unsafeName = SessionsView.Reduce(Loaded, new RenameConfirmed(As.Job(Waiting), "fix; rm -rf"));
         ViewUpdate cancelled = SessionsView.Reduce(Loaded, new RenameConfirmed(As.Job(Waiting), null));
 
-        renamed.Effects.ShouldBe([new RenameSession(As.Job(Waiting), SessionName.Parse("fix the tests"))]);
-        renamed.State.Footer.ShouldBe(new Footer.Working(new RenameSession(As.Job(Waiting), SessionName.Parse("fix the tests"))));
+        renamed.Effects.ShouldBe([new RenameSession(As.Job(Waiting), new SessionName("fix the tests"))]);
+        renamed.State.Footer.ShouldBe(new Footer.Working(new RenameSession(As.Job(Waiting), new SessionName("fix the tests"))));
         blank.Effects.ShouldBeEmpty();
         blank.State.Footer.ShouldBe(new Footer.InvalidName(NameProblem.Missing));
         unsafeName.Effects.ShouldBeEmpty();

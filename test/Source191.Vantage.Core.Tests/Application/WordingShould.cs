@@ -315,7 +315,7 @@ public sealed class WordingShould
         Wording.Working(new OpenTabForSession(As.Job(Session), HasLiveTab: false)).ShouldBe("Opening a tab for fix-123...");
         Wording.Working(new StopSession(As.Job(Session))).ShouldBe("Stopping...");
         Wording.Working(new AdoptSession(As.Terminal(Terminal))).ShouldBe("Moving fix-123 under Vantage...");
-        Wording.Working(new RenameSession(As.Job(Session), SessionName.Parse("fix-124"))).ShouldBe("Renaming fix-123 to fix-124...");
+        Wording.Working(new RenameSession(As.Job(Session), new SessionName("fix-124"))).ShouldBe("Renaming fix-123 to fix-124...");
         Wording.Working(new CloseEmptyTerminals([As.Terminal(Terminal)])).ShouldBe("Closing...");
         Wording.Working(new ResumeSessions([As.Job(Session), As.Job(Session)])).ShouldBe("Resuming 2...");
         Wording.Working(new DeleteSession(As.Job(Session))).ShouldBe("Deleting fix-123...");
@@ -334,7 +334,7 @@ public sealed class WordingShould
     public void NameTheSessionBeingStarted()
     {
         LaunchPlan plan = new(
-            new FolderPath(Sessions.Repository), SessionName.Parse("Fix flaky tests"), Worktree: null,
+            new FolderPath(Sessions.Repository), new SessionName("Fix flaky tests"), Worktree: null,
             ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", new FolderPath(Sessions.Repository), IsRepository: true));
 
         Wording.Working(new StartSession(plan, OpenInTab: true)).ShouldBe("Starting Fix flaky tests...");

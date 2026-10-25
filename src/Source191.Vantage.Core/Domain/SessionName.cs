@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Source191.Vantage.Domain;
@@ -18,47 +17,48 @@ public abstract record SessionNameValidation
     public sealed record Refused(NameProblem Problem) : SessionNameValidation;
 }
 
+/// <summary>
+/// A session's name. Three doors share one rule: the constructor for text already known to be a valid name,
+/// <see cref="Validate"/> for typed text, which says why it refuses, and <see cref="TryParse"/> for a listing's name.
+/// </summary>
 public sealed record SessionName : ITextValue<SessionName>
 {
     public SessionName(string text)
     {
+        if (ProblemWith(text) is NameProblem problem)
+        {
+            throw new ArgumentException($"'{text}' is not a session name: {problem}.", nameof(text));
+        }
+
         Value = text;
     }
 
     public string Value { get; }
 
-    public WorktreeSlug? Slug => WorktreeSlug.From(Value);
-
     /// <summary>Checks typed text: blank first, then the semicolon and double quote Windows Terminal cannot pass safely.</summary>
     public static SessionNameValidation Validate(string text)
     {
-        return text switch
+        return ProblemWith(text) switch
         {
-            _ when string.IsNullOrWhiteSpace(text) => new SessionNameValidation.Refused(NameProblem.Missing),
-            _ when text.Contains(';') || text.Contains('"') => new SessionNameValidation.Refused(NameProblem.UnsafeCharacters),
-            _ => new SessionNameValidation.Valid(new SessionName(text)),
+            NameProblem problem => new SessionNameValidation.Refused(problem),
+            null => new SessionNameValidation.Valid(new SessionName(text)),
         };
     }
 
+    /// <summary>A listing name the CLI would refuse (quotes, semicolons) answers false rather than failing a resume.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out SessionName value)
     {
-        value = null;
-        return false;
+        value = text is not null && ProblemWith(text) is null ? new SessionName(text) : null;
+        return value is not null;
     }
 
-    /// <summary>A listing name the CLI would refuse (quotes, semicolons) reads as null rather than failing a resume.</summary>
-    public static SessionName? TryParse(string text) => Validate(text) is SessionNameValidation.Valid valid ? valid.Name : null;
-
-    /// <summary>For text already known to be a valid name; typed text goes through <see cref="Validate"/>.</summary>
-    public static SessionName Parse(string text)
+    private static NameProblem? ProblemWith(string text)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(text);
-
-        return Validate(text) switch
+        return text switch
         {
-            SessionNameValidation.Valid valid => valid.Name,
-            SessionNameValidation.Refused refused => throw new ArgumentException($"'{text}' is not a session name: {refused.Problem}.", nameof(text)),
-            _ => throw new UnreachableException(),
+            _ when string.IsNullOrWhiteSpace(text) => NameProblem.Missing,
+            _ when text.Contains(';') || text.Contains('"') => NameProblem.UnsafeCharacters,
+            _ => null,
         };
     }
 }

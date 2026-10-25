@@ -76,12 +76,12 @@ public static class LaunchPlanBuilder
             return LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsRepository());
         }
 
-        if (name.Slug is null)
+        if (!WorktreeSlug.TryParse(name.Value, out WorktreeSlug? slug))
         {
             return LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsLetters());
         }
 
-        SiblingWorktree worktree = SiblingWorktree.For(request.Repository.Path, name.Slug);
+        SiblingWorktree worktree = SiblingWorktree.For(request.Repository.Path, slug);
         bool reuse = folderExists(worktree.Path.Value);
 
         return Ok(new LaunchPlan(worktree.Path, name, worktree, reuse, request.Base, prompt, request.Repository));
