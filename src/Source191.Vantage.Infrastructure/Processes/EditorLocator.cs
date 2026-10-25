@@ -1,5 +1,6 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Globalization;
 
 namespace Source191.Vantage.Adapters.Processes;
 
@@ -52,20 +53,19 @@ public sealed class EditorLocator(IFolders folders, IProcessRunner processes, Ed
     private string? NewestRider()
     {
         string jetBrains = Path.Combine(where.ProgramFiles, "JetBrains");
-        IEnumerable<string> installed = folders.DirectoryExists(jetBrains)
-            ? folders.Directories(jetBrains).Select(install => Path.Combine(install, "bin", "rider64.exe"))
-            : [];
-        string toolbox = Path.Combine(where.LocalAppData, "JetBrains", "Toolbox", "apps");
-        IEnumerable<string> managed = folders.DirectoryExists(toolbox)
-            ? folders.Files(toolbox).Where(file => string.Equals(Path.GetFileName(file), "rider64.exe", StringComparison.OrdinalIgnoreCase))
-            : [];
+        string toolbox = Path.Combine(where.LocalAppData, "JetBrains", "Toolbox", "apps", "Rider");
 
-        return installed.Concat(managed)
+        // Toolbox keeps <channel>\<build>\bin; walking only those levels avoids listing every file of the IDE.
+        IEnumerable<string> installs = [.. Children(jetBrains), .. Children(toolbox).SelectMany(Children)];
+
+        return installs
+            .Select(install => Path.Combine(install, "bin", "rider64.exe"))
             .Where(folders.FileExists)
-            .OrderByDescending(file => file, StringComparer.OrdinalIgnoreCase)
+            .OrderByDescending(file => file, StringComparer.Create(CultureInfo.InvariantCulture, CompareOptions.NumericOrdering | CompareOptions.IgnoreCase))
             .FirstOrDefault();
     }
 
+    private IEnumerable<string> Children(string folder) => folders.DirectoryExists(folder) ? folders.Directories(folder) : [];
     private async Task<string?> VisualStudioAsync(CancellationToken cancellationToken)
     {
         string vswhere = Path.Combine(where.ProgramFilesX86, "Microsoft Visual Studio", "Installer", "vswhere.exe");

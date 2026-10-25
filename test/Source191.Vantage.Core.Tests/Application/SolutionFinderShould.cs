@@ -43,6 +43,14 @@ public sealed class SolutionFinderShould
     }
 
     [Fact]
+    public void PreferSlnxWhenBothFormatsAreNamedAfterTheRepository()
+    {
+        FakeFolders folders = new FakeFolders().WithFile($@"{Orders}\Northwind.Orders.sln").WithFile($@"{Orders}\Northwind.Orders.slnx");
+
+        new SolutionFinder(folders).Find(Folder, "Northwind.Orders").ShouldBe(new SolutionSearch.One($@"{Orders}\Northwind.Orders.slnx"));
+    }
+
+    [Fact]
     public void OfferSeveralWhenNoneIsNamedAfterTheRepository()
     {
         FakeFolders folders = new FakeFolders().WithFile($@"{Orders}\Worker.sln").WithFile($@"{Orders}\Api.sln");

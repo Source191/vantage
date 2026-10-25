@@ -30,7 +30,10 @@ public sealed class SolutionFinder(IFolders folders)
     {
         IReadOnlyList<string> named = [.. found.Where(file => string.Equals(Path.GetFileNameWithoutExtension(file), repositoryName, StringComparison.OrdinalIgnoreCase))];
 
-        return named.Count == 1 ? new SolutionSearch.One(named[0]) : new SolutionSearch.Several(found);
+        // A repository part-way through moving from .sln to .slnx has both; the newer format wins.
+        IReadOnlyList<string> newest = named.Count == 2 ? [.. named.Where(file => Path.GetExtension(file).Equals(".slnx", StringComparison.OrdinalIgnoreCase))] : named;
+
+        return newest.Count == 1 ? new SolutionSearch.One(newest[0]) : new SolutionSearch.Several(found);
     }
 
     private IReadOnlyList<string> SolutionsIn(FolderPath folder)

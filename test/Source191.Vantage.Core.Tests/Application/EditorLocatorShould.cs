@@ -81,6 +81,16 @@ public sealed class EditorLocatorShould
     }
 
     [Fact]
+    public async Task RankRiderBuildsByNumberNotByText()
+    {
+        FakeFolders folders = new FakeFolders()
+            .WithFile(@"C:\Program Files\JetBrains\JetBrains Rider 2025.9\bin\rider64.exe")
+            .WithFile(@"C:\Program Files\JetBrains\JetBrains Rider 2025.10\bin\rider64.exe");
+
+        (await Locate(folders, EditorPreset.Rider)).ShouldBe(@"C:\Program Files\JetBrains\JetBrains Rider 2025.10\bin\rider64.exe");
+    }
+
+    [Fact]
     public async Task AskVswhereForVisualStudio()
     {
         const string vswhere = @"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe";
