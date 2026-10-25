@@ -42,8 +42,7 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
         }
 
         await recent.RecordRecentRepositoryAsync(plan.Repository.Path.Value);
-        JobId? jobId = JobId.TryParse(start.JobId);
-        BackgroundSession? started = jobId is null ? null : await ListedSessionAsync(jobId, cancellationToken);
+        BackgroundSession? started = JobId.TryParse(start.JobId, out JobId? jobId) ? await ListedSessionAsync(jobId, cancellationToken) : null;
 
         return new LaunchOutcome(LaunchOutcomeKind.Started, jobId, start.Message, started);
     }

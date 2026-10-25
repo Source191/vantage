@@ -6,7 +6,6 @@ using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
-using Source191.Vantage.Core.Tests.Application.Actions;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 using static Source191.Vantage.Core.Tests.Application.Actions.SessionTestData;
@@ -21,7 +20,7 @@ public sealed class EffectDispatcherShould
     public async Task RouteAnEffectToItsHandler()
     {
         EffectDispatcher dispatcher = new EffectDispatcher().Register(new StopSessionHandler(new ClaudeCli(processes, Claude)));
-        StopSession stop = new(As.Job(Background(Repository, isWorktree: false)));
+        StopSession stop = new(Job(Repository));
 
         dispatcher.Handles(typeof(StopSession)).ShouldBeTrue();
         (await dispatcher.DispatchAsync(stop, CancellationToken.None)).ShouldBe(new StopSessionOutcome("fix-123"));

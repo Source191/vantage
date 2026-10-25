@@ -27,7 +27,7 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
 
     private async Task<StartSessionOutcome> StartedAsync(StartSession effect, JobId jobId, BackgroundSession? listed, CancellationToken cancellationToken)
     {
-        string name = effect.Plan.Name.Text;
+        string name = effect.Plan.Name.Value;
 
         return (effect.OpenInTab, listed) switch
         {

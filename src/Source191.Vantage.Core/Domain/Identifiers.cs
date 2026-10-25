@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Source191.Vantage.Domain;
 
 /// <summary>A Claude Code session's id. The CLI does not document its format, so the only rule is that it is not blank.</summary>
-public sealed record SessionId
+public sealed record SessionId : ITextValue<SessionId>
 {
     public SessionId(string text)
     {
@@ -11,14 +13,18 @@ public sealed record SessionId
 
     public string Value { get; }
 
-    /// <summary>An id from outside Vantage (the CLI's listing, a state file); null when it is blank.</summary>
-    public static SessionId? TryParse(string? text) => string.IsNullOrWhiteSpace(text) ? null : new SessionId(text);
+    /// <summary>An id from outside Vantage (the CLI's listing, a state file); false when it is blank.</summary>
+    public static bool TryParse(string? text, [MaybeNullWhen(false)] out SessionId value)
+    {
+        value = string.IsNullOrWhiteSpace(text) ? null : new SessionId(text);
+        return value is not null;
+    }
 
     public override string ToString() => Value;
 }
 
 /// <summary>A background job's id: the first eight characters of its session id, in hex, as the CLI lists it.</summary>
-public sealed record JobId
+public sealed record JobId : ITextValue<JobId>
 {
     private const int Length = 8;
 
@@ -34,10 +40,15 @@ public sealed record JobId
 
     public string Value { get; }
 
-    public static JobId? TryParse(string? text) => text is not null && IsJobId(text) ? new JobId(text) : null;
+    /// <summary>A job id from outside Vantage (the CLI's listing or its answer to a start); false when it is not one.</summary>
+    public static bool TryParse(string? text, [MaybeNullWhen(false)] out JobId value)
+    {
+        value = text is not null && IsJobId(text) ? new JobId(text) : null;
+        return value is not null;
+    }
 
-    /// <summary>The job id the CLI gives the session: its id's first eight characters; null when those are not hex.</summary>
-    public static JobId? Of(SessionId session) => TryParse(session.Value.Length >= Length ? session.Value[..Length] : null);
+    /// <summary>The job id the CLI gives the session: its id's first eight characters; false when those are not hex.</summary>
+    public static bool TryParse(SessionId session, [MaybeNullWhen(false)] out JobId value) => TryParse(session.Value.Length >= Length ? session.Value[..Length] : null, out value);
 
     public override string ToString() => Value;
 
@@ -45,7 +56,7 @@ public sealed record JobId
 }
 
 /// <summary>A git branch name: not blank and without whitespace, which git refuses in a branch name.</summary>
-public sealed record BranchName
+public sealed record BranchName : ITextValue<BranchName>
 {
     public BranchName(string text)
     {
@@ -59,8 +70,12 @@ public sealed record BranchName
 
     public string Value { get; }
 
-    /// <summary>A branch name from outside Vantage (git's output, a state file); null when it is not one.</summary>
-    public static BranchName? TryParse(string? text) => text is not null && IsBranchName(text) ? new BranchName(text) : null;
+    /// <summary>A branch name from outside Vantage (git's output, a state file); false when it is not one.</summary>
+    public static bool TryParse(string? text, [MaybeNullWhen(false)] out BranchName value)
+    {
+        value = text is not null && IsBranchName(text) ? new BranchName(text) : null;
+        return value is not null;
+    }
 
     public override string ToString() => Value;
 

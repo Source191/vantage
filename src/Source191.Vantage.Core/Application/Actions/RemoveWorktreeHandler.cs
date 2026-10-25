@@ -35,7 +35,11 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
         await git.RemoveWorktreeAsync(row.Repository.Value, row.Path.Value, decision.Forced, cancellationToken);
         await createdWorktrees.ForgetCreatedWorktreeAsync(row.Path);
         // A worktree on a detached head has no branch; the folder name stands in, as the removal rules assume.
-        BranchName? branch = row.Branch ?? BranchName.TryParse(row.FolderName);
+        BranchName? branch = row.Branch;
+        if (branch is null && BranchName.TryParse(row.FolderName, out BranchName? folderBranch))
+        {
+            branch = folderBranch;
+        }
 
         return (decision.Branch, branch) switch
         {

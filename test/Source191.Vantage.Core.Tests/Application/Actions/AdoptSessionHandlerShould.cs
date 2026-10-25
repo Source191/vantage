@@ -21,7 +21,7 @@ public sealed class AdoptSessionHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · repos-31", string.Empty));
 
-        Outcome message = await Handler.HandleAsync(new AdoptSession(As.Terminal(Interactive("repos-31", 4242))), CancellationToken.None);
+        Outcome message = await Handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-31", 4242)), CancellationToken.None);
 
         processTable.Terminated.ShouldBe([4242]);
         ProcessRequest resume = processes.CapturedRequests.Single(request => request.Arguments.Contains("--resume"));
@@ -35,7 +35,7 @@ public sealed class AdoptSessionHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 99aa88bb · repos-31\nnote: the session is already running, so a copy was started", string.Empty));
 
-        Outcome message = await Handler.HandleAsync(new AdoptSession(As.Terminal(Interactive("repos-31", 4242))), CancellationToken.None);
+        Outcome message = await Handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-31", 4242)), CancellationToken.None);
 
         AdoptSessionOutcome.Failed failed = message.ShouldBeOfType<AdoptSessionOutcome.Failed>();
         failed.Name.ShouldBe("repos-31");
@@ -47,7 +47,7 @@ public sealed class AdoptSessionHandlerShould
     {
         AdoptSessionHandler handler = new(new ClaudeCli(processes, Claude), processTable, new FakeTranscripts());
 
-        Outcome message = await handler.HandleAsync(new AdoptSession(As.Terminal(Interactive("repos-f6", 4242))), CancellationToken.None);
+        Outcome message = await handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-f6", 4242)), CancellationToken.None);
 
         message.ShouldBe(new AdoptSessionOutcome.NoMessages("repos-f6"));
         processTable.Terminated.ShouldBeEmpty();
