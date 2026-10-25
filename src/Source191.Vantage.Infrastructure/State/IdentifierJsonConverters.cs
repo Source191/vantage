@@ -5,7 +5,6 @@ using System.Text.Json.Serialization.Metadata;
 
 namespace Source191.Vantage.Adapters.State;
 
-
 /// <summary>
 /// Writes a tab's <see cref="TabOwner"/> as the string tab files have always held: the session id, or the word
 /// "vantage" for Vantage's own tab. No session id can be that word, since the CLI's ids are GUIDs.

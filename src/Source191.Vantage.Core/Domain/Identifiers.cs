@@ -20,7 +20,6 @@ public sealed record SessionId : ITextValue<SessionId>
         return value is not null;
     }
 
-
     public override string ToString() => Value;
 }
 
@@ -51,7 +50,6 @@ public sealed record JobId : ITextValue<JobId>
     /// <summary>The job id the CLI gives the session: its id's first eight characters; false when those are not hex.</summary>
     public static bool TryParse(SessionId session, [MaybeNullWhen(false)] out JobId value) => TryParse(session.Value.Length >= Length ? session.Value[..Length] : null, out value);
 
-
     public override string ToString() => Value;
 
     private static bool IsJobId(string text) => text.Length == Length && text.All(char.IsAsciiHexDigit);
@@ -78,7 +76,6 @@ public sealed record BranchName : ITextValue<BranchName>
         value = text is not null && IsBranchName(text) ? new BranchName(text) : null;
         return value is not null;
     }
-
 
     public override string ToString() => Value;
 

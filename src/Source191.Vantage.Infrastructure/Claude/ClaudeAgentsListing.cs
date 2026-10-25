@@ -33,6 +33,7 @@ public static class ClaudeAgentsListing
         string name = row.Name ?? string.Empty;
         DateTimeOffset startedAt = DateTimeOffset.FromUnixTimeMilliseconds(row.StartedAt ?? 0);
         DisplayState state = ClaudeStates.From(row.Pid, row.Status, row.State);
+
         if (row is { Kind: "interactive", Pid: int processId })
         {
             return new InteractiveSession(sessionId, name, workingDirectory, startedAt, state, processId);
