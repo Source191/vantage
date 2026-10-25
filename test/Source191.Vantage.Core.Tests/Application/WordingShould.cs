@@ -424,6 +424,12 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void SaySettingsAreBeingSaved()
+    {
+        Wording.Working(new SaveSettings(TestSettings.For(@"C:\Users\me\source\repos"))).ShouldBe("Saving settings...");
+    }
+
+    [Fact]
     public void NameEveryEditorPreset()
     {
         Enum.GetValues<EditorPreset>().Select(Wording.Describe).ShouldBe(["VS Code", "Cursor", "Rider", "Visual Studio", "Explorer", "Custom"]);

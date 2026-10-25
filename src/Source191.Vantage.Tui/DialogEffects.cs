@@ -27,6 +27,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(ResumeStoppedSessions)] = (_, context, effect) => ChooseSessionsToResume(context, ((ResumeStoppedSessions)effect).Rows),
         [typeof(ConfirmForceRemove)] = (_, context, effect) => ConfirmForce(context, (ConfirmForceRemove)effect),
         [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
+        [typeof(OpenSettings)] = (self, context, _) => self.EditSettings(context),
     }.ToFrozenDictionary();
 
     /// <summary>Whether an effect of this type has a dialog flow.</summary>
@@ -112,6 +113,18 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         }
 
         context.Dispatch(new StartSession(wizard.Plan, wizard.OpenInTab));
+    }
+
+    /// <summary>The settings dialog over the settings saved now; a save is dispatched, so the footer confirms it and the refresh after it uses the new values.</summary>
+    private void EditSettings(IEffectContext context)
+    {
+        Settings? saved = SettingsDialog.Show(context.App, settings.Value, folders.DirectoryExists);
+        if (saved is null)
+        {
+            return;
+        }
+
+        context.Dispatch(new SaveSettings(saved));
     }
 
     private void ConfirmDelete(IEffectContext context, DeleteSession deletion)

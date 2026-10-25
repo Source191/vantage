@@ -132,6 +132,7 @@ public static partial class Wording
             PruneRepository => "Pruning...",
             OpenShellTab shell => $"Opening a shell in {shell.Row.FolderName}...",
             StartSession start => $"Starting {start.Plan.Name.Value}...",
+            SaveSettings => "Saving settings...",
             _ => "Working...",
         };
     }
