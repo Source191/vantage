@@ -23,6 +23,7 @@ public static partial class Wording
             OpenShellOutcome shell => $"Opened a shell in {shell.FolderName}.",
             OpenTabOutcome tab => Describe(tab),
             StartSessionOutcome start => Describe(start),
+            SaveSettingsOutcome => "Settings saved.",
             _ => outcome.ToString(),
         };
     }

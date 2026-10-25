@@ -21,7 +21,7 @@ public sealed record EffectPorts(
 /// </summary>
 public static class Composition
 {
-    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts)
+    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts, CurrentSettings settings)
     {
         OpenTabHandler tabs = new(ports.Tabs, ports.Processes, ports.Terminal, ports.Clock, scripts);
 
@@ -35,6 +35,7 @@ public static class Composition
             .Register(new DeleteBranchHandler(ports.Git))
             .Register(new PruneRepositoryHandler(ports.Git))
             .Register(new OpenShellHandler(ports.Terminal))
-            .Register(new StartSessionHandler(launches, tabs, ports.Terminal, scripts));
+            .Register(new StartSessionHandler(launches, tabs, ports.Terminal, scripts))
+            .Register(new SaveSettingsHandler(settings));
     }
 }

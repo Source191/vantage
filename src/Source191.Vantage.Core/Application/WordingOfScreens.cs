@@ -8,6 +8,8 @@ public static partial class Wording
 {
     private const string UnknownVersion = "unknown";
 
+    private const string SettingsLine = "edit roots, worktree root and editor";
+
     /// <summary>The title of Vantage's own tab; every writer of it uses this one value.</summary>
     public static string TabTitle(ToolVersion version) => $"Vantage ({version.Text})";
 
@@ -48,6 +50,7 @@ public static partial class Wording
         new("/", "Filter", "filter", Column: 1),
         new("?", "Help", "help", Column: 1),
         new("q", "Quit", "quit", Column: 1),
+        new(",", "Settings", SettingsLine, Column: 0),
     ];
 
     public static IReadOnlyList<KeyHelp> WorktreesKeys { get; } =
@@ -63,6 +66,7 @@ public static partial class Wording
         new("/", "Filter", "filter", Column: 1),
         new("?", "Help", "help", Column: 1),
         new("q", "Quit", "quit", Column: 1),
+        new(",", "Settings", SettingsLine, Column: 1),
     ];
 
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =

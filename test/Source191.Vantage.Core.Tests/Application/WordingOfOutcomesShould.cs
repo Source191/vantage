@@ -28,6 +28,12 @@ public sealed class WordingOfOutcomesShould
         Wording.Describe(outcome).ShouldNotBe(outcome.ToString(), $"{type.Name} has no arm in Wording.Describe");
     }
 
+    [Fact]
+    public void SaySettingsSaved()
+    {
+        Wording.Describe(new SaveSettingsOutcome()).ShouldBe("Settings saved.");
+    }
+
     // Sessions.
 
     [Fact]
