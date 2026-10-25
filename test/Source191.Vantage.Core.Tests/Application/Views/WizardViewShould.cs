@@ -172,7 +172,7 @@ public sealed class WizardViewShould
         launch.OpenInTab.ShouldBeFalse();
         launch.Plan.ShouldSatisfyAllConditions(
             plan => plan.Directory.Value.ShouldBe(@"C:\Users\me\source\repos\Northwind.Agents-fix-123"),
-            plan => plan.Name.Text.ShouldBe("Fix 123"),
+            plan => plan.Name.Value.ShouldBe("Fix 123"),
             plan => plan.Worktree.ShouldNotBeNull(),
             plan => plan.ReuseExistingWorktree.ShouldBeFalse(),
             plan => plan.Base.ShouldBe(WorktreeBase.Head),

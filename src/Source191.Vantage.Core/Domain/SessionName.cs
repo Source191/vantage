@@ -21,12 +21,12 @@ public sealed record SessionName
 {
     private SessionName(string text)
     {
-        Text = text;
+        Value = text;
     }
 
-    public string Text { get; }
+    public string Value { get; }
 
-    public WorktreeSlug? Slug => WorktreeSlug.From(Text);
+    public WorktreeSlug? Slug => WorktreeSlug.From(Value);
 
     /// <summary>Checks typed text: blank first, then the semicolon and double quote Windows Terminal cannot pass safely.</summary>
     public static SessionNameValidation Validate(string text)

@@ -25,7 +25,7 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
         ResumeResult renamed = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, newName, cancellationToken);
         if (renamed.Continued)
         {
-            return new RenameSessionOutcome.Renamed(session.Name, newName.Text);
+            return new RenameSessionOutcome.Renamed(session.Name, newName.Value);
         }
 
         ResumeResult restored = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);

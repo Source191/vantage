@@ -23,7 +23,7 @@ public sealed class SessionNameShould
     [Fact]
     public void AcceptAnyOtherName()
     {
-        SessionName.Validate("Fix #123: flaky tests!").ShouldBeOfType<SessionNameValidation.Valid>().Name.Text.ShouldBe("Fix #123: flaky tests!");
+        SessionName.Validate("Fix #123: flaky tests!").ShouldBeOfType<SessionNameValidation.Valid>().Name.Value.ShouldBe("Fix #123: flaky tests!");
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class SessionNameShould
     {
         SessionName name = SessionName.Parse("Refund retry policy");
 
-        name.Text.ShouldBe("Refund retry policy");
+        name.Value.ShouldBe("Refund retry policy");
     }
 
     [Theory]

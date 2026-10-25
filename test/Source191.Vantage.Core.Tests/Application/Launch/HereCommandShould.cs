@@ -15,7 +15,7 @@ public sealed class HereCommandShould
         result.Problem.ShouldBeNull();
         result.Plan.ShouldNotBeNull();
         result.Plan.Directory.Value.ShouldBe(Directory);
-        result.Plan.Name.Text.ShouldBe("Northwind.Orders");
+        result.Plan.Name.Value.ShouldBe("Northwind.Orders");
         result.Plan.Worktree.ShouldBeNull();
         result.Plan.OpeningPrompt.ShouldBeNull();
         result.Plan.Repository.ShouldBe(new RepositoryChoice("Northwind.Orders", new FolderPath(Directory), IsRepository: true));
@@ -27,7 +27,7 @@ public sealed class HereCommandShould
         LaunchPlanResult result = HereCommand.Plan(Directory, ["fix-tests", "-p", "Fix the failing tests"], isRepository: _ => true);
 
         result.Plan.ShouldNotBeNull();
-        result.Plan.Name.Text.ShouldBe("fix-tests");
+        result.Plan.Name.Value.ShouldBe("fix-tests");
         result.Plan.OpeningPrompt.ShouldBe("Fix the failing tests");
     }
 
@@ -49,7 +49,7 @@ public sealed class HereCommandShould
 
         result.Plan.ShouldNotBeNull();
         result.Plan.Repository.IsRepository.ShouldBeFalse();
-        result.Plan.Name.Text.ShouldBe("notes");
+        result.Plan.Name.Value.ShouldBe("notes");
     }
 
     [Fact]

@@ -109,7 +109,7 @@ public static partial class Wording
             OpenTabForSession open => $"Opening a tab for {open.Session.Name}...",
             StopSession => "Stopping...",
             AdoptSession adopt => $"Moving {adopt.Session.Name} under Vantage...",
-            RenameSession rename => $"Renaming {rename.Session.Name} to {rename.NewName.Text}...",
+            RenameSession rename => $"Renaming {rename.Session.Name} to {rename.NewName.Value}...",
             CloseEmptyTerminals => "Closing...",
             ResumeSessions resume => $"Resuming {resume.Sessions.Count}...",
             DeleteSession deletion => $"Deleting {deletion.Session.Name}...",
@@ -117,7 +117,7 @@ public static partial class Wording
             RemoveWorktree remove => $"Removing {remove.Row.FolderName}...",
             PruneRepository => "Pruning...",
             OpenShellTab shell => $"Opening a shell in {shell.Row.FolderName}...",
-            StartSession start => $"Starting {start.Plan.Name.Text}...",
+            StartSession start => $"Starting {start.Plan.Name.Value}...",
             _ => "Working...",
         };
     }

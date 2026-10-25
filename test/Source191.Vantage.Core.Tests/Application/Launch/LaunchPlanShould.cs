@@ -22,7 +22,7 @@ public sealed class LaunchPlanShould
 
         plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders");
         plan.Worktree.ShouldBeNull();
-        plan.Name.Text.ShouldBe("Fix #123: flaky tests!");
+        plan.Name.Value.ShouldBe("Fix #123: flaky tests!");
     }
 
     [Fact]

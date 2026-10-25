@@ -23,13 +23,13 @@ public sealed class HereCommandRunner(IFolders folders, LaunchService launches, 
         switch (outcome.Kind)
         {
             case LaunchOutcomeKind.Started when outcome.JobId is not null:
-                await output.WriteLineAsync(Wording.Here(outcome, plan.Name.Text, directory));
+                await output.WriteLineAsync(Wording.Here(outcome, plan.Name.Value, directory));
                 await effects.RunAsync(new AttachToSession(outcome.JobId), cancellationToken);
                 console.RecoverAfterChild();
                 return 0;
             default:
                 // Not trusted or failed: Wording says which.
-                await error.WriteLineAsync(Wording.Here(outcome, plan.Name.Text, directory));
+                await error.WriteLineAsync(Wording.Here(outcome, plan.Name.Value, directory));
                 return 1;
         }
     }
