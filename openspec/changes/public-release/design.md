@@ -14,23 +14,23 @@ See proposal.md, Why. Every pull request that changes the packaged tool raises `
 
 ### The sequence
 
-| P | Change | Stream | Branches from | Bump |
-|---|---|---|---|---|
-| P0 | public-release: CI for stacked PRs | either | main | none |
-| P1 | remove-session-descriptions | gate | main | minor |
-| P2 | unreachable-arms | refactors | main | patch |
-| P3 | text-value-doors | refactors | P2 | patch |
-| P4 | facts-not-sentences | refactors | P3 | patch |
-| P5 | from-factory-spike | refactors | P4 | patch, or closed unmerged |
-| P6 | header-and-help | features | main | minor |
-| P7 | settings-and-worktree-root | features | P6 | minor |
-| P8 | folder-column-and-open-keys | features | P7 | minor |
-| P9 | pull-request-column | features | P8 | minor |
-| P10 | windows-terminal-setup | standalone | main | minor |
-| P11 | public-release: package ready | release | main | patch |
-| P12 | update-notice | release | main | minor |
-| P13 | public-release: final manual test and fixes | release | main | as each fix needs |
-| P14 | public-release: go public, archive | release | main | none |
+| P | Change | Stream | Branches from | Bump | Model | Effort |
+|---|---|---|---|---|---|---|
+| P0 | public-release: CI for stacked PRs | either | main | none | n/a (done) | n/a |
+| P1 | remove-session-descriptions | gate | main | minor | Sonnet | medium |
+| P2 | unreachable-arms | refactors | main | patch | Sonnet | medium |
+| P3 | text-value-doors | refactors | P2 | patch | Opus | high |
+| P4 | facts-not-sentences | refactors | P3 | patch | Sonnet | medium |
+| P5 | from-factory-spike | refactors | P4 | patch, or closed unmerged | Sonnet | low |
+| P6 | header-and-help | features | main | minor | Sonnet | high |
+| P7 | settings-and-worktree-root | features | P6 | minor | Opus | high |
+| P8 | folder-column-and-open-keys | features | P7 | minor | Sonnet | high |
+| P9 | pull-request-column | features | P8 | minor | Opus | high |
+| P10 | windows-terminal-setup | standalone | main | minor | Sonnet | high |
+| P11 | public-release: package ready | release | main | patch | Sonnet | medium |
+| P12 | update-notice | release | main | minor | Opus | high |
+| P13 | public-release: final manual test and fixes | release | main | as each fix needs | you | n/a |
+| P14 | public-release: go public, archive | release | main | none | you | n/a |
 
 - **P1 first, alone.** Five changes name `remove-session-descriptions` as a prerequisite; it touches the wizard, the launch request and the state store that the rest rework.
 - **The refactors stream merges before the features stream grows.** `text-value-doors` changes how every text value is parsed across nearly thirty source files, and `from-factory-spike`, if merged, changes every construction site. Feature branches written against the old shapes would each need a large rebase, so P2 to P5 merge first and P5 is decided as soon as P3 or P4 is green.
@@ -38,6 +38,16 @@ See proposal.md, Why. Every pull request that changes the packaged tool raises `
 - **Stacks within a stream.** A stacked branch raises the version above its parent's, so when its parent merges and GitHub retargets it to `main` its version is already higher and no new bump is needed. Branches in different streams collide on the `<Version>` line: when one stream merges, every open branch of the other needs one re-bump, so a stream's stack is merged in one burst rather than one PR at a time.
 - **Version is decided at merge time:** the next patch or minor after `main`'s when the branch is brought up to date, never a number fixed in advance.
 - **P12 after P6 and P7.** It reads the header line `header-and-help` adds and the settings holder `settings-and-worktree-root` adds; it needs nothing from P8 to P10.
+
+### Model choice
+
+Each change is implemented by one session, `/opsx:apply` from start to finish, on the model and effort in the table: never a subagent per task, because every task in a change needs the same context (CLAUDE.md, the specs, the code it touches) and splitting them re-reads it each time and breaks the red, green, refactor thread. Speed comes first from the two streams running at once, then from the model.
+
+- **Sonnet 5.5 is the default.** Every change is fully specified, and most follow a pattern the code already has: a new key is four pieces, a footer case is a `Wording` line and a fact. Effort is low for mechanical work (P5's construction sites), medium for small or deletion-only changes, high where Terminal.Gui or Windows Terminal behaviour is involved (P6, P8, P10).
+- **Opus 5.5 where a mistake spreads.** P3 reshapes how every text value is parsed and everything after it builds on that; P7 adds a dialog reducer, a config migration and a placement change; P9 adds two CLI adapters and a cache off the UI thread; P12 hands Vantage over to a tab that updates it while it is locked.
+- **Haiku is not used.** Warnings as errors, IDE0022, the layering test and the reflection facts would send it round the build loop more often than it saves.
+- **Review on Opus.** A Sonnet change gets an Opus `/code-review` before its pull request is opened.
+- **The `wt-title-escaping` spike is P13's,** run by the product owner at the terminal; a session at Sonnet low records the result.
 
 ### CI for stacked pull requests (P0)
 
