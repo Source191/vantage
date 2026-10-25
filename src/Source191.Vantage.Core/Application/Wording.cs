@@ -22,6 +22,15 @@ public static partial class Wording
 
     public static string ForceRemoveWarning => "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:";
 
+    /// <summary>The typed-confirmation dialog's line when Enter is pressed on an empty box; expectedKind names what must be typed.</summary>
+    public static string NothingTypedYet(string expectedKind, string expected) => $"Nothing typed yet; the {expectedKind} is {expected}.";
+
+    public static string NotTheSame(string typed) => $"Not the same: you typed {typed}.";
+
+    public static string CopiedToClipboard(string expected) => $"Copied {expected} to the clipboard; Ctrl+V pastes it into the box.";
+
+    public static string ClipboardUnavailable => "The clipboard is not available here; Shift+drag selects text in Windows Terminal.";
+
     public static string Describe(Footer footer)
     {
         return footer switch

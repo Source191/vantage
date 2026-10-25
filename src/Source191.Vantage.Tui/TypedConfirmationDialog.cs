@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
@@ -59,8 +60,8 @@ internal static class TypedConfirmationDialog
             }
 
             problem.Text = typed.Length == 0
-                ? $"Nothing typed yet; the {expectedKind} is {expected}."
-                : $"Not the same: you typed {typed}.";
+                ? Wording.NothingTypedYet(expectedKind, expected)
+                : Wording.NotTheSame(typed);
         };
         dialog.KeyDown += (_, key) =>
         {
@@ -68,8 +69,8 @@ internal static class TypedConfirmationDialog
             {
                 key.Handled = true;
                 hint.Text = app.Clipboard?.TrySetClipboardData(expected) == true
-                    ? $"Copied {expected} to the clipboard; Ctrl+V pastes it into the box."
-                    : "The clipboard is not available here; Shift+drag selects text in Windows Terminal.";
+                    ? Wording.CopiedToClipboard(expected)
+                    : Wording.ClipboardUnavailable;
             }
         };
         Button copy = new() { Text = "Cop_y name (F2)" };

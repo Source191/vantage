@@ -463,6 +463,32 @@ public sealed class WordingShould
         Wording.Describe(new HealthReason.NotRegistered()).ShouldBe("folder is not registered with git");
     }
 
+    // The typed-confirmation dialog.
+
+    [Fact]
+    public void SayWhatToTypeWhenNothingIsTypedYet()
+    {
+        Wording.NothingTypedYet("worktree folder", "Northwind.Orders-fix-123").ShouldBe("Nothing typed yet; the worktree folder is Northwind.Orders-fix-123.");
+    }
+
+    [Fact]
+    public void SayWhatWasTypedWhenItIsNotTheSame()
+    {
+        Wording.NotTheSame("Northwind.Orders").ShouldBe("Not the same: you typed Northwind.Orders.");
+    }
+
+    [Fact]
+    public void SayTheNameWasCopiedToTheClipboard()
+    {
+        Wording.CopiedToClipboard("Northwind.Orders-fix-123").ShouldBe("Copied Northwind.Orders-fix-123 to the clipboard; Ctrl+V pastes it into the box.");
+    }
+
+    [Fact]
+    public void SayTheClipboardIsNotAvailable()
+    {
+        Wording.ClipboardUnavailable.ShouldBe("The clipboard is not available here; Shift+drag selects text in Windows Terminal.");
+    }
+
     private static object Placeholder(Type type)
     {
         return type switch
