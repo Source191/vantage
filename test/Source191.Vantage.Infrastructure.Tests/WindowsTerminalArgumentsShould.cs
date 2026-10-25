@@ -13,7 +13,7 @@ public sealed class WindowsTerminalArgumentsShould
         StartingDirectory: new FolderPath(@"C:\repos\Northwind.Orders"),
         Script: "& 'C:\\Users\\me\\.local\\bin\\claude.exe' attach 81cdb0f9");
 
-    private static readonly List<string> Arguments = [.. WindowsTerminalArguments.ForTab(Launch)];
+    private static readonly List<string> Arguments = [.. WindowsTerminalArguments.ForTab(Launch, profile: null)];
 
     [Fact]
     public void OpenANewTabInTheCurrentWindow()
@@ -39,6 +39,21 @@ public sealed class WindowsTerminalArgumentsShould
         Arguments.Skip(pwsh).Take(3).ShouldBe(["pwsh.exe", "-NoExit", "-EncodedCommand"], customMessage: "the profile must load so the shell behind the session is the normal one");
         string decoded = Encoding.Unicode.GetString(Convert.FromBase64String(Arguments[pwsh + 3]));
         decoded.ShouldBe(Launch.Script);
+    }
+
+    [Fact]
+    public void AddTheProfileWhenGiven()
+    {
+        List<string> withProfile = [.. WindowsTerminalArguments.ForTab(Launch, "Vantage session")];
+
+        withProfile[withProfile.IndexOf("--profile") + 1].ShouldBe("Vantage session");
+        withProfile.IndexOf("--profile").ShouldBeLessThan(withProfile.IndexOf("pwsh.exe"));
+    }
+
+    [Fact]
+    public void OmitTheProfileWhenNull()
+    {
+        Arguments.ShouldNotContain("--profile");
     }
 
     [Fact]
