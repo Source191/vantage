@@ -1,9 +1,10 @@
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>A listed session with what git, the state store and the transcript folder add to it. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then, so every caller must say which it is.</summary>
-public sealed record SessionRow(Session Session, string Repository, BranchName? Branch, bool IsWorktree, string? Description, bool HasLiveTab, bool HasTranscript);
+public sealed record SessionRow(Session Session, string Repository, BranchName? Branch, bool IsWorktree, bool HasLiveTab, bool HasTranscript);
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
 public sealed record Key(KeyName Name, char Character)
@@ -242,7 +243,7 @@ public static class SessionsView
         {
             SessionNameValidation.Valid valid => Renamed(state, new RenameSession(confirmed.Session, valid.Name)),
             SessionNameValidation.Refused refused => Unchanged(state with { Footer = new Footer.InvalidName(refused.Problem) }),
-            _ => Unchanged(state),
+            _ => throw new UnreachableException(),
         };
     }
 

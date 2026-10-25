@@ -7,11 +7,11 @@
 
 ## 2. P1: gate
 
-- [ ] 2.1 `remove-session-descriptions` merged and archived (minor); verify `openspec list` no longer shows it and `openspec\specs\session-launch` has no description requirement
+- [x] 2.1 `remove-session-descriptions` merged and archived (minor); verify `openspec list` no longer shows it and `openspec\specs\session-launch` has no description requirement
 
 ## 3. P2 to P5: refactors stream
 
-- [ ] 3.1 P2 `unreachable-arms` merged and archived (patch); verify `openspec list` no longer shows it
+- [x] 3.1 P2 `unreachable-arms` merged and archived (patch); verify `openspec list` no longer shows it
 - [ ] 3.2 P3 `text-value-doors` merged and archived (patch), stacked on P2; verify `openspec list` no longer shows it
 - [ ] 3.3 P4 `facts-not-sentences` merged and archived (patch), stacked on P3; verify `openspec list` no longer shows it
 - [ ] 3.4 P5 `from-factory-spike` decided on its diff: merged (patch) or closed unmerged, with the reason in its tasks.md, and archived either way; verify `openspec list` no longer shows it
@@ -25,7 +25,7 @@
 
 ## 5. P10: standalone
 
-- [ ] 5.1 `windows-terminal-setup` merged and archived (minor), any time after P1; verify `openspec list` no longer shows it
+- [x] 5.1 `windows-terminal-setup` merged and archived (minor), any time after P1; verify `openspec list` no longer shows it
 
 ## 6. P11: package ready
 
@@ -47,7 +47,7 @@
 - [ ] 8.3 `header-and-help`: the tab title carries the version at start and after attaching and Ctrl+Z; the key-hint tooltips; verify both
 - [ ] 8.4 `settings-and-worktree-root`: `,` saves and applies without a restart; a new worktree lands under the worktree root; verify both
 - [ ] 8.5 `folder-column-and-open-keys` and `pull-request-column`: `c`, `e`, `v` and `p` in both views against a GitHub and an Azure DevOps repository; verify each opens or copies the right thing
-- [ ] 8.6 `windows-terminal-setup`: `vantage setup-terminal`, the two profiles after a Windows Terminal restart, the two bell sounds, `--remove`; verify each
+- [ ] 8.6 `windows-terminal-setup`: `vantage setup-terminal` (decline, then `--yes`), the two profiles after a Windows Terminal restart, the two bell sounds, a tab opened with `o` using "Vantage session", what `wt new-tab --profile "Vantage session"` does before the restart (if it fails rather than falling back, add a retry without `--profile`, test first), `--remove` and `o` back in the default profile; verify each
 - [ ] 8.7 `update-notice`: with a folder source holding a higher version and a recorded `update-check.json`, `U` updates in its own tab and Vantage restarts on the new version; remove the source afterwards; verify the new version shows in the header
 - [ ] 8.8 `wt-title-escaping`: run its spike, record the facts in CLAUDE.md and archive it in a pull request (patch only if a shipped file changes); verify `openspec list` no longer shows it
 - [ ] 8.9 Every fix found in 8.2 to 8.7 merged; verify the GitHub Release to publish is named here with its tag

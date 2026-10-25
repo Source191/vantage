@@ -50,13 +50,10 @@ public sealed class InMemoryStateShould
     }
 
     [Fact]
-    public async Task KeepDescriptionsBySessionIdAndTheConfiguration()
+    public async Task KeepTheConfiguration()
     {
-        await state.WriteDescriptionAsync("session-1", "first");
-        await state.WriteDescriptionAsync("session-1", "second");
         await state.WriteConfigAsync(new VantageConfig([@"D:\work"], WorktreeBase.Head));
 
-        (await state.ReadDescriptionsAsync())["session-1"].ShouldBe("second");
         (await state.ReadConfigAsync()).DefaultBase.ShouldBe(WorktreeBase.Head);
     }
 }
