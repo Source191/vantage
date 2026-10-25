@@ -21,12 +21,12 @@ Vantage SHALL record each worktree and branch it created and each launched repos
 - **THEN** the state folder records the worktree path, branch, repository and creation time
 
 #### Scenario: Two processes record at once
-- **WHEN** `vantage here` records a recent repository while the console records another
-- **THEN** both records are present on the next read
+- **WHEN** `vantage here` records a recent repository while the console records another recent repository and a created worktree
+- **THEN** all three records are present on the next read
 
 #### Scenario: Existing state is kept
-- **WHEN** Vantage starts with recent repositories saved by an earlier version
-- **THEN** they are still listed first in the wizard
+- **WHEN** Vantage starts with recent repositories and created worktrees saved by an earlier version
+- **THEN** the recent repositories are still listed first in the wizard and the created worktrees still decide the branch-deletion rules
 
 #### Scenario: Old description files are ignored
 - **WHEN** the state folder holds a `descriptions` folder or a `sessions.json` written by an earlier version
@@ -36,4 +36,4 @@ Vantage SHALL record each worktree and branch it created and each launched repos
 
 ### Requirement: A description is optional and travels with the session
 **Reason**: The product owner does not use the description. It carried a wizard field, a command-line option, a state port and folder and a column for no benefit.
-**Migration**: None. Files under `descriptions\` are left in place and ignored; delete the folder by hand if wanted.
+**Migration**: Put what a session is for in its name, in the wizard or as `vantage here <name>` (the rename key changes it later); drop `-d`/`--description` from scripts that call `vantage here`, which now refuses it with exit code 2. Files under `descriptions\` are left in place and ignored; delete the folder by hand if wanted.
