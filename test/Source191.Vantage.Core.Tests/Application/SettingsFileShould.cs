@@ -20,6 +20,23 @@ public sealed class SettingsFileShould
     }
 
     [Fact]
+    public void CheckForUpdatesWhenTheFileSaysNothing()
+    {
+        SettingsFile.From(config: null, Home).CheckForUpdates.ShouldBeTrue();
+        SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null), Home).CheckForUpdates.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void ReadAndWriteTheUpdateCheckTurnedOff()
+    {
+        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null, CheckForUpdates: false), Home);
+
+        settings.CheckForUpdates.ShouldBeFalse();
+        SettingsFile.ToConfig(settings).CheckForUpdates.ShouldBe(false);
+        SettingsFile.ToConfig(SettingsFile.From(config: null, Home)).CheckForUpdates.ShouldBe(true);
+    }
+
+    [Fact]
     public void ResolveAFileFromAnEarlierVersion()
     {
         Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null), Home);

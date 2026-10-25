@@ -41,6 +41,16 @@ public sealed class SettingsViewShould
         state.Focus.ShouldBe(SettingsField.Base);
     }
 
+    [Fact]
+    public void TurnTheUpdateCheckOffAndSaveIt()
+    {
+        SettingsState state = Reduce(Opened, new SettingsInput.CheckForUpdatesChanged(false));
+
+        state.Text.CheckForUpdates.ShouldBeFalse();
+        SettingsUpdate saved = SettingsView.Reduce(state, new SettingsInput.Save());
+        saved.Effect.ShouldBeOfType<SettingsEffect.Save>().Settings.CheckForUpdates.ShouldBeFalse();
+    }
+
     public static TheoryData<SettingsInput[], SettingsProblem, SettingsField> Problems => new()
     {
         { [new SettingsInput.RootsChanged(" ")], new SettingsProblem.NoRoots(), SettingsField.Roots },

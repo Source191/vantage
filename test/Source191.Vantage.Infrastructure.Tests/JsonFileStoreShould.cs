@@ -303,6 +303,17 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
+    public async Task WriteCheckForUpdates()
+    {
+        VantageConfig saved = new([@"C:\repos"], WorktreeBase.RemoteDefault, @"C:\worktrees", new EditorSetting("VsCode", Executable: null, Arguments: null), CheckForUpdates: false);
+
+        await Store.WriteConfigAsync(saved);
+
+        (await Store.ReadConfigAsync()).ShouldBe(saved);
+        (await File.ReadAllTextAsync(Path.Combine(folder, "config.json"), TestContext.Current.CancellationToken)).ShouldContain("\"checkForUpdates\": false");
+    }
+
+    [Fact]
     public async Task ReadAConfigWithoutABaseAsHavingNone()
     {
         Directory.CreateDirectory(folder);
