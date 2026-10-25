@@ -9,6 +9,7 @@ namespace Source191.Vantage.Core.Tests.Application.Views;
 public sealed class WizardViewShould
 {
     private const string Root = @"C:\Users\me\source\repos";
+    private const string WorktreeRoot = @"D:\worktrees";
     private static readonly string Agents = Path.Combine(Root, "Northwind.Agents");
     private static readonly string Billing = Path.Combine(Root, "Northwind.Billing");
     private static readonly string Templates = Path.Combine(Root, "Northwind.Templates");
@@ -18,11 +19,11 @@ public sealed class WizardViewShould
         .WithDirectory(Path.Combine(Billing, ".git"))
         .WithDirectory(Path.Combine(Templates, ".git"));
 
-    private WizardState Opened => WizardState.Open(new RepositoryCatalogue(folders, [Root]), [Templates], folders, WorktreeBase.RemoteDefault);
+    private WizardState Opened => WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [Templates], folders, TestSettings.For(Root));
 
     private WizardState InAgents => Reduce(Opened, new WizardInput.FilterChanged("agents"));
 
-    private WizardState FixedInBilling => WizardState.Open(new RepositoryCatalogue(folders, [Root]), [], folders, WorktreeBase.Head, new FolderPath(Billing));
+    private WizardState FixedInBilling => WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, TestSettings.For([Root], WorktreeRoot, WorktreeBase.Head), new FolderPath(Billing));
 
     // 1.1 Choices, filter and the list.
 
@@ -101,18 +102,29 @@ public sealed class WizardViewShould
     // 1.3 The preview.
 
     [Fact]
+    public void TakeTheWorktreeRootAndBaseFromTheSettings()
+    {
+        WizardState opened = WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, TestSettings.For([Root], WorktreeRoot, WorktreeBase.Head));
+
+        opened.WorktreeRoot.ShouldBe(new FolderPath(WorktreeRoot));
+        opened.Base.ShouldBe(WorktreeBase.Head);
+        Reduce(Reduce(opened, new WizardInput.NameChanged("fix 123")), new WizardInput.ModeChanged(LaunchMode.NewWorktree))
+            .Preview.ShouldBe(@"Worktree Northwind.Agents-fix-123 under D:\worktrees, on branch fix-123.");
+    }
+
+    [Fact]
     public void PreviewFollowsNameModeAndSelection()
     {
         InAgents.Preview.ShouldBe("Runs in Northwind.Agents on its current branch; the name is only the session's label.");
 
         WizardState worktree = Reduce(InAgents, new WizardInput.ModeChanged(LaunchMode.NewWorktree));
-        worktree.Preview.ShouldBe("The name becomes the worktree folder Northwind.Agents-<name> and its branch.");
+        worktree.Preview.ShouldBe(@"The name becomes the worktree folder Northwind.Agents-<name> under C:\Users\me\source\worktrees and its branch.");
 
         WizardState named = Reduce(worktree, new WizardInput.NameChanged("Fix 123"));
-        named.Preview.ShouldBe("Worktree Northwind.Agents-fix-123 beside the repository, on branch fix-123.");
+        named.Preview.ShouldBe(@"Worktree Northwind.Agents-fix-123 under C:\Users\me\source\worktrees, on branch fix-123.");
 
         WizardState elsewhere = Reduce(named, new WizardInput.FilterChanged("billing"));
-        elsewhere.Preview.ShouldBe("Worktree Northwind.Billing-fix-123 beside the repository, on branch fix-123.");
+        elsewhere.Preview.ShouldBe(@"Worktree Northwind.Billing-fix-123 under C:\Users\me\source\worktrees, on branch fix-123.");
 
         Reduce(named, new WizardInput.FilterChanged("nothing matches")).Preview.ShouldBe(string.Empty, "with nothing chosen there is nothing to preview");
     }
@@ -171,7 +183,7 @@ public sealed class WizardViewShould
         WizardEffect.Launch launch = started.Effect.ShouldBeOfType<WizardEffect.Launch>();
         launch.OpenInTab.ShouldBeFalse();
         launch.Plan.ShouldSatisfyAllConditions(
-            plan => plan.Directory.Value.ShouldBe(@"C:\Users\me\source\repos\Northwind.Agents-fix-123"),
+            plan => plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Agents-fix-123"),
             plan => plan.Name.Value.ShouldBe("Fix 123"),
             plan => plan.Worktree.ShouldNotBeNull(),
             plan => plan.ReuseExistingWorktree.ShouldBeFalse(),
@@ -182,7 +194,7 @@ public sealed class WizardViewShould
     [Fact]
     public void StartReusesAWorktreeFolderThatExists()
     {
-        folders.WithDirectory(@"C:\Users\me\source\repos\Northwind.Agents-fix-123");
+        folders.WithDirectory(@"C:\Users\me\source\worktrees\Northwind.Agents-fix-123");
 
         WizardUpdate started = WizardView.Reduce(Fill(InAgents), new WizardInput.Start(OpenInTab: false));
 

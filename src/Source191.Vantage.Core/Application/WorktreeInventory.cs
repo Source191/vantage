@@ -6,11 +6,11 @@ using IOPath = System.IO.Path;
 namespace Source191.Vantage.Application;
 
 /// <summary>
-/// Everything under the repository roots that is, or was, a worktree: git's own listing per repository, plus the
-/// leftovers git has forgotten (orphans under .claude\worktrees, siblings whose registration is gone, empty folders
+/// Everything under the repository roots and the worktree root that is, or was, a worktree: git's own listing per repository, plus the
+/// leftovers git has forgotten (orphans under .claude\worktrees, folders under a root or the worktree root whose registration is gone, empty folders
 /// that worktree tools leave behind). Read-only: nothing here prunes, deletes or touches git state.
 /// </summary>
-public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<string> roots)
+public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSettings settings)
 {
     private readonly WorktreeInspector inspector = new(git);
 
@@ -19,12 +19,13 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
 
     public async Task<IReadOnlyList<WorktreeRow>> ScanAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {
+        Settings snapshot = settings.Value;
         List<WorktreeRow> rows = [];
         HashSet<FolderPath> registered = [];
         List<FolderPath> repositories = [];
         List<FolderPath> candidates = [];
 
-        foreach (FolderPath root in Paths(roots.Where(folders.DirectoryExists)))
+        foreach (FolderPath root in snapshot.RepositoryRoots.Where(root => folders.DirectoryExists(root.Value)))
         {
             foreach (FolderPath child in Paths(folders.Directories(root.Value)).OrderBy(child => child.Key, StringComparer.Ordinal))
             {
@@ -44,19 +45,35 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
             }
         }
 
+        candidates.AddRange(WorktreeRootCandidates(snapshot));
+
         foreach (FolderPath repository in repositories)
         {
             rows.AddRange(await RegisteredRowsAsync(repository, registered, cancellationToken));
             rows.AddRange(OrphanRows(repository, registered));
         }
 
-        rows.AddRange(candidates.Where(candidate => !registered.Contains(candidate)).Select(BrokenSibling));
+        rows.AddRange(candidates.Where(candidate => !registered.Contains(candidate)).Select(BrokenWorktree));
 
         return [.. rows.Select(row => WithLiveSession(row, LiveSessionIn(row.Path, sessions)))];
     }
 
-    /// <summary>The paths among folder listings and configured roots that are full paths; anything else is skipped.</summary>
+    /// <summary>The paths among folder listings that are full paths; anything else is skipped.</summary>
     private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Parsed<FolderPath>();
+
+    /// <summary>The worktree root's children with a .git file: broken when no repository lists them. A root that is also a repository root was scanned already.</summary>
+    private IEnumerable<FolderPath> WorktreeRootCandidates(Settings snapshot)
+    {
+        FolderPath worktreeRoot = snapshot.WorktreeRoot;
+        if (snapshot.RepositoryRoots.Contains(worktreeRoot) || !folders.DirectoryExists(worktreeRoot.Value))
+        {
+            return [];
+        }
+
+        return Paths(folders.Directories(worktreeRoot.Value))
+            .Where(child => folders.FileExists(IOPath.Combine(child.Value, ".git")))
+            .OrderBy(child => child.Key, StringComparer.Ordinal);
+    }
 
     private async Task<IReadOnlyList<WorktreeRow>> RegisteredRowsAsync(FolderPath repository, HashSet<FolderPath> registered, CancellationToken cancellationToken)
     {
@@ -139,8 +156,8 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, IReadOnlyList<
         }
     }
 
-    /// <summary>A direct child of a root with a .git file that no repository under the roots lists.</summary>
-    private WorktreeRow BrokenSibling(FolderPath folder)
+    /// <summary>A direct child of a root or the worktree root with a .git file that no repository under the roots lists.</summary>
+    private WorktreeRow BrokenWorktree(FolderPath folder)
     {
         string? gitDir = GitDirOf(IOPath.Combine(folder.Value, ".git"));
         FolderPath owner = OwnerOf(gitDir) ?? folder.Parent ?? folder;

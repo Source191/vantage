@@ -52,8 +52,8 @@ public sealed class InMemoryStateShould
     [Fact]
     public async Task KeepTheConfiguration()
     {
-        await state.WriteConfigAsync(new VantageConfig([@"D:\work"], WorktreeBase.Head));
+        await state.WriteConfigAsync(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null));
 
-        (await state.ReadConfigAsync()).DefaultBase.ShouldBe(WorktreeBase.Head);
+        (await state.ReadConfigAsync())!.DefaultBase.ShouldBe(WorktreeBase.Head);
     }
 }

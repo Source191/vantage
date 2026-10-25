@@ -18,12 +18,12 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 internal static class LaunchWizardDialog
 {
-    public static WizardResult? Show(IApplication app, RepositoryCatalogue catalogue, IRecentRepositories recentRepositories, IFolders folders, WorktreeBase defaultBase, FolderPath? fixedDirectory = null)
+    public static WizardResult? Show(IApplication app, RepositoryCatalogue catalogue, IRecentRepositories recentRepositories, IFolders folders, Settings settings, FolderPath? fixedDirectory = null)
     {
         // Read once, on a pool thread: Terminal.Gui installs a synchronisation context while it runs, so awaiting
         // on the UI thread and then blocking for the result would deadlock (it did, after every attach-and-return).
         IReadOnlyList<string> recent = Task.Run(recentRepositories.ReadRecentRepositoriesAsync).GetAwaiter().GetResult();
-        WizardState state = WizardState.Open(catalogue, recent, folders, defaultBase, fixedDirectory);
+        WizardState state = WizardState.Open(catalogue, recent, folders, settings, fixedDirectory);
         WizardResult? result = null;
         bool binding = false;
         IReadOnlyList<string> listed = [];

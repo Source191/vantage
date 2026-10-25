@@ -114,6 +114,36 @@ public static partial class Wording
         };
     }
 
+    /// <summary>Why the settings dialog will not save.</summary>
+    public static string Describe(SettingsProblem problem)
+    {
+        return problem switch
+        {
+            SettingsProblem.NoRoots => "Give at least one repository root, one per line.",
+            SettingsProblem.RootNotFullPath relative => $@"The repository root {relative.Text} is not a full path, such as C:\Users\me\source\repos.",
+            SettingsProblem.RootMissing missing => $"{missing.Path} does not exist.",
+            SettingsProblem.WorktreeRootNotFullPath => @"The worktree root must be a full path, such as C:\Users\me\source\worktrees.",
+            SettingsProblem.NoExecutable => "A custom editor needs an executable.",
+            SettingsProblem.BatchFileExecutable => "A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.",
+            SettingsProblem.NoFolderPlaceholder => $"A custom editor's arguments need {EditorChoice.FolderPlaceholder} where the folder goes.",
+            _ => problem.ToString(),
+        };
+    }
+
+    /// <summary>An editor preset as the settings dialog names it.</summary>
+    public static string Describe(EditorPreset preset)
+    {
+        return preset switch
+        {
+            EditorPreset.VsCode => "VS Code",
+            EditorPreset.Cursor => "Cursor",
+            EditorPreset.Rider => "Rider",
+            EditorPreset.VisualStudio => "Visual Studio",
+            EditorPreset.Explorer => "Explorer",
+            EditorPreset.Custom => "Custom",
+        };
+    }
+
     /// <summary>Why the wizard will not go on.</summary>
     public static string Describe(WizardProblem problem)
     {
@@ -143,6 +173,7 @@ public static partial class Wording
             PruneRepository => "Pruning...",
             OpenShellTab shell => $"Opening a shell in {shell.Row.FolderName}...",
             StartSession start => $"Starting {start.Plan.Name.Value}...",
+            SaveSettings => "Saving settings...",
             _ => "Working...",
         };
     }
