@@ -38,7 +38,7 @@
 
 ## 7. P12: update notice
 
-- [ ] 7.1 `update-notice` merged and archived (minor), after P6 and P7; verify `openspec\specs\tool-updates` exists
+- [x] 7.1 `update-notice` merged and archived (minor), after P6 and P7; verify `openspec\specs\tool-updates` exists
 
 ## 8. P13: final manual test
 

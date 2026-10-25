@@ -10,12 +10,18 @@ public static partial class Wording
 
     private const string SettingsLine = "edit roots, worktree root and editor";
 
+    private const string UpdateLine = "update Vantage in a new tab";
+
     /// <summary>The title of Vantage's own tab; every writer of it uses this one value.</summary>
     public static string TabTitle(ToolVersion version) => $"Vantage ({version.Text})";
 
     /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
-    public static string HeaderValues(ToolVersion vantage, string? claudeVersion, Settings settings)
-    => string.Join('\n', vantage.Text, claudeVersion ?? UnknownVersion, string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
+    public static string HeaderValues(ToolVersion vantage, string? claudeVersion, Settings settings, UpdateStatus update)
+    => string.Join('\n', VantageVersion(vantage, update), claudeVersion ?? UnknownVersion, string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
+
+    /// <summary>The Vantage header value: the running version, and the newer release with the update key when one is known.</summary>
+    private static string VantageVersion(ToolVersion vantage, UpdateStatus update)
+        => update is UpdateStatus.Available available ? $"{vantage.Text} ({available.Newest} available, U to update)" : vantage.Text;
 
     /// <summary>The table's title: "7 sessions, selected: fix-123", or "2 of 7 sessions match "templates", selected: templates-sync" while a filter is set.</summary>
     public static string Describe(TableTitle title)
@@ -54,6 +60,7 @@ public static partial class Wording
         new("c", "Copy path", "copy the folder path", Column: 2),
         new("e", "Editor", "open the folder in your editor", Column: 2),
         new("v", "Solution", "open its solution", Column: 2),
+        new("U", Hint: null, UpdateLine, Column: 1),
     ];
 
     public static IReadOnlyList<KeyHelp> WorktreesKeys { get; } =
@@ -73,6 +80,7 @@ public static partial class Wording
         new("c", "Copy path", "copy the folder path", Column: 2),
         new("e", "Editor", "open the folder in your editor", Column: 2),
         new("v", "Solution", "open its solution", Column: 2),
+        new("U", Hint: null, UpdateLine, Column: 1),
     ];
 
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =

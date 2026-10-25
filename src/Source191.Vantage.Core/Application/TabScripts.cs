@@ -39,6 +39,19 @@ public sealed class TabScripts(string claudeExecutable, string vantageExecutable
             $"Write-Host {PowerShellScript.Quote($"Vantage: accept the trust prompt for {directory.Name}, then exit Claude and press n in Vantage to retry.")} -ForegroundColor Cyan",
             PowerShellScript.Invoke(claudeExecutable, [])));
 
+    /// <summary>
+    /// The update tab: waits for the Vantage that opened it to exit (a running vantage.exe locks its files), updates the
+    /// tool, then starts Vantage again only when the update succeeded; otherwise dotnet's output stays on screen with a hint.
+    /// </summary>
+    public TabLaunch Update(int vantageProcessId, FolderPath startingDirectory) => new TabLaunch(
+        "Update Vantage",
+        ShellColour,
+        startingDirectory,
+        string.Join('\n',
+            $"Wait-Process -Id {PowerShellScript.Quote(vantageProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture))} -ErrorAction SilentlyContinue",
+            PowerShellScript.Invoke("dotnet", ["tool", "update", "-g", UpdateCheck.PackageId]),
+            $"if ($LASTEXITCODE -eq 0) {{ {PowerShellScript.Invoke(vantageExecutable, [])} }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}"));
+
     /// <summary>A plain PowerShell tab in a worktree.</summary>
     public static TabLaunch Shell(FolderPath worktree) => new TabLaunch(worktree.Name, ShellColour, worktree, "Clear-Host");
 }

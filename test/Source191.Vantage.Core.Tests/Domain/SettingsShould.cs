@@ -158,6 +158,17 @@ public sealed class SettingsShould
         settings.ToText().ShouldBe(new SettingsText($"{Root}\nD:\\work", @"E:\trees", EditorPreset.Custom, "subl.exe", "-n {folder}", WorktreeBase.Head));
     }
 
+    [Fact]
+    public void CheckForUpdatesUnlessTurnedOff()
+    {
+        Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home).CheckForUpdates.ShouldBeTrue();
+        Settings off = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home, checkForUpdates: false);
+
+        off.CheckForUpdates.ShouldBeFalse();
+        off.ToText().CheckForUpdates.ShouldBeFalse();
+        off.ShouldNotBe(Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home));
+    }
+
     private static SettingsProblem Refusal(SettingsText typed) => Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Refused>().Problem;
 
     private static Func<string, bool> Exists(params string[] folders) => path => folders.Contains(path, StringComparer.OrdinalIgnoreCase);
