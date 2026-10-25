@@ -54,12 +54,8 @@ public sealed record ReleaseVersion(int Major, int Minor, int Patch, string? Pre
 
     public override string ToString() => Prerelease is null ? $"{Major}.{Minor}.{Patch}" : $"{Major}.{Minor}.{Patch}-{Prerelease}";
 
-    private static int? Number(string text)
-    {
-        bool digitsOnly = text.Length > 0 && text.All(char.IsAsciiDigit);
-
-        return digitsOnly && int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out int number) ? number : null;
-    }
+    /// <summary>Digits only: <see cref="NumberStyles.None"/> refuses a sign, spaces and an empty identifier.</summary>
+    private static int? Number(string text) => int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out int number) ? number : null;
 
     /// <summary>A release outranks any prerelease of the same numbers; prereleases compare identifier by identifier.</summary>
     private static int ComparePrerelease(string? mine, string? theirs)
