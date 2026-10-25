@@ -91,7 +91,7 @@ OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
 EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System);
 EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings);
 DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
-WorktreeInventory inventory = new(git, folders, settings);
+WorktreeInventory inventory = new(git, folders, settings, pullRequests);
 string? claudeVersionText = await claudeVersion;
 ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeVersionText, settings.Value));
 SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable);

@@ -19,7 +19,9 @@ public sealed class WorktreeInventoryLeftoversShould
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
         .Answer(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/Users/me/source/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n", string.Empty));
 
-    private WorktreeInventory Inventory => new(new GitCli(processes), folders, TestSettings.Current(Root));
+    private readonly PullRequestCatalogue catalogue = new(new GitCli(new FakeProcessRunner().AnswerAll(new ProcessResult(2, string.Empty, string.Empty))), new FakePullRequests(), TimeProvider.System);
+
+    private WorktreeInventory Inventory => new(new GitCli(processes), folders, TestSettings.Current(Root), catalogue);
 
     [Fact]
     public async Task AskGitThreeThingsPerRegisteredWorktreeAndNothingAboutMergeState()
@@ -48,6 +50,7 @@ public sealed class WorktreeInventoryLeftoversShould
         row.Health.Kind.ShouldBe(WorktreeHealthKind.Orphan);
         row.LeftoverFileCount.ShouldBe(2);
         row.OwnerExists.ShouldBeTrue();
+        row.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch), "a leftover has no branch to look up");
     }
 
     [Fact]
@@ -115,7 +118,7 @@ public sealed class WorktreeInventoryLeftoversShould
     {
         string sibling = Path.Combine(Root, "Northwind.Orders-republish");
         folders.WithFile(Path.Combine(sibling, ".git"), "gitdir: C:/Users/me/source/repos/Northwind.Orders/.git/worktrees/republish\n");
-        WorktreeInventory inventory = new(new GitCli(processes), folders, TestSettings.Current(TestSettings.For([Root], worktreeRoot: Root)));
+        WorktreeInventory inventory = new(new GitCli(processes), folders, TestSettings.Current(TestSettings.For([Root], worktreeRoot: Root)), catalogue);
 
         (await inventory.ScanAsync([], CancellationToken.None)).Select(row => row.Path.Value).ShouldBe([sibling]);
     }
@@ -127,7 +130,7 @@ public sealed class WorktreeInventoryLeftoversShould
         string sibling = Path.Combine(Work, "Northwind.Ledger-republish");
         folders.WithFile(Path.Combine(sibling, ".git"), "gitdir: D:/work/Northwind.Ledger/.git/worktrees/republish\n");
         CurrentSettings settings = TestSettings.Current(Root);
-        WorktreeInventory inventory = new(new GitCli(processes), folders, settings);
+        WorktreeInventory inventory = new(new GitCli(processes), folders, settings, catalogue);
 
         await settings.SaveAsync(TestSettings.For(Root, Work));
 
