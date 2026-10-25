@@ -35,6 +35,8 @@ internal interface IScreenDefinition<TState, TRow>
 
     IReadOnlyList<string> ColumnNames { get; }
 
+    IReadOnlyList<ColumnHelp> Columns { get; }
+
     string Cell(TRow row, int column, DateTimeOffset now);
 
     Color RowColour(TRow row);

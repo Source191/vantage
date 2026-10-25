@@ -34,15 +34,15 @@ public static partial class Wording
 
     public static IReadOnlyList<KeyHelp> SessionsKeys { get; } =
     [
-        new("enter", "Attach", "attach to the session (Ctrl+Z or Esc comes back)", Column: 0),
-        new("o", "Open in tab", "open it in its own tab, or switch to the tab that shows it", Column: 0),
+        new("enter", "Attach", "attach (Ctrl+Z or Esc comes back)", Column: 0),
+        new("o", "Open in tab", "open in its own tab, or switch to it", Column: 0),
         new("n", "New session", "new session", Column: 0),
-        new("r", "Rename", "rename (restarts the session under the new name)", Column: 0),
+        new("r", "Rename", "rename (restarts the session)", Column: 0),
         new("x", "Stop", "stop", Column: 0),
-        new("d", "Delete", "delete (and its worktree, safely); closes the tab of a terminal session with no messages", Column: 0),
+        new("d", "Delete", "delete, and its worktree if nothing is lost", Column: 0),
         new("R", "Resume stopped", "resume after a reboot", Column: 1),
-        new("C", "Close empty tabs", "close every tab whose claude has never been sent a message", Column: 1),
-        new("b", Hint: null, "move a terminal session under Vantage (its tab becomes a shell)", Column: 1),
+        new("C", "Close empty tabs", "close tabs of unused terminal sessions", Column: 1),
+        new("b", Hint: null, "move a terminal session under Vantage", Column: 1),
         new("a", "Agent view", "native agent view", Column: 1),
         new("w", "Worktrees", "worktrees view", Column: 1),
         new("/", "Filter", "filter", Column: 1),
@@ -53,7 +53,7 @@ public static partial class Wording
     public static IReadOnlyList<KeyHelp> WorktreesKeys { get; } =
     [
         new("d", "Remove", "remove (refused when work would be lost)", Column: 0),
-        new("D", "Force remove", "force remove after typing the branch or folder name", Column: 0),
+        new("D", "Force remove", "force remove after typing its name", Column: 0),
         new("p", "Prune", "prune stale registrations in its repository", Column: 0),
         new("s", "Start session", "start a session in this worktree", Column: 0),
         new("o", "Open shell", "open a PowerShell tab there", Column: 0),
@@ -93,13 +93,22 @@ public static partial class Wording
 
     public static string WorktreesHelp => Help(WorktreesKeys, WorktreesColumns);
 
+    /// <summary>The keys two to a line, so the dialog stays short enough for a small terminal.</summary>
+    private static string KeyColumns(IReadOnlyList<KeyHelp> keys)
+    {
+        int width = keys.Where((_, index) => index % 2 == 0).Max(key => Entry(key).Length) + 3;
+
+        return string.Join('\n', keys.Chunk(2).Select(pair => pair.Length == 1 ? Entry(pair[0]) : Entry(pair[0]).PadRight(width) + Entry(pair[1])));
+    }
+
+    private static string Entry(KeyHelp key) => $"{key.HelpKey,-7}{key.Line}";
+
     private static string Help(IReadOnlyList<KeyHelp> keys, IReadOnlyList<ColumnHelp> columns)
     {
         int width = columns.Max(column => column.Name.Length) + 2;
         string indent = new(' ', width);
-        IEnumerable<string> keyLines = keys.Select(key => $"{key.HelpKey,-7}{key.Line}");
         IEnumerable<string> columnLines = columns.Select(column => $"{column.Name.PadRight(width)}{column.Meaning.Replace("\n", "\n" + indent, StringComparison.Ordinal)}");
 
-        return string.Join('\n', ["Keys", .. keyLines, string.Empty, "Columns", .. columnLines]);
+        return string.Join('\n', ["Keys", KeyColumns(keys), string.Empty, "Columns", .. columnLines]);
     }
 }

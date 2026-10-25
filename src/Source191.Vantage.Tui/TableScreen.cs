@@ -184,6 +184,7 @@ internal sealed class TableScreen<TState, TRow>(
         private readonly SpinnerView busy;
         private readonly WaitingIndicator waiting;
         private TRow? selected;
+        private int? headerUnderMouse;
 
         public Live(IScreenDefinition<TState, TRow> definition, ScreenContext context)
         {
@@ -253,16 +254,48 @@ internal sealed class TableScreen<TState, TRow>(
             Window.SetNeedsDraw();
         }
 
-        /// <summary>Shows each key hint's help line as a tooltip while the mouse rests on its key or its words.</summary>
+        /// <summary>Shows each key hint's help line as a tooltip while the mouse rests on its key or its words, and a column's meaning while it rests on the column's header.</summary>
         public void ShowToolTips(IApplication app)
         {
             foreach ((Label label, KeyHelp key) in keyLabels)
             {
                 app.ToolTips?.SetToolTip(label, key.Line);
             }
+
+            table.MousePositionTracking = true;
+            table.MouseEvent += (_, mouse) => ShowColumnToolTip(app, mouse);
+            table.MouseLeave += (_, _) => HideColumnToolTip(app);
         }
 
         public void Dispose() => Window.Dispose();
+
+        private void HideColumnToolTip(IApplication app)
+        {
+            headerUnderMouse = null;
+            app.ToolTips?.Hide();
+        }
+
+        private void ShowColumnToolTip(IApplication app, Terminal.Gui.Input.Mouse mouse)
+        {
+            int? header = null;
+            if (mouse.Position is System.Drawing.Point position)
+            {
+                table.ScreenToCell(position, out header);
+            }
+
+            if (header == headerUnderMouse)
+            {
+                return;
+            }
+
+            HideColumnToolTip(app);
+            headerUnderMouse = header;
+            if (header is int column && column < definition.Columns.Count)
+            {
+                ColumnHelp help = definition.Columns[column];
+                app.ToolTips?.ShowFor(table, new ToolTipProvider($"{help.Name}: {help.Meaning.Replace("\n", " ", StringComparison.Ordinal)}"));
+            }
+        }
 
         /// <summary>One key label and one hint label per row, in the columns the keys name.</summary>
         private void AddKeyHints()

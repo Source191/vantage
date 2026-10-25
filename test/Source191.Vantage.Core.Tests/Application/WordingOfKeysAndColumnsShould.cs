@@ -53,20 +53,13 @@ public sealed class WordingOfKeysAndColumnsShould
     {
         Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe").ShouldBe("""
             Keys
-            Enter  attach to the session (Ctrl+Z or Esc comes back)
-            o      open it in its own tab, or switch to the tab that shows it
-            n      new session
-            r      rename (restarts the session under the new name)
-            x      stop
-            d      delete (and its worktree, safely); closes the tab of a terminal session with no messages
-            R      resume after a reboot
-            C      close every tab whose claude has never been sent a message
-            b      move a terminal session under Vantage (its tab becomes a shell)
-            a      native agent view
-            w      worktrees view
-            /      filter
-            ?      help
-            q      quit
+            Enter  attach (Ctrl+Z or Esc comes back)       o      open in its own tab, or switch to it
+            n      new session                             r      rename (restarts the session)
+            x      stop                                    d      delete, and its worktree if nothing is lost
+            R      resume after a reboot                   C      close tabs of unused terminal sessions
+            b      move a terminal session under Vantage   a      native agent view
+            w      worktrees view                          /      filter
+            ?      help                                    q      quit
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one
@@ -87,16 +80,11 @@ public sealed class WordingOfKeysAndColumnsShould
     {
         Wording.WorktreesHelp.ShouldBe("""
             Keys
-            d      remove (refused when work would be lost)
-            D      force remove after typing the branch or folder name
-            p      prune stale registrations in its repository
-            s      start a session in this worktree
-            o      open a PowerShell tab there
-            Enter  go to the session running in it
-            w      back to sessions
-            Esc    back to sessions (clears a filter first)
-            /      filter
-            ?      help
+            d      remove (refused when work would be lost)      D      force remove after typing its name
+            p      prune stale registrations in its repository   s      start a session in this worktree
+            o      open a PowerShell tab there                   Enter  go to the session running in it
+            w      back to sessions                              Esc    back to sessions (clears a filter first)
+            /      filter                                        ?      help
             q      quit
 
             Columns

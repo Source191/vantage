@@ -24,6 +24,8 @@ internal sealed class WorktreesScreenDefinition : IScreenDefinition<WorktreesVie
 
     public IReadOnlyList<string> ColumnNames { get; } = [.. Wording.WorktreesColumns.Select(column => column.Name)];
 
+    public IReadOnlyList<ColumnHelp> Columns => Wording.WorktreesColumns;
+
     public string Cell(WorktreeRow row, int column, DateTimeOffset now)
     {
         return column switch
