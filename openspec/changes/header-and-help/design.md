@@ -1,0 +1,32 @@
+# Design
+
+## Context
+
+See proposal.md. Today `Program.cs` joins `Environment.MachineName`, the Claude executable path and the roots into one `context` string handed to both screens; each `IScreenDefinition` supplies `HeaderNames` (`Machine:\nClaude:\nRoots:\n...`) and four multi-line strings for the key hints (`Keys`, `KeyNames`, `Keys2`, `KeyNames2`), drawn by `TableScreen.Live` as six Labels. The tab title has two writers that must agree: `TableScreen.cs` sets `Window.Title = "Vantage"`, which Terminal.Gui writes as OSC 0 on every `Run`, and `TerminalConsole` writes OSC 2 `Vantage` after each hand-off. `ListSelection.Title(name)` returns `sessions(all)[7]`, which the views expose as `State.Title`; it is the one user-facing sentence outside `Wording`. Help is two hand-laid strings, `Wording.SessionsHelp` and `Wording.WorktreesHelp`. Terminal.Gui 2.5.0 has `IApplication.ToolTips` (`ApplicationToolTip.SetToolTip(View, string | Func<string>)`) and `TableView.ScreenToCell(Point, out int? headerIfAny)`. `claude --version` prints `2.1.310 (Claude Code)`. The packed version is `<Version>` in `src\Source191.Vantage\Source191.Vantage.csproj`; `tools\install-local.ps1` packs `<Version>-local.<UTC timestamp>`, and the SDK appends `+<commit>` to the informational version.
+
+## Goals / Non-Goals
+
+**Goals:** one source for each new sentence, in `Wording`; the two title writers cannot disagree; help and tooltips use the same words; the title rule is a tested pure function.
+
+**Non-Goals:** reading the Claude version more than once per run; tooltips on table cells, the footer or dialogs; changing the key set or the header's right-hand logo.
+
+## Decisions
+
+- **`ToolVersion` in Domain** (`ToolVersion.FromInformational(string?)`): cuts at `+`, and a prerelease of the form `local.<anything>` becomes `local`, so `0.5.0-local.20261025T101500+abc` reads `0.5.0-local`; a blank input reads `unknown`. `Program.cs` reads `AssemblyInformationalVersionAttribute` from the entry assembly and passes the result in. Alternative: `Assembly.GetName().Version` drops the prerelease label, so a local build would claim to be the release.
+- **Claude version is an adapter fact.** `IClaudeCli.VersionAsync` returns `string?`: `ClaudeCli` runs `--version` and takes the leading dotted number, null when the run fails or none is found, as `IGit`'s nullable queries do. Reading the CLI's words stays in Adapters (the `ClaudeStates` rule). `Program.cs` starts it before reading config and awaits it before the first screen, so it overlaps the rest of start-up; it is read once per run.
+- **One `ScreenContext` record** (`Title`, `HeaderValues`) built in `Program.cs` from `Wording.TabTitle(ToolVersion)` and `Wording.HeaderValues(vantage, claude, roots)`. Both screens take it in place of the `context` string; `TableScreen` sets `Window.Title` from it and `TerminalConsole` takes the same `Title` through its constructor, so the two writers are handed one value. Alternative: a constant in `Wording` read by both; rejected because the version is only known at run time in `Program.cs`.
+- **The table title is a fact.** `ListSelection.Title` becomes `TableTitle Title(string noun, Func<TRow, string> labelOf)` returning `TableTitle(Noun, Shown, Total, Filter, Selected)`; `Total` is all rows, `Shown` the visible ones, `Selected` the label of the selected row or null. `Wording.Describe(TableTitle)` makes `7 sessions, selected: fix-123`, `2 of 7 sessions match "templates", selected: templates-sync`, `1 session`, `0 sessions`. The sessions view labels by session name, the worktrees view by folder name. `TableScreen` keeps appending `  filter: text_` while a filter is being typed. This moves the last sentence out of `Application\Views` and gives the rule its tests in `ListSelectionShould` and `WordingShould`.
+- **Keys are data.** A `KeyHelp(string Key, string Hint, string Line)` list per view lives in `Wording` (`Wording.SessionsKeys`, `Wording.WorktreesKeys`): `Hint` is the header word (`Attach`), `Line` the help sentence. The help text is generated from that list, followed by a `ColumnHelp(Name, Meaning)` glossary per view and, for sessions, the Claude executable path, so help and tooltips cannot drift apart. `IScreenDefinition` replaces the four key strings with `IReadOnlyList<KeyHelp> Keys` and `HeaderNames` drops the first two names. Alternative: keep the hand-laid help strings and add a separate tooltip table; rejected because the spec requires the same words.
+- **One label per key.** `TableScreen.Live` lays the hints out in columns of six rows from the list (a key label and a hint label per row, the same colours and x positions as today, so the screen looks the same), and after `Init` calls `app.ToolTips.SetToolTip` on both labels of each row with the row's `Line`. A third column appears by itself when a later change adds keys.
+- **Column-header tooltips are a spike.** `SetToolTip(table, Func<string>)` with the last mouse position recorded from `table.MouseEvent`, resolving `ScreenToCell(point, out int? header)` to a column's glossary line when `header` is set and to an empty string otherwise. Kept only if a `drive` capture shows the tooltip over a header and none over a row, and the hand-off check passes; otherwise the code is removed and tasks.md records why.
+
+## Risks / Trade-offs
+
+- [Generated help is longer than today's two-column layout: about 14 keys, 7 columns and a path for sessions, which `Confirm.Query` sizes at lines plus 6] → keep the key lines in two columns as today where they fit in 100 characters, and check the help dialog in a 40-row capture.
+- [Tooltips need the mouse; a terminal without mouse reporting never shows them] → they repeat the help key's words, so nothing is only available on hover.
+- [Running `claude --version` adds a process to start-up] → started first and awaited last, so it overlaps config and git work; a failure shows `unknown`.
+- [Requirement texts touched by later changes] → `remove-session-descriptions` removes a session-listing requirement this change does not touch; `settings-and-worktree-root` adds a `Worktree root:` header line and must rebase on this change's "The header shows the versions and the roots"; `folder-column-and-open-keys` adds keys to the `KeyHelp` lists and columns to the glossaries. This change merges first.
+
+## Migration Plan
+
+Nothing is stored; the header, title and help change on the next start after `dotnet tool update`.
