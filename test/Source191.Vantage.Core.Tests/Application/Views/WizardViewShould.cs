@@ -35,7 +35,7 @@ public sealed class WizardViewShould
         opened.Choices.Select(choice => choice.Name).ShouldBe(["Northwind.Templates", "Northwind.Agents", "Northwind.Billing", "repos (no repository)"]);
         opened.Chosen!.Name.ShouldBe("Northwind.Templates");
         opened.Focus.ShouldBe(WizardField.RepositoryFilter);
-        opened.Problem.ShouldBeNull();
+        opened.Problem.ShouldBe(new WizardProblem.None());
         opened.Mode.ShouldBe(LaunchMode.CurrentBranch);
         opened.Base.ShouldBe(WorktreeBase.RemoteDefault);
     }
@@ -75,7 +75,7 @@ public sealed class WizardViewShould
         WizardState chosen = Reduce(Reduce(refused, new WizardInput.FilterChanged("agents")), new WizardInput.ConfirmRepository());
 
         chosen.Focus.ShouldBe(WizardField.Name);
-        chosen.Problem.ShouldBeNull("confirming clears an earlier problem");
+        chosen.Problem.ShouldBe(new WizardProblem.None(), "confirming clears an earlier problem");
         chosen.Chosen!.Name.ShouldBe("Northwind.Agents");
     }
 
@@ -154,21 +154,21 @@ public sealed class WizardViewShould
         WizardState nothingChosen = Reduce(Opened, new WizardInput.FilterChanged("nothing matches"));
         WizardUpdate noRepository = WizardView.Reduce(nothingChosen, new WizardInput.Start(OpenInTab: false));
         noRepository.ShouldSatisfyAllConditions(
-            update => update.Effect.ShouldBeNull(),
+            update => update.Effect.ShouldBe(new WizardEffect.None()),
             update => update.State.Problem.ShouldBe(new WizardProblem.NoRepository()),
             update => update.State.Focus.ShouldBe(WizardField.RepositoryFilter));
 
         WizardState blank = Reduce(Reduce(InAgents, new WizardInput.FieldFocused(WizardField.Prompt)), new WizardInput.NameChanged("   "));
         WizardUpdate noName = WizardView.Reduce(blank, new WizardInput.Start(OpenInTab: false));
         noName.ShouldSatisfyAllConditions(
-            update => update.Effect.ShouldBeNull(),
+            update => update.Effect.ShouldBe(new WizardEffect.None()),
             update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.InvalidName(NameProblem.Missing))),
             update => update.State.Focus.ShouldBe(WizardField.Name));
 
         WizardState noRepositoryWorktree = Reduce(Reduce(Reduce(Opened, new WizardInput.FilterChanged("no repository")), new WizardInput.ModeChanged(LaunchMode.NewWorktree)), new WizardInput.NameChanged("fix-123"));
         WizardUpdate refused = WizardView.Reduce(noRepositoryWorktree, new WizardInput.Start(OpenInTab: false));
         refused.ShouldSatisfyAllConditions(
-            update => update.Effect.ShouldBeNull(),
+            update => update.Effect.ShouldBe(new WizardEffect.None()),
             update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.WorktreeNeedsRepository())),
             update => update.State.Focus.ShouldBe(WizardField.Name));
     }
@@ -184,7 +184,7 @@ public sealed class WizardViewShould
         launch.OpenInTab.ShouldBeFalse();
         launch.Plan.ShouldSatisfyAllConditions(
             plan => plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Agents-fix-123"),
-            plan => plan.Name.Text.ShouldBe("Fix 123"),
+            plan => plan.Name.Value.ShouldBe("Fix 123"),
             plan => plan.Worktree.ShouldNotBeNull(),
             plan => plan.ReuseExistingWorktree.ShouldBeFalse(),
             plan => plan.Base.ShouldBe(WorktreeBase.Head),
@@ -291,6 +291,28 @@ public sealed class WizardViewShould
         WizardState moved = Reduce(Reduce(Opened, new WizardInput.FilterChanged("north")), new WizardInput.ListMoved(2));
 
         Reduce(moved, new WizardInput.FilterChanged("north")).SelectedIndex.ShouldBe(2);
+    }
+
+    private static readonly WizardInput[] StateOnlyInputs =
+    [
+        new WizardInput.FilterChanged("agents"),
+        new WizardInput.ListMoved(1),
+        new WizardInput.ChoiceSelected(1),
+        new WizardInput.NameChanged("Fix 123"),
+        new WizardInput.ModeChanged(LaunchMode.NewWorktree),
+        new WizardInput.BaseChanged(WorktreeBase.Head),
+        new WizardInput.PromptChanged("Read the README"),
+        new WizardInput.FieldFocused(WizardField.Prompt),
+        new WizardInput.ConfirmRepository(),
+        new WizardInput.NextField(),
+    ];
+
+    public static TheoryData<WizardInput> InputsThatOnlyChangeState => new(StateOnlyInputs.AsEnumerable());
+    [Theory]
+    [MemberData(nameof(InputsThatOnlyChangeState))]
+    public void GiveNoEffectForAnyInputButStartAndCancel(WizardInput input)
+    {
+        WizardView.Reduce(Opened, input).Effect.ShouldBe(new WizardEffect.None());
     }
 
     private static WizardState Fill(WizardState state)

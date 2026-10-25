@@ -48,7 +48,7 @@ public sealed record Settings
         List<FolderPath> roots = [];
         foreach (string line in lines)
         {
-            if (FolderPath.TryParse(line) is not FolderPath root)
+            if (!FolderPath.TryParse(line, out FolderPath? root))
             {
                 return Refused(new SettingsProblem.RootNotFullPath(line));
             }
@@ -91,7 +91,7 @@ public sealed record Settings
 
     private static SettingsValidation Validated(SettingsText text, IReadOnlyList<FolderPath> roots)
     {
-        if (FolderPath.TryParse(text.WorktreeRoot.Trim()) is not FolderPath worktreeRoot)
+        if (!FolderPath.TryParse(text.WorktreeRoot.Trim(), out FolderPath? worktreeRoot))
         {
             return Refused(new SettingsProblem.WorktreeRootNotFullPath());
         }

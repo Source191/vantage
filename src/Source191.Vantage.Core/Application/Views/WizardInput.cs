@@ -53,6 +53,9 @@ public abstract record WizardInput
 /// <summary>What the dialog does after a reduce: nothing, start the plan, or close.</summary>
 public abstract record WizardEffect
 {
+    /// <summary>Nothing: the dialog pushes the new state back to its controls.</summary>
+    public sealed record None : WizardEffect;
+
     public sealed record Launch(LaunchPlan Plan, bool OpenInTab) : WizardEffect;
 
     public sealed record Close : WizardEffect;
@@ -61,11 +64,13 @@ public abstract record WizardEffect
 /// <summary>Why the wizard will not go on, as a fact; <see cref="Wording"/> says it.</summary>
 public abstract record WizardProblem
 {
-    public sealed record NoRepository : WizardProblem;
+    /// <summary>Nothing is wrong: the problem line is empty.</summary>
+    public sealed record None : WizardProblem;
 
+    public sealed record NoRepository : WizardProblem;
 
     /// <summary>The plan builder said no, for its own reason.</summary>
     public sealed record Refused(LaunchProblem Problem) : WizardProblem;
 }
 
-public sealed record WizardUpdate(WizardState State, WizardEffect? Effect);
+public sealed record WizardUpdate(WizardState State, WizardEffect Effect);

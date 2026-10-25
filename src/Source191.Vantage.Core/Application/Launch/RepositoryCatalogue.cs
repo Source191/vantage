@@ -39,5 +39,5 @@ public sealed class RepositoryCatalogue(IFolders folders, CurrentSettings settin
     private bool IsMainCheckout(string path) => folders.DirectoryExists(System.IO.Path.Combine(path, ".git"));
 
     /// <summary>The listed and recorded paths that are full paths; anything else is skipped.</summary>
-    private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Select(FolderPath.TryParse).OfType<FolderPath>();
+    private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Parsed<FolderPath>();
 }

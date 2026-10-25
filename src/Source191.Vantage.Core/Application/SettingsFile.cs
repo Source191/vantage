@@ -11,9 +11,10 @@ public static class SettingsFile
 {
     public static Settings From(VantageConfig? config, FolderPath home)
     {
-        IReadOnlyList<FolderPath> roots = [.. (config?.RepositoryRoots ?? []).Select(FolderPath.TryParse).OfType<FolderPath>()];
+        IReadOnlyList<FolderPath> roots = [.. (config?.RepositoryRoots ?? []).Parsed<FolderPath>()];
+        FolderPath? worktreeRoot = FolderPath.TryParse(config?.WorktreeRoot, out FolderPath? parsed) ? parsed : null;
 
-        return Settings.Resolve(roots, FolderPath.TryParse(config?.WorktreeRoot), Editor(config?.Editor), config?.DefaultBase, home);
+        return Settings.Resolve(roots, worktreeRoot, Editor(config?.Editor), config?.DefaultBase, home);
     }
 
     public static VantageConfig ToConfig(Settings settings)

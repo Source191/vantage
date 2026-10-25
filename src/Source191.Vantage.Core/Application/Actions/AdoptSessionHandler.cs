@@ -21,7 +21,9 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
         }
 
         processes.Terminate(session.ProcessId);
-        ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, SessionName.TryParse(session.Name), cancellationToken);
+        // The port resumes under a name or under none: a listed name the CLI would refuse resumes unnamed, so the bool is not needed.
+        _ = SessionName.TryParse(session.Name, out SessionName? name);
+        ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken);
 
         return result.Continued
             ? new AdoptSessionOutcome.Moved(session.Name)

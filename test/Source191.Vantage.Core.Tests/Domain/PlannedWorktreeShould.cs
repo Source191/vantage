@@ -4,7 +4,7 @@ namespace Source191.Vantage.Core.Tests.Domain;
 
 public sealed class PlannedWorktreeShould
 {
-    private static readonly WorktreeSlug Slug = WorktreeSlug.From("fix 123")!;
+    private static readonly WorktreeSlug Slug = new("fix 123");
     private static readonly FolderPath WorktreeRoot = new(@"C:\Users\me\source\worktrees");
 
     [Fact]

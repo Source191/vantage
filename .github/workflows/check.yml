@@ -22,7 +22,7 @@ jobs:
     steps:
       # No step pushes, so the token is not left in .git\config for the rest of the job. Depth 2 keeps
       # both parents of a pull request's merge ref for the version check.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
           persist-credentials: false
@@ -76,12 +76,12 @@ jobs:
               "enabled=true" >> $env:GITHUB_OUTPUT
           }
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.gate.outputs.enabled == 'true'
         with:
           persist-credentials: false
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         if: steps.gate.outputs.enabled == 'true'
         with:
           dotnet-version: 10.0.x

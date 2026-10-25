@@ -20,24 +20,24 @@ public sealed class LaunchPlanShould
     [Fact]
     public void StartInTheRepositoryOnTheCurrentBranchByDefault()
     {
-        LaunchPlan plan = LaunchPlanBuilder.Build(Default, WorktreeRoot, folderExists: _ => false).Plan!;
+        LaunchPlan plan = LaunchPlanBuilder.Build(Default, WorktreeRoot, folderExists: _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
 
         plan.Directory.Value.ShouldBe(@"C:\repos\Northwind.Orders");
         plan.Worktree.ShouldBeNull();
-        plan.Name.Text.ShouldBe("Fix #123: flaky tests!");
+        plan.Name.Value.ShouldBe("Fix #123: flaky tests!");
     }
 
     [Fact]
     public void DropABlankOpeningPromptSoTheSessionStartsIdle()
     {
-        LaunchPlanBuilder.Build(Default, WorktreeRoot, _ => false).Plan!.OpeningPrompt.ShouldBeNull();
-        LaunchPlanBuilder.Build(Default with { OpeningPromptText = "Fix the test" }, WorktreeRoot, _ => false).Plan!.OpeningPrompt.ShouldBe("Fix the test");
+        LaunchPlanBuilder.Build(Default, WorktreeRoot, _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan.OpeningPrompt.ShouldBeNull();
+        LaunchPlanBuilder.Build(Default with { OpeningPromptText = "Fix the test" }, WorktreeRoot, _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan.OpeningPrompt.ShouldBe("Fix the test");
     }
 
     [Fact]
     public void PlaceANewWorktreeUnderTheWorktreeRoot()
     {
-        LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, WorktreeRoot, _ => false).Plan!;
+        LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, WorktreeRoot, _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
 
         plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123-flaky-tests");
         plan.Worktree.ShouldNotBeNull();
@@ -49,7 +49,7 @@ public sealed class LaunchPlanShould
     [Fact]
     public void ReuseAnExistingFolderUnderTheWorktreeRoot()
     {
-        LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, WorktreeRoot, folderExists: path => path.EndsWith("flaky-tests", StringComparison.Ordinal)).Plan!;
+        LaunchPlan plan = LaunchPlanBuilder.Build(Default with { Mode = LaunchMode.NewWorktree }, WorktreeRoot, folderExists: path => path.EndsWith("flaky-tests", StringComparison.Ordinal)).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
 
         plan.ReuseExistingWorktree.ShouldBeTrue();
         plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123-flaky-tests");
@@ -60,8 +60,7 @@ public sealed class LaunchPlanShould
     {
         LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = "!!!", Mode = LaunchMode.NewWorktree }, WorktreeRoot, _ => false);
 
-        result.Plan.ShouldBeNull();
-        result.Problem.ShouldBe(new LaunchProblem.WorktreeNeedsLetters());
+        result.ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsLetters()));
     }
 
     [Fact]
@@ -69,8 +68,7 @@ public sealed class LaunchPlanShould
     {
         LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { Repository = NoRepository, Mode = LaunchMode.NewWorktree }, WorktreeRoot, _ => false);
 
-        result.Plan.ShouldBeNull();
-        result.Problem.ShouldBe(new LaunchProblem.WorktreeNeedsRepository());
+        result.ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.WorktreeNeedsRepository()));
     }
 
     [Theory]
@@ -80,7 +78,6 @@ public sealed class LaunchPlanShould
     {
         LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = name }, WorktreeRoot, _ => false);
 
-        result.Plan.ShouldBeNull();
-        result.Problem.ShouldBe(new LaunchProblem.InvalidName(expected));
+        result.ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(expected)));
     }
 }

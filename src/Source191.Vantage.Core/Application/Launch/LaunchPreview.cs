@@ -20,8 +20,7 @@ public static class LaunchPreview
             return "A worktree needs a repository; this folder is not one.";
         }
 
-        WorktreeSlug? slug = WorktreeSlug.From(nameText);
-        if (slug is null)
+        if (!WorktreeSlug.TryParse(nameText, out WorktreeSlug? slug))
         {
             return $"The name becomes the worktree folder {repository.Name}-<name> under {worktreeRoot} and its branch.";
         }

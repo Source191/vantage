@@ -18,7 +18,7 @@ public sealed record WizardState(
     LaunchMode Mode,
     WorktreeBase Base,
     string Prompt,
-    WizardProblem? Problem,
+    WizardProblem Problem,
     FolderPath WorktreeRoot,
     WizardField Focus)
 {
@@ -38,7 +38,7 @@ public sealed record WizardState(
             LaunchMode.CurrentBranch,
             settings.DefaultBase,
             Prompt: string.Empty,
-            Problem: null,
+            Problem: new WizardProblem.None(),
             settings.WorktreeRoot,
             fixedChoice is null ? WizardField.RepositoryFilter : WizardField.Name);
     }

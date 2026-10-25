@@ -35,7 +35,7 @@ public sealed class LaunchServiceShould
     }
 
     private static LaunchPlan CurrentBranch => new(
-        Repository.Path, SessionName.Parse("Fix flaky tests"), Worktree: null,
+        Repository.Path, new SessionName("Fix flaky tests"), Worktree: null,
         ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, Repository);
 
     private static LaunchPlan NewWorktree => CurrentBranch with

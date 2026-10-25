@@ -10,7 +10,8 @@ public sealed class SessionIdShould
     public void RejectBlank(string text)
     {
         Should.Throw<ArgumentException>(() => new SessionId(text));
-        SessionId.TryParse(text).ShouldBeNull();
+        SessionId.TryParse(text, out SessionId? id).ShouldBeFalse();
+        id.ShouldBeNull();
     }
 
     [Fact]
@@ -20,7 +21,8 @@ public sealed class SessionIdShould
 
         id.Value.ShouldBe("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3");
         $"{id}".ShouldBe("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3");
-        SessionId.TryParse("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3").ShouldBe(id);
+        SessionId.TryParse("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3", out SessionId? parsed).ShouldBeTrue();
+        parsed.ShouldBe(id);
     }
 }
 
@@ -32,6 +34,8 @@ public sealed class JobIdShould
     public void BeEightHexCharacters(string text)
     {
         new JobId(text).Value.ShouldBe(text);
+        JobId.TryParse(text, out JobId? id).ShouldBeTrue();
+        id.ShouldBe(new JobId(text));
     }
 
     [Theory]
@@ -43,15 +47,19 @@ public sealed class JobIdShould
     public void RejectAnythingElse(string text)
     {
         Should.Throw<ArgumentException>(() => new JobId(text));
-        JobId.TryParse(text).ShouldBeNull();
+        JobId.TryParse(text, out JobId? id).ShouldBeFalse();
+        id.ShouldBeNull();
     }
 
     [Fact]
     public void DeriveFromASessionId()
     {
-        JobId.Of(new SessionId("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3")).ShouldBe(new JobId("1a4d2d86"));
-        JobId.Of(new SessionId("not-hex-at-all")).ShouldBeNull();
-        JobId.Of(new SessionId("1a4d")).ShouldBeNull();
+        JobId.TryParse(new SessionId("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3"), out JobId? id).ShouldBeTrue();
+        id.ShouldBe(new JobId("1a4d2d86"));
+        JobId.TryParse(new SessionId("not-hex-at-all"), out JobId? notHex).ShouldBeFalse();
+        notHex.ShouldBeNull();
+        JobId.TryParse(new SessionId("1a4d"), out JobId? tooShort).ShouldBeFalse();
+        tooShort.ShouldBeNull();
     }
 
     [Fact]
@@ -71,7 +79,8 @@ public sealed class BranchNameShould
     public void RejectBlankAndWhitespace(string text)
     {
         Should.Throw<ArgumentException>(() => new BranchName(text));
-        BranchName.TryParse(text).ShouldBeNull();
+        BranchName.TryParse(text, out BranchName? branch).ShouldBeFalse();
+        branch.ShouldBeNull();
     }
 
     [Fact]
@@ -81,5 +90,7 @@ public sealed class BranchNameShould
 
         branch.Value.ShouldBe("fix/flaky-tests");
         $"{branch}".ShouldBe("fix/flaky-tests");
+        BranchName.TryParse("fix/flaky-tests", out BranchName? parsed).ShouldBeTrue();
+        parsed.ShouldBe(branch);
     }
 }
