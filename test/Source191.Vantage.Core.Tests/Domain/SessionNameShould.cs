@@ -34,39 +34,31 @@ public sealed class SessionNameShould
     }
 
     [Theory]
+    [InlineData(null)]
     [InlineData("   ")]
     [InlineData("fix; rm -rf")]
-    public void ReadARefusedNameAsNothingAndRefuseToParseIt(string text)
+    public void ReadARefusedNameAsNothing(string? text)
     {
-        SessionName.TryParse(text).ShouldBeNull();
-        Should.Throw<ArgumentException>(() => SessionName.Parse(text));
+        SessionName.TryParse(text, out SessionName? name).ShouldBeFalse();
+        name.ShouldBeNull();
+    }
+
+    [Theory]
+    [InlineData("   ")]
+    [InlineData("fix; rm -rf")]
+    [InlineData("say \"hello\"")]
+    public void RefuseToBuildANameValidateRefuses(string text)
+    {
+        Should.Throw<ArgumentException>(() => new SessionName(text));
     }
 
     [Fact]
     public void KeepTheTextExactlyAsTyped()
     {
-        SessionName name = SessionName.Parse("Refund retry policy");
+        SessionName name = new("Refund retry policy");
 
         name.Value.ShouldBe("Refund retry policy");
-    }
-
-    [Theory]
-    [InlineData("Refund retry policy", "refund-retry-policy")]
-    [InlineData("Fix #123: flaky tests!", "fix-123-flaky-tests")]
-    [InlineData("--Trim me--", "trim-me")]
-    public void DeriveAWorktreeSlugFromTheName(string text, string expectedSlug)
-    {
-        SessionName name = SessionName.Parse(text);
-
-        name.Slug.ShouldNotBeNull();
-        name.Slug.Value.ShouldBe(expectedSlug);
-    }
-
-    [Fact]
-    public void HaveNoSlugWhenTheNameHasNoLettersOrDigits()
-    {
-        SessionName name = SessionName.Parse("!!!");
-
-        name.Slug.ShouldBeNull();
+        SessionName.TryParse("Refund retry policy", out SessionName? parsed).ShouldBeTrue();
+        parsed.ShouldBe(name);
     }
 }

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Source191.Vantage.Domain;
 
@@ -17,9 +18,9 @@ public abstract record SessionNameValidation
     public sealed record Refused(NameProblem Problem) : SessionNameValidation;
 }
 
-public sealed record SessionName
+public sealed record SessionName : ITextValue<SessionName>
 {
-    private SessionName(string text)
+    public SessionName(string text)
     {
         Value = text;
     }
@@ -37,6 +38,12 @@ public sealed record SessionName
             _ when text.Contains(';') || text.Contains('"') => new SessionNameValidation.Refused(NameProblem.UnsafeCharacters),
             _ => new SessionNameValidation.Valid(new SessionName(text)),
         };
+    }
+
+    public static bool TryParse(string? text, [MaybeNullWhen(false)] out SessionName value)
+    {
+        value = null;
+        return false;
     }
 
     /// <summary>A listing name the CLI would refuse (quotes, semicolons) reads as null rather than failing a resume.</summary>

@@ -1,15 +1,22 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Source191.Vantage.Domain;
 
-public sealed partial record WorktreeSlug
+public sealed partial record WorktreeSlug : ITextValue<WorktreeSlug>
 {
-    private WorktreeSlug(string value)
+    public WorktreeSlug(string value)
     {
         Value = value;
     }
 
     public string Value { get; }
+
+    public static bool TryParse(string? text, [MaybeNullWhen(false)] out WorktreeSlug value)
+    {
+        value = null;
+        return false;
+    }
 
     public static WorktreeSlug? From(string text)
     {
