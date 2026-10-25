@@ -54,6 +54,13 @@ public sealed class FakeFolders : IFolders
         return files.Keys.Where(file => file.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
+    public IEnumerable<string> FilesIn(string path)
+    {
+        string parent = Normalise(path);
+
+        return files.Keys.Where(file => string.Equals(Path.GetDirectoryName(file), parent, StringComparison.OrdinalIgnoreCase));
+    }
+
     public bool IsEmpty(string path)
     {
         return !Files(path).Any() && !Directories(path).Any();

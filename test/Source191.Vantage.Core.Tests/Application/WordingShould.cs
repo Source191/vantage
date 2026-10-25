@@ -208,6 +208,11 @@ public sealed class WordingShould
         Wording.Describe(new Footer.NoSessionIn("Northwind.Orders-fix-123")).ShouldBe("No session is running in Northwind.Orders-fix-123.");
     }
 
+    [Fact]
+    public void SayNoSolutionWasFound()
+    {
+        Wording.Describe(new Footer.NoSolution("Northwind.Orders-fix-123")).ShouldBe("No solution found in Northwind.Orders-fix-123 or its src folder.");
+    }
     // Dialogs and the screen.
 
     [Fact]
@@ -355,6 +360,23 @@ public sealed class WordingShould
         Wording.Working(new OpenShellTab(Worktree)).ShouldBe("Opening a shell in Northwind.Orders-fix-123...");
     }
 
+    [Fact]
+    public void SayWhatEachFolderEffectIsDoingWhileItRuns()
+    {
+        FolderPath folder = new(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123");
+
+        Wording.Working(new CopyFolderPath(folder)).ShouldBe("Copying...");
+        Wording.Working(new OpenFolderInEditor(folder)).ShouldBe("Opening Northwind.Orders-fix-123 in the editor...");
+        Wording.Working(new FindSolution(folder, "Northwind.Orders")).ShouldBe("Looking for a solution in Northwind.Orders-fix-123...");
+        Wording.Working(new OpenSolution(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123\Northwind.Orders.slnx")).ShouldBe("Opening Northwind.Orders.slnx...");
+    }
+
+    [Fact]
+    public void AskWhichSolutionToOpen()
+    {
+        Wording.ChooseSolutionTitle.ShouldBe("Open solution");
+        Wording.ChooseSolutionQuestion("Northwind.Orders-fix-123").ShouldBe("Northwind.Orders-fix-123 holds more than one solution. Which one?");
+    }
     [Fact]
     public void NameTheSessionBeingStarted()
     {

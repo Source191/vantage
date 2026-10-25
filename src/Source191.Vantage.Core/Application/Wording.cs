@@ -173,6 +173,10 @@ public static partial class Wording
             PruneRepository => "Pruning...",
             OpenShellTab shell => $"Opening a shell in {shell.Row.FolderName}...",
             StartSession start => $"Starting {start.Plan.Name.Value}...",
+            CopyFolderPath => "Copying...",
+            OpenFolderInEditor open => $"Opening {open.Folder.Name} in the editor...",
+            FindSolution find => $"Looking for a solution in {find.Folder.Name}...",
+            OpenSolution solution => $"Opening {Path.GetFileName(solution.File)}...",
             SaveSettings => "Saving settings...",
             StartUpdate update => $"Opening a tab to update to {update.Newest}...",
             _ => "Working...",
@@ -197,6 +201,10 @@ public static partial class Wording
 
         return wizard.ShowsChooser ? $"Type to filter, ↑↓ to choose, Enter confirms the repository   {Fields}" : Fields;
     }
+
+    public static string ChooseSolutionTitle => "Open solution";
+
+    public static string ChooseSolutionQuestion(string folderName) => $"{folderName} holds more than one solution. Which one?";
 
     public static string RenamePrompt(string name) => $"Rename {name}. The session restarts under the new name and keeps its conversation.";
 
@@ -296,6 +304,7 @@ public static partial class Wording
             Footer.NothingToPrune prune => $"Nothing to prune: the repository {prune.RepositoryName} no longer exists.",
             Footer.LeftoverFolder leftover => $"{leftover.FolderName} is a leftover folder, not a worktree.",
             Footer.NoSessionIn none => $"No session is running in {none.FolderName}.",
+            Footer.NoSolution none => $"No solution found in {none.FolderName} or its src folder.",
             Footer.UpToDate => "Vantage is up to date.",
             Footer.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",
             Footer.Kept => "Kept.",

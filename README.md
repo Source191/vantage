@@ -87,8 +87,9 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | --- | --- |
 | NAME | The session name given at launch (`-n`), or the folder name for an unnamed one |
 | STATE | needs input (amber), working (cyan), idle (white), completed (green), failed (red), stopped (grey) |
-| REPOSITORY, BRANCH | The folder the session runs in and its current branch |
-| WT | `yes` when the session runs in a linked worktree rather than the repository itself |
+| REPOSITORY | The repository the session runs in (a linked worktree shows its main checkout) |
+| FOLDER | The folder the session runs in, relative to the repository root or the worktree root that holds it (`Northwind.Orders-fix-123`), else relative to your home folder (`~\scratch\notes`), else in full. A worktree is recognisable because its folder name differs from its repository |
+| BRANCH | The branch checked out there |
 | AGE | Time since the session started |
 | TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session |
 
@@ -107,6 +108,9 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | b | Move a plain terminal session under Vantage's supervision (its tab becomes an ordinary shell) |
 | R | Resume sessions that stopped with a reboot |
 | a | Open Claude Code's own agent view |
+| c | Copy the selected row's full folder path to the clipboard |
+| e | Open the folder in your editor (VS Code unless you chose another in [Settings](#settings)); works on terminal and stopped sessions too |
+| v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which; none says so in the footer |
 | , | Settings: the repository roots, the worktree root, the editor, the default worktree base and the update check (see [Settings](#settings)) |
 | U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | w | Switch to the worktrees view |
@@ -160,7 +164,7 @@ Press `w`. Vantage lists every linked worktree of the repositories under your ro
 
 | Column | Meaning |
 | --- | --- |
-| REPOSITORY, FOLDER, BRANCH | The owning repository, the worktree folder and its branch |
+| REPOSITORY, FOLDER, BRANCH | The owning repository, the worktree folder (relative to its root, as in the sessions view) and its branch |
 | DIRTY | Changed or untracked files in the worktree |
 | UNPUSHED | Commits on its branch that no remote has |
 | LAST COMMIT | Age of the last commit |
@@ -179,6 +183,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
 | w, Esc | Back to the sessions view (Esc clears a filter first) |
 | / | Filter by repository, folder, branch or health |
+| c, e, v | Copy the folder path, open the folder in your editor, open its solution, as in the sessions view; refused for a leftover whose folder is gone |
 | , | Settings, as in the sessions view |
 | U | Update Vantage, as in the sessions view |
 
@@ -237,7 +242,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 ## Common scenarios
 
-**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story, pick `New worktree`, type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and the WT column marks the session.
+**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story, pick `New worktree`, type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and its FOLDER cell shows the worktree.
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
@@ -277,7 +282,7 @@ Press `,` in either view. The dialog shows:
 
 - **Repository roots:** one folder per line; the wizard offers every repository directly under each, and the worktrees view scans them. Each must be a full path that exists.
 - **Worktree root:** where new worktrees go, as `<worktree root>\<repository>-<name>`. It must be a full path; it is created when the first worktree goes there. Worktrees made beside their repository by earlier versions stay where they are and are still listed, removed and opened as before.
-- **Editor:** VS Code, Cursor, Rider, Visual Studio, Explorer, or Custom: an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The open-in-editor key that uses this setting is still to come.
+- **Editor:** VS Code, Cursor, Rider, Visual Studio, Explorer, or Custom: an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The The `e` key opens the selected row's folder in this editor.
 - **Worktree base:** where a new worktree's branch starts by default, origin's default branch or the current HEAD.
 - **Check for updates daily:** whether Vantage asks nuget.org once a day for a newer release of itself (see [Updates](#updates)); on unless you turn it off.
 
@@ -352,7 +357,7 @@ Branch protection on `main` has "Require branches to be up to date before mergin
 The runner drives Vantage inside a pseudo-console, which is the same plumbing Windows Terminal uses for a tab, so rendering, keys and the attach hand-off are covered. Anything that goes out through `wt.exe` is not: a runner has no desktop for a tab to appear on. Before merging a pull request that changes how Vantage drives `wt.exe`, opens, titles or colours tabs, or attaches to a session, install its package (`tools\install-local.ps1`) and run these in a real Windows Terminal:
 
 1. `o` on a session opens a coloured tab titled with the session name, and `o` again switches to that tab while it is open.
-2. `n`, pick `New worktree`, F6: a new tab opens attached to the new session, and the WT column marks the row.
+2. `n`, pick `New worktree`, F6: a new tab opens attached to the new session, and its FOLDER cell shows the worktree.
 3. `d` on that session ends claude and the tab closes by itself.
 4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
 5. Ctrl+Z from an attached session returns to the table with the keys still working.
