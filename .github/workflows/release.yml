@@ -20,7 +20,7 @@ jobs:
       contents: write
     steps:
       # The release is published with gh and GH_TOKEN, never git push, so git keeps no credentials.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 2
           persist-credentials: false
