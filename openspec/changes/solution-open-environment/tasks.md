@@ -14,6 +14,6 @@
 
 ## 4. Release
 
-- [ ] 4.1 Raise `Version` to the next patch above `origin/main`; verify `Assert-VersionBumped.ps1`
+- [x] 4.1 Raise `Version` to the next patch above `origin/main`; verify `Assert-VersionBumped.ps1`
 - [ ] 4.2 Archive this change with its deltas to `folder-actions` and `pull-requests`; verify `openspec validate --all`
 - [ ] 4.3 Gate: build, tests, `dotnet format --verify-no-changes`, the version check; the manual check (an IDE launched by `v` from a Vantage started in a Claude Code session: no markers in its environment and its window comes forward) stays with the pull request
