@@ -2,7 +2,7 @@
 
 ## 1. The spike at the terminal
 
-- [ ] 1.1 From a PowerShell tab outside Claude Code, open four tabs and note each one's title and whether a second tab or command appeared: `wt.exe -w 0 new-tab --title 'a;b' pwsh.exe -NoExit`, the same with `'a\;b'`, with `'say "hi"'` and with `'say \"hi\"'`. Verify by the titles shown; record the four outcomes in this file.
+- [ ] 1.1 From a PowerShell tab outside Claude Code, open six tabs and note each one's title and whether a second tab or command appeared: `wt.exe -w 0 new-tab --title 'a;b' pwsh.exe -NoExit`, the same with `'a\;b'`, with `'fix a;b'`, with `'fix a\;b'`, with `'say "hi"'` and with `'say \"hi\"'`. The two with a space are passed quoted, as the adapter passes a real session name. Verify by the titles shown; record the six outcomes in this file.
 - [ ] 1.2 In a trusted repository, run `claude --bg -n 'a;b'`, then `claude agents --json` and note whether the name is listed as typed; stop and remove the throwaway job with `claude stop <id>` and `claude rm <id>`. Verify by the listing; record the outcome here.
 - [ ] 1.3 Only if 1.1 showed a title carrying `;` or `"`: open such a tab, then from Vantage select a session whose tab has that title and press `o`. Verify the tab is focused; record the outcome here.
 

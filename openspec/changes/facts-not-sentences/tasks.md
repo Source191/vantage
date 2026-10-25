@@ -12,7 +12,7 @@
 
 ## 3. The dialog (Tui)
 
-- [ ] 3.1 `WordingShould`: `NothingTypedYet`, `NotTheSame`, `CopiedToClipboard` and `ClipboardUnavailable` with the dialog's exact words. Implement the members and make `TypedConfirmationDialog` call them. Verify the Core suite passes, `dotnet run --project tools\HeadlessTerminal -- check` passes, and `grep -n '\$"' src/Source191.Vantage.Tui/*.cs` shows no sentence about the user's data left in Tui.
+- [ ] 3.1 `WordingShould`: `NothingTypedYet`, `NotTheSame`, `CopiedToClipboard` and `ClipboardUnavailable` with the dialog's exact words. Implement the members and make `TypedConfirmationDialog` call them. Verify the Core suite passes, `dotnet run --project tools\HeadlessTerminal -- check` passes, and `grep -n '\$"' src/Source191.Vantage.Tui/TypedConfirmationDialog.cs` finds nothing; the table titles and counts in `TableScreen` are layout text and stay.
 
 ## 4. Release
 

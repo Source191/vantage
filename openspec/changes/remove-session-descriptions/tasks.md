@@ -7,7 +7,7 @@
 
 ## 2. The listing
 
-- [ ] 2.1 `SessionRowEnricherShould`: rows carry no description and the enricher takes no description port (red first). Remove `SessionRow.Description`, the enricher's read and parameter, and the DESCRIPTION column from `SessionsScreenDefinition`; update the row fixtures in `SessionTestData`, `SessionsViewShould`, `ScreenLoopShould` and `StateTransitionNotifierShould`. Verify the Core suite passes.
+- [ ] 2.1 `SessionRowEnricherShould`: rows carry no description and the enricher takes no description port (red first). Remove `SessionRow.Description`, the enricher's read and parameter, and the DESCRIPTION column from `SessionsScreenDefinition`; update the row fixtures in `SessionTestData`, `SessionsViewShould`, `ScreenLoopShould`, `StateTransitionNotifierShould` and `WordingShould`, and `InMemoryStateShould` for the port. Verify the Core suite passes.
 
 ## 3. The wizard
 
