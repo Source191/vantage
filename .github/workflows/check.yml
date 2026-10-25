@@ -45,7 +45,7 @@ jobs:
 
       # The packed tool from any commit, installable with
       # tools\install-local.ps1 -FromArtifact <downloaded folder>.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Source191.Vantage-${{ steps.build.outputs.version }}
           path: ${{ steps.build.outputs.package }}
@@ -122,7 +122,7 @@ jobs:
         working-directory: tools\HeadlessTerminal
         run: dotnet run --project . -- check
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always() && steps.gate.outputs.enabled == 'true'
         with:
           name: handoff-capture
