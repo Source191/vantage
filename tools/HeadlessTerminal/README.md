@@ -22,3 +22,5 @@ dotnet run -- count drive-raw.txt "Not the same: you typed x." "Cancelled; nothi
 - `grid` replays the capture up to just after the last marker (or the alternate-screen exit) into a 120 by 40 character grid; `count` strips escape sequences and counts plain-text markers.
 - A scripted answer in a force-remove dialog must never be the real folder name: a wrong answer is refused, a right one deletes.
 - The pure parts (script parsing, query replies, command-line quoting, escape stripping, marker counting, screen replay) are unit tested in `test\Source191.Vantage.UnitTests\HeadlessTerminal`.
+
+Every Vantage the tool starts gets `VANTAGE_NO_UPDATE_CHECK=1`, so a run never contacts nuget.org or writes `update-check.json`.
