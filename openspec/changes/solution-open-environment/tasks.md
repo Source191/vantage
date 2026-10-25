@@ -1,6 +1,6 @@
 ## 1. Script
 
-- [ ] 1.1 `OpenFileScriptShould.HoldNoPartOfThePathInClear`, `DecodeToTheSamePath` (a path with `'`, `&`, `%`, `é` and a URL), `ReportAFailureOnStandardErrorAndExitOne`: add `Adapters\Processes\OpenFileScript.For(string target)`; verify the facts pass
+- [x] 1.1 `OpenFileScriptShould.HoldNoPartOfThePathInClear`, `DecodeToTheSamePath` (a path with `'`, `&`, `%`, `é` and a URL), `ReportAFailureOnStandardErrorAndExitOne`: add `Adapters\Processes\OpenFileScript.For(string target)`; verify the facts pass
 
 ## 2. Adapter
 
