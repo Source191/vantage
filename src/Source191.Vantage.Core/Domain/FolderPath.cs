@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using IOPath = System.IO.Path;
 
 namespace Source191.Vantage.Domain;
@@ -7,7 +8,7 @@ namespace Source191.Vantage.Domain;
 /// separators go, a drive root keeps its own) and compared ignoring case, as Windows does. The one place Vantage
 /// decides whether two paths are the same folder.
 /// </summary>
-public sealed record FolderPath
+public sealed record FolderPath : ITextValue<FolderPath>
 {
     public FolderPath(string text)
     {
@@ -34,6 +35,12 @@ public sealed record FolderPath
 
     /// <summary>A path from outside Vantage (git output, the CLI's listing, a state file); null when it is not a full path.</summary>
     public static FolderPath? TryParse(string? text) => text is not null && IOPath.IsPathFullyQualified(text) ? new FolderPath(text) : null;
+
+    public static bool TryParse(string? text, [MaybeNullWhen(false)] out FolderPath value)
+    {
+        value = null;
+        return false;
+    }
 
     public FolderPath Combine(string child) => new FolderPath(IOPath.Combine(Value, child));
 
