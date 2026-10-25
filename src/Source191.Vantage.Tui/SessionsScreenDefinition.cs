@@ -6,11 +6,9 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The sessions view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
+internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, string claudeExecutable)
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
-    private static readonly string[] Columns = ["NAME", "STATE", "REPOSITORY", "BRANCH", "WT", "AGE", "TAB"];
-
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(5);
 
     public string Crumb => " <sessions> ";
@@ -19,19 +17,13 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier)
 
     public string LoadFailurePrefix => "listing failed";
 
-    public string HeaderNames => "Machine:\nClaude:\nRoots:\nSessions:\nNeed input:";
+    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nSessions:\nNeed input:";
 
-    public string Keys => "<enter>\n<o>\n<n>\n<r>\n<x>\n<d>";
+    public IReadOnlyList<KeyHelp> Keys => Wording.SessionsKeys;
 
-    public string KeyNames => "Attach\nOpen in tab\nNew session\nRename\nStop\nDelete";
+    public string HelpText => Wording.SessionsHelp(claudeExecutable);
 
-    public string Keys2 => "<R>\n<C>\n<a>\n<w>\n</>\n<?>\n<q>";
-
-    public string KeyNames2 => "Resume stopped\nClose empty tabs\nAgent view\nWorktrees\nFilter\nHelp\nQuit";
-
-    public string HelpText => Wording.SessionsHelp;
-
-    public IReadOnlyList<string> ColumnNames => Columns;
+    public IReadOnlyList<ColumnHelp> Columns => Wording.SessionsColumns;
 
     public string Cell(SessionRow row, int column, DateTimeOffset now)
     {

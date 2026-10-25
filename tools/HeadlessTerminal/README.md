@@ -12,7 +12,7 @@ dotnet run -- check C:\path\to\vantage.exe C:\path\to\trusted\repo
 # the pieces: scripted keys ("delayMs:keys,..." with JSON escapes), a screen replay, marker counts
 $env:HARNESS_PLAIN = 1; $env:HARNESS_RESPOND = 1
 dotnet run -- drive "$env:USERPROFILE\.dotnet\tools\vantage.exe" '8000:w,60000:\u001b[B,2000:D,3000:x,1000:\r,2000:\u001b,2000:q'
-dotnet run -- grid drive-raw.txt "worktrees(all)" 120 40
+dotnet run -- grid drive-raw.txt "worktrees, selected" 120 40
 dotnet run -- count drive-raw.txt "Not the same: you typed x." "Cancelled; nothing removed."
 ```
 

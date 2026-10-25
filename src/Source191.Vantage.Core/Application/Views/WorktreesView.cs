@@ -63,7 +63,7 @@ public sealed record WorktreesViewState(
         _ => new Footer.RemoveHint(),
     };
 
-    public string Title => List.Title("worktrees");
+    public TableTitle Title => List.Title("worktree", row => row.FolderName);
 }
 
 /// <summary>The worktrees view as a pure function of state and input, mirroring <see cref="SessionsView"/>.</summary>
