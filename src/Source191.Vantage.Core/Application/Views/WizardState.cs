@@ -19,10 +19,11 @@ public sealed record WizardState(
     WorktreeBase Base,
     string Prompt,
     WizardProblem Problem,
+    FolderPath WorktreeRoot,
     WizardField Focus)
 {
-    /// <summary>The wizard as it opens. With a fixed directory (the worktrees view's s key) the session starts there: no repository list, no worktree choice.</summary>
-    public static WizardState Open(RepositoryCatalogue catalogue, IReadOnlyList<string> recent, IFolders folders, WorktreeBase defaultBase, FolderPath? fixedDirectory = null)
+    /// <summary>The wizard as it opens, with the worktree root and default base from the settings saved now. With a fixed directory (the worktrees view's s key) the session starts there: no repository list, no worktree choice.</summary>
+    public static WizardState Open(RepositoryCatalogue catalogue, IReadOnlyList<string> recent, IFolders folders, Settings settings, FolderPath? fixedDirectory = null)
     {
         RepositoryChoice? fixedChoice = fixedDirectory is null ? null : new RepositoryChoice(fixedDirectory.Name, fixedDirectory, IsRepository: true);
         IReadOnlyList<RepositoryChoice> all = fixedChoice is null ? catalogue.Choices(recent, string.Empty) : [];
@@ -35,9 +36,10 @@ public sealed record WizardState(
             SelectedIndex: all.Count > 0 ? 0 : null,
             Name: string.Empty,
             LaunchMode.CurrentBranch,
-            defaultBase,
+            settings.DefaultBase,
             Prompt: string.Empty,
             Problem: new WizardProblem.None(),
+            settings.WorktreeRoot,
             fixedChoice is null ? WizardField.RepositoryFilter : WizardField.Name);
     }
 
@@ -49,5 +51,5 @@ public sealed record WizardState(
     public RepositoryChoice? Chosen => FixedChoice ?? (SelectedIndex is int index ? Choices.ElementAtOrDefault(index) : null);
 
     /// <summary>What the name will become, or nothing while no repository is chosen.</summary>
-    public string Preview => Chosen is null ? string.Empty : LaunchPreview.Describe(Chosen, Name, Mode);
+    public string Preview => Chosen is null ? string.Empty : LaunchPreview.Describe(Chosen, Name, Mode, WorktreeRoot);
 }

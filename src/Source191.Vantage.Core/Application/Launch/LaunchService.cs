@@ -14,7 +14,7 @@ public enum LaunchOutcomeKind
 public sealed record LaunchOutcome(LaunchOutcomeKind Kind, JobId? JobId, string Message, BackgroundSession? Session = null);
 
 /// <summary>
-/// Carries out a launch plan: creates the sibling worktree when one is wanted, copies the include files,
+/// Carries out a launch plan: creates the planned worktree when one is wanted, copies the include files,
 /// starts the named background session, and records what Vantage needs to remember about it.
 /// </summary>
 public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositories recent, ICreatedWorktrees created, IWorktreeIncludeCopier copier, TimeProvider clock)
@@ -47,7 +47,7 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
         return new LaunchOutcome(LaunchOutcomeKind.Started, jobId, start.Message, started);
     }
 
-    private async Task CreateWorktreeAsync(LaunchPlan plan, SiblingWorktree worktree, CancellationToken cancellationToken)
+    private async Task CreateWorktreeAsync(LaunchPlan plan, PlannedWorktree worktree, CancellationToken cancellationToken)
     {
         FolderPath repository = plan.Repository.Path;
         string baseRef = plan.Base == WorktreeBase.RemoteDefault

@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.TestDoubles;
 
@@ -10,10 +11,11 @@ public sealed class RepositoryCatalogueShould
     private readonly FakeFolders folders = new FakeFolders()
         .WithDirectory(Path.Combine(Root, "Northwind.Agents", ".git"))
         .WithDirectory(Path.Combine(Root, "Northwind.Templates", ".git"))
-        .WithFile(Path.Combine(Root, "Northwind.Billing", ".git"), "gitdir: ../Northwind.Billing-main/.git/worktrees/x")
+        .WithDirectory(Path.Combine(Root, "Northwind.Billing", ".git"))
+        .WithFile(Path.Combine(Root, "Northwind.Billing-fix-123", ".git"), "gitdir: C:/Users/me/source/repos/Northwind.Billing/.git/worktrees/Northwind.Billing-fix-123")
         .WithDirectory(Path.Combine(Root, "notes"));
 
-    private RepositoryCatalogue Catalogue => new(folders, [Root]);
+    private RepositoryCatalogue Catalogue => new(folders, TestSettings.Current(Root));
 
     [Fact]
     public void ListEveryGitRepositoryDirectlyUnderTheRootsAlphabetically()
@@ -56,8 +58,29 @@ public sealed class RepositoryCatalogueShould
     [Fact]
     public void IgnoreARootThatDoesNotExist()
     {
-        RepositoryCatalogue catalogue = new(folders, [Root, Path.Combine(Root, "missing")]);
+        RepositoryCatalogue catalogue = new(folders, TestSettings.Current(Root, Path.Combine(Root, "missing")));
 
         catalogue.Choices(recent: [], filter: string.Empty).Count(choice => choice.IsRepository).ShouldBe(3);
+    }
+
+    [Fact]
+    public void OfferMainCheckoutsOnly()
+    {
+        IReadOnlyList<RepositoryChoice> choices = Catalogue.Choices(recent: [], filter: "Billing");
+
+        choices.Select(choice => choice.Name).ShouldBe(["Northwind.Billing"], "a linked worktree under a root is not a repository");
+    }
+
+    [Fact]
+    public async Task UseTheRootsSavedAfterItWasBuilt()
+    {
+        const string Work = @"D:\work";
+        folders.WithDirectory(Path.Combine(Work, "Northwind.Ledger", ".git"));
+        CurrentSettings settings = TestSettings.Current(Root);
+        RepositoryCatalogue catalogue = new(folders, settings);
+
+        await settings.SaveAsync(TestSettings.For(Root, Work));
+
+        catalogue.Choices(recent: [], filter: "Ledger").Select(choice => choice.Name).ShouldBe(["Northwind.Ledger"]);
     }
 }

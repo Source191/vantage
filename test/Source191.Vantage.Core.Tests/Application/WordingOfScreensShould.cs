@@ -16,16 +16,18 @@ public sealed class WordingOfScreensShould
     [Fact]
     public void ShowVersionsAndRootsInTheHeader()
     {
-        Wording.HeaderValues(new ToolVersion("0.5.0"), "2.1.310", [@"C:\Users\me\source\repos", @"D:\work"])
-            .ShouldBe("0.5.0\n2.1.310\nC:\\Users\\me\\source\\repos; D:\\work");
+        Wording.HeaderValues(new ToolVersion("0.5.0"), "2.1.310", Roots(@"C:\Users\me\source\repos", @"D:\work"))
+            .ShouldBe("0.5.0\n2.1.310\nC:\\Users\\me\\source\\repos; D:\\work\nC:\\Users\\me\\source\\worktrees");
     }
 
     [Fact]
     public void ShowAnUnreadableClaudeVersionAsUnknown()
     {
-        Wording.HeaderValues(new ToolVersion("0.5.0-local"), claudeVersion: null, [@"C:\Users\me\source\repos"])
-            .ShouldBe("0.5.0-local\nunknown\nC:\\Users\\me\\source\\repos");
+        Wording.HeaderValues(new ToolVersion("0.5.0-local"), claudeVersion: null, Roots(@"C:\Users\me\source\repos"))
+            .ShouldBe("0.5.0-local\nunknown\nC:\\Users\\me\\source\\repos\nC:\\Users\\me\\source\\worktrees");
     }
+
+    private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => new FolderPath(root))], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, new FolderPath(@"C:\Users\me"));
 
     [Fact]
     public void DescribeTableTitles()

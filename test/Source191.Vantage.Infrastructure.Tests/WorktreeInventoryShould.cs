@@ -16,7 +16,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     private readonly TemporaryGitRoot root = new();
 
-    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), new Folders(), [root.Path]);
+    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), new Folders(), TestSettings.Current(TestSettings.For([root.Path], root.WorktreeRoot)));
 
     /// <summary>Plain claude running in the folder, or a stopped job there when it has no process.</summary>
     private static Session SessionIn(string directory, string name, int? processId)
@@ -48,6 +48,18 @@ public sealed class WorktreeInventoryShould : IDisposable
             ("Northwind.First", new FolderPath(firstWorktree), new BranchName("fix-1"), WorktreeHealthKind.Ok),
             ("Northwind.Second", new FolderPath(secondWorktree), new BranchName("fix-2"), WorktreeHealthKind.Ok),
         ]);
+    }
+
+    [Fact]
+    public async Task ListWorktreesInBothPlacements()
+    {
+        string repository = await root.CreateRepositoryAsync("Northwind.Orders");
+        string beside = await root.AddSiblingWorktreeAsync(repository, "fix-1");
+        string under = await root.AddWorktreeUnderTheWorktreeRootAsync(repository, "fix-2");
+
+        IReadOnlyList<WorktreeRow> rows = await Inventory.ScanAsync([], TestContext.Current.CancellationToken);
+
+        rows.Select(row => (row.Path, row.Health.Kind)).ShouldBe([(new FolderPath(beside), WorktreeHealthKind.Ok), (new FolderPath(under), WorktreeHealthKind.Ok)], ignoreOrder: true);
     }
 
     [Fact]

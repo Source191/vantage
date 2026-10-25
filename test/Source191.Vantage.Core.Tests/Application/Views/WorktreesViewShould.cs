@@ -148,6 +148,12 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
+    public void OpenSettingsOnComma()
+    {
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of(','))).Effects.ShouldBe([new OpenSettings()]);
+    }
+
+    [Fact]
     public void GoBackToTheSessionsViewOnWOrEscapeAndQuitHelpAsUsual()
     {
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('w'))).Effects.ShouldBe([new SwitchToSessions()]);

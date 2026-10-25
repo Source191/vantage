@@ -14,7 +14,7 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
     private readonly Dictionary<Guid, TabRegistration> tabs = [];
     private readonly List<string> recent = [];
     private readonly List<CreatedWorktree> created = [];
-    private VantageConfig config = VantageConfig.Default;
+    private VantageConfig? config;
 
     public Task<IReadOnlyList<TabRegistration>> ReadTabsAsync()
     {
@@ -68,7 +68,7 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
         return Task.CompletedTask;
     }
 
-    public Task<VantageConfig> ReadConfigAsync()
+    public Task<VantageConfig?> ReadConfigAsync()
     {
         return Task.FromResult(config);
     }

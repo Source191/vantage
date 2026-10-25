@@ -85,7 +85,7 @@ public static class WizardView
 
         LaunchRequest request = new(repository, state.Name, state.Mode, state.Base, state.Prompt);
 
-        return LaunchPlanBuilder.Build(request, state.Folders.DirectoryExists) switch
+        return LaunchPlanBuilder.Build(request, state.WorktreeRoot, state.Folders.DirectoryExists) switch
         {
             LaunchPlanResult.Planned planned => new WizardUpdate(state, new WizardEffect.Launch(planned.Plan, openInTab)),
             LaunchPlanResult.Refused refused => Changed(state with { Problem = new WizardProblem.Refused(refused.Problem), Focus = WizardField.Name }),

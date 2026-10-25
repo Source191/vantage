@@ -197,8 +197,8 @@ internal sealed class TableScreen<TState, TRow>(
             Window = new Window { BorderStyle = LineStyle.None, Title = context.Title };
             Window.SetScheme(Palette.Plain(Palette.White));
 
-            Label contextNames = Text(1, 0, 11, definition.HeaderNames, Palette.Orange);
-            contextValues = Text(13, 0, 48, context.HeaderValues, Palette.White);
+            Label contextNames = Text(1, 0, 14, definition.HeaderNames, Palette.Orange);
+            contextValues = Text(16, 0, 45, context.HeaderValues(), Palette.White);
             Label logo = Text(Pos.AnchorEnd(12), 0, 11, " VANTAGE\n ◢◤◢◤◢◤\n", Palette.Orange);
 
             banner = Text(1, 6, Dim.Fill(), string.Empty, Palette.Red);
@@ -242,7 +242,7 @@ internal sealed class TableScreen<TState, TRow>(
             IReadOnlyList<TRow> rows = state.List.Visible;
             selected = state.List.Selected;
             table.Table = new TableSource<TRow>(rows, columnNames, (row, column) => definition.Cell(row, column, now));
-            contextValues.Text = $"{context.HeaderValues}\n{definition.ContextLines(state)}";
+            contextValues.Text = $"{context.HeaderValues()}\n{definition.ContextLines(state)}";
             string described = Wording.Describe(state.Title);
             title.Text = state.List.FilterEditing ? $"{described}  filter: {state.List.Filter.Text}_" : described;
             banner.Text = state.Banner is null ? string.Empty : $"  {definition.LoadFailurePrefix}: {state.Banner}";
