@@ -26,6 +26,30 @@ public sealed class ReleaseVersionShould
     }
 
     [Fact]
+    public void CompareWithOperators()
+    {
+        ReleaseVersion low = ReleaseVersion.TryParse("0.9.0")!;
+        ReleaseVersion high = ReleaseVersion.TryParse("0.10.0")!;
+        ReleaseVersion same = ReleaseVersion.TryParse("0.9.0")!;
+
+        (low < high).ShouldBeTrue();
+        (high < low).ShouldBeFalse();
+        (low < same).ShouldBeFalse();
+        (low <= same).ShouldBeTrue();
+        (high <= low).ShouldBeFalse();
+        (high > low).ShouldBeTrue();
+        (low > same).ShouldBeFalse();
+        (low >= same).ShouldBeTrue();
+        (low >= high).ShouldBeFalse();
+    }
+
+    [Fact]
+    public void RankAboveNothing()
+    {
+        ReleaseVersion.TryParse("0.9.0")!.CompareTo(null).ShouldBePositive();
+    }
+
+    [Fact]
     public void IgnoreBuildMetadata()
     {
         ReleaseVersion withMetadata = ReleaseVersion.TryParse("0.9.0+3f2a9c1d")!;
