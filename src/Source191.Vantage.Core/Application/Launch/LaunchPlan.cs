@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Launch;
 
@@ -57,7 +58,7 @@ public static class LaunchPlanBuilder
         {
             SessionNameValidation.Valid valid => Build(request, valid.Name, folderExists),
             SessionNameValidation.Refused refused => LaunchPlanResult.Refused(new LaunchProblem.InvalidName(refused.Problem)),
-            _ => LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)),
+            _ => throw new UnreachableException(),
         };
     }
 

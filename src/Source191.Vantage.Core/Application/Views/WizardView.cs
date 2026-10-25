@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Launch;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
@@ -82,11 +83,6 @@ public static class WizardView
             return Changed(state with { Problem = new WizardProblem.NoRepository(), Focus = WizardField.RepositoryFilter });
         }
 
-        if (string.IsNullOrWhiteSpace(state.Name))
-        {
-            return Changed(state with { Problem = new WizardProblem.NoName(), Focus = WizardField.Name });
-        }
-
         LaunchRequest request = new(repository, state.Name, state.Mode, state.Base, state.Prompt);
         LaunchPlanResult planned = LaunchPlanBuilder.Build(request, state.Folders.DirectoryExists);
 
@@ -94,7 +90,7 @@ public static class WizardView
         {
             { Plan: LaunchPlan plan } => new WizardUpdate(state, new WizardEffect.Launch(plan, openInTab)),
             { Problem: LaunchProblem problem } => Changed(state with { Problem = new WizardProblem.Refused(problem), Focus = WizardField.Name }),
-            _ => Changed(state),
+            _ => throw new UnreachableException(),
         };
     }
 

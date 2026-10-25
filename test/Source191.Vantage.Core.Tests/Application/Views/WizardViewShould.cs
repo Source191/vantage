@@ -150,7 +150,7 @@ public sealed class WizardViewShould
         WizardUpdate noName = WizardView.Reduce(blank, new WizardInput.Start(OpenInTab: false));
         noName.ShouldSatisfyAllConditions(
             update => update.Effect.ShouldBeNull(),
-            update => update.State.Problem.ShouldBe(new WizardProblem.NoName()),
+            update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.InvalidName(NameProblem.Missing))),
             update => update.State.Focus.ShouldBe(WizardField.Name));
 
         WizardState noRepositoryWorktree = Reduce(Reduce(Reduce(Opened, new WizardInput.FilterChanged("no repository")), new WizardInput.ModeChanged(LaunchMode.NewWorktree)), new WizardInput.NameChanged("fix-123"));

@@ -98,7 +98,6 @@ public static partial class Wording
         return problem switch
         {
             WizardProblem.NoRepository => "Choose a repository: type part of its name, then ↑↓.",
-            WizardProblem.NoName => "Session name is required: a short, human-readable label for the session.",
             WizardProblem.Refused refused => Describe(refused.Problem),
             _ => problem.ToString(),
         };
