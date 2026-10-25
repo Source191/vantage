@@ -10,6 +10,7 @@ using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -20,6 +21,8 @@ string stateFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialF
 JsonFileStore store = new(stateFolder, TimeProvider.System);
 ProcessRegistry processRegistry = new();
 VantageCommand command = CommandLine.Parse(args);
+string vantageExecutable = Environment.ProcessPath ?? "vantage";
+TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser();
 
 // VANTAGE_LOG=<file> turns on a diagnostic log of Vantage's hand-offs and Terminal.Gui's internals.
 ILogger log = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
@@ -37,6 +40,12 @@ switch (command)
         // Run by the shell inside a tab Vantage opened, before claude attach starts; the shell passes its own $PID.
         await new TabClaimer(store, processRegistry).ClaimAsync(claim.RegistrationId, claim.ProcessId);
         return 0;
+    case SetupTerminal setup:
+        // Needs neither Claude Code nor a terminal tab, so it runs before Claude Code is located.
+        string windowsMedia = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Media");
+        TerminalSetupRunner setupRunner = new(new Folders(), terminalFragment, ClaudeSettings.ForCurrentUser(), vantageExecutable, windowsMedia, Console.In, Console.Out, Console.Error);
+
+        return await setupRunner.RunAsync(setup.Arguments, CancellationToken.None);
     case Usage usage:
         await Console.Error.WriteLineAsync(usage.Message);
         return 2;
@@ -51,13 +60,12 @@ if (claudeExecutable is null)
     return 1;
 }
 
-string vantageExecutable = Environment.ProcessPath ?? "vantage";
 ProcessRunner processes = new();
 ClaudeCli claude = new(processes, claudeExecutable);
 GitCli git = new(processes);
 VantageConfig config = await store.ReadConfigAsync();
 ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
-WindowsTerminal terminal = new(processes);
+WindowsTerminal terminal = new(processes, terminalFragment);
 Folders folders = new();
 TerminalConsole console = new(Console.Out);
 LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);

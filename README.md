@@ -16,6 +16,7 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 - [The worktrees view](#the-worktrees-view)
 - [vantage here](#vantage-here)
 - [Notifications](#notifications)
+- [Windows Terminal setup](#windows-terminal-setup)
 - [Common scenarios](#common-scenarios)
 - [Where Vantage keeps things](#where-vantage-keeps-things)
 - [Troubleshooting](#troubleshooting)
@@ -53,21 +54,7 @@ Prerequisites: Windows 11, Windows Terminal, PowerShell 7, .NET 10 SDK, git, and
 
    Or by hand: `dotnet pack src\Source191.Vantage -c Release` then `dotnet tool install -g Source191.Vantage --add-source .\artifacts\packages`.
 
-2. Let Claude Code ring the terminal bell (optional but recommended). Add this to `~\.claude\settings.json`:
-
-   ```json
-   { "preferredNotifChannel": "terminal_bell" }
-   ```
-
-   Claude then rings the bell when it finishes a task or pauses for a permission prompt while you appear to be away, and Windows Terminal flags the tab the session is in.
-
-   Suggested Windows Terminal setting, so a bell in a background tab is hard to miss: in Windows Terminal's `settings.json` (Settings, then "Open JSON file"), under `profiles` > `defaults`:
-
-   ```json
-   "bellStyle": ["audible", "window", "taskbar"]
-   ```
-
-   That sounds the bell and flashes the window and the taskbar entry. The same option is in the settings UI under Defaults > Advanced > "Bell notification style"; drop `"audible"` if you want it silent.
+2. Set up the terminal bell (optional but recommended): run `vantage setup-terminal`. It adds two Windows Terminal profiles with their own bell sounds and can turn on Claude Code's terminal bell; see [Windows Terminal setup](#windows-terminal-setup).
 
 3. Add the profile shortcuts (optional). These two lines in `$PROFILE` give `v` for `vantage` and `vh` for `vantage here`:
 
@@ -207,10 +194,40 @@ Options: `-p`/`--prompt` sends an opening prompt (without one the session opens 
 
 Two things ring the terminal bell, and Windows Terminal flags the tab (or the window or taskbar, depending on the profile's bell style):
 
-- **Claude Code itself**, with `preferredNotifChannel` set to `terminal_bell` (see Install), rings the bell in the tab a session is attached in when it finishes a task or pauses for a permission prompt while you appear to be away.
+- **Claude Code itself**, with `preferredNotifChannel` set to `terminal_bell` (see [Windows Terminal setup](#windows-terminal-setup)), rings the bell in the tab a session is attached in when it finishes a task or pauses for a permission prompt while you appear to be away.
 - **Vantage** rings the bell in its own tab when a background row changes to needs input between two refreshes, so a session with no tab of its own still gets your attention.
 
-There are no toasts; the header's Need input count and the amber rows are the overview.
+There are no toasts; the header's Need input count and the amber rows are the overview. Bell styles and sounds are set in [Windows Terminal setup](#windows-terminal-setup).
+
+## Windows Terminal setup
+
+Windows Terminal plays the bell with whatever sound the profile has, so a bell from Vantage sounds like every other notification until it has a profile of its own. `vantage setup-terminal` gives it two:
+
+- **Vantage:** runs the installed `vantage`; open it from the new-tab menu to get Vantage in a tab that closes when you quit. It has no tab colour, so Vantage still colours its own tab.
+- **Vantage session:** PowerShell. Every tab Vantage opens (`o`) uses it once it exists, so a bell from an attached session sounds different from Vantage's own.
+
+Both profiles sound the bell and flash the window and the taskbar. The profiles are added as a Windows Terminal fragment, a small JSON file that Windows Terminal reads at start-up; your own `settings.json` is never touched. Restart Windows Terminal after running the command, and the profiles appear in the new-tab menu.
+
+```powershell
+vantage setup-terminal                                   # show what will be written, then ask
+vantage setup-terminal --yes                             # no questions
+vantage setup-terminal --sound "C:\Windows\Media\chimes.wav" --session-sound "C:\Windows\Media\Ring01.wav"
+vantage setup-terminal --remove                          # delete the fragment
+```
+
+Without options the Vantage profile plays `Windows Notify Messaging.wav` and the session profile `Windows Proximity Notification.wav`, both from `C:\Windows\Media`; a default that is missing on your machine is left out and that profile uses Windows Terminal's own bell sound. A sound you name must be an existing `.wav` file. The command first shows the file it will write and asks; any answer but yes, or no answer, writes nothing. Run it again with other sounds to replace the fragment. Exit codes: 0 done, declined or nothing to remove, 1 a write failed, 2 a usage error.
+
+**Claude Code's bell.** The command then offers to set `"preferredNotifChannel": "terminal_bell"` in `~\.claude\settings.json`, keeping every other setting. Claude then rings the bell when it finishes a task or pauses for a permission prompt while you appear to be away, and the tab it is attached in is flagged. It applies to sessions started from now on. You can add the line by hand instead:
+
+```json
+{ "preferredNotifChannel": "terminal_bell" }
+```
+
+**By hand.** In Windows Terminal, open Settings, choose a profile, then Advanced: "Bell notification style" (tick Audible, Window and Taskbar) and "Bell sound" (a `.wav` path). To make every profile flash, set the same under Defaults.
+
+**Suggested sounds** in `C:\Windows\Media`: `Windows Notify Messaging.wav`, `Windows Notify Calendar.wav`, `Windows Proximity Notification.wav`, `Windows Message Nudge.wav`, `chimes.wav`, `Alarm01.wav` to `Alarm10.wav` and `Ring01.wav` to `Ring10.wav`. Not every edition of Windows ships all of them.
+
+**Undo.** `vantage setup-terminal --remove` deletes the fragment; restart Windows Terminal and the profiles are gone, and `o` opens tabs in your default profile again. Remove the `preferredNotifChannel` line from `~\.claude\settings.json` yourself if you want Claude's bell off.
 
 ## Common scenarios
 
@@ -243,6 +260,8 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
 | `tabs\` | One file per tab Vantage opened, so a second `o` switches to the tab instead of opening another |
 
+`vantage setup-terminal` also writes `%LOCALAPPDATA%\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json`, which belongs to Windows Terminal's fragment mechanism rather than to Vantage's own folder, and can set one line in `~\.claude\settings.json` (see [Windows Terminal setup](#windows-terminal-setup)).
+
 A missing or corrupt file is treated as empty. Recent repositories are one file each so that `vantage here` and the console can record at the same time without losing a write; the `recent.json` file of versions before 0.3.0 is imported once and removed. The `descriptions\` folder and `sessions.json` left by earlier versions are no longer used and can be deleted. Sessions themselves belong to Claude Code (`claude agents --json`), never to Vantage.
 
 To scan more than one roots folder, edit `config.json`:
@@ -256,7 +275,7 @@ To scan more than one roots folder, edit `config.json`:
 - **Keys stop working after returning from a session.** Set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage; the log records every hand-off and Terminal.Gui's own diagnostics. The known cause (blocking the UI thread after a hand-off) is fixed and guarded by the check in `tools\HeadlessTerminal`.
 - **Attach shows a grey list, not a conversation.** The session has no messages yet; that is Claude's agent list. Space sends it a prompt, Esc returns to Vantage. Give sessions an opening prompt to skip this.
 - **"not trusted yet".** Claude Code refuses to start in a folder you have not trusted. Open a tab there, run `claude`, accept the prompt, then start again. Vantage never edits the trust records.
-- **No bell when a session needs you.** Check `preferredNotifChannel` in `~\.claude\settings.json` and the bell style of the Windows Terminal profile; Claude only rings when it thinks you are away from the terminal.
+- **No bell when a session needs you.** Run `vantage setup-terminal` and see [Windows Terminal setup](#windows-terminal-setup); it covers `preferredNotifChannel` in `~\.claude\settings.json` and the bell style and sound of the Windows Terminal profile. Claude only rings when it thinks you are away from the terminal.
 - **Tabs or sessions opened from Vantage have no colours.** Vantage was started from inside a Claude Code session, whose environment sets NO_COLOR; start Vantage from an ordinary tab.
 - **The worktrees view is slow to appear.** The first scan runs `git worktree list` for every repository under the roots and three git commands per worktree. Narrow `repositoryRoots` if the folder is very large.
 - **Claude Code was not found.** Vantage looks for `~\.local\bin\claude.exe`, then `claude` on the PATH.

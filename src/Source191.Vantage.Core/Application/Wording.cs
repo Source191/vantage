@@ -1,6 +1,8 @@
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application;
 
@@ -153,6 +155,72 @@ public static partial class Wording
             ? $"Branch {branch} is not merged. Delete it anyway?"
             : $"Branch {branch} was not created by Vantage. Delete it anyway?";
     }
+
+    // vantage setup-terminal.
+
+    public static string SetupTerminalUsage => "Usage: vantage setup-terminal [--sound <wav>] [--session-sound <wav>] [--yes] [--remove]";
+
+    public static string WriteProfilesQuestion => "Write the Windows Terminal profiles? [y/N] ";
+
+    public static string TurnOnClaudeBellQuestion => "Turn on Claude Code's terminal bell? [y/N] ";
+
+    public static string ClaudeBellAlreadyOn => "Claude Code's terminal bell is already on.";
+
+    public static string NothingWritten => "Nothing was written.";
+
+    public static string NothingToRemove => "There is nothing to remove.";
+
+    /// <summary>Why setup-terminal will not run; every refusal ends with the usage line.</summary>
+    public static string DescribeSetupProblem(TerminalSetupProblem problem)
+    {
+        return problem switch
+        {
+            TerminalSetupProblem.UnknownOption unknown => $"Unknown option {unknown.Option}. {SetupTerminalUsage}",
+            TerminalSetupProblem.OptionNeedsValue missing => $"{missing.Option} needs a value. {SetupTerminalUsage}",
+            TerminalSetupProblem.UnexpectedArgument unexpected => $"Unexpected argument {unexpected.Argument}. {SetupTerminalUsage}",
+            TerminalSetupProblem.RemoveWithSound => $"--remove cannot be combined with --sound or --session-sound. {SetupTerminalUsage}",
+            TerminalSetupProblem.SoundNotFound missing => $"The sound file {missing.Path} does not exist. {SetupTerminalUsage}",
+            TerminalSetupProblem.SoundNotWav notWav => $"The sound file {notWav.Path} is not a .wav file. {SetupTerminalUsage}",
+            _ => problem.ToString(),
+        };
+    }
+
+    public static string TerminalSetupPlan(string fragmentPath, TerminalProfiles profiles)
+    {
+        return string.Join(Environment.NewLine,
+            $"Two Windows Terminal profiles will be written to {fragmentPath}",
+            "Your Windows Terminal settings file is not changed.",
+            $"  {TerminalProfiles.VantageProfileName,-15}  runs {profiles.VantageExecutable}; bell sound {SoundText(profiles.VantageSound)}",
+            $"  {TerminalProfiles.SessionProfileName,-15}  runs PowerShell; bell sound {SoundText(profiles.SessionSound)}",
+            "Both ring the bell and flash the window and the taskbar.");
+    }
+
+    public static string ProfilesWritten(string fragmentPath) => $"Wrote {fragmentPath}. Restart Windows Terminal to see the Vantage and Vantage session profiles.";
+
+    public static string DefaultSoundMissing(string profileName, string path) => $"{path} was not found, so the {profileName} profile uses Windows Terminal's own bell sound.";
+
+    /// <summary>What turning the bell on will do to the settings file; <paramref name="replacing"/> is the other channel it displaces, if any.</summary>
+    public static string ClaudeBellPlan(string settingsPath, string? replacing)
+    {
+        string change = replacing is null
+            ? "This sets \"preferredNotifChannel\": \"terminal_bell\""
+            : $"This replaces \"preferredNotifChannel\": \"{replacing}\" with \"terminal_bell\"";
+
+        return string.Join(Environment.NewLine,
+            "Claude Code can ring the terminal bell when a session finishes or needs permission.",
+            $"{change} in {settingsPath} and keeps every other setting.");
+    }
+
+    public static string ClaudeBellEnabled(string settingsPath) => $"Set preferredNotifChannel to terminal_bell in {settingsPath}. It applies to sessions started from now on.";
+
+    public static string ClaudeSettingsUnreadable(string settingsPath, string reason) => $"Could not read {settingsPath} ({reason}), so it was left alone.";
+
+    public static string ProfilesRemoved(string fragmentPath) => $"Removed {fragmentPath}. Restart Windows Terminal to drop the Vantage profiles.";
+
+    /// <summary>An exception's message reports what failed, here and nowhere as a reason.</summary>
+    public static string TerminalSetupFailed(string path, string reason) => $"Could not write {path}: {reason}";
+
+    private static string SoundText(string? sound) => sound ?? "is Windows Terminal's own";
 
     private static string DescribeWorktreesAndScreen(Footer footer)
     {
