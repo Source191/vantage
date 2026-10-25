@@ -43,9 +43,9 @@ public sealed class ClaudeSettings(string claudeHome) : IClaudeSettings
 
             return settings[Property] is JsonNode value ? new NotificationChannelState.Configured(value.ToString()) : new NotificationChannelState.Unset();
         }
-        catch (JsonException exception)
+        catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)
         {
-            // The parser's own words report what failed; they are shown as the reason and never acted on.
+            // The system's own words report what failed; they are shown as the reason and never acted on.
             return new NotificationChannelState.Unreadable(exception.Message);
         }
     }
@@ -57,10 +57,30 @@ public sealed class ClaudeSettings(string claudeHome) : IClaudeSettings
 
         settings[Property] = TerminalBell;
         Directory.CreateDirectory(claudeHome);
-        await File.WriteAllBytesAsync(Location, Serialise(settings, text.EndsWith('\n')), cancellationToken);
+
+        // Written beside the file and moved over it, so a crash or a full disk cannot leave settings.json truncated.
+        string temporary = Location + ".vantage-tmp";
+        await File.WriteAllBytesAsync(temporary, Serialise(settings, text.EndsWith('\n')), cancellationToken);
+        File.Move(temporary, Location, overwrite: true);
     }
 
-    private static JsonObject Parse(string text) => JsonNode.Parse(text) as JsonObject ?? throw new JsonException("the top level is not a JSON object");
+    private static JsonObject Parse(string text)
+    {
+        try
+        {
+            JsonObject settings = JsonNode.Parse(text) as JsonObject ?? throw new JsonException("the top level is not a JSON object");
+
+            // JsonObject builds its key table on first lookup and a repeated key only fails then, so look up now.
+            _ = settings[Property];
+
+            return settings;
+        }
+        catch (ArgumentException exception)
+        {
+            // A repeated key is thrown as an ArgumentException; to the caller it is the same as any other bad JSON.
+            throw new JsonException(exception.Message, exception);
+        }
+    }
 
     private JsonObject ParseOrThrowIoException(string text)
     {

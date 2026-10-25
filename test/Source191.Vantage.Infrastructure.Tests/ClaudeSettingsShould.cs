@@ -62,6 +62,34 @@ public sealed class ClaudeSettingsShould : IDisposable
     }
 
     [Fact]
+    public async Task ReadDuplicateKeysAsUnreadable()
+    {
+        await GivenAsync("{ \"model\": \"a\", \"model\": \"b\" }");
+
+        (await settings.ReadNotificationChannelAsync(CancellationToken.None)).ShouldBeOfType<NotificationChannelState.Unreadable>();
+        await Should.ThrowAsync<IOException>(() => settings.EnableTerminalBellAsync(CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task ReadAFileAnotherProcessHoldsOpenAsUnreadable()
+    {
+        await GivenAsync("{}");
+        using FileStream held = new(SettingsFile, FileMode.Open, FileAccess.Read, FileShare.None);
+
+        (await settings.ReadNotificationChannelAsync(CancellationToken.None)).ShouldBeOfType<NotificationChannelState.Unreadable>();
+    }
+
+    [Fact]
+    public async Task LeaveNoTemporaryFileBehind()
+    {
+        await GivenAsync("{ \"model\": \"opus\" }");
+
+        await settings.EnableTerminalBellAsync(CancellationToken.None);
+
+        Directory.GetFiles(home).Select(Path.GetFileName).ShouldBe(["settings.json"]);
+    }
+
+    [Fact]
     public async Task EnableTheTerminalBellKeepingOtherKeysInOrderWithLfOnly()
     {
         await GivenAsync("{\n  \"model\": \"opus\",\n  \"permissions\": {\n    \"allow\": [\"Bash(git status)\"]\n  },\n  \"theme\": \"dark\"\n}\n");
