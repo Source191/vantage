@@ -51,4 +51,4 @@ Alternative: description constants in `Wording`. Rejected: it splits every optio
 
 ## Migration Plan
 
-Version 0.12.1 becomes 0.13.0. No state files change. Scripts that used `vantage ?`, `vantage help` or `vantage -v`, or relied on exit code 2 for a parse error, need `--help`, `--version` or exit code 1. Rollback is reinstalling 0.12.0.
+Version 0.13.0 becomes 0.14.0. No state files change. Scripts that used `vantage ?`, `vantage help` or `vantage -v`, or relied on exit code 2 for a parse error, need `--help`, `--version` or exit code 1. Rollback is reinstalling 0.13.0.

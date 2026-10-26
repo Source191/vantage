@@ -13,7 +13,7 @@ Vantage parses its command line by hand: list patterns in `CommandLine.Parse`, a
 - **BREAKING**: the library's defaults for syntax apply: `--prompt=text` and `-p:text` work, `--` ends the options, `@file` reads a response file, a repeated option is an error, and a name may start with `-`.
 - Removed: `CommandLineSyntax`, `TerminalSetupCommand` and `TerminalSetupParse`, the `PrintHelp`/`PrintVersion`/`Usage` results, `HelpTopic`, the parse cases of `LaunchProblem` and `TerminalSetupProblem`, and the help, version, usage and unknown-command words in `Wording`, with their tests.
 - Ctrl+C is unchanged: the library's termination handler is turned off (`ProcessTerminationTimeout = null`), since it would cancel and force an exit two seconds after a Ctrl+C.
-- Version 0.12.1 becomes 0.13.0 (minor; pre-1.0 minor may break).
+- Version 0.13.0 becomes 0.14.0 (minor; pre-1.0 minor may break; 0.13.0 went to the wizard change, PR #63).
 
 Out of scope: shell completion setup (`dotnet-suggest`) and its documentation; localising the library's messages; new commands or options; multiple Claude accounts, which is a later change.
 

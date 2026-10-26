@@ -26,4 +26,4 @@ None.
 
 - `Core`: the `here` action in `Application\CommandLine` checks the parse result before calling the action; one sentence in `Application\Wording`.
 - Tests: `CommandLineShould` (refused, accepted after `--`, a dash-led prompt still accepted) and a `WordingShould` fact.
-- Docs: README's `vantage here` paragraph. No version change: 0.13.0 is not released yet.
+- Docs: README's `vantage here` paragraph. No version change of its own: it ships in the same release as system-commandline (0.14.0).
