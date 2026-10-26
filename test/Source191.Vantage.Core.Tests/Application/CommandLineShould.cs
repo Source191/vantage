@@ -32,6 +32,44 @@ public sealed class CommandLineShould
     }
 
     [Theory]
+    [InlineData("--help")]
+    [InlineData("-h")]
+    [InlineData("-?")]
+    [InlineData("/?")]
+    [InlineData("?")]
+    [InlineData("help")]
+    public void AskForTheGeneralHelp(string flag)
+    {
+        CommandLine.Parse([flag]).ShouldBe(new PrintHelp(HelpTopic.Vantage));
+    }
+
+    [Theory]
+    [InlineData("here", "--help", HelpTopic.Here)]
+    [InlineData("here", "-?", HelpTopic.Here)]
+    [InlineData("setup-terminal", "-h", HelpTopic.SetupTerminal)]
+    [InlineData("setup-terminal", "/?", HelpTopic.SetupTerminal)]
+    public void AskForACommandsHelp(string command, string flag, HelpTopic topic)
+    {
+        CommandLine.Parse([command, flag]).ShouldBe(new PrintHelp(topic));
+    }
+
+    [Theory]
+    [InlineData("help")]
+    [InlineData("?")]
+    public void KeepHelpAfterHereAsASessionName(string name)
+    {
+        CommandLine.Parse(["here", name]).ShouldBeOfType<StartHere>().Arguments.ShouldBe([name]);
+    }
+
+    [Theory]
+    [InlineData("--version")]
+    [InlineData("-v")]
+    public void AskForTheVersion(string flag)
+    {
+        CommandLine.Parse([flag]).ShouldBe(new PrintVersion());
+    }
+
+    [Theory]
     [InlineData("frob")]
     [InlineData("--frob")]
     [InlineData("frob", "--yes")]

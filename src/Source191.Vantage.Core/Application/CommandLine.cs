@@ -16,6 +16,20 @@ public sealed record SetupTerminal(IReadOnlyList<string> Arguments) : VantageCom
 
 public sealed record Usage(string Message) : VantageCommand;
 
+/// <summary><c>vantage --help</c>, or <c>--help</c> straight after a command: print that topic's help and exit 0.</summary>
+public sealed record PrintHelp(HelpTopic Topic) : VantageCommand;
+
+/// <summary><c>vantage --version</c> or <c>-v</c>: print the version and exit 0.</summary>
+public sealed record PrintVersion : VantageCommand;
+
+/// <summary>Whose help to print.</summary>
+public enum HelpTopic
+{
+    Vantage,
+    Here,
+    SetupTerminal,
+}
+
 public static class CommandLine
 {
     public static VantageCommand Parse(string[] arguments)
