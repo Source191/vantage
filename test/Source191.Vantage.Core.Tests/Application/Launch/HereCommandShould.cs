@@ -72,6 +72,21 @@ public sealed class HereCommandShould
     }
 
     [Fact]
+    public void TakeANameAfterThePrompt()
+    {
+        LaunchPlan plan = HereCommand.Plan(Directory, ["-p", "Fix them", "fix-tests"], isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
+
+        plan.Name.Value.ShouldBe("fix-tests");
+        plan.OpeningPrompt.ShouldBe("Fix them");
+    }
+
+    [Fact]
+    public void RefuseAPromptWithoutAValueAfterAnotherPrompt()
+    {
+        HereCommand.Plan(Directory, ["-p", "first", "--prompt"], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.OptionNeedsValue("--prompt")));
+    }
+
+    [Fact]
     public void RefuseBundledShortOptions()
     {
         HereCommand.Plan(Directory, ["-py"], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.UnknownOption("-py")));

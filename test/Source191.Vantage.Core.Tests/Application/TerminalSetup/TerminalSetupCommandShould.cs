@@ -56,6 +56,18 @@ public sealed class TerminalSetupCommandShould
     }
 
     [Fact]
+    public void RefuseAnArgumentAfterASound()
+    {
+        TerminalSetupCommand.Parse(["--sound", @"C:\a.wav", "extra"]).Problem.ShouldBe(new TerminalSetupProblem.UnexpectedArgument("extra"));
+    }
+
+    [Fact]
+    public void RefuseAValueAfterAFlag()
+    {
+        TerminalSetupCommand.Parse(["--yes", "true"]).Problem.ShouldBe(new TerminalSetupProblem.UnexpectedArgument("true"));
+    }
+
+    [Fact]
     public void RefuseAResponseFile()
     {
         TerminalSetupCommand.Parse(["@options.rsp"]).Problem.ShouldBe(new TerminalSetupProblem.UnexpectedArgument("@options.rsp"));
