@@ -47,32 +47,6 @@ public sealed class ProcessRunnerIntegrationShould
     }
 
     [Fact]
-    public async Task StartStopAndRemoveARealBackgroundSessionWithTheMiddleDotDecodedCorrectly()
-    {
-        string? executable = ClaudeExecutable.Locate();
-        Assert.SkipWhen(executable is null, "Claude Code is not installed on this machine.");
-        string trustedRepository = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
-        ClaudeCli cli = new(runner, executable);
-
-        StartResult started = await cli.StartBackgroundAsync(trustedRepository, SessionName.From("vantage-encoding-check"), openingPrompt: null, TestContext.Current.CancellationToken);
-        try
-        {
-            started.Outcome.ShouldBe(StartOutcome.Started, started.Message);
-            started.JobId.ShouldNotBeNull();
-            started.JobId.Length.ShouldBe(8);
-            started.Message.ShouldContain("·");
-        }
-        finally
-        {
-            if (started.JobId is not null)
-            {
-                await cli.StopAsync(started.JobId, TestContext.Current.CancellationToken);
-                await cli.RemoveAsync(started.JobId, TestContext.Current.CancellationToken);
-            }
-        }
-    }
-
-    [Fact]
     public async Task ListTheMachineSessionsThroughTheRealClaudeCli()
     {
         string? executable = ClaudeExecutable.Locate();

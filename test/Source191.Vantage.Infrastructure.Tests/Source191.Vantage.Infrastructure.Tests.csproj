@@ -23,6 +23,11 @@
     <Using Include="Shouldly" />
   </ItemGroup>
 
+  <!-- The Claude Code help snapshots ClaudeHelpSurfaceShould compares against. -->
+  <ItemGroup>
+    <None Include="Contract\Snapshots\*.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\src\Source191.Vantage.Infrastructure\Source191.Vantage.Infrastructure.csproj" />
     <ProjectReference Include="..\Source191.Vantage.TestDoubles\Source191.Vantage.TestDoubles.csproj" />

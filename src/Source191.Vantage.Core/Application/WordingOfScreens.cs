@@ -1,5 +1,6 @@
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -34,8 +35,17 @@ public static partial class Wording
     };
 
     /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
-    public static string HeaderValues(ToolVersion vantage, string? claudeVersion, Settings settings, UpdateStatus update)
-    => string.Join('\n', VantageVersion(vantage, update), claudeVersion ?? UnknownVersion, string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
+    public static string HeaderValues(ToolVersion vantage, ClaudeCodeVersion claude, Settings settings, UpdateStatus update)
+    => string.Join('\n', VantageVersion(vantage, update), ClaudeVersion(claude), string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
+
+    /// <summary>The Claude Code header value: the version as the CLI printed it, and the minimum with a prompt to update when it is older.</summary>
+    private static string ClaudeVersion(ClaudeCodeVersion claude) => claude switch
+    {
+        ClaudeCodeVersion.Unknown => UnknownVersion,
+        ClaudeCodeVersion.Reported reported => reported.Text,
+        ClaudeCodeVersion.BelowMinimum old => $"{old.Installed} (below {old.Minimum}, update Claude Code)",
+        _ => throw new UnreachableException(),
+    };
 
     /// <summary>The Vantage header value: the running version, and the newer release with the update key when one is known.</summary>
     private static string VantageVersion(ToolVersion vantage, UpdateStatus update)

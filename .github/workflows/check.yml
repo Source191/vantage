@@ -60,13 +60,16 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15
     continue-on-error: true
+    # The token is given only to the gate and the hand-off check, never to the job, so the downloaded
+    # installer and the build never see it.
     env:
-      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
       DISABLE_AUTOUPDATER: 1
     steps:
       - name: Gate on the token secret
         id: gate
         shell: pwsh
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         run: |
           if ([string]::IsNullOrEmpty($env:CLAUDE_CODE_OAUTH_TOKEN)) {
               Write-Host "::notice::handoff skipped: no CLAUDE_CODE_OAUTH_TOKEN secret"
@@ -96,7 +99,7 @@ jobs:
           & "$env:USERPROFILE\.local\bin\claude.exe" --version
 
       # The runner has no desktop to accept the trust prompt on, so trust the checkout here. The
-      # only place this record is ever written by a script; see CLAUDE.md.
+      # only places this record is ever written by a script; see CLAUDE.md.
       - name: Trust the checkout
         if: steps.gate.outputs.enabled == 'true'
         shell: pwsh
@@ -119,6 +122,8 @@ jobs:
       - name: Hand-off check
         if: steps.gate.outputs.enabled == 'true'
         shell: pwsh
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
         working-directory: tools\HeadlessTerminal
         run: dotnet run --project . -- check
 

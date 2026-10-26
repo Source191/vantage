@@ -1,0 +1,152 @@
+name: claude-contract
+
+# Every night, checks that the latest Claude Code CLI still offers what Vantage relies on (CLAUDE.md, "Claude Code
+# contract tests"): the contract tests drive Vantage's own Claude adapters against a fresh install, compare the
+# commands and options in the CLI's help with the committed snapshots, and the hand-off check attaches and returns.
+# A failed install or contract test raises one rolling issue labelled claude-cli, assigned to the login in the
+# CLAUDE_CLI_WATCHER repository variable, so each failure notifies them. Never runs on pull requests: a CLI release
+# must not block a merge.
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+# Issues are written only by the last step, and only when the install or the contract tests failed.
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  contract:
+    name: contract
+    runs-on: windows-latest
+    timeout-minutes: 20
+    # The token is given only to the steps that start Claude (and the gate that checks it is there), never to
+    # the job, so the installer, the build and the issue step never see it.
+    env:
+      DISABLE_AUTOUPDATER: 1
+    steps:
+      - name: Gate on the token secret
+        id: gate
+        shell: pwsh
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if ([string]::IsNullOrEmpty($env:CLAUDE_CODE_OAUTH_TOKEN)) {
+              Write-Host "::warning::contract skipped: no CLAUDE_CODE_OAUTH_TOKEN secret, so the CLI was not checked"
+              "enabled=false" >> $env:GITHUB_OUTPUT
+          }
+          else {
+              "enabled=true" >> $env:GITHUB_OUTPUT
+          }
+
+      - uses: actions/checkout@v7
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        if: steps.gate.outputs.enabled == 'true'
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Claude Code
+        id: claude
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          irm https://claude.ai/install.ps1 | iex
+          Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.local\bin"
+          $version = & "$env:USERPROFILE\.local\bin\claude.exe" --version
+          Write-Host $version
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      # The runner has no desktop to accept the trust prompt on, so trust the checkout here. The
+      # only places this record is ever written by a script; see CLAUDE.md.
+      - name: Trust the checkout
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $key = $env:GITHUB_WORKSPACE -replace '\\', '/'
+          $path = Join-Path $env:USERPROFILE '.claude.json'
+          $config = if (Test-Path $path) { Get-Content $path -Raw | ConvertFrom-Json -AsHashtable } else { @{} }
+          $config['hasCompletedOnboarding'] = $true
+          if (-not $config.ContainsKey('projects')) { $config['projects'] = @{} }
+          $config['projects'][$key] = @{ hasTrustDialogAccepted = $true }
+          $config | ConvertTo-Json -Depth 10 | Set-Content $path -NoNewline
+          Write-Host "Trusted $key"
+
+      - name: Build Debug
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        run: dotnet build -c Debug
+
+      # Only the ClaudeContract tests, with the variable that lets them start real sessions. A run where they
+      # were all skipped (the CLI not found, the variable lost) would pass silently, so a skip fails the step.
+      - name: Contract tests
+        id: contract
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          VANTAGE_CLAUDE_CONTRACT: 1
+        run: |
+          dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build -- --filter-trait "Category=ClaudeContract" 2>&1 | Tee-Object -FilePath contract-output.txt
+          $exitCode = $LASTEXITCODE
+          if ($exitCode -ne 0) {
+              exit $exitCode
+          }
+          if (-not (Select-String -Path contract-output.txt -Pattern '^\s*skipped: 0\s*$' -Quiet)) {
+              Write-Host "::error::contract tests were skipped; check the Claude Code install and VANTAGE_CLAUDE_CONTRACT"
+              exit 1
+          }
+
+      # Timings tuned on a laptop: a slow runner can fail it for reasons that are not bugs, so it marks the run
+      # without raising the issue; read the handoff-capture artefact when it fails.
+      - name: Hand-off check
+        if: always() && steps.gate.outputs.enabled == 'true'
+        continue-on-error: true
+        shell: pwsh
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        working-directory: tools\HeadlessTerminal
+        run: dotnet run --project . -- check ..\..\src\Source191.Vantage\bin\Debug\net10.0\vantage.exe
+
+      - uses: actions/upload-artifact@v7
+        if: always() && steps.gate.outputs.enabled == 'true'
+        with:
+          name: contract-results
+          path: |
+            contract-output.txt
+            test\Source191.Vantage.Infrastructure.Tests\bin\Debug\net10.0\Contract\Snapshots\*.received.txt
+            tools\HeadlessTerminal\drive-raw.txt
+          if-no-files-found: ignore
+
+      # One rolling issue: a comment on the open claude-cli issue, or a new one when none is open. Its assignee
+      # is subscribed to it, so GitHub notifies them of every comment.
+      - name: Raise the claude-cli issue
+        if: always() && (steps.claude.outcome == 'failure' || steps.contract.outcome == 'failure')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INSTALL_OUTCOME: ${{ steps.claude.outcome }}
+          CLAUDE_VERSION: ${{ steps.claude.outputs.version }}
+          WATCHER: ${{ vars.CLAUDE_CLI_WATCHER }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh label create claude-cli --color B60205 --description 'The nightly Claude Code CLI contract check' --force
+          $run = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+          $what = if ($env:INSTALL_OUTCOME -eq 'failure') { "The latest Claude Code failed to install or to report its version in $run" } else { "Claude Code $env:CLAUDE_VERSION failed the contract check in $run" }
+          $failures = if (Test-Path contract-output.txt) { (Select-String -Path contract-output.txt -Pattern '^failed |^::error::' -Context 0, 8 | ForEach-Object { @($_.Line) + $_.Context.PostContext }) -join "`n" } else { 'No test output: see the run log.' }
+          $fence = '```'
+          $body = "$what`n`n$fence" + "text`n$failures`n$fence"
+          $body.Substring(0, [Math]::Min($body.Length, 60000)) | Set-Content issue-body.md
+          $open = gh issue list --label claude-cli --state open --json number | ConvertFrom-Json | Select-Object -First 1
+          if ($open) {
+              gh issue comment $open.number --body-file issue-body.md
+              exit $LASTEXITCODE
+          }
+          $assignee = if ($env:WATCHER) { @('--assignee', $env:WATCHER) } else { @() }
+          gh issue create --title 'Claude Code CLI check failed' --label claude-cli --body-file issue-body.md @assignee

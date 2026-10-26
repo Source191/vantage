@@ -112,8 +112,8 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home));
     DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);
-    string? claudeVersionText = await claudeVersion;
-    ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeVersionText, settings.Value, updates.Status), clipboard);
+    ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(await claudeVersion);
+    ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeCode, settings.Value, updates.Status), clipboard);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
     WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context, folderLabels);
