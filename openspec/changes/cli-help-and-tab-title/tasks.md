@@ -18,13 +18,13 @@
 
 - [x] 3.1 `Program.cs` (wiring, untested by rule): read `ToolVersion` before the early switch, handle `PrintHelp` and `PrintVersion` there (standard output, exit 0); verify by hand with the Debug build that `vantage --help`, `-v`, `here --help`, `setup-terminal --help` print and exit 0, and `vantage frob` exits 2, all with `claude` removed from the PATH for the session
 - [x] 3.2 Add `Tui\DialogTabTitle.Apply(Dialog, DialogName)` (clears `BorderSettings.TerminalTitle`, writes `Wording.TabTitleDuring(name)` through `app.Driver.SetTerminalTitle` when the dialog becomes modal); give `Confirm.Query` a `DialogName` and call `Apply` from all six dialogs with the words in the session-attach delta; verify `dotnet build -c Debug` passes
-- [ ] 3.3 Verify the title sequence with a HeadlessTerminal `drive` capture of `8000:?,2000:\u001b,2000:q` (environment cleared as CLAUDE.md says): the OSC 0 titles are exactly `Vantage`, `Vantage (Keys)`, `Vantage`; repeat for `,` (Settings); then run `dotnet run --project tools\HeadlessTerminal -- check` and verify exit 0
+- [x] 3.3 Verify the title sequence with a HeadlessTerminal `drive` capture of `8000:?,2000:\u001b,2000:q` (environment cleared as CLAUDE.md says): the OSC 0 titles are exactly `Vantage`, `Vantage (Keys)`, `Vantage`; repeat for `,` (Settings); then run `dotnet run --project tools\HeadlessTerminal -- check` and verify exit 0
 
 ## 4. Documentation and release
 
-- [ ] 4.1 README: the own-tab paragraph (plain `Vantage`, the dialog word), a "Help and version" note under Start Vantage (the spellings, exit codes, unknown commands exit 2), the `vantage here` example without `-d` and with `vantage here --help`, and the manual check (item 6) plus the `drive` title capture; verify the README's commands run as written
-- [ ] 4.2 CLAUDE.md: the Windows Terminal title paragraph (plain `Vantage` from `Wording.TabTitle`, `DialogTabTitle` and why, the `Runnable` flag) and the Program.cs line naming the early commands; verify the text matches the code
-- [ ] 4.3 Raise `Version` to 0.12.0 in `src\Source191.Vantage\Source191.Vantage.csproj`; verify `.github\scripts\Assert-VersionBumped.ps1` passes locally against `main`
+- [x] 4.1 README: the own-tab paragraph (plain `Vantage`, the dialog word), a "Help and version" note under Start Vantage (the spellings, exit codes, unknown commands exit 2), the `vantage here` example without `-d` and with `vantage here --help`, and the manual check (item 6) plus the `drive` title capture; verify the README's commands run as written
+- [x] 4.2 CLAUDE.md: the Windows Terminal title paragraph (plain `Vantage` from `Wording.TabTitle`, `DialogTabTitle` and why, the `Runnable` flag) and the Program.cs line naming the early commands; verify the text matches the code
+- [x] 4.3 Raise `Version` to 0.12.0 in `src\Source191.Vantage\Source191.Vantage.csproj`; verify `.github\scripts\Assert-VersionBumped.ps1` passes locally against `main`
 - [ ] 4.4 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate cli-help-and-tab-title --strict`; verify all pass
 
 ## Workflow follow-up
