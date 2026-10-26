@@ -16,72 +16,7 @@ public static partial class Wording
     /// <summary>Printed before an attach. Attach lands on Claude's agent list when the session has no messages yet; that screen leaves with Esc, not Ctrl+Z.</summary>
     public static string ReturnHint => "Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.";
 
-    private const string HereSyntax = "vantage here [name] [-p \"opening prompt\"]";
-
     private const string SetupTerminalSyntax = "vantage setup-terminal [--sound <wav>] [--session-sound <wav>] [--yes] [--remove]";
-
-    public static string HereUsage => $"Usage: {HereSyntax}";
-
-    public static string ClaimTabUsage => "Usage: vantage claim-tab <registration id> <process id>";
-
-    public static string UnknownCommand(string command) => $"Unknown command {command}. Run vantage --help for the commands.";
-
-    /// <summary>What <c>vantage --version</c> prints.</summary>
-    public static string VersionLine(ToolVersion version) => $"vantage {version.Text}";
-
-    /// <summary>What <c>vantage --help</c>, or <c>--help</c> after a command, prints. Leaves out <c>claim-tab</c>, which only Vantage runs.</summary>
-    public static string Help(HelpTopic topic, ToolVersion version) => topic switch
-    {
-        HelpTopic.Vantage => GeneralHelp(version),
-        HelpTopic.Here => HereHelp,
-        HelpTopic.SetupTerminal => SetupTerminalHelp,
-    };
-
-    private static string GeneralHelp(ToolVersion version) => $"""
-        Vantage {version.Text}: a console for Claude Code sessions and git worktrees.
-
-        Usage:
-          vantage                     Open the console.
-          {HereSyntax}
-                                      Start a supervised session in this folder and attach to it.
-          {SetupTerminalSyntax}
-                                      Add Vantage's Windows Terminal profiles.
-          vantage <command> --help    Show a command's help.
-          vantage --help              Show this help (also -h, -?, /?).
-          vantage --version           Show the version (also -v).
-
-        Environment:
-          VANTAGE_LOG=<file>          Write a diagnostic log to the file.
-          {UpdateCheckOptOut.VariableName}=1   Never check nuget.org for a newer version.
-
-        More: https://github.com/Source191/vantage#readme
-        """;
-
-    private static string HereHelp => $"""
-        {HereUsage}
-
-        Starts a supervised Claude Code session in the current folder, on its current branch, and attaches to it in
-        this tab. Ctrl+Z detaches; the session keeps running and is listed in Vantage.
-
-          name                  The session's name; the folder's name when left out.
-          -p, --prompt <text>   Send an opening prompt; without one the session opens on the agent list.
-
-        Exit codes: 0 after a detach, 1 when the start failed, 2 for a usage error.
-        """;
-
-    private static string SetupTerminalHelp => $"""
-        {SetupTerminalUsage}
-
-        Adds the "Vantage" and "Vantage session" profiles to Windows Terminal, each with a bell that sounds and flashes,
-        then offers to turn on Claude Code's terminal bell. Shows what it will write and asks first.
-
-          --sound <wav>           The bell sound of the Vantage profile.
-          --session-sound <wav>   The bell sound of the Vantage session profile.
-          --yes                   Write without asking.
-          --remove                Remove Vantage's profiles.
-
-        Exit codes: 0 done, declined or nothing to remove, 1 a write failed, 2 a usage error.
-        """;
 
     public static string ForceRemoveWarning => "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:";
 

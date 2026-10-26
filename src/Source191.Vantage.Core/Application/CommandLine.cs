@@ -1,82 +1,65 @@
+using Source191.Vantage.Application.TerminalSetup;
 using System.CommandLine;
 
 namespace Source191.Vantage.Application;
 
-/// <summary>What the command line asked for. Only no arguments at all opens the console; anything not recognised is a usage error.</summary>
-public abstract record VantageCommand;
-
-public sealed record OpenConsole : VantageCommand;
-
-/// <summary><c>vantage here [name] [-p prompt]</c>; the arguments after <c>here</c> are parsed by <see cref="Launch.HereCommand"/>.</summary>
-public sealed record StartHere(IReadOnlyList<string> Arguments) : VantageCommand;
-
-/// <summary><c>vantage claim-tab &lt;registration id&gt; &lt;process id&gt;</c>, run by the shell inside a tab Vantage opened.</summary>
-public sealed record ClaimTab(Guid RegistrationId, int ProcessId) : VantageCommand;
-
-/// <summary><c>vantage setup-terminal [--sound wav] [--session-sound wav] [--yes] [--remove]</c>; the arguments after it.</summary>
-public sealed record SetupTerminal(IReadOnlyList<string> Arguments) : VantageCommand;
-
-public sealed record Usage(string Message) : VantageCommand;
-
-/// <summary><c>vantage --help</c>, or <c>--help</c> straight after a command: print that topic's help and exit 0.</summary>
-public sealed record PrintHelp(HelpTopic Topic) : VantageCommand;
-
-/// <summary><c>vantage --version</c> or <c>-v</c>: print the version and exit 0.</summary>
-public sealed record PrintVersion : VantageCommand;
-
-/// <summary>Whose help to print.</summary>
-public enum HelpTopic
-{
-    Vantage,
-    Here,
-    SetupTerminal,
-}
-
+/// <summary>
+/// Vantage's whole command line, declared once with System.CommandLine: the console as the root action, <c>here</c>,
+/// <c>setup-terminal</c> and the hidden <c>claim-tab</c>. Help, version, parse errors and close-match suggestions are
+/// the library's; each command hands its values to the matching <see cref="CommandActions"/> delegate. Descriptions
+/// sit beside their symbols rather than in <see cref="Wording"/>, so an option and its words are changed together.
+/// </summary>
 public static class CommandLine
 {
-    private static readonly Argument<Guid> RegistrationId = new("registration id");
-    private static readonly Argument<int> ProcessId = new("process id");
-    private static readonly Command ClaimTabSyntax = new("claim-tab") { RegistrationId, ProcessId };
-
-    // here and setup-terminal parse their own arguments; the root only tells the commands apart.
-    private static readonly Command HereSyntax = new("here") { TreatUnmatchedTokensAsErrors = false };
-    private static readonly Command SetupTerminalSyntax = new("setup-terminal") { TreatUnmatchedTokensAsErrors = false };
-    private static readonly Command Root = new("vantage") { HereSyntax, SetupTerminalSyntax, ClaimTabSyntax };
-
-    public static RootCommand Build(CommandActions actions) => new();
-
-    public static Task<int> InvokeAsync(RootCommand root, IReadOnlyList<string> arguments, TextWriter output, TextWriter error) => Task.FromResult(-1);
-
-    public static VantageCommand Parse(string[] arguments)
+    public static RootCommand Build(CommandActions actions)
     {
-        return arguments switch
-        {
-            [] => new OpenConsole(),
-            [string flag, ..] when IsHelp(flag) || flag is "?" or "help" => new PrintHelp(HelpTopic.Vantage),
-            ["--version" or "-v", ..] => new PrintVersion(),
-            ["here", string flag, ..] when IsHelp(flag) => new PrintHelp(HelpTopic.Here),
-            ["setup-terminal", string flag, ..] when IsHelp(flag) => new PrintHelp(HelpTopic.SetupTerminal),
-            [string first, .. string[] rest] => Choose(first, rest, CommandLineSyntax.Parse(Root, arguments)),
-        };
+        RootCommand root = new("A console for Claude Code sessions and git worktrees on Windows.") { Here(actions), SetupTerminal(actions), ClaimTab(actions) };
+        root.SetAction((_, cancellationToken) => actions.OpenConsole(cancellationToken));
+
+        return root;
     }
 
-    private static VantageCommand Choose(string first, string[] rest, ParseResult parsed)
+    /// <summary>
+    /// Parses and runs. The library's termination handler is off (<c>ProcessTerminationTimeout</c> null): it would
+    /// cancel the action on Ctrl+C and force an exit two seconds later, even under an attached session.
+    /// </summary>
+    public static Task<int> InvokeAsync(RootCommand root, IReadOnlyList<string> arguments, TextWriter output, TextWriter error)
     {
-        Command chosen = parsed.CommandResult.Command;
-        if (chosen.Name != first)
-        {
-            return new Usage(Wording.UnknownCommand(first));
-        }
+        InvocationConfiguration configuration = new() { Output = output, Error = error, ProcessTerminationTimeout = null };
 
-        return chosen switch
-        {
-            _ when chosen == HereSyntax => new StartHere(rest),
-            _ when chosen == SetupTerminalSyntax => new SetupTerminal(rest),
-            _ when parsed.Errors.Count == 0 => new ClaimTab(parsed.GetValue(RegistrationId), parsed.GetValue(ProcessId)),
-            _ => new Usage(Wording.ClaimTabUsage),
-        };
+        return root.Parse(arguments).InvokeAsync(configuration);
     }
 
-    /// <summary>The help spellings a command accepts after its name; <c>?</c> and <c>help</c> are help only on their own, since <c>vantage here help</c> names a session.</summary>
-    private static bool IsHelp(string argument) => argument is "--help" or "-h" or "-?" or "/?";
+    private static Command Here(CommandActions actions)
+    {
+        Argument<string?> name = new("name") { Arity = ArgumentArity.ZeroOrOne, Description = "The session's name; the folder's name when left out." };
+        Option<string?> prompt = new("--prompt", "-p") { Description = "An opening prompt to send; without one the session opens on Claude's agent list." };
+        Command here = new("here", "Start a supervised Claude Code session in this folder, on its current branch, and attach to it in this tab. Ctrl+Z detaches; the session keeps running.") { name, prompt };
+        here.SetAction((parsed, cancellationToken) => actions.StartHere(parsed.GetValue(name), parsed.GetValue(prompt), cancellationToken));
+
+        return here;
+    }
+
+    private static Command SetupTerminal(CommandActions actions)
+    {
+        Option<string?> sound = new("--sound") { HelpName = "wav", Description = "The bell sound of the Vantage profile." };
+        Option<string?> sessionSound = new("--session-sound") { HelpName = "wav", Description = "The bell sound of the Vantage session profile." };
+        Option<bool> yes = new("--yes") { Description = "Write without asking." };
+        Option<bool> remove = new("--remove") { Description = "Remove Vantage's profiles." };
+        Command setup = new("setup-terminal", "Add the Vantage and Vantage session profiles to Windows Terminal, each with a bell that sounds and flashes, then offer to turn on Claude Code's terminal bell. Shows what it will write and asks first.") { sound, sessionSound, yes, remove };
+        setup.SetAction((parsed, cancellationToken) => actions.SetUpTerminal(new TerminalSetupRequest(parsed.GetValue(sound), parsed.GetValue(sessionSound), parsed.GetValue(yes), parsed.GetValue(remove)), cancellationToken));
+
+        return setup;
+    }
+
+    private static Command ClaimTab(CommandActions actions)
+    {
+        Argument<Guid> registration = new("registration-id");
+        Argument<int> processId = new("process-id");
+        Command claim = new("claim-tab", "Run by the shell inside a tab Vantage opened, to claim that tab.") { registration, processId };
+        claim.Hidden = true;
+        claim.SetAction((parsed, cancellationToken) => actions.ClaimTab(parsed.GetValue(registration), parsed.GetValue(processId), cancellationToken));
+
+        return claim;
+    }
 }
