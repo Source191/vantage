@@ -9,9 +9,9 @@
 
 ## 2. Words for help, version and the tab
 
-- [ ] 2.1 `WordingShould.PrintTheVersionLine` (`vantage 0.12.0`, `vantage 0.12.0-local` from `ToolVersion.FromInformational("0.12.0-local.20261026T101500+abc")`): add `Wording.VersionLine(ToolVersion)`; verify it passes
-- [ ] 2.2 `WordingShould.DescribeEveryCommandInTheGeneralHelp`, `LeavePlumbingOutOfTheHelp` and `NameTheEnvironmentVariablesAndReadme`: add `Wording.Help(HelpTopic.Vantage, ToolVersion)` naming the version, `vantage`, `vantage here`, `vantage setup-terminal`, `--help`, `--version`, `VANTAGE_LOG`, `UpdateCheckOptOut.VariableName` and `https://github.com/Source191/vantage#readme`, and never `claim-tab`; verify the facts pass
-- [ ] 2.3 `WordingShould.StartEachCommandsHelpWithItsUsageLine`: `Help(HelpTopic.Here, …)` starts with `HereUsage` and explains `-p`/`--prompt`; `Help(HelpTopic.SetupTerminal, …)` starts with `SetupTerminalUsage` and explains each option; verify it passes
+- [x] 2.1 `WordingShould.PrintTheVersionLine` (`vantage 0.12.0`, `vantage 0.12.0-local` from `ToolVersion.FromInformational("0.12.0-local.20261026T101500+abc")`): add `Wording.VersionLine(ToolVersion)`; verify it passes
+- [x] 2.2 `WordingShould.DescribeEveryCommandInTheGeneralHelp`, `LeavePlumbingOutOfTheHelp` and `NameTheEnvironmentVariablesAndReadme`: add `Wording.Help(HelpTopic.Vantage, ToolVersion)` naming the version, `vantage`, `vantage here`, `vantage setup-terminal`, `--help`, `--version`, `VANTAGE_LOG`, `UpdateCheckOptOut.VariableName` and `https://github.com/Source191/vantage#readme`, and never `claim-tab`; verify the facts pass
+- [x] 2.3 `WordingShould.StartEachCommandsHelpWithItsUsageLine`: `Help(HelpTopic.Here, …)` starts with `HereUsage` and explains `-p`/`--prompt`; `Help(HelpTopic.SetupTerminal, …)` starts with `SetupTerminalUsage` and explains each option; verify it passes
 - [ ] 2.4 `WordingOfScreensShould.TitleTheTabVantage` (replacing the two version facts) and `NameEachDialogInTheTabTitle` as a theory over every `DialogName` member: add `Application\DialogName`, make `Wording.TabTitle` a property and add `TabTitle(DialogName)` with a switch naming every member; update `Program.cs` and `TerminalConsoleShould` to the plain title; verify the build (warnings as errors) and the Core and Infrastructure suites pass
 
 ## 3. Program and dialogs
