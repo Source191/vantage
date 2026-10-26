@@ -1,3 +1,5 @@
+using System.CommandLine;
+
 namespace Source191.Vantage.Application.TerminalSetup;
 
 /// <summary>What <c>vantage setup-terminal</c> was asked to do; a null sound means "use the default".</summary>
@@ -28,46 +30,33 @@ public sealed record TerminalSetupParse(TerminalSetupRequest? Request, TerminalS
 /// <summary><c>vantage setup-terminal [--sound wav] [--session-sound wav] [--yes] [--remove]</c>: pure parsing, checking the files is the runner's.</summary>
 public static class TerminalSetupCommand
 {
+    private static readonly Option<string[]> Sound = CommandLineSyntax.Repeatable("--sound");
+    private static readonly Option<string[]> SessionSound = CommandLineSyntax.Repeatable("--session-sound");
+    private static readonly Option<bool> Yes = CommandLineSyntax.Flag("--yes");
+    private static readonly Option<bool> Remove = CommandLineSyntax.Flag("--remove");
+    private static readonly Command Syntax = new("setup-terminal") { Sound, SessionSound, Yes, Remove };
+
     public static TerminalSetupParse Parse(IReadOnlyList<string> arguments)
     {
-        string? sound = null;
-        string? sessionSound = null;
-        bool yes = false;
-        bool remove = false;
-
-        Queue<string> remaining = new(arguments);
-        while (remaining.Count > 0)
+        ParseResult parsed = CommandLineSyntax.Parse(Syntax, arguments);
+        TerminalSetupProblem? problem = CommandLineSyntax.FirstProblem<TerminalSetupProblem>(
+            Syntax,
+            parsed,
+            arguments,
+            option => new TerminalSetupProblem.UnknownOption(option),
+            option => new TerminalSetupProblem.OptionNeedsValue(option),
+            argument => new TerminalSetupProblem.UnexpectedArgument(argument));
+        if (problem is not null)
         {
-            string argument = remaining.Dequeue();
-            bool hasValue = remaining.Count > 0;
-            switch (argument)
-            {
-                case "--sound" when hasValue:
-                    sound = remaining.Dequeue();
-                    break;
-                case "--session-sound" when hasValue:
-                    sessionSound = remaining.Dequeue();
-                    break;
-                case "--sound" or "--session-sound":
-                    return TerminalSetupParse.Refused(new TerminalSetupProblem.OptionNeedsValue(argument));
-                case "--yes":
-                    yes = true;
-                    break;
-                case "--remove":
-                    remove = true;
-                    break;
-                case var option when option.StartsWith('-'):
-                    return TerminalSetupParse.Refused(new TerminalSetupProblem.UnknownOption(option));
-                default:
-                    return TerminalSetupParse.Refused(new TerminalSetupProblem.UnexpectedArgument(argument));
-            }
+            return TerminalSetupParse.Refused(problem);
         }
 
-        if (remove && (sound is not null || sessionSound is not null))
+        TerminalSetupRequest request = new(CommandLineSyntax.Last(parsed, Sound), CommandLineSyntax.Last(parsed, SessionSound), parsed.GetValue(Yes), parsed.GetValue(Remove));
+        if (request.Remove && (request.Sound is not null || request.SessionSound is not null))
         {
             return TerminalSetupParse.Refused(new TerminalSetupProblem.RemoveWithSound());
         }
 
-        return new TerminalSetupParse(new TerminalSetupRequest(sound, sessionSound, yes, remove), Problem: null);
+        return new TerminalSetupParse(request, Problem: null);
     }
 }
