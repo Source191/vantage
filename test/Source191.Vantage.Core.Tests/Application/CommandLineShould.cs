@@ -22,6 +22,21 @@ public sealed class CommandLineShould
         CommandLine.Parse(["claim-tab", registration.ToString("N"), "4242"]).ShouldBe(new ClaimTab(registration, 4242));
         CommandLine.Parse(["claim-tab", "not-a-guid", "4242"]).ShouldBe(new Usage(Wording.ClaimTabUsage));
         CommandLine.Parse(["claim-tab", registration.ToString("N")]).ShouldBe(new Usage(Wording.ClaimTabUsage));
-        CommandLine.Parse(["anything-else"]).ShouldBe(new OpenConsole());
+    }
+
+    [Fact]
+    public void OpenTheConsoleOnlyWithNoArguments()
+    {
+        CommandLine.Parse([]).ShouldBe(new OpenConsole());
+        CommandLine.Parse(["anything-else"]).ShouldNotBe(new OpenConsole());
+    }
+
+    [Theory]
+    [InlineData("frob")]
+    [InlineData("--frob")]
+    [InlineData("frob", "--yes")]
+    public void RefuseAnUnknownCommandWithUsage(params string[] arguments)
+    {
+        CommandLine.Parse(arguments).ShouldBe(new Usage(Wording.UnknownCommand(arguments[0])));
     }
 }

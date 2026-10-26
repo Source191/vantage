@@ -736,6 +736,12 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void PointAnUnknownCommandAtTheHelp()
+    {
+        Wording.UnknownCommand("frob").ShouldBe("Unknown command frob. Run vantage --help for the commands.");
+    }
+
+    [Fact]
     public void TitleTheWizardByWhereTheSessionStarts()
     {
         Wording.WizardTitle(Wizard()).ShouldBe("New session");

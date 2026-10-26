@@ -1,6 +1,6 @@
 namespace Source191.Vantage.Application;
 
-/// <summary>What the command line asked for. Anything not recognised opens the console, as it always has.</summary>
+/// <summary>What the command line asked for. Only no arguments at all opens the console; anything not recognised is a usage error.</summary>
 public abstract record VantageCommand;
 
 public sealed record OpenConsole : VantageCommand;
@@ -27,7 +27,7 @@ public static class CommandLine
             ["claim-tab", string id, string pid] when Guid.TryParse(id, out Guid registrationId) && int.TryParse(pid, out int processId) => new ClaimTab(registrationId, processId),
             ["claim-tab", ..] => new Usage(Wording.ClaimTabUsage),
             ["setup-terminal", .. string[] rest] => new SetupTerminal(rest),
-            _ => new OpenConsole(),
+            [string unknown, ..] => new Usage(Wording.UnknownCommand(unknown)),
         };
     }
 }
