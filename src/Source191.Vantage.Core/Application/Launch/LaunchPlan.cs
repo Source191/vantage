@@ -35,13 +35,6 @@ public abstract record LaunchProblem
     public sealed record WorktreeNeedsRepository : LaunchProblem;
 
     public sealed record WorktreeNeedsLetters : LaunchProblem;
-
-    /// <summary>vantage here: an option was given without its value.</summary>
-    public sealed record OptionNeedsValue(string Option) : LaunchProblem;
-
-    public sealed record UnknownOption(string Option) : LaunchProblem;
-
-    public sealed record UnexpectedArgument(string Argument) : LaunchProblem;
 }
 
 /// <summary>A plan, or the reason there is none.</summary>

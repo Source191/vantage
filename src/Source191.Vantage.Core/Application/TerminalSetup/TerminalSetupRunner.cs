@@ -3,9 +3,9 @@ using Source191.Vantage.Ports;
 namespace Source191.Vantage.Application.TerminalSetup;
 
 /// <summary>
-/// <c>vantage setup-terminal</c> from start to finish: parse, check the sounds, show what will be written, ask, write
+/// <c>vantage setup-terminal</c> from start to finish, once the command line is parsed: check the request and the sounds, show what will be written, ask, write
 /// the Windows Terminal fragment, then offer Claude Code's terminal bell. Exit 0 when done, declined or nothing to
-/// remove, 1 when a write failed, 2 for a usage error. It touches the fragment and one Claude setting, nothing else.
+/// remove, 1 when a write failed, 2 for a refused request (--remove with a sound, a missing or non-wav sound). It touches the fragment and one Claude setting, nothing else.
 /// </summary>
 public sealed class TerminalSetupRunner(
     IFolders folders,
@@ -28,12 +28,11 @@ public sealed class TerminalSetupRunner(
         Failed,
     }
 
-    public async Task<int> RunAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    public async Task<int> RunAsync(TerminalSetupRequest request, CancellationToken cancellationToken)
     {
-        TerminalSetupParse parsed = TerminalSetupCommand.Parse(arguments);
-        if (parsed.Request is not TerminalSetupRequest request)
+        if (request.Remove && (request.Sound is not null || request.SessionSound is not null))
         {
-            await ReportProblemAsync(parsed.Problem);
+            await ReportProblemAsync(new TerminalSetupProblem.RemoveWithSound());
             return 2;
         }
 
@@ -203,5 +202,5 @@ public sealed class TerminalSetupRunner(
         return answer?.Trim() is { } text && (string.Equals(text, "y", StringComparison.OrdinalIgnoreCase) || string.Equals(text, "yes", StringComparison.OrdinalIgnoreCase));
     }
 
-    private Task ReportProblemAsync(TerminalSetupProblem? problem) => error.WriteLineAsync(problem is null ? Wording.SetupTerminalUsage : Wording.DescribeSetupProblem(problem));
+    private Task ReportProblemAsync(TerminalSetupProblem problem) => error.WriteLineAsync(Wording.DescribeSetupProblem(problem));
 }

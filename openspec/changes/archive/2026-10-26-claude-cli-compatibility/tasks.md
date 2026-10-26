@@ -13,7 +13,7 @@
 - [x] 2.2 Pass `ClaudeCodeSupport.Check(await claudeVersion)` from `Program.cs`; verify `dotnet build -c Debug` and the solution's tests pass, and the Debug build driven by `tools\HeadlessTerminal` (`drive` then `grid`) shows the version without a warning on the current CLI
 - [x] 2.3 Test `DocumentedMinimumShould` in `Infrastructure.Tests` (finds the folder holding `global.json` from `AppContext.BaseDirectory`; `README.md` and `openspec\config.yaml` contain `ClaudeCodeSupport.Minimum` followed by "or later"); verify it passes, then fails when the README's number is edited, then passes again
 - [x] 2.4 README: the header bullet in The sessions view mentions the below-minimum warning; verify `Select-String -Path README.md -Pattern 'update Claude Code'` finds it
-- [x] 2.5 Raise `Version` to 0.13.0 in `src\Source191.Vantage\Source191.Vantage.csproj`; verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes once committed
+- [x] 2.5 Raise `Version` to 0.15.0 (0.13.0 and 0.14.0 went to PRs #63 and #62) in `src\Source191.Vantage\Source191.Vantage.csproj`; verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes once committed
 
 ## 3. Help-surface snapshots
 

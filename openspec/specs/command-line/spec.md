@@ -6,7 +6,7 @@ What Vantage does with its command line as a whole: which arguments open the con
 ## Requirements
 
 ### Requirement: Only a bare vantage opens the console
-`vantage` with no arguments SHALL open the console. Any other first argument SHALL be a command, an option this spec names, or a usage error; it SHALL never open the console.
+`vantage` with no arguments SHALL open the console. Any other first argument SHALL be a command, a help or version option, or a parse error; it SHALL never open the console. A parse error SHALL name what was not recognised on standard error, suggest close matches where there are any, show the help, and exit 1.
 
 #### Scenario: No arguments
 - **WHEN** the user runs vantage
@@ -14,56 +14,105 @@ What Vantage does with its command line as a whole: which arguments open the con
 
 #### Scenario: An unknown command
 - **WHEN** the user runs vantage frob
-- **THEN** standard error says "Unknown command frob. Run vantage --help for the commands.", the console does not open, and the exit code is 2
+- **THEN** standard error names frob as unrecognised, the help is shown, the console does not open, and the exit code is 1
 
 #### Scenario: An unknown option
 - **WHEN** the user runs vantage --frob
-- **THEN** standard error says "Unknown command --frob. Run vantage --help for the commands.", the console does not open, and the exit code is 2
+- **THEN** standard error names --frob as unrecognised, the console does not open, and the exit code is 1
 
 ### Requirement: Help is printed on request
-`vantage --help`, `-h`, `-?`, `/?`, `?` and `help` SHALL print Vantage's help to standard output and exit 0. The help SHALL name Vantage's version, list `vantage`, `vantage here` and `vantage setup-terminal` with their options, list the `--help` and `--version` options, name the `VANTAGE_LOG` and `VANTAGE_NO_UPDATE_CHECK` environment variables, and give the README's address. It SHALL NOT list the commands Vantage runs for itself.
+`vantage --help`, `-h`, `/h`, `-?` and `/?` SHALL print Vantage's help to standard output and exit 0. The help SHALL describe Vantage, list the `here` and `setup-terminal` commands with their descriptions, and list the help and version options. It SHALL NOT list the commands Vantage runs for itself.
 
 #### Scenario: Help
 - **WHEN** the user runs vantage --help
-- **THEN** standard output holds the help with the three commands, nothing is started, and the exit code is 0
+- **THEN** standard output holds the help with the here and setup-terminal commands, nothing is started, and the exit code is 0
 
 #### Scenario: Every help spelling
-- **WHEN** the user runs vantage with -h, -?, /?, ? or help
+- **WHEN** the user runs vantage with -h, /h, -? or /?
 - **THEN** the same help is printed and the exit code is 0
 
 #### Scenario: Plumbing stays out of the help
 - **WHEN** the help is printed
 - **THEN** it does not mention claim-tab
 
+#### Scenario: Question mark on its own
+- **WHEN** the user runs vantage ?
+- **THEN** it is a parse error with exit code 1
+
 ### Requirement: The version is printed on request
-`vantage --version` and `-v` SHALL print `vantage` followed by Vantage's version to standard output and exit 0. A local build SHALL show its prerelease label without the build timestamp.
+`vantage --version` SHALL print the installed tool's informational version to standard output and exit 0; the version MAY carry build metadata after a `+`.
 
 #### Scenario: Version
-- **WHEN** Vantage 0.12.0 is installed and the user runs vantage --version
-- **THEN** standard output is "vantage 0.12.0" and the exit code is 0
+- **WHEN** Vantage 0.13.0 is installed and the user runs vantage --version
+- **THEN** standard output starts with 0.13.0 and the exit code is 0
 
 #### Scenario: Short form of a local build
-- **WHEN** the installed tool's version is 0.12.0-local.20261026T101500 and the user runs vantage -v
-- **THEN** standard output is "vantage 0.12.0-local" and the exit code is 0
+- **WHEN** the installed tool's version is 0.13.0-local.20261026T101500 and the user runs vantage -v
+- **THEN** it is a parse error with exit code 1, and vantage --version prints a version starting with 0.13.0-local.20261026T101500
 
 ### Requirement: Each command explains itself
-`--help`, `-h`, `-?` or `/?` as the first argument after `here` or `setup-terminal` SHALL print that command's usage and options to standard output, start or write nothing, and exit 0. `?` and `help` after `here` SHALL stay session names.
+`--help`, `-h`, `/h`, `-?` or `/?` anywhere after `here` or `setup-terminal` SHALL print that command's usage, arguments and options with their descriptions to standard output, start or write nothing, and exit 0.
 
 #### Scenario: Help for vantage here
 - **WHEN** the user runs vantage here --help
-- **THEN** standard output holds the usage of vantage here with its -p option, no session starts, and the exit code is 0
+- **THEN** standard output holds the usage of vantage here with its name argument and its --prompt option, no session starts, and the exit code is 0
+
+#### Scenario: Help after other arguments
+- **WHEN** the user runs vantage here fix-tests -h
+- **THEN** the help for vantage here is printed, no session starts, and the exit code is 0
 
 #### Scenario: Help for setup-terminal
 - **WHEN** the user runs vantage setup-terminal -h
-- **THEN** standard output holds the usage of vantage setup-terminal with its options, no file is written, and the exit code is 0
+- **THEN** standard output holds the usage of vantage setup-terminal with --sound, --session-sound, --yes and --remove, no file is written, and the exit code is 0
 
 #### Scenario: A session called help
 - **WHEN** the user runs vantage here help in a trusted repository
 - **THEN** a session named help starts, as for any other name
 
 ### Requirement: Help and version need no Claude Code
-Help, version and the unknown-command refusal SHALL work on a machine where Claude Code cannot be found, and outside a Windows Terminal tab.
+Help, version and parse errors SHALL work on a machine where Claude Code cannot be found, and outside a Windows Terminal tab.
 
 #### Scenario: Claude Code missing
 - **WHEN** claude is not on the PATH and the user runs vantage --version
 - **THEN** the version is printed and the exit code is 0, with no complaint about Claude Code
+
+### Requirement: Close matches are suggested
+When an argument is not recognised and a command or option of the same command is spelt nearly the same, the parse error SHALL suggest it.
+
+#### Scenario: A mistyped command
+- **WHEN** the user runs vantage hre
+- **THEN** standard error names hre as unrecognised, standard output suggests here, and the exit code is 1
+
+#### Scenario: A mistyped option
+- **WHEN** the user runs vantage setup-terminal --sund C:\Windows\Media\chimes.wav
+- **THEN** standard error names --sund as unrecognised, standard output suggests --sound, nothing is written, and the exit code is 1
+
+### Requirement: Conventional option syntax is accepted
+An option's value SHALL be accepted after a space, an equals sign or a colon, `--` SHALL end the options so that what follows is taken as arguments, and an option that takes one value SHALL be refused when it is given twice.
+
+#### Scenario: A joined value
+- **WHEN** the user runs vantage here fix-tests --prompt="Fix the tests" in a trusted repository
+- **THEN** a session named fix-tests starts with the opening prompt Fix the tests
+
+#### Scenario: A name that starts with a dash
+- **WHEN** the user runs vantage here -- -experiment in a trusted repository
+- **THEN** a session named -experiment starts
+
+#### Scenario: A repeated prompt
+- **WHEN** the user runs vantage here -p first -p second
+- **THEN** it is a parse error with exit code 1, and no session starts
+
+### Requirement: A name that looks like an option needs --
+`vantage here` SHALL refuse a name that starts with `-` unless `--` came before it: standard error SHALL name the token and say to put `--` before it to use it as a name, the help for `vantage here` SHALL follow, nothing SHALL start, and the exit code SHALL be 1.
+
+#### Scenario: A mistyped option on its own
+- **WHEN** the user runs vantage here --promt
+- **THEN** standard error names --promt and says to put -- before it, the help for vantage here is shown, no session starts, and the exit code is 1
+
+#### Scenario: A dash-led name on purpose
+- **WHEN** the user runs vantage here -- -experiment in a trusted repository
+- **THEN** a session named -experiment starts
+
+#### Scenario: A prompt that starts with a dash
+- **WHEN** the user runs vantage here fix-tests -p "-fix the tests" in a trusted repository
+- **THEN** a session named fix-tests starts with the opening prompt -fix the tests

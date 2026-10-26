@@ -112,7 +112,7 @@ The table refreshes every five seconds. `?` shows the keys and the columns of th
 
 Vantage names its own tab `Vantage` (the version is in the header) and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab. While a dialog is open the tab says which, such as `Vantage (Keys)` for the help or `Vantage (Settings)`, and goes back to `Vantage` when it closes.
 
-**Help and version.** `vantage --help` (also `-h`, `-?`, `/?`, `?` or `help`) prints the commands and options, `vantage here --help` and `vantage setup-terminal --help` print that command's own, and `vantage --version` (or `-v`) prints `vantage <version>`; all exit 0 and none needs Claude Code. Anything else after `vantage` that it does not recognise is refused with exit code 2 and a pointer to `--help`; only `vantage` on its own opens the console.
+**Help and version.** `vantage --help` (also `-h`, `/h`, `-?` or `/?`) lists the commands and options, and the same option after a command, anywhere on the line, shows that command's own (`vantage here --help`, `vantage setup-terminal -h`). `vantage --version` prints the installed version. Both exit 0 and neither needs Claude Code. Anything Vantage cannot parse is refused with exit code 1: the message names what was not recognised, suggests close matches (`vantage hre` suggests `here`) and shows the help. Options take their value after a space, `=` or `:` (`--prompt="Fix the tests"`), and `--` ends the options. Only `vantage` on its own opens the console.
 
 ## The sessions view
 
@@ -162,7 +162,7 @@ Rows marked `terminal` are sessions started by hand with `claude` in some tab. V
 Press `n`. The left column lists your repositories (recent ones first, then everything under the roots, then the roots themselves for a session with no repository); type to filter it and use the arrows to choose, then Enter confirms the repository and moves to the form. The right column is the form:
 
 - **Session name (required):** the label shown in the NAME column. It also names the worktree folder and branch when you choose a worktree.
-- **Where:** `Current branch` runs the session in the repository as it is; `New worktree` creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it in [Settings](#settings)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too. Use the arrows to change the choice.
+- **Where:** `New worktree`, the default, creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it in [Settings](#settings)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
 - **Worktree base:** the branch the new worktree starts from, `origin` default branch or the current HEAD.
 - **Opening prompt:** sent to the session as soon as it starts. It wraps as you type. Leave it blank and the session opens on Claude's agent list until you send it something.
 
@@ -247,7 +247,7 @@ vantage here --help   # the options
 vh fix-tests          # with the profile shortcut
 ```
 
-Options: `-p`/`--prompt` sends an opening prompt (without one the session opens on the agent list). Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder), 2 for a usage error.
+Options: `-p`/`--prompt` sends an opening prompt (without one the session opens on the agent list). Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder) or the command line could not be parsed, 2 when the name is refused. A name that starts with `-` is refused as a likely mistyped option (`vantage here --promt` names `--promt`, shows the help and exits 1); to use such a name, or one that starts with `@` (which otherwise reads a response file), put `--` before it: `vantage here -- -experiment`.
 
 ## Notifications
 
@@ -274,7 +274,7 @@ vantage setup-terminal --sound "C:\Windows\Media\chimes.wav" --session-sound "C:
 vantage setup-terminal --remove                          # delete the fragment
 ```
 
-Without options the Vantage profile plays `Windows Notify Messaging.wav` and the session profile `Windows Proximity Notification.wav`, both from `C:\Windows\Media`; a default that is missing on your machine is left out and that profile uses Windows Terminal's own bell sound. A sound you name must be an existing `.wav` file. The command first shows the file it will write and asks; any answer but yes, or no answer, writes nothing. Run it again with other sounds to replace the fragment. Exit codes: 0 done, declined or nothing to remove, 1 a write failed, 2 a usage error.
+Without options the Vantage profile plays `Windows Notify Messaging.wav` and the session profile `Windows Proximity Notification.wav`, both from `C:\Windows\Media`; a default that is missing on your machine is left out and that profile uses Windows Terminal's own bell sound. A sound you name must be an existing `.wav` file. The command first shows the file it will write and asks; any answer but yes, or no answer, writes nothing. Run it again with other sounds to replace the fragment. Exit codes: 0 done, declined or nothing to remove, 1 a write failed or the command line could not be parsed, 2 a missing or non-wav sound or `--remove` with a sound.
 
 **Claude Code's bell.** The command then offers to set `"preferredNotifChannel": "terminal_bell"` in `~\.claude\settings.json`, keeping every other setting. Claude then rings the bell when it finishes a task or pauses for a permission prompt while you appear to be away, and the tab it is attached in is flagged. It applies to sessions started from now on. You can add the line by hand instead:
 
@@ -290,7 +290,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 ## Common scenarios
 
-**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story, pick `New worktree`, type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and its FOLDER cell shows the worktree.
+**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story (`New worktree` is already chosen), type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and its FOLDER cell shows the worktree.
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
@@ -411,7 +411,7 @@ Branch protection on `main` has "Require branches to be up to date before mergin
 The runner drives Vantage inside a pseudo-console, which is the same plumbing Windows Terminal uses for a tab, so rendering, keys and the attach hand-off are covered. Anything that goes out through `wt.exe` is not: a runner has no desktop for a tab to appear on. Before merging a pull request that changes how Vantage drives `wt.exe`, opens, titles or colours tabs, or attaches to a session, install its package (`tools\install-local.ps1`) and run these in a real Windows Terminal:
 
 1. `o` on a session opens a coloured tab titled with the session name, and `o` again switches to that tab while it is open.
-2. `n`, pick `New worktree`, F6: a new tab opens attached to the new session, and its FOLDER cell shows the worktree.
+2. `n`, choose a repository, name the session and leave `New worktree` chosen, F6: a new tab opens attached to the new session, and its FOLDER cell shows the worktree.
 3. `d` on that session ends claude and the tab closes by itself.
 4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
 5. Ctrl+Z from an attached session returns to the table with the keys still working.

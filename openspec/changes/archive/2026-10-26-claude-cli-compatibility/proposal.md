@@ -10,7 +10,7 @@ Claude Code's native installer updates the CLI in the background, so most users 
 - Committed snapshots of the commands and flags in `claude --help` and `claude agents --help`, compared nightly, so a new or removed flag shows up as a diff; prose rewording does not.
 - A CLI that fails to install, a failed contract test or a changed snapshot opens one rolling GitHub issue labelled `claude-cli`, or comments on the open one, with the CLI version and what differed, assigned to the login in the `CLAUDE_CLI_WATCHER` repository variable so each update notifies them.
 - The header shows a warning beside the Claude Code version when it is older than the minimum Vantage supports, held as one constant in the code; the README and `openspec\config.yaml` state the same minimum, and a test keeps them in step.
-- Version 0.13.0: a new behaviour that keeps existing keys and files working.
+- Version 0.15.0: a new behaviour that keeps existing keys and files working.
 
 ## Capabilities
 

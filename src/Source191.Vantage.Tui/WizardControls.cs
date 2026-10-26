@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.Drawing;
@@ -20,6 +21,11 @@ internal sealed class WizardControls
 
     public WizardControls(WizardState state)
     {
+        Mode.Value = state.Mode switch
+        {
+            LaunchMode.CurrentBranch => 0,
+            LaunchMode.NewWorktree => 1,
+        };
         BaseRef.Value = state.Base == WorktreeBase.Head ? 1 : 0;
         Hint.Text = Wording.WizardHint(state);
         Fields = new Dictionary<WizardField, View>
@@ -56,7 +62,7 @@ internal sealed class WizardControls
 
     public TextField Name { get; } = new() { X = RightColumn, Y = 4, Width = ColumnWidth };
 
-    public OptionSelector Mode { get; } = new() { X = RightColumn, Y = 7, Labels = ["Current branch", "New worktree"], Value = 0 };
+    public OptionSelector Mode { get; } = new() { X = RightColumn, Y = 7, Labels = ["Current branch", "New worktree"] };
 
     public OptionSelector BaseRef { get; } = new() { X = RightColumn, Y = 10, Labels = ["origin default branch", "current HEAD"], Value = 0 };
 

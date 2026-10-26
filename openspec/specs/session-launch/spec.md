@@ -39,12 +39,24 @@ The wizard SHALL require a non-blank name, SHALL reject a name containing a semi
 - **WHEN** `vantage here ""` is run
 - **THEN** it prints exactly "A session name is required." and starts nothing
 
-### Requirement: The current branch is the default launch mode
-The wizard SHALL default to starting the session in the repository's main checkout on whatever branch is checked out, and SHALL offer a new worktree as the alternative.
+### Requirement: A new worktree is the default launch mode
+The wizard opened from the overview SHALL default to starting the session in a new worktree, and SHALL offer the repository's main checkout on whatever branch is checked out as the alternative. The wizard opened on a fixed folder SHALL offer no choice and start on that folder's current branch.
 
 #### Scenario: Accepting the defaults
-- **WHEN** the user accepts the wizard's defaults
+- **WHEN** the user opens the wizard with `n`, chooses Northwind.Orders, names the session "Fix 123" and accepts the other defaults
+- **THEN** the session starts in a new worktree Northwind.Orders-fix-123 under the worktree root, on branch fix-123
+
+#### Scenario: Choosing the current branch
+- **WHEN** the user opens the wizard with `n`, chooses Northwind.Orders and switches Where to "Current branch"
 - **THEN** the session starts in the repository's main checkout and no worktree is created
+
+#### Scenario: Default left in place for a folder that is not a repository
+- **WHEN** the user opens the wizard with `n`, chooses "(no repository)", names the session and starts without changing Where
+- **THEN** the wizard starts nothing and explains that a worktree needs a repository
+
+#### Scenario: Wizard on a fixed folder
+- **WHEN** the user starts a session with `s` on a worktree row
+- **THEN** the session starts in that worktree on its current branch and no new worktree is created
 
 ### Requirement: A new worktree goes under the worktree root
 When the user chooses a worktree, Vantage SHALL create it at `<worktree root>\<repository>-<slug>` on a new branch named `<slug>`, creating the worktree root when it does not exist, where the slug is the name lower-cased with every run of characters other than a-z and 0-9 replaced by one hyphen and leading and trailing hyphens removed.
@@ -84,15 +96,19 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 - **THEN** the file exists in the new worktree before the session starts
 
 ### Requirement: A session can be started from the shell in the current folder
-`vantage here [name] [-p prompt]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed and 2 for a usage error.
+`vantage here [name] [-p prompt]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed or the command line could not be parsed, and 2 when the name is refused.
 
 #### Scenario: Start here with a prompt
 - **WHEN** the user runs vantage here fix-tests -p "Fix the tests" in a trusted repository
 - **THEN** a background session named fix-tests starts there with that opening prompt and the shell is attached to it until Ctrl+Z
 
 #### Scenario: The removed description option
-- **WHEN** the user runs vantage here with -d or --description
-- **THEN** it exits 2 with the unknown-option sentence and the usage line, and starts nothing
+- **WHEN** the user runs vantage here fix-tests -d "Flaky orders suite"
+- **THEN** it exits 1 naming what was not recognised, and starts nothing
+
+#### Scenario: A refused name
+- **WHEN** the user runs vantage here "a;b"
+- **THEN** it exits 2 with the sentence for the refused name, and starts nothing
 
 ### Requirement: Untrusted workspaces are handled
 When starting the session fails because the directory's workspace is not trusted, the wizard SHALL say so and offer to open a plain Claude Code tab in that directory so the trust dialog can be accepted, then retry.

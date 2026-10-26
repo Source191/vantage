@@ -40,7 +40,7 @@ public sealed class HereCommandRunnerShould : IDisposable
     [Fact]
     public async Task StartInTheFolderAttachAndExitZeroAfterTheDetach()
     {
-        int exitCode = await Runner.RunAsync(Directory, ["fix-tests", "-p", "Fix the tests"], CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, "fix-tests", "Fix the tests", CancellationToken.None);
 
         exitCode.ShouldBe(0);
         output.ToString().ShouldContain("Started fix-tests (81cdb0f9) in " + Directory);
@@ -54,7 +54,7 @@ public sealed class HereCommandRunnerShould : IDisposable
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "Workspace not trusted. Run `claude` once and accept the trust prompt."));
 
-        int exitCode = await Runner.RunAsync(Directory, [], CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, name: null, prompt: null, CancellationToken.None);
 
         exitCode.ShouldBe(1);
         error.ToString().ShouldContain("is not trusted yet");
@@ -66,26 +66,16 @@ public sealed class HereCommandRunnerShould : IDisposable
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "something broke"));
 
-        int exitCode = await Runner.RunAsync(Directory, [], CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, name: null, prompt: null, CancellationToken.None);
 
         exitCode.ShouldBe(1);
         error.ToString().ShouldContain("Could not start: something broke");
     }
 
     [Fact]
-    public async Task ExitTwoWithTheUsageLineForBadArguments()
-    {
-        int exitCode = await Runner.RunAsync(Directory, ["--bogus"], CancellationToken.None);
-
-        exitCode.ShouldBe(2);
-        error.ToString().ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"]" + Environment.NewLine);
-        processes.CapturedRequests.ShouldBeEmpty();
-    }
-
-    [Fact]
     public async Task PrintOnlyTheSentenceForARefusedName()
     {
-        int exitCode = await Runner.RunAsync(Directory, ["a;b"], CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, "a;b", prompt: null, CancellationToken.None);
 
         exitCode.ShouldBe(2);
         error.ToString().ShouldBe("A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely." + Environment.NewLine);

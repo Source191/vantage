@@ -10,7 +10,7 @@ public sealed class HereCommandShould
     [Fact]
     public void StartInTheCurrentFolderOnItsBranchNamedAfterTheFolderByDefault()
     {
-        LaunchPlan plan = HereCommand.Plan(Directory, [], isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
+        LaunchPlan plan = HereCommand.Plan(Directory, name: null, prompt: null, isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
 
         plan.Directory.Value.ShouldBe(Directory);
         plan.Name.Value.ShouldBe("Northwind.Orders");
@@ -20,40 +20,27 @@ public sealed class HereCommandShould
     }
 
     [Fact]
-    public void TakeANameAndAnOpeningPromptFromTheArguments()
+    public void TakeANameAndAnOpeningPrompt()
     {
-        LaunchPlan plan = HereCommand.Plan(Directory, ["fix-tests", "-p", "Fix the failing tests"], isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
+        LaunchPlan plan = HereCommand.Plan(Directory, "fix-tests", "Fix the failing tests", isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
 
         plan.Name.Value.ShouldBe("fix-tests");
         plan.OpeningPrompt.ShouldBe("Fix the failing tests");
     }
 
-    [Theory]
-    [InlineData("-d")]
-    [InlineData("--description")]
-    public void RefuseTheRemovedDescriptionOptionAsUnknown(string option)
-    {
-        LaunchPlanResult result = HereCommand.Plan(Directory, [option, "The flaky suite"], isRepository: _ => true);
-
-        result.ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.UnknownOption(option)));
-    }
-
     [Fact]
     public void WorkInAFolderThatIsNotARepository()
     {
-        LaunchPlan plan = HereCommand.Plan(@"C:\notes", [], isRepository: _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
+        LaunchPlan plan = HereCommand.Plan(@"C:\notes", name: null, prompt: null, isRepository: _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
 
         plan.Repository.IsRepository.ShouldBeFalse();
         plan.Name.Value.ShouldBe("notes");
     }
 
     [Fact]
-    public void RefuseBadArgumentsAndABadNameAsFacts()
+    public void RefuseABadNameAsAFact()
     {
-        HereCommand.Plan(Directory, ["--bogus"], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.UnknownOption("--bogus")));
-        HereCommand.Plan(Directory, ["-p"], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.OptionNeedsValue("-p")));
-        HereCommand.Plan(Directory, ["fix-123", "extra"], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.UnexpectedArgument("extra")));
-        HereCommand.Plan(Directory, ["a;b"], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.UnsafeCharacters)));
-        HereCommand.Plan(Directory, [""], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)));
+        HereCommand.Plan(Directory, "a;b", prompt: null, isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.UnsafeCharacters)));
+        HereCommand.Plan(Directory, "", prompt: null, isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)));
     }
 }

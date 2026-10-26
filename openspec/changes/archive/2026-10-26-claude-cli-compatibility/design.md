@@ -44,4 +44,4 @@ See proposal.md - Why. The CLI's words and fields are read only in `Adapters\Cla
 
 ## Migration Plan
 
-Merge, then create the `CLAUDE_CLI_WATCHER` repository variable (Settings, Secrets and variables, Actions, Variables) with the watcher's GitHub login, and run the workflow once by hand to confirm it is green and that a deliberately edited snapshot raises the issue. Rollback is deleting the workflow file; the header warning ships with 0.13.0 and is reverted like any change.
+Merge, then create the `CLAUDE_CLI_WATCHER` repository variable (Settings, Secrets and variables, Actions, Variables) with the watcher's GitHub login, and run the workflow once by hand to confirm it is green and that a deliberately edited snapshot raises the issue. Rollback is deleting the workflow file; the header warning ships with 0.15.0 and is reverted like any change.
