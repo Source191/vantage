@@ -6,14 +6,14 @@ using System.Diagnostics;
 namespace Source191.Vantage.Application.Launch;
 
 /// <summary>
-/// <c>vantage here</c> from start to finish: plan from the arguments, start the supervised session in the folder,
-/// attach in this tab, and exit 0 after a detach, 1 when the start failed, 2 for a usage error.
+/// <c>vantage here</c> from start to finish: plan from the name and prompt the command line parsed, start the supervised session in the folder,
+/// attach in this tab, and exit 0 after a detach, 1 when the start failed, 2 for a refused name.
 /// </summary>
 public sealed class HereCommandRunner(IFolders folders, LaunchService launches, TerminalEffects effects, ITerminalConsole console, TextWriter output, TextWriter error)
 {
-    public async Task<int> RunAsync(string directory, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    public async Task<int> RunAsync(string directory, string? name, string? prompt, CancellationToken cancellationToken)
     {
-        return HereCommand.Plan(directory, arguments, IsRepository) switch
+        return HereCommand.Plan(directory, name, prompt, IsRepository) switch
         {
             LaunchPlanResult.Planned planned => await LaunchAsync(planned.Plan, directory, cancellationToken),
             LaunchPlanResult.Refused refused => await RefuseAsync(refused.Problem),

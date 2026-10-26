@@ -711,24 +711,6 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void SayAnOptionNeedsAValueWithTheUsageLine()
-    {
-        Wording.Describe(new LaunchProblem.OptionNeedsValue("-p")).ShouldBe("-p needs a value. Usage: vantage here [name] [-p \"opening prompt\"]");
-    }
-
-    [Fact]
-    public void NameAnUnknownOptionWithTheUsageLine()
-    {
-        Wording.Describe(new LaunchProblem.UnknownOption("--bogus")).ShouldBe("Unknown option --bogus. Usage: vantage here [name] [-p \"opening prompt\"]");
-    }
-
-    [Fact]
-    public void NameAnUnexpectedArgumentWithTheUsageLine()
-    {
-        Wording.Describe(new LaunchProblem.UnexpectedArgument("extra")).ShouldBe("Unexpected argument extra. Usage: vantage here [name] [-p \"opening prompt\"]");
-    }
-
-    [Fact]
     public void GiveTheUsageLines()
     {
         Wording.HereUsage.ShouldBe("Usage: vantage here [name] [-p \"opening prompt\"]");

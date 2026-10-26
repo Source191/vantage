@@ -170,9 +170,6 @@ public static partial class Wording
             LaunchProblem.InvalidName invalid => Describe(invalid.Problem),
             LaunchProblem.WorktreeNeedsRepository => "A worktree needs a repository; choose one or start on the current branch.",
             LaunchProblem.WorktreeNeedsLetters => "A worktree needs a name with some letters or digits in it.",
-            LaunchProblem.OptionNeedsValue missing => $"{missing.Option} needs a value. {HereUsage}",
-            LaunchProblem.UnknownOption unknown => $"Unknown option {unknown.Option}. {HereUsage}",
-            LaunchProblem.UnexpectedArgument unexpected => $"Unexpected argument {unexpected.Argument}. {HereUsage}",
             _ => problem.ToString(),
         };
     }
