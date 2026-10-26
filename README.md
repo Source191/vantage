@@ -8,6 +8,7 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 
 ## Contents
 
+- [Prerequisites](#prerequisites)
 - [Install](#install)
 - [Start Vantage](#start-vantage)
 - [The sessions view](#the-sessions-view)
@@ -28,9 +29,40 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 - [Working with OpenSpec](#working-with-openspec)
 - [Roadmap and known limits](#roadmap-and-known-limits)
 
+## Prerequisites
+
+Vantage runs on Windows 11. `winget`, which comes with Windows 11, installs everything it needs except Claude Code; skip a line for a tool you already have.
+
+```powershell
+winget install --id Microsoft.WindowsTerminal --exact   # already part of Windows 11 22H2 and later
+winget install --id Microsoft.PowerShell --exact
+winget install --id Microsoft.DotNet.SDK.10 --exact
+winget install --id Git.Git --exact
+irm https://claude.ai/install.ps1 | iex                 # Claude Code
+```
+
+- **Windows Terminal:** Vantage opens, titles and colours session tabs in it, and relies on its bell.
+- **PowerShell 7:** every tab Vantage opens runs `pwsh`.
+- **.NET 10 SDK:** `dotnet tool install` needs the SDK, not only the runtime.
+- **git:** branches and worktrees.
+- **Claude Code 2.1.309 or later:** the native installer above puts `claude.exe` in `~\.local\bin`, one of the two places Vantage looks (the other is the PATH), and keeps it up to date in the background. WinGet has it too (`Anthropic.ClaudeCode`), but that package does not update itself and can lag behind the version Vantage needs; if you use it, run `winget upgrade Anthropic.ClaudeCode` and check the version. Run `claude` once to sign in.
+
+Optional, for the PR column (see [Pull requests](#pull-requests)):
+
+```powershell
+winget install --id GitHub.cli --exact
+winget install --id Microsoft.AzureCLI --exact
+```
+
+Open a new terminal so the PATH changes apply, then check:
+
+```powershell
+pwsh --version; dotnet --list-sdks; git --version; claude --version
+```
+
 ## Install
 
-Prerequisites: Windows 11, Windows Terminal, PowerShell 7, .NET 10 SDK, git, and Claude Code 2.1.309 or later installed at `~\.local\bin\claude.exe` or on the PATH.
+Install the [prerequisites](#prerequisites) first.
 
 1. Install the tool from nuget.org:
 
