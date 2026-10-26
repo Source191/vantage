@@ -208,7 +208,7 @@ From any folder, `vantage here` starts a supervised session in that folder, on i
 
 ```powershell
 vantage here
-vantage here fix-tests -p "Make the failing tests in OrdersShould pass" -d "Flaky orders suite"
+vantage here fix-tests -p "Make the failing tests in OrdersShould pass"
 vh fix-tests          # with the profile shortcut
 ```
 
@@ -295,7 +295,7 @@ Press `,` in either view. The dialog shows:
 
 - **Repository roots:** one folder per line; the wizard offers every repository directly under each, and the worktrees view scans them. Each must be a full path that exists.
 - **Worktree root:** where new worktrees go, as `<worktree root>\<repository>-<name>`. It must be a full path; it is created when the first worktree goes there. Worktrees made beside their repository by earlier versions stay where they are and are still listed, removed and opened as before.
-- **Editor:** VS Code, Cursor, Rider, Visual Studio, Explorer, or Custom: an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The The `e` key opens the selected row's folder in this editor.
+- **Editor:** VS Code, Cursor, Rider, Visual Studio, Explorer, or Custom: an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The `e` key opens the selected row's folder in this editor.
 - **Worktree base:** where a new worktree's branch starts by default, origin's default branch or the current HEAD.
 - **Check for updates daily:** whether Vantage asks nuget.org once a day for a newer release of itself (see [Updates](#updates)); on unless you turn it off.
 
