@@ -92,7 +92,7 @@ jobs:
         shell: pwsh
         env:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          VANTAGE_CLAUDE_CONTRACT: 1
+          VANTAGE_CLAUDE_CONTRACT: 0
         run: |
           dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build -- --filter-trait "Category=ClaudeContract" --fail-skips on 2>&1 | Tee-Object -FilePath contract-output.txt
           $exitCode = $LASTEXITCODE
