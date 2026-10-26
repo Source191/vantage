@@ -16,8 +16,8 @@
 
 - [x] 3.1 CLAUDE.md: Core's packages (Logging.Abstractions and System.CommandLine) and that the library only parses, never prints; verify the text matches the code
 - [ ] 3.2 Raise `Version` to 0.12.1; verify `.github\scripts\Assert-VersionBumped.ps1` passes against `main`
-- [ ] 3.3 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate system-commandline --strict`, and by hand `vantage --help`, `vantage frob`, `vantage here --help`, `vantage setup-terminal --sound` with the Debug build; verify the output and exit codes match 0.12.0
-- [ ] 3.4 Write the line counts before and after, and any input the library accepts that was refused before, into the pull request description; verify both are there
+- [x] 3.3 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate system-commandline --strict`, and by hand `vantage --help`, `vantage frob`, `vantage here --help`, `vantage setup-terminal --sound` with the Debug build; verify the output and exit codes match 0.12.0
+- [x] 3.4 Write the line counts before and after, and any input the library accepts that was refused before, into the pull request description; verify both are there
 
 ## Workflow follow-up
 
