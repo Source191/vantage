@@ -11,7 +11,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vantage</ToolCommandName>
     <PackageId>Source191.Vantage</PackageId>
-    <Version>0.12.1</Version>
+    <Version>0.13.0</Version>
     <Authors>Simon Vane</Authors>
     <Description>A terminal console for Claude Code sessions and git worktrees on Windows.</Description>
     <Copyright>Copyright 2026 Simon Vane</Copyright>

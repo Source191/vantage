@@ -15,13 +15,13 @@
 ## 3. Program
 
 - [x] 3.1 `Program.cs` (wiring): local functions for the four actions holding today's code paths, `CommandLine.Build`, then `CommandLine.InvokeAsync(root, args, Console.Out, Console.Error)`; verify by hand with the Debug build and `claude` off the PATH that `--help`, `here --help`, `setup-terminal -h` and `--version` exit 0 and `frob` exits 1
-- [ ] 3.2 Run `dotnet run --project tools\HeadlessTerminal -- check` against a Release build (the console's start-up moved into an action); verify exit 0
+- [x] 3.2 Run `dotnet run --project tools\HeadlessTerminal -- check` against a Release build (the console's start-up moved into an action); verify exit 0
 
 ## 4. Documentation and release
 
-- [ ] 4.1 README: the help and version paragraph (library spellings, typo suggestions, exit 1 for parse errors), `vantage here` exit codes and the `--` tip for names starting with `-` or `@`, `setup-terminal` exit codes; verify the commands run as written
-- [ ] 4.2 CLAUDE.md: Core's packages, `Application\CommandLine` as the command line's one home with descriptions beside the symbols, the exceptions to the `Wording` rule (descriptions, parse errors, help layout), the `ProcessTerminationTimeout = null` reason; verify it matches the code
-- [ ] 4.3 Raise `Version` to 0.13.0; verify `.github\scripts\Assert-VersionBumped.ps1 -Base origin/main -Head HEAD` passes
+- [x] 4.1 README: the help and version paragraph (library spellings, typo suggestions, exit 1 for parse errors), `vantage here` exit codes and the `--` tip for names starting with `-` or `@`, `setup-terminal` exit codes; verify the commands run as written
+- [x] 4.2 CLAUDE.md: Core's packages, `Application\CommandLine` as the command line's one home with descriptions beside the symbols, the exceptions to the `Wording` rule (descriptions, parse errors, help layout), the `ProcessTerminationTimeout = null` reason; verify it matches the code
+- [x] 4.3 Raise `Version` to 0.13.0; verify `.github\scripts\Assert-VersionBumped.ps1 -Base origin/main -Head HEAD` passes
 - [ ] 4.4 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate system-commandline --strict`; record the line counts against `main` for the pull request; verify all pass
 
 ## Workflow follow-up

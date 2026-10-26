@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Domain, Ports and Application: no file system, no processes, no Terminal.Gui. Two packages: Logging.Abstractions, and System.CommandLine, which only parses (it never prints or exits). -->
+  <!-- Domain, Ports and Application: no file system, no processes, no Terminal.Gui. Two packages: Logging.Abstractions, and System.CommandLine for the command line in Application\CommandLine. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
