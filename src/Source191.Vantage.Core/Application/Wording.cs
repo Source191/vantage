@@ -305,9 +305,6 @@ public static partial class Wording
     {
         return problem switch
         {
-            TerminalSetupProblem.UnknownOption unknown => $"Unknown option {unknown.Option}. {SetupTerminalUsage}",
-            TerminalSetupProblem.OptionNeedsValue missing => $"{missing.Option} needs a value. {SetupTerminalUsage}",
-            TerminalSetupProblem.UnexpectedArgument unexpected => $"Unexpected argument {unexpected.Argument}. {SetupTerminalUsage}",
             TerminalSetupProblem.RemoveWithSound => $"--remove cannot be combined with --sound or --session-sound. {SetupTerminalUsage}",
             TerminalSetupProblem.SoundNotFound missing => $"The sound file {missing.Path} does not exist. {SetupTerminalUsage}",
             TerminalSetupProblem.SoundNotWav notWav => $"The sound file {notWav.Path} is not a .wav file. {SetupTerminalUsage}",

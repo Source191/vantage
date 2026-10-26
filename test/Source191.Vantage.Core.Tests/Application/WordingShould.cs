@@ -836,9 +836,6 @@ public sealed class WordingShould
     [Fact]
     public void SayWhyTerminalSetupWillNotRun()
     {
-        Wording.DescribeSetupProblem(new TerminalSetupProblem.UnknownOption("--loud")).ShouldBe($"Unknown option --loud. {SetupUsage}");
-        Wording.DescribeSetupProblem(new TerminalSetupProblem.OptionNeedsValue("--sound")).ShouldBe($"--sound needs a value. {SetupUsage}");
-        Wording.DescribeSetupProblem(new TerminalSetupProblem.UnexpectedArgument("extra")).ShouldBe($"Unexpected argument extra. {SetupUsage}");
         Wording.DescribeSetupProblem(new TerminalSetupProblem.RemoveWithSound()).ShouldBe($"--remove cannot be combined with --sound or --session-sound. {SetupUsage}");
         Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotFound(@"C:\Users\me\missing.wav")).ShouldBe($@"The sound file C:\Users\me\missing.wav does not exist. {SetupUsage}");
         Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotWav(@"C:\Windows\Media\notes.txt")).ShouldBe($@"The sound file C:\Windows\Media\notes.txt is not a .wav file. {SetupUsage}");

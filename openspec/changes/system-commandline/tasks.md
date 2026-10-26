@@ -4,7 +4,7 @@
 
 - [x] 1.1 `HereCommandShould` over `HereCommand.Plan(directory, name, prompt, isRepository)` (default name, given name and prompt, refused names, a folder that is not a repository): change the signature, delete the parse facts and the `UnknownOption`, `OptionNeedsValue` and `UnexpectedArgument` cases of `LaunchProblem` with their words and `WordingShould` facts; verify the Core suite passes
 - [x] 1.2 `HereCommandRunnerShould` over `RunAsync(directory, name, prompt, …)`: a refused name still writes its sentence and exits 2; verify it passes
-- [ ] 1.3 `TerminalSetupRunnerShould` over `RunAsync(TerminalSetupRequest, …)`, with `RefuseRemoveWithASound` moved from `TerminalSetupCommandShould` (usage line, exit 2): delete `TerminalSetupCommand`, `TerminalSetupParse`, `TerminalSetupCommandShould` and the three parse cases of `TerminalSetupProblem` with their words; verify the Core suite passes
+- [x] 1.3 `TerminalSetupRunnerShould` over `RunAsync(TerminalSetupRequest, …)`, with `RefuseRemoveWithASound` moved from `TerminalSetupCommandShould` (usage line, exit 2): delete `TerminalSetupCommand`, `TerminalSetupParse`, `TerminalSetupCommandShould` and the three parse cases of `TerminalSetupProblem` with their words; verify the Core suite passes
 
 ## 2. The command line as one root command
 

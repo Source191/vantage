@@ -13,7 +13,7 @@ public sealed record StartHere(IReadOnlyList<string> Arguments) : VantageCommand
 /// <summary><c>vantage claim-tab &lt;registration id&gt; &lt;process id&gt;</c>, run by the shell inside a tab Vantage opened.</summary>
 public sealed record ClaimTab(Guid RegistrationId, int ProcessId) : VantageCommand;
 
-/// <summary><c>vantage setup-terminal [--sound wav] [--session-sound wav] [--yes] [--remove]</c>; the arguments after it are parsed by <see cref="TerminalSetup.TerminalSetupCommand"/>.</summary>
+/// <summary><c>vantage setup-terminal [--sound wav] [--session-sound wav] [--yes] [--remove]</c>; the arguments after it.</summary>
 public sealed record SetupTerminal(IReadOnlyList<string> Arguments) : VantageCommand;
 
 public sealed record Usage(string Message) : VantageCommand;
