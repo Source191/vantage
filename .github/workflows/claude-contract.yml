@@ -136,7 +136,18 @@ jobs:
           gh label create claude-cli --color B60205 --description 'The nightly Claude Code CLI contract check' --force
           $run = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
           $what = if ($env:INSTALL_OUTCOME -eq 'failure') { "The latest Claude Code failed to install or to report its version in $run" } else { "Claude Code $env:CLAUDE_VERSION failed the contract check in $run" }
-          $failures = if (Test-Path contract-output.txt) { (Select-String -Path contract-output.txt -Pattern '^failed |^Test run summary: Zero tests ran' -Context 0, 8 | ForEach-Object { @($_.Line) + $_.Context.PostContext }) -join "`n" } else { 'No test output: see the run log.' }
+          $pattern = '^failed |^Test run summary: Zero tests ran'
+          $failures = if (Test-Path contract-output.txt) {
+              (Select-String -Path contract-output.txt -Pattern $pattern -Context 0, 8 | ForEach-Object {
+                  $_.Line
+                  # Each quote stops where the next failure starts, so no failure is quoted twice.
+                  $next = [Array]::FindIndex([string[]]$_.Context.PostContext, [Predicate[string]] { param($line) $line -match $pattern })
+                  $_.Context.PostContext | Select-Object -First ($next -lt 0 ? 8 : $next)
+              }) -join "`n"
+          }
+          else {
+              'No test output: see the run log.'
+          }
           if ([string]::IsNullOrWhiteSpace($failures)) {
               $failures = 'No failed test or error line was recorded; see the run log.'
           }
