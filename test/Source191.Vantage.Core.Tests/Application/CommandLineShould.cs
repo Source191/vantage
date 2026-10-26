@@ -73,6 +73,8 @@ public sealed class CommandLineShould
     [InlineData("frob")]
     [InlineData("--frob")]
     [InlineData("frob", "--yes")]
+    [InlineData("frob", "here")]
+    [InlineData("[diagram]", "here")]
     public void RefuseAnUnknownCommandWithUsage(params string[] arguments)
     {
         CommandLine.Parse(arguments).ShouldBe(new Usage(Wording.UnknownCommand(arguments[0])));

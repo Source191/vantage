@@ -1,3 +1,5 @@
+using System.CommandLine;
+
 namespace Source191.Vantage.Application;
 
 /// <summary>What the command line asked for. Only no arguments at all opens the console; anything not recognised is a usage error.</summary>
@@ -32,6 +34,15 @@ public enum HelpTopic
 
 public static class CommandLine
 {
+    private static readonly Argument<Guid> RegistrationId = new("registration id");
+    private static readonly Argument<int> ProcessId = new("process id");
+    private static readonly Command ClaimTabSyntax = new("claim-tab") { RegistrationId, ProcessId };
+
+    // here and setup-terminal parse their own arguments; the root only tells the commands apart.
+    private static readonly Command HereSyntax = new("here") { TreatUnmatchedTokensAsErrors = false };
+    private static readonly Command SetupTerminalSyntax = new("setup-terminal") { TreatUnmatchedTokensAsErrors = false };
+    private static readonly Command Root = new("vantage") { HereSyntax, SetupTerminalSyntax, ClaimTabSyntax };
+
     public static VantageCommand Parse(string[] arguments)
     {
         return arguments switch
@@ -41,11 +52,24 @@ public static class CommandLine
             ["--version" or "-v", ..] => new PrintVersion(),
             ["here", string flag, ..] when IsHelp(flag) => new PrintHelp(HelpTopic.Here),
             ["setup-terminal", string flag, ..] when IsHelp(flag) => new PrintHelp(HelpTopic.SetupTerminal),
-            ["here", .. string[] rest] => new StartHere(rest),
-            ["claim-tab", string id, string pid] when Guid.TryParse(id, out Guid registrationId) && int.TryParse(pid, out int processId) => new ClaimTab(registrationId, processId),
-            ["claim-tab", ..] => new Usage(Wording.ClaimTabUsage),
-            ["setup-terminal", .. string[] rest] => new SetupTerminal(rest),
-            [string unknown, ..] => new Usage(Wording.UnknownCommand(unknown)),
+            [string first, .. string[] rest] => Choose(first, rest, CommandLineSyntax.Parse(Root, arguments)),
+        };
+    }
+
+    private static VantageCommand Choose(string first, string[] rest, ParseResult parsed)
+    {
+        Command chosen = parsed.CommandResult.Command;
+        if (chosen.Name != first)
+        {
+            return new Usage(Wording.UnknownCommand(first));
+        }
+
+        return chosen switch
+        {
+            _ when chosen == HereSyntax => new StartHere(rest),
+            _ when chosen == SetupTerminalSyntax => new SetupTerminal(rest),
+            _ when parsed.Errors.Count == 0 => new ClaimTab(parsed.GetValue(RegistrationId), parsed.GetValue(ProcessId)),
+            _ => new Usage(Wording.ClaimTabUsage),
         };
     }
 
