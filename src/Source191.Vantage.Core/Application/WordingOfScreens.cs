@@ -12,10 +12,26 @@ public static partial class Wording
 
     private const string UpdateLine = "update Vantage in a new tab";
 
-    /// <summary>The title of Vantage's own tab; every writer of it uses this one value.</summary>
-    public static string TabTitle => string.Empty;
+    /// <summary>The title of Vantage's own tab outside a dialog; every writer of it uses this one value. The version is in the header.</summary>
+    public static string TabTitle => "Vantage";
 
-    public static string TabTitleDuring(DialogName dialog) => string.Empty;
+    /// <summary>The tab's title while a dialog is open: Vantage and the dialog's short name, never the dialog's own title.</summary>
+    public static string TabTitleDuring(DialogName dialog) => $"{TabTitle} ({DialogWord(dialog)})";
+
+    private static string DialogWord(DialogName dialog) => dialog switch
+    {
+        DialogName.Keys => "Keys",
+        DialogName.NewSession => "New session",
+        DialogName.Rename => "Rename",
+        DialogName.Resume => "Resume",
+        DialogName.Settings => "Settings",
+        DialogName.DeleteSession => "Delete session",
+        DialogName.DeleteBranch => "Delete branch",
+        DialogName.CloseEmpty => "Close empty",
+        DialogName.ForceRemove => "Force remove",
+        DialogName.OpenSolution => "Open solution",
+        DialogName.Update => "Update",
+    };
 
     /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
     public static string HeaderValues(ToolVersion vantage, string? claudeVersion, Settings settings, UpdateStatus update)
