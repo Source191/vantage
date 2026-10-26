@@ -22,10 +22,10 @@
 
 ## 4. Documentation and release
 
-- [x] 4.1 README: the own-tab paragraph (plain `Vantage`, the dialog word), a "Help and version" note under Start Vantage (the spellings, exit codes, unknown commands exit 2), the `vantage here` example without `-d` and with `vantage here --help`, and the manual check (item 6) plus the `drive` title capture; verify the README's commands run as written
+- [x] 4.1 README: the own-tab paragraph (plain `Vantage`, the dialog word), a "Help and version" note under Start Vantage (the spellings, exit codes, unknown commands exit 2), `vantage here --help` in the `vantage here` example, and the manual check (item 6) plus the `drive` title capture; verify the README's commands run as written
 - [x] 4.2 CLAUDE.md: the Windows Terminal title paragraph (plain `Vantage` from `Wording.TabTitle`, `DialogTabTitle` and why, the `Runnable` flag) and the Program.cs line naming the early commands; verify the text matches the code
 - [x] 4.3 Raise `Version` to 0.12.0 in `src\Source191.Vantage\Source191.Vantage.csproj`; verify `.github\scripts\Assert-VersionBumped.ps1` passes locally against `main`
-- [ ] 4.4 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate cli-help-and-tab-title --strict`; verify all pass
+- [x] 4.4 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate cli-help-and-tab-title --strict`; verify all pass
 
 ## Workflow follow-up
 

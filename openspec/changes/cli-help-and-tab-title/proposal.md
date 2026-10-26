@@ -13,7 +13,6 @@ Opening any dialog renames Vantage's tab to the dialog's title (press `?` and th
 - `vantage here --help` and `vantage setup-terminal --help` (also `-h`, `-?`, `/?`, as the first argument after the command) print that command's usage and exit 0. `?` and `help` are not help after `here`, because `vantage here help` names a session "help".
 - **BREAKING**: an unrecognised command or argument (`vantage frob`, `vantage --frob`) prints `Unknown command frob. Run vantage --help for the commands.` to standard error and exits 2, as the other usage errors do. Only a bare `vantage` opens the console. The update tab and the "Vantage" Windows Terminal profile both run a bare `vantage`, so neither is affected.
 - Help and version need neither Claude Code nor a terminal tab, so they run before Claude Code is located, as `setup-terminal` does.
-- The README's `vantage here` example loses the `-d` option, removed in an earlier version.
 - Version 0.11.3 becomes 0.12.0 (minor: new behaviour, and pre-1.0 minor may break).
 
 Out of scope: moving the parsing to System.CommandLine (a separate change, `system-commandline`, so the difference is a pull request of its own); shell completion; a `vantage help <command>` form; colour in the help text; multiple Claude accounts, which is a later change.
@@ -34,4 +33,4 @@ Out of scope: moving the parsing to System.CommandLine (a separate change, `syst
 - `Tui`: every dialog (`Confirm`, `NameDialog`, `TypedConfirmationDialog`, `ResumeChecklistDialog`, `SettingsDialog`, `LaunchWizardDialog`) turns off Terminal.Gui's title writing and writes `Vantage (<word>)` itself when it becomes modal, through one helper.
 - `Program.cs`: help and version join the early switch; the tool version is read before it.
 - Tests: `CommandLineShould`, `WordingOfScreensShould`, `WordingShould`, `TerminalConsoleShould`; the HeadlessTerminal hand-off check and a `drive` capture of the title sequence.
-- Docs: README (own tab title, the new options, the `vantage here` example, the manual check), CLAUDE.md (the title facts), the csproj version.
+- Docs: README (own tab title, the new options, `vantage here --help` in its example, the manual check), CLAUDE.md (the title facts), the csproj version.
