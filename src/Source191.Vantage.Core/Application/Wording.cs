@@ -22,6 +22,10 @@ public static partial class Wording
 
     public static string UnknownCommand(string command) => $"Unknown command {command}. Run vantage --help for the commands.";
 
+    public static string VersionLine(ToolVersion version) => string.Empty;
+
+    public static string Help(HelpTopic topic, ToolVersion version) => string.Empty;
+
     public static string ForceRemoveWarning => "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:";
 
     /// <summary>The typed-confirmation dialog's line when Enter is pressed on an empty box; expectedKind names what must be typed.</summary>

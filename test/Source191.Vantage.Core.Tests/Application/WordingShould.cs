@@ -742,6 +742,57 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void PrintTheVersionLine()
+    {
+        Wording.VersionLine(new ToolVersion("0.12.0")).ShouldBe("vantage 0.12.0");
+        Wording.VersionLine(ToolVersion.FromInformational("0.12.0-local.20261026T101500+abc123")).ShouldBe("vantage 0.12.0-local");
+    }
+
+    [Fact]
+    public void DescribeEveryCommandInTheGeneralHelp()
+    {
+        string help = Wording.Help(HelpTopic.Vantage, new ToolVersion("0.12.0"));
+
+        help.ShouldStartWith("Vantage 0.12.0: ");
+        help.ShouldContain("  vantage  ");
+        help.ShouldContain("vantage here [name] [-p \"opening prompt\"]");
+        help.ShouldContain("vantage setup-terminal [--sound <wav>] [--session-sound <wav>] [--yes] [--remove]");
+        help.ShouldContain("--help");
+        help.ShouldContain("--version");
+    }
+
+    [Fact]
+    public void LeavePlumbingOutOfTheHelp()
+    {
+        Wording.Help(HelpTopic.Vantage, new ToolVersion("0.12.0")).ShouldNotContain("claim-tab");
+    }
+
+    [Fact]
+    public void NameTheEnvironmentVariablesAndReadme()
+    {
+        string help = Wording.Help(HelpTopic.Vantage, new ToolVersion("0.12.0"));
+
+        help.ShouldContain("VANTAGE_LOG");
+        help.ShouldContain(UpdateCheckOptOut.VariableName);
+        help.ShouldEndWith("https://github.com/Source191/vantage#readme");
+    }
+
+    [Fact]
+    public void StartEachCommandsHelpWithItsUsageLine()
+    {
+        string here = Wording.Help(HelpTopic.Here, new ToolVersion("0.12.0"));
+        string setup = Wording.Help(HelpTopic.SetupTerminal, new ToolVersion("0.12.0"));
+
+        here.ShouldStartWith(Wording.HereUsage);
+        here.ShouldContain("-p, --prompt");
+        setup.ShouldStartWith(Wording.SetupTerminalUsage);
+        setup.ShouldContain("--sound <wav>");
+        setup.ShouldContain("--session-sound <wav>");
+        setup.ShouldContain("--yes");
+        setup.ShouldContain("--remove");
+    }
+
+    [Fact]
     public void TitleTheWizardByWhereTheSessionStarts()
     {
         Wording.WizardTitle(Wizard()).ShouldBe("New session");
