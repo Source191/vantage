@@ -23,6 +23,7 @@ string stateFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialF
 JsonFileStore store = new(stateFolder, TimeProvider.System);
 ProcessRegistry processRegistry = new();
 VantageCommand command = CommandLine.Parse(args);
+ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
 string vantageExecutable = Environment.ProcessPath ?? "vantage";
 TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser();
 
@@ -51,6 +52,13 @@ switch (command)
     case Usage usage:
         await Console.Error.WriteLineAsync(usage.Message);
         return 2;
+    case PrintHelp help:
+        // Help and version need neither Claude Code nor a terminal tab.
+        await Console.Out.WriteLineAsync(Wording.Help(help.Topic, version));
+        return 0;
+    case PrintVersion:
+        await Console.Out.WriteLineAsync(Wording.VersionLine(version));
+        return 0;
     default:
         break;
 }
@@ -64,7 +72,6 @@ if (claudeExecutable is null)
 
 ProcessRunner processes = new();
 ClaudeCli claude = new(processes, claudeExecutable);
-ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
 string tabTitle = Wording.TabTitle;
 GitCli git = new(processes);
 FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
