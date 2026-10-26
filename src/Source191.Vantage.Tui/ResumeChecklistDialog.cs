@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Views;
 using Terminal.Gui.App;
 using Terminal.Gui.Views;
@@ -14,6 +15,7 @@ internal static class ResumeChecklistDialog
         List<SessionRow> chosen = [];
         using Dialog dialog = new() { Title = "Resume stopped sessions", Width = 70, Height = Math.Min(8 + stopped.Count, 24) };
         dialog.SetScheme(Palette.Focusable(Palette.White));
+        DialogTabTitle.Apply(app, dialog, DialogName.Resume);
 
         Label caption = new() { X = 1, Y = 0, Text = "Tick the sessions to resume. Deliberately stopped ones are best left alone." };
         caption.SetScheme(Palette.Plain(Palette.Orange));

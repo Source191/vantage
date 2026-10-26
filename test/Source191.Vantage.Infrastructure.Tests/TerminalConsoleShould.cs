@@ -10,26 +10,26 @@ public sealed class TerminalConsoleShould : IDisposable
     [Fact]
     public void WriteTheOwnTabTitleAndColourAndClearThemAgain()
     {
-        TerminalConsole console = new(writer, "Vantage (0.5.0)");
+        TerminalConsole console = new(writer, "Vantage");
 
         console.ShowOwnTab(TabPalette.Default[4]);
         console.ShowOwnTab(null);
         console.ClearOwnTab();
 
         writer.ToString().ShouldBe(
-            TabEscapes.Title("Vantage (0.5.0)") + TabEscapes.Background(TabPalette.Default[4])
-            + TabEscapes.Title("Vantage (0.5.0)")
+            TabEscapes.Title("Vantage") + TabEscapes.Background(TabPalette.Default[4])
+            + TabEscapes.Title("Vantage")
             + TabEscapes.ClearTitle + TabEscapes.ResetBackground);
     }
 
     [Fact]
     public void WriteTheTitleItWasGiven()
     {
-        TerminalConsole console = new(writer, "Vantage (0.5.0-local)");
+        TerminalConsole console = new(writer, "Northwind title");
 
         console.ShowOwnTab(null);
 
-        writer.ToString().ShouldBe(TabEscapes.Title("Vantage (0.5.0-local)"));
+        writer.ToString().ShouldBe(TabEscapes.Title("Northwind title"));
     }
 
     public void Dispose()

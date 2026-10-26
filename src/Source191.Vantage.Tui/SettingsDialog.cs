@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.App;
@@ -23,6 +24,7 @@ internal static class SettingsDialog
         SettingsControls controls = new(state);
         using Dialog dialog = new() { Title = "Settings", Width = Dim.Percent(90), Height = 26 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
+        DialogTabTitle.Apply(app, dialog, DialogName.Settings);
         dialog.Add(controls.All);
 
         void Apply(SettingsInput input)

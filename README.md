@@ -78,7 +78,9 @@ Open a tab and run `vantage` (or `v`). The screen has three parts:
 
 The table refreshes every five seconds. `?` shows the keys and the columns of the current view (and, in the sessions view, the path of the Claude Code executable Vantage drives) and `q` quits. Quitting Vantage never stops a session.
 
-Vantage names its own tab `Vantage (<version>)`, such as `Vantage (0.6.0)`, and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab.
+Vantage names its own tab `Vantage` (the version is in the header) and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab. While a dialog is open the tab says which, such as `Vantage (Keys)` for the help or `Vantage (Settings)`, and goes back to `Vantage` when it closes.
+
+**Help and version.** `vantage --help` (also `-h`, `-?`, `/?`, `?` or `help`) prints the commands and options, `vantage here --help` and `vantage setup-terminal --help` print that command's own, and `vantage --version` (or `-v`) prints `vantage <version>`; all exit 0 and none needs Claude Code. Anything else after `vantage` that it does not recognise is refused with exit code 2 and a pointer to `--help`; only `vantage` on its own opens the console.
 
 ## The sessions view
 
@@ -209,6 +211,7 @@ From any folder, `vantage here` starts a supervised session in that folder, on i
 ```powershell
 vantage here
 vantage here fix-tests -p "Make the failing tests in OrdersShould pass"
+vantage here --help   # the options
 vh fix-tests          # with the profile shortcut
 ```
 
@@ -374,7 +377,9 @@ The runner drives Vantage inside a pseudo-console, which is the same plumbing Wi
 3. `d` on that session ends claude and the tab closes by itself.
 4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
 5. Ctrl+Z from an attached session returns to the table with the keys still working.
-6. The tab Vantage runs in is titled `Vantage (<version>)`, with `-local` after the version for a local install, and green, keeps that title after attaching and pressing Ctrl+Z, and goes back to the profile's title and colour on `q`.
+6. The tab Vantage runs in is titled `Vantage` and green, reads `Vantage (Keys)` while `?` is open and `Vantage` again after Esc, keeps that title after attaching and pressing Ctrl+Z, and goes back to the profile's title and colour on `q`.
+
+After a Terminal.Gui update, check the dialog title from `tools\HeadlessTerminal` without a terminal: `dotnet run -- drive <vantage.exe> '8000:?,2000:\u001b,2000:q'`, then the `ESC ] 0 ;` titles in `drive-raw.txt` must read `Vantage`, `Vantage (Keys)`, `Vantage`. Terminal.Gui writes every Runnable's title to the terminal unless it is told not to, so a new dialog that skips `DialogTabTitle.Apply` shows up here as its own title.
 
 ## Working with OpenSpec
 

@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Terminal.Gui.App;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
@@ -9,13 +10,14 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 internal static class Confirm
 {
-    public static int? Query(IApplication app, string title, string message, params string[] buttons)
+    public static int? Query(IApplication app, DialogName name, string title, string message, params string[] buttons)
     {
         int? answer = null;
         string[] lines = message.Split('\n');
         int width = Math.Clamp(Math.Max(lines.Max(line => line.Length), title.Length) + 6, 40, 110);
         using Dialog dialog = new() { Title = title, Width = width, Height = lines.Length + 6 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
+        DialogTabTitle.Apply(app, dialog, name);
 
         Label text = new() { X = 1, Y = 1, Width = Dim.Fill(1), Height = lines.Length, Text = message };
         text.SetScheme(Palette.Plain(Palette.Amber));

@@ -30,6 +30,7 @@ internal static class LaunchWizardDialog
         WizardControls controls = new(state);
         using Dialog dialog = new() { Title = Wording.WizardTitle(state), Width = Dim.Percent(90), Height = Dim.Percent(90) };
         dialog.SetScheme(Palette.Focusable(Palette.White));
+        DialogTabTitle.Apply(app, dialog, DialogName.NewSession);
         dialog.Add(controls.All);
 
         void Apply(WizardInput input)
