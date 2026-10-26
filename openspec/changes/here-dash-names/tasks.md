@@ -7,8 +7,8 @@
 
 ## 2. Documentation
 
-- [ ] 2.1 README's `vantage here` paragraph: the refusal and the `--` escape instead of the trap; verify by hand with the Debug build that `vantage here --promt` exits 1 with the sentence and `vantage here --help` exits 0
-- [ ] 2.2 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate here-dash-names --strict`; verify all pass
+- [x] 2.1 README's `vantage here` paragraph: the refusal and the `--` escape instead of the trap; verify by hand with the Debug build that `vantage here --promt` exits 1 with the sentence and `vantage here --help` exits 0
+- [x] 2.2 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate here-dash-names --strict`; verify all pass
 
 ## Workflow follow-up
 
