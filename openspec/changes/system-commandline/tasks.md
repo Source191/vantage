@@ -8,7 +8,7 @@
 
 - [x] 2.1 Add the `System.CommandLine` package (newest 2.0.x at least two weeks old) to `Source191.Vantage.Core` and update the csproj comment; verify `dotnet build -c Debug` passes and the package's licence is MIT
 - [x] 2.2 Reimplement `TerminalSetupCommand.Parse` over a `setup-terminal` command with response files and bundling off; verify `TerminalSetupCommandShould` passes unchanged
-- [ ] 2.3 Reimplement `HereCommand.Plan`'s option reading over a `here` command; verify `HereCommandShould` and `HereCommandRunnerShould` pass unchanged
+- [x] 2.3 Reimplement `HereCommand.Plan`'s option reading over a `here` command; verify `HereCommandShould` and `HereCommandRunnerShould` pass unchanged
 - [ ] 2.4 Reimplement `CommandLine.Parse`'s command selection (`here`, `setup-terminal`, hidden `claim-tab`, unknown command) over one `RootCommand`, keeping the help and version arms ahead of it; verify `CommandLineShould` passes unchanged
 - [ ] 2.5 Refactor: remove what the library made unused and keep the problem mapping in one place; verify the Core suite passes and `dotnet format --verify-no-changes` is clean
 
