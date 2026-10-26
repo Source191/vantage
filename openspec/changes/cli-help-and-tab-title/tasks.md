@@ -3,9 +3,9 @@
 ## 1. Command line results
 
 - [x] 1.1 `CommandLineShould.OpenTheConsoleOnlyWithNoArguments` and `RefuseAnUnknownCommandWithUsage` (`frob`, `--frob`): replace the `_ => OpenConsole` arm with `Usage(Wording.UnknownCommand(first))`; add `UnknownCommand` with a `WordingShould` fact for "Unknown command frob. Run vantage --help for the commands."; verify the Core test suite passes
-- [ ] 1.2 `CommandLineShould.AskForTheGeneralHelp` as a theory over `--help`, `-h`, `-?`, `/?`, `?`, `help`: add `PrintHelp(HelpTopic)` and `HelpTopic` (Vantage, Here, SetupTerminal); verify the theory passes
-- [ ] 1.3 `CommandLineShould.AskForACommandsHelp` (`here --help`, `here -?`, `setup-terminal -h`, `setup-terminal /?`) and `KeepHelpAfterHereAsASessionName` (`here help` and `here ?` stay `StartHere`): add the arms ahead of `here` and `setup-terminal`; verify they pass
-- [ ] 1.4 `CommandLineShould.AskForTheVersion` over `--version` and `-v`: add `PrintVersion`; verify it passes
+- [x] 1.2 `CommandLineShould.AskForTheGeneralHelp` as a theory over `--help`, `-h`, `-?`, `/?`, `?`, `help`: add `PrintHelp(HelpTopic)` and `HelpTopic` (Vantage, Here, SetupTerminal); verify the theory passes
+- [x] 1.3 `CommandLineShould.AskForACommandsHelp` (`here --help`, `here -?`, `setup-terminal -h`, `setup-terminal /?`) and `KeepHelpAfterHereAsASessionName` (`here help` and `here ?` stay `StartHere`): add the arms ahead of `here` and `setup-terminal`; verify they pass
+- [x] 1.4 `CommandLineShould.AskForTheVersion` over `--version` and `-v`: add `PrintVersion`; verify it passes
 
 ## 2. Words for help, version and the tab
 
