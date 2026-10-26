@@ -8,4 +8,4 @@
 
 ## 2. Check on the runner
 
-- [ ] 2.1 Run `gh workflow run claude-contract.yml --ref contract-check-false-alarm`; verify it is green and nothing new lands on issue #66
+- [x] 2.1 Run `gh workflow run claude-contract.yml --ref contract-check-false-alarm`; verify it is green and nothing new lands on issue #66
