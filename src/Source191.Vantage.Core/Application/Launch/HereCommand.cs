@@ -8,36 +8,12 @@ namespace Source191.Vantage.Application.Launch;
 /// </summary>
 public static class HereCommand
 {
-    public static LaunchPlanResult Plan(string directory, IReadOnlyList<string> arguments, Func<string, bool> isRepository)
+    /// <summary>The plan for a name (the folder's when null) and an opening prompt (none when null); the command line is parsed before this.</summary>
+    public static LaunchPlanResult Plan(string directory, string? name, string? prompt, Func<string, bool> isRepository)
     {
         FolderPath path = FolderPath.From(directory);
-        string? name = null;
-        string prompt = string.Empty;
-
-        Queue<string> remaining = new(arguments);
-        while (remaining.Count > 0)
-        {
-            string argument = remaining.Dequeue();
-            bool hasValue = remaining.Count > 0;
-            switch (argument)
-            {
-                case "-p" or "--prompt" when hasValue:
-                    prompt = remaining.Dequeue();
-                    break;
-                case "-p" or "--prompt":
-                    return new LaunchPlanResult.Refused(new LaunchProblem.OptionNeedsValue(argument));
-                case var option when option.StartsWith('-'):
-                    return new LaunchPlanResult.Refused(new LaunchProblem.UnknownOption(option));
-                case var text when name is null:
-                    name = text;
-                    break;
-                default:
-                    return new LaunchPlanResult.Refused(new LaunchProblem.UnexpectedArgument(argument));
-            }
-        }
-
         RepositoryChoice repository = new(path.Name, path, isRepository(directory));
-        LaunchRequest request = new(repository, name ?? path.Name, LaunchMode.CurrentBranch, WorktreeBase.RemoteDefault, prompt);
+        LaunchRequest request = new(repository, name ?? path.Name, LaunchMode.CurrentBranch, WorktreeBase.RemoteDefault, prompt ?? string.Empty);
 
         // On the current branch no worktree is placed, so the folder itself stands in for the worktree root.
         return LaunchPlanBuilder.Build(request, worktreeRoot: path, _ => false);

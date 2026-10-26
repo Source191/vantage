@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- Domain, Ports and Application: no file system, no processes, no Terminal.Gui. Logging.Abstractions is the one package. -->
+  <!-- Domain, Ports and Application: no file system, no processes, no Terminal.Gui. Two packages: Logging.Abstractions, and System.CommandLine for the command line in Application\CommandLine. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
+    <PackageReference Include="System.CommandLine" Version="2.0.12" />
   </ItemGroup>
 
 </Project>

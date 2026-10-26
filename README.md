@@ -80,7 +80,7 @@ The table refreshes every five seconds. `?` shows the keys and the columns of th
 
 Vantage names its own tab `Vantage` (the version is in the header) and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab. While a dialog is open the tab says which, such as `Vantage (Keys)` for the help or `Vantage (Settings)`, and goes back to `Vantage` when it closes.
 
-**Help and version.** `vantage --help` (also `-h`, `-?`, `/?`, `?` or `help`) prints the commands and options, `vantage here --help` and `vantage setup-terminal --help` print that command's own, and `vantage --version` (or `-v`) prints `vantage <version>`; all exit 0 and none needs Claude Code. Anything else after `vantage` that it does not recognise is refused with exit code 2 and a pointer to `--help`; only `vantage` on its own opens the console.
+**Help and version.** `vantage --help` (also `-h`, `/h`, `-?` or `/?`) lists the commands and options, and the same option after a command, anywhere on the line, shows that command's own (`vantage here --help`, `vantage setup-terminal -h`). `vantage --version` prints the installed version. Both exit 0 and neither needs Claude Code. Anything Vantage cannot parse is refused with exit code 1: the message names what was not recognised, suggests close matches (`vantage hre` suggests `here`) and shows the help. Options take their value after a space, `=` or `:` (`--prompt="Fix the tests"`), and `--` ends the options. Only `vantage` on its own opens the console.
 
 ## The sessions view
 
@@ -215,7 +215,7 @@ vantage here --help   # the options
 vh fix-tests          # with the profile shortcut
 ```
 
-Options: `-p`/`--prompt` sends an opening prompt (without one the session opens on the agent list). Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder), 2 for a usage error.
+Options: `-p`/`--prompt` sends an opening prompt (without one the session opens on the agent list). Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder) or the command line could not be parsed, 2 when the name is refused. A name that starts with `-` is refused as a likely mistyped option (`vantage here --promt` names `--promt`, shows the help and exits 1); to use such a name, or one that starts with `@` (which otherwise reads a response file), put `--` before it: `vantage here -- -experiment`.
 
 ## Notifications
 
@@ -242,7 +242,7 @@ vantage setup-terminal --sound "C:\Windows\Media\chimes.wav" --session-sound "C:
 vantage setup-terminal --remove                          # delete the fragment
 ```
 
-Without options the Vantage profile plays `Windows Notify Messaging.wav` and the session profile `Windows Proximity Notification.wav`, both from `C:\Windows\Media`; a default that is missing on your machine is left out and that profile uses Windows Terminal's own bell sound. A sound you name must be an existing `.wav` file. The command first shows the file it will write and asks; any answer but yes, or no answer, writes nothing. Run it again with other sounds to replace the fragment. Exit codes: 0 done, declined or nothing to remove, 1 a write failed, 2 a usage error.
+Without options the Vantage profile plays `Windows Notify Messaging.wav` and the session profile `Windows Proximity Notification.wav`, both from `C:\Windows\Media`; a default that is missing on your machine is left out and that profile uses Windows Terminal's own bell sound. A sound you name must be an existing `.wav` file. The command first shows the file it will write and asks; any answer but yes, or no answer, writes nothing. Run it again with other sounds to replace the fragment. Exit codes: 0 done, declined or nothing to remove, 1 a write failed or the command line could not be parsed, 2 a missing or non-wav sound or `--remove` with a sound.
 
 **Claude Code's bell.** The command then offers to set `"preferredNotifChannel": "terminal_bell"` in `~\.claude\settings.json`, keeping every other setting. Claude then rings the bell when it finishes a task or pauses for a permission prompt while you appear to be away, and the tab it is attached in is flagged. It applies to sessions started from now on. You can add the line by hand instead:
 

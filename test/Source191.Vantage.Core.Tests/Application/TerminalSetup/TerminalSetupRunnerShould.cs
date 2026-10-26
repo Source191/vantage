@@ -19,11 +19,13 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     private readonly StringWriter output = new();
     private readonly StringWriter error = new();
 
-    private Task<int> RunAsync(string answers, params string[] arguments)
+    private static readonly TerminalSetupRequest Defaults = new(Sound: null, SessionSound: null, Yes: false, Remove: false);
+
+    private Task<int> RunAsync(string answers, TerminalSetupRequest? request = null)
     {
         TerminalSetupRunner runner = new(folders, fragment, settings, Vantage, Media, new StringReader(answers), output, error);
 
-        return runner.RunAsync(arguments, CancellationToken.None);
+        return runner.RunAsync(request ?? Defaults, CancellationToken.None);
     }
 
     [Fact]
@@ -72,7 +74,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task WriteGivenSounds()
     {
-        int exitCode = await RunAsync(string.Empty, "--yes", "--sound", Chimes, "--session-sound", NotifyMessaging.ToUpperInvariant());
+        int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = Chimes, SessionSound = NotifyMessaging.ToUpperInvariant() });
 
         exitCode.ShouldBe(0);
         fragment.Written.Single().ShouldBe(new TerminalProfiles(Vantage, Chimes, NotifyMessaging.ToUpperInvariant()));
@@ -84,7 +86,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         string full = Path.GetFullPath("ding.wav");
         folders.WithFile(full);
 
-        int exitCode = await RunAsync(string.Empty, "--yes", "--sound", "ding.wav");
+        int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = "ding.wav" });
 
         exitCode.ShouldBe(0);
         fragment.Written.Single().VantageSound.ShouldBe(full);
@@ -96,7 +98,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         FakeClaudeSettings other = new(new NotificationChannelState.Configured("iterm2"));
         TerminalSetupRunner runner = new(folders, fragment, other, Vantage, Media, new StringReader("n\nn\n"), output, error);
 
-        await runner.RunAsync([], CancellationToken.None);
+        await runner.RunAsync(Defaults, CancellationToken.None);
 
         output.ToString().ShouldContain(Wording.ClaudeBellPlan(other.Location, replacing: "iterm2"));
     }
@@ -107,7 +109,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         fragment.Installed();
         fragment.FailTheRemovalWith = new IOException("in use");
 
-        int exitCode = await RunAsync(string.Empty, "--remove");
+        int exitCode = await RunAsync(string.Empty, Defaults with { Remove = true });
 
         exitCode.ShouldBe(1);
         error.ToString().ShouldContain(Wording.TerminalSetupFailed(fragment.Location, "in use"));
@@ -119,7 +121,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         FakeFolders withoutDefault = new FakeFolders().WithFile(ProximityNotification);
         TerminalSetupRunner runner = new(withoutDefault, fragment, settings, Vantage, Media, new StringReader("y\nn\n"), output, error);
 
-        await runner.RunAsync([], CancellationToken.None);
+        await runner.RunAsync(Defaults, CancellationToken.None);
 
         fragment.Written.Single().ShouldBe(new TerminalProfiles(Vantage, VantageSound: null, ProximityNotification));
         output.ToString().ShouldContain(Wording.DefaultSoundMissing("Vantage", NotifyMessaging));
@@ -129,7 +131,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task RefuseAMissingSoundWithExitTwo()
     {
-        int exitCode = await RunAsync("y\ny\n", "--sound", @"C:\Users\me\missing.wav");
+        int exitCode = await RunAsync("y\ny\n", Defaults with { Sound = @"C:\Users\me\missing.wav" });
 
         exitCode.ShouldBe(2);
         error.ToString().ShouldContain(Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotFound(@"C:\Users\me\missing.wav")));
@@ -141,7 +143,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task RefuseASoundThatIsNotAWavFileWithExitTwo()
     {
-        int exitCode = await RunAsync("y\ny\n", "--session-sound", @"C:\Windows\Media\notes.txt");
+        int exitCode = await RunAsync("y\ny\n", Defaults with { SessionSound = @"C:\Windows\Media\notes.txt" });
 
         exitCode.ShouldBe(2);
         error.ToString().ShouldContain(Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotWav(@"C:\Windows\Media\notes.txt")));
@@ -149,12 +151,14 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     }
 
     [Fact]
-    public async Task ExitTwoWithTheUsageForAnUnknownOption()
+    public async Task RefuseRemoveWithASoundWithExitTwo()
     {
-        int exitCode = await RunAsync(string.Empty, "--loud");
+        int exitCode = await RunAsync(string.Empty, Defaults with { Remove = true, Sound = Chimes });
 
         exitCode.ShouldBe(2);
-        error.ToString().ShouldContain(Wording.SetupTerminalUsage);
+        error.ToString().ShouldBe(Wording.DescribeSetupProblem(new TerminalSetupProblem.RemoveWithSound()) + Environment.NewLine);
+        fragment.Removals.ShouldBe(0);
+        fragment.Written.ShouldBeEmpty();
     }
 
     [Theory]
@@ -165,7 +169,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         FakeClaudeSettings other = new(current is null ? new NotificationChannelState.Unset() : new NotificationChannelState.Configured(current));
         TerminalSetupRunner runner = new(folders, fragment, other, Vantage, Media, new StringReader("n\nn\n"), output, error);
 
-        await runner.RunAsync([], CancellationToken.None);
+        await runner.RunAsync(Defaults, CancellationToken.None);
 
         output.ToString().ShouldContain(Wording.ClaudeBellPlan(other.Location, current));
         output.ToString().ShouldContain(Wording.TurnOnClaudeBellQuestion);
@@ -185,7 +189,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         FakeClaudeSettings alreadyOn = new(new NotificationChannelState.Configured("terminal_bell"));
         TerminalSetupRunner runner = new(folders, fragment, alreadyOn, Vantage, Media, new StringReader("y\n"), output, error);
 
-        await runner.RunAsync([], CancellationToken.None);
+        await runner.RunAsync(Defaults, CancellationToken.None);
 
         output.ToString().ShouldContain(Wording.ClaudeBellAlreadyOn);
         output.ToString().ShouldNotContain(Wording.TurnOnClaudeBellQuestion);
@@ -210,7 +214,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         FakeClaudeSettings unreadable = new(new NotificationChannelState.Unreadable("bad json"));
         TerminalSetupRunner runner = new(folders, fragment, unreadable, Vantage, Media, new StringReader("y\n"), output, error);
 
-        int exitCode = await runner.RunAsync([], CancellationToken.None);
+        int exitCode = await runner.RunAsync(Defaults, CancellationToken.None);
 
         exitCode.ShouldBe(0);
         fragment.Written.Count.ShouldBe(1);
@@ -221,7 +225,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task AnswerBothQuestionsWithYes()
     {
-        int exitCode = await RunAsync(string.Empty, "--yes");
+        int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true });
 
         exitCode.ShouldBe(0);
         fragment.Written.Count.ShouldBe(1);
@@ -235,7 +239,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     {
         fragment.Installed();
 
-        int exitCode = await RunAsync(string.Empty, "--remove");
+        int exitCode = await RunAsync(string.Empty, Defaults with { Remove = true });
 
         exitCode.ShouldBe(0);
         fragment.Exists.ShouldBeFalse();
@@ -246,7 +250,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task ReportNothingToRemove()
     {
-        int exitCode = await RunAsync(string.Empty, "--remove", "--yes");
+        int exitCode = await RunAsync(string.Empty, Defaults with { Remove = true, Yes = true });
 
         exitCode.ShouldBe(0);
         output.ToString().ShouldContain(Wording.NothingToRemove);
@@ -257,7 +261,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     {
         fragment.FailTheWriteWith = new IOException("disk full");
 
-        int exitCode = await RunAsync(string.Empty, "--yes");
+        int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true });
 
         exitCode.ShouldBe(1);
         error.ToString().ShouldContain(Wording.TerminalSetupFailed(fragment.Location, "disk full"));
@@ -269,7 +273,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     {
         settings.FailTheWriteWith = new IOException("locked");
 
-        int exitCode = await RunAsync(string.Empty, "--yes");
+        int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true });
 
         exitCode.ShouldBe(1);
         error.ToString().ShouldContain(Wording.TerminalSetupFailed(settings.Location, "locked"));
@@ -278,7 +282,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task TouchNothingButTheFragmentAndThePreferredNotificationChannel()
     {
-        await RunAsync(string.Empty, "--yes");
+        await RunAsync(string.Empty, Defaults with { Yes = true });
 
         fragment.Written.Count.ShouldBe(1);
         fragment.Removals.ShouldBe(0);
