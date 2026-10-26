@@ -16,6 +16,9 @@ public static partial class Wording
     /// <summary>Printed before an attach. Attach lands on Claude's agent list when the session has no messages yet; that screen leaves with Esc, not Ctrl+Z.</summary>
     public static string ReturnHint => "Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.";
 
+    /// <summary>vantage here refuses a dash-led name that did not follow --, since it is most likely a mistyped option.</summary>
+    public static string NameLooksLikeAnOption(string token) => string.Empty;
+
     private const string SetupTerminalSyntax = "vantage setup-terminal [--sound <wav>] [--session-sound <wav>] [--yes] [--remove]";
 
     public static string ForceRemoveWarning => "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:";

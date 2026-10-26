@@ -711,6 +711,12 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void SayANameLooksLikeAnOption()
+    {
+        Wording.NameLooksLikeAnOption("--promt").ShouldBe("--promt looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- --promt");
+    }
+
+    [Fact]
     public void TitleTheWizardByWhereTheSessionStarts()
     {
         Wording.WizardTitle(Wizard()).ShouldBe("New session");
