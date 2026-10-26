@@ -1,24 +1,29 @@
 # Tasks
 
-## 1. Pin today's behaviour
+## 1. Runners take values, not arguments
 
-- [x] 1.1 Add facts the hand-rolled parsers already pass, before any change: `HereCommandShould.TakeAPromptThatStartsWithADash`, `NameASessionStartingWithAnAt` (`@name`), `RefuseBundledShortOptions` (`-py`), `RefuseAnOptionJoinedToItsValue` (`--prompt=text`, `-p:text`); `TerminalSetupCommandShould.RefuseASoundJoinedToItsValue` (`--sound=x.wav`); verify they pass on the current code and record the line counts of the three parsers
+- [ ] 1.1 `HereCommandShould` over `HereCommand.Plan(directory, name, prompt, isRepository)` (default name, given name and prompt, refused names, a folder that is not a repository): change the signature, delete the parse facts and the `UnknownOption`, `OptionNeedsValue` and `UnexpectedArgument` cases of `LaunchProblem` with their words and `WordingShould` facts; verify the Core suite passes
+- [ ] 1.2 `HereCommandRunnerShould` over `RunAsync(directory, name, prompt, …)`: a refused name still writes its sentence and exits 2; verify it passes
+- [ ] 1.3 `TerminalSetupRunnerShould` over `RunAsync(TerminalSetupRequest, …)`, with `RefuseRemoveWithASound` moved from `TerminalSetupCommandShould` (usage line, exit 2): delete `TerminalSetupCommand`, `TerminalSetupParse`, `TerminalSetupCommandShould` and the three parse cases of `TerminalSetupProblem` with their words; verify the Core suite passes
 
-## 2. Move the parsing
+## 2. The command line as one root command
 
-- [x] 2.1 Add the `System.CommandLine` package (newest 2.0.x at least two weeks old) to `Source191.Vantage.Core` and update the csproj comment; verify `dotnet build -c Debug` passes and the package's licence is MIT
-- [x] 2.2 Reimplement `TerminalSetupCommand.Parse` over a `setup-terminal` command with response files and bundling off; verify `TerminalSetupCommandShould` passes unchanged
-- [x] 2.3 Reimplement `HereCommand.Plan`'s option reading over a `here` command; verify `HereCommandShould` and `HereCommandRunnerShould` pass unchanged
-- [x] 2.4 Reimplement `CommandLine.Parse`'s command selection (`here`, `setup-terminal`, hidden `claim-tab`, unknown command) over one `RootCommand`, keeping the help and version arms ahead of it; verify `CommandLineShould` passes unchanged
-- [x] 2.5 Refactor: remove what the library made unused and keep the problem mapping in one place; verify the Core suite passes and `dotnet format --verify-no-changes` is clean
+- [ ] 2.1 `CommandLineShould` invoking `CommandLine.Build(actions)` through `CommandLine.InvokeAsync` with recording fake actions and `StringWriter`s: no arguments opens the console; `here fix-tests -p "Fix them"`, `here --prompt=text`, `here -- -experiment` and `here help` reach the here action with those values; `setup-terminal --sound x.wav --yes` reaches the setup action as a request; `claim-tab <guid> 4242` reaches the claim action; verify each passes
+- [ ] 2.2 `CommandLineShould` for the library's help, version and errors: `--help`, `-h`, `/h`, `-?`, `/?` print help naming here and setup-terminal and not claim-tab, exit 0, call no action; `here --help` and `here fix-tests -h` name `--prompt`; `setup-terminal -h` names its four options; `--version` prints a version, exit 0; `frob`, `--frob`, `?`, `-v` and `here -p a -p b` exit 1 with the problem on the error writer and call no action; `here --promt x` suggests `--prompt`; verify each passes
+- [ ] 2.3 Refactor: delete `CommandLineSyntax`, `VantageCommand` and its records, `HelpTopic`, `Wording.Help`, `VersionLine`, `UnknownCommand`, `ClaimTabUsage`, `HereUsage` where unused, and their facts; verify the build (warnings as errors), the Core suite and `dotnet format --verify-no-changes`
 
-## 3. Documentation and release
+## 3. Program
 
-- [x] 3.1 CLAUDE.md: Core's packages (Logging.Abstractions and System.CommandLine) and that the library only parses, never prints; verify the text matches the code
-- [ ] 3.2 Raise `Version` to 0.12.1; verify `.github\scripts\Assert-VersionBumped.ps1` passes against `main`
-- [x] 3.3 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate system-commandline --strict`, and by hand `vantage --help`, `vantage frob`, `vantage here --help`, `vantage setup-terminal --sound` with the Debug build; verify the output and exit codes match 0.12.0
-- [x] 3.4 Write the line counts before and after, and any input the library accepts that was refused before, into the pull request description; verify both are there
+- [ ] 3.1 `Program.cs` (wiring): local functions for the four actions holding today's code paths, `CommandLine.Build`, then `CommandLine.InvokeAsync(root, args, Console.Out, Console.Error)`; verify by hand with the Debug build and `claude` off the PATH that `--help`, `here --help`, `setup-terminal -h` and `--version` exit 0 and `frob` exits 1
+- [ ] 3.2 Run `dotnet run --project tools\HeadlessTerminal -- check` against a Release build (the console's start-up moved into an action); verify exit 0
+
+## 4. Documentation and release
+
+- [ ] 4.1 README: the help and version paragraph (library spellings, typo suggestions, exit 1 for parse errors), `vantage here` exit codes and the `--` tip for names starting with `-` or `@`, `setup-terminal` exit codes; verify the commands run as written
+- [ ] 4.2 CLAUDE.md: Core's packages, `Application\CommandLine` as the command line's one home with descriptions beside the symbols, the exceptions to the `Wording` rule (descriptions, parse errors, help layout), the `ProcessTerminationTimeout = null` reason; verify it matches the code
+- [ ] 4.3 Raise `Version` to 0.13.0; verify `.github\scripts\Assert-VersionBumped.ps1 -Base origin/main -Head HEAD` passes
+- [ ] 4.4 Run `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate system-commandline --strict`; record the line counts against `main` for the pull request; verify all pass
 
 ## Workflow follow-up
 
-- Archive the change in the same pull request if it is merged; close it unmerged if the comparison does not favour the library.
+- Archive the change in the same pull request once it is ready to merge.

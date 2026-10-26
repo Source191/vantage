@@ -2,17 +2,20 @@
 
 ## Why
 
-Vantage parses its command line by hand: list patterns in `CommandLine.Parse` and a queue loop each in `HereCommand.Plan` and `TerminalSetupCommand.Parse`, about 120 lines after `cli-help-and-tab-title`. System.CommandLine 2.0 (Microsoft, MIT, compatible with Vantage's Apache-2.0) is the .NET standard for this, and moving to it may make the parsing shorter and set Vantage up for more commands. Doing it as a change of its own, with no behaviour change, makes the pull request a direct comparison of the two approaches, so the user can decide whether to keep it.
+Vantage parses its command line by hand: list patterns in `CommandLine.Parse`, an option loop each in `HereCommand.Plan` and `TerminalSetupCommand.Parse`, help texts written out in `Wording`, and a problem record and sentence for every way an argument can be wrong. Adding an option means touching four files and two test classes and knowing Vantage's conventions. A first attempt at moving to System.CommandLine 2.0 (Microsoft, MIT, compatible with Vantage's Apache-2.0) kept every old refusal and grew the code by 45 % (PR #62). Most of those refusals protected accidental behaviour, not users. Used as intended, the library gives users generated help, typo suggestions and conventional syntax, and gives contributors, with or without a coding agent, one documented, declarative place to change the command line.
 
 ## What Changes
 
-- `Source191.Vantage.Core` takes a package reference to `System.CommandLine` (2.0.x, MIT), its second package after `Microsoft.Extensions.Logging.Abstractions`.
-- `CommandLine.Parse`, `HereCommand.Plan` and `TerminalSetupCommand.Parse` are reimplemented over one System.CommandLine `RootCommand` with `here`, `setup-terminal` and a hidden `claim-tab` subcommand, keeping their signatures and their results (`VantageCommand`, `LaunchPlanResult`, `TerminalSetupParse`) so the existing tests stay unchanged and are the contract.
-- Every sentence the user sees still comes from `Wording`: the library's own help output, parse-error messages and colours are not used; its parse results are mapped to the existing problem values (`LaunchProblem`, `TerminalSetupProblem`, the unknown-command `Usage`).
-- The library's extras that would change behaviour are turned off: response files (`@file`, which would make `vantage here @name` read a file) and POSIX bundling of short options.
-- Version 0.12.0 (after `cli-help-and-tab-title`) becomes 0.12.1, a patch, since behaviour does not change.
+- One `RootCommand` in `Application\CommandLine` declares the whole command line: the console as the root action, `here` (an optional `name` argument, `-p`/`--prompt`), `setup-terminal` (`--sound`, `--session-sound`, `--yes`, `--remove`) and a hidden `claim-tab` (a GUID and a process id). Every symbol has a description, written in British English beside it. Each command's action calls the existing runner; `Program.cs` builds the actions and calls `InvokeAsync`.
+- **BREAKING**: help is the library's, generated from the descriptions, for `--help`, `-h`, `/h`, `-?` and `/?` anywhere on the line. `vantage ?` and `vantage help` are no longer help (they are unrecognised), and the help no longer lists environment variables or the README address.
+- **BREAKING**: `--version` is the library's and prints the tool's informational version, which can include build metadata after a `+`; `-v` is gone.
+- **BREAKING**: parse errors are the library's: its own (American English) messages, suggestions of close matches, the command's help after them, and exit code 1 instead of 2. Vantage's own checks keep their sentences and exit code 2: a refused session name, a missing or non-wav sound, `--remove` with a sound.
+- **BREAKING**: the library's defaults for syntax apply: `--prompt=text` and `-p:text` work, `--` ends the options, `@file` reads a response file, a repeated option is an error, and a name may start with `-`.
+- Removed: `CommandLineSyntax`, `TerminalSetupCommand` and `TerminalSetupParse`, the `PrintHelp`/`PrintVersion`/`Usage` results, `HelpTopic`, the parse cases of `LaunchProblem` and `TerminalSetupProblem`, and the help, version, usage and unknown-command words in `Wording`, with their tests.
+- Ctrl+C is unchanged: the library's termination handler is turned off (`ProcessTerminationTimeout = null`), since it would cancel and force an exit two seconds after a Ctrl+C.
+- Version 0.12.1 becomes 0.13.0 (minor; pre-1.0 minor may break).
 
-Out of scope: the library's generated help, "did you mean" suggestions, `--option=value` syntax and shell completion (each changes behaviour and would be its own change once this one is accepted); any change to the commands, options, words or exit codes; multiple Claude accounts, which is a later change.
+Out of scope: shell completion setup (`dotnet-suggest`) and its documentation; localising the library's messages; new commands or options; multiple Claude accounts, which is a later change.
 
 ## Capabilities
 
@@ -22,11 +25,13 @@ None.
 
 ### Modified Capabilities
 
-None. The `command-line`, `session-launch` and `needs-input-notification` specs describe the behaviour, which stays the same; `.openspec.yaml` declares `skip_specs: true`.
+- `command-line`: help, version and parse errors become the library's, with its spellings, exit code and suggestions; conventional option syntax is accepted.
+- `session-launch`: `vantage here` exits 1 for a command line that cannot be parsed and 2 only for a refused name; the removed `-d` option is now an unrecognised argument.
 
 ## Impact
 
-- `Core`: `Application\CommandLine.cs`, `Application\Launch\HereCommand.cs`, `Application\TerminalSetup\TerminalSetupCommand.cs`; the csproj comment on its one package.
-- Tests: `CommandLineShould`, `HereCommandShould`, `TerminalSetupCommandShould` unchanged and passing; new facts only for the library behaviour turned off (response files, bundling).
-- Docs: CLAUDE.md (Core's packages, where the parsing lives), README's Developing section if it lists packages; the csproj version.
-- Depends on `cli-help-and-tab-title` being merged first.
+- `Core`: `Application\CommandLine` rewritten as the `RootCommand` and its actions; `HereCommand.Plan` and `HereCommandRunner` take a name and a prompt instead of raw arguments; `TerminalSetupRunner` takes a `TerminalSetupRequest`; `CommandLineSyntax`, `TerminalSetupCommand` and the help and parse wording deleted.
+- `Program.cs`: an actions record built from local functions, then `InvokeAsync`.
+- Tests: `CommandLineShould` invokes the root command with fake actions and in-memory writers; `HereCommandShould`, `HereCommandRunnerShould` and `TerminalSetupRunnerShould` follow the new signatures; `TerminalSetupCommandShould` and the parse and help facts in `WordingShould` go.
+- Docs: README (help and version, `vantage here` and `setup-terminal` exit codes), CLAUDE.md (Core's packages, the command line's home, the exceptions to the `Wording` rule).
+- Supersedes the strict comparison in PR #62, on the same branch.
