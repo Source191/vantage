@@ -56,6 +56,28 @@ public sealed class CommandLineShould : IDisposable
         calls.ShouldBe([call]);
     }
 
+    [Theory]
+    [InlineData("--promt")]
+    [InlineData("-x")]
+    public async Task RefuseANameThatLooksLikeAnOption(string token)
+    {
+        int exitCode = await InvokeAsync("here", token);
+
+        exitCode.ShouldBe(1);
+        calls.ShouldBeEmpty();
+        error.ToString().ShouldContain(Wording.NameLooksLikeAnOption(token));
+        output.ToString().ShouldContain("--prompt");
+    }
+
+    [Fact]
+    public async Task TakeAPromptThatStartsWithADash()
+    {
+        int exitCode = await InvokeAsync("here", "fix-tests", "-p", "-fix the tests");
+
+        exitCode.ShouldBe(0);
+        calls.ShouldBe(["here name=fix-tests prompt=-fix the tests"]);
+    }
+
     [Fact]
     public async Task SetUpTheTerminalFromItsOptions()
     {

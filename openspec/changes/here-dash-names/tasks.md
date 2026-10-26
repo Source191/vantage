@@ -3,7 +3,7 @@
 ## 1. The refusal
 
 - [x] 1.1 `WordingShould.SayANameLooksLikeAnOption`: add `Wording.NameLooksLikeAnOption(string token)` ("--promt looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- --promt"); verify the fact passes
-- [ ] 1.2 `CommandLineShould.RefuseANameThatLooksLikeAnOption` (`here --promt`, `here -x`: exit 1, the sentence on the error writer, `--prompt` in the help on the output writer, no action called), with `here -- -experiment` and `here fix-tests -p "-fix the tests"` still reaching the action: check the name's token against `--` in the `here` action and refuse with `HelpAction`; verify `CommandLineShould` passes
+- [x] 1.2 `CommandLineShould.RefuseANameThatLooksLikeAnOption` (`here --promt`, `here -x`: exit 1, the sentence on the error writer, `--prompt` in the help on the output writer, no action called), with `here -- -experiment` and `here fix-tests -p "-fix the tests"` still reaching the action: check the name's token against `--` in the `here` action and refuse with `HelpAction`; verify `CommandLineShould` passes
 
 ## 2. Documentation
 

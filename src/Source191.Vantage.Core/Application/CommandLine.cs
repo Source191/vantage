@@ -1,5 +1,7 @@
 using Source191.Vantage.Application.TerminalSetup;
 using System.CommandLine;
+using System.CommandLine.Help;
+using System.CommandLine.Parsing;
 
 namespace Source191.Vantage.Application;
 
@@ -35,9 +37,38 @@ public static class CommandLine
         Argument<string?> name = new("name") { Arity = ArgumentArity.ZeroOrOne, Description = "The session's name; the folder's name when left out." };
         Option<string?> prompt = new("--prompt", "-p") { Description = "An opening prompt to send; without one the session opens on Claude's agent list." };
         Command here = new("here", "Start a supervised Claude Code session in this folder, on its current branch, and attach to it in this tab. Ctrl+Z detaches; the session keeps running.") { name, prompt };
-        here.SetAction((parsed, cancellationToken) => actions.StartHere(parsed.GetValue(name), parsed.GetValue(prompt), cancellationToken));
+        here.SetAction((parsed, cancellationToken) => OptionLikeName(parsed, name) is string token
+            ? RefuseAsync(parsed, token)
+            : actions.StartHere(parsed.GetValue(name), parsed.GetValue(prompt), cancellationToken));
 
         return here;
+    }
+
+    /// <summary>
+    /// The name when it starts with <c>-</c> and no <c>--</c> came before it: an unknown option fills the free name slot,
+    /// so this is most likely a mistyped one. Only the parse result's token list holds the <c>--</c>; a validator on the
+    /// argument cannot see it.
+    /// </summary>
+    private static string? OptionLikeName(ParseResult parsed, Argument<string?> name)
+    {
+        if (parsed.GetResult(name)?.Tokens is not [Token token] || !token.Value.StartsWith('-'))
+        {
+            return null;
+        }
+
+        bool afterDoubleDash = parsed.Tokens.TakeWhile(candidate => !ReferenceEquals(candidate, token)).Any(candidate => candidate.Type == TokenType.DoubleDash);
+
+        return afterDoubleDash ? null : token.Value;
+    }
+
+    /// <summary>Refused the way the library refuses a parse error: the sentence, then the command's help, exit code 1.</summary>
+    private static async Task<int> RefuseAsync(ParseResult parsed, string token)
+    {
+        await parsed.InvocationConfiguration.Error.WriteLineAsync(Wording.NameLooksLikeAnOption(token));
+        await parsed.InvocationConfiguration.Error.WriteLineAsync();
+        new HelpAction().Invoke(parsed);
+
+        return 1;
     }
 
     private static Command SetupTerminal(CommandActions actions)
