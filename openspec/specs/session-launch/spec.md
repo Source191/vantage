@@ -39,12 +39,24 @@ The wizard SHALL require a non-blank name, SHALL reject a name containing a semi
 - **WHEN** `vantage here ""` is run
 - **THEN** it prints exactly "A session name is required." and starts nothing
 
-### Requirement: The current branch is the default launch mode
-The wizard SHALL default to starting the session in the repository's main checkout on whatever branch is checked out, and SHALL offer a new worktree as the alternative.
+### Requirement: A new worktree is the default launch mode
+The wizard opened from the overview SHALL default to starting the session in a new worktree, and SHALL offer the repository's main checkout on whatever branch is checked out as the alternative. The wizard opened on a fixed folder SHALL offer no choice and start on that folder's current branch.
 
 #### Scenario: Accepting the defaults
-- **WHEN** the user accepts the wizard's defaults
+- **WHEN** the user opens the wizard with `n`, chooses Northwind.Orders, names the session "Fix 123" and accepts the other defaults
+- **THEN** the session starts in a new worktree Northwind.Orders-fix-123 under the worktree root, on branch fix-123
+
+#### Scenario: Choosing the current branch
+- **WHEN** the user opens the wizard with `n`, chooses Northwind.Orders and switches Where to "Current branch"
 - **THEN** the session starts in the repository's main checkout and no worktree is created
+
+#### Scenario: Default left in place for a folder that is not a repository
+- **WHEN** the user opens the wizard with `n`, chooses "(no repository)", names the session and starts without changing Where
+- **THEN** the wizard starts nothing and explains that a worktree needs a repository
+
+#### Scenario: Wizard on a fixed folder
+- **WHEN** the user starts a session with `s` on a worktree row
+- **THEN** the session starts in that worktree on its current branch and no new worktree is created
 
 ### Requirement: A new worktree goes under the worktree root
 When the user chooses a worktree, Vantage SHALL create it at `<worktree root>\<repository>-<slug>` on a new branch named `<slug>`, creating the worktree root when it does not exist, where the slug is the name lower-cased with every run of characters other than a-z and 0-9 replaced by one hyphen and leading and trailing hyphens removed.

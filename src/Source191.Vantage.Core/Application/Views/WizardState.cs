@@ -22,7 +22,7 @@ public sealed record WizardState(
     FolderPath WorktreeRoot,
     WizardField Focus)
 {
-    /// <summary>The wizard as it opens, with the worktree root and default base from the settings saved now. With a fixed directory (the worktrees view's s key) the session starts there: no repository list, no worktree choice.</summary>
+    /// <summary>The wizard as it opens, on a new worktree, with the worktree root and default base from the settings saved now. With a fixed directory (the worktrees view's s key) the session starts there on its current branch: no repository list, no worktree choice.</summary>
     public static WizardState Open(RepositoryCatalogue catalogue, IReadOnlyList<string> recent, IFolders folders, Settings settings, FolderPath? fixedDirectory = null)
     {
         RepositoryChoice? fixedChoice = fixedDirectory is null ? null : new RepositoryChoice(fixedDirectory.Name, fixedDirectory, IsRepository: true);
@@ -35,7 +35,7 @@ public sealed record WizardState(
             Filter: string.Empty,
             SelectedIndex: all.Count > 0 ? 0 : null,
             Name: string.Empty,
-            LaunchMode.CurrentBranch,
+            fixedChoice is null ? LaunchMode.NewWorktree : LaunchMode.CurrentBranch,
             settings.DefaultBase,
             Prompt: string.Empty,
             Problem: new WizardProblem.None(),

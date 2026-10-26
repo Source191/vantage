@@ -130,7 +130,7 @@ Rows marked `terminal` are sessions started by hand with `claude` in some tab. V
 Press `n`. The left column lists your repositories (recent ones first, then everything under the roots, then the roots themselves for a session with no repository); type to filter it and use the arrows to choose, then Enter confirms the repository and moves to the form. The right column is the form:
 
 - **Session name (required):** the label shown in the NAME column. It also names the worktree folder and branch when you choose a worktree.
-- **Where:** `Current branch` runs the session in the repository as it is; `New worktree` creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it in [Settings](#settings)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too. Use the arrows to change the choice.
+- **Where:** `New worktree`, the default, creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it in [Settings](#settings)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
 - **Worktree base:** the branch the new worktree starts from, `origin` default branch or the current HEAD.
 - **Opening prompt:** sent to the session as soon as it starts. It wraps as you type. Leave it blank and the session opens on Claude's agent list until you send it something.
 
@@ -258,7 +258,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 ## Common scenarios
 
-**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story, pick `New worktree`, type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and its FOLDER cell shows the worktree.
+**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story (`New worktree` is already chosen), type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and its FOLDER cell shows the worktree.
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
@@ -373,7 +373,7 @@ Branch protection on `main` has "Require branches to be up to date before mergin
 The runner drives Vantage inside a pseudo-console, which is the same plumbing Windows Terminal uses for a tab, so rendering, keys and the attach hand-off are covered. Anything that goes out through `wt.exe` is not: a runner has no desktop for a tab to appear on. Before merging a pull request that changes how Vantage drives `wt.exe`, opens, titles or colours tabs, or attaches to a session, install its package (`tools\install-local.ps1`) and run these in a real Windows Terminal:
 
 1. `o` on a session opens a coloured tab titled with the session name, and `o` again switches to that tab while it is open.
-2. `n`, pick `New worktree`, F6: a new tab opens attached to the new session, and its FOLDER cell shows the worktree.
+2. `n`, choose a repository, name the session and leave `New worktree` chosen, F6: a new tab opens attached to the new session, and its FOLDER cell shows the worktree.
 3. `d` on that session ends claude and the tab closes by itself.
 4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
 5. Ctrl+Z from an attached session returns to the table with the keys still working.

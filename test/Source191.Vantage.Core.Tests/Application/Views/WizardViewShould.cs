@@ -36,7 +36,7 @@ public sealed class WizardViewShould
         opened.Chosen!.Name.ShouldBe("Northwind.Templates");
         opened.Focus.ShouldBe(WizardField.RepositoryFilter);
         opened.Problem.ShouldBe(new WizardProblem.None());
-        opened.Mode.ShouldBe(LaunchMode.CurrentBranch);
+        opened.Mode.ShouldBe(LaunchMode.NewWorktree);
         opened.Base.ShouldBe(WorktreeBase.RemoteDefault);
     }
 
@@ -108,19 +108,19 @@ public sealed class WizardViewShould
 
         opened.WorktreeRoot.ShouldBe(FolderPath.From(WorktreeRoot));
         opened.Base.ShouldBe(WorktreeBase.Head);
-        Reduce(Reduce(opened, new WizardInput.NameChanged("fix 123")), new WizardInput.ModeChanged(LaunchMode.NewWorktree))
+        Reduce(opened, new WizardInput.NameChanged("fix 123"))
             .Preview.ShouldBe(@"Worktree Northwind.Agents-fix-123 under D:\worktrees, on branch fix-123.");
     }
 
     [Fact]
     public void PreviewFollowsNameModeAndSelection()
     {
-        InAgents.Preview.ShouldBe("Runs in Northwind.Agents on its current branch; the name is only the session's label.");
+        InAgents.Preview.ShouldBe(@"The name becomes the worktree folder Northwind.Agents-<name> under C:\Users\me\source\worktrees and its branch.");
 
-        WizardState worktree = Reduce(InAgents, new WizardInput.ModeChanged(LaunchMode.NewWorktree));
-        worktree.Preview.ShouldBe(@"The name becomes the worktree folder Northwind.Agents-<name> under C:\Users\me\source\worktrees and its branch.");
+        Reduce(InAgents, new WizardInput.ModeChanged(LaunchMode.CurrentBranch))
+            .Preview.ShouldBe("Runs in Northwind.Agents on its current branch; the name is only the session's label.");
 
-        WizardState named = Reduce(worktree, new WizardInput.NameChanged("Fix 123"));
+        WizardState named = Reduce(InAgents, new WizardInput.NameChanged("Fix 123"));
         named.Preview.ShouldBe(@"Worktree Northwind.Agents-fix-123 under C:\Users\me\source\worktrees, on branch fix-123.");
 
         WizardState elsewhere = Reduce(named, new WizardInput.FilterChanged("billing"));
@@ -164,13 +164,6 @@ public sealed class WizardViewShould
             update => update.Effect.ShouldBe(new WizardEffect.None()),
             update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.InvalidName(NameProblem.Missing))),
             update => update.State.Focus.ShouldBe(WizardField.Name));
-
-        WizardState noRepositoryWorktree = Reduce(Reduce(Reduce(Opened, new WizardInput.FilterChanged("no repository")), new WizardInput.ModeChanged(LaunchMode.NewWorktree)), new WizardInput.NameChanged("fix-123"));
-        WizardUpdate refused = WizardView.Reduce(noRepositoryWorktree, new WizardInput.Start(OpenInTab: false));
-        refused.ShouldSatisfyAllConditions(
-            update => update.Effect.ShouldBe(new WizardEffect.None()),
-            update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.WorktreeNeedsRepository())),
-            update => update.State.Focus.ShouldBe(WizardField.Name));
     }
 
     [Fact]
@@ -189,6 +182,31 @@ public sealed class WizardViewShould
             plan => plan.ReuseExistingWorktree.ShouldBeFalse(),
             plan => plan.Base.ShouldBe(WorktreeBase.Head),
             plan => plan.OpeningPrompt.ShouldBe("Read the README"));
+    }
+
+    [Fact]
+    public void StartWithTheDefaultsMakesAWorktree()
+    {
+        WizardState named = Reduce(InAgents, new WizardInput.NameChanged("Fix 123"));
+
+        WizardUpdate started = WizardView.Reduce(named, new WizardInput.Start(OpenInTab: false));
+
+        LaunchPlan plan = started.Effect.ShouldBeOfType<WizardEffect.Launch>().Plan;
+        plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Agents-fix-123");
+        plan.Worktree.ShouldNotBeNull();
+    }
+
+    [Fact]
+    public void StartWithTheDefaultsRefusesAFolderThatIsNotARepository()
+    {
+        WizardState noRepository = Reduce(Reduce(Opened, new WizardInput.FilterChanged("no repository")), new WizardInput.NameChanged("fix-123"));
+
+        WizardUpdate refused = WizardView.Reduce(noRepository, new WizardInput.Start(OpenInTab: false));
+
+        refused.ShouldSatisfyAllConditions(
+            update => update.Effect.ShouldBe(new WizardEffect.None()),
+            update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.WorktreeNeedsRepository())),
+            update => update.State.Focus.ShouldBe(WizardField.Name));
     }
 
     [Fact]
@@ -268,7 +286,7 @@ public sealed class WizardViewShould
         new WizardInput.FilterChanged("north"),
         new WizardInput.ChoiceSelected(1),
         new WizardInput.NameChanged("Fix 123"),
-        new WizardInput.ModeChanged(LaunchMode.NewWorktree),
+        new WizardInput.ModeChanged(LaunchMode.CurrentBranch),
         new WizardInput.BaseChanged(WorktreeBase.Head),
         new WizardInput.PromptChanged("Read the README"),
         new WizardInput.FieldFocused(WizardField.Prompt),
@@ -299,7 +317,7 @@ public sealed class WizardViewShould
         new WizardInput.ListMoved(1),
         new WizardInput.ChoiceSelected(1),
         new WizardInput.NameChanged("Fix 123"),
-        new WizardInput.ModeChanged(LaunchMode.NewWorktree),
+        new WizardInput.ModeChanged(LaunchMode.CurrentBranch),
         new WizardInput.BaseChanged(WorktreeBase.Head),
         new WizardInput.PromptChanged("Read the README"),
         new WizardInput.FieldFocused(WizardField.Prompt),
@@ -320,7 +338,6 @@ public sealed class WizardViewShould
         return new WizardInput[]
         {
             new WizardInput.NameChanged("Fix 123"),
-            new WizardInput.ModeChanged(LaunchMode.NewWorktree),
             new WizardInput.BaseChanged(WorktreeBase.Head),
             new WizardInput.PromptChanged("Read the README"),
         }.Aggregate(state, Reduce);
