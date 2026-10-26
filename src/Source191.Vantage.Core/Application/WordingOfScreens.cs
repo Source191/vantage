@@ -13,7 +13,9 @@ public static partial class Wording
     private const string UpdateLine = "update Vantage in a new tab";
 
     /// <summary>The title of Vantage's own tab; every writer of it uses this one value.</summary>
-    public static string TabTitle(ToolVersion version) => $"Vantage ({version.Text})";
+    public static string TabTitle => string.Empty;
+
+    public static string TabTitleDuring(DialogName dialog) => string.Empty;
 
     /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
     public static string HeaderValues(ToolVersion vantage, string? claudeVersion, Settings settings, UpdateStatus update)

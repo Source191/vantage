@@ -22,13 +22,13 @@ See proposal.md for the why. Two facts shape the approach.
 
 ### Dialogs turn off Terminal.Gui's title and write their own
 
-A helper in `Tui` (`DialogTabTitle.Apply(dialog, DialogName)`) clears `BorderSettings.TerminalTitle` on the dialog and handles the dialog's `IsModalChanged`: when it becomes modal it calls `app.Driver.SetTerminalTitle(Wording.TabTitle(name))`. Each of the six dialogs calls it straight after it is built. The main `Window` keeps the flag, so Terminal.Gui writes `Vantage` back when the dialog closes, as the capture shows.
+A helper in `Tui` (`DialogTabTitle.Apply(dialog, DialogName)`) clears `BorderSettings.TerminalTitle` on the dialog and handles the dialog's `IsModalChanged`: when it becomes modal it calls `app.Driver.SetTerminalTitle(Wording.TabTitleDuring(name))`. Each of the six dialogs calls it straight after it is built. The main `Window` keeps the flag, so Terminal.Gui writes `Vantage` back when the dialog closes, as the capture shows.
 
 Alternatives: clearing the flag only and writing `Vantage` after `app.Run` returns would never show the dialog's word, which the user asked for; setting the dialog's `Title` to `Vantage (Keys)` would change the border title too; writing OSC 2 through `TerminalConsole` is outside the Tui and would race Terminal.Gui's own OSC 0 writes.
 
 ### A closed `DialogName` enum and `Wording.TabTitle`
 
-`Application\DialogName` has one member per dialog: `Keys`, `NewSession`, `Rename`, `Resume`, `Settings`, `DeleteSession`, `DeleteBranch`, `CloseEmpty`, `ForceRemove`, `OpenSolution`, `Update`. `Wording.TabTitle` becomes a property answering `Vantage`, and `Wording.TabTitle(DialogName)` answers `Vantage (Keys)` through a switch that names every member (CS8509 catches a missing one). `Confirm.Query` takes a `DialogName` after the application, since it serves six flows; the single-purpose dialogs pass their own. `ScreenContext.Title`, the `Window` title and `TerminalConsole` all take `Wording.TabTitle`, so the "one value" rule holds; `TabTitle` no longer takes `ToolVersion`.
+`Application\DialogName` has one member per dialog: `Keys`, `NewSession`, `Rename`, `Resume`, `Settings`, `DeleteSession`, `DeleteBranch`, `CloseEmpty`, `ForceRemove`, `OpenSolution`, `Update`. `Wording.TabTitle` becomes a property answering `Vantage`, and `Wording.TabTitleDuring(DialogName)` answers `Vantage (Keys)` through a switch that names every member (CS8509 catches a missing one). `Confirm.Query` takes a `DialogName` after the application, since it serves six flows; the single-purpose dialogs pass their own. `ScreenContext.Title`, the `Window` title and `TerminalConsole` all take `Wording.TabTitle`, so the "one value" rule holds; `TabTitle` no longer takes `ToolVersion`.
 
 Alternative: derive the word from the dialog's title. Rejected: the titles are long ("Close empty terminal sessions") or dynamic ("New session in Northwind.Orders").
 

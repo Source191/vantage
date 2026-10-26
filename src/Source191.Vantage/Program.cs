@@ -65,7 +65,7 @@ if (claudeExecutable is null)
 ProcessRunner processes = new();
 ClaudeCli claude = new(processes, claudeExecutable);
 ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
-string tabTitle = Wording.TabTitle(version);
+string tabTitle = Wording.TabTitle;
 GitCli git = new(processes);
 FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
 CurrentSettings settings = await CurrentSettings.LoadAsync(store, home);

@@ -7,10 +7,32 @@ namespace Source191.Vantage.Core.Tests.Application;
 public sealed class WordingOfScreensShould
 {
     [Fact]
-    public void TitleTheTabWithTheVersion()
+    public void TitleTheTabVantage()
     {
-        Wording.TabTitle(new ToolVersion("0.5.0")).ShouldBe("Vantage (0.5.0)");
-        Wording.TabTitle(new ToolVersion("0.5.0-local")).ShouldBe("Vantage (0.5.0-local)");
+        Wording.TabTitle.ShouldBe("Vantage");
+    }
+
+    [Theory]
+    [InlineData(DialogName.Keys, "Vantage (Keys)")]
+    [InlineData(DialogName.NewSession, "Vantage (New session)")]
+    [InlineData(DialogName.Rename, "Vantage (Rename)")]
+    [InlineData(DialogName.Resume, "Vantage (Resume)")]
+    [InlineData(DialogName.Settings, "Vantage (Settings)")]
+    [InlineData(DialogName.DeleteSession, "Vantage (Delete session)")]
+    [InlineData(DialogName.DeleteBranch, "Vantage (Delete branch)")]
+    [InlineData(DialogName.CloseEmpty, "Vantage (Close empty)")]
+    [InlineData(DialogName.ForceRemove, "Vantage (Force remove)")]
+    [InlineData(DialogName.OpenSolution, "Vantage (Open solution)")]
+    [InlineData(DialogName.Update, "Vantage (Update)")]
+    public void NameEachDialogInTheTabTitle(DialogName dialog, string title)
+    {
+        Wording.TabTitleDuring(dialog).ShouldBe(title);
+    }
+
+    [Fact]
+    public void HaveATabTitleForEveryDialog()
+    {
+        Enum.GetValues<DialogName>().Length.ShouldBe(11, "a new dialog needs its own NameEachDialogInTheTabTitle case");
     }
 
     [Fact]
