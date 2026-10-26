@@ -48,14 +48,15 @@ public static class CommandLineSyntax
             Token token = parsed.Tokens[index];
             string typed = arguments[index];
             bool valueFollows = index + 1 < parsed.Tokens.Count && optionValues.Contains(parsed.Tokens[index + 1]);
+            bool freeArgument = token.Type == TokenType.Argument && !optionValues.Contains(token);
+            placed += freeArgument ? 1 : 0;
             TProblem? problem = token.Type switch
             {
                 TokenType.DoubleDash => unknownOption(typed),
                 TokenType.Option when token.Value != typed => unknownOption(typed),
                 TokenType.Option when TakesValue(command, token.Value) && !valueFollows => optionNeedsValue(typed),
-                TokenType.Argument when optionValues.Contains(token) => null,
-                TokenType.Argument when typed.StartsWith('-') => unknownOption(typed),
-                TokenType.Argument when ++placed > room => unexpectedArgument(typed),
+                TokenType.Argument when freeArgument && typed.StartsWith('-') => unknownOption(typed),
+                TokenType.Argument when freeArgument && placed > room => unexpectedArgument(typed),
                 _ => null,
             };
             if (problem is not null)

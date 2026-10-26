@@ -1,5 +1,5 @@
-using System.CommandLine;
 using Source191.Vantage.Domain;
+using System.CommandLine;
 
 namespace Source191.Vantage.Application.Launch;
 
