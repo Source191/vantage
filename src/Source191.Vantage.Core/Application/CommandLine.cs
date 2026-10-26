@@ -43,6 +43,10 @@ public static class CommandLine
     private static readonly Command SetupTerminalSyntax = new("setup-terminal") { TreatUnmatchedTokensAsErrors = false };
     private static readonly Command Root = new("vantage") { HereSyntax, SetupTerminalSyntax, ClaimTabSyntax };
 
+    public static RootCommand Build(CommandActions actions) => new();
+
+    public static Task<int> InvokeAsync(RootCommand root, IReadOnlyList<string> arguments, TextWriter output, TextWriter error) => Task.FromResult(-1);
+
     public static VantageCommand Parse(string[] arguments)
     {
         return arguments switch

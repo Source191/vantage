@@ -1,82 +1,179 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.TerminalSetup;
 
 namespace Source191.Vantage.Core.Tests.Application;
 
-public sealed class CommandLineShould
+/// <summary>
+/// The command line as the user meets it: the root command invoked with in-memory writers and actions that only
+/// record what reached them. Help, version and parse errors are System.CommandLine's, so these facts check what they
+/// name and their exit codes, not their exact layout.
+/// </summary>
+public sealed class CommandLineShould : IDisposable
 {
-    [Fact]
-    public void ParseSetupTerminalWithItsArguments()
+    private readonly List<string> calls = [];
+    private readonly StringWriter output = new();
+    private readonly StringWriter error = new();
+
+    private Task<int> InvokeAsync(params string[] arguments)
     {
-        CommandLine.Parse(["setup-terminal"]).ShouldBeOfType<SetupTerminal>().Arguments.ShouldBeEmpty();
-        CommandLine.Parse(["setup-terminal", "--yes", "--sound", @"C:\Windows\Media\chimes.wav"]).ShouldBeOfType<SetupTerminal>().Arguments.ShouldBe(["--yes", "--sound", @"C:\Windows\Media\chimes.wav"]);
+        CommandActions actions = new(
+            OpenConsole: _ => Record("console"),
+            StartHere: (name, prompt, _) => Record($"here name={name ?? "(none)"} prompt={prompt ?? "(none)"}"),
+            SetUpTerminal: (request, _) => Record($"setup {request}"),
+            ClaimTab: (registration, processId, _) => Record($"claim {registration:N} {processId}"));
+
+        return CommandLine.InvokeAsync(CommandLine.Build(actions), arguments, output, error);
+    }
+
+    private Task<int> Record(string call)
+    {
+        calls.Add(call);
+
+        return Task.FromResult(0);
     }
 
     [Fact]
-    public void ParseConsoleHereClaimTabAndUsage()
+    public async Task OpenTheConsoleWithNoArguments()
+    {
+        int exitCode = await InvokeAsync();
+
+        exitCode.ShouldBe(0);
+        calls.ShouldBe(["console"]);
+    }
+
+    [Theory]
+    [InlineData(new[] { "here", "fix-tests", "-p", "Fix them" }, "here name=fix-tests prompt=Fix them")]
+    [InlineData(new[] { "here" }, "here name=(none) prompt=(none)")]
+    [InlineData(new[] { "here", "fix-tests", "--prompt=Fix them" }, "here name=fix-tests prompt=Fix them")]
+    [InlineData(new[] { "here", "-p:Fix them" }, "here name=(none) prompt=Fix them")]
+    [InlineData(new[] { "here", "--", "-experiment" }, "here name=-experiment prompt=(none)")]
+    [InlineData(new[] { "here", "help" }, "here name=help prompt=(none)")]
+    public async Task StartHereWithTheNameAndPromptGiven(string[] arguments, string call)
+    {
+        int exitCode = await InvokeAsync(arguments);
+
+        exitCode.ShouldBe(0);
+        calls.ShouldBe([call]);
+    }
+
+    [Fact]
+    public async Task SetUpTheTerminalFromItsOptions()
+    {
+        int exitCode = await InvokeAsync("setup-terminal", "--sound", @"C:\Windows\Media\chimes.wav", "--yes");
+
+        exitCode.ShouldBe(0);
+        calls.ShouldBe([$"setup {new TerminalSetupRequest(@"C:\Windows\Media\chimes.wav", SessionSound: null, Yes: true, Remove: false)}"]);
+    }
+
+    [Fact]
+    public async Task ClaimATabWithItsRegistrationAndProcess()
     {
         Guid registration = Guid.NewGuid();
 
-        CommandLine.Parse([]).ShouldBe(new OpenConsole());
-        CommandLine.Parse(["here"]).ShouldBeOfType<StartHere>().Arguments.ShouldBeEmpty();
-        CommandLine.Parse(["here", "fix-tests", "-p", "Fix them"]).ShouldBeOfType<StartHere>().Arguments.ShouldBe(["fix-tests", "-p", "Fix them"]);
-        CommandLine.Parse(["claim-tab", registration.ToString("N"), "4242"]).ShouldBe(new ClaimTab(registration, 4242));
-        CommandLine.Parse(["claim-tab", "not-a-guid", "4242"]).ShouldBe(new Usage(Wording.ClaimTabUsage));
-        CommandLine.Parse(["claim-tab", registration.ToString("N")]).ShouldBe(new Usage(Wording.ClaimTabUsage));
+        int exitCode = await InvokeAsync("claim-tab", registration.ToString("N"), "4242");
+
+        exitCode.ShouldBe(0);
+        calls.ShouldBe([$"claim {registration:N} 4242"]);
     }
 
     [Fact]
-    public void OpenTheConsoleOnlyWithNoArguments()
+    public async Task PassOnTheActionsExitCode()
     {
-        CommandLine.Parse([]).ShouldBe(new OpenConsole());
-        CommandLine.Parse(["anything-else"]).ShouldNotBe(new OpenConsole());
+        CommandActions actions = new(_ => Task.FromResult(0), (_, _, _) => Task.FromResult(2), (_, _) => Task.FromResult(0), (_, _, _) => Task.FromResult(0));
+
+        int exitCode = await CommandLine.InvokeAsync(CommandLine.Build(actions), ["here", "a;b"], output, error);
+
+        exitCode.ShouldBe(2);
     }
 
     [Theory]
     [InlineData("--help")]
     [InlineData("-h")]
+    [InlineData("/h")]
     [InlineData("-?")]
     [InlineData("/?")]
-    [InlineData("?")]
-    [InlineData("help")]
-    public void AskForTheGeneralHelp(string flag)
+    public async Task PrintTheHelpForEverySpelling(string flag)
     {
-        CommandLine.Parse([flag]).ShouldBe(new PrintHelp(HelpTopic.Vantage));
+        int exitCode = await InvokeAsync(flag);
+
+        exitCode.ShouldBe(0);
+        calls.ShouldBeEmpty();
+        output.ToString().ShouldContain("here");
+        output.ToString().ShouldContain("setup-terminal");
+        output.ToString().ShouldContain("Claude Code");
+        output.ToString().ShouldNotContain("claim-tab");
     }
 
     [Theory]
-    [InlineData("here", "--help", HelpTopic.Here)]
-    [InlineData("here", "-?", HelpTopic.Here)]
-    [InlineData("setup-terminal", "-h", HelpTopic.SetupTerminal)]
-    [InlineData("setup-terminal", "/?", HelpTopic.SetupTerminal)]
-    public void AskForACommandsHelp(string command, string flag, HelpTopic topic)
+    [InlineData("here", "--help")]
+    [InlineData("here", "fix-tests", "-h")]
+    public async Task PrintTheHelpOfVantageHere(params string[] arguments)
     {
-        CommandLine.Parse([command, flag]).ShouldBe(new PrintHelp(topic));
+        int exitCode = await InvokeAsync(arguments);
+
+        exitCode.ShouldBe(0);
+        calls.ShouldBeEmpty();
+        output.ToString().ShouldContain("--prompt");
+        output.ToString().ShouldContain("name");
     }
 
-    [Theory]
-    [InlineData("help")]
-    [InlineData("?")]
-    public void KeepHelpAfterHereAsASessionName(string name)
+    [Fact]
+    public async Task PrintTheHelpOfSetupTerminal()
     {
-        CommandLine.Parse(["here", name]).ShouldBeOfType<StartHere>().Arguments.ShouldBe([name]);
+        int exitCode = await InvokeAsync("setup-terminal", "-h");
+
+        exitCode.ShouldBe(0);
+        calls.ShouldBeEmpty();
+        foreach (string option in new[] { "--sound", "--session-sound", "--yes", "--remove" })
+        {
+            output.ToString().ShouldContain(option);
+        }
     }
 
-    [Theory]
-    [InlineData("--version")]
-    [InlineData("-v")]
-    public void AskForTheVersion(string flag)
+    [Fact]
+    public async Task PrintTheVersion()
     {
-        CommandLine.Parse([flag]).ShouldBe(new PrintVersion());
+        int exitCode = await InvokeAsync("--version");
+
+        exitCode.ShouldBe(0);
+        calls.ShouldBeEmpty();
+        output.ToString().ShouldNotBeNullOrWhiteSpace();
     }
 
     [Theory]
     [InlineData("frob")]
     [InlineData("--frob")]
-    [InlineData("frob", "--yes")]
-    [InlineData("frob", "here")]
-    [InlineData("[diagram]", "here")]
-    public void RefuseAnUnknownCommandWithUsage(params string[] arguments)
+    [InlineData("?")]
+    [InlineData("-v")]
+    [InlineData("help")]
+    [InlineData("here", "-p", "first", "-p", "second")]
+    [InlineData("here", "fix-tests", "-d", "Flaky orders suite")]
+    [InlineData("claim-tab", "not-a-guid", "4242")]
+    public async Task RefuseWhatItCannotParseWithExitOne(params string[] arguments)
     {
-        CommandLine.Parse(arguments).ShouldBe(new Usage(Wording.UnknownCommand(arguments[0])));
+        int exitCode = await InvokeAsync(arguments);
+
+        exitCode.ShouldBe(1);
+        calls.ShouldBeEmpty();
+        error.ToString().ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Theory]
+    [InlineData("hre", "here", new[] { "hre" })]
+    [InlineData("--sund", "--sound", new[] { "setup-terminal", "--sund", @"C:\Windows\Media\chimes.wav" })]
+    public async Task SuggestACloseMatch(string mistyped, string suggestion, string[] arguments)
+    {
+        int exitCode = await InvokeAsync(arguments);
+
+        exitCode.ShouldBe(1);
+        calls.ShouldBeEmpty();
+        error.ToString().ShouldContain(mistyped);
+        output.ToString().ShouldContain(suggestion);
+    }
+
+    public void Dispose()
+    {
+        output.Dispose();
+        error.Dispose();
     }
 }

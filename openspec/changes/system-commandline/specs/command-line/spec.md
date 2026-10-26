@@ -78,9 +78,13 @@ Help, version and parse errors SHALL work on a machine where Claude Code cannot 
 ### Requirement: Close matches are suggested
 When an argument is not recognised and a command or option of the same command is spelt nearly the same, the parse error SHALL suggest it.
 
+#### Scenario: A mistyped command
+- **WHEN** the user runs vantage hre
+- **THEN** standard error names hre as unrecognised, standard output suggests here, and the exit code is 1
+
 #### Scenario: A mistyped option
-- **WHEN** the user runs vantage here --promt "Fix the tests"
-- **THEN** standard error names --promt as unrecognised and suggests --prompt, no session starts, and the exit code is 1
+- **WHEN** the user runs vantage setup-terminal --sund C:\Windows\Media\chimes.wav
+- **THEN** standard error names --sund as unrecognised, standard output suggests --sound, nothing is written, and the exit code is 1
 
 ### Requirement: Conventional option syntax is accepted
 An option's value SHALL be accepted after a space, an equals sign or a colon, `--` SHALL end the options so that what follows is taken as arguments, and an option that takes one value SHALL be refused when it is given twice.
