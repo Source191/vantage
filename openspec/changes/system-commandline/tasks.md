@@ -2,7 +2,7 @@
 
 ## 1. Pin today's behaviour
 
-- [ ] 1.1 Add facts the hand-rolled parsers already pass, before any change: `HereCommandShould.TakeAPromptThatStartsWithADash`, `NameASessionStartingWithAnAt` (`@name`), `RefuseBundledShortOptions` (`-py`), `RefuseAnOptionJoinedToItsValue` (`--prompt=text`, `-p:text`); `TerminalSetupCommandShould.RefuseASoundJoinedToItsValue` (`--sound=x.wav`); verify they pass on the current code and record the line counts of the three parsers
+- [x] 1.1 Add facts the hand-rolled parsers already pass, before any change: `HereCommandShould.TakeAPromptThatStartsWithADash`, `NameASessionStartingWithAnAt` (`@name`), `RefuseBundledShortOptions` (`-py`), `RefuseAnOptionJoinedToItsValue` (`--prompt=text`, `-p:text`); `TerminalSetupCommandShould.RefuseASoundJoinedToItsValue` (`--sound=x.wav`); verify they pass on the current code and record the line counts of the three parsers
 
 ## 2. Move the parsing
 

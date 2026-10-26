@@ -48,6 +48,51 @@ public sealed class HereCommandShould
     }
 
     [Fact]
+    public void TakeAPromptThatStartsWithADash()
+    {
+        LaunchPlan plan = HereCommand.Plan(Directory, ["-p", "-fix the tests"], isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
+
+        plan.OpeningPrompt.ShouldBe("-fix the tests");
+    }
+
+    [Fact]
+    public void NameASessionStartingWithAnAt()
+    {
+        LaunchPlan plan = HereCommand.Plan(Directory, ["@name"], isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
+
+        plan.Name.Value.ShouldBe("@name");
+    }
+
+    [Fact]
+    public void TakeTheLastOfARepeatedPrompt()
+    {
+        LaunchPlan plan = HereCommand.Plan(Directory, ["-p", "first", "--prompt", "second"], isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
+
+        plan.OpeningPrompt.ShouldBe("second");
+    }
+
+    [Fact]
+    public void RefuseBundledShortOptions()
+    {
+        HereCommand.Plan(Directory, ["-py"], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.UnknownOption("-py")));
+    }
+
+    [Theory]
+    [InlineData("--prompt=text")]
+    [InlineData("-p:text")]
+    [InlineData("-p=text")]
+    public void RefuseAnOptionJoinedToItsValue(string argument)
+    {
+        HereCommand.Plan(Directory, [argument], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.UnknownOption(argument)));
+    }
+
+    [Fact]
+    public void RefuseTheEndOfOptionsMarker()
+    {
+        HereCommand.Plan(Directory, ["--", "-name"], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.UnknownOption("--")));
+    }
+
+    [Fact]
     public void RefuseBadArgumentsAndABadNameAsFacts()
     {
         HereCommand.Plan(Directory, ["--bogus"], isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.UnknownOption("--bogus")));

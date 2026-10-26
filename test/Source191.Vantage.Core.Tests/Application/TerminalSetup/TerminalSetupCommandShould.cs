@@ -47,6 +47,26 @@ public sealed class TerminalSetupCommandShould
         TerminalSetupCommand.Parse(["chimes.wav"]).Problem.ShouldBe(new TerminalSetupProblem.UnexpectedArgument("chimes.wav"));
     }
 
+    [Theory]
+    [InlineData(@"--sound=C:\a.wav")]
+    [InlineData(@"--sound:C:\a.wav")]
+    public void RefuseASoundJoinedToItsValue(string argument)
+    {
+        TerminalSetupCommand.Parse([argument]).Problem.ShouldBe(new TerminalSetupProblem.UnknownOption(argument));
+    }
+
+    [Fact]
+    public void RefuseAResponseFile()
+    {
+        TerminalSetupCommand.Parse(["@options.rsp"]).Problem.ShouldBe(new TerminalSetupProblem.UnexpectedArgument("@options.rsp"));
+    }
+
+    [Fact]
+    public void TakeTheLastOfARepeatedSound()
+    {
+        TerminalSetupCommand.Parse(["--sound", @"C:\a.wav", "--sound", @"C:\b.wav"]).Request.ShouldBe(new TerminalSetupRequest(@"C:\b.wav", null, Yes: false, Remove: false));
+    }
+
     [Fact]
     public void RefuseRemoveWithASound()
     {
