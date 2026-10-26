@@ -95,11 +95,16 @@ jobs:
         run: |
           dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build -- --filter-trait "Category=ClaudeContract" 2>&1 | Tee-Object -FilePath contract-output.txt
           $exitCode = $LASTEXITCODE
+          # The runner colours the output, which puts escape codes at the start of lines the checks below match.
+          (Get-Content contract-output.txt) -replace '\e\[[0-9;?]*[A-Za-z]', '' | Set-Content contract-output.txt
           if ($exitCode -ne 0) {
               exit $exitCode
           }
           if (-not (Select-String -Path contract-output.txt -Pattern '^\s*skipped: 0\s*$' -Quiet)) {
-              Write-Host "::error::contract tests were skipped; check the Claude Code install and VANTAGE_CLAUDE_CONTRACT"
+              # Also in the file, so the issue step quotes it.
+              $problem = '::error::contract tests were skipped; check the Claude Code install and VANTAGE_CLAUDE_CONTRACT'
+              Add-Content contract-output.txt $problem
+              Write-Host $problem
               exit 1
           }
 
@@ -140,6 +145,9 @@ jobs:
           $run = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
           $what = if ($env:INSTALL_OUTCOME -eq 'failure') { "The latest Claude Code failed to install or to report its version in $run" } else { "Claude Code $env:CLAUDE_VERSION failed the contract check in $run" }
           $failures = if (Test-Path contract-output.txt) { (Select-String -Path contract-output.txt -Pattern '^failed |^::error::' -Context 0, 8 | ForEach-Object { @($_.Line) + $_.Context.PostContext }) -join "`n" } else { 'No test output: see the run log.' }
+          if ([string]::IsNullOrWhiteSpace($failures)) {
+              $failures = 'No failed test or error line was recorded; see the run log.'
+          }
           $fence = '```'
           $body = "$what`n`n$fence" + "text`n$failures`n$fence"
           $body.Substring(0, [Math]::Min($body.Length, 60000)) | Set-Content issue-body.md
