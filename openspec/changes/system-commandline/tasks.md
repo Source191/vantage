@@ -14,7 +14,7 @@
 
 ## 3. Program
 
-- [ ] 3.1 `Program.cs` (wiring): local functions for the four actions holding today's code paths, `CommandLine.Build`, then `CommandLine.InvokeAsync(root, args, Console.Out, Console.Error)`; verify by hand with the Debug build and `claude` off the PATH that `--help`, `here --help`, `setup-terminal -h` and `--version` exit 0 and `frob` exits 1
+- [x] 3.1 `Program.cs` (wiring): local functions for the four actions holding today's code paths, `CommandLine.Build`, then `CommandLine.InvokeAsync(root, args, Console.Out, Console.Error)`; verify by hand with the Debug build and `claude` off the PATH that `--help`, `here --help`, `setup-terminal -h` and `--version` exit 0 and `frob` exits 1
 - [ ] 3.2 Run `dotnet run --project tools\HeadlessTerminal -- check` against a Release build (the console's start-up moved into an action); verify exit 0
 
 ## 4. Documentation and release

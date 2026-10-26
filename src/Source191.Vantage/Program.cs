@@ -16,13 +16,13 @@ using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Tui;
+using System.CommandLine;
 using System.Reflection;
 
 // Composition root. Everything here is wiring; behaviour lives in the tested classes it assembles.
 string stateFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vantage");
 JsonFileStore store = new(stateFolder, TimeProvider.System);
 ProcessRegistry processRegistry = new();
-VantageCommand command = CommandLine.Parse(args);
 ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
 string vantageExecutable = Environment.ProcessPath ?? "vantage";
 TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser();
@@ -37,94 +37,113 @@ if (!string.IsNullOrWhiteSpace(logPath))
     log.Started(Environment.ProcessId);
 }
 
-switch (command)
-{
-    case ClaimTab claim:
-        // Run by the shell inside a tab Vantage opened, before claude attach starts; the shell passes its own $PID.
-        await new TabClaimer(store, processRegistry).ClaimAsync(claim.RegistrationId, claim.ProcessId);
-        return 0;
-    case SetupTerminal setup:
-        // Needs neither Claude Code nor a terminal tab, so it runs before Claude Code is located.
-        string windowsMedia = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Media");
-        TerminalSetupRunner setupRunner = new(new Folders(), terminalFragment, ClaudeSettings.ForCurrentUser(), vantageExecutable, windowsMedia, Console.In, Console.Out, Console.Error);
+// Help, version and parse errors are System.CommandLine's and need neither Claude Code nor a terminal tab.
+RootCommand root = CommandLine.Build(new CommandActions(OpenConsoleAsync, StartHereAsync, SetUpTerminalAsync, ClaimTabAsync));
 
-        return await setupRunner.RunAsync(setup.Arguments, CancellationToken.None);
-    case Usage usage:
-        await Console.Error.WriteLineAsync(usage.Message);
-        return 2;
-    case PrintHelp help:
-        // Help and version need neither Claude Code nor a terminal tab.
-        await Console.Out.WriteLineAsync(Wording.Help(help.Topic, version));
-        return 0;
-    case PrintVersion:
-        await Console.Out.WriteLineAsync(Wording.VersionLine(version));
-        return 0;
-    default:
-        break;
+return await CommandLine.InvokeAsync(root, args, Console.Out, Console.Error);
+
+// Run by the shell inside a tab Vantage opened, before claude attach starts; the shell passes its own $PID.
+async Task<int> ClaimTabAsync(Guid registrationId, int processId, CancellationToken cancellationToken)
+{
+    await new TabClaimer(store, processRegistry).ClaimAsync(registrationId, processId);
+
+    return 0;
 }
 
-string? claudeExecutable = ClaudeExecutable.Locate();
-if (claudeExecutable is null)
+// Needs neither Claude Code nor a terminal tab, so Claude Code is not located.
+async Task<int> SetUpTerminalAsync(TerminalSetupRequest request, CancellationToken cancellationToken)
 {
-    await Console.Error.WriteLineAsync("Claude Code was not found. Install it or put claude on the PATH.");
-    return 1;
+    string windowsMedia = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Media");
+    TerminalSetupRunner setupRunner = new(new Folders(), terminalFragment, ClaudeSettings.ForCurrentUser(), vantageExecutable, windowsMedia, Console.In, Console.Out, Console.Error);
+
+    return await setupRunner.RunAsync(request, cancellationToken);
 }
 
-ProcessRunner processes = new();
-ClaudeCli claude = new(processes, claudeExecutable);
-string tabTitle = Wording.TabTitle;
-GitCli git = new(processes);
-FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
-CurrentSettings settings = await CurrentSettings.LoadAsync(store, home);
-ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
-WindowsTerminal terminal = new(processes, terminalFragment);
-Folders folders = new();
-TerminalConsole console = new(Console.Out, tabTitle);
-LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
-TerminalEffects terminalEffects = new(claude, Console.Out);
-
-if (command is StartHere here)
+async Task<int> StartHereAsync(string? name, string? prompt, CancellationToken cancellationToken)
 {
-    HereCommandRunner runner = new(folders, launchService, terminalEffects, console, Console.Out, Console.Error);
+    string? claudeExecutable = await LocateClaudeAsync();
+    if (claudeExecutable is null)
+    {
+        return 1;
+    }
 
-    return await runner.RunAsync(Directory.GetCurrentDirectory(), here.Arguments, CancellationToken.None);
+    ProcessRunner processes = new();
+    ClaudeCli claude = new(processes, claudeExecutable);
+    GitCli git = new(processes);
+    LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
+    HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, Console.Out), new TerminalConsole(Console.Out, Wording.TabTitle), Console.Out, Console.Error);
+
+    return await runner.RunAsync(Directory.GetCurrentDirectory(), name, prompt, cancellationToken);
 }
 
-// Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
-using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
-Task<string?> claudeVersion = claude.VersionAsync(versionTimeout.Token);
-PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
-SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
-StateTransitionNotifier notifier = new(Console.Out);
-OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
-ScreenClipboard clipboard = new();
-using NuGetPackageVersions packageVersions = new(version);
-bool optOutOfUpdateCheck = UpdateCheckOptOut.Applies(Environment.GetEnvironmentVariable(UpdateCheckOptOut.VariableName));
-UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
-EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
-EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home));
-DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
-WorktreeInventory inventory = new(git, folders, settings, pullRequests);
-string? claudeVersionText = await claudeVersion;
-ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeVersionText, settings.Value, updates.Status), clipboard);
-FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
-SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
-WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context, folderLabels);
-ScreenLoop loop = new(sessionsScreen, worktreesScreen, ownTab, console, terminalEffects, log);
-
-return await loop.RunAsync(Environment.ProcessId, CancellationToken.None);
-
-async Task<ViewInput> LoadAsync(CancellationToken cancellationToken)
+async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
 {
-    IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(cancellationToken);
-    IReadOnlyList<SessionRow> rows = await enricher.EnrichAsync(sessions, cancellationToken);
+    string? claudeExecutable = await LocateClaudeAsync();
+    if (claudeExecutable is null)
+    {
+        return 1;
+    }
 
-    return new RowsLoaded(rows);
+    ProcessRunner processes = new();
+    ClaudeCli claude = new(processes, claudeExecutable);
+    string tabTitle = Wording.TabTitle;
+    GitCli git = new(processes);
+    FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+    CurrentSettings settings = await CurrentSettings.LoadAsync(store, home);
+    ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
+    WindowsTerminal terminal = new(processes, terminalFragment);
+    Folders folders = new();
+    TerminalConsole console = new(Console.Out, tabTitle);
+    LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
+    TerminalEffects terminalEffects = new(claude, Console.Out);
+
+    // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
+    using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
+    Task<string?> claudeVersion = claude.VersionAsync(versionTimeout.Token);
+    PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
+    SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
+    StateTransitionNotifier notifier = new(Console.Out);
+    OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
+    ScreenClipboard clipboard = new();
+    using NuGetPackageVersions packageVersions = new(version);
+    bool optOutOfUpdateCheck = UpdateCheckOptOut.Applies(Environment.GetEnvironmentVariable(UpdateCheckOptOut.VariableName));
+    UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
+    EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
+    EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home));
+    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
+    WorktreeInventory inventory = new(git, folders, settings, pullRequests);
+    string? claudeVersionText = await claudeVersion;
+    ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeVersionText, settings.Value, updates.Status), clipboard);
+    FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
+    SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
+    WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context, folderLabels);
+    ScreenLoop loop = new(sessionsScreen, worktreesScreen, ownTab, console, terminalEffects, log);
+
+    return await loop.RunAsync(Environment.ProcessId, cancellationToken);
+
+    async Task<ViewInput> LoadAsync(CancellationToken loadCancellation)
+    {
+        IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(loadCancellation);
+        IReadOnlyList<SessionRow> rows = await enricher.EnrichAsync(sessions, loadCancellation);
+
+        return new RowsLoaded(rows);
+    }
+
+    async Task<ViewInput> ScanAsync(CancellationToken scanCancellation)
+    {
+        IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(scanCancellation);
+
+        return new WorktreeRowsLoaded(await inventory.ScanAsync(sessions, scanCancellation));
+    }
 }
 
-async Task<ViewInput> ScanAsync(CancellationToken cancellationToken)
+async Task<string?> LocateClaudeAsync()
 {
-    IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(cancellationToken);
+    string? claudeExecutable = ClaudeExecutable.Locate();
+    if (claudeExecutable is null)
+    {
+        await Console.Error.WriteLineAsync("Claude Code was not found. Install it or put claude on the PATH.");
+    }
 
-    return new WorktreeRowsLoaded(await inventory.ScanAsync(sessions, cancellationToken));
+    return claudeExecutable;
 }
