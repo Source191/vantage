@@ -84,7 +84,8 @@ jobs:
         run: dotnet build -c Debug
 
       # Only the ClaudeContract tests, with the variable that lets them start real sessions. A run where they
-      # were all skipped (the CLI not found, the variable lost) would pass silently, so a skip fails the step.
+      # were all skipped (the CLI not found, the variable lost) would pass silently, so --fail-skips turns each
+      # skip into a failure with its reason, and a filter that matches nothing exits 8 ("Zero tests ran").
       - name: Contract tests
         id: contract
         if: steps.gate.outputs.enabled == 'true'
@@ -93,20 +94,11 @@ jobs:
           CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           VANTAGE_CLAUDE_CONTRACT: 1
         run: |
-          dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build -- --filter-trait "Category=ClaudeContract" 2>&1 | Tee-Object -FilePath contract-output.txt
+          dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build -- --filter-trait "Category=ClaudeContract" --fail-skips on 2>&1 | Tee-Object -FilePath contract-output.txt
           $exitCode = $LASTEXITCODE
-          # The runner colours the output, which puts escape codes at the start of lines the checks below match.
+          # The runner colours the output, which puts escape codes at the start of the lines the issue step quotes.
           (Get-Content contract-output.txt) -replace '\e\[[0-9;?]*[A-Za-z]', '' | Set-Content contract-output.txt
-          if ($exitCode -ne 0) {
-              exit $exitCode
-          }
-          if (-not (Select-String -Path contract-output.txt -Pattern '^\s*skipped: 0\s*$' -Quiet)) {
-              # Also in the file, so the issue step quotes it.
-              $problem = '::error::contract tests were skipped; check the Claude Code install and VANTAGE_CLAUDE_CONTRACT'
-              Add-Content contract-output.txt $problem
-              Write-Host $problem
-              exit 1
-          }
+          exit $exitCode
 
       # Timings tuned on a laptop: a slow runner can fail it for reasons that are not bugs, so it marks the run
       # without raising the issue; read the handoff-capture artefact when it fails.
@@ -144,7 +136,18 @@ jobs:
           gh label create claude-cli --color B60205 --description 'The nightly Claude Code CLI contract check' --force
           $run = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
           $what = if ($env:INSTALL_OUTCOME -eq 'failure') { "The latest Claude Code failed to install or to report its version in $run" } else { "Claude Code $env:CLAUDE_VERSION failed the contract check in $run" }
-          $failures = if (Test-Path contract-output.txt) { (Select-String -Path contract-output.txt -Pattern '^failed |^::error::' -Context 0, 8 | ForEach-Object { @($_.Line) + $_.Context.PostContext }) -join "`n" } else { 'No test output: see the run log.' }
+          $pattern = '^failed |^Test run summary: Zero tests ran'
+          $failures = if (Test-Path contract-output.txt) {
+              (Select-String -Path contract-output.txt -Pattern $pattern -Context 0, 8 | ForEach-Object {
+                  $_.Line
+                  # Each quote stops where the next failure starts, so no failure is quoted twice.
+                  $next = [Array]::FindIndex([string[]]$_.Context.PostContext, [Predicate[string]] { param($line) $line -match $pattern })
+                  $_.Context.PostContext | Select-Object -First ($next -lt 0 ? 8 : $next)
+              }) -join "`n"
+          }
+          else {
+              'No test output: see the run log.'
+          }
           if ([string]::IsNullOrWhiteSpace($failures)) {
               $failures = 'No failed test or error line was recorded; see the run log.'
           }

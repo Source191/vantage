@@ -11,7 +11,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vantage</ToolCommandName>
     <PackageId>Source191.Vantage</PackageId>
-    <Version>0.15.0</Version>
+    <Version>0.16.0</Version>
     <Authors>Simon Vane</Authors>
     <Description>A terminal console for Claude Code sessions and git worktrees on Windows.</Description>
     <Copyright>Copyright 2026 Simon Vane</Copyright>
@@ -30,6 +30,7 @@
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="icon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\assets\icon\vantage.ico" Link="vantage.ico" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
   </ItemGroup>
 
