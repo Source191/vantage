@@ -14,4 +14,7 @@ public static partial class HandoffLog
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Child returned; resetting terminal modes and discarding pending input")]
     public static partial void ChildReturned(this ILogger log);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "The update check failed")]
+    public static partial void UpdateCheckFailed(this ILogger log, Exception exception);
 }
