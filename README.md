@@ -1,6 +1,6 @@
 # Vantage
 
-<img src="https://raw.githubusercontent.com/Source191/vantage/main/assets/icon/vantage-128.png" alt="The Vantage icon: two branches merging into one node, shaped as a V" width="96" height="96" />
+<img src="assets/icon/vantage-128.png" alt="The Vantage icon: two branches merging into one node, shaped as a V" width="96" height="96" />
 
 A terminal console for Claude Code sessions and git worktrees on Windows.
 
