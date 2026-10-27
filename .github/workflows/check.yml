@@ -55,6 +55,9 @@ jobs:
   # CLAUDE_CODE_OAUTH_TOKEN secret from `claude setup-token`; without it every step after the gate
   # is skipped. continue-on-error because the keystroke timings were tuned on a laptop and a slow
   # runner can fail it for reasons that are not bugs: read the handoff-capture artefact when it does.
+  # Exit 1 is a blocked UI thread, 3 is Claude's screen missing from the capture (the attach never
+  # reached Claude). Claude's screen is in the artefact, not this log: read it with the tool's
+  # `count drive-raw.txt "Claude Code v"` or `grid`.
   handoff:
     name: handoff
     runs-on: windows-latest

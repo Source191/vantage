@@ -13,6 +13,7 @@ internal static partial class NativeMethods
     public const uint CreateUnicodeEnvironment = 0x00000400;
     public const int ProcThreadAttributePseudoConsole = 0x00020016;
     public const uint WaitObject0 = 0;
+    public const int UseStandardHandles = 0x00000100;
 
     [StructLayout(LayoutKind.Sequential)]
     public struct Coord
