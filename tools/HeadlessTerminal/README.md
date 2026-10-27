@@ -2,7 +2,7 @@
 
 Drives a console program inside a Windows pseudo-console (ConPTY) with scripted keystrokes and captures everything it writes, so hand-off bugs can be reproduced and screens read as text without touching the real terminal. A small .NET 10 console project, one class per job: `KeystrokeScript` (the script format), `TerminalQueries` (the Windows Terminal-like query responder), `PseudoConsole` and `NativeMethods` (ConPTY), `Driver` (the run), `ScreenReplay` and `MarkerCount` (reading a capture), `ClaudeJobs` and `HandoffCheck` (the repeatable check).
 
-The repeatable check is `check`: it starts its own throwaway background session, attaches, detaches with Ctrl+Z, opens and cancels the wizard and quits; exit code 0 means Vantage quit by itself within the deadline, 1 means it had to be killed (a blocked UI thread). It stops and removes the throwaway session afterwards and never touches your sessions. Run it after any change to the hand-off code, the dialogs or Terminal.Gui.
+The repeatable check is `check`: it starts its own throwaway background session, attaches, detaches with Ctrl+Z, opens and cancels the wizard and quits; exit code 0 means Vantage quit by itself within the deadline and Claude's own screen is in the capture, 1 means it had to be killed (a blocked UI thread), 2 that the check could not start, and 3 that Vantage quit but Claude's screen (its `Claude Code v` banner) never appeared during the hand-off. It stops and removes the throwaway session afterwards and never touches your sessions. Run it after any change to the hand-off code, the dialogs or Terminal.Gui.
 
 ```powershell
 # from this folder
