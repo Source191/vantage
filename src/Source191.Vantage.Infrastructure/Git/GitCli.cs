@@ -1,10 +1,14 @@
 using Source191.Vantage.Ports;
+using System.ComponentModel;
 using System.Globalization;
 
 namespace Source191.Vantage.Adapters.Git;
 
 public sealed class GitCli(IProcessRunner processes) : IGit
 {
+    // Windows' "The directory name is invalid": the working directory given to CreateProcess does not exist.
+    private const int ErrorDirectory = 267;
+
     public async Task<IReadOnlyList<GitWorktreeEntry>> ListWorktreesAsync(string repository, CancellationToken cancellationToken)
     {
         ProcessResult result = await RunOrThrowAsync(repository, ["worktree", "list", "--porcelain"], cancellationToken);
@@ -57,7 +61,7 @@ public sealed class GitCli(IProcessRunner processes) : IGit
 
     public async Task<DateTimeOffset?> LastCommitAtAsync(string worktree, CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(worktree, ["log", "-1", "--format=%cI"]), cancellationToken);
+        ProcessResult result = await RunAsync(worktree, ["log", "-1", "--format=%cI"], cancellationToken);
 
         return result.ExitCode == 0 && DateTimeOffset.TryParse(result.StandardOutput.Trim(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset at)
             ? at
@@ -68,21 +72,21 @@ public sealed class GitCli(IProcessRunner processes) : IGit
 
     public async Task<string?> DefaultRemoteBranchAsync(string repository, CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(repository, ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"]), cancellationToken);
+        ProcessResult result = await RunAsync(repository, ["symbolic-ref", "--short", "refs/remotes/origin/HEAD"], cancellationToken);
 
         return result.ExitCode == 0 ? result.StandardOutput.Trim() : null;
     }
 
     public async Task<bool> IsMergedAsync(string repository, string branch, string into, CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(repository, ["merge-base", "--is-ancestor", branch, into]), cancellationToken);
+        ProcessResult result = await RunAsync(repository, ["merge-base", "--is-ancestor", branch, into], cancellationToken);
 
         return result.ExitCode == 0;
     }
 
     public async Task<string?> CurrentBranchAsync(string directory, CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(directory, ["branch", "--show-current"]), cancellationToken);
+        ProcessResult result = await RunAsync(directory, ["branch", "--show-current"], cancellationToken);
         string branch = result.StandardOutput.Trim();
 
         return result.ExitCode == 0 && branch.Length > 0 ? branch : null;
@@ -90,14 +94,14 @@ public sealed class GitCli(IProcessRunner processes) : IGit
 
     public async Task<string?> RepositoryRootAsync(string directory, CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(directory, ["rev-parse", "--show-toplevel"]), cancellationToken);
+        ProcessResult result = await RunAsync(directory, ["rev-parse", "--show-toplevel"], cancellationToken);
 
         return result.ExitCode == 0 ? ToWindowsPath(result.StandardOutput) : null;
     }
 
     public async Task<string?> MainCheckoutOfAsync(string directory, CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(directory, ["rev-parse", "--path-format=absolute", "--git-common-dir"]), cancellationToken);
+        ProcessResult result = await RunAsync(directory, ["rev-parse", "--path-format=absolute", "--git-common-dir"], cancellationToken);
         if (result.ExitCode != 0)
         {
             return null;
@@ -108,7 +112,7 @@ public sealed class GitCli(IProcessRunner processes) : IGit
 
     public async Task<string?> OriginUrlAsync(string repository, CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(repository, ["remote", "get-url", "origin"]), cancellationToken);
+        ProcessResult result = await RunAsync(repository, ["remote", "get-url", "origin"], cancellationToken);
 
         return result.ExitCode == 0 ? result.StandardOutput.Trim() : null;
     }
@@ -122,7 +126,7 @@ public sealed class GitCli(IProcessRunner processes) : IGit
 
     private async Task<ProcessResult> RunOrThrowAsync(string directory, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(directory, arguments), cancellationToken);
+        ProcessResult result = await RunAsync(directory, arguments, cancellationToken);
         if (result.ExitCode != 0)
         {
             throw new GitException($"git {string.Join(' ', arguments)} failed: {result.StandardError.Trim()}");
@@ -131,7 +135,19 @@ public sealed class GitCli(IProcessRunner processes) : IGit
         return result;
     }
 
-    private static ProcessRequest Request(string directory, IReadOnlyList<string> arguments) => new ProcessRequest("git", arguments, directory);
+    // A folder deleted by hand (a removed worktree) stops git starting at all, so it answers like any failed git run.
+    // Any other start failure (git not installed is ERROR_FILE_NOT_FOUND) still surfaces.
+    private async Task<ProcessResult> RunAsync(string directory, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await processes.RunAsync(new ProcessRequest("git", arguments, directory), cancellationToken);
+        }
+        catch (Win32Exception exception) when (exception.NativeErrorCode == ErrorDirectory)
+        {
+            return new ProcessResult(ExitCode: -1, StandardOutput: string.Empty, StandardError: $"the folder {directory} does not exist");
+        }
+    }
 
     private static List<string> Lines(string output) => [.. output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
 
