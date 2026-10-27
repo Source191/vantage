@@ -102,6 +102,32 @@ public sealed class GitCliIntegrationShould : IDisposable
         File.Exists(Path.Combine(worktree, "README.md")).ShouldBeTrue("git creates the missing worktree root");
     }
 
+    [Fact]
+    public async Task AnswerNothingForAFolderThatWasDeleted()
+    {
+        await CreateRepositoryWithOneCommitAsync();
+        await git.AddWorktreeAsync(Repository, Worktree, "fix-123", "main", TestContext.Current.CancellationToken);
+        Directory.Delete(Worktree, recursive: true);
+
+        (await git.RepositoryRootAsync(Worktree, TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await git.MainCheckoutOfAsync(Worktree, TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await git.CurrentBranchAsync(Worktree, TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await git.OriginUrlAsync(Worktree, TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await git.DefaultRemoteBranchAsync(Worktree, TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await git.LastCommitAtAsync(Worktree, TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await git.IsMergedAsync(Worktree, "fix-123", "main", TestContext.Current.CancellationToken)).ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task ThrowAGitExceptionForACommandInAFolderThatWasDeleted()
+    {
+        await CreateRepositoryWithOneCommitAsync();
+        await git.AddWorktreeAsync(Repository, Worktree, "fix-123", "main", TestContext.Current.CancellationToken);
+        Directory.Delete(Worktree, recursive: true);
+
+        await Should.ThrowAsync<GitException>(() => git.CountChangedFilesAsync(Worktree, TestContext.Current.CancellationToken));
+    }
+
     public void Dispose()
     {
         if (!Directory.Exists(root))
