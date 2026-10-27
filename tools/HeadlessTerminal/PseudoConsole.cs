@@ -50,7 +50,8 @@ public sealed class PseudoConsole : IDisposable
         IntPtr attributeList = AttributeListFor(pseudoConsole);
         NativeMethods.StartupInfoEx startup = new()
         {
-            StartupInfo = new NativeMethods.StartupInfo { Size = Marshal.SizeOf<NativeMethods.StartupInfoEx>() },
+            // UseStandardHandles with null handles: without it a child inherits the driver's own stdout when that is piped, and its output bypasses the pseudo-console.
+            StartupInfo = new NativeMethods.StartupInfo { Size = Marshal.SizeOf<NativeMethods.StartupInfoEx>(), Flags = NativeMethods.UseStandardHandles },
             AttributeList = attributeList,
         };
         string commandLine = CommandLine.Build(exe, arguments);
