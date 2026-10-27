@@ -25,7 +25,7 @@ JsonFileStore store = new(stateFolder, TimeProvider.System);
 ProcessRegistry processRegistry = new();
 ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion);
 string vantageExecutable = Environment.ProcessPath ?? "vantage";
-TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser();
+TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser(Path.Combine(AppContext.BaseDirectory, "vantage.ico"));
 
 // VANTAGE_LOG=<file> turns on a diagnostic log of Vantage's hand-offs and Terminal.Gui's internals.
 ILogger log = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;

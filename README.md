@@ -1,5 +1,7 @@
 # Vantage
 
+<img src="https://raw.githubusercontent.com/Source191/vantage/main/assets/icon/vantage-128.png" alt="The Vantage icon: two branches merging into one node, shaped as a V" width="96" height="96" />
+
 A terminal console for Claude Code sessions and git worktrees on Windows.
 
 Supervise your Claude Code sessions from one terminal tab: start, attach, rename, stop, and clean up the worktrees they leave behind. Vantage lists every Claude Code session on the machine on one screen, with its state, repository and branch, and lets you attach to a session, open it in its own coloured Windows Terminal tab, start new sessions in a repository or a fresh worktree, and tidy up the worktrees that sessions leave behind. Sessions run under Claude Code's own background supervisor (`claude --bg`), so they keep working when no terminal shows them, and the terminal bell tells you when one needs you.
@@ -265,7 +267,7 @@ Windows Terminal plays the bell with whatever sound the profile has, so a bell f
 - **Vantage:** runs the installed `vantage`; open it from the new-tab menu to get Vantage in a tab that closes when you quit. It has no tab colour, so Vantage still colours its own tab.
 - **Vantage session:** PowerShell. Every tab Vantage opens (`o`) uses it once it exists, so a bell from an attached session sounds different from Vantage's own.
 
-Both profiles sound the bell and flash the window and the taskbar. The profiles are added as a Windows Terminal fragment, a small JSON file that Windows Terminal reads at start-up; your own `settings.json` is never touched. Restart Windows Terminal after running the command, and the profiles appear in the new-tab menu.
+Both profiles carry the Vantage icon as their tab icon, so it shows on Vantage's own tab and on every tab Vantage opens, but only on tabs opened from these profiles: a `vantage` typed into an ordinary PowerShell tab keeps that tab's icon. The icon is copied next to the fragment, so run `vantage setup-terminal` again after an update to refresh it. Both profiles sound the bell and flash the window and the taskbar. The profiles are added as a Windows Terminal fragment, a small JSON file that Windows Terminal reads at start-up; your own `settings.json` is never touched. Restart Windows Terminal after running the command, and the profiles appear in the new-tab menu.
 
 ```powershell
 vantage setup-terminal                                   # show what will be written, then ask
