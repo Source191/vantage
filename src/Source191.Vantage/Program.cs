@@ -117,7 +117,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
     WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context, folderLabels);
-    ScreenLoop loop = new(sessionsScreen, worktreesScreen, ownTab, console, terminalEffects, log);
+    ScreenLoop loop = new(sessionsScreen, worktreesScreen, ownTab, console, terminalEffects, updates, log);
 
     return await loop.RunAsync(Environment.ProcessId, cancellationToken);
 
