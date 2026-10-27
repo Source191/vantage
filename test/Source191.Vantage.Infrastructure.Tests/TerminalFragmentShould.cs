@@ -109,6 +109,59 @@ public sealed class TerminalFragmentShould : IDisposable
         removed.ShouldBeFalse();
     }
 
+    [Fact]
+    public async Task GiveBothProfilesTheCopiedIcon()
+    {
+        string source = ToolIcon([1, 2, 3]);
+        TerminalFragment withIcon = new(root, source);
+
+        await withIcon.WriteAsync(Profiles, CancellationToken.None);
+
+        string copy = Path.Combine(root, "Vantage", "vantage.ico");
+        (await File.ReadAllBytesAsync(copy, TestContext.Current.CancellationToken)).ShouldBe([1, 2, 3]);
+        foreach (JsonNode? profile in WrittenProfiles)
+        {
+            profile!["icon"]!.GetValue<string>().ShouldBe(copy);
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("missing.ico")]
+    public async Task WriteNoIconWhenTheToolHasNone(string? source)
+    {
+        TerminalFragment withoutIcon = new(root, source is null ? null : Path.Combine(root, source));
+
+        await withoutIcon.WriteAsync(Profiles, CancellationToken.None);
+
+        foreach (JsonNode? profile in WrittenProfiles)
+        {
+            profile!.AsObject().ContainsKey("icon").ShouldBeFalse();
+        }
+    }
+
+    [Fact]
+    public async Task RemoveTheIconWithTheFragment()
+    {
+        string source = ToolIcon([1]);
+        TerminalFragment withIcon = new(root, source);
+        await withIcon.WriteAsync(Profiles, CancellationToken.None);
+
+        await withIcon.RemoveAsync(CancellationToken.None);
+
+        File.Exists(Path.Combine(root, "Vantage", "vantage.ico")).ShouldBeFalse();
+        File.Exists(source).ShouldBeTrue();
+    }
+
+    private string ToolIcon(byte[] bytes)
+    {
+        string source = Path.Combine(root, "tool", "vantage.ico");
+        Directory.CreateDirectory(Path.GetDirectoryName(source)!);
+        File.WriteAllBytes(source, bytes);
+
+        return source;
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(root))

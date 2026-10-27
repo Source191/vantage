@@ -54,6 +54,10 @@ For each session Vantage SHALL derive the repository, the checked-out branch and
 - **WHEN** a session's working directory is not inside a git repository
 - **THEN** the row shows the folder name as the repository, leaves the branch blank, and shows the folder relative to its root
 
+#### Scenario: Session whose folder no longer exists
+- **WHEN** a session's working directory has been deleted
+- **THEN** the listing still succeeds, and the row shows the folder name as the repository and leaves the branch blank
+
 ### Requirement: Interactive sessions are shown with limited actions
 Sessions whose kind is interactive SHALL appear in the list with their kind marked, and SHALL NOT accept attach, open-in-tab, stop or rename actions; the adopt key moves them under the supervisor and, for one never sent a message, the delete key closes its tab (session-attach spec).
 

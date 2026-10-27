@@ -435,6 +435,9 @@ test-results/
 # Icon must end with two \r
 Icon
 
+# The Vantage icon folder is not the macOS Icon file.
+!/assets/icon/
+
 
 # Thumbnails
 ._*
