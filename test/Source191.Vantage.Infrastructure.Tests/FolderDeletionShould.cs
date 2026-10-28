@@ -52,6 +52,40 @@ public sealed class FolderDeletionShould : IDisposable
         File.GetAttributes(kept).HasFlag(FileAttributes.ReadOnly).ShouldBeTrue();
     }
 
+    /// <summary>
+    /// The refusal tests aim only at roots and folders that do not exist, so without the guard the deletion returns
+    /// quietly and the test fails on the missing exception; nothing real is ever at risk.
+    /// </summary>
+    [Fact]
+    public void RefuseADriveRoot()
+    {
+        string drive = UnusedDriveRoot();
+
+        IOException refusal = Should.Throw<IOException>(() => FolderDeletion.DeleteTree(drive));
+
+        refusal.Message.ShouldContain(drive);
+    }
+
+    [Fact]
+    public void RefuseAShareRoot()
+    {
+        const string share = @"\\vantage-no-such-host\share\";
+
+        IOException refusal = Should.Throw<IOException>(() => FolderDeletion.DeleteTree(share));
+
+        refusal.Message.ShouldContain(share);
+    }
+
+    [Fact]
+    public void RefuseARelativePath()
+    {
+        string relative = "Northwind.Orders-" + Guid.NewGuid().ToString("N");
+
+        IOException refusal = Should.Throw<IOException>(() => FolderDeletion.DeleteTree(relative));
+
+        refusal.Message.ShouldContain(relative);
+    }
+
     public void Dispose()
     {
         if (!Directory.Exists(root))
@@ -80,6 +114,15 @@ public sealed class FolderDeletionShould : IDisposable
         ProcessResult result = await new ProcessRunner().RunAsync(request, TestContext.Current.CancellationToken);
         result.ExitCode.ShouldBe(0, result.StandardError);
         junctions.Add(link);
+    }
+
+    /// <summary>The first drive letter from Z down to D that this machine does not have, as a root such as Q:\.</summary>
+    private static string UnusedDriveRoot()
+    {
+        HashSet<char> used = [.. DriveInfo.GetDrives().Select(drive => char.ToUpperInvariant(drive.Name[0]))];
+        char letter = Enumerable.Range('D', 'Z' - 'D' + 1).Select(code => (char)code).Reverse().First(candidate => !used.Contains(candidate));
+
+        return $@"{letter}:\";
     }
 
     private static string WriteReadOnlyFile(string folder, string name)
