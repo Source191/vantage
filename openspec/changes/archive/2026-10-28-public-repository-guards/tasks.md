@@ -19,13 +19,13 @@
 
 ## 3. Going public
 
-- [ ] 3.1 `gh repo edit Source191/vantage --visibility public --accept-visibility-change-consequences`, only after Simon confirms at that moment; verify `gh repo view --json visibility` shows PUBLIC
-- [ ] 3.2 The `nuget` environment's required reviewer: `PUT .../environments/nuget` with 2.1's body plus `"reviewers":[{"type":"User","id":1423185}],"prevent_self_review":false`; verify the environment shows the `required_reviewers` rule with `simonvane`, and still `can_admins_bypass` false and the `main` policy
-- [ ] 3.3 Interaction limit: collaborators only for six months; verify `gh api repos/Source191/vantage/interaction-limits` shows the limit and its expiry
-- [ ] 3.4 Fork pull request workflow runs need approval for all external contributors; verify `gh api .../actions/permissions/fork-pr-contributor-approval` shows `all_external_contributors`
-- [ ] 3.5 Private vulnerability reporting on; verify `gh api .../private-vulnerability-reporting` shows `enabled: true` and SECURITY.md's link opens the report form
-- [ ] 3.6 Secret scanning, push protection and Dependabot alerts on; verify `security_and_analysis` shows them enabled and `gh api .../vulnerability-alerts` answers 204
-- [ ] 3.7 Read back: branch protection still requires `check` with `strict: true`, both rulesets and the organisation ruleset are active, and the environment has its reviewer and `main` policy; record the outputs in this pull request's description
+- [x] 3.1 `gh repo edit Source191/vantage --visibility public --accept-visibility-change-consequences`, only after Simon confirms at that moment; verify `gh repo view --json visibility` shows PUBLIC
+- [x] 3.2 The `nuget` environment's required reviewer: `PUT .../environments/nuget` with 2.1's body plus `"reviewers":[{"type":"User","id":1423185}],"prevent_self_review":false`; verify the environment shows the `required_reviewers` rule with `simonvane`, and still `can_admins_bypass` false and the `main` policy
+- [x] 3.3 Interaction limit: collaborators only for six months; verify `gh api repos/Source191/vantage/interaction-limits` shows the limit and its expiry
+- [x] 3.4 Fork pull request workflow runs need approval for all external contributors; verify `gh api .../actions/permissions/fork-pr-contributor-approval` shows `all_external_contributors`
+- [x] 3.5 Private vulnerability reporting on; verify `gh api .../private-vulnerability-reporting` shows `enabled: true` and SECURITY.md's link opens the report form
+- [x] 3.6 Secret scanning, push protection and Dependabot alerts on; verify `security_and_analysis` shows them enabled and `gh api .../vulnerability-alerts` answers 204
+- [x] 3.7 Read back: branch protection still requires `check` with `strict: true`, both rulesets and the organisation ruleset are active, and the environment has its reviewer and `main` policy; record the outputs in this pull request's description
 
 ## Workflow follow-up
 
