@@ -2,7 +2,8 @@
 
 ## 1. The backslash check at the terminal
 
-- [ ] 1.1 The product owner, from a PowerShell tab outside Claude Code, runs `wt.exe -w 0 new-tab --title 'a\\;b' pwsh.exe -NoExit` (what the adapter will send for a name `a\;b`), `wt.exe -w 0 new-tab --title 'a\b' pwsh.exe -NoExit` and, after `New-Item -ItemType Directory "$env:USERPROFILE\x;y"`, `wt.exe -w 0 new-tab --startingDirectory "$env:USERPROFILE\x\;y" pwsh.exe -NoExit`. Verify by the tabs: one tab each, titled `a\;b` and `a\b`, the third opening in `x;y`; remove the folder afterwards; record the outcomes here. If the first opens two tabs, stop and update design.md before task 2.
+- [x] 1.1 The product owner, from a PowerShell tab outside Claude Code, runs `wt.exe -w 0 new-tab --title 'a\\;b' pwsh.exe -NoExit` (what the adapter will send for a name `a\;b`), `wt.exe -w 0 new-tab --title 'a\b' pwsh.exe -NoExit` and, after `New-Item -ItemType Directory "$env:USERPROFILE\x;y"`, `wt.exe -w 0 new-tab --startingDirectory "$env:USERPROFILE\x\;y" pwsh.exe -NoExit`. Verify by the tabs: one tab each, titled `a\;b` and `a\b`, the third opening in `x;y`; remove the folder afterwards; record the outcomes here. If the first opens two tabs, stop and update design.md before task 2.
+  Outcome (28 October 2026, Windows Terminal 1.25.2733): `'a\\;b'` opened one tab titled `a\;b`; `'a\b'` one tab titled `a\b`; the `--startingDirectory` tab opened in `x;y` (titled `pwsh.exe`, as no title was given). So `wt.exe` reads `\;` as a literal semicolon and leaves every other backslash alone, and replacing each `;` with `\;` is the whole escape.
 
 ## 2. The name rule (Domain)
 

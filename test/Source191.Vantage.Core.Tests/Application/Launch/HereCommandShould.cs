@@ -40,7 +40,13 @@ public sealed class HereCommandShould
     [Fact]
     public void RefuseABadNameAsAFact()
     {
-        HereCommand.Plan(Directory, "a;b", prompt: null, isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.UnsafeCharacters)));
         HereCommand.Plan(Directory, "", prompt: null, isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)));
+    }
+
+    [Fact]
+    public void PlanANameWithASemicolonOrDoubleQuote()
+    {
+        HereCommand.Plan(Directory, "a;b", prompt: null, isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan.Name.Value.ShouldBe("a;b");
+        HereCommand.Plan(Directory, "say \"hi\"", prompt: null, isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan.Name.Value.ShouldBe("say \"hi\"");
     }
 }
