@@ -42,6 +42,18 @@ public sealed class WindowsTerminalArgumentsShould
     }
 
     [Fact]
+    public void EscapeSemicolonsSoWindowsTerminalDoesNotSplitOnThem()
+    {
+        TabLaunch launch = Launch with { Title = "fix a;b", StartingDirectory = FolderPath.From(@"C:\repos\Northwind;Orders") };
+
+        List<string> arguments = [.. WindowsTerminalArguments.ForTab(launch, profile: null)];
+
+        arguments[arguments.IndexOf("--title") + 1].ShouldBe(@"fix a\;b");
+        arguments[arguments.IndexOf("--startingDirectory") + 1].ShouldBe(@"C:\repos\Northwind\;Orders");
+        Encoding.Unicode.GetString(Convert.FromBase64String(arguments[^1])).ShouldBe(launch.Script);
+    }
+
+    [Fact]
     public void AddTheProfileWhenGiven()
     {
         List<string> withProfile = [.. WindowsTerminalArguments.ForTab(Launch, "Vantage session")];
