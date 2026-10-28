@@ -40,6 +40,7 @@ Read on 28 Oct 2026 with `gh`, while the repository was still private:
 
 - [Auto-merge never fires for Simon's own pull requests, because the review requirement is only met by the bypass] → he merges with the bypass (the web checkbox, or `gh pr merge --admin`) once `check` is green. `allow_auto_merge` stays on for pull requests he has approved.
 - [The environment is referenced before it exists, and GitHub creates an unprotected one on first use] → the environment is created and read back before the `publish.yml` change merges.
+- [GitHub refuses required reviewers on a private repository on the Team plan (422, found while applying), so until the flip the environment has only its `main` rule] → the reviewer is the first setting applied after the flip (tasks 3.2). Until this pull request merges, `main`'s `publish.yml` does not use the environment at all, which is the same as before this change.
 - [The nuget.org policy may still be in its seven-day pending window (created against a private repository), and lapse before the first publish] → the policy page shows its state; restarting the window is one click, and the first successful publish activates it permanently.
 - [The interaction limit also stops honest strangers opening issues or pull requests for six months] → it can be lifted early with `DELETE .../interaction-limits`, and SECURITY.md's private reporting stays open to everyone.
 - [Up-to-date branches plus dismissed stale reviews mean every rebase of a Dependabot pull request dismisses Simon's approval] → he approves again after the rebase; this is the cost of approving exactly what merges.
@@ -52,7 +53,7 @@ Everything happens while this change's pull request is open, so it can be archiv
 1. Open the pull request, then create the `nuget` environment before anything can run the changed `publish.yml`.
 2. Set the nuget.org policy's environment to `nuget`.
 3. Turn off wiki and projects, and create both rulesets. Creating the owner ruleset before CODEOWNERS reaches `main` is safe: with no CODEOWNERS file the code owner part has nothing to require, and only the admin bypass can satisfy the 1-approval part.
-4. Make the repository public, apply the post-public settings and read everything back.
+4. Make the repository public, add the environment's required reviewer, apply the other post-public settings and read everything back.
 5. Archive the change, then merge with the admin bypass once `check` is green.
 
 Rollback: every setting is reversible with `gh` (delete a ruleset, environment or interaction limit, or switch a setting back off). Going public is not reversible in effect, because clones and forks made while public remain.
