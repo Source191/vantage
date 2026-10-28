@@ -62,7 +62,6 @@ public sealed record SessionName : ITextValue<SessionName>
         return text switch
         {
             _ when string.IsNullOrWhiteSpace(text) => NameProblem.Missing,
-            _ when text.Contains(';') || text.Contains('"') => NameProblem.UnsafeCharacters,
             _ => null,
         };
     }
