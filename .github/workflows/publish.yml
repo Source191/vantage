@@ -8,7 +8,7 @@ name: publish
 #
 # No API key is stored. NuGet/login exchanges this run's GitHub identity for a short-lived key
 # through a Trusted Publishing policy on nuget.org (owner Source191, repository vantage, workflow
-# publish.yml). Only the nuget.org profile name is a secret (NUGET_USER).
+# publish.yml, environment nuget). Only the nuget.org profile name is a secret (NUGET_USER).
 on:
   workflow_dispatch:
     inputs:
@@ -22,6 +22,10 @@ jobs:
     name: Push a release's package to nuget.org
     runs-on: windows-latest
     timeout-minutes: 10
+    # The nuget environment is what makes the Trusted Publishing key safe: the run waits for the
+    # owner's approval, the environment accepts only runs started from main, and the nuget.org policy
+    # names this environment, so a copy of this workflow on a branch, or a run an app starts, gets no key.
+    environment: nuget
     permissions:
       contents: read
       id-token: write
