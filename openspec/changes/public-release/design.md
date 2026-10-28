@@ -70,7 +70,7 @@ The README asks for a terminal check before merging any pull request that change
 - [A fix found in P13 lands in a change already archived] → it is a new small change or a fix pull request, with its own bump; the archived change's text stays as merged.
 - [A stack's bottom pull request needs rework after review] → the branches above it rebase; the streams are at most four deep, which keeps that bounded.
 - [The history holds something not meant for the public] → P14 checks author emails and runs a secret scan before the flip, while rewriting history is still painless.
-- [Outside contributors' pull requests run workflows] → GitHub's approval for first-time contributors stays on; no workflow uses `pull_request_target`, so forks never see `CLAUDE_CODE_OAUTH_TOKEN` or `NUGET_USER`.
+- [Outside contributors' pull requests run workflows] → GitHub's approval for all external contributors' workflow runs is on (`public-repository-guards`); no workflow uses `pull_request_target`, so forks never see `CLAUDE_CODE_OAUTH_TOKEN` or `NUGET_USER`.
 
 ## Migration Plan
 
