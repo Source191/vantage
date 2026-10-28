@@ -33,7 +33,8 @@
 
 ## 6. The flaky Desktop test
 
-- [ ] 6.1 Rewrite `DesktopShould.ReturnWithoutWaitingForTheOpenedProgramToEnd` as design.md's decision 7 (a gated `.cmd`, `OpenAsync` under a 30-second cancellation, no report before the release, the report after it) and raise `WaitForAsync`'s limit to 30 seconds. Prove the new test can fail: temporarily make `OpenFileScript` wait for the started process (`.WaitForExit()`), confirm the test fails at about 30 seconds with the cancellation rather than hanging, then revert. Verify the Desktop tests pass ten runs in a row with `dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build -- --filter-class "*DesktopShould"`, and that this pull request's `check` run is green.
+- [x] 6.1 Rewrite `DesktopShould.ReturnWithoutWaitingForTheOpenedProgramToEnd` as design.md's decision 7 (a gated `.cmd`, `OpenAsync` under a 30-second cancellation, no report before the release, the report after it) and raise `WaitForAsync`'s limit to 30 seconds. Prove the new test can fail: temporarily make `OpenFileScript` wait for the started process (`.WaitForExit()`), confirm the test fails at about 30 seconds with the cancellation rather than hanging, then revert. Verify the Desktop tests pass ten runs in a row with `dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build -- --filter-class "*DesktopShould"`, and that this pull request's `check` run is green.
+  - Result (2026-10-28): with `OpenFileScript` made to wait, the test failed at 30.3 s with the cancellation; reverted. Ten local runs of the Desktop tests passed (about 10 s each, no processes left), and https://github.com/Source191/vantage/actions/runs/40648282156 is green on its first attempt.
 ## Workflow follow-up
 
 - No `Version` bump: nothing under `src\` changes, so `Assert-VersionBumped.ps1` does not require one.
