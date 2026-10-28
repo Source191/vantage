@@ -16,6 +16,8 @@
 		-->
 		<NoWarn>$(NoWarn);CS1591;CS8524</NoWarn>
 		<LangVersion>latest</LangVersion>
+		<!-- CI builds map source paths to /_/ so the packed assemblies are deterministic; local builds keep real paths for debugging. -->
+		<ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
 	<!--
