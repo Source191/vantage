@@ -65,7 +65,9 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         id: build
 
-      # gh is on the runner, so no third-party action is needed for the release itself.
+      # gh is on the runner, so no third-party action is needed for the release itself. A version with a
+      # prerelease label (0.16.2-preview.1; the csproj never carries build metadata) is published as a
+      # GitHub prerelease, so it never becomes the repository's Latest release.
       - name: Publish the release
         if: steps.check.outputs.changed == 'true'
         shell: pwsh
@@ -73,4 +75,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.check.outputs.version }}
           PACKAGE: ${{ steps.build.outputs.package }}
-        run: gh release create "v$env:VERSION" $env:PACKAGE --title "v$env:VERSION" --generate-notes --target $env:GITHUB_SHA
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $arguments = @("v$env:VERSION", $env:PACKAGE, '--title', "v$env:VERSION", '--generate-notes', '--target', $env:GITHUB_SHA)
+          if ($env:VERSION.Contains('-')) {
+              $arguments += '--prerelease'
+          }
+          gh release create @arguments
+          if ($LASTEXITCODE -ne 0) {
+              throw "gh release create failed with exit code $LASTEXITCODE."
+          }
