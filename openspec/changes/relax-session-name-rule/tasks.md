@@ -15,8 +15,10 @@
 
 ## 3. The terminal adapter
 
-- [ ] 3.1 Red: in `WindowsTerminalArgumentsShould`, a launch titled `fix a;b` with starting directory `C:\repos\Northwind;Orders` gives the arguments `fix a\;b` and `C:\repos\Northwind\;Orders`, and the encoded command still decodes to the script. Green: `WindowsTerminalArguments.ForTab` passes every argument through one escape of `;` to `\;`; its comment says why, and points at the CLAUDE.md fact. Verify `dotnet test test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build` passes.
-- [ ] 3.2 Update CLAUDE.md's semicolon fact: Vantage escapes `;` in every `wt.exe` argument, so `SessionName` refuses only a blank name, with 1.1's backslash outcome. Raise `Version` by a minor step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
+- [x] 3.1 Red: in `WindowsTerminalArgumentsShould`, a launch titled `fix a;b` with starting directory `C:\repos\Northwind;Orders` gives the arguments `fix a\;b` and `C:\repos\Northwind\;Orders`, and the encoded command still decodes to the script. Green: `WindowsTerminalArguments.ForTab` passes every argument through one escape of `;` to `\;`; its comment says why, and points at the CLAUDE.md fact. Verify `dotnet test test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build` passes.
+  Outcome: 245 passed. The comment gives the reason itself rather than pointing at CLAUDE.md, as nothing in `src` refers to CLAUDE.md; the CLAUDE.md fact names `WindowsTerminalArguments` instead.
+- [x] 3.2 Update CLAUDE.md's semicolon fact: Vantage escapes `;` in every `wt.exe` argument, so `SessionName` refuses only a blank name, with 1.1's backslash outcome. Raise `Version` by a minor step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
+  Outcome: `Version` 0.17.0-preview.1 (`main` has 0.16.2-preview.3); 1,348 passed, 7 skipped (the Claude contract tests); format clean.
 
 ## 4. At the terminal, after the code
 
