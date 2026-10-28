@@ -119,9 +119,10 @@ public sealed class GitCli(IProcessRunner processes) : IGit
 
     public async Task<IReadOnlyList<string>> ListIgnoredFilesAsync(string repository, CancellationToken cancellationToken)
     {
-        ProcessResult result = await RunOrThrowAsync(repository, ["ls-files", "--others", "--ignored", "--exclude-standard"], cancellationToken);
+        // -z because git quotes a name with non-ASCII characters in its line-based listing ("Caf\303\251.env").
+        ProcessResult result = await RunOrThrowAsync(repository, ["ls-files", "--others", "--ignored", "--exclude-standard", "-z"], cancellationToken);
 
-        return Lines(result.StandardOutput);
+        return NulSeparated(result.StandardOutput);
     }
 
     private async Task<ProcessResult> RunOrThrowAsync(string directory, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
@@ -150,6 +151,9 @@ public sealed class GitCli(IProcessRunner processes) : IGit
     }
 
     private static List<string> Lines(string output) => [.. output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+
+    // Names are kept exactly as git writes them: a file name can begin or end with a space.
+    private static List<string> NulSeparated(string output) => [.. output.Split('\0', StringSplitOptions.RemoveEmptyEntries)];
 
     private static string ToWindowsPath(string output) => output.Trim().Replace('/', Path.DirectorySeparatorChar);
 }

@@ -95,6 +95,10 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 - **WHEN** `.worktreeinclude` lists appsettings.Development.json and that file is gitignored in the main checkout
 - **THEN** the file exists in the new worktree before the session starts
 
+#### Scenario: Names with non-ASCII characters, spaces and apostrophes
+- **WHEN** `.worktreeinclude` matches the gitignored files Café.local.json, my app.local.json and it's.local.json
+- **THEN** all three exist in the new worktree under the same names, and the copy reports all three
+
 ### Requirement: A session can be started from the shell in the current folder
 `vantage here [name] [-p prompt]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed or the command line could not be parsed, and 2 when the name is refused.
 
