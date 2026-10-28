@@ -37,6 +37,26 @@ public sealed class WorktreeIncludeCopierShould : IDisposable
         File.Exists(Path.Combine(Worktree, "notes.txt")).ShouldBeFalse();
     }
 
+    /// <summary>
+    /// git quotes a name with non-ASCII characters in its line-based listing ("Caf\303\251.local.json"), which no
+    /// pattern matches, so this needs the listing's exact names.
+    /// </summary>
+    [Fact]
+    public async Task CopyFilesWhoseNamesHaveNonAsciiCharactersSpacesAndApostrophes()
+    {
+        await CreateRepositoryAsync(
+            gitignore: "*.local.json\n",
+            worktreeInclude: "*.local.json\n",
+            files: ["Café.local.json", "my app.local.json", "it's.local.json"]);
+
+        IReadOnlyList<string> copied = await Copier.CopyAsync(Repository, Worktree, TestContext.Current.CancellationToken);
+
+        copied.Order(StringComparer.Ordinal).ShouldBe(["Café.local.json", "it's.local.json", "my app.local.json"]);
+        File.Exists(Path.Combine(Worktree, "Café.local.json")).ShouldBeTrue();
+        File.Exists(Path.Combine(Worktree, "my app.local.json")).ShouldBeTrue();
+        File.Exists(Path.Combine(Worktree, "it's.local.json")).ShouldBeTrue();
+    }
+
     [Fact]
     public async Task CopyNothingWhenThereIsNoIncludeFile()
     {
@@ -117,7 +137,7 @@ public sealed class WorktreeIncludeCopierShould : IDisposable
     /// <summary>A copier whose git answers the ignored-file listing with exactly these lines.</summary>
     private static WorktreeIncludeCopier CopierOverListing(params string[] listing)
     {
-        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Join('\n', listing) + "\n", string.Empty));
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Join('\0', listing) + "\0", string.Empty));
 
         return new WorktreeIncludeCopier(new GitCli(processes));
     }
