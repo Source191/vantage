@@ -4,8 +4,9 @@ using System.Text;
 namespace Source191.Vantage.Adapters.Terminal;
 
 /// <summary>
-/// Builds the wt.exe argument list. The tab's command travels as an encoded PowerShell command because
-/// Windows Terminal splits its command line on semicolons and the title is user text.
+/// Builds the wt.exe argument list. The tab's command travels as an encoded PowerShell command because wt.exe splits
+/// its command line on a semicolon even inside a quoted argument; the title is a session name, which
+/// <c>SessionName</c> keeps free of semicolons.
 /// </summary>
 public static class WindowsTerminalArguments
 {
