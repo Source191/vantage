@@ -9,8 +9,8 @@ on:
   push:
     branches: [main]
 
-# Read-only token for every job: nothing here writes to the repository, and the handoff job runs a downloaded
-# installer and a live Claude session in the checkout.
+# Read-only token for every job: nothing here writes to the repository, both jobs run the downloaded Claude Code
+# installer, and the handoff job runs a live Claude session in the checkout.
 permissions:
   contents: read
 
@@ -19,6 +19,9 @@ jobs:
     name: check
     runs-on: windows-latest
     timeout-minutes: 20
+    # For the smoke check's Claude Code CLI, as in handoff: it must not update itself mid-run.
+    env:
+      DISABLE_AUTOUPDATER: 1
     steps:
       # No step pushes, so the token is not left in .git\config for the rest of the job. Depth 2 keeps
       # both parents of a pull request's merge ref for the version check.
@@ -50,6 +53,56 @@ jobs:
           name: Source191.Vantage-${{ steps.build.outputs.version }}
           path: ${{ steps.build.outputs.package }}
           if-no-files-found: error
+
+      # The smoke check (CLAUDE.md, "Smoke check of the packed tool") runs the package a user would install, so a
+      # missing DLL or a screen that no longer opens fails the pull request. Vantage needs the Claude Code CLI to
+      # start; signed out, `claude agents --json` prints [] and the sessions view is simply empty. No workspace
+      # trust is seeded: the smoke check never starts a session.
+      - name: Install Claude Code
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          irm https://claude.ai/install.ps1 | iex
+          Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.local\bin"
+          & "$env:USERPROFILE\.local\bin\claude.exe" --version
+
+      # The runner has no config.json, so the default roots apply: repositories in ~\source\repos and worktrees in
+      # ~\source\worktrees. The linked worktree is the one force remove is opened (and cancelled) on; it must have
+      # no session in it, or the removal is refused with no dialog.
+      - name: Seed a repository for the smoke check
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          $repository = Join-Path $env:USERPROFILE 'source\repos\Northwind.Smoke'
+          New-Item -ItemType Directory -Force $repository | Out-Null
+          git -C $repository init --initial-branch main
+          git -C $repository -c user.name=Smoke -c user.email=smoke@example.invalid commit --allow-empty -m 'First commit'
+          git -C $repository worktree add -b smoke (Join-Path $env:USERPROFILE 'source\worktrees\Northwind.Smoke-smoke')
+
+      # Into a tool path of its own, so the runner's global tools are untouched and the exe is the packed one.
+      - name: Install the packed tool
+        shell: pwsh
+        env:
+          PACKAGE: ${{ steps.build.outputs.package }}
+          VERSION: ${{ steps.build.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $true
+          dotnet tool install Source191.Vantage --tool-path "$env:RUNNER_TEMP\vantage-tool" --add-source (Split-Path $env:PACKAGE) --version $env:VERSION
+
+      - name: Smoke check
+        shell: pwsh
+        working-directory: tools\HeadlessTerminal
+        run: dotnet run --project . -c Release -- smoke "$env:RUNNER_TEMP\vantage-tool\vantage.exe" Northwind.Smoke-smoke
+
+      # Read it with the tool's `grid drive-raw.txt <marker>` or `count`; the failed step is named in the log.
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: smoke-capture
+          path: tools\HeadlessTerminal\drive-raw.txt
+          if-no-files-found: ignore
 
   # The hand-off check against a real Claude session (CLAUDE.md, "Hand-off check"). Needs the
   # CLAUDE_CODE_OAUTH_TOKEN secret from `claude setup-token`; without it every step after the gate
