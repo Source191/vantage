@@ -119,9 +119,9 @@ public sealed class GitCli(IProcessRunner processes) : IGit
 
     public async Task<IReadOnlyList<string>> ListIgnoredFilesAsync(string repository, CancellationToken cancellationToken)
     {
-        ProcessResult result = await RunOrThrowAsync(repository, ["ls-files", "--others", "--ignored", "--exclude-standard"], cancellationToken);
+        ProcessResult result = await RunOrThrowAsync(repository, ["ls-files", "--others", "--ignored", "--exclude-standard", "-z"], cancellationToken);
 
-        return Lines(result.StandardOutput);
+        return [.. result.StandardOutput.Split('\0', StringSplitOptions.RemoveEmptyEntries)];
     }
 
     private async Task<ProcessResult> RunOrThrowAsync(string directory, IReadOnlyList<string> arguments, CancellationToken cancellationToken)

@@ -137,7 +137,7 @@ public sealed class WorktreeIncludeCopierShould : IDisposable
     /// <summary>A copier whose git answers the ignored-file listing with exactly these lines.</summary>
     private static WorktreeIncludeCopier CopierOverListing(params string[] listing)
     {
-        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Join('\n', listing) + "\n", string.Empty));
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Join('\0', listing) + "\0", string.Empty));
 
         return new WorktreeIncludeCopier(new GitCli(processes));
     }
