@@ -684,6 +684,21 @@ public sealed class WordingShould
         Wording.Describe(problem).ShouldNotBe(problem.ToString(), $"{type.Name} has no arm in Wording.Describe");
     }
 
+    // The wizard's problem label is one line, about 104 columns wide in a 120-column terminal.
+    private const int ProblemLineWidth = 100;
+
+    [Theory]
+    [MemberData(nameof(WizardProblems))]
+    [MemberData(nameof(LaunchProblems))]
+    public void FitEveryWizardProblemOnItsOneLine(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        object problem = constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+        string sentence = problem is WizardProblem wizardProblem ? Wording.Describe(wizardProblem) : Wording.Describe((LaunchProblem)problem);
+
+        sentence.Length.ShouldBeLessThanOrEqualTo(ProblemLineWidth, sentence);
+    }
+
     [Fact]
     public void GiveTheNameSentenceForARefusedLaunchName()
     {
