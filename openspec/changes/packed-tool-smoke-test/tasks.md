@@ -26,11 +26,13 @@
 
 ## 5. The smoke step in check
 
-- [ ] 5.1 In `.github\workflows\check.yml`, after `build-test-pack`: install Claude Code (not signed in, `DISABLE_AUTOUPDATER=1`), seed `~\source\repos\Northwind.Smoke` with one commit and its linked worktree `~\source\worktrees\Northwind.Smoke-smoke`, install the packed version into `$env:RUNNER_TEMP\vantage-tool`, run `smoke` against it with `Northwind.Smoke-smoke`, and upload `drive-raw.txt` as `smoke-capture` on failure; each step commented in the file's style. Verify the pull request's `check` run is green and its log lists every smoke step.
-- [ ] 5.2 Prove it can fail: on a throwaway commit in the pull request, delete `Terminal.Gui.dll` from the tool path before the smoke step and confirm `check` goes red with the smoke step named; then drop that commit. Verify by the two run results, linked in the pull request's description.
+- [x] 5.1 In `.github\workflows\check.yml`, after `build-test-pack`: install Claude Code (not signed in, `DISABLE_AUTOUPDATER=1`), seed `~\source\repos\Northwind.Smoke` with one commit and its linked worktree `~\source\worktrees\Northwind.Smoke-smoke`, install the packed version into `$env:RUNNER_TEMP\vantage-tool`, run `smoke` against it with `Northwind.Smoke-smoke`, and upload `drive-raw.txt` as `smoke-capture` on failure; each step commented in the file's style. Verify the pull request's `check` run is green and its log lists every smoke step.
+  - Result (2026-10-28): https://github.com/Source191/vantage/actions/runs/40646421424 is green on its second attempt, all 16 steps in about 11 s; the first attempt failed before the smoke step on the existing `DesktopShould.ReturnWithoutWaitingForTheOpenedProgramToEnd` timing (a flake this change does not touch). Force remove opened on the seeded worktree, whose repository has no remote.
+- [x] 5.2 Prove it can fail: on a throwaway commit in the pull request, delete `Terminal.Gui.dll` from the tool path before the smoke step and confirm `check` goes red with the smoke step named; then drop that commit. Verify by the two run results, linked in the pull request's description.
+  - Result (2026-10-28): run as draft pull request #76, stacked on this branch and closed unmerged, rather than a commit pushed and dropped here, so this branch's history never held it. https://github.com/Source191/vantage/actions/runs/40646524327 went red at the smoke step: Vantage crashed at start-up (exit 0xE0434352) and step 1 never saw the sessions view.
 
 ## Workflow follow-up
 
 - No `Version` bump: nothing under `src\` changes, so `Assert-VersionBumped.ps1` does not require one.
-- Optional evidence for the later licence decision, on a throwaway branch only: delete `TextMateSharp.Grammars.dll` from the tool path before the smoke step and record whether `smoke` still passes. This change does not drop the DLL.
+- Evidence for the later licence decision (2026-10-28, draft pull request #77, closed unmerged): with `TextMateSharp.Grammars.dll` deleted from the tool path, the smoke check passed all 16 steps (https://github.com/Source191/vantage/actions/runs/40646534424). This covers the screens a clean machine reaches; this change does not drop the DLL.
 - One pull request; archive the change in it with `/opsx:archive`.
