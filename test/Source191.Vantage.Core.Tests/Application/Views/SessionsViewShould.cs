@@ -278,15 +278,14 @@ public sealed class SessionsViewShould
 
         ViewUpdate renamed = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "fix the tests"));
         ViewUpdate blank = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "   "));
-        ViewUpdate unsafeName = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "fix; rm -rf"));
+        ViewUpdate semicolon = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "fix a;b"));
         ViewUpdate cancelled = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, null));
 
         renamed.Effects.ShouldBe([new RenameSession(WaitingJob, SessionName.From("fix the tests"))]);
         renamed.State.Footer.ShouldBe(new Footer.Working(new RenameSession(WaitingJob, SessionName.From("fix the tests"))));
         blank.Effects.ShouldBeEmpty();
         blank.State.Footer.ShouldBe(new Footer.InvalidName(NameProblem.Missing));
-        unsafeName.Effects.ShouldBeEmpty();
-        unsafeName.State.Footer.ShouldBe(new Footer.InvalidName(NameProblem.UnsafeCharacters));
+        semicolon.Effects.ShouldBe([new RenameSession(WaitingJob, SessionName.From("fix a;b"))]);
         cancelled.Effects.ShouldBeEmpty();
         cancelled.State.Footer.ShouldBe(new Footer.RenameCancelled());
     }

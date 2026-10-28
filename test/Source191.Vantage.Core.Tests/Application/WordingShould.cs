@@ -129,14 +129,6 @@ public sealed class WordingShould
         Wording.Describe(new Footer.InvalidName(NameProblem.Missing)).ShouldBe("A session name is required.");
     }
 
-    [Fact]
-    public void SayANameCannotHoldUnsafeCharacters()
-    {
-        Wording.Describe(NameProblem.UnsafeCharacters)
-            .ShouldBe("A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.");
-        Wording.Describe(new Footer.InvalidName(NameProblem.UnsafeCharacters))
-            .ShouldBe("A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.");
-    }
 
     [Fact]
     public void SayABackgroundSessionIsAlreadyUnderVantage()
@@ -590,7 +582,7 @@ public sealed class WordingShould
             _ when type == typeof(WorktreeHealthKind) => WorktreeHealthKind.Locked,
             _ when type == typeof(RemovalReason) => new RemovalReason.Locked(),
             _ when type == typeof(HealthReason) => new HealthReason.FolderGone(),
-            _ when type == typeof(NameProblem) => NameProblem.UnsafeCharacters,
+            _ when type == typeof(NameProblem) => NameProblem.Missing,
             _ when type == typeof(FolderPath) => FolderPath.From(@"D:\nowhere"),
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
@@ -690,6 +682,21 @@ public sealed class WordingShould
         LaunchProblem problem = (LaunchProblem)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
 
         Wording.Describe(problem).ShouldNotBe(problem.ToString(), $"{type.Name} has no arm in Wording.Describe");
+    }
+
+    // The wizard's problem label is one line, about 104 columns wide in a 120-column terminal.
+    private const int ProblemLineWidth = 100;
+
+    [Theory]
+    [MemberData(nameof(WizardProblems))]
+    [MemberData(nameof(LaunchProblems))]
+    public void FitEveryWizardProblemOnItsOneLine(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        object problem = constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+        string sentence = problem is WizardProblem wizardProblem ? Wording.Describe(wizardProblem) : Wording.Describe((LaunchProblem)problem);
+
+        sentence.Length.ShouldBeLessThanOrEqualTo(ProblemLineWidth, sentence);
     }
 
     [Fact]

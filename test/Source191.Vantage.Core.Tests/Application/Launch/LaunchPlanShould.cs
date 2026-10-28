@@ -72,12 +72,20 @@ public sealed class LaunchPlanShould
     }
 
     [Theory]
-    [InlineData("", NameProblem.Missing)]
-    [InlineData("a; b", NameProblem.UnsafeCharacters)]
-    public void ReportAnInvalidName(string name, NameProblem expected)
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ReportAnInvalidName(string name)
     {
         LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = name }, WorktreeRoot, _ => false);
 
-        result.ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(expected)));
+        result.ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)));
+    }
+
+    [Fact]
+    public void LaunchANameWithASemicolon()
+    {
+        LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { NameText = "fix a;b" }, WorktreeRoot, _ => false);
+
+        result.ShouldBeOfType<LaunchPlanResult.Planned>().Plan.Name.Value.ShouldBe("fix a;b");
     }
 }

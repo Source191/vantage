@@ -15,9 +15,11 @@ public sealed class SessionNameShould
     [Theory]
     [InlineData("fix; rm -rf")]
     [InlineData("say \"hello\"")]
-    public void RefuseASemicolonOrDoubleQuoteAsUnsafe(string text)
+    public void AcceptASemicolonOrDoubleQuote(string text)
     {
-        SessionName.Validate(text).ShouldBe(new SessionNameValidation.Refused(NameProblem.UnsafeCharacters));
+        SessionName.Validate(text).ShouldBeOfType<SessionNameValidation.Valid>().Name.Value.ShouldBe(text);
+        SessionName.TryParse(text, out SessionName? listed).ShouldBeTrue();
+        listed.ShouldBe(SessionName.From(text));
     }
 
     [Fact]
@@ -26,17 +28,10 @@ public sealed class SessionNameShould
         SessionName.Validate("Fix #123: flaky tests!").ShouldBeOfType<SessionNameValidation.Valid>().Name.Value.ShouldBe("Fix #123: flaky tests!");
     }
 
-    [Fact]
-    public void CheckBlankBeforeUnsafe()
-    {
-        SessionName.Validate(" ").ShouldBe(new SessionNameValidation.Refused(NameProblem.Missing));
-        SessionName.Validate("; ").ShouldBe(new SessionNameValidation.Refused(NameProblem.UnsafeCharacters));
-    }
 
     [Theory]
     [InlineData(null)]
     [InlineData("   ")]
-    [InlineData("fix; rm -rf")]
     public void ReadARefusedNameAsNothing(string? text)
     {
         SessionName.TryParse(text, out SessionName? name).ShouldBeFalse();
@@ -44,9 +39,8 @@ public sealed class SessionNameShould
     }
 
     [Theory]
+    [InlineData("")]
     [InlineData("   ")]
-    [InlineData("fix; rm -rf")]
-    [InlineData("say \"hello\"")]
     public void RefuseToBuildANameValidateRefuses(string text)
     {
         Should.Throw<ArgumentException>(() => SessionName.From(text));
