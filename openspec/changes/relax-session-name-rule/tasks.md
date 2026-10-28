@@ -25,7 +25,8 @@
 - [ ] 4.1 The product owner installs the build (`tools\install-local.ps1`), starts a session named `fix a;b` from the wizard with "Start and open in tab" (F6), and one named `say "hi"`. Verify each opens exactly one tab with that title; record here.
 - [ ] 4.2 From another Vantage, select each of those sessions and press `o`. Verify the existing tab is focused and the footer says Vantage switched to it; record here.
 - [ ] 4.3 Attach to `fix a;b` with Enter and detach. Verify the Vantage tab's title is `Vantage` again and the session tab still reads `fix a;b`; then rename an idle session to `fix c;d` with `r` and verify the row shows that name on the next refresh. Record here and add the verified OSC 2 and `o` outcome to CLAUDE.md's Windows Terminal facts.
-- [ ] 4.4 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0.
+- [x] 4.4 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0.
+  Outcome (28 October 2026, after a Release build): exit 0; Vantage quit after the hand-off with keys still working, and Claude's own screen was in the capture.
 
 ## Workflow follow-up
 
