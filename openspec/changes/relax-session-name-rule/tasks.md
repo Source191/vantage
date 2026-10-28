@@ -30,4 +30,5 @@
 
 ## Workflow follow-up
 
-- Archive in the pull request that completes it, after `wt-title-escaping` is merged.
+- Ships in the same pull request as the archived `wt-title-escaping`; archive it there once 4.1 to 4.3 pass, syncing both delta specs into `openspec\specs`.
+- The pull request changes how Vantage titles tabs, so the README's "Manual checks for tab and attach changes" run in the same terminal session as 4.1 to 4.3.
