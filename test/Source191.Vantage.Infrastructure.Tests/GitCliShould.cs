@@ -245,14 +245,14 @@ public sealed class GitCliShould
     }
 
     [Fact]
-    public async Task ListIgnoredFilesAsRepositoryRelativePaths()
+    public async Task ListIgnoredFilesFromNulSeparatedOutput()
     {
-        processes.AnswerAll(new ProcessResult(0, "src/appsettings.local.json\nsecrets/key.txt\n", string.Empty));
+        processes.AnswerAll(new ProcessResult(0, "src/appsettings.local.json\0secrets/key file.txt\0Café.local.json\0", string.Empty));
 
         IReadOnlyList<string> ignored = await Git.ListIgnoredFilesAsync(Repository, CancellationToken.None);
 
-        Only.Arguments.ShouldBe(["ls-files", "--others", "--ignored", "--exclude-standard"]);
-        ignored.ShouldBe(["src/appsettings.local.json", "secrets/key.txt"]);
+        Only.Arguments.ShouldBe(["ls-files", "--others", "--ignored", "--exclude-standard", "-z"]);
+        ignored.ShouldBe(["src/appsettings.local.json", "secrets/key file.txt", "Café.local.json"]);
     }
 
     [Fact]
