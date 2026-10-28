@@ -91,6 +91,14 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           dotnet tool install Source191.Vantage --tool-path "$env:RUNNER_TEMP\vantage-tool" --add-source (Split-Path $env:PACKAGE) --version $env:VERSION
 
+      # THROWAWAY, never merged: proves the smoke check fails when a DLL Vantage needs is missing
+      - name: Throwaway - delete Terminal.Gui.dll from the installed tool
+        shell: pwsh
+        run: |
+          $found = @(Get-ChildItem "$env:RUNNER_TEMP\vantage-tool" -Recurse -Filter Terminal.Gui.dll)
+          if ($found.Count -eq 0) { throw 'No Terminal.Gui.dll in the tool path.' }
+          $found | Remove-Item -Verbose
+
       - name: Smoke check
         shell: pwsh
         working-directory: tools\HeadlessTerminal
