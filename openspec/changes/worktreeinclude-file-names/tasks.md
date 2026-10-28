@@ -9,7 +9,7 @@
 
 ## 2. Release
 
-- [ ] 2.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to a patch above `main`'s (the owner picks the next preview or the next release); verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes and `openspec validate worktreeinclude-file-names` is valid
+- [x] 2.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to a patch above `main`'s (the owner picks the next preview or the next release); verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes and `openspec validate worktreeinclude-file-names` is valid
 
 ## Workflow follow-up
 
