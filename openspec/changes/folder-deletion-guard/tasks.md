@@ -9,7 +9,7 @@
 
 ## 2. Release
 
-- [ ] 2.1 Raise `Version` to a patch above `main`'s once PR #82 (0.16.2-preview.3) has merged, merging `main` first; verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes and `openspec validate folder-deletion-guard` is valid
+- [x] 2.1 Raise `Version` to a patch above `main`'s once PR #82 (0.16.2-preview.3) has merged, merging `main` first; verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes and `openspec validate folder-deletion-guard` is valid
 
 ## Workflow follow-up
 
