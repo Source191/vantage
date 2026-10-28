@@ -12,6 +12,11 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
+  <!-- The smoke script takes its keys and markers from Wording, so a renamed title or a moved key needs no change here. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Source191.Vantage.Core\Source191.Vantage.Core.csproj" />
+  </ItemGroup>
+
   <ItemGroup>
     <InternalsVisibleTo Include="Source191.Vantage.HeadlessTerminal.Tests" />
   </ItemGroup>
