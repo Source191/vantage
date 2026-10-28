@@ -4,16 +4,16 @@ using System.Text;
 namespace Source191.Vantage.Adapters.Terminal;
 
 /// <summary>
-/// Builds the wt.exe argument list. The tab's command travels as an encoded PowerShell command because wt.exe splits
-/// its command line on a semicolon even inside a quoted argument; the title is a session name, which
-/// <c>SessionName</c> keeps free of semicolons.
+/// Builds the wt.exe argument list. wt.exe splits its command line on a semicolon even inside a quoted argument, so
+/// the tab's command travels as an encoded PowerShell command and every semicolon left, in a title or a folder, is
+/// escaped.
 /// </summary>
 public static class WindowsTerminalArguments
 {
     /// <summary>The arguments for a new tab; a profile name adds <c>--profile</c>, null leaves the tab in the default profile.</summary>
     public static IReadOnlyList<string> ForTab(TabLaunch launch, string? profile)
     {
-        return
+        string[] arguments =
         [
             "-w", "0", "new-tab",
             .. profile is null ? (string[])[] : ["--profile", profile],
@@ -23,7 +23,12 @@ public static class WindowsTerminalArguments
             "--startingDirectory", launch.StartingDirectory.Value,
             "pwsh.exe", "-NoExit", "-EncodedCommand", EncodedCommand.Encode(launch.Script),
         ];
+
+        return [.. arguments.Select(Escaped)];
     }
+
+    /// <summary>wt.exe reads <c>\;</c> as a literal semicolon and leaves every other backslash as it is.</summary>
+    private static string Escaped(string argument) => argument.Replace(";", @"\;", StringComparison.Ordinal);
 }
 
 /// <summary>The -EncodedCommand form PowerShell takes: the script as Base64 of its UTF-16 bytes.</summary>
