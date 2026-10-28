@@ -129,14 +129,6 @@ public sealed class WordingShould
         Wording.Describe(new Footer.InvalidName(NameProblem.Missing)).ShouldBe("A session name is required.");
     }
 
-    [Fact]
-    public void SayANameCannotHoldUnsafeCharacters()
-    {
-        Wording.Describe(NameProblem.UnsafeCharacters)
-            .ShouldBe("A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.");
-        Wording.Describe(new Footer.InvalidName(NameProblem.UnsafeCharacters))
-            .ShouldBe("A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.");
-    }
 
     [Fact]
     public void SayABackgroundSessionIsAlreadyUnderVantage()
@@ -590,7 +582,7 @@ public sealed class WordingShould
             _ when type == typeof(WorktreeHealthKind) => WorktreeHealthKind.Locked,
             _ when type == typeof(RemovalReason) => new RemovalReason.Locked(),
             _ when type == typeof(HealthReason) => new HealthReason.FolderGone(),
-            _ when type == typeof(NameProblem) => NameProblem.UnsafeCharacters,
+            _ when type == typeof(NameProblem) => NameProblem.Missing,
             _ when type == typeof(FolderPath) => FolderPath.From(@"D:\nowhere"),
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
