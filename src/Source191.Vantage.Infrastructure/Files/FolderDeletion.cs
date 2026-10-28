@@ -9,6 +9,7 @@ public static class FolderDeletion
 {
     public static void DeleteTree(string folder)
     {
+        RefuseRootsAndRelativePaths(folder);
         if (!Directory.Exists(folder))
         {
             return;
@@ -22,6 +23,25 @@ public static class FolderDeletion
 
         PrepareContents(folder);
         Directory.Delete(folder, recursive: true);
+    }
+
+    // Checked before anything on disc, so even a root that does not exist is refused rather than quietly ignored. The
+    // message is shown in the footer, so it is written for the user rather than built by a throw helper.
+    private static void RefuseRootsAndRelativePaths(string folder)
+    {
+        if (!Path.IsPathFullyQualified(folder) || IsRoot(folder))
+        {
+            throw new IOException($"Vantage will not delete {folder}: it is a drive root, a share root or a relative path.");
+        }
+    }
+
+    private static bool IsRoot(string folder)
+    {
+        string full = Path.GetFullPath(folder);
+        // A fully qualified path always has a root; if one ever did not, treating it as a root refuses it.
+        string root = Path.GetPathRoot(full) ?? full;
+
+        return string.Equals(Path.TrimEndingDirectorySeparator(full), Path.TrimEndingDirectorySeparator(root), StringComparison.OrdinalIgnoreCase);
     }
 
     private static void PrepareContents(string folder)

@@ -26,6 +26,9 @@ public interface IFolders
 
     IEnumerable<string> Lines(string file);
 
-    /// <summary>Deletes a folder tree, including read-only files such as git objects. A missing folder is not an error.</summary>
+    /// <summary>
+    /// Deletes a folder tree, including read-only files such as git objects. A missing folder is not an error; a drive
+    /// root, a share root or a relative path is refused with an IOException before anything is touched.
+    /// </summary>
     void DeleteTree(string path);
 }
