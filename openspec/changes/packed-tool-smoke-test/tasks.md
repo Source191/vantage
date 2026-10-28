@@ -31,6 +31,9 @@
 - [x] 5.2 Prove it can fail: on a throwaway commit in the pull request, delete `Terminal.Gui.dll` from the tool path before the smoke step and confirm `check` goes red with the smoke step named; then drop that commit. Verify by the two run results, linked in the pull request's description.
   - Result (2026-10-28): run as draft pull request #76, stacked on this branch and closed unmerged, rather than a commit pushed and dropped here, so this branch's history never held it. https://github.com/Source191/vantage/actions/runs/40646524327 went red at the smoke step: Vantage crashed at start-up (exit 0xE0434352) and step 1 never saw the sessions view.
 
+## 6. The flaky Desktop test
+
+- [ ] 6.1 Rewrite `DesktopShould.ReturnWithoutWaitingForTheOpenedProgramToEnd` as design.md's decision 7 (a gated `.cmd`, `OpenAsync` under a 30-second cancellation, no report before the release, the report after it) and raise `WaitForAsync`'s limit to 30 seconds. Prove the new test can fail: temporarily make `OpenFileScript` wait for the started process (`.WaitForExit()`), confirm the test fails at about 30 seconds with the cancellation rather than hanging, then revert. Verify the Desktop tests pass ten runs in a row with `dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build -- --filter-class "*DesktopShould"`, and that this pull request's `check` run is green.
 ## Workflow follow-up
 
 - No `Version` bump: nothing under `src\` changes, so `Assert-VersionBumped.ps1` does not require one.

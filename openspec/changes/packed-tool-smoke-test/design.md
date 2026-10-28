@@ -51,6 +51,8 @@ See proposal.md for why. The pieces this builds on:
 
 Alternative: the non-blocking `handoff` job, which already has the CLI. Not taken (the product owner's decision): a smoke test that cannot block a merge does not stop a broken package.
 
+**7. `DesktopShould`'s opened program is gated, not timed.** The opened `.cmd` loops (a one-second ping per turn) until a release file exists, then writes its report; it also ends when the test's folder has gone, so a failed test leaves nothing running. The test calls `OpenAsync` under a 30-second cancellation, asserts there is no report, writes the release file and waits up to 30 seconds for the report. The program cannot finish before the release, so "the call did not wait for it" holds on any machine, and the elapsed-time assertion (under 5 seconds, itself a clock) goes. If `OpenAsync` ever waited for the opened program, the gate would never open and the cancellation would fail the test at 30 seconds instead of hanging. `WaitForAsync`, shared by the other Desktop tests, waits up to 30 seconds instead of 10: on a pass it returns as soon as the file is there, so the longer limit costs nothing. Alternative: a longer fixed ping and wait. Not taken: it only moves the race.
+
 ## Risks / Trade-offs
 
 - [The CLI signed out may make `claude agents --json` fail or prompt, and the sessions view could show a load failure instead of rows] → the sessions marker is a column name, which the table draws whatever the listing says; the first task confirms this locally with `CLAUDE_CONFIG_DIR` pointing at an empty folder before any CI work.

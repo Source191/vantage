@@ -62,18 +62,25 @@ public sealed class DesktopShould : IDisposable
         Environment.GetEnvironmentVariable("CLAUDECODE").ShouldBe("1", "Vantage's own environment is left as it was");
     }
 
+    /// <summary>
+    /// The opened program cannot finish until the test releases it, so a report before the release would mean the call
+    /// had waited for it. The limits only bound a failure: if the call ever waited, the gate would never open and the
+    /// cancellation would fail the test at 30 seconds instead of hanging it.
+    /// </summary>
     [Fact]
     public async Task ReturnWithoutWaitingForTheOpenedProgramToEnd()
     {
-        string file = Path.Combine(folder, "slow.cmd");
+        string file = Path.Combine(folder, "gated.cmd");
+        string release = Path.Combine(folder, "release.txt");
         string report = Path.Combine(folder, "finished.txt");
-        await File.WriteAllTextAsync(file, $"@ping -n 9 127.0.0.1 > nul\r\n@echo done > \"{report}\"", TestContext.Current.CancellationToken);
-        System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+        await File.WriteAllLinesAsync(file, GatedScript(release, report), TestContext.Current.CancellationToken);
+        using CancellationTokenSource limit = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+        limit.CancelAfter(TimeSpan.FromSeconds(30));
 
-        await new Desktop(new ProcessRunner()).OpenAsync(file, TestContext.Current.CancellationToken);
+        await new Desktop(new ProcessRunner()).OpenAsync(file, limit.Token);
 
-        stopwatch.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(5), "the call must not wait for the program it opened");
-        File.Exists(report).ShouldBeFalse("the opened program was still running");
+        File.Exists(report).ShouldBeFalse("the opened program finished before it was released");
+        await File.WriteAllTextAsync(release, "go", TestContext.Current.CancellationToken);
         await WaitForAsync(report);
     }
 
@@ -117,14 +124,31 @@ public sealed class DesktopShould : IDisposable
         Directory.Delete(folder, recursive: true);
     }
 
+    /// <summary>A .cmd that waits for the release file, then writes the report; it ends early once the test's folder has gone, so a failed test leaves nothing running.</summary>
+    private string[] GatedScript(string release, string report)
+    {
+        return
+        [
+            "@echo off",
+            ":wait",
+            $"if exist \"{release}\" goto done",
+            $"if not exist \"{folder}\" exit /b",
+            "ping -n 2 127.0.0.1 > nul",
+            "goto wait",
+            ":done",
+            $"echo done > \"{report}\"",
+        ];
+    }
+
+    /// <summary>Returns as soon as the file is there; the 30 seconds only bound a child that never writes it, on however slow a runner.</summary>
     private static async Task WaitForAsync(string file)
     {
-        for (int attempt = 0; attempt < 100 && !File.Exists(file); attempt++)
+        for (int attempt = 0; attempt < 300 && !File.Exists(file); attempt++)
         {
             await Task.Delay(100, TestContext.Current.CancellationToken);
         }
 
-        File.Exists(file).ShouldBeTrue("the child never wrote its environment");
+        File.Exists(file).ShouldBeTrue($"{Path.GetFileName(file)} never appeared within 30 seconds");
         await Task.Delay(200, TestContext.Current.CancellationToken);
     }
 }
