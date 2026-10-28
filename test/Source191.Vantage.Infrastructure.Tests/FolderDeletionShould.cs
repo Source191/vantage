@@ -86,6 +86,17 @@ public sealed class FolderDeletionShould : IDisposable
         refusal.Message.ShouldContain(relative);
     }
 
+    [Fact]
+    public void DeleteAFolderWrittenWithATrailingSeparator()
+    {
+        string pack = WriteReadOnlyFile(Path.Combine(Tree, ".git", "objects", "pack"), "pack-1.idx");
+
+        FolderDeletion.DeleteTree(Tree + Path.DirectorySeparatorChar);
+
+        File.Exists(pack).ShouldBeFalse();
+        Directory.Exists(Tree).ShouldBeFalse();
+    }
+
     public void Dispose()
     {
         if (!Directory.Exists(root))
