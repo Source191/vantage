@@ -94,6 +94,19 @@ public sealed class ProcessRegistryIntegrationShould
         }
     }
 
+    /// <summary>A refresh measures a few hundred processes, so one query must cost well under a millisecond, not the twenty that enumerating the table per query costs.</summary>
+    [Fact]
+    public void MeasureTwoHundredTimesWithinASecond()
+    {
+        Stopwatch clock = Stopwatch.StartNew();
+        for (int round = 0; round < 200; round++)
+        {
+            registry.UsageOf(Environment.ProcessId).ShouldNotBeNull();
+        }
+
+        clock.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(1));
+    }
+
     [Fact]
     public void MeasureThisProcessBelowItsWorkingSet()
     {
