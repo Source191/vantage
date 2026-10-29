@@ -1,9 +1,9 @@
-using Source191.Vantage.Application.Reporting;
-using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.Reporting;
 using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
