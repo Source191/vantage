@@ -49,8 +49,8 @@
 
 ## 7. Documentation
 
-- [ ] 7.1 README: a "What Vantage trusts" section (in Contents, after Where Vantage keeps things), the Troubleshooting notes (a claude.cmd shim, VANTAGE_LOG records keystrokes, git not found), the Settings full-path rule, the vantage here prompt rule and exit code, the worktrees HEALTH `elsewhere` word and its refusal, the Pull requests branch rule, the Updates `--source`, and the CI section (SHA pins, CodeQL, attestation, Dependabot security updates, the token on a dedicated account, the post-merge pin setting). Verify by reading each section against the specs.
-- [ ] 7.2 CLAUDE.md: the code rule for locators (full paths, never the current directory, never a batch file), the batch-file argument rule, the prompt rule, the CLI fact that `--` is unknown to the CLI (checked 2026-10-29), and the CI line. Verify by reading.
+- [x] 7.1 README: a "What Vantage trusts" section (in Contents, after Where Vantage keeps things), the Troubleshooting notes (a claude.cmd shim, VANTAGE_LOG records keystrokes, git not found), the Settings full-path rule, the vantage here prompt rule and exit code, the worktrees HEALTH `elsewhere` word and its refusal, the Pull requests branch rule, the Updates `--source`, and the CI section (SHA pins, CodeQL, attestation, Dependabot security updates, the token on a dedicated account, the post-merge pin setting). Verify by reading each section against the specs.
+- [x] 7.2 CLAUDE.md: the code rule for locators (full paths, never the current directory, never a batch file), the batch-file argument rule, the prompt rule, the CLI fact that `--` is unknown to the CLI (checked 2026-10-29), and the CI line. Verify by reading.
 
 ## 8. Verification
 
