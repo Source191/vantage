@@ -519,6 +519,12 @@ public sealed class WordingShould
         Wording.Describe(new RemovalReason.LeftoverFolder()).ShouldBe("leftover folder");
     }
 
+    [Fact]
+    public void SayAWorktreeOfARepositoryOutsideTheRootsIsNotRemoved()
+    {
+        Wording.Describe(new RemovalReason.RepositoryOutsideRoots()).ShouldBe("its repository is not under the roots; add that root in settings or remove the worktree with git there");
+    }
+
     public static TheoryData<Type> HealthReasons => new(typeof(HealthReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(HealthReason))));
 
     [Theory]
@@ -571,6 +577,12 @@ public sealed class WordingShould
     public void SayAFolderIsNotRegistered()
     {
         Wording.Describe(new HealthReason.NotRegistered()).ShouldBe("folder is not registered with git");
+    }
+
+    [Fact]
+    public void NameTheRepositoryOfAWorktreeThatIsElsewhere()
+    {
+        Wording.Describe(new HealthReason.RepositoryOutsideRoots(FolderPath.From(@"D:\other\Northwind.Ledger"))).ShouldBe(@"its repository D:\other\Northwind.Ledger is not under the roots");
     }
 
     // The typed-confirmation dialog.

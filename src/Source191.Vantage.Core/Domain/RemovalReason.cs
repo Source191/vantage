@@ -19,4 +19,7 @@ public abstract record RemovalReason
 
     /// <summary>Only the folder is deleted, because git no longer has the worktree.</summary>
     public sealed record LeftoverFolder : RemovalReason;
+
+    /// <summary>A live worktree of a repository outside the roots: not a leftover, so never deleted as one.</summary>
+    public sealed record RepositoryOutsideRoots : RemovalReason;
 }

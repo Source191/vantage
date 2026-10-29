@@ -84,6 +84,7 @@ public static partial class Wording
             RemovalReason.ChangesWouldBeLost changes => $"{changes.Count} changed or untracked files would be lost",
             RemovalReason.UnpushedCommits unpushed => $"branch {unpushed.Branch} has {unpushed.Count} unpushed commits",
             RemovalReason.LeftoverFolder => "leftover folder",
+            RemovalReason.RepositoryOutsideRoots => "its repository is not under the roots; add that root in settings or remove the worktree with git there",
             _ => reason.ToString(),
         };
     }
@@ -100,6 +101,7 @@ public static partial class Wording
             HealthReason.UnderClaudeWorktrees => @"under .claude\worktrees but git no longer lists it",
             HealthReason.EmptyLeftover => "leftover folder with nothing in it",
             HealthReason.NotRegistered => "folder is not registered with git",
+            HealthReason.RepositoryOutsideRoots outside => $"its repository {outside.Repository} is not under the roots",
             _ => reason.ToString(),
         };
     }

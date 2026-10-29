@@ -50,6 +50,7 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
             WorktreeHealthKind.Empty => Palette.Grey,
             WorktreeHealthKind.Orphan => Palette.Red,
             WorktreeHealthKind.Broken => Palette.Red,
+            WorktreeHealthKind.Elsewhere => Palette.Amber,
         };
     }
 
