@@ -11,7 +11,7 @@ public sealed class TerminalEffects(IClaudeCli claude, ITerminalConsole console)
         switch (effect)
         {
             case AttachToSession attach:
-                console.ShowReturnHint();
+                console.ShowReturnHint(Wording.ReturnHint);
                 await claude.AttachAsync(attach.JobId.Value, cancellationToken);
                 console.RemoveReturnHint();
                 break;

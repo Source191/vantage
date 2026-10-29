@@ -1,4 +1,3 @@
-using Source191.Vantage.Application;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
@@ -15,7 +14,7 @@ public sealed class TerminalConsole(TextWriter console, string title) : ITermina
 
     public void ClearOwnTab() => ConsoleRecovery.WriteSequence(console, TabEscapes.ClearTitle + TabEscapes.ResetBackground);
 
-    public void ShowReturnHint() => ConsoleRecovery.WriteSequence(console, Wording.ReturnHint + console.NewLine);
+    public void ShowReturnHint(string hint) => ConsoleRecovery.WriteSequence(console, hint + console.NewLine);
 
     public void RemoveReturnHint() => ConsoleRecovery.WriteSequence(console, ConsoleRecovery.EraseLineAbove);
 

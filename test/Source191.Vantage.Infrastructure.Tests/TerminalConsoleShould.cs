@@ -27,7 +27,7 @@ public sealed class TerminalConsoleShould : IDisposable
     {
         TerminalConsole console = new(writer, "Vantage");
 
-        console.ShowReturnHint();
+        console.ShowReturnHint("Ctrl+Z returns to Vantage.");
         console.RemoveReturnHint();
 
         writer.ToString().ShouldBe("Ctrl+Z returns to Vantage." + Environment.NewLine + "\u001b[1A\u001b[2K");

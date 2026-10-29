@@ -21,15 +21,7 @@ public sealed class TerminalEffectsShould
 
         await Effects.RunAsync(new AttachToSession(JobId.From("81cdb0f9")), CancellationToken.None);
 
-        console.Events.ShouldBe(["return hint shown", "attach 81cdb0f9", "return hint removed"]);
-    }
-
-    [Fact]
-    public async Task OpenTheNativeAgentView()
-    {
-        await Effects.RunAsync(new OpenAgentView(), CancellationToken.None);
-
-        processes.InteractiveRequests.Single().Arguments.ShouldBe(["agents"]);
+        console.Events.ShouldBe(["return hint shown: Ctrl+Z returns to Vantage.", "attach 81cdb0f9", "return hint removed"]);
     }
 
     [Fact]

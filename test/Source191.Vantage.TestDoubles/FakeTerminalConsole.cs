@@ -25,9 +25,9 @@ public sealed class FakeTerminalConsole : ITerminalConsole
         Cleared++;
     }
 
-    public void ShowReturnHint()
+    public void ShowReturnHint(string hint)
     {
-        Events.Add("return hint shown");
+        Events.Add($"return hint shown: {hint}");
     }
 
     public void RemoveReturnHint()

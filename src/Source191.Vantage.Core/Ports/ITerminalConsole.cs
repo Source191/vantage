@@ -15,7 +15,7 @@ public interface ITerminalConsole
     void ClearOwnTab();
 
     /// <summary>Prints the line saying how to come back, just before a child takes the terminal.</summary>
-    void ShowReturnHint();
+    void ShowReturnHint(string hint);
 
     /// <summary>Erases the return hint once the child has given the terminal back, so the scrollback keeps no copy.</summary>
     void RemoveReturnHint();
