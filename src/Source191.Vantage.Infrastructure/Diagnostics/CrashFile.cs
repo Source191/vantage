@@ -8,9 +8,20 @@ public sealed class CrashFile(string folder) : ICrashFile
 {
     private const string Name = "last-crash.log";
 
+    private string FilePath => Path.Combine(folder, Name);
+
     public void Write(string text)
     {
         Directory.CreateDirectory(folder);
-        File.WriteAllText(Path.Combine(folder, Name), text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        File.WriteAllText(FilePath, text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+    }
+
+    public async Task<string?> ReadAsync() => File.Exists(FilePath) ? await File.ReadAllTextAsync(FilePath) : null;
+
+    public Task RemoveAsync()
+    {
+        File.Delete(FilePath);
+
+        return Task.CompletedTask;
     }
 }

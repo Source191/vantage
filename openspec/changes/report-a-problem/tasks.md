@@ -7,8 +7,8 @@
 
 ## 2. The report value (Application\Reporting)
 
-- [ ] 2.1 Red: `ProblemReportsShould.BuildTheEnvironmentEventsCountsAndCrash` over `RecordingDiagnostics`, `ProcessCounts`, `FakeCrashFile` with a crash, `TestSettings` and a `ReportEnvironment` asserts the text's headings and lines in order, and `LeaveOutTheCrashHeadingWithoutACrash` asserts none. Green: `ReportEnvironment`, `ProblemReport`, `ProblemReports.BuildAsync`; `ICrashFile` gains `ReadAsync`. Verify the facts pass.
-- [ ] 2.2 Red: `ProblemReportShould.FitWithinTheAddressLimit` builds 500 events and a crash, asserts the fitted address is at most 7,500 characters, keeps the environment, the crash and the newest failures, drops ordinary events oldest first before exit-0 counts and failures, and ends with "n lines left out"; `KeepEverythingWhenItFits` asserts a short report is unchanged with no closing line. Green: `ProblemReport.FitWithin`. Verify the facts pass.
+- [x] 2.1 Red: `ProblemReportsShould.BuildTheEnvironmentEventsCountsAndCrash` over `RecordingDiagnostics`, `ProcessCounts`, `FakeCrashFile` with a crash, `TestSettings` and a `ReportEnvironment` asserts the text's headings and lines in order, and `LeaveOutTheCrashHeadingWithoutACrash` asserts none. Green: `ProblemReport`, `ProblemReports.BuildAsync` (the environment is the `Started` event Vantage already records, so no `ReportEnvironment` type); `ICrashFile` gains `ReadAsync` and `RemoveAsync`. Verify the facts pass.
+- [x] 2.2 Red: `ProblemReportShould.FitWithinTheAddressLimit` builds 500 events and a crash, asserts the fitted address is at most 7,500 characters, keeps the environment, the crash and the newest failures, drops the crash file's earlier lines, then ordinary events oldest first, before exit-0 counts and failures (the crash's own line is never dropped), and ends with "n lines left out"; `KeepEverythingWhenItFits` asserts a short report is unchanged with no closing line. Green: `ProblemReport.FitWithin`. Verify the facts pass.
 
 ## 3. The issue form
 

@@ -9,6 +9,8 @@ public sealed class FakeCrashFile : ICrashFile
 
     public string? Written { get; private set; }
 
+    public bool Removed { get; private set; }
+
     public FakeCrashFile FailWith(Exception exception)
     {
         failure = exception;
@@ -23,5 +25,17 @@ public sealed class FakeCrashFile : ICrashFile
         }
 
         Written = text;
+    }
+
+    public Task<string?> ReadAsync()
+    {
+        return Task.FromResult(Written);
+    }
+
+    public Task RemoveAsync()
+    {
+        Written = null;
+        Removed = true;
+        return Task.CompletedTask;
     }
 }
