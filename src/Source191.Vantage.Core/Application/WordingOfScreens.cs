@@ -79,7 +79,6 @@ public static partial class Wording
         new("R", "Resume stopped", "resume after a reboot", Column: 1),
         new("C", "Close empty tabs", "close tabs of unused terminal sessions", Column: 1),
         new("b", Hint: null, "move a terminal session under Vantage", Column: 1),
-        new("a", "Agent view", "native agent view", Column: 1),
         new("w", "Worktrees", "worktrees view", Column: 1),
         new("/", "Filter", "filter", Column: 1),
         new("?", "Help", "help", Column: 1),

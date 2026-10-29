@@ -71,8 +71,6 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         return new ResumeResult(Continued: note is null, note ?? result.StandardOutput.Trim());
     }
 
-    public Task<int> OpenAgentViewAsync(CancellationToken cancellationToken) => processes.RunInteractiveAsync(Request(["agents"]), cancellationToken);
-
     private ProcessRequest Request(IReadOnlyList<string> arguments, string? workingDirectory = null) => new ProcessRequest(executable, arguments, workingDirectory);
 
     private static StartResult InterpretStart(ProcessResult result)

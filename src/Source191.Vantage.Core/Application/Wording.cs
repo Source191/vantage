@@ -13,8 +13,8 @@ namespace Source191.Vantage.Application;
 /// </summary>
 public static partial class Wording
 {
-    /// <summary>Printed before an attach. Attach lands on Claude's agent list when the session has no messages yet; that screen leaves with Esc, not Ctrl+Z.</summary>
-    public static string ReturnHint => "Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.";
+    /// <summary>Printed on one line before an attach and erased after it, so it must never wrap.</summary>
+    public static string ReturnHint => "Ctrl+Z returns to Vantage.";
 
     /// <summary>vantage here refuses a dash-led name that did not follow --, since it is most likely a mistyped option.</summary>
     public static string NameLooksLikeAnOption(string token) => $"{token} looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- {token}";

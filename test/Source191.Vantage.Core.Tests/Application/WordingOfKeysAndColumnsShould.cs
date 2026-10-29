@@ -10,7 +10,7 @@ public sealed class WordingOfKeysAndColumnsShould
         Wording.SessionsKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
         [
             "0 enter Attach", "0 o Open in tab", "0 n New session", "0 r Rename", "0 x Stop", "0 d Delete",
-            "1 R Resume stopped", "1 C Close empty tabs", "1 b ", "1 a Agent view", "1 w Worktrees", "1 / Filter", "1 ? Help", "1 q Quit", "0 , Settings",
+            "1 R Resume stopped", "1 C Close empty tabs", "1 b ", "1 w Worktrees", "1 / Filter", "1 ? Help", "1 q Quit", "0 , Settings",
             "2 c Copy path", "2 e Editor", "2 v Solution", "2 p Open PR", "1 U ",
         ]);
         Wording.WorktreesKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
@@ -59,12 +59,12 @@ public sealed class WordingOfKeysAndColumnsShould
             n      new session                             r      rename (restarts the session)
             x      stop                                    d      delete, and its worktree if nothing is lost
             R      resume after a reboot                   C      close tabs of unused terminal sessions
-            b      move a terminal session under Vantage   a      native agent view
-            w      worktrees view                          /      filter
-            ?      help                                    q      quit
-            ,      edit roots, worktree root and editor    c      copy the folder path
-            e      open the folder in your editor          v      open its solution
-            p      open its pull request in the browser    U      update Vantage in a new tab
+            b      move a terminal session under Vantage   w      worktrees view
+            /      filter                                  ?      help
+            q      quit                                    ,      edit roots, worktree root and editor
+            c      copy the folder path                    e      open the folder in your editor
+            v      open its solution                       p      open its pull request in the browser
+            U      update Vantage in a new tab
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one

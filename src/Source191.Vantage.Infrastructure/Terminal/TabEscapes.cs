@@ -4,14 +4,15 @@ namespace Source191.Vantage.Adapters.Terminal;
 
 /// <summary>
 /// The escape sequences a program can use to label its own Windows Terminal tab: OSC 2 for the title, OSC 4 on
-/// palette entry 264 (the tab background) for the colour, and DECAC to put the tab's colour indices back.
+/// palette entry 264 (the tab background) for the colour, and OSC 104 with DECAC to put the entry and the tab's colour indices back.
 /// Ignored by the terminal when the tab was launched with an explicit tabColor.
 /// </summary>
 public static class TabEscapes
 {
     public const string ClearTitle = "\u001b]2;\u0007";
 
-    public const string ResetBackground = "\u001b[2;263;264,|";
+    /// <summary>OSC 104 puts entry 264 back to the terminal's own colour; DECAC alone would only re-point the tab at an entry still holding Vantage's colour.</summary>
+    public const string ResetBackground = "\u001b]104;264\u001b\\\u001b[2;263;264,|";
 
     public static string Title(string title) => $"\u001b]2;{title}\u0007";
 

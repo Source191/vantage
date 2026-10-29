@@ -9,7 +9,7 @@ namespace Source191.Vantage.Application;
 /// <summary>
 /// The console session: labels Vantage's own tab, then alternates the two screens in one loop. Each screen keeps its
 /// state across switches and hand-offs, so a selection survives a trip to the other view or into an attached session.
-/// Effects that need the terminal (attach, the agent view) run here, between two screen runs. The update check starts
+/// Effects that need the terminal (attach) run here, between two screen runs. The update check starts
 /// on a pool thread before the first screen and is never awaited; a failure in it is only logged.
 /// </summary>
 public sealed class ScreenLoop(

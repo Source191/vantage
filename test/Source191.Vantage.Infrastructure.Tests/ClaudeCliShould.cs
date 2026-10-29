@@ -199,11 +199,4 @@ public sealed class ClaudeCliShould
         result.Message.ShouldBe("Session 81cdb0f9 can't start: source session not found");
     }
 
-    [Fact]
-    public async Task OpenTheNativeAgentViewInteractively()
-    {
-        await Cli.OpenAgentViewAsync(CancellationToken.None);
-
-        processes.InteractiveRequests.Single().Arguments.ShouldBe(["agents"]);
-    }
 }

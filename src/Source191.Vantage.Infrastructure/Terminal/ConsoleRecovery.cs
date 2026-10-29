@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace Source191.Vantage.Adapters.Terminal;
 
 /// <summary>
-/// Puts the terminal back into a known state after a child process (claude attach, the agent view) has owned it.
+/// Puts the terminal back into a known state after a child process (claude attach) has owned it.
 /// Claude Code leaves focus reporting on and the cursor hidden when it detaches, and its last terminal queries can
 /// be answered after it has exited, so the replies would otherwise be read by the next Terminal.Gui start-up.
 /// Everything here is idempotent and harmless when nothing needs undoing.
@@ -22,6 +22,9 @@ public static class ConsoleRecovery
         "\u001b[?1000l\u001b[?1002l\u001b[?1003l\u001b[?1006l" + // mouse reporting off
         "\u001b[?2031l" +      // colour scheme notifications off
         "\u001b[?25h";         // cursor visible
+
+    /// <summary>Moves the cursor up one line and erases it: removes a one-line message once a child has given the screen back.</summary>
+    public const string EraseLineAbove = "\u001b[1A\u001b[2K";
 
     /// <summary>How long to wait for late query replies before the input buffer is discarded.</summary>
     internal static readonly TimeSpan SettleTime = TimeSpan.FromMilliseconds(150);

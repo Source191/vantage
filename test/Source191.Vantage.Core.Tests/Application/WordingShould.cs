@@ -363,9 +363,10 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void SayHowToComeBackFromAnAttach()
+    public void ReturnHintIsOneShortLine()
     {
-        Wording.ReturnHint.ShouldBe("Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.");
+        Wording.ReturnHint.ShouldBe("Ctrl+Z returns to Vantage.");
+        Wording.ReturnHint.Length.ShouldBeLessThanOrEqualTo(40);
     }
 
     [Fact]
