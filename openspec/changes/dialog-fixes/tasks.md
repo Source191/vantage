@@ -20,8 +20,10 @@
 
 ## 4. The solution chooser (Tui)
 
-- [ ] 4.1 `ChooseSolutionDialog.Show(app, folder, files)` with a `ListView` of relative paths, Enter answering the index and Esc null, titled through `DialogTabTitle` with `DialogName.OpenSolution`; `DialogEffects.ChooseSolution` calls it. Verify `DialogEffectsShould` still passes and a headless drive on a folder seeded with `Api.sln` and `Worker.sln` shows both whole, one per line, and Esc opens nothing.
-- [ ] 4.2 Seed two solutions in the smoke repository in `check.yml` and add a `SmokeScript` step: `v` on the row opens the chooser (marker "Open solution"), Esc. Verify the smoke check passes locally and on the pull request.
+- [x] 4.1 `ChooseSolutionDialog.Show(app, folder, files)` with a `ListView` of relative paths, Enter answering the index and Esc null, titled through `DialogTabTitle` with `DialogName.OpenSolution`; `DialogEffects.ChooseSolution` calls it. Verify `DialogEffectsShould` still passes and a headless drive on a folder seeded with `Api.sln` and `Worker.sln` shows both whole, one per line, and Esc opens nothing.
+  - Recorded 29 October 2026 in the smoke capture on a throwaway worktree holding `Api.sln` and `Worker.sln`: the dialog lists both, whole, one per line, the tab reads "Vantage (Open solution)" while it is open, and Esc opens nothing. The dialog is the list's rows plus eight: with seven the dialog's own button rows left room for only the first solution.
+- [x] 4.2 Seed two solutions in the smoke repository in `check.yml` and add a `SmokeScript` step: `v` on the row opens the chooser (marker "Open solution"), Esc. Verify the smoke check passes locally and on the pull request.
+  - Recorded: the local smoke run passes all twenty steps, `v` on the seeded worktree among them; the pull request's `check` run confirms it on the runner.
 - [ ] 4.3 The product owner opens the chooser on a real two-solution folder. Verify the tab reads "Vantage (Open solution)"; if it still reads "Vantage", record whether `IsModalChanged` fires inside `app.Invoke` and fix `DialogTabTitle` for every dialog, with the finding recorded here.
 
 ## 5. Docs

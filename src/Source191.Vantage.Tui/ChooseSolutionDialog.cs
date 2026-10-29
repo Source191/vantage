@@ -18,7 +18,8 @@ internal static class ChooseSolutionDialog
         string question = Wording.ChooseSolutionQuestion(folder.Name);
         string[] paths = [.. files.Select(file => Path.GetRelativePath(folder.Value, file))];
         int width = Math.Clamp(Math.Max(paths.Max(path => path.Length), question.Length) + 6, 40, app.Screen.Width - 2);
-        int height = Math.Min(paths.Length + 7, app.Screen.Height - 2);
+        // The question, a blank row, the list, and the dialog's own border and button rows.
+        int height = Math.Min(paths.Length + 8, app.Screen.Height - 2);
         using Dialog dialog = new() { Title = Wording.ChooseSolutionTitle, Width = width, Height = height };
         dialog.SetScheme(Palette.Focusable(Palette.White));
         DialogTabTitle.Apply(app, dialog, DialogName.OpenSolution);
