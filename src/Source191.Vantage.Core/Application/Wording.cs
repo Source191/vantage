@@ -19,6 +19,13 @@ public static partial class Wording
     /// <summary>vantage here refuses a dash-led name that did not follow --, since it is most likely a mistyped option.</summary>
     public static string NameLooksLikeAnOption(string token) => $"{token} looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- {token}";
 
+    /// <summary>The console and vantage here print one of the next three and exit 1 when a program they need cannot be run.</summary>
+    public static string ClaudeNotFound => "Claude Code was not found. Install it with irm https://claude.ai/install.ps1 | iex, or put claude.exe on the PATH.";
+
+    public static string ClaudeIsABatchFile(string path) => $"Claude Code was found only as the batch file {path}, which Vantage does not run: cmd.exe would read session names and prompts as commands. Install the native build with irm https://claude.ai/install.ps1 | iex.";
+
+    public static string GitNotFound => "git was not found on the PATH. Install Git for Windows (winget install --id Git.Git --exact --source winget) and open a new terminal.";
+
     /// <summary>Where to support Vantage, printed under its description in <c>vantage --help</c>.</summary>
     public static string SupportLine => $"Buy me a sliver of a Claude Max plan: {SupportPage}";
 

@@ -770,6 +770,25 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void SayClaudeCodeWasNotFound()
+    {
+        Wording.ClaudeNotFound.ShouldBe("Claude Code was not found. Install it with irm https://claude.ai/install.ps1 | iex, or put claude.exe on the PATH.");
+    }
+
+    [Fact]
+    public void SayClaudeCodeIsOnlyABatchFileAndNameIt()
+    {
+        Wording.ClaudeIsABatchFile(@"C:\Users\me\AppData\Roaming\npm\claude.cmd")
+            .ShouldBe(@"Claude Code was found only as the batch file C:\Users\me\AppData\Roaming\npm\claude.cmd, which Vantage does not run: cmd.exe would read session names and prompts as commands. Install the native build with irm https://claude.ai/install.ps1 | iex.");
+    }
+
+    [Fact]
+    public void SayGitWasNotFound()
+    {
+        Wording.GitNotFound.ShouldBe("git was not found on the PATH. Install Git for Windows (winget install --id Git.Git --exact --source winget) and open a new terminal.");
+    }
+
+    [Fact]
     public void TitleTheWizardByWhereTheSessionStarts()
     {
         Wording.WizardTitle(Wizard()).ShouldBe("New session");

@@ -15,6 +15,7 @@ using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.Tui;
 using System.CommandLine;
 using System.Reflection;
@@ -138,13 +139,18 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     }
 }
 
+// An executable's path, or null after the sentence saying why Claude Code cannot be run: a batch file is never run.
 async Task<string?> LocateClaudeAsync()
 {
-    string? claudeExecutable = ClaudeExecutable.Locate();
-    if (claudeExecutable is null)
+    switch (ClaudeExecutable.Locate())
     {
-        await Console.Error.WriteLineAsync("Claude Code was not found. Install it or put claude on the PATH.");
+        case ClaudeLocation.Found found:
+            return found.Path;
+        case ClaudeLocation.BatchFileOnly batchFile:
+            await Console.Error.WriteLineAsync(Wording.ClaudeIsABatchFile(batchFile.Path));
+            return null;
+        default:
+            await Console.Error.WriteLineAsync(Wording.ClaudeNotFound);
+            return null;
     }
-
-    return claudeExecutable;
 }

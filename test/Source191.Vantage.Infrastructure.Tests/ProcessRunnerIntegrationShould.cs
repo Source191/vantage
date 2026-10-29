@@ -49,7 +49,7 @@ public sealed class ProcessRunnerIntegrationShould
     [Fact]
     public async Task ListTheMachineSessionsThroughTheRealClaudeCli()
     {
-        string? executable = ClaudeExecutable.Locate();
+        string? executable = ClaudeExecutable.Locate() is ClaudeLocation.Found found ? found.Path : null;
         Assert.SkipWhen(executable is null, "Claude Code is not installed on this machine.");
 
         ClaudeCli cli = new(runner, executable);
