@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Diagnostics;
 using Source191.Vantage.Adapters.Files;
@@ -10,6 +9,7 @@ using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Adapters.Terminal;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.TerminalSetup;
@@ -27,14 +27,12 @@ ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?
 string vantageExecutable = Environment.ProcessPath ?? "vantage";
 TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser(Path.Combine(AppContext.BaseDirectory, "vantage.ico"));
 
-// VANTAGE_LOG=<file> turns on a diagnostic log of Vantage's hand-offs and Terminal.Gui's internals.
-ILogger log = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
+// The diagnostic log is always kept in memory; VANTAGE_LOG=<file> also writes it to that file.
+DiagnosticLog log = new(TimeProvider.System, []);
 string? logPath = Environment.GetEnvironmentVariable("VANTAGE_LOG");
 if (!string.IsNullOrWhiteSpace(logPath))
 {
-    log = new FileLogger(logPath, TimeProvider.System);
-    Terminal.Gui.App.Logging.Logger = log;
-    log.Started(Environment.ProcessId);
+    Terminal.Gui.App.Logging.Logger = new FileLogger(logPath, TimeProvider.System);
 }
 
 // Help, version and parse errors are System.CommandLine's and need neither Claude Code nor a terminal tab.
@@ -109,7 +107,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     bool optOutOfUpdateCheck = UpdateCheckOptOut.Applies(Environment.GetEnvironmentVariable(UpdateCheckOptOut.VariableName));
     UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
     EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
-    EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home));
+    EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home), log);
     DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);
     ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(await claudeVersion);

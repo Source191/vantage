@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Logging;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -10,7 +10,7 @@ namespace Source191.Vantage.Application;
 /// The console session: labels Vantage's own tab, then alternates the two screens in one loop. Each screen keeps its
 /// state across switches and hand-offs, so a selection survives a trip to the other view or into an attached session.
 /// Effects that need the terminal (attach, the agent view) run here, between two screen runs. The update check starts
-/// on a pool thread before the first screen and is never awaited; a failure in it is only logged.
+/// on a pool thread before the first screen and is never awaited; a failure in it is only recorded in the diagnostic log, as are the view shown and each hand-off.
 /// </summary>
 public sealed class ScreenLoop(
     ISessionsScreen sessionsScreen,
@@ -19,7 +19,7 @@ public sealed class ScreenLoop(
     ITerminalConsole console,
     TerminalEffects effects,
     UpdateCheck updates,
-    ILogger log)
+    DiagnosticLog log)
 {
     /// <summary>The update check started by <see cref="RunAsync"/>, which never faults (it ends cancelled with the console's token); tests await it instead of a delay.</summary>
     public Task UpdateCheckTask { get; private set; } = Task.CompletedTask;
@@ -33,9 +33,11 @@ public sealed class ScreenLoop(
         SessionsViewState sessions = SessionsViewState.Empty;
         WorktreesViewState worktrees = WorktreesViewState.Empty;
         bool showingWorktrees = false;
+        ViewKind? shown = null;
 
         while (true)
         {
+            shown = Show(showingWorktrees ? ViewKind.Worktrees : ViewKind.Sessions, shown);
             ViewEffect? effect;
             if (showingWorktrees)
             {
@@ -80,20 +82,27 @@ public sealed class ScreenLoop(
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            log.UpdateCheckFailed(exception);
+            log.Record(new Failed(FailureSite.UpdateCheck, CodeName.For(typeof(UpdateCheck)), ExceptionSummary.From(exception)));
         }
     }
 
     private async Task HandOverAsync(ViewEffect effect, TabColour? ownColour, CancellationToken cancellationToken)
     {
-        if (log.IsEnabled(LogLevel.Information))
-        {
-            log.HandingOver(effect.ToString() ?? string.Empty);
-        }
-
+        log.Record(new HandingOver(CodeName.For(effect.GetType())));
         await effects.RunAsync(effect, cancellationToken);
-        log.ChildReturned();
+        log.Record(new ChildReturned());
         console.RecoverAfterChild();
         console.ShowOwnTab(ownColour);
+    }
+
+    /// <summary>Records the view about to run when it differs from the last one shown, so a re-run after a hand-off is not recorded.</summary>
+    private ViewKind Show(ViewKind view, ViewKind? shown)
+    {
+        if (view != shown)
+        {
+            log.Record(new ViewShown(view));
+        }
+
+        return view;
     }
 }
