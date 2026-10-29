@@ -22,6 +22,16 @@ public sealed class RecordedProcessRunnerShould
     }
 
     [Fact]
+    public async Task CountARunOfFiveSecondsWithoutALine()
+    {
+        RecordedProcessRunner runner = Runner(TimeSpan.FromSeconds(5));
+
+        await runner.RunAsync(Agents, CancellationToken.None);
+
+        log.Snapshot().ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task CountAFastRunWithoutALine()
     {
         RecordedProcessRunner runner = Runner(TimeSpan.FromMilliseconds(41));
@@ -36,11 +46,11 @@ public sealed class RecordedProcessRunnerShould
     [Fact]
     public async Task RecordASlowRun()
     {
-        RecordedProcessRunner runner = Runner(TimeSpan.FromMilliseconds(3200));
+        RecordedProcessRunner runner = Runner(TimeSpan.FromMilliseconds(6200));
 
         await runner.RunAsync(Agents, CancellationToken.None);
 
-        log.Snapshot().Select(timed => timed.Event).ShouldBe([new ProcessSlow(ChildCommand.For(Agents), 0, TimeSpan.FromMilliseconds(3200))]);
+        log.Snapshot().Select(timed => timed.Event).ShouldBe([new ProcessSlow(ChildCommand.For(Agents), 0, TimeSpan.FromMilliseconds(6200))]);
     }
 
     [Fact]

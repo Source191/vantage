@@ -8,7 +8,8 @@ namespace Source191.Vantage.Application.Diagnostics;
 /// </summary>
 public sealed class RecordedProcessRunner(IProcessRunner inner, DiagnosticLog log, ProcessCounts counts, TimeProvider clock) : IProcessRunner
 {
-    private static readonly TimeSpan Slow = TimeSpan.FromSeconds(2);
+    // Above the sessions refresh interval: claude agents can take two seconds on every refresh, which is not news.
+    private static readonly TimeSpan Slow = TimeSpan.FromSeconds(5);
 
     public async Task<ProcessResult> RunAsync(ProcessRequest request, CancellationToken cancellationToken)
     {

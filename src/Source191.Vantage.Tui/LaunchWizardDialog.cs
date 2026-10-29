@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -18,7 +19,7 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 internal static class LaunchWizardDialog
 {
-    public static WizardResult? Show(IApplication app, RepositoryCatalogue catalogue, IRecentRepositories recentRepositories, IFolders folders, Settings settings, FolderPath? fixedDirectory = null)
+    public static WizardResult? Show(IApplication app, DiagnosticLog log, RepositoryCatalogue catalogue, IRecentRepositories recentRepositories, IFolders folders, Settings settings, FolderPath? fixedDirectory = null)
     {
         // Read once, on a pool thread: Terminal.Gui installs a synchronisation context while it runs, so awaiting
         // on the UI thread and then blocking for the result would deadlock (it did, after every attach-and-return).
@@ -30,7 +31,7 @@ internal static class LaunchWizardDialog
         WizardControls controls = new(state);
         using Dialog dialog = new() { Title = Wording.WizardTitle(state), Width = Dim.Percent(90), Height = Dim.Percent(90) };
         dialog.SetScheme(Palette.Focusable(Palette.White));
-        DialogTabTitle.Apply(app, dialog, DialogName.NewSession);
+        DialogTabTitle.Apply(app, log, dialog, DialogName.NewSession);
         dialog.Add(controls.All);
 
         void Apply(WizardInput input)

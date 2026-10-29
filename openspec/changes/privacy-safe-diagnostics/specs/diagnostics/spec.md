@@ -37,15 +37,15 @@ Vantage SHALL record a diagnostic event when it starts (its version, the Claude 
 - **THEN** the log gains no line for those refreshes
 
 ### Requirement: Child programs are counted
-Vantage SHALL count every child program it runs by program (git, claude, gh, az, pwsh, wt, vswhere, dotnet, or another program), its subcommand when the leading arguments are words on Vantage's fixed list for that program, and its exit code, keeping the number of runs and the longest duration. A run that fails to start or takes longer than 2 seconds SHALL also be recorded as a line. The counts SHALL be part of the crash file and SHALL be written to the `VANTAGE_LOG` file when Vantage exits.
+Vantage SHALL count every child program it runs by program (git, claude, gh, az, pwsh, wt, vswhere, dotnet, or another program), its subcommand when the leading arguments are words on Vantage's fixed list for that program, and its exit code, keeping the number of runs and the longest duration. A run that fails to start or takes longer than 5 seconds SHALL also be recorded as a line. The counts SHALL be part of the crash file and SHALL be written to the `VANTAGE_LOG` file when Vantage exits.
 
 #### Scenario: Worktree lists are read
 - **WHEN** a scan runs `git worktree list --porcelain` in three repositories and each exits 0
 - **THEN** the counts hold git `worktree list` exit 0 three times with the longest duration in milliseconds, and the log gains no line for them
 
 #### Scenario: A slow child
-- **WHEN** `claude agents --json` takes 3.2 seconds
-- **THEN** the log has a line naming claude, `agents`, exit code 0 and 3200 ms
+- **WHEN** `claude agents --json` takes 6.2 seconds
+- **THEN** the log has a line naming claude, `agents`, exit code 0 and 6200 ms
 
 #### Scenario: A program Vantage has no word for
 - **WHEN** Vantage runs C:\Users\me\tools\MyTool.exe with the argument C:\Users\me\source\repos\Northwind.Orders

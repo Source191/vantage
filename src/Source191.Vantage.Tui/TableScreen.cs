@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Terminal.Gui.App;
@@ -79,6 +80,8 @@ internal sealed class TableScreen<TState, TRow>(
     {
         public IApplication App => app;
 
+        public DiagnosticLog Diagnostics => screen.context.Diagnostics;
+
         public string HelpText => screen.definition.HelpText;
 
         public TState State { get; private set; } = initial;
@@ -89,15 +92,7 @@ internal sealed class TableScreen<TState, TRow>(
         {
             Task.Run(async () =>
             {
-                ViewInput input;
-                try
-                {
-                    input = await screen.load(CancellationToken.None);
-                }
-                catch (Exception exception)
-                {
-                    input = new LoadFailed(exception.Message);
-                }
+                ViewInput input = await Attempt.RunAsync(Diagnostics, FailureSite.Load, CodeName.For(typeof(TState)), () => screen.load(CancellationToken.None), exception => new LoadFailed(exception.Message));
 
                 app.Invoke(() => Apply(input));
             });
@@ -132,21 +127,22 @@ internal sealed class TableScreen<TState, TRow>(
             live.ShowBusy(true);
             Task.Run(async () =>
             {
-                T? result = default;
-                Footer? failure = null;
-                try
-                {
-                    result = await action(CancellationToken.None);
-                }
-                catch (Exception exception)
-                {
-                    failure = new Footer.Failed(exception.Message);
-                }
+                // The continuation is built here but run on the UI thread, where onUiThread must run.
+                Func<Footer> settle = await Attempt.RunAsync<Func<Footer>>(
+                    Diagnostics,
+                    FailureSite.Effect,
+                    Attempt.What(working),
+                    async () =>
+                    {
+                        T result = await action(CancellationToken.None);
+                        return () => onUiThread(result);
+                    },
+                    exception => () => new Footer.Failed(exception.Message));
 
                 app.Invoke(() =>
                 {
                     live.ShowBusy(false);
-                    State = screen.definition.WithFooter(State, failure ?? onUiThread(result!));
+                    State = screen.definition.WithFooter(State, settle());
                     Redraw();
                     TriggerLoad();
                 });
