@@ -47,6 +47,29 @@ public sealed class WorktreeInventoryShould : IDisposable
         remotes.CapturedRequests.ShouldAllBe(request => request.WorkingDirectory == repository);
     }
 
+    [Fact]
+    public async Task LookUpOnlyTheBranchesWithRows()
+    {
+        string orders = await root.CreateRepositoryAsync("Northwind.Orders");
+        string billing = await root.CreateRepositoryAsync("Northwind.Billing");
+        foreach (string idle in new[] { "Northwind.Sales", "Northwind.Shipping", "Northwind.Catalogue" })
+        {
+            await root.CreateRepositoryAsync(idle);
+        }
+
+        await root.AddSiblingWorktreeAsync(orders, "fix-1");
+        await root.AddSiblingWorktreeAsync(billing, "fix-2");
+
+        await Inventory.ScanAsync([], TestContext.Current.CancellationToken);
+        while (hosts.Requests.Count < 2)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        hosts.Requests.Select(request => request.Branch.Value).ShouldBe(["fix-1", "fix-2"], ignoreOrder: true);
+    }
+
     /// <summary>Plain claude running in the folder, or a stopped job there when it has no process.</summary>
     private static Session SessionIn(string directory, string name, int? processId)
     {
