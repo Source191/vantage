@@ -1,6 +1,6 @@
 # Source191.Vantage
 
-The packed tool: `Program.cs` and the package settings. The user guide is the repository's [README](../../README.md), which is also the package readme on nuget.org.
+The packed tool: `Program.cs`, the only composition root, wires Core, Infrastructure and Tui together, and packing includes those three projects. The user guide is the repository's [README](../../README.md), which is also the package readme on nuget.org; `THIRD-PARTY-NOTICES.txt` travels beside the tool, as the licences of the packed dependencies ask.
 
 ## Package settings
 

@@ -1,28 +1,15 @@
 <Project>
 
-	<!--
-		Static analysis is done at build time by the .NET analysers plus SonarAnalyzer.CSharp.
-		Configuration lives here so no project can opt out, and every warning fails the build.
-	-->
 	<PropertyGroup>
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisLevel>10.0-recommended</AnalysisLevel>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<!--
-			CS8524 is off so that a switch expression naming every member of an enum is exhaustive without a discard arm.
-			Enums in this solution hold only their named members (none is parsed from an integer), so dropping the arm
-			costs nothing and a new member then fails the build with CS8509 at every switch that has to learn about it.
-		-->
 		<NoWarn>$(NoWarn);CS1591;CS8524</NoWarn>
 		<LangVersion>latest</LangVersion>
 		<ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
 	</PropertyGroup>
 
-	<!--
-		Warnings fail the build everywhere, including NuGet audit: a known vulnerability in a direct or transitive package
-		(NU1901 to NU1904) and vulnerability data that could not be fetched (NU1900).
-	-->
 	<PropertyGroup>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	</PropertyGroup>
