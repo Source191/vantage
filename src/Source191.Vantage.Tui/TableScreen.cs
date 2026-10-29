@@ -357,7 +357,7 @@ internal sealed class TableScreen<TState, TRow>(
         {
             foreach (IGrouping<int, KeyHelp> column in definition.Keys.Where(key => key.Hint is not null).GroupBy(key => key.Column))
             {
-                (int keyX, int keyWidth, int hintX, int hintWidth) = KeyHintColumns.Layout[column.Key];
+                (int keyX, int keyWidth, int hintX, int hintWidth, int _) = KeyHintColumns.Layout[column.Key];
                 int row = 0;
                 foreach (KeyHelp key in column)
                 {
