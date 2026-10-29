@@ -9,7 +9,7 @@
 ## 2. The callers (Application)
 
 - [x] 2.1 Red: `WorktreeInventoryShould.LookUpOnlyTheBranchesWithRows` scans a root holding five repositories of which two have worktrees and asserts the fake host was asked for those two repositories' branches only, and nothing for a leftover row. Green: `WorktreeInventory` passes each registered row's repository and branch to `RefreshStaleAsync`. Verify the Core suite passes.
-- [ ] 2.2 Red: `SessionRowEnricherShould.LookUpEachRowsBranch` asserts a session with a branch asks for that branch and a session with none asks for nothing. Green: the enricher passes checkout and branch pairs. Verify the Core suite passes.
+- [x] 2.2 Red: `SessionRowEnricherShould.LookUpEachRowsBranch` asserts a session with a branch asks for that branch and a session with none asks for nothing. Green: the enricher passes checkout and branch pairs. Verify the Core suite passes.
 
 ## 3. The hosts (Infrastructure)
 
