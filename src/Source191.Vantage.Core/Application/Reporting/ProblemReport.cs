@@ -13,6 +13,9 @@ public sealed class ProblemReport
     /// <summary>Under GitHub's limit of about 8 KB, and under what Windows can pass to the browser once Desktop has encoded it.</summary>
     public const int AddressLimit = 7500;
 
+    /// <summary>A title as long as one can be, of the ASCII character that escapes longest.</summary>
+    private static readonly ReportTitle LongestTitle = ReportTitle.From(new string('%', ReportTitle.MostCharacters));
+
     private readonly IReadOnlyList<ReportLine> lines;
 
     internal ProblemReport(IReadOnlyList<ReportLine> lines, bool hasCrash)
@@ -24,6 +27,12 @@ public sealed class ProblemReport
     public bool HasCrash { get; }
 
     public string Text => Join(lines);
+
+    /// <summary>
+    /// The text the dialog previews and the page is filled in with: fitted with room for the longest title, so it does not
+    /// change as the title is typed. Only a long title of characters outside ASCII can need more room.
+    /// </summary>
+    public string Fitted => FitWithin(LongestTitle, AddressLimit);
 
     /// <summary>The text with lines left out, in order, until the address for this title is at most <paramref name="limit"/> characters.</summary>
     public string FitWithin(ReportTitle title, int limit)

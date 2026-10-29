@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Diagnostics;
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Reporting;
@@ -15,6 +16,9 @@ public sealed class ProblemReports(DiagnosticLog log, ProcessCounts counts, ICra
     private const int ExitZeroBand = 200_000;
     private const int FailureBand = 300_000;
     private const string CrashMarker = " failed Crash: ";
+
+    /// <summary>The title a report takes when its title box is left blank.</summary>
+    public ReportTitle DefaultTitle => ReportTitle.From(Wording.DefaultReportTitle(start.Vantage));
 
     public async Task<ProblemReport> BuildAsync()
     {

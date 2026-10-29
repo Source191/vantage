@@ -80,6 +80,20 @@ public sealed class ProblemReportShould
         fitted.ShouldEndWith("\n(2 lines left out to fit the page address)");
     }
 
+    [Fact]
+    public async Task FitTheTextThePreviewShowsWithRoomForTheLongestTitle()
+    {
+        foreach (int index in Enumerable.Range(0, 500))
+        {
+            log.Record(new ViewShown(ViewKind.Sessions));
+        }
+
+        ProblemReport report = await Reports().BuildAsync();
+
+        ProblemReportAddress.Length(ReportTitle.From(new string('%', ReportTitle.MostCharacters)), report.Fitted).ShouldBeLessThanOrEqualTo(ProblemReport.AddressLimit);
+        ProblemReportAddress.Length(Title, report.Fitted).ShouldBeLessThan(ProblemReport.AddressLimit);
+    }
+
     private ProblemReports Reports()
     {
         return new ProblemReports(log, counts, crashFile, Start, TestSettings.Current(@"C:\Users\me\source\repos"));

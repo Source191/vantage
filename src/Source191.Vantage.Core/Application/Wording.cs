@@ -208,6 +208,9 @@ public static partial class Wording
             OpenPullRequest open => $"Opening {PullRequestNumber(open.PullRequest.Host, open.PullRequest.Number)}...",
             SaveSettings => "Saving settings...",
             StartUpdate update => $"Opening a tab to update to {update.Newest}...",
+            ShowProblemReport => "Gathering the diagnostics...",
+            OpenProblemReport => "Opening the problem report in your browser...",
+            CopyProblemReport => "Copying the problem report...",
             _ => "Working...",
         };
     }
