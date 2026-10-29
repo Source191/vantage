@@ -41,7 +41,7 @@
 ## 8. Words and docs
 
 - [x] 8.1 Red: `WordingOfOutcomesShould` facts for the stop, rename, adopt and delete outcomes with and without a tab, and for the in-use outcomes of both views. Green: the sentences in `WordingOfOutcomes`. Verify the reflection fact that every outcome has words passes.
-- [ ] 8.2 README: the TAB column, "Open in its own tab", detach, rename, stop, delete, adopt and the worktrees view's remove say what happens to the tab and to a folder in use; CLAUDE.md's Windows Terminal and CLI facts record attach's exit codes and that the tab ends with the attach. Verify by reading each passage against the spec deltas.
+- [x] 8.2 README: the TAB column, "Open in its own tab", detach, rename, stop, delete, adopt and the worktrees view's remove say what happens to the tab and to a folder in use; CLAUDE.md's Windows Terminal and CLI facts record attach's exit codes and that the tab ends with the attach. Verify by reading each passage against the spec deltas.
 
 ## 9. Version and checks
 
