@@ -13,7 +13,7 @@
     <Version>0.17.0-preview.3</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>Simon Vane</Authors>
-    <Description>A terminal console for Claude Code sessions and git worktrees on Windows.</Description>
+    <Description>Mission control for Claude Code sessions: every session in one tab, still there after a reboot.</Description>
     <Copyright>Copyright 2026 Simon Vane</Copyright>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>

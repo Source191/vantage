@@ -2,8 +2,8 @@
 
 ## 1. The tool
 
-- [ ] 1.1 Red: `CommandLineShould.DescribeVantageAsMissionControl` runs `--help` and expects the new tagline; green: the root description in `CommandLine.Build` becomes the tagline; verify with the Core test run
-- [ ] 1.2 Set the csproj `Description` to the tagline and verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` pass
+- [x] 1.1 Red: `CommandLineShould.DescribeVantageAsMissionControl` runs `--help` and expects the new tagline; green: the root description in `CommandLine.Build` becomes the tagline; verify with the Core test run
+- [x] 1.2 Set the csproj `Description` to the tagline and verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` pass
 
 ## 2. Header and README
 
