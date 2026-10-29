@@ -23,7 +23,7 @@ Vantage SHALL ask nuget.org for the published versions of its package at most on
 
 #### Scenario: The check fails unexpectedly
 - **WHEN** anything inside the check fails, such as the record that cannot be written
-- **THEN** the console keeps running and shows no update notice, the failure is written only to the diagnostic log (when `VANTAGE_LOG` turns it on), and the next start tries again
+- **THEN** the console keeps running and shows no update notice, the failure is recorded only in the diagnostic log (as an exception summary, also written to the `VANTAGE_LOG` file when that is set), and the next start tries again
 
 ### Requirement: The check can be turned off
 The user configuration SHALL have a `checkForUpdates` setting, true when absent, editable in the settings dialog. When it is false Vantage SHALL make no update request and show no notice.
