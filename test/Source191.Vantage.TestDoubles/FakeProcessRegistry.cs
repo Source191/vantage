@@ -59,9 +59,13 @@ public sealed class FakeProcessRegistry : IProcessRegistry
         return new ProcessParent(entry.ParentId, parent.Name);
     }
 
+    /// <summary>Called as each process is ended cleanly, so a test can put it in order with other fakes' records.</summary>
+    public Action<int> OnEndCleanly { get; set; } = _ => { };
+
     public void EndCleanly(int processId)
     {
         EndedCleanly.Add(processId);
+        OnEndCleanly(processId);
         running.Remove(processId);
     }
 

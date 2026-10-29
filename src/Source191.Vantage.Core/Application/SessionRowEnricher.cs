@@ -22,7 +22,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         IReadOnlyList<ProcessFacts> processTable = processes.Snapshot();
 
         List<SessionRow> rows = [];
-        List<FolderPath> checkouts = [];
+        List<(FolderPath Checkout, BranchName Branch)> branches = [];
         foreach (Session session in sessions)
         {
             Location location = await LocateAsync(session.WorkingDirectory, cancellationToken);
@@ -36,11 +36,11 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
                 Memory = MemoryOf(session, processTable),
             };
             rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, location.Branch) });
-            checkouts.AddRange(location.Checkout is null ? [] : [location.Checkout]);
+            branches.AddRange(location is { Checkout: FolderPath checkout, Branch: BranchName branch } ? [(checkout, branch)] : []);
         }
 
         // Never awaited: the rows show what the catalogue already holds, and a later refresh picks up what lands.
-        _ = pullRequests.RefreshStaleAsync(checkouts);
+        _ = pullRequests.RefreshStaleAsync(branches);
 
         return rows;
     }

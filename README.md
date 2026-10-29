@@ -4,7 +4,16 @@
 
 [![Buy me a sliver of a Claude Max plan](https://img.shields.io/badge/Buy_me_a_sliver_of_a-Claude_Max_plan-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/simonvane)
 
-Vantage is mission control for Claude Code on Windows. Every session on the machine sits in one Windows Terminal tab, with its state, repository, branch and pull request, so you no longer have to remember which tab is doing what or which one is waiting for you. Start a session in a fresh git worktree, attach to any session from the list, or open it in its own tab, named after the session and coloured so you can tell it apart at a glance; the terminal bell tells you when one needs you. Sessions run under Claude Code's own background supervisor, so they keep working when no terminal shows them, and they are still listed after you close the terminal or reboot, ready to resume with one key. When the work is done, one key deletes a session and removes its worktree too, unless that would lose uncommitted or unpushed work.
+Vantage is mission control for Claude Code on Windows: one Windows Terminal tab that shows every session on the machine, so you no longer have to remember which tab is doing what or which one is waiting for you.
+
+- **See every session at once:** each one is listed with its state, repository, branch and pull request.
+- **Start in a fresh worktree:** a new session gets its own git worktree, so sessions never trip over each other's changes.
+- **Attach, or open a tab:** attach to any session from the list, or open it in its own tab, named after the session and coloured so you can tell it apart at a glance.
+- **Hear when one needs you:** the terminal bell rings when a session finishes or pauses for you.
+- **Keep working when the terminal closes:** sessions run under Claude Code's own background supervisor, so they carry on when no terminal shows them and are still listed after a reboot, ready to resume with one key.
+- **Tidy up with one key:** when the work is done, delete a session and its worktree together, unless that would lose uncommitted or unpushed work.
+
+I built Vantage because I wanted a tool that worked the way I work. Before starting it I tried [Orca](https://github.com/stablyai/orca) and [Kepler](https://gitkraken.com/kepler), and there is a lot I like about both of them. But I live in the terminal and I want to stay in the terminal, and both of them also do a great deal that I was not interested in. Perhaps my mind will change over time; for now I wanted something that fits how I use Claude Code and nothing more. By all means try the others, but give Vantage a go too 😊
 
 > **To do:** add a screenshot of the sessions view here before the repository is made public.
 
@@ -110,7 +119,7 @@ New shells pick up `~\.dotnet\tools` on the PATH; a shell that was open before t
 
 Open a tab and run `vantage` (or `v`). The screen has three parts:
 
-- **Header:** Vantage's version, the Claude Code version (`unknown` when `claude --version` cannot be read, and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports), the repository roots being scanned, counts of sessions by state, and the key hints. A local install shows its prerelease label without the build timestamp (`0.6.0-local`). Rest the mouse on a key hint to see what the key does.
+- **Header:** Vantage's version, the Claude Code version (`unknown` when `claude --version` cannot be read, and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports), the repository roots being scanned, counts of sessions by state, and the key hints. A local install shows its prerelease label without the build timestamp (`0.6.0-local`). Rest the mouse on a key hint, or on its words, to see what the key does and when to use it; the tooltip is black on amber.
 - **Table:** one row per session, titled with what it counts and which row is selected: `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set. The selection bar is cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears below the table.
 - **Footer:** the current view as a crumb, then the last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside it while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
 
@@ -133,22 +142,25 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | BRANCH | The branch checked out there |
 | PR | The branch's pull request: `#123 open` on GitHub (open, draft, merged, closed), `!123 active` on Azure DevOps (active, draft, completed, abandoned); an open one wins, else the most recent. Blank when there is none or it cannot be looked up; `p` says why. See [Pull requests](#pull-requests) |
 | AGE | Time since the session started |
-| TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session |
+| TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session (the tab closes when its attach ends, so `open` clears with it) |
 | MEM | The memory the session's process and everything it started are using now: the private working set, the figure Task Manager's Memory column shows, so pages shared between the MCP servers' node processes count once and pages Windows has paged out do not count. `-` for a stopped session |
+
+NAME, REPOSITORY, FOLDER and BRANCH are cut at 28 characters with an ellipsis, so one long name cannot push the other columns off screen; Left and Right scroll the table to them, and the title, the filter and every key still use the full value.
 
 Keys (every key is dispatched by the tested reducer, so this table is the reference):
 
 | Key | Action |
 | --- | --- |
 | Up, Down | Move the selection bar |
+| Left, Right | Scroll the table sideways, one column at a time, when its columns do not all fit |
 | Enter | Attach to the selected background session in this tab; Ctrl+Z returns |
 | o | Open the session in its own coloured Windows Terminal tab; when one is already open for it, switch to that tab |
 | n | New session wizard |
-| r | Rename the session from Vantage: type the new name, Enter. The session restarts under the new name with the same id and conversation, so it is refused while the session is working or before its first message |
-| x | Stop the session (it stays listed and can be resumed) |
-| d | Delete the session, after a confirmation, and the worktree Vantage created for it when nothing in it would be lost; asks before deleting that worktree's branch when it is not merged. On a `terminal` row that has never been sent a message, closes that tab instead |
+| r | Rename the session from Vantage: type the new name, Enter. The session restarts under the new name with the same id and conversation, so it is refused while the session is working or before its first message. A Vantage tab showing it closes and a tab under the new name opens in the same colour |
+| x | Stop the session (it stays listed and can be resumed); a Vantage tab showing it closes |
+| d | Delete the session, after a confirmation, closing a Vantage tab showing it first, and the worktree Vantage created for it when nothing in it would be lost; asks before deleting that worktree's branch when it is not merged. A worktree whose `.git` has gone has its folder deleted and its registration pruned; one whose folder a tab or program still has open is reported as in use, by name, and a remove from the worktrees view finishes it once that is closed. On a `terminal` row that has never been sent a message, closes that tab instead |
 | C | Close every tab whose plain `claude` has never been sent a message, after a confirmation naming them |
-| b | Move a plain terminal session under Vantage's supervision (its tab becomes an ordinary shell) |
+| b | Move a plain terminal session under Vantage's supervision; its old tab closes once the session has resumed (a failed resume leaves it at its prompt) |
 | R | Resume sessions that stopped with a reboot |
 | c | Copy the selected row's full folder path to the clipboard |
 | e | Open the folder in your editor (VS Code unless you chose another in [Settings](#settings)); works on terminal and stopped sessions too |
@@ -159,7 +171,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | w | Switch to the worktrees view |
 | / | Filter by name, repository or branch; Enter keeps the filter, Esc clears it |
-| ? | Help |
+| ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
 | q | Quit |
 
 Rows marked `terminal` are sessions started by hand with `claude` in some tab. Vantage can see them but cannot attach to or stop them; press `b` to bring one under supervision, or type `/bg` inside it. One that has never been sent a message has nothing to keep: `d` closes its tab, `C` closes all such tabs, and the footer says so. Vantage ends the claude process, then ends the tab's shell with a clean exit code, which is what makes Windows Terminal close the tab; a session not inside a Windows Terminal tab is just ended.
@@ -185,7 +197,7 @@ Enter never starts a session, so there is nothing to undo if you press it too so
 
 **Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. A session that has never had a message opens at its own prompt, and Ctrl+Z returns from it in the same way. Vantage prints a one-line reminder before every attach and erases it when you come back, so the scrollback keeps no copies.
 
-**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows `open`. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); close the tab (or detach in it) and the column clears within a few seconds.
+**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows `open`. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the column clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
 
 ## The worktrees view
 
@@ -214,11 +226,11 @@ Press `w`. Vantage lists every linked worktree of the repositories under your ro
 | SESSION | The session running inside it, if any |
 | HEALTH | `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it) |
 
-When nothing else needs saying, the footer explains the selected row's health in full.
+When nothing else needs saying, the footer explains the selected row's health in full. Long repository, folder and branch names are cut with an ellipsis as in the sessions view, and Left and Right scroll the table.
 
 | Key | Action |
 | --- | --- |
-| d | Remove the worktree, or delete a leftover folder. Refused, with the reason, when it has changed files, unpushed commits, a lock or a live session. A broken leftover also has its stale registration pruned from the repository. Junctions and links inside a leftover (pnpm's `node_modules`, for one) are removed as links and never followed, so nothing outside the folder is touched. A leftover's files are counted up to 1,000, so a large one is refused as "at least 1000 files" |
+| d | Remove the worktree, or delete a leftover folder. Refused, with the reason, when it has changed files, unpushed commits, a lock or a live session. A broken leftover also has its stale registration pruned from the repository. A folder a tab or program still has open is reported as in use, by name; what git could delete is gone, and a second `d` once it is closed finishes the job. Junctions and links inside a leftover (pnpm's `node_modules`, for one) are removed as links and never followed, so nothing outside the folder is touched. A leftover's files are counted up to 1,000, so a large one is refused as "at least 1000 files" |
 | D | Force removal: the folder name opens selected in a read-only box, so Ctrl+C copies it (F2 also copies, from anywhere in the dialog); Tab or Enter moves to the answer box, Ctrl+V pastes, Enter confirms. There is no Remove button; a wrong or empty answer keeps the dialog open and says what was typed, and Esc cancels. Never forces a locked worktree or one with a live session |
 | P | Prune stale registrations in the row's repository (`p` before 0.11.0) |
 | p | Open the row's pull request in your default browser, as in the sessions view |
@@ -226,6 +238,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | o | Open a plain PowerShell tab in the worktree |
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
 | w, Esc | Back to the sessions view (Esc clears a filter first) |
+| Left, Right | Scroll the table sideways, as in the sessions view |
 | / | Filter by repository, folder, branch or health |
 | c, e, v | Copy the folder path, open the folder in your editor, open its solution, as in the sessions view; refused for a leftover whose folder is gone |
 | , | Settings, as in the sessions view |
@@ -238,8 +251,9 @@ Branches: when a removed worktree's branch was created by Vantage and is merged,
 The PR column in both views shows the pull request for each row's branch, read from the repository's `origin` remote: a `github.com` remote is asked through the GitHub CLI, an Azure DevOps remote (`dev.azure.com`, `*.visualstudio.com`, HTTPS or SSH) through the Azure CLI. Any other host leaves the column blank.
 
 - **Signing in:** run `gh auth login` once for GitHub; for Azure DevOps install the Azure CLI, run `az extension add --name azure-devops` and `az login`. Vantage never signs in for you and stores no credential.
-- **Refreshing:** each repository is listed in one call (its latest 100 pull requests) at most once every three minutes, in the background; the rows never wait for it, so the column fills on the refresh after the answer lands.
+- **Refreshing:** each row's branch is looked up on its own (`gh pr list --head`, `az repos pr list --source-branch`, twenty pull requests at most), only for rows on screen, never for every repository under the roots. An answer is kept for a minute, so a change shows within about 75 seconds; a signed-out or missing CLI is asked again only after three minutes. At most four lookups run at once, and the rows never wait for them: the column fills on the refresh after an answer lands. Each lookup is one short `gh` or `az` process returning a few kilobytes.
 - **Which one:** a branch with an open (or draft, or active) pull request shows that one; otherwise its most recent.
+- **Links:** an Azure DevOps pull request opens at `https://dev.azure.com/<organisation>/<project>/_git/<repository>/pullrequest/<number>`, built from the `origin` remote.
 
 ## vantage here
 

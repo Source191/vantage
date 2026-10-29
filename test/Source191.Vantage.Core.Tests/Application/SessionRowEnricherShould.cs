@@ -8,7 +8,7 @@ using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application;
 
-public sealed class SessionRowEnricherShould
+public sealed class SessionRowEnricherShould : IDisposable
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
@@ -40,13 +40,29 @@ public sealed class SessionRowEnricherShould
         SessionRowEnricher enricher = Enricher;
 
         SessionRow first = (await enricher.EnrichAsync([session], CancellationToken.None)).Single();
-        await catalogue.RefreshStaleAsync([FolderPath.From(@"C:\repos\Northwind.Orders")]);
+        await catalogue.RefreshStaleAsync([(FolderPath.From(@"C:\repos\Northwind.Orders"), BranchName.From("fix"))]);
         SessionRow second = (await enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         first.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
         second.PullRequest.ShouldBe(new PullRequestLookup.Found(open));
         hosts.Calls.Count.ShouldBe(1);
         remotes.CapturedRequests.Single().WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
+    }
+
+    [Fact]
+    public async Task LookUpEachRowsBranch()
+    {
+        AnswerGit(@"C:\repos\Northwind.Orders-fix", root: "C:/repos/Northwind.Orders-fix", commonDir: "C:/repos/Northwind.Orders/.git", branch: "fix");
+        AnswerGit(@"C:\repos\Northwind.Orders-spike", root: "C:/repos/Northwind.Orders-spike", commonDir: "C:/repos/Northwind.Orders/.git", branch: string.Empty);
+
+        await Enricher.EnrichAsync([Session(@"C:\repos\Northwind.Orders-fix"), Session(@"C:\repos\Northwind.Orders-spike")], CancellationToken.None);
+        while (hosts.Requests.Count < 1)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        hosts.Requests.Select(request => request.Branch.Value).ShouldBe(["fix"], "a detached head has no branch to look up");
     }
 
     [Fact]
@@ -220,5 +236,10 @@ public sealed class SessionRowEnricherShould
     private static BackgroundSession Session(string workingDirectory)
     {
         return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From("81cdb0f9"), "name", FolderPath.From(workingDirectory), Noon, DisplayState.Working);
+    }
+
+    public void Dispose()
+    {
+        catalogue.Dispose();
     }
 }

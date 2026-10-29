@@ -71,10 +71,11 @@ public sealed class WordingOfKeysAndColumnsShould
             STATE       needs input (amber), working (cyan), idle (white),
                         completed (green), failed (red), stopped (grey)
             REPOSITORY  the repository the session runs in
-            FOLDER      where it runs, relative to the repository or worktree root that holds it, else ~\ from your home folder, else in full
+            FOLDER      where it runs, relative to the repository or worktree root that holds it,
+                        else ~\ from your home folder, else in full
             BRANCH      the branch checked out there
-            PR          its pull request: #123 on GitHub (open, draft, merged, closed), !123 on Azure DevOps
-                        (active, draft, completed, abandoned); blank when there is none or it is still being looked up
+            PR          its pull request: #123 on GitHub (open, draft, merged, closed),
+                        !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
             AGE         time since the session started
             TAB         terminal for a plain claude started in its own tab, open while a Vantage tab shows it
             MEM         private working set of the session's process and everything it started; - when it has no process
@@ -102,8 +103,8 @@ public sealed class WordingOfKeysAndColumnsShould
             REPOSITORY   the repository that owns the worktree
             FOLDER       the worktree's folder, relative to the root that holds it
             BRANCH       the branch checked out there
-            PR           its pull request: #123 on GitHub (open, draft, merged, closed), !123 on Azure DevOps
-                         (active, draft, completed, abandoned); blank when there is none or it is still being looked up
+            PR           its pull request: #123 on GitHub (open, draft, merged, closed),
+                         !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
             DIRTY        changed or untracked files
             UNPUSHED     commits on its branch that no remote has
             LAST COMMIT  time since the last commit

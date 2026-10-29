@@ -28,6 +28,16 @@ internal static class KeyMapping
             return Key.Down;
         }
 
+        if (key == GuiKey.CursorLeft)
+        {
+            return Key.Left;
+        }
+
+        if (key == GuiKey.CursorRight)
+        {
+            return Key.Right;
+        }
+
         if (key == GuiKey.Backspace)
         {
             return Key.Backspace;

@@ -8,7 +8,7 @@ using Source191.Vantage.TestDoubles;
 namespace Source191.Vantage.Core.Tests.Application;
 
 /// <summary>The leftover cases over an in-memory folder tree; the registered-worktree cases run against real git in WorktreeInventoryShould.</summary>
-public sealed class WorktreeInventoryLeftoversShould
+public sealed class WorktreeInventoryLeftoversShould : IDisposable
 {
     private const string Root = @"C:\Users\me\source\repos";
     private const string Repository = @"C:\Users\me\source\repos\Northwind.Orders";
@@ -135,5 +135,10 @@ public sealed class WorktreeInventoryLeftoversShould
         await settings.SaveAsync(TestSettings.For(Root, Work));
 
         (await inventory.ScanAsync([], CancellationToken.None)).Select(row => row.Path.Value).ShouldBe([sibling]);
+    }
+
+    public void Dispose()
+    {
+        catalogue.Dispose();
     }
 }

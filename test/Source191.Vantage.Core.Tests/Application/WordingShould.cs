@@ -278,7 +278,7 @@ public sealed class WordingShould
     [InlineData(PullRequestGap.Looking, null, "Still looking up fix-123's pull request; try again in a moment.")]
     [InlineData(PullRequestGap.Failed, PullRequestHost.GitHub, "The GitHub CLI (gh) could not list fix-123's pull requests.")]
     [InlineData(PullRequestGap.Failed, null, "Could not look up fix-123's pull requests.")]
-    [InlineData(PullRequestGap.NoPullRequest, PullRequestHost.AzureDevOps, "No pull request found for fix-123's branch among the latest 100.")]
+    [InlineData(PullRequestGap.NoPullRequest, PullRequestHost.AzureDevOps, "No pull request found for fix-123's branch.")]
     public void SayWhyThereIsNoPullRequest(PullRequestGap gap, PullRequestHost? host, string expected)
     {
         Wording.Describe(new Footer.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);
@@ -344,7 +344,7 @@ public sealed class WordingShould
     [Fact]
     public void SayWhatAHandlerDid()
     {
-        Wording.Describe(new Footer.Reported(new StopSessionOutcome("fix-123"))).ShouldBe("Stopped fix-123.");
+        Wording.Describe(new Footer.Reported(new StopSessionOutcome("fix-123", TabClosed: false))).ShouldBe("Stopped fix-123.");
     }
 
     [Fact]
@@ -401,6 +401,26 @@ public sealed class WordingShould
     public void AskBeforeDeletingABranchVantageDidNotCreate()
     {
         Wording.DeleteBranchQuestion("fix-123", createdByVantage: false).ShouldBe("Branch fix-123 was not created by Vantage. Delete it anyway?");
+    }
+
+    [Fact]
+    public void GiveEveryKeyATip()
+    {
+        foreach (KeyHelp key in Wording.SessionsKeys.Concat(Wording.WorktreesKeys))
+        {
+            key.Tip.ShouldNotBeNullOrWhiteSpace($"{key.Key} has no tip");
+            key.Tip.Length.ShouldBeLessThanOrEqualTo(80, $"{key.Key}'s tip is too long");
+            key.Tip.ShouldNotBe(key.Line, $"{key.Key}'s tip only repeats the help line");
+        }
+    }
+
+    [Fact]
+    public void FitEveryColumnMeaningOnItsLines()
+    {
+        foreach (ColumnHelp column in Wording.SessionsColumns.Concat(Wording.WorktreesColumns))
+        {
+            column.Meaning.Split('\n').ShouldAllBe(line => line.Length <= 100, $"{column.Name} has a line over 100 characters");
+        }
     }
 
     [Fact]
@@ -634,7 +654,7 @@ public sealed class WordingShould
             _ when type == typeof(FolderPath) => FolderPath.From(@"D:\nowhere"),
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
-            _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123"),
+            _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123", TabClosed: false),
             _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
             _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
             _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),

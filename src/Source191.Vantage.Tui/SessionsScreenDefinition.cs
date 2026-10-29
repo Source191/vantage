@@ -47,12 +47,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
     public string ContextLines(SessionsViewState state)
     {
         const int width = 45;
-        IEnumerable<string> byState = state.Rows
-            .Where(row => row.Session.State.Kind != DisplayStateKind.NeedsInput)
-            .GroupBy(row => row.Session.State.Label)
-            .OrderByDescending(group => group.Count())
-            .Select(group => $"{group.Count()} {group.Key}");
-        string summary = state.Rows.Count == 0 ? "none" : $"{state.Rows.Count} ({string.Join(", ", byState)})";
+        string summary = Wording.SessionsSummary(state.Rows);
         string fitted = summary.Length <= width ? summary : summary[..(width - 1)] + "…";
 
         return $"{fitted}\n{state.NeedsInputCount}";

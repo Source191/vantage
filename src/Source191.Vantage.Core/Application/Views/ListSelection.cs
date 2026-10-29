@@ -86,6 +86,8 @@ public sealed record ListSelection<TRow>(
             KeyName.Character => (this with { Filter = new RowFilter(Filter.Text + key.Character) }).Reselect(),
             KeyName.Up => this,
             KeyName.Down => this,
+            KeyName.Left => this,
+            KeyName.Right => this,
         };
     }
 

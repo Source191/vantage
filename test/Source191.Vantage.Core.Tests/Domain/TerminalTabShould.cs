@@ -33,4 +33,16 @@ public sealed class TerminalTabShould
         TerminalTab.ShellOf(4242, processes).ShouldBeNull();
         TerminalTab.ShellOf(9999, processes).ShouldBeNull();
     }
+
+    [Fact]
+    public void FindWindowsTerminalWhateverItsCaseAndUpToEightStepsAway()
+    {
+        FakeProcessRegistry processes = new FakeProcessRegistry().InTree(1, "windowsterminal", 0).InTree(4000, "pwsh", 1);
+        for (int process = 4001; process <= 4007; process++)
+        {
+            processes.InTree(process, "node", process - 1);
+        }
+
+        TerminalTab.ShellOf(4007, processes).ShouldBe(4000);
+    }
 }
