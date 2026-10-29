@@ -21,7 +21,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'VantageMark.ps1')
 
 $title = 'Vantage'
-$tagline = 'A console for Claude Code sessions', 'and git worktrees on Windows.'
+$tagline = 'Mission control for Claude Code sessions:', 'every session in one tab,', 'still there after a reboot.'
 $install = 'dotnet tool install -g Source191.Vantage'
 
 function Get-FontFamily([string]$name) {
@@ -43,8 +43,9 @@ function ColourWithAlpha([string]$hex, [int]$alpha) { [System.Drawing.Color]::Fr
 function Get-Lines([float]$mark) {
     @(
         [pscustomobject]@{ Text = $title; Font = (New-Font $titleFamily ($mark * 0.40)); Colour = '#FFFFFF'; Before = 0 }
-        [pscustomobject]@{ Text = $tagline[0]; Font = (New-Font $monoFamily ($mark * 0.098)); Colour = '#CBD5E1'; Before = $mark * 0.03 }
-        [pscustomobject]@{ Text = $tagline[1]; Font = (New-Font $monoFamily ($mark * 0.098)); Colour = '#CBD5E1'; Before = $mark * 0.02 }
+        for ($index = 0; $index -lt $tagline.Count; $index++) {
+            [pscustomobject]@{ Text = $tagline[$index]; Font = (New-Font $monoFamily ($mark * 0.092)); Colour = '#CBD5E1'; Before = $mark * ($index -eq 0 ? 0.03 : 0.015) }
+        }
         [pscustomobject]@{ Text = "> $install"; Font = (New-Font $monoFamily ($mark * 0.082)); Colour = '#94A3B8'; Before = $mark * 0.09 }
     )
 }
