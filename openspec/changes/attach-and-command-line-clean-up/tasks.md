@@ -32,7 +32,8 @@
 ## 7. Version and checks
 
 - [x] 7.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one preview step above `main`'s (a minor raise: a key is removed). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
-- [ ] 7.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0, and that `drive-raw.txt` holds the erase sequence after Claude's screen.
+- [x] 7.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0, and that `drive-raw.txt` holds the erase sequence after Claude's screen.
+  - Recorded 29 October 2026 against the Release build: exit 0, Claude's banner in the capture. ConPTY re-renders rather than passing `ESC[1A ESC[2K` through, so the capture shows the erase as its own repaint: after Claude leaves the alternate screen the primary screen is redrawn with the hint on row 1, the cursor sits at row 2, then `ESC[H ESC[K` clears row 1 before Vantage re-enters its screen.
 - [ ] 7.3 The product owner installs the build with `tools\install-local.ps1`, attaches to a session three times with Ctrl+Z each time, attaches to a session that has never been sent a message, presses `a`, then quits. Verify Claude's prompt appeared for the empty session, `a` did nothing, the scrollback holds no hint after quitting, and the tab is its profile's colour; record here. If the erase removed a line of Claude's output, switch to the once-per-run fallback in design.md and record that instead.
 
 ## Workflow follow-up
