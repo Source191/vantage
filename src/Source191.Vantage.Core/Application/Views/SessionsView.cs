@@ -8,6 +8,9 @@ public sealed record SessionRow(Session Session, string Repository, BranchName? 
 {
     /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
     public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
+
+    /// <summary>What the session's process and everything it started use; null for a session with no process, or whose process has gone.</summary>
+    public MemorySize? Memory { get; init; }
 }
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>

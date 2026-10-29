@@ -1,6 +1,7 @@
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -18,6 +19,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
     public async Task<IReadOnlyList<SessionRow>> EnrichAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {
         HashSet<SessionId> sessionsWithLiveTabs = await LiveTabSessionsAsync();
+        IReadOnlyList<ProcessFacts> processTable = processes.Snapshot();
 
         List<SessionRow> rows = [];
         List<FolderPath> checkouts = [];
@@ -29,7 +31,10 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
                 location.Repository,
                 location.Branch,
                 sessionsWithLiveTabs.Contains(session.SessionId),
-                transcripts.HasMessages(session.SessionId.Value));
+                transcripts.HasMessages(session.SessionId.Value))
+            {
+                Memory = MemoryOf(session, processTable),
+            };
             rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, location.Branch) });
             checkouts.AddRange(location.Checkout is null ? [] : [location.Checkout]);
         }
@@ -38,6 +43,19 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         _ = pullRequests.RefreshStaleAsync(checkouts);
 
         return rows;
+    }
+
+    /// <summary>The private working set of the session's process tree; nothing for a session without a process or whose process has gone.</summary>
+    private MemorySize? MemoryOf(Session session, IReadOnlyList<ProcessFacts> processTable)
+    {
+        int? processId = session switch
+        {
+            BackgroundSession background => background.ProcessId,
+            InteractiveSession interactive => interactive.ProcessId,
+            _ => throw new UnreachableException(),
+        };
+
+        return processId is int root ? ProcessTree.Under(root, processTable, processes.UsageOf)?.Total : null;
     }
 
     private async Task<HashSet<SessionId>> LiveTabSessionsAsync()
