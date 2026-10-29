@@ -28,7 +28,7 @@
 
 ## 5. Docs
 
-- [ ] 5.1 README: the keys table (`e` Open folder; Tab and Enter in the wizard), the wizard section (no "(no repository)"; a fixed folder's Enter), the worktrees view's `s`, the Settings section (the presets, Visual Studio reads as VS Code). Verify `grep -n "no repository\|Visual Studio" README.md` shows only the Settings sentence about old files.
+- [x] 5.1 README: the keys table (`e` Open folder; Tab and Enter in the wizard), the wizard section (no "(no repository)"; a fixed folder's Enter), the worktrees view's `s`, the Settings section (the presets, Visual Studio reads as VS Code). Verify `grep -n "no repository\|Visual Studio" README.md` shows only the Settings sentence about old files.
 
 ## 6. Version and checks
 
