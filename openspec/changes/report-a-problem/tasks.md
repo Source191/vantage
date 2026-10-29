@@ -2,8 +2,8 @@
 
 ## 1. The title and the address (Domain, Application\Reporting)
 
-- [ ] 1.1 Red: `ReportTitleShould` asserts `Validate` gives no problem for "Attach froze after Ctrl+Z", `TooLong` for 201 characters, and `From` and `TryParse` follow the text-value rules; `TextValuesShould` still passes with the new type. Green: `ReportTitle` and `ReportTitleProblem`. Verify the Core suite passes.
-- [ ] 1.2 Red: `ProblemReportAddressShould.FillTheFormsTitleAndDiagnostics` asserts the address for a title with `&`, `#` and a newline in the text starts with `https://github.com/Source191/vantage/issues/new?template=problem-report.yml` and carries both values escaped so `HttpUtility.ParseQueryString` gives them back exactly. Green: `ProblemReportAddress`. Verify the fact passes.
+- [x] 1.1 Red: `ReportTitleShould` asserts `Validate` gives no problem for "Attach froze after Ctrl+Z", `TooLong` for 201 characters, and `From` and `TryParse` follow the text-value rules; `TextValuesShould` still passes with the new type. Green: `ReportTitle` and `ReportTitleProblem`. Verify the Core suite passes.
+- [x] 1.2 Red: `ProblemReportAddressShould.FillTheFormsTitleAndDiagnostics` asserts the address for a title with `&`, `#` and a newline in the text starts with `https://github.com/Source191/vantage/issues/new?template=problem-report.yml` and carries both values escaped so `HttpUtility.ParseQueryString` gives them back exactly. Green: `ProblemReportAddress`. Verify the fact passes.
 
 ## 2. The report value (Application\Reporting)
 
