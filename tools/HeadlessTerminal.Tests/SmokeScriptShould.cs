@@ -19,6 +19,7 @@ public sealed class SmokeScriptShould
             Wording.TabTitleDuring(DialogName.Keys), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.NewSession), Wording.TabTitle,
+            Wording.TabTitleDuring(DialogName.ProblemReport), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.Keys), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.ForceRemove), Wording.TabTitle,
         ]);
@@ -50,6 +51,7 @@ public sealed class SmokeScriptShould
             Key(Wording.SessionsKeys, "Help"), Escape,
             Key(Wording.SessionsKeys, "Settings"), Escape,
             Key(Wording.SessionsKeys, "New session"), Escape,
+            Key(Wording.SessionsKeys, "Report"), Escape,
             Key(Wording.SessionsKeys, "Worktrees"), string.Empty,
             Key(Wording.WorktreesKeys, "Help"), Escape,
             Key(Wording.WorktreesKeys, "Filter") + Worktree, "\r",
@@ -62,8 +64,8 @@ public sealed class SmokeScriptShould
     [Fact]
     public void SendEnterAndDForceRemoveWithoutAMarkerOfTheirOwn()
     {
-        Steps[11].Marker.ShouldBe(CaptureMarker.Nothing);
-        Steps[12].Marker.ShouldBe(CaptureMarker.Nothing);
+        Steps[13].Marker.ShouldBe(CaptureMarker.Nothing);
+        Steps[14].Marker.ShouldBe(CaptureMarker.Nothing);
     }
 
     [Fact]
@@ -72,8 +74,8 @@ public sealed class SmokeScriptShould
         TimeSpan[] timeouts = [.. Steps.Select(step => step.Timeout)];
 
         timeouts[0].ShouldBe(TimeSpan.FromSeconds(60));
-        timeouts[8].ShouldBe(TimeSpan.FromSeconds(60));
-        timeouts.Where((_, index) => index is not 0 and not 8).ShouldAllBe(timeout => timeout == TimeSpan.FromSeconds(20));
+        timeouts[10].ShouldBe(TimeSpan.FromSeconds(60));
+        timeouts.Where((_, index) => index is not 0 and not 10).ShouldAllBe(timeout => timeout == TimeSpan.FromSeconds(20));
     }
 
     [Fact]
