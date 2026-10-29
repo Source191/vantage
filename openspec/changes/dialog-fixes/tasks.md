@@ -29,7 +29,7 @@
 
 ## 6. Version and checks
 
-- [ ] 6.1 Raise `Version` one preview step above `main`'s (a minor raise). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
+- [ ] 6.1 Raise `Version` to `0.17.0`, dropping the preview suffix (the owner folded the release into this change). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
 - [ ] 6.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0.
 - [ ] 6.3 The product owner installs the build with `tools\install-local.ps1`: `n`, Tab from the list, Enter on Where and on the base; `s` on a worktree row, a name, Enter (a tab opens); `v` on a two-solution folder; `,` to see the presets and the captions. Verify each against the spec scenarios and record here.
 
