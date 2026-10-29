@@ -352,13 +352,13 @@ internal sealed class TableScreen<TState, TRow>(
             }
         }
 
-        /// <summary>One key label and one hint label per row, in the columns the keys name.</summary>
+        /// <summary>One key label and one hint label per row, in the columns the keys name, each column from its own first row.</summary>
         private void AddKeyHints()
         {
             foreach (IGrouping<int, KeyHelp> column in definition.Keys.Where(key => key.Hint is not null).GroupBy(key => key.Column))
             {
-                (int keyX, int keyWidth, int hintX, int hintWidth, int _) = KeyHintColumns.Layout[column.Key];
-                int row = 0;
+                (int keyX, int keyWidth, int hintX, int hintWidth, int firstRow) = KeyHintColumns.Layout[column.Key];
+                int row = firstRow;
                 foreach (KeyHelp key in column)
                 {
                     Label keyLabel = Text(keyX, row, keyWidth, key.HeaderKey, Palette.Blue);

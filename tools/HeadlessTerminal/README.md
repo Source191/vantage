@@ -19,6 +19,7 @@ dotnet run -- grid drive-raw.txt "worktrees, selected" 120 40
 dotnet run -- count drive-raw.txt "Not the same: you typed x." "Cancelled; nothing removed."
 ```
 
+- `HARNESS_COLUMNS` and `HARNESS_ROWS` set the pseudo-console's size for `drive` (120 by 40 when unset), for checking a layout at another terminal size; give `grid` the same size.
 - `drive` writes the capture to `drive-raw.txt` in the current folder and exits 1 when the program had to be killed at the deadline (six seconds after the last key). Keys sent before Terminal.Gui has initialised (up to about eight seconds on a cold start) are lost, so scripts start at 8000 ms.
 - HARNESS_RESPOND=1 answers terminal queries the way Windows Terminal would (kitty keyboard flags, primary device attributes, XTVERSION, cursor position, background colour); HARNESS_DCS_DELAY_MS delays the XTVERSION reply so it lands after the child has exited.
 - HARNESS_PLAIN=1 leaves WT_SESSION and TERM_PROGRAM unset; without it the harness pretends to be Windows Terminal.

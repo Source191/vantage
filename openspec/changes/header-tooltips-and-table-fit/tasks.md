@@ -26,7 +26,8 @@
 
 - [x] 5.1 Red: `KeyHintColumnsShould.EndEveryKeyBy112AndEveryWordBy123`, `OverlapNoColumnOnAnyRow` (rows considered, so the third column under the logo is allowed) and `StartTheThirdColumnBelowTheLogo` (first row 2). Green: `Layout` with a first row per column and the widths design.md names. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
   - The second column's key sits at 85 with width 6, not 86 with width 4 as design.md says: the worktrees view's `<esc>` is five cells and sits in that column, and 85 leaves a cell before its words at 91. Everything else is as designed.
-- [ ] 5.2 `TableScreen.AddKeyHints` starts each column at its first row. Verify with a headless capture at 126 x 36 that `<p>` reads "Open PR" beside it in both views under the logo, and at 120 x 36 that `<p>` shows with its words cut and "Close empty tabs" is whole.
+- [x] 5.2 `TableScreen.AddKeyHints` starts each column at its first row. Verify with a headless capture at 126 x 36 that `<p>` reads "Open PR" beside it in both views under the logo, and at 120 x 36 that `<p>` shows with its words cut and "Close empty tabs" is whole.
+  - Recorded 29 October 2026 with the headless terminal, which gained `HARNESS_COLUMNS` and `HARNESS_ROWS` for these captures: at 126 x 36 both views show every key and its words whole, `c`, `e`, `v` and `p` under the logo from row 2 ("Open PR" beside `<p>`); at 120 x 36 every key shows, "Close empty tabs" is whole, and the third column's words are cut after seven cells ("Copy pa", "Solutio").
 
 ## 6. The help fits the screen (issue #89)
 
