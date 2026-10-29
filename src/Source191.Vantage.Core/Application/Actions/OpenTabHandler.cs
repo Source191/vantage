@@ -34,16 +34,33 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
         return new OpenTabOutcome.Opened(session.Name, colour.Colour.Name, colour.Reused);
     }
 
-    /// <summary>The tab is already open: select it in the Windows Terminal window that owns its shell.</summary>
+    /// <summary>
+    /// The row says a tab is open: when its registration is live now, select it in the Windows Terminal window that owns
+    /// its shell (every window while it is still being claimed); otherwise forget it and open a new tab.
+    /// </summary>
     private async Task<OpenTabOutcome> SwitchToTabAsync(BackgroundSession session, CancellationToken cancellationToken)
     {
         TabRegistration? registration = (await tabs.ReadTabsAsync()).FirstOrDefault(tab => tab.Owner == new TabOwner.ForSession(session.SessionId));
-        int? owner = registration?.OwningTerminal(processes);
+        if (registration is null || !registration.IsLive(clock.GetUtcNow(), processes))
+        {
+            await ForgetAsync(registration);
+            return await OpenAsync(session, cancellationToken);
+        }
+
+        int? owner = registration.OwningTerminal(processes);
         bool found = await terminal.FocusTabAsync(owner, session.Name, cancellationToken);
 
         return found
             ? new OpenTabOutcome.SwitchedTo(session.Name)
             : new OpenTabOutcome.NotFound(session.Name);
+    }
+
+    private async Task ForgetAsync(TabRegistration? registration)
+    {
+        if (registration is not null)
+        {
+            await tabs.RemoveTabAsync(registration.Id);
+        }
     }
 }
 
