@@ -114,7 +114,7 @@ The rename key SHALL ask for a new name in a dialog and then, because the CLI ha
 - **THEN** the job is resumed under the name `fix a;b`, and the row shows that name on the next refresh
 
 ### Requirement: Terminal sessions can be adopted
-The adopt key on an interactive session that is idle or waiting and has at least one message SHALL end its process and resume its transcript under the supervisor with its name, after which the row is a background session and the old tab is closed; it SHALL be refused while the session is working or before its first message, and a failed resume SHALL leave the old tab's shell at its prompt in the session's folder.
+The adopt key on an interactive session that is idle or waiting and has at least one message SHALL end its process and resume its transcript under the supervisor with its name, after which the row is a background session and the old tab is closed; it SHALL be refused while the session is working or before its first message, and a failed resume SHALL leave the old tab's shell at its prompt in the session's folder. The process SHALL be ended only while it is still the session's, that is while the process with the listed id started no later than the session did; when that id now belongs to another process, nothing SHALL be ended or resumed and the footer SHALL say the process is no longer the session's and to refresh.
 
 #### Scenario: Adopt an idle terminal session
 - **WHEN** the user presses the adopt key on an idle interactive session that has messages
@@ -123,3 +123,7 @@ The adopt key on an interactive session that is idle or waiting and has at least
 #### Scenario: Adoption fails
 - **WHEN** the resume under the supervisor fails
 - **THEN** the old tab stays open at a shell prompt in the session's folder and the footer says why the resume failed
+
+#### Scenario: Process id reused
+- **WHEN** the user presses the adopt key on an interactive session whose listed process id now belongs to a process that started after the session did
+- **THEN** nothing is ended or resumed, and the footer says the session's process is no longer its own and to refresh

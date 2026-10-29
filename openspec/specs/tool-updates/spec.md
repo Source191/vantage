@@ -58,11 +58,11 @@ When the newest recorded release is higher than the running version by semantic 
 - **THEN** the header reads `Vantage: 0.9.0 (29 MB)` with no notice
 
 ### Requirement: The update key updates Vantage in a new tab
-`U` in the sessions and worktrees views SHALL ask for confirmation and, when confirmed, open a Windows Terminal tab that waits for this Vantage to exit, runs `dotnet tool update -g Source191.Vantage`, and starts Vantage again when the update succeeds; Vantage SHALL then quit. Background sessions SHALL keep running.
+`U` in the sessions and worktrees views SHALL ask for confirmation and, when confirmed, open a Windows Terminal tab that waits for this Vantage to exit, runs `dotnet tool update -g Source191.Vantage --source https://api.nuget.org/v3/index.json`, so the package comes from the feed the check consulted and from no other source the machine has configured, and starts Vantage again when the update succeeds; Vantage SHALL then quit. Background sessions SHALL keep running.
 
 #### Scenario: Confirmed update
 - **WHEN** an update to 0.10.0 is available and the user presses `U` and confirms
-- **THEN** a tab titled for the update opens, Vantage quits, the tab updates the tool and starts Vantage 0.10.0, and every background session is still listed
+- **THEN** a tab titled for the update opens, Vantage quits, the tab updates the tool from nuget.org and starts Vantage 0.10.0, and every background session is still listed
 
 #### Scenario: Cancelled
 - **WHEN** the user presses `U` and cancels the confirmation
