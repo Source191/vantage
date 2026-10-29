@@ -110,8 +110,12 @@ The rename key SHALL ask for a new name in a dialog and then, because the CLI ha
 - **THEN** nothing happens and the footer explains that renaming restarts the session
 
 #### Scenario: New name refused
-- **WHEN** the user leaves the new name blank, or types one containing a semicolon or a double quote
-- **THEN** nothing runs and the footer shows exactly the sentence for that name, such as "A session name is required.", with nothing after it
+- **WHEN** the user leaves the new name blank
+- **THEN** nothing runs and the footer shows exactly "A session name is required.", with nothing after it
+
+#### Scenario: New name with a semicolon
+- **WHEN** the user renames an idle session to `fix a;b`
+- **THEN** the job is resumed under the name `fix a;b`, and the row shows that name on the next refresh
 
 ### Requirement: Terminal sessions can be adopted
 The adopt key on an interactive session that is idle or waiting and has at least one message SHALL end its process and resume its transcript under the supervisor with its name, after which the row is a background session; it SHALL be refused while the session is working or before its first message.

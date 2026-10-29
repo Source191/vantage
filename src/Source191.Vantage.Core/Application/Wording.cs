@@ -64,7 +64,6 @@ public static partial class Wording
         return problem switch
         {
             NameProblem.Missing => "A session name is required.",
-            NameProblem.UnsafeCharacters => "A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely.",
         };
     }
 

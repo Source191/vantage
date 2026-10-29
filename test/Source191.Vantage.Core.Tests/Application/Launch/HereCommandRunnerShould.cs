@@ -75,10 +75,10 @@ public sealed class HereCommandRunnerShould : IDisposable
     [Fact]
     public async Task PrintOnlyTheSentenceForARefusedName()
     {
-        int exitCode = await Runner.RunAsync(Directory, "a;b", prompt: null, CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, "   ", prompt: null, CancellationToken.None);
 
         exitCode.ShouldBe(2);
-        error.ToString().ShouldBe("A session name cannot contain a semicolon or a double quote, because Windows Terminal cannot pass them safely." + Environment.NewLine);
+        error.ToString().ShouldBe("A session name is required." + Environment.NewLine);
         processes.CapturedRequests.ShouldBeEmpty();
     }
 

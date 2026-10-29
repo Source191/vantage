@@ -10,7 +10,7 @@ public sealed class TextValueContractShould
         ContractCase.For<SessionId>(" ", "0f3a9c1e-1111-2222-3333-444455556666"),
         ContractCase.For<JobId>("0f3a9c1e-1111", "0f3a9c1e"),
         ContractCase.For<BranchName>("not a branch", "feature/northwind-orders"),
-        ContractCase.For<SessionName>("a;b", "northwind orders"),
+        ContractCase.For<SessionName>("   ", "northwind orders"),
         ContractCase.For<WorktreeSlug>("---", "northwind"));
 
     [Theory]
