@@ -45,7 +45,7 @@
 
 ## 8. Docs
 
-- [ ] 8.1 README: Troubleshooting's `VANTAGE_LOG` item says what the file holds; "Where Vantage keeps things" lists `last-crash.log`; a short "What Vantage records" paragraph lists the recorded facts and the never-recorded ones from the spec. CLAUDE.md: Core's packages (Logging.Abstractions leaves), the diagnostic lines as the one text outside `Wording`, and a line that every new diagnostic fact is a typed event case covered by `DiagnosticEventsShould`. Verify `grep -n "VANTAGE_LOG" README.md CLAUDE.md` reads consistently with the spec.
+- [x] 8.1 README: Troubleshooting's `VANTAGE_LOG` item says what the file holds; "Where Vantage keeps things" lists `last-crash.log`; a short "What Vantage records" paragraph lists the recorded facts and the never-recorded ones from the spec. CLAUDE.md: Core's packages (Logging.Abstractions stays, for the bridge only, recorded in the Core README), the diagnostic lines as the one text outside `Wording`, and a line that every new diagnostic fact is a typed event case covered by `DiagnosticEventsShould`. Verify `grep -n "VANTAGE_LOG" README.md CLAUDE.md` reads consistently with the spec.
 
 ## 9. Version and checks
 
