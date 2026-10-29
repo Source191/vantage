@@ -10,7 +10,7 @@ public sealed record EditorFolders(IReadOnlyList<string> PathFolders, string Loc
     public static EditorFolders ForCurrentUser()
     {
         return new EditorFolders(
-            PathFolders.ForCurrentUser(),
+            Processes.PathFolders.ForCurrentUser(),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
