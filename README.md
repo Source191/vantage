@@ -36,24 +36,27 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 Vantage runs on Windows 11. `winget`, which comes with Windows 11, installs everything it needs except Claude Code; skip a line for a tool you already have.
 
 ```powershell
-winget install --id Microsoft.WindowsTerminal --exact   # already part of Windows 11 22H2 and later
-winget install --id Microsoft.PowerShell --exact
-winget install --id Microsoft.DotNet.SDK.10 --exact
-winget install --id Git.Git --exact
-irm https://claude.ai/install.ps1 | iex                 # Claude Code
+winget install --id Microsoft.WindowsTerminal --exact --source winget   # already part of Windows 11 22H2 and later
+winget install --id Microsoft.PowerShell --exact --source winget
+winget install --id Microsoft.DotNet.SDK.10 --exact --source winget
+winget install --id Git.Git --exact --source winget
+irm https://claude.ai/install.ps1 | iex   # Claude Code
+[Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'User') + ";$HOME\.local\bin", 'User')   # puts claude on the PATH
 ```
+
+`--source winget` keeps winget away from the Microsoft Store source, which fails on some machines and networks and then stops winget choosing a package at all.
 
 - **Windows Terminal:** Vantage opens, titles and colours session tabs in it, and relies on its bell.
 - **PowerShell 7:** every tab Vantage opens runs `pwsh`.
 - **.NET 10 SDK:** `dotnet tool install` needs the SDK, not only the runtime.
 - **git:** branches and worktrees.
-- **Claude Code 2.1.309 or later:** the native installer above puts `claude.exe` in `~\.local\bin`, one of the two places Vantage looks (the other is the PATH), and keeps it up to date in the background. WinGet has it too (`Anthropic.ClaudeCode`), but that package does not update itself and can lag behind the version Vantage needs; if you use it, run `winget upgrade Anthropic.ClaudeCode` and check the version. Run `claude` once to sign in.
+- **Claude Code 2.1.309 or later:** the native installer above puts `claude.exe` in `~\.local\bin`, one of the two places Vantage looks (the other is the PATH), and keeps it up to date in the background. It does not add that folder to the PATH, which the line after it does, so `claude` works in a new terminal. WinGet has it too (`Anthropic.ClaudeCode`), but that package does not update itself and can lag behind the version Vantage needs; if you use it, run `winget upgrade Anthropic.ClaudeCode` and check the version. Run `claude` once to sign in.
 
 Optional, for the PR column (see [Pull requests](#pull-requests)):
 
 ```powershell
-winget install --id GitHub.cli --exact
-winget install --id Microsoft.AzureCLI --exact
+winget install --id GitHub.cli --exact --source winget
+winget install --id Microsoft.AzureCLI --exact --source winget
 ```
 
 Open a new terminal so the PATH changes apply, then check:
