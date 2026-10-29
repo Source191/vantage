@@ -11,7 +11,9 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vantage</ToolCommandName>
     <PackageId>Source191.Vantage</PackageId>
-    <Version>0.17.0-preview.1</Version>
+    <Version>0.17.0-preview.2</Version>
+    <!-- The version option prints exactly the package version; the commit stays in the package's repository metadata. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>Simon Vane</Authors>
     <Description>A terminal console for Claude Code sessions and git worktrees on Windows.</Description>
     <Copyright>Copyright 2026 Simon Vane</Copyright>

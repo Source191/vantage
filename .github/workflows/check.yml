@@ -91,6 +91,18 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           dotnet tool install Source191.Vantage --tool-path "$env:RUNNER_TEMP\vantage-tool" --add-source (Split-Path $env:PACKAGE) --version $env:VERSION
 
+      # `vantage --version` prints exactly the package version a person sees on nuget.org, with no commit after it.
+      - name: Check the installed tool's version
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.build.outputs.version }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $printed = (& "$env:RUNNER_TEMP\vantage-tool\vantage.exe" --version | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $printed -ne $env:VERSION) {
+              throw "vantage --version printed '$printed' (exit $LASTEXITCODE); expected '$env:VERSION'."
+          }
+
       - name: Smoke check
         shell: pwsh
         working-directory: tools\HeadlessTerminal
