@@ -31,7 +31,7 @@
 
 ## 7. Version and checks
 
-- [ ] 7.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one preview step above `main`'s (a minor raise: a key is removed). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
+- [x] 7.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one preview step above `main`'s (a minor raise: a key is removed). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
 - [ ] 7.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0, and that `drive-raw.txt` holds the erase sequence after Claude's screen.
 - [ ] 7.3 The product owner installs the build with `tools\install-local.ps1`, attaches to a session three times with Ctrl+Z each time, attaches to a session that has never been sent a message, presses `a`, then quits. Verify Claude's prompt appeared for the empty session, `a` did nothing, the scrollback holds no hint after quitting, and the tab is its profile's colour; record here. If the erase removed a line of Claude's output, switch to the once-per-run fallback in design.md and record that instead.
 
