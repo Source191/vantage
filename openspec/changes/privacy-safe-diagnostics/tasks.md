@@ -41,7 +41,7 @@
 
 ## 7. The privacy guarantee
 
-- [ ] 7.1 Red: `DiagnosticsPrivacyShould.RecordNothingFromTheFixtures` composes the real reducers, dispatcher, handlers, `RecordedProcessRunner`, `DiagnosticLog` and `CrashRecorder` over the TestDoubles fakes seeded with Northwind fixtures and drives a sessions load, an attach, a wizard start with a name and prompt, a worktree remove whose fake git fails with stderr naming the folders, a failing load and a crash; it then asserts no seeded value (names, branches, ids, prompts, folders, PR numbers and titles, `C:\Users\me`) appears in any rendered line, the counts or the crash text. The value list is collected from the seeds. Green: fix whatever leaks. Verify the fact passes, and fails when `HandingOver` is temporarily given `effect.ToString()`.
+- [x] 7.1 Red: `DiagnosticsPrivacyShould.RecordNothingFromTheFixtures` composes the real reducers, dispatcher, handlers, `RecordedProcessRunner`, `DiagnosticLog` and `CrashRecorder` over the TestDoubles fakes seeded with Northwind fixtures and drives a sessions load, an attach, a wizard start with a name and prompt, a worktree remove whose fake git fails with stderr naming the folders, a failing load and a crash; it then asserts no seeded value (names, branches, ids, prompts, folders, PR numbers and titles, `C:\Users\me`) appears in any rendered line, the counts or the crash text. The value list is collected from the seeds. Green: fix whatever leaks. Verify the fact passes, and fails when `ExceptionSummary` is temporarily made to include the message (done 29 Oct 2026; giving `HandingOver` the effect's `ToString()` no longer compiles, since it takes a `CodeName`).
 
 ## 8. Docs
 
