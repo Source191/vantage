@@ -21,6 +21,7 @@ public sealed class SmokeScriptShould
             Wording.TabTitleDuring(DialogName.NewSession), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.Keys), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.ForceRemove), Wording.TabTitle,
+            Wording.TabTitle,
         ]);
     }
 
@@ -31,13 +32,14 @@ public sealed class SmokeScriptShould
         string[] worktrees = [.. Wording.WorktreesColumns.Select(column => column.Name)];
         string[] texts = [.. Steps.Select(step => step.Marker).OfType<CaptureMarker.ScreenText>().Select(text => text.Text)];
 
-        texts.Length.ShouldBe(4);
+        texts.Length.ShouldBe(5);
         texts[0].ShouldBeOneOf(sessions);
         texts[0].ShouldNotBeOneOf(worktrees);
         texts[1].ShouldBeOneOf(worktrees);
         texts[1].ShouldNotBeOneOf(sessions);
         texts[2].ShouldBe(Worktree);
-        texts[3].ShouldBe(texts[0]);
+        texts[3].ShouldBe($"New session in {Worktree}", "the fixed-folder wizard is recognised by its own title");
+        texts[4].ShouldBe(texts[0]);
     }
 
     [Fact]
@@ -54,6 +56,7 @@ public sealed class SmokeScriptShould
             Key(Wording.WorktreesKeys, "Help"), Escape,
             Key(Wording.WorktreesKeys, "Filter") + Worktree, "\r",
             Key(Wording.WorktreesKeys, "Force remove"), Escape,
+            Key(Wording.WorktreesKeys, "Start session"), Escape,
             Key(Wording.WorktreesKeys, "Sessions"),
             Key(Wording.SessionsKeys, "Quit"),
         ]);
