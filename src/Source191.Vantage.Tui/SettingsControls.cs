@@ -38,7 +38,7 @@ internal sealed class SettingsControls
             [SettingsField.Base] = BaseRef,
             [SettingsField.CheckForUpdates] = CheckForUpdates,
         };
-        Custom = [Caption(RightColumn, 10, "Executable (not a .cmd or .bat)"), Executable, Caption(RightColumn, 13, $"Arguments ({EditorChoice.FolderPlaceholder} is the folder)"), Arguments];
+        Custom = [Caption(RightColumn, 10, "Executable (full path, not a .cmd or .bat)"), Executable, Caption(RightColumn, 13, $"Arguments ({EditorChoice.FolderPlaceholder} is the folder)"), Arguments];
         All =
         [
             Caption(LeftColumn, 0, "Repository roots (one per line; repositories are found directly under each)"),
