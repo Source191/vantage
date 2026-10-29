@@ -14,7 +14,7 @@ public sealed class GitHubPullRequests(IProcessRunner processes)
 {
     private const int NotSignedInExitCode = 4;
 
-    public async Task<PullRequestListing> ListAsync(GitHubRepository repository, FolderPath checkout, CancellationToken cancellationToken)
+    public async Task<PullRequestListing> ListAsync(GitHubRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken)
     {
         ProcessRequest request = new("gh", ["pr", "list", "--repo", $"{repository.Owner}/{repository.Name}", "--state", "all", "--limit", "100", "--json", "number,url,state,isDraft,headRefName,createdAt"], checkout.Value);
         ProcessResult result;

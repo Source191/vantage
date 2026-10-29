@@ -28,7 +28,7 @@ public sealed class GitHubPullRequestsShould
     [Fact]
     public async Task ListEveryBranchFromOneCall()
     {
-        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, CancellationToken.None);
+        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None);
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe("gh"),
@@ -48,7 +48,7 @@ public sealed class GitHubPullRequestsShould
     {
         processes.Fail(new Win32Exception(2, "The system cannot find the file specified."));
 
-        (await Hosts.ListAsync(Orders, Checkout, CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.CliMissing));
+        (await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.CliMissing));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class GitHubPullRequestsShould
     {
         processes.AnswerAll(new ProcessResult(4, string.Empty, "To get started with GitHub CLI, please run:  gh auth login"));
 
-        (await Hosts.ListAsync(Orders, Checkout, CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.NotSignedIn));
+        (await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.NotSignedIn));
     }
 
     [Theory]
@@ -66,7 +66,7 @@ public sealed class GitHubPullRequestsShould
     {
         processes.AnswerAll(new ProcessResult(exitCode, exitCode == 0 ? words : string.Empty, words));
 
-        (await Hosts.ListAsync(Orders, Checkout, CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.Failed));
+        (await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.Failed));
     }
 
     private static BranchPullRequest Row(string branch, int number, PullRequestState state, string createdAt) =>

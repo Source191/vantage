@@ -36,29 +36,31 @@ public sealed class PullRequestCatalogueShould
     [Fact]
     public async Task AnswerFromTheListingOnceItArrives()
     {
-        await catalogue.RefreshStaleAsync([Checkout]);
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
         catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
         catalogue.Find(Checkout, BranchName.From("spike-cache")).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
     }
 
     [Fact]
-    public async Task CallOncePerRepositoryForManyBranches()
+    public async Task AskForOneBranchAtATime()
     {
-        await catalogue.RefreshStaleAsync([Checkout, FolderPath.From(@"c:\users\me\source\repos\Northwind.Orders\")]);
+        BranchName spike = BranchName.From("spike-cache");
 
+        await catalogue.RefreshStaleAsync([(Checkout, Fix), (FolderPath.From(@"c:\users\me\source\repos\Northwind.Orders\"), spike)]);
+
+        hosts.Requests.ShouldBe([(Orders, Fix), (Orders, spike)], ignoreOrder: true);
         catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
-        catalogue.Find(Checkout, BranchName.From("spike-cache")).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
-        hosts.Calls.ShouldBe([Orders]);
+        catalogue.Find(Checkout, spike).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
     }
 
     [Fact]
     public async Task NotCallAgainWithinThreeMinutes()
     {
-        await catalogue.RefreshStaleAsync([Checkout]);
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
         clock.Advance(TimeSpan.FromMinutes(3) - TimeSpan.FromSeconds(1));
 
-        await catalogue.RefreshStaleAsync([Checkout]);
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
         hosts.Calls.Count.ShouldBe(1);
     }
@@ -66,11 +68,11 @@ public sealed class PullRequestCatalogueShould
     [Fact]
     public async Task CallAgainAfterThreeMinutesKeepingTheOldAnswerMeanwhile()
     {
-        await catalogue.RefreshStaleAsync([Checkout]);
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
         clock.Advance(TimeSpan.FromMinutes(3));
         hosts.Answer(Orders, Listing(Merged)).Hold();
 
-        Task refresh = catalogue.RefreshStaleAsync([Checkout]);
+        Task refresh = catalogue.RefreshStaleAsync([(Checkout, Fix)]);
         await WaitForCallsAsync(2);
         catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
         hosts.Release();
@@ -84,9 +86,9 @@ public sealed class PullRequestCatalogueShould
     {
         hosts.Hold();
 
-        Task first = catalogue.RefreshStaleAsync([Checkout]);
+        Task first = catalogue.RefreshStaleAsync([(Checkout, Fix)]);
         await WaitForCallsAsync(1);
-        Task second = catalogue.RefreshStaleAsync([Checkout]);
+        Task second = catalogue.RefreshStaleAsync([(Checkout, Fix)]);
         hosts.Release();
         await Task.WhenAll(first, second);
 
@@ -99,8 +101,8 @@ public sealed class PullRequestCatalogueShould
     {
         hosts.Answer(Orders, new PullRequestListing.Unavailable(PullRequestGap.NotSignedIn));
 
-        await catalogue.RefreshStaleAsync([Checkout]);
-        await catalogue.RefreshStaleAsync([Checkout]);
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
         hosts.Calls.Count.ShouldBe(1);
         catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, PullRequestHost.GitHub), "the footer names the host's CLI");
@@ -113,7 +115,7 @@ public sealed class PullRequestCatalogueShould
     {
         processes.AnswerAll(new ProcessResult(exitCode, url, exitCode == 0 ? string.Empty : "error: No such remote 'origin'"));
 
-        await catalogue.RefreshStaleAsync([Checkout]);
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
         catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(expected));
         hosts.Calls.ShouldBeEmpty();
@@ -124,7 +126,7 @@ public sealed class PullRequestCatalogueShould
     {
         processes.Fail(new System.ComponentModel.Win32Exception(2, "The system cannot find the file specified."));
 
-        await catalogue.RefreshStaleAsync([Checkout]);
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
         catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Failed));
     }
@@ -132,7 +134,7 @@ public sealed class PullRequestCatalogueShould
     [Fact]
     public async Task AnswerNoBranchForADetachedHead()
     {
-        await catalogue.RefreshStaleAsync([Checkout]);
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
         catalogue.Find(Checkout, null).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
     }

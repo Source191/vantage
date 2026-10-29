@@ -15,7 +15,7 @@ public sealed class FakePullRequestsShould
         PullRequestListing.Unavailable signedOut = new(PullRequestGap.NotSignedIn);
         FakePullRequests hosts = new FakePullRequests().Answer(Orders, signedOut).Hold();
 
-        Task<PullRequestListing> call = hosts.ListAsync(Orders, Checkout, CancellationToken.None);
+        Task<PullRequestListing> call = hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None);
         await Task.Delay(50, TestContext.Current.CancellationToken);
         call.IsCompleted.ShouldBeFalse();
         hosts.Calls.ShouldBe([Orders]);
@@ -30,7 +30,7 @@ public sealed class FakePullRequestsShould
     {
         FakePullRequests hosts = new();
 
-        PullRequestListing listing = await hosts.ListAsync(Orders, Checkout, CancellationToken.None);
+        PullRequestListing listing = await hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None);
 
         listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.ShouldBeEmpty();
     }

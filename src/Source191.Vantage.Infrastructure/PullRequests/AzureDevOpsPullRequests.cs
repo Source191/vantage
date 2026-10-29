@@ -16,7 +16,7 @@ public sealed class AzureDevOpsPullRequests(IProcessRunner processes, string? az
 {
     private const string BranchPrefix = "refs/heads/";
 
-    public async Task<PullRequestListing> ListAsync(AzureDevOpsRepository repository, FolderPath checkout, CancellationToken cancellationToken)
+    public async Task<PullRequestListing> ListAsync(AzureDevOpsRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken)
     {
         if (az is null)
         {

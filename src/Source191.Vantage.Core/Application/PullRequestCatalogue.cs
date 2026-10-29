@@ -27,18 +27,18 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         _ => new PullRequestLookup.Missing(PullRequestGap.Failed),
     };
 
-    public Task RefreshStaleAsync(IEnumerable<FolderPath> checkouts)
+    public Task RefreshStaleAsync(IEnumerable<(FolderPath Checkout, BranchName Branch)> branches)
     {
         DateTimeOffset now = clock.GetUtcNow();
         List<Task> started = [];
-        foreach (FolderPath checkout in checkouts.DistinctBy(checkout => checkout.Key))
+        foreach ((FolderPath checkout, BranchName branch) in branches.DistinctBy(pair => pair.Checkout.Key))
         {
             if (answers.TryGetValue(checkout.Key, out Answer? answer) && now - answer.At < Window)
             {
                 continue;
             }
 
-            started.Add(running.GetOrAdd(checkout.Key, _ => new Lazy<Task>(() => RefreshAsync(checkout))).Value);
+            started.Add(running.GetOrAdd(checkout.Key, _ => new Lazy<Task>(() => RefreshAsync(checkout, branch))).Value);
         }
 
         return Task.WhenAll(started);
@@ -49,11 +49,11 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
             ? new PullRequestLookup.Found(found)
             : new PullRequestLookup.Missing(PullRequestGap.NoPullRequest);
 
-    private async Task RefreshAsync(FolderPath checkout)
+    private async Task RefreshAsync(FolderPath checkout, BranchName branch)
     {
         try
         {
-            (PullRequestListing listing, PullRequestHost? host) = await ListAsync(checkout);
+            (PullRequestListing listing, PullRequestHost? host) = await ListAsync(checkout, branch);
             answers[checkout.Key] = new Answer(listing, host, clock.GetUtcNow());
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
@@ -67,7 +67,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         }
     }
 
-    private async Task<(PullRequestListing Listing, PullRequestHost? Host)> ListAsync(FolderPath checkout)
+    private async Task<(PullRequestListing Listing, PullRequestHost? Host)> ListAsync(FolderPath checkout, BranchName branch)
     {
         string? url = await git.OriginUrlAsync(checkout.Value, CancellationToken.None);
         if (url is null)
@@ -76,7 +76,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         }
 
         return RemoteRepository.Parse(url) is RemoteRepository repository
-            ? (await hosts.ListAsync(repository, checkout, CancellationToken.None), repository.Host)
+            ? (await hosts.ListAsync(repository, checkout, branch, CancellationToken.None), repository.Host)
             : (new PullRequestListing.Unavailable(PullRequestGap.UnknownHost), null);
     }
 

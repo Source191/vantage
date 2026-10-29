@@ -22,7 +22,7 @@ public sealed class PullRequestHostsShould : IDisposable
         RemoteRepository repository = expected == "gh" ? new GitHubRepository("northwind", "Northwind.Orders") : new AzureDevOpsRepository("northwind", "Trading", "Northwind.Orders");
         PullRequestHosts hosts = new(new GitHubPullRequests(processes), new AzureDevOpsPullRequests(processes, Az));
 
-        PullRequestListing listing = await hosts.ListAsync(repository, Checkout, CancellationToken.None);
+        PullRequestListing listing = await hosts.ListAsync(repository, Checkout, BranchName.From("fix-123"), CancellationToken.None);
 
         processes.CapturedRequests.Single().FileName.ShouldBe(expected);
         listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.ShouldBeEmpty();

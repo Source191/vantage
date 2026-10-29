@@ -40,7 +40,7 @@ public sealed class SessionRowEnricherShould
         SessionRowEnricher enricher = Enricher;
 
         SessionRow first = (await enricher.EnrichAsync([session], CancellationToken.None)).Single();
-        await catalogue.RefreshStaleAsync([FolderPath.From(@"C:\repos\Northwind.Orders")]);
+        await catalogue.RefreshStaleAsync([(FolderPath.From(@"C:\repos\Northwind.Orders"), BranchName.From("fix"))]);
         SessionRow second = (await enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         first.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
