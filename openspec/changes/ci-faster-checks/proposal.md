@@ -35,3 +35,5 @@ None: the change is CI tooling, so `.openspec.yaml` declares `skip_specs: true`.
 - **Docs:** README's "Continuous integration" and "The hand-off job" paragraphs; CLAUDE.md's CI line.
 - **Branch protection:** unchanged; `check` stays the one required job and still reports on every pull request.
 - **Other open changes:** `dependabot-version-bump` adds a step to `check.yml` before the version check and `windows-only-package` extends the composite's "Read the version and find the package" step; neither overlaps these edits, so whichever merges later rebases without a conflict in substance. The documentation gate runs after the version check, so the Dependabot step is unaffected.
+
+<!-- docs-only probe, never merged -->
