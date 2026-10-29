@@ -49,6 +49,6 @@ See proposal.md for the findings. The facts the design rests on, each checked on
 
 ## Migration Plan
 
-- Version 0.18.0-preview.1; no state file changes.
+- Version 0.18.0-preview.2; no state file changes.
 - After the merge: `gh api -X PUT repos/Source191/vantage/actions/permissions -f enabled=true -f allowed_actions=all -F sha_pinning_required=true`, then confirm `check` still runs on main.
 - Rollback is the previous release; nothing persists.

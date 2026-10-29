@@ -38,7 +38,7 @@
 - [x] 5.1 `WorktreesViewShould`: the start-session and open-shell keys on an elsewhere row raise their effects; remove and force-remove on it give the refusal footer without offering force. Then `InRealWorktree` admits `Elsewhere` and `RowColour` paints it amber.
 - [x] 5.2 `SettingsControls` caption reads "Executable (full path, not a .cmd or .bat)"; verify by the smoke check's Settings step and by reading the dialog.
 - [x] 5.3 `Program.cs`: locate git, gh, wt.exe and pwsh.exe through `ProgramLocator.ForCurrentUser()`, Claude through `ClaudeExecutable.Locate()`; print `Wording.GitNotFound`, `ClaudeNotFound` or `ClaudeIsABatchFile` and exit 1; hand the paths to the adapters. Verify: `dotnet run --project src\Source191.Vantage -- --version` and a console start from a folder holding a planted `git.exe` (a copy of cmd.exe) still scans with the real git.
-- [x] 5.4 Raise `Version` to 0.18.0-preview.1 and verify `.github\scripts\Assert-VersionBumped.ps1 -Base origin/main -Head HEAD` passes.
+- [x] 5.4 Raise `Version` to 0.18.0-preview.2 and verify `.github\scripts\Assert-VersionBumped.ps1 -Base origin/main -Head HEAD` passes.
 
 ## 6. CI and repository
 
