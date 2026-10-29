@@ -112,6 +112,7 @@ public static partial class Wording
             LaunchProblem.InvalidName invalid => Describe(invalid.Problem),
             LaunchProblem.WorktreeNeedsRepository => "A worktree needs a repository; choose one or start on the current branch.",
             LaunchProblem.WorktreeNeedsLetters => "A worktree needs a name with some letters or digits in it.",
+            LaunchProblem.PromptLooksLikeAnOption => "A prompt cannot start with a dash: Claude Code would read it as options. Start with a word.",
             _ => problem.ToString(),
         };
     }
@@ -126,7 +127,8 @@ public static partial class Wording
             SettingsProblem.RootMissing missing => $"{missing.Path} does not exist.",
             SettingsProblem.WorktreeRootNotFullPath => @"The worktree root must be a full path, such as C:\Users\me\source\worktrees.",
             SettingsProblem.NoExecutable => "A custom editor needs an executable.",
-            SettingsProblem.BatchFileExecutable => "A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.",
+            SettingsProblem.ExecutableNotFullPath => @"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Vantage was started from.",
+            SettingsProblem.BatchFileExecutable =>"A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.",
             SettingsProblem.NoFolderPlaceholder => $"A custom editor's arguments need {EditorChoice.FolderPlaceholder} where the folder goes.",
             _ => problem.ToString(),
         };

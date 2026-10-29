@@ -33,6 +33,12 @@ public sealed class EditorChoiceShould
     }
 
     [Fact]
+    public void ReadACustomEditorByBareNameAsVsCode()
+    {
+        EditorChoice.FromFile(EditorPreset.Custom, "subl", ["{folder}"]).ShouldBe(EditorChoice.VsCode);
+    }
+
+    [Fact]
     public void ReadACustomBatchFileEditorAsVsCode()
     {
         EditorChoice.FromFile(EditorPreset.Custom, @"C:\Tools\edit.cmd", ["{folder}"]).ShouldBe(EditorChoice.VsCode);
