@@ -96,47 +96,67 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void NameTheOneTabClosed()
     {
-        Wording.Describe(new CloseEmptyTerminalsOutcome(["repos-f6"], [], [])).ShouldBe("Closed 1 tab: repos-f6.");
+        Wording.Describe(new CloseEmptyTerminalsOutcome(["repos-f6"], [], [], [])).ShouldBe("Closed 1 tab: repos-f6.");
     }
 
     [Fact]
     public void NameTheTabsClosed()
     {
-        Wording.Describe(new CloseEmptyTerminalsOutcome(["repos-f6", "repos-a1"], [], [])).ShouldBe("Closed 2 tabs: repos-f6, repos-a1.");
+        Wording.Describe(new CloseEmptyTerminalsOutcome(["repos-f6", "repos-a1"], [], [], [])).ShouldBe("Closed 2 tabs: repos-f6, repos-a1.");
     }
 
     [Fact]
     public void NameTheOneSessionEndedWithoutATab()
     {
-        Wording.Describe(new CloseEmptyTerminalsOutcome([], ["repos-f6"], []))
+        Wording.Describe(new CloseEmptyTerminalsOutcome([], ["repos-f6"], [], []))
             .ShouldBe("Ended 1 session: repos-f6 (not in a Windows Terminal tab, so nothing to close).");
     }
 
     [Fact]
     public void NameTheSessionsEndedWithoutATab()
     {
-        Wording.Describe(new CloseEmptyTerminalsOutcome([], ["repos-f6", "repos-a1"], []))
+        Wording.Describe(new CloseEmptyTerminalsOutcome([], ["repos-f6", "repos-a1"], [], []))
             .ShouldBe("Ended 2 sessions: repos-f6, repos-a1 (not in a Windows Terminal tab, so nothing to close).");
     }
 
     [Fact]
     public void SayThereWasNothingToClose()
     {
-        Wording.Describe(new CloseEmptyTerminalsOutcome([], [], [])).ShouldBe("Nothing to close.");
+        Wording.Describe(new CloseEmptyTerminalsOutcome([], [], [], [])).ShouldBe("Nothing to close.");
     }
 
     [Fact]
     public void SayWhyNothingWasClosed()
     {
-        Wording.Describe(new CloseEmptyTerminalsOutcome([], [], [new SkippedSession("repos-31")]))
+        Wording.Describe(new CloseEmptyTerminalsOutcome([], [], [new SkippedSession("repos-31")], []))
             .ShouldBe("Nothing closed: repos-31 has messages (press b to move it under Vantage).");
     }
 
     [Fact]
     public void NameWhatWasClosedEndedAndSkipped()
     {
-        Wording.Describe(new CloseEmptyTerminalsOutcome(["repos-f6"], ["repos-a1"], [new SkippedSession("repos-93")]))
+        Wording.Describe(new CloseEmptyTerminalsOutcome(["repos-f6"], ["repos-a1"], [new SkippedSession("repos-93")], []))
             .ShouldBe("Closed 1 tab: repos-f6. Ended 1 session: repos-a1 (not in a Windows Terminal tab, so nothing to close). Skipped: repos-93 has messages (press b to move it under Vantage).");
+    }
+
+    [Fact]
+    public void SayWhyNothingWasClosedWhenAProcessIdWasReused()
+    {
+        Wording.Describe(new CloseEmptyTerminalsOutcome([], [], [], ["repos-f6"]))
+            .ShouldBe("Nothing closed: repos-f6 no longer runs under its listed process (refresh and try again).");
+    }
+
+    [Fact]
+    public void NameASessionLeftAloneBesideTheOnesClosedAndSkipped()
+    {
+        Wording.Describe(new CloseEmptyTerminalsOutcome(["repos-f6"], [], [new SkippedSession("repos-93")], ["repos-a1"]))
+            .ShouldBe("Closed 1 tab: repos-f6. Skipped: repos-93 has messages (press b to move it under Vantage); repos-a1 no longer runs under its listed process (refresh and try again).");
+    }
+
+    [Fact]
+    public void SayAMoveWasRefusedBecauseTheProcessIdWasReused()
+    {
+        Wording.Describe(new AdoptSessionOutcome.ProcessGone("repos-31")).ShouldBe("Could not move repos-31: it no longer runs under its listed process. Refresh and try again.");
     }
 
     [Fact]
