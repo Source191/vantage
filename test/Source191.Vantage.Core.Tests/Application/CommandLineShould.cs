@@ -127,6 +127,14 @@ public sealed class CommandLineShould : IDisposable
     }
 
     [Fact]
+    public async Task DescribeVantageAsMissionControl()
+    {
+        await InvokeAsync("--help");
+
+        output.ToString().ShouldContain("Mission control for Claude Code sessions: every session in one tab, still there after a reboot.");
+    }
+
+    [Fact]
     public async Task SayWhereToSupportVantageInTheHelp()
     {
         await InvokeAsync("--help");
