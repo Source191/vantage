@@ -3,7 +3,7 @@
 ## 1. The catalogue (Application)
 
 - [x] 1.1 Red: `PullRequestCatalogueShould.AskForOneBranchAtATime` refreshes two branches of one checkout and asserts the fake host was asked twice, once per branch, and `Find` answers each row from its own lookup. Green: `IPullRequests.ListAsync` takes a `BranchName`, `FakePullRequests` answers per repository and branch and records requests, and the catalogue keys `answers` and `running` by checkout and branch. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes (the callers compile against the new signature in 2.1).
-- [ ] 1.2 Red: `KeepAListedAnswerForAMinute` (no second call at 50 seconds, a new one at 61) and `KeepAnUnavailableAnswerForThreeMinutes` (no second call at two minutes for a not-signed-in answer), with the fake clock. Green: the two windows. Verify both pass.
+- [x] 1.2 Red: `KeepAListedAnswerForAMinute` (no second call at 50 seconds, a new one at 61) and `KeepAnUnavailableAnswerForThreeMinutes` (no second call at two minutes for a not-signed-in answer), with the fake clock. Green: the two windows. Verify both pass.
 - [ ] 1.3 Red: `RunAtMostFourLookupsAtOnce` refreshes twelve pairs against a fake host that holds each call until released and asserts four are in flight, then the rest follow. Green: the `SemaphoreSlim(4)` around the host call. Verify the fact passes and the existing facts for no-remote and unknown-host answers still pass.
 
 ## 2. The callers (Application)

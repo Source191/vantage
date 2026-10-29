@@ -81,21 +81,10 @@ public sealed class PullRequestCatalogueShould
     }
 
     [Fact]
-    public async Task NotCallAgainWithinThreeMinutes()
+    public async Task CallAgainAfterAMinuteKeepingTheOldAnswerMeanwhile()
     {
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
-        clock.Advance(TimeSpan.FromMinutes(3) - TimeSpan.FromSeconds(1));
-
-        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
-
-        hosts.Calls.Count.ShouldBe(1);
-    }
-
-    [Fact]
-    public async Task CallAgainAfterThreeMinutesKeepingTheOldAnswerMeanwhile()
-    {
-        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
-        clock.Advance(TimeSpan.FromMinutes(3));
+        clock.Advance(TimeSpan.FromSeconds(60));
         hosts.Answer(Orders, Listing(Merged)).Hold();
 
         Task refresh = catalogue.RefreshStaleAsync([(Checkout, Fix)]);

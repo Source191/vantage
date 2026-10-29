@@ -8,11 +8,13 @@ namespace Source191.Vantage.Application;
 /// Each branch's pull requests, looked up per main checkout and branch and never waited for by a row: Find answers
 /// from what has already landed (Looking before the first answer), and RefreshStaleAsync starts a lookup for each
 /// branch whose answer is older than the window and has none running, keeping the old answer until the new one lands.
-/// The origin remote is read again with each lookup, so a repository that moves host is followed.
+/// A listed answer is kept for a minute; an unavailable one for three, so a signed-out CLI is not asked every minute
+/// per row. The origin remote is read again with each lookup, so a repository that moves host is followed.
 /// </summary>
 public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProvider clock)
 {
-    private static readonly TimeSpan Window = TimeSpan.FromMinutes(3);
+    private static readonly TimeSpan Window = TimeSpan.FromSeconds(60);
+    private static readonly TimeSpan UnavailableWindow = TimeSpan.FromMinutes(3);
 
     private readonly ConcurrentDictionary<string, Answer> answers = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, Lazy<Task>> running = new(StringComparer.Ordinal);
@@ -33,7 +35,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         foreach ((FolderPath checkout, BranchName branch) in branches.DistinctBy(pair => KeyOf(pair.Checkout, pair.Branch)))
         {
             string key = KeyOf(checkout, branch);
-            if (answers.TryGetValue(key, out Answer? answer) && now - answer.At < Window)
+            if (answers.TryGetValue(key, out Answer? answer) && now - answer.At < answer.Kept)
             {
                 continue;
             }
@@ -83,5 +85,8 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
             : (new PullRequestListing.Unavailable(PullRequestGap.UnknownHost), null);
     }
 
-    private sealed record Answer(PullRequestListing Listing, PullRequestHost? Host, DateTimeOffset At);
+    private sealed record Answer(PullRequestListing Listing, PullRequestHost? Host, DateTimeOffset At)
+    {
+        public TimeSpan Kept => Listing is PullRequestListing.Listed ? Window : UnavailableWindow;
+    }
 }
