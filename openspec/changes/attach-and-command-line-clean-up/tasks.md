@@ -12,7 +12,8 @@
 
 ## 3. The quit colour
 
-- [ ] 3.1 Red: `TabEscapesShould` asserts `ResetBackground` is OSC 104 for entry 264 followed by DECAC, as 1.1 settled it, and `TerminalConsoleShould` asserts `ClearOwnTab` writes the title clear then that sequence. Green: `TabEscapes.ResetBackground`. Verify the Infrastructure suite passes.
+- [x] 3.1 Red: `TabEscapesShould` asserts `ResetBackground` is OSC 104 for entry 264 followed by DECAC, as 1.1 settled it, and `TerminalConsoleShould` asserts `ClearOwnTab` writes the title clear then that sequence. Green: `TabEscapes.ResetBackground`. Verify the Infrastructure suite passes.
+  - Written with OSC 104 on entry 264 then DECAC, the design's first choice; revisit if 1.1 finds Windows Terminal ignores it.
 
 ## 4. Remove the agent-view key
 
