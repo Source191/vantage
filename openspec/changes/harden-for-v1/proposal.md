@@ -17,7 +17,7 @@ The security review of 29 October 2026 (branch v-sec-rev, re-checked against mai
 - **The update tab installs from nuget.org only** (`--source https://api.nuget.org/v3/index.json`), the feed the check consulted.
 - **CI:** every action pinned to a commit SHA with a version comment; a CodeQL workflow for C# and Actions; build provenance attestation on the release package; Dependabot security updates turned on; the repository setting that requires SHA pins, turned on after this merges.
 - **Documentation:** a "What Vantage trusts" section in the README; notes on `VANTAGE_LOG` recording keystrokes, the npm shim, the prompt rule, the branch rule and the elsewhere health; the matching rules and CLI facts in CLAUDE.md.
-- Version 0.17.0-preview.8.
+- Version 0.18.0-preview.1 (the first preview after the 0.17.0 release; a minor step because the `here` command line and a custom editor in config.json are read more strictly).
 
 ## Capabilities
 
