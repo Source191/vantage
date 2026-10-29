@@ -16,6 +16,7 @@ public sealed class ProcessRegistry : IProcessRegistry
     private const int ProcessBasicInformationClass = 0;
     private const int ProcessCommandLineInformationClass = 60;
     private const int StatusInfoLengthMismatch = unchecked((int)0xC0000004);
+    private const uint ProcessQueryLimitedInformation = 0x1000;
 
     public DateTimeOffset? StartTimeOf(int processId) => WithProcess<DateTimeOffset?>(processId, process => new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero));
 
@@ -76,16 +77,34 @@ public sealed class ProcessRegistry : IProcessRegistry
 
     /// <summary>
     /// The private working set (Task Manager's Memory column, shared pages excluded), the start time and the command
-    /// line, from one handle; the command line is read for naming only and is never written anywhere.
+    /// line, from one limited-rights handle opened directly: <see cref="Process.GetProcessById(int)"/> walks the whole
+    /// table on every call, about twenty milliseconds, and a refresh measures a few hundred processes. The command
+    /// line is read for naming only and is never written anywhere.
     /// </summary>
     public ProcessUsage? UsageOf(int processId)
     {
-        return WithProcess<ProcessUsage?>(processId, process =>
+        IntPtr handle = OpenProcess(ProcessQueryLimitedInformation, false, (uint)processId);
+        if (handle == IntPtr.Zero)
         {
-            DateTimeOffset startedAt = new(process.StartTime.ToUniversalTime(), TimeSpan.Zero);
+            return null;
+        }
 
-            return new ProcessUsage(startedAt, PrivateMemoryOf(process), CommandLineOf(process.Handle));
-        });
+        try
+        {
+            // A process that has ended but is still held open has an exit time; a running one has none.
+            if (!GetProcessTimes(handle, out long creation, out long exit, out _, out _) || exit != 0)
+            {
+                return null;
+            }
+
+            DateTimeOffset startedAt = new(DateTime.FromFileTimeUtc(creation), TimeSpan.Zero);
+
+            return new ProcessUsage(startedAt, PrivateMemoryOf(handle), CommandLineOf(handle));
+        }
+        finally
+        {
+            CloseHandle(handle);
+        }
     }
 
     private static List<ProcessFacts> ReadEntries(IntPtr snapshot)
@@ -102,16 +121,20 @@ public sealed class ProcessRegistry : IProcessRegistry
         return entries;
     }
 
-    /// <summary>The private working set when the operating system reports it (Windows 10 2004 onwards), else the working set.</summary>
-    private static MemorySize PrivateMemoryOf(Process process)
+    /// <summary>The private working set when the operating system reports it (Windows 10 2004 onwards), else the working set from the older structure, else nothing.</summary>
+    private static MemorySize PrivateMemoryOf(IntPtr handle)
     {
         ProcessMemoryCountersEx2 counters = new() { Size = (uint)Marshal.SizeOf<ProcessMemoryCountersEx2>() };
-        if (GetProcessMemoryInfo(process.Handle, ref counters, counters.Size))
+        if (GetProcessMemoryInfo(handle, ref counters, counters.Size))
         {
             return MemorySize.FromBytes((long)counters.PrivateWorkingSetSize.ToUInt64());
         }
 
-        return MemorySize.FromBytes(process.WorkingSet64);
+        counters.Size = (uint)Marshal.OffsetOf<ProcessMemoryCountersEx2>(nameof(ProcessMemoryCountersEx2.PrivateWorkingSetSize)).ToInt32();
+
+        return GetProcessMemoryInfo(handle, ref counters, counters.Size)
+            ? MemorySize.FromBytes((long)counters.WorkingSetSize.ToUInt64())
+            : MemorySize.Zero;
     }
 
     private static string CommandLineOf(IntPtr handle)
@@ -226,6 +249,13 @@ public sealed class ProcessRegistry : IProcessRegistry
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr CreateToolhelp32Snapshot(uint flags, uint processId);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr OpenProcess(uint desiredAccess, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool GetProcessTimes(IntPtr processHandle, out long creationTime, out long exitTime, out long kernelTime, out long userTime);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
