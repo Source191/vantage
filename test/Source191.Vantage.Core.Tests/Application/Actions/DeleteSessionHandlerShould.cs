@@ -15,7 +15,7 @@ public sealed class DeleteSessionHandlerShould
     private readonly FakeProcessRunner processes = Processes();
     private readonly InMemoryState store = new();
 
-    private DeleteSessionHandler Handler => new(new ClaudeCli(processes, Claude), new GitCli(processes), store);
+    private DeleteSessionHandler Handler => new(new ClaudeCli(processes, Claude), new GitCli(processes, "git"), store);
 
     [Fact]
     public async Task DeleteASessionOutsideAVantageWorktreeWithoutTouchingGit()
@@ -68,7 +68,7 @@ public sealed class DeleteSessionHandlerShould
     [Fact]
     public async Task DeleteABranchOnRequestWithForce()
     {
-        DeleteBranchHandler handler = new(new GitCli(processes));
+        DeleteBranchHandler handler = new(new GitCli(processes, "git"));
 
         Outcome message = await handler.HandleAsync(new DeleteBranch(new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123"))), CancellationToken.None);
 

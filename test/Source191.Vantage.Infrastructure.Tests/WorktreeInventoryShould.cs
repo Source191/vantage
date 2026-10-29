@@ -24,10 +24,10 @@ public sealed class WorktreeInventoryShould : IDisposable
     public WorktreeInventoryShould()
     {
         // The origin comes from a fake: a real git still running in the folder in the background would stop Dispose deleting it.
-        catalogue = new PullRequestCatalogue(new GitCli(remotes), hosts, TimeProvider.System);
+        catalogue = new PullRequestCatalogue(new GitCli(remotes, "git"), hosts, TimeProvider.System);
     }
 
-    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner()), new Folders(), TestSettings.Current(TestSettings.For([root.Path], root.WorktreeRoot)), catalogue);
+    private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner(), "git"), new Folders(), TestSettings.Current(TestSettings.For([root.Path], root.WorktreeRoot)), catalogue);
 
     [Fact]
     public async Task CarryEachRowsPullRequest()

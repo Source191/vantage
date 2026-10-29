@@ -43,7 +43,7 @@ public sealed class EffectDispatcherShould
     public void HaveAHandlerForEveryEffectTheReducersCanProduce()
     {
         InMemoryState store = new();
-        GitCli git = new(processes);
+        GitCli git = new(processes, "git");
         ClaudeCli claude = new(processes, Claude);
         FakeTimeProvider clock = new(Noon);
         LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);

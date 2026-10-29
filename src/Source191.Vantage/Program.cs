@@ -28,6 +28,10 @@ ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?
 string vantageExecutable = Environment.ProcessPath ?? "vantage";
 TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser(Path.Combine(AppContext.BaseDirectory, "vantage.ico"));
 
+// Every program Vantage starts is found on the PATH once and run by its full path, never by a bare name that Windows
+// would look for in the folder Vantage was started from first.
+ProgramLocator programs = ProgramLocator.ForCurrentUser();
+
 // VANTAGE_LOG=<file> turns on a diagnostic log of Vantage's hand-offs and Terminal.Gui's internals.
 ILogger log = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
 string? logPath = Environment.GetEnvironmentVariable("VANTAGE_LOG");
@@ -68,9 +72,15 @@ async Task<int> StartHereAsync(string? name, string? prompt, CancellationToken c
         return 1;
     }
 
+    string? gitExecutable = await LocateGitAsync();
+    if (gitExecutable is null)
+    {
+        return 1;
+    }
+
     ProcessRunner processes = new();
     ClaudeCli claude = new(processes, claudeExecutable);
-    GitCli git = new(processes);
+    GitCli git = new(processes, gitExecutable);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
     TerminalConsole hereConsole = new(Console.Out, Wording.TabTitle);
     HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, hereConsole), hereConsole, Console.Out, Console.Error);
@@ -86,14 +96,20 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
         return 1;
     }
 
+    string? gitExecutable = await LocateGitAsync();
+    if (gitExecutable is null)
+    {
+        return 1;
+    }
+
     ProcessRunner processes = new();
     ClaudeCli claude = new(processes, claudeExecutable);
     string tabTitle = Wording.TabTitle;
-    GitCli git = new(processes);
+    GitCli git = new(processes, gitExecutable);
     FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
     CurrentSettings settings = await CurrentSettings.LoadAsync(store, home);
     ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
-    WindowsTerminal terminal = new(processes, terminalFragment);
+    WindowsTerminal terminal = new(processes, terminalFragment, programs.Locate("wt"));
     Folders folders = new();
     TerminalConsole console = new(Console.Out, tabTitle);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
@@ -102,7 +118,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
     using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
     Task<string?> claudeVersion = claude.VersionAsync(versionTimeout.Token);
-    using PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
+    using PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes, programs.Locate("gh")), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
     SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
     StateTransitionNotifier notifier = new(Console.Out);
     OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
@@ -110,7 +126,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     using NuGetPackageVersions packageVersions = new(version);
     bool optOutOfUpdateCheck = UpdateCheckOptOut.Applies(Environment.GetEnvironmentVariable(UpdateCheckOptOut.VariableName));
     UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
-    EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
+    EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes, programs.Locate("pwsh")), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
     EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home));
     DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);
@@ -137,6 +153,18 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
 
         return new WorktreeRowsLoaded(await inventory.ScanAsync(sessions, scanCancellation));
     }
+}
+
+// git's full path, or null after the sentence saying it was not found: the console and vantage here both need it.
+async Task<string?> LocateGitAsync()
+{
+    string? gitExecutable = programs.Locate("git");
+    if (gitExecutable is null)
+    {
+        await Console.Error.WriteLineAsync(Wording.GitNotFound);
+    }
+
+    return gitExecutable;
 }
 
 // An executable's path, or null after the sentence saying why Claude Code cannot be run: a batch file is never run.

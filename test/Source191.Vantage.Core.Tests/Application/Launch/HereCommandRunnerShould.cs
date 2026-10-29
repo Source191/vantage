@@ -29,7 +29,7 @@ public sealed class HereCommandRunnerShould : IDisposable
         get
         {
             ClaudeCli claude = new(processes, Claude);
-            GitCli git = new(processes);
+            GitCli git = new(processes, "git");
             InMemoryState state = new();
             LaunchService launches = new(claude, git, state, state, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
 

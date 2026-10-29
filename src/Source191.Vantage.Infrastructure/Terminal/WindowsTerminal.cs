@@ -38,16 +38,22 @@ public static class EncodedCommand
 }
 
 /// <summary>
-/// Opens tabs through wt.exe. When Vantage's fragment is installed the tab asks for the "Vantage session" profile, so
-/// its bell sounds different from other tabs; the file is checked on each open, so a setup run while Vantage is open
-/// takes effect at once.
+/// Opens tabs through wt.exe, run by the full path it was given (null when wt.exe is not on the PATH, which fails each
+/// open with a sentence naming it). When Vantage's fragment is installed the tab asks for the "Vantage session"
+/// profile, so its bell sounds different from other tabs; the file is checked on each open, so a setup run while
+/// Vantage is open takes effect at once.
 /// </summary>
-public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment fragment) : IWindowsTerminal
+public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment fragment, string? executable) : IWindowsTerminal
 {
     public async Task OpenTabAsync(TabLaunch launch, CancellationToken cancellationToken)
     {
+        if (executable is null)
+        {
+            throw new TerminalException("Windows Terminal (wt.exe) was not found on the PATH, so no tab can be opened.");
+        }
+
         string? profile = fragment.Exists ? TerminalProfiles.SessionProfileName : null;
-        ProcessRequest request = new("wt.exe", WindowsTerminalArguments.ForTab(launch, profile), launch.StartingDirectory.Value);
+        ProcessRequest request = new(executable, WindowsTerminalArguments.ForTab(launch, profile), launch.StartingDirectory.Value);
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
         {

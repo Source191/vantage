@@ -12,7 +12,7 @@ namespace Source191.Vantage.Infrastructure.Tests;
 public sealed class GitCliIntegrationShould : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "vantage-git-" + Guid.NewGuid().ToString("N"));
-    private readonly GitCli git = new(new ProcessRunner());
+    private readonly GitCli git = new(new ProcessRunner(), "git");
 
     private string Repository => Path.Combine(root, "Northwind.Orders");
 

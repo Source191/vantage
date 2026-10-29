@@ -9,13 +9,19 @@ namespace Source191.Vantage.Adapters.Processes;
 /// Neither is waited for to close, and both get the same environment as every other child of Vantage, without the Claude
 /// Code markers. ShellExecute cannot be given an environment, so a short-lived PowerShell child that has the cleaned one
 /// makes the call (see <see cref="OpenFileScript"/>); the call waits for that child, which ends once Windows has started the
-/// application, so a file that has gone is reported rather than lost.
+/// application, so a file that has gone is reported rather than lost. PowerShell is run by the full path it was given
+/// (null when pwsh.exe is not on the PATH, which fails each open with a sentence naming it).
 /// </summary>
-public sealed class Desktop(IProcessRunner processes) : IDesktop
+public sealed class Desktop(IProcessRunner processes, string? powerShell) : IDesktop
 {
     public async Task OpenAsync(string file, CancellationToken cancellationToken)
     {
-        ProcessRequest request = new("pwsh.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(OpenFileScript.For(file))], WorkingDirectory: null);
+        if (powerShell is null)
+        {
+            throw new InvalidOperationException("PowerShell 7 (pwsh.exe) was not found on the PATH, so nothing can be opened.");
+        }
+
+        ProcessRequest request = new(powerShell, ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(OpenFileScript.For(file))], WorkingDirectory: null);
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
         {

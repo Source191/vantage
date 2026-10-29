@@ -12,7 +12,7 @@ namespace Source191.Vantage.Infrastructure.Tests;
 public sealed class WorktreeIncludeCopierShould : IDisposable
 {
     private readonly string root = Path.Combine(Path.GetTempPath(), "vantage-include-" + Guid.NewGuid().ToString("N"));
-    private readonly GitCli git = new(new ProcessRunner());
+    private readonly GitCli git = new(new ProcessRunner(), "git");
 
     private string Repository => Path.Combine(root, "Northwind.Orders");
 
@@ -139,7 +139,7 @@ public sealed class WorktreeIncludeCopierShould : IDisposable
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Join('\0', listing) + "\0", string.Empty));
 
-        return new WorktreeIncludeCopier(new GitCli(processes));
+        return new WorktreeIncludeCopier(new GitCli(processes, "git"));
     }
 
     private IReadOnlyList<string> FilesOutsideTheWorktree()
