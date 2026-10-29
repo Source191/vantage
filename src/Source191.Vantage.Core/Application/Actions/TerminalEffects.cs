@@ -13,6 +13,7 @@ public sealed class TerminalEffects(IClaudeCli claude, ITerminalConsole console)
             case AttachToSession attach:
                 console.ShowReturnHint();
                 await claude.AttachAsync(attach.JobId.Value, cancellationToken);
+                console.RemoveReturnHint();
                 break;
             case OpenAgentView:
                 await claude.OpenAgentViewAsync(cancellationToken);

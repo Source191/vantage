@@ -7,7 +7,7 @@
 ## 2. The return hint
 
 - [x] 2.1 Red: `WordingShould.ReturnHintIsOneShortLine` asserts `Wording.ReturnHint` is exactly "Ctrl+Z returns to Vantage." and no longer than 40 characters. Green: the new sentence. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
-- [ ] 2.2 Red: `TerminalEffectsShould.ShowTheHintBeforeTheAttachAndRemoveItAfter` runs `AttachToSession` with a `FakeTerminalConsole` and asserts the recorded order: hint shown, attach run, hint removed. Green: `ITerminalConsole` gains `ShowReturnHint` and `RemoveReturnHint`, `FakeTerminalConsole` records them, `TerminalEffects` takes the port instead of a `TextWriter`, and `Program.cs` hands it the `TerminalConsole`. Verify the Core suite passes.
+- [x] 2.2 Red: `TerminalEffectsShould.ShowTheHintBeforeTheAttachAndRemoveItAfter` runs `AttachToSession` with a `FakeTerminalConsole` and asserts the recorded order: hint shown, attach run, hint removed. Green: `ITerminalConsole` gains `ShowReturnHint` and `RemoveReturnHint`, `FakeTerminalConsole` records them, `TerminalEffects` takes the port instead of a `TextWriter`, and `Program.cs` hands it the `TerminalConsole`. Verify the Core suite passes.
 - [ ] 2.3 Red: `TerminalConsoleShould` asserts `ShowReturnHint` writes the hint followed by a newline and `RemoveReturnHint` writes `ESC[1A ESC[2K`. Green: the adapter, with the erase sequence named in `TabEscapes` or `ConsoleRecovery`. Verify `dotnet test test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build` passes.
 
 ## 3. The quit colour
