@@ -26,14 +26,14 @@ public sealed class GitHubPullRequestsShould
     private GitHubPullRequests Hosts => new(processes);
 
     [Fact]
-    public async Task ListEveryBranchFromOneCall()
+    public async Task AskForTheBranchOnly()
     {
-        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, CancellationToken.None);
+        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None);
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe("gh"),
             request => request.WorkingDirectory.ShouldBe(Checkout.Value),
-            request => request.Arguments.ShouldBe(["pr", "list", "--repo", "northwind/Northwind.Orders", "--state", "all", "--limit", "100", "--json", "number,url,state,isDraft,headRefName,createdAt"]));
+            request => request.Arguments.ShouldBe(["pr", "list", "--repo", "northwind/Northwind.Orders", "--head", "fix-123", "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"]));
         listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.ShouldBe(
         [
             Row("fix-123", 123, PullRequestState.Open, "2026-10-20T09:12:00Z"),
@@ -44,11 +44,25 @@ public sealed class GitHubPullRequestsShould
     }
 
     [Fact]
+    public async Task KeepABranchWithASlash()
+    {
+        BranchName republisher = BranchName.From("feature/republisher");
+        processes.AnswerAll(new ProcessResult(0, """
+            [{"createdAt":"2026-10-21T10:00:00Z","headRefName":"feature/republisher","isDraft":true,"number":130,"state":"OPEN","url":"https://github.com/northwind/Northwind.Orders/pull/130"}]
+            """, string.Empty));
+
+        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, republisher, CancellationToken.None);
+
+        processes.CapturedRequests.Single().Arguments.ShouldContain("feature/republisher");
+        listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.Single().Branch.ShouldBe(republisher);
+    }
+
+    [Fact]
     public async Task ReportCliMissingWhenGhCannotStart()
     {
         processes.Fail(new Win32Exception(2, "The system cannot find the file specified."));
 
-        (await Hosts.ListAsync(Orders, Checkout, CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.CliMissing));
+        (await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.CliMissing));
     }
 
     [Fact]
@@ -56,7 +70,7 @@ public sealed class GitHubPullRequestsShould
     {
         processes.AnswerAll(new ProcessResult(4, string.Empty, "To get started with GitHub CLI, please run:  gh auth login"));
 
-        (await Hosts.ListAsync(Orders, Checkout, CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.NotSignedIn));
+        (await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.NotSignedIn));
     }
 
     [Theory]
@@ -66,7 +80,7 @@ public sealed class GitHubPullRequestsShould
     {
         processes.AnswerAll(new ProcessResult(exitCode, exitCode == 0 ? words : string.Empty, words));
 
-        (await Hosts.ListAsync(Orders, Checkout, CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.Failed));
+        (await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.Failed));
     }
 
     private static BranchPullRequest Row(string branch, int number, PullRequestState state, string createdAt) =>

@@ -33,7 +33,7 @@ public sealed class HereCommandRunnerShould : IDisposable
             InMemoryState state = new();
             LaunchService launches = new(claude, git, state, state, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
 
-            return new HereCommandRunner(folders, launches, new TerminalEffects(claude, output), console, output, error);
+            return new HereCommandRunner(folders, launches, new TerminalEffects(claude, console), console, output, error);
         }
     }
 

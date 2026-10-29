@@ -239,7 +239,7 @@ public sealed class WordingShould
     [InlineData(PullRequestGap.Looking, null, "Still looking up fix-123's pull request; try again in a moment.")]
     [InlineData(PullRequestGap.Failed, PullRequestHost.GitHub, "The GitHub CLI (gh) could not list fix-123's pull requests.")]
     [InlineData(PullRequestGap.Failed, null, "Could not look up fix-123's pull requests.")]
-    [InlineData(PullRequestGap.NoPullRequest, PullRequestHost.AzureDevOps, "No pull request found for fix-123's branch among the latest 100.")]
+    [InlineData(PullRequestGap.NoPullRequest, PullRequestHost.AzureDevOps, "No pull request found for fix-123's branch.")]
     public void SayWhyThereIsNoPullRequest(PullRequestGap gap, PullRequestHost? host, string expected)
     {
         Wording.Describe(new Footer.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);
@@ -365,9 +365,30 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void SayHowToComeBackFromAnAttach()
+    public void GiveEveryKeyATip()
     {
-        Wording.ReturnHint.ShouldBe("Ctrl+Z returns to Vantage. If you see the agent list instead, the session has no messages yet: Space sends it a prompt, Esc returns to Vantage.");
+        foreach (KeyHelp key in Wording.SessionsKeys.Concat(Wording.WorktreesKeys))
+        {
+            key.Tip.ShouldNotBeNullOrWhiteSpace($"{key.Key} has no tip");
+            key.Tip.Length.ShouldBeLessThanOrEqualTo(80, $"{key.Key}'s tip is too long");
+            key.Tip.ShouldNotBe(key.Line, $"{key.Key}'s tip only repeats the help line");
+        }
+    }
+
+    [Fact]
+    public void FitEveryColumnMeaningOnItsLines()
+    {
+        foreach (ColumnHelp column in Wording.SessionsColumns.Concat(Wording.WorktreesColumns))
+        {
+            column.Meaning.Split('\n').ShouldAllBe(line => line.Length <= 100, $"{column.Name} has a line over 100 characters");
+        }
+    }
+
+    [Fact]
+    public void ReturnHintIsOneShortLine()
+    {
+        Wording.ReturnHint.ShouldBe("Ctrl+Z returns to Vantage.");
+        Wording.ReturnHint.Length.ShouldBeLessThanOrEqualTo(40);
     }
 
     [Fact]

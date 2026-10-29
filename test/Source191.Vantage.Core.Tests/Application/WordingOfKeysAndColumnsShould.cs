@@ -10,7 +10,7 @@ public sealed class WordingOfKeysAndColumnsShould
         Wording.SessionsKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
         [
             "0 enter Attach", "0 o Open in tab", "0 n New session", "0 r Rename", "0 x Stop", "0 d Delete",
-            "1 R Resume stopped", "1 C Close empty tabs", "1 b ", "1 a Agent view", "1 w Worktrees", "1 / Filter", "1 ? Help", "1 q Quit", "0 , Settings",
+            "1 R Resume stopped", "1 C Close empty tabs", "1 b ", "1 w Worktrees", "1 / Filter", "1 ? Help", "1 q Quit", "0 , Settings",
             "2 c Copy path", "2 e Editor", "2 v Solution", "2 p Open PR", "1 U ", "2 ! Report",
         ]);
         Wording.WorktreesKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
@@ -59,23 +59,23 @@ public sealed class WordingOfKeysAndColumnsShould
             n      new session                             r      rename (restarts the session)
             x      stop                                    d      delete, and its worktree if nothing is lost
             R      resume after a reboot                   C      close tabs of unused terminal sessions
-            b      move a terminal session under Vantage   a      native agent view
-            w      worktrees view                          /      filter
-            ?      help                                    q      quit
-            ,      edit roots, worktree root and editor    c      copy the folder path
-            e      open the folder in your editor          v      open its solution
-            p      open its pull request in the browser    U      update Vantage in a new tab
-            !      report a problem on GitHub
+            b      move a terminal session under Vantage   w      worktrees view
+            /      filter                                  ?      help
+            q      quit                                    ,      edit roots, worktree root and editor
+            c      copy the folder path                    e      open the folder in your editor
+            v      open its solution                       p      open its pull request in the browser
+            U      update Vantage in a new tab             !      report a problem on GitHub
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one
             STATE       needs input (amber), working (cyan), idle (white),
                         completed (green), failed (red), stopped (grey)
             REPOSITORY  the repository the session runs in
-            FOLDER      where it runs, relative to the repository or worktree root that holds it, else ~\ from your home folder, else in full
+            FOLDER      where it runs, relative to the repository or worktree root that holds it,
+                        else ~\ from your home folder, else in full
             BRANCH      the branch checked out there
-            PR          its pull request: #123 on GitHub (open, draft, merged, closed), !123 on Azure DevOps
-                        (active, draft, completed, abandoned); blank when there is none or it is still being looked up
+            PR          its pull request: #123 on GitHub (open, draft, merged, closed),
+                        !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
             AGE         time since the session started
             TAB         terminal for a plain claude started in its own tab, open while a Vantage tab shows it
 
@@ -102,8 +102,8 @@ public sealed class WordingOfKeysAndColumnsShould
             REPOSITORY   the repository that owns the worktree
             FOLDER       the worktree's folder, relative to the root that holds it
             BRANCH       the branch checked out there
-            PR           its pull request: #123 on GitHub (open, draft, merged, closed), !123 on Azure DevOps
-                         (active, draft, completed, abandoned); blank when there is none or it is still being looked up
+            PR           its pull request: #123 on GitHub (open, draft, merged, closed),
+                         !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
             DIRTY        changed or untracked files
             UNPUSHED     commits on its branch that no remote has
             LAST COMMIT  time since the last commit

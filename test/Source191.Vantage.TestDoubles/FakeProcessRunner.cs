@@ -29,6 +29,9 @@ public sealed class FakeProcessRunner : IProcessRunner
 
     public int InteractiveExitCode { get; set; }
 
+    /// <summary>Called as each interactive run starts, so a test can put it in order with other fakes' records.</summary>
+    public Action<ProcessRequest> OnInteractive { get; set; } = _ => { };
+
     public FakeProcessRunner Answer(Func<ProcessRequest, bool> matches, ProcessResult result)
     {
         rules.Insert(0, new Rule(matches, new Queue<ProcessResult>([result])));
@@ -72,6 +75,7 @@ public sealed class FakeProcessRunner : IProcessRunner
     public Task<int> RunInteractiveAsync(ProcessRequest request, CancellationToken cancellationToken)
     {
         interactive.Add(request);
+        OnInteractive(request);
         return Task.FromResult(InteractiveExitCode);
     }
 

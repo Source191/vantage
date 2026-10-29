@@ -112,7 +112,7 @@ New shells pick up `~\.dotnet\tools` on the PATH; a shell that was open before t
 
 Open a tab and run `vantage` (or `v`). The screen has three parts:
 
-- **Header:** Vantage's version, the Claude Code version (`unknown` when `claude --version` cannot be read, and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports), the repository roots being scanned, counts of sessions by state, and the key hints. A local install shows its prerelease label without the build timestamp (`0.6.0-local`). Rest the mouse on a key hint to see what the key does.
+- **Header:** Vantage's version, the Claude Code version (`unknown` when `claude --version` cannot be read, and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports), the repository roots being scanned, counts of sessions by state, and the key hints. A local install shows its prerelease label without the build timestamp (`0.6.0-local`). Rest the mouse on a key hint, or on its words, to see what the key does and when to use it; the tooltip is black on amber.
 - **Table:** one row per session, titled with what it counts and which row is selected: `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set. The selection bar is cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears below the table.
 - **Footer:** the current view as a crumb, then the last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside it while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
 
@@ -137,11 +137,14 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | AGE | Time since the session started |
 | TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session |
 
+NAME, REPOSITORY, FOLDER and BRANCH are cut at 28 characters with an ellipsis, so one long name cannot push the other columns off screen; Left and Right scroll the table to them, and the title, the filter and every key still use the full value.
+
 Keys (every key is dispatched by the tested reducer, so this table is the reference):
 
 | Key | Action |
 | --- | --- |
 | Up, Down | Move the selection bar |
+| Left, Right | Scroll the table sideways, one column at a time, when its columns do not all fit |
 | Enter | Attach to the selected background session in this tab; Ctrl+Z returns |
 | o | Open the session in its own coloured Windows Terminal tab; when one is already open for it, switch to that tab |
 | n | New session wizard |
@@ -151,7 +154,6 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | C | Close every tab whose plain `claude` has never been sent a message, after a confirmation naming them |
 | b | Move a plain terminal session under Vantage's supervision (its tab becomes an ordinary shell) |
 | R | Resume sessions that stopped with a reboot |
-| a | Open Claude Code's own agent view |
 | c | Copy the selected row's full folder path to the clipboard |
 | e | Open the folder in your editor (VS Code unless you chose another in [Settings](#settings)); works on terminal and stopped sessions too |
 | v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which; none says so in the footer |
@@ -161,7 +163,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | ! | Report a problem: shows the diagnostics a GitHub issue would carry, then opens the issue form in your browser or copies the text (see [Reporting a problem](#reporting-a-problem)) |
 | w | Switch to the worktrees view |
 | / | Filter by name, repository or branch; Enter keeps the filter, Esc clears it |
-| ? | Help |
+| ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
 | q | Quit |
 
 Rows marked `terminal` are sessions started by hand with `claude` in some tab. Vantage can see them but cannot attach to or stop them; press `b` to bring one under supervision, or type `/bg` inside it. One that has never been sent a message has nothing to keep: `d` closes its tab, `C` closes all such tabs, and the footer says so. Vantage ends the claude process, then ends the tab's shell with a clean exit code, which is what makes Windows Terminal close the tab; a session not inside a Windows Terminal tab is just ended.
@@ -173,7 +175,7 @@ Press `n`. The left column lists your repositories (recent ones first, then ever
 - **Session name (required):** the label shown in the NAME column. It also names the worktree folder and branch when you choose a worktree.
 - **Where:** `New worktree`, the default, creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it in [Settings](#settings)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
 - **Worktree base:** the branch the new worktree starts from, `origin` default branch or the current HEAD.
-- **Opening prompt:** sent to the session as soon as it starts. It wraps as you type. Leave it blank and the session opens on Claude's agent list until you send it something.
+- **Opening prompt:** sent to the session as soon as it starts. It wraps as you type. Leave it blank and the session waits at its prompt until you send it something.
 
 A cyan line under the choices says exactly what will happen ("Worktree Northwind.Orders-fix-tests under C:\Users\you\source\worktrees, on branch fix-tests."). Then:
 
@@ -185,11 +187,9 @@ Enter never starts a session, so there is nothing to undo if you press it too so
 
 ## Attaching, tabs and getting back
 
-**Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. If the session has never had a message, Claude shows its agent list instead of a conversation: Space on the session sends it a prompt, Esc returns to Vantage. Vantage prints this reminder before every attach.
+**Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. A session that has never had a message opens at its own prompt, and Ctrl+Z returns from it in the same way. Vantage prints a one-line reminder before every attach and erases it when you come back, so the scrollback keeps no copies.
 
 **Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows `open`. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); close the tab (or detach in it) and the column clears within a few seconds.
-
-**The native agent view (a):** Claude Code's own `claude agents` screen, for anything Vantage does not do, such as pinning. Esc returns.
 
 ## The worktrees view
 
@@ -218,7 +218,7 @@ Press `w`. Vantage lists every linked worktree of the repositories under your ro
 | SESSION | The session running inside it, if any |
 | HEALTH | `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it) |
 
-When nothing else needs saying, the footer explains the selected row's health in full.
+When nothing else needs saying, the footer explains the selected row's health in full. Long repository, folder and branch names are cut with an ellipsis as in the sessions view, and Left and Right scroll the table.
 
 | Key | Action |
 | --- | --- |
@@ -230,6 +230,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | o | Open a plain PowerShell tab in the worktree |
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
 | w, Esc | Back to the sessions view (Esc clears a filter first) |
+| Left, Right | Scroll the table sideways, as in the sessions view |
 | / | Filter by repository, folder, branch or health |
 | c, e, v | Copy the folder path, open the folder in your editor, open its solution, as in the sessions view; refused for a leftover whose folder is gone |
 | , | Settings, as in the sessions view |
@@ -243,8 +244,9 @@ Branches: when a removed worktree's branch was created by Vantage and is merged,
 The PR column in both views shows the pull request for each row's branch, read from the repository's `origin` remote: a `github.com` remote is asked through the GitHub CLI, an Azure DevOps remote (`dev.azure.com`, `*.visualstudio.com`, HTTPS or SSH) through the Azure CLI. Any other host leaves the column blank.
 
 - **Signing in:** run `gh auth login` once for GitHub; for Azure DevOps install the Azure CLI, run `az extension add --name azure-devops` and `az login`. Vantage never signs in for you and stores no credential.
-- **Refreshing:** each repository is listed in one call (its latest 100 pull requests) at most once every three minutes, in the background; the rows never wait for it, so the column fills on the refresh after the answer lands.
+- **Refreshing:** each row's branch is looked up on its own (`gh pr list --head`, `az repos pr list --source-branch`, twenty pull requests at most), only for rows on screen, never for every repository under the roots. An answer is kept for a minute, so a change shows within about 75 seconds; a signed-out or missing CLI is asked again only after three minutes. At most four lookups run at once, and the rows never wait for them: the column fills on the refresh after an answer lands. Each lookup is one short `gh` or `az` process returning a few kilobytes.
 - **Which one:** a branch with an open (or draft, or active) pull request shows that one; otherwise its most recent.
+- **Links:** an Azure DevOps pull request opens at `https://dev.azure.com/<organisation>/<project>/_git/<repository>/pullrequest/<number>`, built from the `origin` remote.
 
 ## vantage here
 
@@ -257,7 +259,7 @@ vantage here --help   # the options
 vh fix-tests          # with the profile shortcut
 ```
 
-Options: `-p`/`--prompt` sends an opening prompt (without one the session opens on the agent list). Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder) or the command line could not be parsed, 2 when the name is refused. A name that starts with `-` is refused as a likely mistyped option (`vantage here --promt` names `--promt`, shows the help and exits 1); to use such a name, or one that starts with `@` (which otherwise reads a response file), put `--` before it: `vantage here -- -experiment`.
+Options: `-p`/`--prompt` sends an opening prompt (without one the session waits at its prompt). Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder) or the command line could not be parsed, 2 when the name is refused. A name that starts with `-` is refused as a likely mistyped option (`vantage here --promt` names `--promt`, shows the help and exits 1); to use such a name, or one that starts with `@` (which otherwise reads a response file), put `--` before it: `vantage here -- -experiment`.
 
 ## Notifications
 
@@ -316,7 +318,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 **Find out what is cluttering the repositories folder.** `w` lists every worktree with dirty and unpushed counts and health. Empty leftover folders go with `d`; a worktree with uncommitted work needs `D` and the copied folder name, which is deliberate.
 
-**Something needs Claude Code's own screen.** `a` opens the native agent view; Esc returns.
+**Something needs Claude Code's own screen.** Run `claude agents` in any shell for the native agent view; Esc returns.
 
 ## Where Vantage keeps things
 
@@ -391,7 +393,6 @@ Press `!` in either view. A dialog shows a title box and, read-only, exactly the
 
 - **Something else went wrong.** Press `!` to [report it](#reporting-a-problem) with Vantage's diagnostics filled in.
 - **Keys stop working after returning from a session.** Set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage; the file gets Vantage's diagnostic log as it happens (every hand-off and its return, the views and dialogs, failures, Terminal.Gui's warnings and errors) and the child program counts when Vantage quits; see [What Vantage records](#what-vantage-records). The known cause (blocking the UI thread after a hand-off) is fixed and guarded by the check in `tools\HeadlessTerminal`.
-- **Attach shows a grey list, not a conversation.** The session has no messages yet; that is Claude's agent list. Space sends it a prompt, Esc returns to Vantage. Give sessions an opening prompt to skip this.
 - **"not trusted yet".** Claude Code refuses to start in a folder you have not trusted. Open a tab there, run `claude`, accept the prompt, then start again. Vantage never edits the trust records.
 - **No bell when a session needs you.** Run `vantage setup-terminal` and see [Windows Terminal setup](#windows-terminal-setup); it covers `preferredNotifChannel` in `~\.claude\settings.json` and the bell style and sound of the Windows Terminal profile. Claude only rings when it thinks you are away from the terminal.
 - **Tabs or sessions opened from Vantage have no colours.** Vantage was started from inside a Claude Code session, whose environment sets NO_COLOR; start Vantage from an ordinary tab.
@@ -416,7 +417,7 @@ dotnet run --project tools\HeadlessTerminal -- check               # the hand-of
 
 ## Continuous integration
 
-`.github\workflows\check.yml` runs on every pull request and every push to `main`, on a `windows-latest` runner because the code uses P/Invoke, ConPTY and `cmd.exe` in its integration tests. Its `check` job builds in Release (warnings are errors), runs the whole test suite against that build, runs `dotnet format --verify-no-changes`, packs the tool as `<Version>-ci.<run number>` and uploads the `.nupkg` as a workflow artefact named `Source191.Vantage-<that version>`, so a working package is downloadable from any commit and each run's package is a version the tool cache has never seen (see Install). Branch protection on `main` requires `check` on an up-to-date branch, so a red pull request cannot merge. Every change to `main` goes through a pull request; nobody can push to it directly. The "Owner approves main" ruleset requires a code owner's approval, and `.github\CODEOWNERS` names the owner for every path, so a pull request opened by anyone else (an app or Dependabot included) waits for that review. The owner merges their own pull requests through the ruleset's bypass (`gh pr merge --admin`), so auto-merge does not fire for them. The "Release tags" ruleset stops anyone but the owner moving or deleting a `v*` tag.
+`.github\workflows\check.yml` runs on every pull request and every push to `main`, on a `windows-latest` runner because the code uses P/Invoke, ConPTY and `cmd.exe` in its integration tests. Its `check` job builds in Release (warnings are errors) with the runner image's .NET SDK, which `global.json` chooses, so no SDK is downloaded, runs the whole test suite against that build, checks whitespace with `dotnet format whitespace --verify-no-changes` (the build already fails on every style and analyser warning, so the full `dotnet format` of the local loop would only repeat it), packs the tool as `<Version>-ci.<run number>` and uploads the `.nupkg` as a workflow artefact named `Source191.Vantage-<that version>`, so a working package is downloadable from any commit and each run's package is a version the tool cache has never seen (see Install). A pull request that changes only documentation (files under `openspec\`, or `.md` files outside `.github\`, as `.github\scripts\Test-DocumentationOnly.ps1` decides) passes `check` after the version check without building; a push to `main` always runs every step. A new commit on a pull request cancels the run for the one before it; runs for pushes to `main` are never cancelled. Branch protection on `main` requires `check` on an up-to-date branch, so a red pull request cannot merge. Every change to `main` goes through a pull request; nobody can push to it directly. The "Owner approves main" ruleset requires a code owner's approval, and `.github\CODEOWNERS` names the owner for every path, so a pull request opened by anyone else (an app or Dependabot included) waits for that review. The owner merges their own pull requests through the ruleset's bypass (`gh pr merge --admin`), so auto-merge does not fire for them. The "Release tags" ruleset stops anyone but the owner moving or deleting a `v*` tag.
 
 **Releases.** `.github\workflows\release.yml` runs on every push to `main` and is a no-op unless that push changed `Version` in `src\Source191.Vantage\Source191.Vantage.csproj`. When it did, it builds, tests and packs again and publishes a GitHub Release tagged `v<version>` with the `.nupkg` attached; a version with a prerelease label (`0.16.2-preview.1`) is published as a GitHub prerelease, so it never becomes the Latest release. Bumping `Version` is therefore the release action, and every pull request that changes the packaged tool makes it, so each merge of a tool change is a release. A release is not published to nuget.org: that is a separate, manual step (below), so a package is tried by hand before it goes where a version can never be replaced.
 
@@ -430,13 +431,13 @@ dotnet run --project tools\HeadlessTerminal -- check               # the hand-of
 
 Branch protection on `main` has "Require branches to be up to date before merging" on. Without it a pull request's check can pass against an old `main`: two open pull requests that both bump to the same version merge without a conflict, and the second one is never released. With it, updating the branch reruns the check against the current `main`, and the second one fails until it bumps again.
 
-**The hand-off job.** `check.yml` has a second job, `handoff`, that installs Claude Code on the runner and runs the hand-off check from `tools\HeadlessTerminal` against a real throwaway session. It needs a `CLAUDE_CODE_OAUTH_TOKEN` repository secret (from `claude setup-token`); without one it skips with a notice. It never blocks a merge, because its keystroke timings were tuned on a laptop and a slow runner can fail it for reasons that are not bugs; read its `handoff-capture` artefact when it does. The runner has no desktop, so it seeds workspace trust for the checkout in its own `~\.claude.json`, which, with the nightly contract check below, is the only place that record is ever written by a script. Vantage strips `CLAUDE_CODE_*` from the environment of the `claude` processes it starts (`InheritedEnvironment`), so the token reaches the throwaway session the harness starts but not Vantage's own `claude agents` and `claude attach`; the live runs show the attach reaches Claude's screen all the same. The check exits 3 when it does not: Claude's screen must be in the capture, not only Vantage's.
+**The hand-off job.** `check.yml` has a second job, `handoff`, that installs Claude Code on the runner and runs the hand-off check from `tools\HeadlessTerminal` against a real throwaway session. It needs a `CLAUDE_CODE_OAUTH_TOKEN` repository secret (from `claude setup-token`); without one it skips with a notice, as it does for a documentation-only pull request. It builds only the tool (`src\Source191.Vantage`), because `check` builds and runs the tests, and installs Claude Code in the background while it builds. It never blocks a merge, because its keystroke timings were tuned on a laptop and a slow runner can fail it for reasons that are not bugs; read its `handoff-capture` artefact when it does. The runner has no desktop, so it seeds workspace trust for the checkout in its own `~\.claude.json`, which, with the nightly contract check below, is the only place that record is ever written by a script. Vantage strips `CLAUDE_CODE_*` from the environment of the `claude` processes it starts (`InheritedEnvironment`), so the token reaches the throwaway session the harness starts but not Vantage's own `claude agents` and `claude attach`; the live runs show the attach reaches Claude's screen all the same. The check exits 3 when it does not: Claude's screen must be in the capture, not only Vantage's.
 
 **The nightly Claude Code contract check.** Claude Code's native installer updates the CLI in the background, so users soon run a newer CLI than Vantage was verified against. `.github\workflows\claude-contract.yml` runs every night at 03:17 UTC, and by hand from Actions, "claude-contract": it installs the latest CLI, runs the `ClaudeContract` tests (Vantage's own Claude adapters against that CLI: the version, a background session started with no prompt, listed with every field Vantage reads in a state it knows, then stopped and removed; and the commands and options in `claude --help` and `claude agents --help` against the snapshots in `test\Source191.Vantage.Infrastructure.Tests\Contract\Snapshots`), then the hand-off check. It needs the same `CLAUDE_CODE_OAUTH_TOKEN` secret as `handoff` and seeds trust the same way; without the secret it skips with a warning. It never runs on pull requests, so a CLI release never blocks a merge.
 
 - **The claude-cli issue:** when the latest CLI fails to install or a contract test fails, the workflow comments on the open issue labelled `claude-cli`, or opens one when none is open, with the CLI version, the run link and the failing tests' messages. It assigns a new issue to the GitHub login in the `CLAUDE_CLI_WATCHER` repository variable (Settings, Secrets and variables, Actions, Variables); an assignee is subscribed to the issue, so GitHub notifies them of every comment. Close the issue by hand once the fix is merged. The hand-off check marks the run but never raises the issue.
 - **Accepting a snapshot:** a difference leaves `<name>.received.txt` in the run's `contract-results` artefact (and in the test output folder locally). Copy it over the snapshot in a change that re-checks the CLI facts in CLAUDE.md, so a new flag is either used, deliberately ignored or recorded.
-- **Locally:** `$env:VANTAGE_CLAUDE_CONTRACT = 1; dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug -- --filter-trait "Category=ClaudeContract"` from a trusted repository. An ordinary `dotnet test` skips these tests, so it never adds a session to your agent list.
+- **Locally:** `$env:VANTAGE_CLAUDE_CONTRACT = 1; dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug -- --filter-trait "Category=ClaudeContract"` from a trusted repository. An ordinary `dotnet test` skips these tests, so it never adds a session to your `claude agents` listing.
 
 ### Manual checks for tab and attach changes
 
@@ -472,5 +473,6 @@ Vantage is built in the gaps between rate limits. Help close the gaps: [buy me a
 - Still to observe at the terminal: whether `claude attach` to one session from two tabs is refused or allowed, and whether `claude --bg --resume <id>` or `claude respawn --all` is the right way to bring sessions back after a reboot (the listing side is documented: no pid, state failed or stopped).
 - A take-over key (stop the supervised session and resume it as a normal foreground `claude`, at the cost of supervision) is undecided; `b` covers the other direction.
 - Multiple Claude accounts: Claude Code's `CLAUDE_CONFIG_DIR` selects a configuration directory with its own login, settings, sessions and supervisor; Vantage would gain a profile column and set the variable when starting a session.
+- Installing with `winget install`, as a self-contained `vantage.exe` that needs no .NET SDK ([#93](https://github.com/Source191/vantage/issues/93)).
 - A per-path cache for the worktree scan, so the first press of `w` is quick on a large roots folder.
 - Pinning sessions, once the CLI exposes it outside the native agent view; configurable palette and Windows Terminal profile for the tabs Vantage opens.

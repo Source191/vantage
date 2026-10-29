@@ -3,7 +3,7 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application.Views;
 
-/// <summary>An effect that stops the screen: it needs the terminal (attach, the agent view), another screen, or the exit.</summary>
+/// <summary>An effect that stops the screen: it needs the terminal (attach), another screen, or the exit.</summary>
 public interface ILeavesScreen;
 
 /// <summary>An effect whose flow includes a dialog, before it runs or about what it left behind; the answer comes back as an input or another effect.</summary>

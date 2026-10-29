@@ -1,8 +1,8 @@
 name: Build, test and pack
 description: >-
-  Builds the solution in Release (warnings are errors), runs every test project against that build,
-  checks formatting, and packs the dotnet tool. Shared by check.yml and release.yml so the release
-  never ships a build that the check did not see.
+  Builds the solution in Release (warnings are errors) with the runner's .NET SDK, runs every test
+  project against that build, checks whitespace formatting, and packs the dotnet tool. Shared by
+  check.yml and release.yml so the release never ships a build that the check did not see.
 
 inputs:
   version-suffix:
@@ -24,9 +24,12 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 10.0.x
+    # The runner image carries the .NET SDKs, and global.json (10.0.301, latestMinor) picks one, so nothing is
+    # downloaded; an image without a suitable SDK fails here with the SDK's own message. The line records which
+    # SDK built this run.
+    - name: Show the .NET SDK
+      shell: pwsh
+      run: dotnet --version
 
     - name: Build (Release, warnings are errors)
       shell: pwsh
@@ -36,9 +39,12 @@ runs:
       shell: pwsh
       run: dotnet test -c Release --no-build
 
-    - name: Format
+    # Whitespace only: EnforceCodeStyleInBuild and TreatWarningsAsErrors in Directory.Build.props already fail
+    # the build on every style and analyser rule at warning, which is what dotnet format's style and analyzers
+    # passes check. Workspace mode, not --folder, so the generated files under obj are left out.
+    - name: Format (whitespace)
       shell: pwsh
-      run: dotnet format --verify-no-changes --no-restore
+      run: dotnet format whitespace --verify-no-changes --no-restore
 
     - name: Pack
       shell: pwsh
@@ -63,6 +69,17 @@ runs:
         $packages = @(Get-ChildItem artifacts\packages -Filter *.nupkg)
         if ($packages.Count -ne 1) {
             throw "Expected exactly one .nupkg in artifacts\packages, found $($packages.Count)."
+        }
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($packages[0].FullName)
+        try {
+            $foreign = @($archive.Entries.FullName | Where-Object { $_ -match '/runtimes/' -and $_ -notmatch '/runtimes/win' })
+        }
+        finally {
+            $archive.Dispose()
+        }
+        if ($foreign.Count -gt 0) {
+            throw "The package holds native assets for platforms other than Windows:`n$($foreign -join "`n")"
         }
         $version = $packages[0].BaseName.Substring('Source191.Vantage.'.Length)
         "version=$version" >> $env:GITHUB_OUTPUT

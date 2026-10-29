@@ -41,7 +41,7 @@ public static partial class Wording
         PullRequestGap.Looking => $"Still looking up {none.RowName}'s pull request; try again in a moment.",
         PullRequestGap.Failed when none.Host is PullRequestHost host => $"{Capitalised(Cli(host))} could not list {none.RowName}'s pull requests.",
         PullRequestGap.Failed => $"Could not look up {none.RowName}'s pull requests.",
-        PullRequestGap.NoPullRequest => $"No pull request found for {none.RowName}'s branch among the latest 100.",
+        PullRequestGap.NoPullRequest => $"No pull request found for {none.RowName}'s branch.",
     };
 
     private static string Cli(PullRequestHost? host) => host switch

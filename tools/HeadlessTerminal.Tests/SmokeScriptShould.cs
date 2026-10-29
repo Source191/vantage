@@ -81,15 +81,15 @@ public sealed class SmokeScriptShould
     [Fact]
     public void TranslateTheNamedKeysToWhatATerminalSends()
     {
-        SmokeScript.KeyFor([new KeyHelp("esc", "Back", "back", Column: 0)], "Back").ShouldBe(Escape);
-        SmokeScript.KeyFor([new KeyHelp("enter", "Go", "go", Column: 0)], "Go").ShouldBe("\r");
-        SmokeScript.KeyFor([new KeyHelp(",", "Settings", "settings", Column: 0)], "Settings").ShouldBe(",");
+        SmokeScript.KeyFor([new KeyHelp("esc", "Back", "back", Column: 0, Tip: "Go back.")], "Back").ShouldBe(Escape);
+        SmokeScript.KeyFor([new KeyHelp("enter", "Go", "go", Column: 0, Tip: "Go there.")], "Go").ShouldBe("\r");
+        SmokeScript.KeyFor([new KeyHelp(",", "Settings", "settings", Column: 0, Tip: "Edit the settings.")], "Settings").ShouldBe(",");
     }
 
     [Fact]
     public void TakeTheFirstKeyWithAHint()
     {
-        SmokeScript.KeyFor([new KeyHelp("w", "Sessions", "back", Column: 1), new KeyHelp("esc", "Sessions", "back", Column: 1)], "Sessions").ShouldBe("w");
+        SmokeScript.KeyFor([new KeyHelp("w", "Sessions", "back", Column: 1, Tip: "Go back."), new KeyHelp("esc", "Sessions", "back", Column: 1, Tip: "Go back.")], "Sessions").ShouldBe("w");
     }
 
     [Fact]

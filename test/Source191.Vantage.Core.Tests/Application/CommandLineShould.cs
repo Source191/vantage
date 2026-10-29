@@ -65,8 +65,20 @@ public sealed class CommandLineShould : IDisposable
 
         exitCode.ShouldBe(1);
         calls.ShouldBeEmpty();
-        error.ToString().ShouldContain(Wording.NameLooksLikeAnOption(token));
+        error.ToString().Split(Wording.NameLooksLikeAnOption(token)).Length.ShouldBe(2, "the sentence is written once");
         output.ToString().ShouldContain("--prompt");
+    }
+
+    [Fact]
+    public async Task NameTheOptionLikeNameBeforeTheLibrarysOwnError()
+    {
+        int exitCode = await InvokeAsync("here", "-d", "x");
+
+        exitCode.ShouldBe(1);
+        calls.ShouldBeEmpty();
+        error.ToString().ShouldStartWith(Wording.NameLooksLikeAnOption("-d"));
+        error.ToString().Split(Wording.NameLooksLikeAnOption("-d")).Length.ShouldBe(2, "the sentence is written once");
+        error.ToString().ShouldContain("'x'");
     }
 
     [Fact]
@@ -153,6 +165,15 @@ public sealed class CommandLineShould : IDisposable
         calls.ShouldBeEmpty();
         output.ToString().ShouldContain("--prompt");
         output.ToString().ShouldContain("name");
+    }
+
+    [Fact]
+    public async Task SayAnEmptySessionWaitsAtItsPrompt()
+    {
+        await InvokeAsync("here", "--help");
+
+        output.ToString().ShouldContain("waits at its prompt");
+        output.ToString().ShouldNotContain("agent list");
     }
 
     [Fact]

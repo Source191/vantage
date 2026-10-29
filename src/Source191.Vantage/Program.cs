@@ -84,7 +84,8 @@ async Task<int> StartHereAsync(string? name, string? prompt, CancellationToken c
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
     // here does not ask Claude Code for its version, so as not to slow the attach down.
     RecordStart(null);
-    HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, Console.Out), new TerminalConsole(Console.Out, Wording.TabTitle), Console.Out, Console.Error);
+    TerminalConsole hereConsole = new(Console.Out, Wording.TabTitle);
+    HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, hereConsole), hereConsole, Console.Out, Console.Error);
 
     return await runner.RunAsync(Directory.GetCurrentDirectory(), name, prompt, cancellationToken);
 }
@@ -107,12 +108,12 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     Folders folders = new();
     TerminalConsole console = new(Console.Out, tabTitle);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
-    TerminalEffects terminalEffects = new(claude, Console.Out);
+    TerminalEffects terminalEffects = new(claude, console);
 
     // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
     using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
     Task<string?> claudeVersion = claude.VersionAsync(versionTimeout.Token);
-    PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
+    using PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
     SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
     StateTransitionNotifier notifier = new(Console.Out);
     OwnTab ownTab = new(store, processRegistry, TimeProvider.System);

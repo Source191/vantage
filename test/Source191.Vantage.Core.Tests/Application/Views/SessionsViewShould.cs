@@ -308,7 +308,6 @@ public sealed class SessionsViewShould
     [InlineData('r', typeof(AskForNewName))]
     [InlineData('n', typeof(OpenLaunchWizard))]
     [InlineData('R', typeof(ResumeStoppedSessions))]
-    [InlineData('a', typeof(OpenAgentView))]
     [InlineData('w', typeof(SwitchToWorktrees))]
     [InlineData('q', typeof(Quit))]
     [InlineData('?', typeof(ShowHelp))]
@@ -320,6 +319,27 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of(key)));
 
         update.Effects.Single().ShouldBeOfType(effect);
+    }
+
+    [Theory]
+    [MemberData(nameof(SidewaysKeys))]
+    public void LeaveSidewaysScrollingToTheScreen(Key key)
+    {
+        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(key));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.ShouldBe(Loaded);
+    }
+
+    public static TheoryData<Key> SidewaysKeys => new(Key.Left, Key.Right);
+
+    [Fact]
+    public void IgnoreTheRetiredAgentViewKey()
+    {
+        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('a')));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.ShouldBe(Loaded);
     }
 
     [Fact]
@@ -440,7 +460,6 @@ public sealed class SessionsViewShould
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
         new AttachToSession(JobId.From("81cdb0f9")).ShouldBeAssignableTo<ILeavesScreen>();
-        new OpenAgentView().ShouldBeAssignableTo<ILeavesScreen>();
         new SwitchToWorktrees().ShouldBeAssignableTo<ILeavesScreen>();
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
         new AskForNewName(WaitingJob).ShouldBeAssignableTo<IDialogEffect>();
