@@ -7,7 +7,7 @@
 
 ## 2. Key tips (Wording)
 
-- [ ] 2.1 Red: `WordingShould.GiveEveryKeyATip` asserts every `KeyHelp` in `SessionsKeys` and `WorktreesKeys` has a non-blank `Tip` of at most 80 characters that differs from its `Line`. Green: `KeyHelp` gains `Tip`; every key gets a sentence saying what it does and when to use it. Verify the Core suite passes and the help output in `WordingOfKeysAndColumnsShould` is unchanged.
+- [x] 2.1 Red: `WordingShould.GiveEveryKeyATip` asserts every `KeyHelp` in `SessionsKeys` and `WorktreesKeys` has a non-blank `Tip` of at most 80 characters that differs from its `Line`. Green: `KeyHelp` gains `Tip`; every key gets a sentence saying what it does and when to use it. Verify the Core suite passes and the help output in `WordingOfKeysAndColumnsShould` is unchanged.
 - [ ] 2.2 Red: `WordingShould.FitEveryColumnMeaningOnItsLines` asserts every line of every `ColumnHelp.Meaning` in both views is at most 100 characters. Green: the PR meaning rewritten as two shorter lines. Verify the fact passes.
 
 ## 3. Tooltips (Tui)
