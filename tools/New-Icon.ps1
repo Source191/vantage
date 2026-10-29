@@ -12,53 +12,17 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Drawing
+. (Join-Path $PSScriptRoot 'VantageMark.ps1')
 
 $sizes = 16, 32, 48, 64, 128, 256, 512
 $master = 512
-
-function ColourOf([string]$hex) { [System.Drawing.ColorTranslator]::FromHtml($hex) }
-function PointOf([double]$x, [double]$y) { [System.Drawing.PointF]::new($x, $y) }
-
-function New-RoundedRectangle([float]$size, [float]$radius) {
-    $path = [System.Drawing.Drawing2D.GraphicsPath]::new()
-    $diameter = $radius * 2
-    $path.AddArc(0, 0, $diameter, $diameter, 180, 90)
-    $path.AddArc($size - $diameter, 0, $diameter, $diameter, 270, 90)
-    $path.AddArc($size - $diameter, $size - $diameter, $diameter, $diameter, 0, 90)
-    $path.AddArc(0, $size - $diameter, $diameter, $diameter, 90, 90)
-    $path.CloseFigure()
-    $path
-}
-
-function New-Pen([string]$hex, [float]$width) {
-    $pen = [System.Drawing.Pen]::new((ColourOf $hex), $width)
-    $pen.StartCap = 'Round'
-    $pen.EndCap = 'Round'
-    $pen
-}
-
-function Add-Node([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [float]$radius, [string]$ring) {
-    $graphics.FillEllipse([System.Drawing.SolidBrush]::new((ColourOf '#0F172A')), $x - $radius, $y - $radius, 2 * $radius, 2 * $radius)
-    $inner = $radius * 0.78
-    $graphics.DrawEllipse((New-Pen $ring ($radius * 0.55)), $x - $inner, $y - $inner, 2 * $inner, 2 * $inner)
-}
 
 function New-Master {
     $bitmap = [System.Drawing.Bitmap]::new($master, $master)
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     $graphics.SmoothingMode = 'AntiAlias'
     $graphics.PixelOffsetMode = 'HighQuality'
-    $graphics.SetClip((New-RoundedRectangle $master 96))
-    $background = [System.Drawing.Drawing2D.LinearGradientBrush]::new((PointOf 0 0), (PointOf 0 $master), (ColourOf '#1E1B4B'), (ColourOf '#0F172A'))
-    $graphics.FillRectangle($background, 0, 0, $master, $master)
-    # The stem is drawn first so the branches' round ends cover its top and the join is clean.
-    $graphics.DrawLine((New-Pen '#FFFFFF' 40), 256, 330, 256, 408)
-    $graphics.DrawLine((New-Pen '#2DD4BF' 40), 124, 112, 256, 330)
-    $graphics.DrawLine((New-Pen '#A78BFA' 40), 388, 112, 256, 330)
-    Add-Node $graphics 124 104 46 '#2DD4BF'
-    Add-Node $graphics 388 104 46 '#A78BFA'
-    Add-Node $graphics 256 408 46 '#FFFFFF'
+    Add-VantageMark $graphics 0 0 $master
     $graphics.Dispose()
     $bitmap
 }

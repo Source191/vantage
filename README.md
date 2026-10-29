@@ -1,10 +1,10 @@
 # Vantage
 
-![The Vantage icon: two branches merging into one node, shaped as a V](https://raw.githubusercontent.com/Source191/vantage/main/assets/icon/vantage-128.png)
+![Vantage: mission control for Claude Code sessions, every session in one tab, still there after a reboot. Beside it, the icon: two branches merging into one node, shaped as a V](https://raw.githubusercontent.com/Source191/vantage/main/assets/header/readme-banner.png)
 
-A terminal console for Claude Code sessions and git worktrees on Windows.
+[![Buy me a sliver of a Claude Max plan](https://img.shields.io/badge/Buy_me_a_sliver_of_a-Claude_Max_plan-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/simonvane)
 
-Supervise your Claude Code sessions from one terminal tab: start, attach, rename, stop, and clean up the worktrees they leave behind. Vantage lists every Claude Code session on the machine on one screen, with its state, repository and branch, and lets you attach to a session, open it in its own coloured Windows Terminal tab, start new sessions in a repository or a fresh worktree, and tidy up the worktrees that sessions leave behind. Sessions run under Claude Code's own background supervisor (`claude --bg`), so they keep working when no terminal shows them, and the terminal bell tells you when one needs you.
+Vantage is mission control for Claude Code on Windows. Every session on the machine sits in one Windows Terminal tab, with its state, repository, branch and pull request, so you no longer have to remember which tab is doing what or which one is waiting for you. Start a session in a fresh git worktree, attach to any session from the list, or open it in its own tab, named after the session and coloured so you can tell it apart at a glance; the terminal bell tells you when one needs you. Sessions run under Claude Code's own background supervisor, so they keep working when no terminal shows them, and they are still listed after you close the terminal or reboot, ready to resume with one key. When the work is done, one key deletes a session and removes its worktree too, unless that would lose uncommitted or unpushed work.
 
 > **To do:** add a screenshot of the sessions view here before the repository is made public.
 
@@ -29,6 +29,7 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 - [Developing Vantage](#developing-vantage)
 - [Continuous integration](#continuous-integration)
 - [Working with OpenSpec](#working-with-openspec)
+- [Support Vantage](#support-vantage)
 - [Roadmap and known limits](#roadmap-and-known-limits)
 
 ## Prerequisites
@@ -432,6 +433,12 @@ The repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-
 - **Apply:** `/opsx:apply <name>` works through the tasks test-first, ticking each one; `openspec status --change <name>` shows progress.
 - **Archive:** `/opsx:archive <name>` when the tasks are done; the delta specs are merged into `openspec\specs` so they stay the single account of current behaviour.
 - `openspec\config.yaml` holds the project context every change inherits (platform, CLI surface, worktree conventions, coding style); update it when a rule changes rather than repeating the rule in each proposal.
+
+## Support Vantage
+
+Vantage is built in the gaps between rate limits. Help close the gaps: [buy me a sliver of a Claude Max plan](https://buymeacoffee.com/simonvane).
+
+![QR code for buymeacoffee.com/simonvane](https://raw.githubusercontent.com/Source191/vantage/main/assets/support/buy-me-a-coffee-qr.png)
 
 ## Roadmap and known limits
 

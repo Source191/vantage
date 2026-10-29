@@ -21,11 +21,15 @@ What Vantage does with its command line as a whole: which arguments open the con
 - **THEN** standard error names --frob as unrecognised, the console does not open, and the exit code is 1
 
 ### Requirement: Help is printed on request
-`vantage --help`, `-h`, `/h`, `-?` and `/?` SHALL print Vantage's help to standard output and exit 0. The help SHALL describe Vantage, list the `here` and `setup-terminal` commands with their descriptions, and list the help and version options. It SHALL NOT list the commands Vantage runs for itself.
+`vantage --help`, `-h`, `/h`, `-?` and `/?` SHALL print Vantage's help to standard output and exit 0. The help SHALL describe Vantage, say where to support it (`Buy me a sliver of a Claude Max plan: https://buymeacoffee.com/simonvane`), list the `here` and `setup-terminal` commands with their descriptions, and list the help and version options. It SHALL NOT list the commands Vantage runs for itself.
 
 #### Scenario: Help
 - **WHEN** the user runs vantage --help
 - **THEN** standard output holds the help with the here and setup-terminal commands, nothing is started, and the exit code is 0
+
+#### Scenario: Help says where to support Vantage
+- **WHEN** the user runs vantage --help
+- **THEN** the description includes Buy me a sliver of a Claude Max plan: https://buymeacoffee.com/simonvane
 
 #### Scenario: Every help spelling
 - **WHEN** the user runs vantage with -h, /h, -? or /?

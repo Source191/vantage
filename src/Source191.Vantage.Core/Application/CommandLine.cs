@@ -9,13 +9,14 @@ namespace Source191.Vantage.Application;
 /// Vantage's whole command line, declared once with System.CommandLine: the console as the root action, <c>here</c>,
 /// <c>setup-terminal</c> and the hidden <c>claim-tab</c>. Help, version, parse errors and close-match suggestions are
 /// the library's; each command hands its values to the matching <see cref="CommandActions"/> delegate. Descriptions
-/// sit beside their symbols rather than in <see cref="Wording"/>, so an option and its words are changed together.
+/// sit beside their symbols rather than in <see cref="Wording"/>, so an option and its words are changed together; the
+/// root's support line is the exception, read from <see cref="Wording.SupportLine"/> because its URL is a fact with one home.
 /// </summary>
 public static class CommandLine
 {
     public static RootCommand Build(CommandActions actions)
     {
-        RootCommand root = new("A console for Claude Code sessions and git worktrees on Windows.") { Here(actions), SetupTerminal(actions), ClaimTab(actions) };
+        RootCommand root = new($"Mission control for Claude Code sessions: every session in one tab, still there after a reboot.\n{Wording.SupportLine}") { Here(actions), SetupTerminal(actions), ClaimTab(actions) };
         root.SetAction((_, cancellationToken) => actions.OpenConsole(cancellationToken));
 
         return root;

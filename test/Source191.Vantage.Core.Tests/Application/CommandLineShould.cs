@@ -126,6 +126,22 @@ public sealed class CommandLineShould : IDisposable
         output.ToString().ShouldNotContain("claim-tab");
     }
 
+    [Fact]
+    public async Task DescribeVantageAsMissionControl()
+    {
+        await InvokeAsync("--help");
+
+        output.ToString().ShouldContain("Mission control for Claude Code sessions: every session in one tab, still there after a reboot.");
+    }
+
+    [Fact]
+    public async Task SayWhereToSupportVantageInTheHelp()
+    {
+        await InvokeAsync("--help");
+
+        output.ToString().ShouldContain(Wording.SupportLine);
+    }
+
     [Theory]
     [InlineData("here", "--help")]
     [InlineData("here", "fix-tests", "-h")]

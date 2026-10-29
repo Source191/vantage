@@ -19,6 +19,11 @@ public static partial class Wording
     /// <summary>vantage here refuses a dash-led name that did not follow --, since it is most likely a mistyped option.</summary>
     public static string NameLooksLikeAnOption(string token) => $"{token} looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- {token}";
 
+    /// <summary>Where to support Vantage, printed under its description in <c>vantage --help</c>.</summary>
+    public static string SupportLine => $"Buy me a sliver of a Claude Max plan: {SupportPage}";
+
+    private static readonly Uri SupportPage = new("https://buymeacoffee.com/simonvane");
+
     private const string SetupTerminalSyntax = "vantage setup-terminal [--sound <wav>] [--session-sound <wav>] [--yes] [--remove]";
 
     public static string ForceRemoveWarning => "This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:";
