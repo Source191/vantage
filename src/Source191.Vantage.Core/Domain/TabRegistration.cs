@@ -21,22 +21,8 @@ public sealed record TabRegistration(
     /// The Windows Terminal process whose window holds this tab, found by walking up from the tab's shell. Null for a
     /// pending registration or when the chain does not reach Windows Terminal within a few steps.
     /// </summary>
-    public int? OwningTerminal(IProcessRegistry processes)
-    {
-        int? current = ProcessId;
-        for (int step = 0; step < 5 && current is not null; step++)
-        {
-            ProcessParent? parent = processes.ParentOf(current.Value);
-            if (parent?.Name == "WindowsTerminal")
-            {
-                return parent.ProcessId;
-            }
+    public int? OwningTerminal(IProcessRegistry processes) => ProcessId is int shell ? TerminalTab.TerminalOf(shell, processes) : null;
 
-            current = parent?.ProcessId;
-        }
-
-        return null;
-    }
 
     public bool IsLive(DateTimeOffset now, IProcessRegistry processes)
     {

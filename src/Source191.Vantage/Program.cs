@@ -121,7 +121,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
     EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
     EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home), log);
-    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
+    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders));
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);
     string? claudeVersionText = await claudeVersion;
     RecordStart(claudeVersionText);

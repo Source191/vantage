@@ -17,6 +17,26 @@ public sealed class GitCliShould
     private ProcessRequest Only => processes.CapturedRequests.Single();
 
     [Fact]
+    public async Task ReportAWorktreeFolderInUse()
+    {
+        processes.AnswerAll(new ProcessResult(255, string.Empty, "error: failed to delete 'C:/Users/me/source/worktrees/Northwind.Orders-fix': Permission denied\n"));
+
+        GitException exception = await Should.ThrowAsync<GitException>(() => Git.RemoveWorktreeAsync(Repository, Worktree, force: false, CancellationToken.None));
+
+        exception.InUse.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task ReportAnOrdinaryRemovalFailureAsNotInUse()
+    {
+        processes.AnswerAll(new ProcessResult(128, string.Empty, "fatal: 'C:/repos/Northwind.Orders-fix-123' contains modified or untracked files, use --force to delete it\n"));
+
+        GitException exception = await Should.ThrowAsync<GitException>(() => Git.RemoveWorktreeAsync(Repository, Worktree, force: false, CancellationToken.None));
+
+        exception.InUse.ShouldBeFalse();
+    }
+
+    [Fact]
     public async Task ListWorktreesWithPorcelainOutputInTheRepository()
     {
         processes.AnswerAll(new ProcessResult(0, "worktree C:/repos/Northwind.Orders\nHEAD abc\nbranch refs/heads/main\n", string.Empty));

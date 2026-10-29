@@ -10,7 +10,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vantage</ToolCommandName>
     <PackageId>Source191.Vantage</PackageId>
-    <Version>0.17.0-preview.8</Version>
+    <Version>0.17.0-preview.9</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>Simon Vane</Authors>
     <Description>Mission control for Claude Code sessions: every session in one tab, still there after a reboot.</Description>

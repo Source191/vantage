@@ -30,6 +30,7 @@ public sealed class TabScriptsShould
         tab.Script.ShouldContain("' $PID", customMessage: "the tab shell must pass its own process id, unquoted, so the registration outlives claim-tab");
         tab.Script.ShouldContain("Clear-Host", customMessage: "profile output must be cleared before the full-screen attach");
         tab.Script.ShouldContain($"& '{Claude}' 'attach' '81cdb0f9'");
+        tab.Script.Split('\n')[^1].ShouldBe("if ($LASTEXITCODE -eq 0) { exit }", customMessage: "a detach, a stop or a removal ends the attach with 0 and the tab closes; a failed attach keeps its prompt");
     }
 
     [Fact]

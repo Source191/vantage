@@ -4,15 +4,16 @@ using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Actions;
 
-public sealed class StopSessionHandler(IClaudeCli claude) : IEffectHandler<StopSession>
+public sealed class StopSessionHandler(IClaudeCli claude, SessionTabs tabs) : IEffectHandler<StopSession>
 {
     public async Task<Outcome> HandleAsync(StopSession effect, CancellationToken cancellationToken)
     {
         await claude.StopAsync(effect.Session.JobId.Value, cancellationToken);
+        TabClosure closure = await tabs.CloseAsync(effect.Session.SessionId);
 
-        return new StopSessionOutcome(effect.Session.Name);
+        return new StopSessionOutcome(effect.Session.Name, closure == TabClosure.Closed);
     }
 }
 
-/// <summary>The session was stopped; it stays listed and can be resumed.</summary>
-public sealed record StopSessionOutcome(string Name) : Outcome;
+/// <summary>The session was stopped; it stays listed and can be resumed. TabClosed when a Vantage tab showing it was closed too.</summary>
+public sealed record StopSessionOutcome(string Name, bool TabClosed) : Outcome;
