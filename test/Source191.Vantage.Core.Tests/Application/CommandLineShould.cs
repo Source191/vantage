@@ -70,6 +70,17 @@ public sealed class CommandLineShould : IDisposable
     }
 
     [Fact]
+    public async Task NameTheOptionLikeNameBeforeTheLibrarysOwnError()
+    {
+        int exitCode = await InvokeAsync("here", "-d", "x");
+
+        exitCode.ShouldBe(1);
+        calls.ShouldBeEmpty();
+        error.ToString().ShouldStartWith(Wording.NameLooksLikeAnOption("-d"));
+        error.ToString().ShouldContain("'x'");
+    }
+
+    [Fact]
     public async Task TakeAPromptThatStartsWithADash()
     {
         int exitCode = await InvokeAsync("here", "fix-tests", "-p", "-fix the tests");
