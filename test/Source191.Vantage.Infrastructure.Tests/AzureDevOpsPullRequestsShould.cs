@@ -51,6 +51,20 @@ public sealed class AzureDevOpsPullRequestsShould
     }
 
     [Fact]
+    public async Task KeepABranchWithASlash()
+    {
+        BranchName republisher = BranchName.From("feature/republisher");
+        processes.AnswerAll(new ProcessResult(0, """
+            [{"creationDate":"2026-10-21T10:00:00+00:00","isDraft":true,"pullRequestId":4530,"repository":{"name":"Northwind.Orders"},"sourceRefName":"refs/heads/feature/republisher","status":"active"}]
+            """, string.Empty));
+
+        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, republisher, CancellationToken.None);
+
+        processes.CapturedRequests.Single().Arguments.ShouldContain("feature/republisher");
+        listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.Single().Branch.ShouldBe(republisher);
+    }
+
+    [Fact]
     public async Task BuildTheLinkFromTheRemote()
     {
         PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None);

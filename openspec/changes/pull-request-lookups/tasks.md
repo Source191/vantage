@@ -15,7 +15,7 @@
 
 - [x] 3.1 Red: `GitHubPullRequestsShould.AskForTheBranchOnly` asserts the request holds `--head fix-123` and `--limit 20` and no `--limit 100`. Green: the request. Verify `dotnet test test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build` passes.
 - [x] 3.2 Red: `AzureDevOpsPullRequestsShould.AskForTheBranchOnly` asserts `--source-branch fix-123` and `--top 20`; `BuildTheLinkFromTheRemote` feeds az's real output shape (no `webUrl`) for organisation northwind, project "Northwind Trading", repository Northwind.Orders and pull request 4521 and asserts the row's URL is `https://dev.azure.com/northwind/Northwind%20Trading/_git/Northwind.Orders/pullrequest/4521`. Green: the request and the link; the sample file replaced by the real shape. Verify the Infrastructure suite passes.
-- [ ] 3.3 Red: `AzureDevOpsPullRequestsShould.KeepABranchWithASlash` and the GitHub twin assert a branch `feature/republisher` round-trips through the request and the row. Green: nothing, if 3.1 and 3.2 already pass it; otherwise the adapter. Verify both pass.
+- [x] 3.3 Red: `AzureDevOpsPullRequestsShould.KeepABranchWithASlash` and the GitHub twin assert a branch `feature/republisher` round-trips through the request and the row. Green: nothing, if 3.1 and 3.2 already pass it; otherwise the adapter. Verify both pass.
 
 ## 4. Words and docs
 

@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace Source191.Vantage.Adapters.PullRequests;
 
 /// <summary>
-/// Lists a GitHub repository's pull requests with gh pr list. The only place gh's words are read: exit code 4 (and its
+/// Lists one branch's pull requests in a GitHub repository with gh pr list. The only place gh's words are read: exit code 4 (and its
 /// gh auth login hint) is not signed in, a gh that cannot start is missing, anything else failed.
 /// </summary>
 public sealed class GitHubPullRequests(IProcessRunner processes)

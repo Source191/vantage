@@ -44,6 +44,20 @@ public sealed class GitHubPullRequestsShould
     }
 
     [Fact]
+    public async Task KeepABranchWithASlash()
+    {
+        BranchName republisher = BranchName.From("feature/republisher");
+        processes.AnswerAll(new ProcessResult(0, """
+            [{"createdAt":"2026-10-21T10:00:00Z","headRefName":"feature/republisher","isDraft":true,"number":130,"state":"OPEN","url":"https://github.com/northwind/Northwind.Orders/pull/130"}]
+            """, string.Empty));
+
+        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, republisher, CancellationToken.None);
+
+        processes.CapturedRequests.Single().Arguments.ShouldContain("feature/republisher");
+        listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.Single().Branch.ShouldBe(republisher);
+    }
+
+    [Fact]
     public async Task ReportCliMissingWhenGhCannotStart()
     {
         processes.Fail(new Win32Exception(2, "The system cannot find the file specified."));
