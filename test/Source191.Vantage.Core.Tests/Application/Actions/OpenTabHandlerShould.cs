@@ -115,6 +115,20 @@ public sealed class OpenTabHandlerShould
     }
 
     [Fact]
+    public async Task DropEarlierRegistrationsForTheSession()
+    {
+        TabRegistration earlier = TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("sess-1")), TabPalette.Default[0], Noon.AddMinutes(-10)).ClaimedBy(4242, Noon.AddMinutes(-9));
+        registry.Running(4242, Noon.AddMinutes(-9));
+        await Store.WriteTabAsync(earlier);
+
+        await Handler.OpenAsync(Job(), CancellationToken.None);
+
+        TabRegistration only = (await Store.ReadTabsAsync()).ShouldHaveSingleItem();
+        only.Id.ShouldNotBe(earlier.Id);
+        only.Colour.ShouldBe(TabPalette.Default[0], "the session's earlier tab no longer holds its colour");
+    }
+
+    [Fact]
     public async Task OpenANewTabWhenNoRegistrationExists()
     {
         Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: true), CancellationToken.None);
