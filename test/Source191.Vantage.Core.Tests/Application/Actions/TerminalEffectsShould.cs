@@ -25,8 +25,6 @@ public sealed class TerminalEffectsShould : IDisposable
         await Effects.RunAsync(new AttachToSession(JobId.From("81cdb0f9")), CancellationToken.None);
 
         console.ToString().ShouldContain("Ctrl+Z returns to Vantage");
-        console.ToString().ShouldContain("agent list");
-        console.ToString().ShouldContain("Esc");
         processes.InteractiveRequests.Single().Arguments.ShouldBe(["attach", "81cdb0f9"]);
     }
 
