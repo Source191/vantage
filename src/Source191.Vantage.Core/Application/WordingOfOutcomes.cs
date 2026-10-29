@@ -127,6 +127,8 @@ public static partial class Wording
             DeleteSessionOutcome.KeptWorktree kept => $"Deleted {kept.Name}; kept its worktree because {Describe(kept.Reason)}.",
             DeleteSessionOutcome.RemovedWorktreeAndBranch removed => $"Deleted {removed.Name} and removed the worktree and branch {removed.Branch}.",
             DeleteSessionOutcome.BranchNotMerged unmerged => $"Deleted {unmerged.Name} and removed the worktree; branch {unmerged.Branch.Branch} is not merged.",
+            DeleteSessionOutcome.RemovedWorktree removed => $"Deleted {removed.Name}; {Lowered(Describe(removed.Worktree))}",
+            DeleteSessionOutcome.WorktreeInUse inUse => $"Deleted {inUse.Name}; its worktree folder {inUse.FolderName} is still in use by a tab or program: close it and remove the folder from the worktrees view.",
             _ => outcome.ToString(),
         };
     }
@@ -136,6 +138,7 @@ public static partial class Wording
         return outcome switch
         {
             RemoveWorktreeOutcome.Refused refused => $"Not removed: {Describe(refused.Reason)}.",
+            RemoveWorktreeOutcome.InUse inUse => $"Not removed: the folder {inUse.FolderName} is still in use by a tab or program; close it and remove again.",
             RemoveWorktreeOutcome.Removed removed => $"Removed {removed.FolderName}.",
             RemoveWorktreeOutcome.RemovedAndDeletedBranch removed => $"Removed {removed.FolderName} and deleted its merged branch {removed.Branch}.",
             RemoveWorktreeOutcome.BranchKept { CreatedByVantage: true } kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} is not merged.",
@@ -192,4 +195,7 @@ public static partial class Wording
             EditorPreset.Custom => Path.GetFileNameWithoutExtension(editor.Executable),
         };
     }
+
+    /// <summary>A sentence carried on after a semicolon: its first letter lowered.</summary>
+    private static string Lowered(string sentence) => sentence.Length == 0 ? sentence : char.ToLowerInvariant(sentence[0]) + sentence[1..];
 }

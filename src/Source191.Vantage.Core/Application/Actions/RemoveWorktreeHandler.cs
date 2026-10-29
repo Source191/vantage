@@ -41,4 +41,7 @@ public abstract record RemoveWorktreeOutcome : Outcome
     public sealed record DeletedFolder(string FolderName) : RemoveWorktreeOutcome;
 
     public sealed record DeletedFolderAndPruned(string FolderName, int Pruned, string RepositoryName) : RemoveWorktreeOutcome;
+
+    /// <summary>Git could not delete the folder because a tab or program still has it open; what it could delete is gone.</summary>
+    public sealed record InUse(string FolderName) : RemoveWorktreeOutcome;
 }

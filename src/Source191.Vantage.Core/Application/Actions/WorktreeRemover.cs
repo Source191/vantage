@@ -22,7 +22,16 @@ public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees
 
     private async Task<RemoveWorktreeOutcome> RemoveThroughGitAsync(WorktreeRow row, RemovalDecision decision, bool createdByVantage, CancellationToken cancellationToken)
     {
-        await git.RemoveWorktreeAsync(row.Repository.Value, row.Path.Value, decision.Forced, cancellationToken);
+        try
+        {
+            await git.RemoveWorktreeAsync(row.Repository.Value, row.Path.Value, decision.Forced, cancellationToken);
+        }
+        catch (GitException exception) when (exception.InUse)
+        {
+            // Git deleted what it could; the registration stays, so a later remove sees a leftover and finishes.
+            return new RemoveWorktreeOutcome.InUse(row.FolderName);
+        }
+
         await createdWorktrees.ForgetCreatedWorktreeAsync(row.Path);
         // A worktree on a detached head has no branch; the folder name stands in, as the removal rules assume.
         BranchName? branch = row.Branch;

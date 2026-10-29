@@ -396,6 +396,7 @@ public sealed class WordingOfOutcomesShould
             _ when type == typeof(SessionId) => SessionId.From("sess-1"),
             _ when type == typeof(BranchName) => BranchName.From("fix-123"),
             _ when type == typeof(OpenTabOutcome) => new OpenTabOutcome.SwitchedTo("fix-123"),
+            _ when type == typeof(RemoveWorktreeOutcome) => new RemoveWorktreeOutcome.DeletedFolder("Northwind.Orders-fix-123"),
             _ when type == typeof(IReadOnlyList<string>) => new List<string> { "fix-123" },
             _ when type == typeof(IReadOnlyList<SkippedSession>) => new List<SkippedSession>(),
             _ when type == typeof(IReadOnlyList<ResumeNote>) => new List<ResumeNote>(),
