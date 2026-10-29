@@ -5,11 +5,10 @@ using System.Collections.Concurrent;
 namespace Source191.Vantage.Application;
 
 /// <summary>
-/// Each repository's pull requests, listed at most once every three minutes per main checkout and never waited for by
-/// a row: Find answers from what has already landed (Looking before the first answer), and RefreshStaleAsync starts a
-/// listing for each checkout whose answer is older than the window and has none running, keeping the old answer until
-/// the new one lands. Unavailable answers are kept for the same window, so a signed-out CLI is not asked every refresh.
-/// The origin remote is read again with each listing, so a repository that moves host is followed.
+/// Each branch's pull requests, looked up per main checkout and branch and never waited for by a row: Find answers
+/// from what has already landed (Looking before the first answer), and RefreshStaleAsync starts a lookup for each
+/// branch whose answer is older than the window and has none running, keeping the old answer until the new one lands.
+/// The origin remote is read again with each lookup, so a repository that moves host is followed.
 /// </summary>
 public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProvider clock)
 {
@@ -18,7 +17,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
     private readonly ConcurrentDictionary<string, Answer> answers = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, Lazy<Task>> running = new(StringComparer.Ordinal);
 
-    public PullRequestLookup Find(FolderPath checkout, BranchName? branch) => (branch, answers.TryGetValue(checkout.Key, out Answer? answer) ? answer : null) switch
+    public PullRequestLookup Find(FolderPath checkout, BranchName? branch) => (branch, branch is not null && answers.TryGetValue(KeyOf(checkout, branch), out Answer? answer) ? answer : null) switch
     {
         (null, _) => new PullRequestLookup.Missing(PullRequestGap.NoBranch),
         (_, null) => new PullRequestLookup.Missing(PullRequestGap.Looking),
@@ -31,14 +30,15 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
     {
         DateTimeOffset now = clock.GetUtcNow();
         List<Task> started = [];
-        foreach ((FolderPath checkout, BranchName branch) in branches.DistinctBy(pair => pair.Checkout.Key))
+        foreach ((FolderPath checkout, BranchName branch) in branches.DistinctBy(pair => KeyOf(pair.Checkout, pair.Branch)))
         {
-            if (answers.TryGetValue(checkout.Key, out Answer? answer) && now - answer.At < Window)
+            string key = KeyOf(checkout, branch);
+            if (answers.TryGetValue(key, out Answer? answer) && now - answer.At < Window)
             {
                 continue;
             }
 
-            started.Add(running.GetOrAdd(checkout.Key, _ => new Lazy<Task>(() => RefreshAsync(checkout, branch))).Value);
+            started.Add(running.GetOrAdd(key, _ => new Lazy<Task>(() => RefreshAsync(checkout, branch))).Value);
         }
 
         return Task.WhenAll(started);
@@ -49,21 +49,24 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
             ? new PullRequestLookup.Found(found)
             : new PullRequestLookup.Missing(PullRequestGap.NoPullRequest);
 
+    private static string KeyOf(FolderPath checkout, BranchName branch) => $"{checkout.Key}|{branch.Value}";
+
     private async Task RefreshAsync(FolderPath checkout, BranchName branch)
     {
+        string key = KeyOf(checkout, branch);
         try
         {
             (PullRequestListing listing, PullRequestHost? host) = await ListAsync(checkout, branch);
-            answers[checkout.Key] = new Answer(listing, host, clock.GetUtcNow());
+            answers[key] = new Answer(listing, host, clock.GetUtcNow());
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             // Nothing awaits a refresh started by a row, so a failure is kept as an answer the footer can explain.
-            answers[checkout.Key] = new Answer(new PullRequestListing.Unavailable(PullRequestGap.Failed), Host: null, clock.GetUtcNow());
+            answers[key] = new Answer(new PullRequestListing.Unavailable(PullRequestGap.Failed), Host: null, clock.GetUtcNow());
         }
         finally
         {
-            running.TryRemove(checkout.Key, out _);
+            running.TryRemove(key, out _);
         }
     }
 

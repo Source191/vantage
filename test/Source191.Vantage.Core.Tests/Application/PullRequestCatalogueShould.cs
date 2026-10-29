@@ -39,7 +39,7 @@ public sealed class PullRequestCatalogueShould
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
         catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
-        catalogue.Find(Checkout, BranchName.From("spike-cache")).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
+        catalogue.Find(Checkout, BranchName.From("spike-cache")).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking), "a branch no row has asked for is not looked up");
     }
 
     [Fact]
