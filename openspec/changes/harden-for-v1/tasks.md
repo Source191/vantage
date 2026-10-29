@@ -12,7 +12,7 @@
 
 ## 2. Wording
 
-- [ ] 2.1 `WordingShould`: the prompt problem ("An opening prompt cannot start with a dash: Claude Code would read it as options. Start it with a word."), the editor problem, the elsewhere health reason naming the repository, the removal reason, the `BranchNotGivenToAz` footer, `GitNotFound`, `ClaudeNotFound` and `ClaudeIsABatchFile(path)`; `WordingOfOutcomesShould`: the close-empty `Gone` list and `AdoptSessionOutcome.ProcessGone`. Then the words in `Wording`, `WordingOfPullRequests` and `WordingOfOutcomes`, and the `PullRequestGap` member. Verify with the two wording suites and the reflection facts.
+- [x] 2.1 `WordingShould`: the prompt problem ("An opening prompt cannot start with a dash: Claude Code would read it as options. Start it with a word."), the editor problem, the elsewhere health reason naming the repository, the removal reason, the `BranchNotGivenToAz` footer, `GitNotFound`, `ClaudeNotFound` and `ClaudeIsABatchFile(path)`; `WordingOfOutcomesShould`: the close-empty `Gone` list and `AdoptSessionOutcome.ProcessGone`. Then the words in `Wording`, `WordingOfPullRequests` and `WordingOfOutcomes`, and the `PullRequestGap` member. Verify with the two wording suites and the reflection facts.
 
 ## 3. Adapters
 
@@ -29,9 +29,9 @@
 
 ## 4. Handlers
 
-- [ ] 4.1 `CloseEmptyTerminalsHandlerShould.LeaveASessionWhoseProcessIdNowBelongsToAnotherProcess` (process started ten minutes after the session: nothing terminated, named in `Gone`) and the existing facts pass with the fourth list. Then the check in the handler and the `Gone` list on `CloseEmptyTerminalsOutcome`.
-- [ ] 4.2 `AdoptSessionHandlerShould.RefuseWhenTheProcessIdNowBelongsToAnotherProcess` (nothing terminated, no resume, `AdoptSessionOutcome.ProcessGone`). Then the check in the handler and the outcome case.
-- [ ] 4.3 `RemoveWorktreeHandlerShould.RefuseAnElsewhereRow` (refused with `RepositoryOutsideRoots`, no git command, folder untouched), forced and not. Verify the decision reaches the outcome.
+- [x] 4.1 `CloseEmptyTerminalsHandlerShould.LeaveASessionWhoseProcessIdNowBelongsToAnotherProcess` (process started ten minutes after the session: nothing terminated, named in `Gone`) and the existing facts pass with the fourth list. Then the check in the handler and the `Gone` list on `CloseEmptyTerminalsOutcome`.
+- [x] 4.2 `AdoptSessionHandlerShould.RefuseWhenTheProcessIdNowBelongsToAnotherProcess` (nothing terminated, no resume, `AdoptSessionOutcome.ProcessGone`). Then the check in the handler and the outcome case.
+- [x] 4.3 `RemoveWorktreeHandlerShould.RefuseAnElsewhereRow` (refused with `RepositoryOutsideRoots`, no git command, folder untouched), forced and not. Verify the decision reaches the outcome.
 
 ## 5. Screens, wiring and version
 
