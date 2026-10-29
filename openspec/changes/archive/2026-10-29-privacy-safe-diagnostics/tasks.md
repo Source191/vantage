@@ -50,9 +50,9 @@
 ## 9. Version and checks
 
 - [x] 9.1 Raise `Version` one preview step above `main`'s (a minor raise; `origin/main` reached 0.17.0-preview.8 on 29 Oct 2026, so 0.17.0-preview.9 after merging it). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` pass.
-- [ ] 9.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` and the `smoke` check against a locally packed build. Verify exit 0 for both.
-  - 29 Oct 2026: `check` exits 0 against the Release build. `smoke` against the Release build passes steps 1 to 8 and stops at step 9 (the worktree `vantage-v-win` not listed within 60 s); the installed 0.17.0-preview.3 stops at the same step on this machine, so it is the scan of the real roots here, not this change. Left open for the pull request's `check` job, which runs `smoke` on its seeded repository.
-- [ ] 9.3 The product owner installs the build with `tools\install-local.ps1`, runs with `VANTAGE_LOG` set, attaches, starts a session with a prompt, removes a dirty worktree (refused), then reads the file. Verify no name, folder, branch, id or prompt appears and the counts are written on `q`; record the result here.
+- [x] 9.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` and the `smoke` check against a locally packed build. Verify exit 0 for both.
+  - 29 Oct 2026: `check` exits 0 against the Release build. `smoke` against the Release build passes steps 1 to 8 and stops at step 9 (the worktree `vantage-v-win` not listed within 60 s); the installed 0.17.0-preview.3 stops at the same step on this machine, so it is the scan of the real roots here, not this change. Settled by pull request #100: its `check` job (with `smoke` on the seeded repository) and its `handoff` job both passed. Locally `check` later exited 3 on this machine for a build of `main` too, so the local failure is the machine's.
+- [ ] 9.3 (Open at archive, 29 Oct 2026: archived at the product owner's request before this check; record the result here when it is done.) The product owner installs the build with `tools\install-local.ps1`, runs with `VANTAGE_LOG` set, attaches, starts a session with a prompt, removes a dirty worktree (refused), then reads the file. Verify no name, folder, branch, id or prompt appears and the counts are written on `q`; record the result here.
 
 ## Workflow follow-up
 
