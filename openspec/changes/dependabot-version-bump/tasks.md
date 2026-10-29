@@ -6,7 +6,8 @@
 
 ## 2. The script
 
-- [ ] 2.1 Write `.github\scripts\Step-Version.ps1` (reads `<Version>` with the Assert script's regex, raises the prerelease's trailing number else the patch, rewrites only that text without a BOM, prints the new version, `-WhatIf` prints without writing, refuses a prerelease with no trailing number). Verify by running it on a temporary copy of the csproj: `0.17.0-preview.2` becomes `0.17.0-preview.3`, `0.17.0` becomes `0.17.1`, `0.17.0-local` is refused, only the Version line differs (`git diff --no-index` on the copies) and `Get-Content -AsByteStream -TotalCount 3` shows no BOM.
+- [x] 2.1 Write `.github\scripts\Step-Version.ps1` (reads `<Version>` with the Assert script's regex, raises the prerelease's trailing number else the patch, rewrites only that text without a BOM, prints the new version, `-WhatIf` prints without writing, refuses a prerelease with no trailing number). Verify by running it on a temporary copy of the csproj: `0.17.0-preview.2` becomes `0.17.0-preview.3`, `0.17.0` becomes `0.17.1`, `0.17.0-local` is refused, only the Version line differs (`git diff --no-index` on the copies) and `Get-Content -AsByteStream -TotalCount 3` shows no BOM.
+  - Recorded 29 October 2026 on temporary copies of the csproj: `0.17.0-preview.2` became `0.17.0-preview.3`, `0.17.0-preview.9` became `0.17.0-preview.10`, `0.17.0` became `0.17.1`, `0.17.0-local` was refused; each copy differed from its original in the Version line only and starts `<Pr` with no BOM; `-WhatIf` printed the next version and left the file unchanged.
 
 ## 3. The workflow
 
