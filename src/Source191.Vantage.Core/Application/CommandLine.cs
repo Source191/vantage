@@ -15,7 +15,7 @@ public static class CommandLine
 {
     public static RootCommand Build(CommandActions actions)
     {
-        RootCommand root = new("A console for Claude Code sessions and git worktrees on Windows.") { Here(actions), SetupTerminal(actions), ClaimTab(actions) };
+        RootCommand root = new($"A console for Claude Code sessions and git worktrees on Windows.\n{Wording.SupportLine}") { Here(actions), SetupTerminal(actions), ClaimTab(actions) };
         root.SetAction((_, cancellationToken) => actions.OpenConsole(cancellationToken));
 
         return root;
