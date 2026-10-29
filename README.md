@@ -110,7 +110,7 @@ New shells pick up `~\.dotnet\tools` on the PATH; a shell that was open before t
 
 Open a tab and run `vantage` (or `v`). The screen has three parts:
 
-- **Header:** Vantage's version, the Claude Code version (`unknown` when `claude --version` cannot be read, and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports), the repository roots being scanned, counts of sessions by state, and the key hints. A local install shows its prerelease label without the build timestamp (`0.6.0-local`). Rest the mouse on a key hint to see what the key does.
+- **Header:** Vantage's version, the Claude Code version (`unknown` when `claude --version` cannot be read, and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports), the repository roots being scanned, counts of sessions by state, and the key hints. A local install shows its prerelease label without the build timestamp (`0.6.0-local`). Rest the mouse on a key hint, or on its words, to see what the key does and when to use it; the tooltip is black on amber.
 - **Table:** one row per session, titled with what it counts and which row is selected: `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set. The selection bar is cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears below the table.
 - **Footer:** the current view as a crumb, then the last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside it while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
 
@@ -135,11 +135,14 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | AGE | Time since the session started |
 | TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session |
 
+NAME, REPOSITORY, FOLDER and BRANCH are cut at 28 characters with an ellipsis, so one long name cannot push the other columns off screen; Left and Right scroll the table to them, and the title, the filter and every key still use the full value.
+
 Keys (every key is dispatched by the tested reducer, so this table is the reference):
 
 | Key | Action |
 | --- | --- |
 | Up, Down | Move the selection bar |
+| Left, Right | Scroll the table sideways, one column at a time, when its columns do not all fit |
 | Enter | Attach to the selected background session in this tab; Ctrl+Z returns |
 | o | Open the session in its own coloured Windows Terminal tab; when one is already open for it, switch to that tab |
 | n | New session wizard |
@@ -157,7 +160,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | w | Switch to the worktrees view |
 | / | Filter by name, repository or branch; Enter keeps the filter, Esc clears it |
-| ? | Help |
+| ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
 | q | Quit |
 
 Rows marked `terminal` are sessions started by hand with `claude` in some tab. Vantage can see them but cannot attach to or stop them; press `b` to bring one under supervision, or type `/bg` inside it. One that has never been sent a message has nothing to keep: `d` closes its tab, `C` closes all such tabs, and the footer says so. Vantage ends the claude process, then ends the tab's shell with a clean exit code, which is what makes Windows Terminal close the tab; a session not inside a Windows Terminal tab is just ended.
@@ -212,7 +215,7 @@ Press `w`. Vantage lists every linked worktree of the repositories under your ro
 | SESSION | The session running inside it, if any |
 | HEALTH | `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it) |
 
-When nothing else needs saying, the footer explains the selected row's health in full.
+When nothing else needs saying, the footer explains the selected row's health in full. Long repository, folder and branch names are cut with an ellipsis as in the sessions view, and Left and Right scroll the table.
 
 | Key | Action |
 | --- | --- |
@@ -224,6 +227,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | o | Open a plain PowerShell tab in the worktree |
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
 | w, Esc | Back to the sessions view (Esc clears a filter first) |
+| Left, Right | Scroll the table sideways, as in the sessions view |
 | / | Filter by repository, folder, branch or health |
 | c, e, v | Copy the folder path, open the folder in your editor, open its solution, as in the sessions view; refused for a leftover whose folder is gone |
 | , | Settings, as in the sessions view |

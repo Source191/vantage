@@ -2,38 +2,43 @@
 
 ## 1. The sessions summary (Wording)
 
-- [ ] 1.1 Red: `WordingOfScreensShould.SummariseSessionsByState` asserts `Wording.SessionsSummary` reads "9 (4 stopped)" for nine rows with four stopped, "6" for six rows all needing input, and "none" for no rows. Green: the method, built from the rows' state labels. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
-- [ ] 1.2 Refactor: `SessionsScreenDefinition.ContextLines` calls `Wording.SessionsSummary` and keeps only the width fitting. Verify the Core suite passes and `dotnet build -c Debug` is clean.
+- [x] 1.1 Red: `WordingOfScreensShould.SummariseSessionsByState` asserts `Wording.SessionsSummary` reads "9 (4 stopped)" for nine rows with four stopped, "6" for six rows all needing input, and "none" for no rows. Green: the method, built from the rows' state labels. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
+- [x] 1.2 Refactor: `SessionsScreenDefinition.ContextLines` calls `Wording.SessionsSummary` and keeps only the width fitting. Verify the Core suite passes and `dotnet build -c Debug` is clean.
 
 ## 2. Key tips (Wording)
 
-- [ ] 2.1 Red: `WordingShould.GiveEveryKeyATip` asserts every `KeyHelp` in `SessionsKeys` and `WorktreesKeys` has a non-blank `Tip` of at most 80 characters that differs from its `Line`. Green: `KeyHelp` gains `Tip`; every key gets a sentence saying what it does and when to use it. Verify the Core suite passes and the help output in `WordingOfKeysAndColumnsShould` is unchanged.
-- [ ] 2.2 Red: `WordingShould.FitEveryColumnMeaningOnItsLines` asserts every line of every `ColumnHelp.Meaning` in both views is at most 100 characters. Green: the PR meaning rewritten as two shorter lines. Verify the fact passes.
+- [x] 2.1 Red: `WordingShould.GiveEveryKeyATip` asserts every `KeyHelp` in `SessionsKeys` and `WorktreesKeys` has a non-blank `Tip` of at most 80 characters that differs from its `Line`. Green: `KeyHelp` gains `Tip`; every key gets a sentence saying what it does and when to use it. Verify the Core suite passes and the help output in `WordingOfKeysAndColumnsShould` is unchanged.
+- [x] 2.2 Red: `WordingShould.FitEveryColumnMeaningOnItsLines` asserts every line of every `ColumnHelp.Meaning` in both views is at most 100 characters. Green: the PR meaning rewritten as two shorter lines. Verify the fact passes.
 
 ## 3. Tooltips (Tui)
 
-- [ ] 3.1 `TableScreen.ShowToolTips` registers a view factory for each key label and hint label that builds an amber-on-background `Label` with a one-cell margin showing the key's `Tip`; `ShowColumnToolTip` builds the same view from the column's meaning with its line breaks kept. Verify with `dotnet run --project tools\HeadlessTerminal -- drive` and a script that hovers the x key (SGR motion after 8000 ms) and the PR header: the capture (`grid`) shows the tip in amber on its own cells, two lines for PR, nothing running past column 120.
+- [x] 3.1 `TableScreen.ShowToolTips` registers a view factory for each key label and hint label that builds an amber-on-background `Label` with a one-cell margin showing the key's `Tip`; `ShowColumnToolTip` builds the same view from the column's meaning with its line breaks kept. Verify with `dotnet run --project tools\HeadlessTerminal -- drive` and a script that hovers the x key (SGR motion after 8000 ms) and the PR header: the capture (`grid`) shows the tip in amber on its own cells, two lines for PR, nothing running past column 120.
+  - Recorded 29 October 2026 at 120 x 40 (the headless size): hovering `<x>` shows "Stop the session; it stays listed as stopped and can be resumed later." as black on amber (`38;2;12;12;12` on `48;2;255;185;0`) with a space either side; hovering the PR header shows its two lines below the table, the longer 91 cells, within the screen.
 
 ## 4. Caps and the sideways scroll (Tui)
 
-- [ ] 4.1 `KeyMapping` maps CursorLeft and CursorRight to two `Key` names the reducers ignore (a `SessionsViewShould` and `WorktreesViewShould` fact each: no effect, state unchanged). Verify the Core suite passes.
-- [ ] 4.2 `TableScreen` sets `ColumnStyles` for NAME, REPOSITORY, FOLDER and BRANCH (`MaxWidth` 28, truncation indicator "…") from the definition's column names, and moves `table.ColumnOffset` on Left and Right within bounds. Verify with a headless drive at 120 x 36 against a worktree whose folder label is longer than 28 characters: the capture shows the ellipsis, and after Right the PR, AGE and TAB columns.
-- [ ] 4.3 README: the keys table gains Left and Right, and the sessions and worktrees sections say long names are cut with an ellipsis. Verify the README's keys match `Wording`'s key lists by reading both.
+- [x] 4.1 `KeyMapping` maps CursorLeft and CursorRight to two `Key` names the reducers ignore (a `SessionsViewShould` and `WorktreesViewShould` fact each: no effect, state unchanged). Verify the Core suite passes.
+- [x] 4.2 `TableScreen` sets `ColumnStyles` for NAME, REPOSITORY, FOLDER and BRANCH (`MaxWidth` 28, truncation indicator "…") from the definition's column names, and moves `table.ColumnOffset` on Left and Right within bounds. Verify with a headless drive at 120 x 36 against a worktree whose folder label is longer than 28 characters: the capture shows the ellipsis, and after Right the PR, AGE and TAB columns.
+  - Recorded 29 October 2026 at 120 x 40 (the headless size), on a throwaway `Northwind.Ellipsis-Check-With-A-Long-Repository` and its linked worktree, removed afterwards: REPOSITORY and FOLDER end in "…" at 28 cells, the title keeps the full folder name, and Right scrolls the worktrees table until HEALTH shows whole. Every redraw replaces the table's source, which resets `ColumnOffset`, so the screen keeps its own offset and sets it again after each redraw.
+- [x] 4.3 README: the keys table gains Left and Right, and the sessions and worktrees sections say long names are cut with an ellipsis. Verify the README's keys match `Wording`'s key lists by reading both.
 
 ## 5. The hint layout (Tui)
 
-- [ ] 5.1 Red: `KeyHintColumnsShould.EndEveryKeyBy112AndEveryWordBy123`, `OverlapNoColumnOnAnyRow` (rows considered, so the third column under the logo is allowed) and `StartTheThirdColumnBelowTheLogo` (first row 2). Green: `Layout` with a first row per column and the widths design.md names. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
-- [ ] 5.2 `TableScreen.AddKeyHints` starts each column at its first row. Verify with a headless capture at 126 x 36 that `<p>` reads "Open PR" beside it in both views under the logo, and at 120 x 36 that `<p>` shows with its words cut and "Close empty tabs" is whole.
+- [x] 5.1 Red: `KeyHintColumnsShould.EndEveryKeyBy112AndEveryWordBy123`, `OverlapNoColumnOnAnyRow` (rows considered, so the third column under the logo is allowed) and `StartTheThirdColumnBelowTheLogo` (first row 2). Green: `Layout` with a first row per column and the widths design.md names. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
+  - The second column's key sits at 85 with width 6, not 86 with width 4 as design.md says: the worktrees view's `<esc>` is five cells and sits in that column, and 85 leaves a cell before its words at 91. Everything else is as designed.
+- [x] 5.2 `TableScreen.AddKeyHints` starts each column at its first row. Verify with a headless capture at 126 x 36 that `<p>` reads "Open PR" beside it in both views under the logo, and at 120 x 36 that `<p>` shows with its words cut and "Close empty tabs" is whole.
+  - Recorded 29 October 2026 with the headless terminal, which gained `HARNESS_COLUMNS` and `HARNESS_ROWS` for these captures: at 126 x 36 both views show every key and its words whole, `c`, `e`, `v` and `p` under the logo from row 2 ("Open PR" beside `<p>`); at 120 x 36 every key shows, "Close empty tabs" is whole, and the third column's words are cut after seven cells ("Copy pa", "Solutio").
 
 ## 6. The help fits the screen (issue #89)
 
-- [ ] 6.1 `HelpDialog.Show(app, title, text)` with the scrolling read-only box and the Close button, titled through `DialogTabTitle` with `DialogName.Keys`, and `DialogEffects` uses it for `ShowHelp`. Verify with `dotnet run --project tools\HeadlessTerminal -- drive` at 120 x 36 with the keys `8000:?,2000:<PageDown>,2000:<PageDown>,1500:\^[,1500:q` then `count`: "Claude Code:" and "terminal for a plain claude" each count 1 in the capture; then at 120 x 40 without the PageDowns both count 1; then the same in the worktrees view with its own last line.
-- [ ] 6.2 CLAUDE.md's Terminal.Gui fact about keeping the help short says the help scrolls; the README's help sentence says the arrow keys scroll it. Verify by reading both, and that the smoke script's Keys step still passes locally.
+- [x] 6.1 `HelpDialog.Show(app, title, text)` with the scrolling read-only box and the Close button, titled through `DialogTabTitle` with `DialogName.Keys`, and `DialogEffects` uses it for `ShowHelp`. Verify with `dotnet run --project tools\HeadlessTerminal -- drive` at 120 x 36 with the keys `8000:?,2000:<PageDown>,2000:<PageDown>,1500:\^[,1500:q` then `count`: "Claude Code:" and "terminal for a plain claude" each count 1 in the capture; then at 120 x 40 without the PageDowns both count 1; then the same in the worktrees view with its own last line.
+  - Recorded 29 October 2026 (the first key at 10000 ms, because one at 8000 ms was lost on a cold start): at 120 x 40 and at 120 x 36, with and without PageDown, "Claude Code:" and "terminal for a plain claude" each count 1; in the worktrees view at 120 x 36 "broken (registration or owner gone)" and "update Vantage in a new tab" each count 1. The help fits 36 rows whole today, and scrolls once it grows. A Dialog reserves its own button area, so the box is `Y = 0` with `Dim.Fill()`; reserving two more rows for the button cut the last three lines.
+- [x] 6.2 CLAUDE.md's Terminal.Gui fact about keeping the help short says the help scrolls; the README's help sentence says the arrow keys scroll it. Verify by reading both, and that the smoke script's Keys step still passes locally.
 
 ## 7. Version and checks
 
-- [ ] 7.1 Raise `Version` one preview step above `main`'s (a patch raise). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
-- [ ] 7.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0.
+- [x] 7.1 Raise `Version` one preview step above `main`'s (a patch raise). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
+- [x] 7.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0.
 - [ ] 7.3 The product owner installs the build with `tools\install-local.ps1` and, on the laptop screen and the monitor, rests the mouse on a key, on its words and on the PR header, scrolls with Right and Left in both views, reads the Sessions line with every session needing input, and presses `?` on the laptop to scroll to the Claude Code path. Verify the tooltip reads as a tooltip, the words show it too, the PR tooltip stays on screen, TAB is reachable, the line reads a bare count, and the help's last line is reached; record here.
 
 ## Workflow follow-up

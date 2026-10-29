@@ -66,50 +66,67 @@ public static partial class Wording
         return $"{title.Shown} of {Counted(title.Total, title.Noun)} {verb} \"{title.Filter}\"{selection}";
     }
 
+    /// <summary>The header's Sessions line: how many are listed, with a count for each state other than needs input, busiest first.</summary>
+    public static string SessionsSummary(IReadOnlyList<SessionRow> rows)
+    {
+        string[] byState = [.. rows
+            .Where(row => row.Session.State.Kind != DisplayStateKind.NeedsInput)
+            .GroupBy(row => row.Session.State.Label)
+            .OrderByDescending(group => group.Count())
+            .Select(group => $"{group.Count()} {group.Key}")];
+
+        return (rows.Count, byState.Length) switch
+        {
+            (0, _) => "none",
+            (_, 0) => $"{rows.Count}",
+            _ => $"{rows.Count} ({string.Join(", ", byState)})",
+        };
+    }
+
     private static string Counted(int count, string noun) => count == 1 ? $"{count} {noun}" : $"{count} {noun}s";
 
     public static IReadOnlyList<KeyHelp> SessionsKeys { get; } =
     [
-        new("enter", "Attach", "attach (Ctrl+Z or Esc comes back)", Column: 0),
-        new("o", "Open in tab", "open in its own tab, or switch to it", Column: 0),
-        new("n", "New session", "new session", Column: 0),
-        new("r", "Rename", "rename (restarts the session)", Column: 0),
-        new("x", "Stop", "stop", Column: 0),
-        new("d", "Delete", "delete, and its worktree if nothing is lost", Column: 0),
-        new("R", "Resume stopped", "resume after a reboot", Column: 1),
-        new("C", "Close empty tabs", "close tabs of unused terminal sessions", Column: 1),
-        new("b", Hint: null, "move a terminal session under Vantage", Column: 1),
-        new("w", "Worktrees", "worktrees view", Column: 1),
-        new("/", "Filter", "filter", Column: 1),
-        new("?", "Help", "help", Column: 1),
-        new("q", "Quit", "quit", Column: 1),
-        new(",", "Settings", SettingsLine, Column: 0),
-        new("c", "Copy path", "copy the folder path", Column: 2),
-        new("e", "Editor", "open the folder in your editor", Column: 2),
-        new("v", "Solution", "open its solution", Column: 2),
-        new("p", "Open PR", "open its pull request in the browser", Column: 2),
-        new("U", Hint: null, UpdateLine, Column: 1),
+        new("enter", "Attach", "attach (Ctrl+Z or Esc comes back)", Column: 0, Tip: "Attach to this session here; Ctrl+Z brings you back to Vantage."),
+        new("o", "Open in tab", "open in its own tab, or switch to it", Column: 0, Tip: "Open this session in its own tab, or switch to that tab if it is open."),
+        new("n", "New session", "new session", Column: 0, Tip: "Start a new session, in a new worktree or on a current branch."),
+        new("r", "Rename", "rename (restarts the session)", Column: 0, Tip: "Give the session a new name; it restarts under it, conversation kept."),
+        new("x", "Stop", "stop", Column: 0, Tip: "Stop the session; it stays listed as stopped and can be resumed later."),
+        new("d", "Delete", "delete, and its worktree if nothing is lost", Column: 0, Tip: "Delete the session, and its worktree too when no work would be lost."),
+        new("R", "Resume stopped", "resume after a reboot", Column: 1, Tip: "Resume the stopped sessions you choose, for example after a reboot."),
+        new("C", "Close empty tabs", "close tabs of unused terminal sessions", Column: 1, Tip: "Close the tabs of terminal sessions that were never sent a message."),
+        new("b", Hint: null, "move a terminal session under Vantage", Column: 1, Tip: "Move a plain claude session from its own tab under Vantage's supervision."),
+        new("w", "Worktrees", "worktrees view", Column: 1, Tip: "Switch to the worktrees view: every worktree under your roots."),
+        new("/", "Filter", "filter", Column: 1, Tip: "Type to show only the rows that match; Esc clears the filter."),
+        new("?", "Help", "help", Column: 1, Tip: "Show every key and what each column means."),
+        new("q", "Quit", "quit", Column: 1, Tip: "Quit Vantage; your sessions keep running in the background."),
+        new(",", "Settings", SettingsLine, Column: 0, Tip: "Edit the repository roots, the worktree root, the editor and the base."),
+        new("c", "Copy path", "copy the folder path", Column: 2, Tip: "Copy the row's folder path to the clipboard."),
+        new("e", "Editor", "open the folder in your editor", Column: 2, Tip: "Open the row's folder in the editor chosen in Settings."),
+        new("v", "Solution", "open its solution", Column: 2, Tip: "Open the row's Visual Studio solution, asking when there are several."),
+        new("p", "Open PR", "open its pull request in the browser", Column: 2, Tip: "Open the row's pull request in your browser."),
+        new("U", Hint: null, UpdateLine, Column: 1, Tip: "Update Vantage to the newest release, in a tab of its own."),
     ];
 
     public static IReadOnlyList<KeyHelp> WorktreesKeys { get; } =
     [
-        new("d", "Remove", "remove (refused when work would be lost)", Column: 0),
-        new("D", "Force remove", "force remove after typing its name", Column: 0),
-        new("P", "Prune", "prune stale registrations in its repository", Column: 0),
-        new("s", "Start session", "start a session in this worktree", Column: 0),
-        new("o", "Open shell", "open a PowerShell tab there", Column: 0),
-        new("enter", "Go to session", "go to the session running in it", Column: 0),
-        new("w", "Sessions", "back to sessions", Column: 1),
-        new("esc", "Sessions", "back to sessions (clears a filter first)", Column: 1),
-        new("/", "Filter", "filter", Column: 1),
-        new("?", "Help", "help", Column: 1),
-        new("q", "Quit", "quit", Column: 1),
-        new(",", "Settings", SettingsLine, Column: 1),
-        new("c", "Copy path", "copy the folder path", Column: 2),
-        new("e", "Editor", "open the folder in your editor", Column: 2),
-        new("v", "Solution", "open its solution", Column: 2),
-        new("p", "Open PR", "open its pull request in the browser", Column: 2),
-        new("U", Hint: null, UpdateLine, Column: 1),
+        new("d", "Remove", "remove (refused when work would be lost)", Column: 0, Tip: "Remove this worktree; refused when it holds work that would be lost."),
+        new("D", "Force remove", "force remove after typing its name", Column: 0, Tip: "Remove this worktree whatever it holds, after you type its name."),
+        new("P", "Prune", "prune stale registrations in its repository", Column: 0, Tip: "Prune the stale worktree registrations of this row's repository."),
+        new("s", "Start session", "start a session in this worktree", Column: 0, Tip: "Start a new session in this worktree, on the branch checked out there."),
+        new("o", "Open shell", "open a PowerShell tab there", Column: 0, Tip: "Open a PowerShell tab in this worktree's folder."),
+        new("enter", "Go to session", "go to the session running in it", Column: 0, Tip: "Go to the session running in this worktree, in the sessions view."),
+        new("w", "Sessions", "back to sessions", Column: 1, Tip: "Go back to the sessions view."),
+        new("esc", "Sessions", "back to sessions (clears a filter first)", Column: 1, Tip: "Clear the filter, or go back to the sessions view when there is none."),
+        new("/", "Filter", "filter", Column: 1, Tip: "Type to show only the rows that match; Esc clears the filter."),
+        new("?", "Help", "help", Column: 1, Tip: "Show every key and what each column means."),
+        new("q", "Quit", "quit", Column: 1, Tip: "Quit Vantage; your sessions keep running in the background."),
+        new(",", "Settings", SettingsLine, Column: 1, Tip: "Edit the repository roots, the worktree root, the editor and the base."),
+        new("c", "Copy path", "copy the folder path", Column: 2, Tip: "Copy the row's folder path to the clipboard."),
+        new("e", "Editor", "open the folder in your editor", Column: 2, Tip: "Open the row's folder in the editor chosen in Settings."),
+        new("v", "Solution", "open its solution", Column: 2, Tip: "Open the row's Visual Studio solution, asking when there are several."),
+        new("p", "Open PR", "open its pull request in the browser", Column: 2, Tip: "Open the row's pull request in your browser."),
+        new("U", Hint: null, UpdateLine, Column: 1, Tip: "Update Vantage to the newest release, in a tab of its own."),
     ];
 
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =
@@ -117,9 +134,9 @@ public static partial class Wording
         new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
         new("STATE", "needs input (amber), working (cyan), idle (white),\ncompleted (green), failed (red), stopped (grey)"),
         new("REPOSITORY", "the repository the session runs in"),
-        new("FOLDER", "where it runs, relative to the repository or worktree root that holds it, else ~\\ from your home folder, else in full"),
+        new("FOLDER", "where it runs, relative to the repository or worktree root that holds it,\nelse ~\\ from your home folder, else in full"),
         new("BRANCH", "the branch checked out there"),
-        new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed), !123 on Azure DevOps\n(active, draft, completed, abandoned); blank when there is none or it is still being looked up"),
+        new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
         new("AGE", "time since the session started"),
         new("TAB", "terminal for a plain claude started in its own tab, open while a Vantage tab shows it"),
     ];
@@ -129,7 +146,7 @@ public static partial class Wording
         new("REPOSITORY", "the repository that owns the worktree"),
         new("FOLDER", "the worktree's folder, relative to the root that holds it"),
         new("BRANCH", "the branch checked out there"),
-        new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed), !123 on Azure DevOps\n(active, draft, completed, abandoned); blank when there is none or it is still being looked up"),
+        new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
         new("DIRTY", "changed or untracked files"),
         new("UNPUSHED", "commits on its branch that no remote has"),
         new("LAST COMMIT", "time since the last commit"),
