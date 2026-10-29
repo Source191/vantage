@@ -3,7 +3,7 @@
 ## 1. The sessions summary (Wording)
 
 - [x] 1.1 Red: `WordingOfScreensShould.SummariseSessionsByState` asserts `Wording.SessionsSummary` reads "9 (4 stopped)" for nine rows with four stopped, "6" for six rows all needing input, and "none" for no rows. Green: the method, built from the rows' state labels. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
-- [ ] 1.2 Refactor: `SessionsScreenDefinition.ContextLines` calls `Wording.SessionsSummary` and keeps only the width fitting. Verify the Core suite passes and `dotnet build -c Debug` is clean.
+- [x] 1.2 Refactor: `SessionsScreenDefinition.ContextLines` calls `Wording.SessionsSummary` and keeps only the width fitting. Verify the Core suite passes and `dotnet build -c Debug` is clean.
 
 ## 2. Key tips (Wording)
 
