@@ -12,7 +12,6 @@
     <ToolCommandName>vantage</ToolCommandName>
     <PackageId>Source191.Vantage</PackageId>
     <Version>0.17.0-preview.2</Version>
-    <!-- The version option prints exactly the package version; the commit stays in the package's repository metadata. -->
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>Simon Vane</Authors>
     <Description>A terminal console for Claude Code sessions and git worktrees on Windows.</Description>
@@ -26,9 +25,7 @@
     <PackageTags>claude-code;worktrees;windows-terminal;tui;dotnet-tool</PackageTags>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\packages</PackageOutputPath>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <!-- Vantage is English only, so the translated resources of System.CommandLine and Terminal.Gui are neither built nor packed. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <!-- release.yml generates each version's notes on its GitHub Release; nuget.org links there rather than to a changelog file. -->
     <PackageReleaseNotes>Release notes: https://github.com/Source191/vantage/releases/tag/v$(Version)</PackageReleaseNotes>
   </PropertyGroup>
 
