@@ -26,6 +26,7 @@
 
 - [x] 5.1 Raise `Version` one preview step above `main`'s (a minor raise). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
 - [ ] 5.2 The product owner installs the build with `tools\install-local.ps1`, adds a worktree on an Azure DevOps branch with an open pull request (the section 8 commands of the test page, if the earlier ones were cleaned up) and a GitHub branch with one, opens Vantage, presses `w` with Task Manager open, then marks the GitHub pull request ready with `gh pr ready`. Verify the Azure DevOps row shows `!<n> active` within about 75 seconds, `p` opens its page, the GitHub row changes from draft to open within about 75 seconds, and the CPU shows no 20-second spike; record the timings here.
+  - Checked 29 October 2026 from the session, read-only: `gh pr list --head <branch> --limit 20` answered that branch's pull request alone, and `az repos pr list --source-branch <branch> --top 20` against a real Azure DevOps repository took the short branch name and answered with `sourceRefName` `refs/heads/<branch>` and no `repository.webUrl`, the shape the adapter now reads. The timings and the CPU check remain the owner's.
 
 ## Workflow follow-up
 
