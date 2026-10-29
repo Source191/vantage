@@ -205,6 +205,23 @@ public static partial class Wording
         return wizard.ShowsChooser ? $"Type to filter, ↑↓ to choose, Enter confirms the repository   {Fields}" : Fields;
     }
 
+    public static string MemoryDialogTitle(string sessionName) => $"Memory: {sessionName}";
+
+    /// <summary>The breakdown dialog's text: Claude Code, each program with its subtree's memory, then the total with the process count, figures right-aligned.</summary>
+    public static string MemoryBreakdownLines(MemoryBreakdown breakdown)
+    {
+        ArgumentNullException.ThrowIfNull(breakdown);
+        const string claudeCode = "Claude Code";
+        const string total = "Total";
+        const int figureWidth = 7;
+        IReadOnlyList<MemoryShare> shares = [new MemoryShare(claudeCode, breakdown.ClaudeCode), .. breakdown.Programs];
+        int labelWidth = shares.Select(share => share.Label.Length).Append(total.Length).Max() + 2;
+        IEnumerable<string> lines = shares.Select(share => $"{share.Label.PadRight(labelWidth)}{Memory(share.Memory).PadLeft(figureWidth)}");
+        string processes = breakdown.ProcessCount == 1 ? "process" : "processes";
+
+        return string.Join('\n', [.. lines, string.Empty, $"{total.PadRight(labelWidth)}{Memory(breakdown.Total).PadLeft(figureWidth)} in {breakdown.ProcessCount} {processes}"]);
+    }
+
     public static string ChooseSolutionTitle => "Open solution";
 
     public static string ChooseSolutionQuestion(string folderName) => $"{folderName} holds more than one solution. Which one?";
