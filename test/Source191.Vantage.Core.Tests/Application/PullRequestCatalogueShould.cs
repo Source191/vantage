@@ -97,6 +97,22 @@ public sealed class PullRequestCatalogueShould
     }
 
     [Fact]
+    public async Task RunAtMostFourLookupsAtOnce()
+    {
+        hosts.Hold();
+        (FolderPath, BranchName)[] twelve = [.. Enumerable.Range(1, 12).Select(number => (Checkout, BranchName.From($"fix-{number}")))];
+
+        Task refresh = catalogue.RefreshStaleAsync(twelve);
+        await WaitForCallsAsync(4);
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        hosts.Calls.Count.ShouldBe(4, "the rest wait for a free slot");
+        hosts.Release();
+        await refresh;
+
+        hosts.Calls.Count.ShouldBe(12);
+    }
+
+    [Fact]
     public async Task NotStartASecondCallWhileOneRuns()
     {
         hosts.Hold();
