@@ -33,7 +33,7 @@
 
 - [x] 6.1 `HelpDialog.Show(app, title, text)` with the scrolling read-only box and the Close button, titled through `DialogTabTitle` with `DialogName.Keys`, and `DialogEffects` uses it for `ShowHelp`. Verify with `dotnet run --project tools\HeadlessTerminal -- drive` at 120 x 36 with the keys `8000:?,2000:<PageDown>,2000:<PageDown>,1500:\^[,1500:q` then `count`: "Claude Code:" and "terminal for a plain claude" each count 1 in the capture; then at 120 x 40 without the PageDowns both count 1; then the same in the worktrees view with its own last line.
   - Recorded 29 October 2026 (the first key at 10000 ms, because one at 8000 ms was lost on a cold start): at 120 x 40 and at 120 x 36, with and without PageDown, "Claude Code:" and "terminal for a plain claude" each count 1; in the worktrees view at 120 x 36 "broken (registration or owner gone)" and "update Vantage in a new tab" each count 1. The help fits 36 rows whole today, and scrolls once it grows. A Dialog reserves its own button area, so the box is `Y = 0` with `Dim.Fill()`; reserving two more rows for the button cut the last three lines.
-- [ ] 6.2 CLAUDE.md's Terminal.Gui fact about keeping the help short says the help scrolls; the README's help sentence says the arrow keys scroll it. Verify by reading both, and that the smoke script's Keys step still passes locally.
+- [x] 6.2 CLAUDE.md's Terminal.Gui fact about keeping the help short says the help scrolls; the README's help sentence says the arrow keys scroll it. Verify by reading both, and that the smoke script's Keys step still passes locally.
 
 ## 7. Version and checks
 
