@@ -23,6 +23,9 @@ public static class ConsoleRecovery
         "\u001b[?2031l" +      // colour scheme notifications off
         "\u001b[?25h";         // cursor visible
 
+    /// <summary>Moves the cursor up one line and erases it: removes a one-line message once a child has given the screen back.</summary>
+    public const string EraseLineAbove = "\u001b[1A\u001b[2K";
+
     /// <summary>How long to wait for late query replies before the input buffer is discarded.</summary>
     internal static readonly TimeSpan SettleTime = TimeSpan.FromMilliseconds(150);
 

@@ -23,6 +23,18 @@ public sealed class TerminalConsoleShould : IDisposable
     }
 
     [Fact]
+    public void WriteTheReturnHintOnItsOwnLineAndEraseItAgain()
+    {
+        TerminalConsole console = new(writer, "Vantage");
+
+        console.ShowReturnHint();
+        console.RemoveReturnHint();
+
+        writer.ToString().ShouldBe("Ctrl+Z returns to Vantage." + Environment.NewLine + "\u001b[1A\u001b[2K");
+        ConsoleRecovery.EraseLineAbove.ShouldBe("\u001b[1A\u001b[2K");
+    }
+
+    [Fact]
     public void WriteTheTitleItWasGiven()
     {
         TerminalConsole console = new(writer, "Northwind title");
