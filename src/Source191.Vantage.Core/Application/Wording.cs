@@ -201,7 +201,7 @@ public static partial class Wording
     {
         const string Fields = "Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel";
 
-        return wizard.ShowsChooser ? $"Type to filter, ↑↓ to choose, Enter confirms the repository   {Fields}" : Fields;
+        return wizard.ShowsChooser ? $"Type to filter, ↑↓ to choose, Enter confirms the repository   {Fields}" : "Enter starts and opens in tab   F5 start without a tab   Esc cancel";
     }
 
     public static string ChooseSolutionTitle => "Open solution";
