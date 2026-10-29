@@ -71,7 +71,8 @@ async Task<int> StartHereAsync(string? name, string? prompt, CancellationToken c
     ClaudeCli claude = new(processes, claudeExecutable);
     GitCli git = new(processes);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
-    HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, Console.Out), new TerminalConsole(Console.Out, Wording.TabTitle), Console.Out, Console.Error);
+    TerminalConsole hereConsole = new(Console.Out, Wording.TabTitle);
+    HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, hereConsole), hereConsole, Console.Out, Console.Error);
 
     return await runner.RunAsync(Directory.GetCurrentDirectory(), name, prompt, cancellationToken);
 }
@@ -95,7 +96,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     Folders folders = new();
     TerminalConsole console = new(Console.Out, tabTitle);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
-    TerminalEffects terminalEffects = new(claude, Console.Out);
+    TerminalEffects terminalEffects = new(claude, console);
 
     // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
     using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));

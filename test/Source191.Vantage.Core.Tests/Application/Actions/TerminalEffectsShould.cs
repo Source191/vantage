@@ -7,25 +7,21 @@ using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application.Actions;
 
-public sealed class TerminalEffectsShould : IDisposable
+public sealed class TerminalEffectsShould
 {
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
-    private readonly StringWriter console = new();
-
-    public void Dispose()
-    {
-        console.Dispose();
-    }
+    private readonly FakeTerminalConsole console = new();
 
     private TerminalEffects Effects => new(new ClaudeCli(processes, "claude.exe"), console);
 
     [Fact]
-    public async Task PrintTheReturnHintThenAttach()
+    public async Task ShowTheHintBeforeTheAttachAndRemoveItAfter()
     {
+        processes.OnInteractive = request => console.Events.Add(string.Join(' ', request.Arguments));
+
         await Effects.RunAsync(new AttachToSession(JobId.From("81cdb0f9")), CancellationToken.None);
 
-        console.ToString().ShouldContain("Ctrl+Z returns to Vantage");
-        processes.InteractiveRequests.Single().Arguments.ShouldBe(["attach", "81cdb0f9"]);
+        console.Events.ShouldBe(["return hint shown", "attach 81cdb0f9", "return hint removed"]);
     }
 
     [Fact]
@@ -42,6 +38,6 @@ public sealed class TerminalEffectsShould : IDisposable
         await Effects.RunAsync(new Quit(), CancellationToken.None);
 
         processes.InteractiveRequests.ShouldBeEmpty();
-        console.ToString().ShouldBeEmpty();
+        console.Events.ShouldBeEmpty();
     }
 }

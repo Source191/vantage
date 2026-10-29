@@ -14,5 +14,9 @@ public sealed class TerminalConsole(TextWriter console, string title) : ITermina
 
     public void ClearOwnTab() => ConsoleRecovery.WriteSequence(console, TabEscapes.ClearTitle + TabEscapes.ResetBackground);
 
+    public void ShowReturnHint() => throw new NotSupportedException();
+
+    public void RemoveReturnHint() => throw new NotSupportedException();
+
     public void RecoverAfterChild() => ConsoleRecovery.AfterChildProcess(console);
 }

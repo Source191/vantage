@@ -25,7 +25,7 @@ public sealed class ScreenLoopShould : IDisposable
     private ScreenLoop Loop(ScriptedSessionsScreen sessions, ScriptedWorktreesScreen worktrees, UpdateCheck? updates = null)
     {
         OwnTab ownTab = new(new InMemoryState(), registry, new FakeTimeProvider(Noon));
-        TerminalEffects effects = new(new ClaudeCli(processes, "claude.exe"), terminal);
+        TerminalEffects effects = new(new ClaudeCli(processes, "claude.exe"), console);
         UpdateCheck checkTurnedOff = new(Running, () => false, new InMemoryState(), new FakePackageVersions([]), new FakeTimeProvider(Noon));
 
         return new ScreenLoop(sessions, worktrees, ownTab, console, effects, updates ?? checkTurnedOff, log);
