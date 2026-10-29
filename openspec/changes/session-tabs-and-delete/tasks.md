@@ -36,7 +36,7 @@
 
 ## 7. The tab script
 
-- [ ] 7.1 Red: `TabScriptsShould` asserts the attach script ends with the exit line from 1.1 (`if ($LASTEXITCODE -eq 0) { exit }` or the codes recorded) and that the shell and update scripts are unchanged. Green: `TabScripts.Attach`. Verify the Core suite and `PowerShellQuotingShould` pass.
+- [x] 7.1 Red: `TabScriptsShould` asserts the attach script ends with the exit line from 1.1 (`if ($LASTEXITCODE -eq 0) { exit }` or the codes recorded) and that the shell and update scripts are unchanged. Green: `TabScripts.Attach`. Verify the Core suite and `PowerShellQuotingShould` pass.
 
 ## 8. Words and docs
 
