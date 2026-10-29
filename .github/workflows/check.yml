@@ -126,7 +126,10 @@ jobs:
           $repository = Join-Path $env:USERPROFILE 'source\repos\Northwind.Smoke'
           New-Item -ItemType Directory -Force $repository | Out-Null
           git -C $repository init --initial-branch main
-          git -C $repository -c user.name=Smoke -c user.email=smoke@example.invalid commit --allow-empty -m 'First commit'
+          # Two solutions, neither named after the repository, so v on the worktree asks which one.
+          New-Item -ItemType File (Join-Path $repository 'Api.sln'), (Join-Path $repository 'Worker.sln') | Out-Null
+          git -C $repository add Api.sln Worker.sln
+          git -C $repository -c user.name=Smoke -c user.email=smoke@example.invalid commit -m 'First commit'
           git -C $repository worktree add -b smoke (Join-Path $env:USERPROFILE 'source\worktrees\Northwind.Smoke-smoke')
 
       # Into a tool path of its own, so the runner's global tools are untouched and the exe is the packed one.

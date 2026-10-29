@@ -11,7 +11,9 @@ namespace Source191.Vantage.Tui;
 
 /// <summary>
 /// The new-session wizard's controls and where they sit. The left column chooses the repository; the right-hand
-/// column reads top to bottom like a form. <see cref="LaunchWizardDialog"/> binds them to the reducer.
+/// column reads top to bottom like a form, and Tab visits it in that order. A fixed folder has no chooser, so its form
+/// (the directory, the name, the preview and the prompt) starts at the left edge and closes up. <see cref="LaunchWizardDialog"/>
+/// binds them to the reducer.
 /// </summary>
 internal sealed class WizardControls
 {
@@ -37,17 +39,29 @@ internal sealed class WizardControls
             [WizardField.Base] = BaseRef,
             [WizardField.Prompt] = Prompt,
         };
-        View[] chooser = [Caption(LeftColumn, 0, "Repository (type to filter, ↑↓ to choose)"), Filter, Repositories, Caption(RightColumn, 6, "Where (↑↓ to change)"), Mode, Caption(RightColumn, 9, "Worktree base (↑↓ to change)"), BaseRef];
-        Array.ForEach(chooser, view => view.Visible = state.ShowsChooser);
+        int form = state.ShowsChooser ? RightColumn : LeftColumn;
+        // Without the Where and base choices the preview and the prompt move up into their rows.
+        int previewRow = state.ShowsChooser ? 12 : 6;
+        foreach (View field in new View[] { Chosen, Name, Mode, BaseRef, Preview, Prompt })
+        {
+            field.X = form;
+        }
+
+        Preview.Y = previewRow;
+        Prompt.Y = previewRow + 3;
+        View[] chooser = [Caption(LeftColumn, 0, "Repository (type to filter, ↑↓ to choose)"), Filter, Repositories];
+        View[] worktree = [Caption(form, 6, "Where (↑↓ to change)"), Mode, Caption(form, 9, "Worktree base (↑↓ to change)"), BaseRef];
+        Array.ForEach([.. chooser, .. worktree], view => view.Visible = state.ShowsChooser);
         All =
         [
             .. chooser,
-            Caption(RightColumn, 0, Wording.WizardChosenCaption(state)),
+            Caption(form, 0, Wording.WizardChosenCaption(state)),
             Chosen,
-            Caption(RightColumn, 3, "Session name (required)"),
+            Caption(form, 3, "Session name (required)"),
             Name,
+            .. worktree,
             Preview,
-            Caption(RightColumn, 14, "Opening prompt (wraps; blank leaves the session waiting at its prompt)"),
+            Caption(form, previewRow + 2, "Opening prompt (wraps; blank leaves the session waiting at its prompt)"),
             Prompt,
             Problem,
             Hint,
@@ -104,6 +118,15 @@ internal sealed class WizardControls
                     focused(field);
                 }
             };
+        }
+    }
+
+    /// <summary>Runs the action for Enter on any option of the Where and base selectors, instead of the option taking it.</summary>
+    public void WhenEnterInSelectors(Action next)
+    {
+        foreach (View option in Mode.SubViews.Concat(BaseRef.SubViews).Append(Mode).Append(BaseRef))
+        {
+            option.KeyDown += (_, key) => key.Handled = key == GuiKey.Enter && Handled(next);
         }
     }
 

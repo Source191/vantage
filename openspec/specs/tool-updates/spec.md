@@ -17,8 +17,8 @@ Vantage SHALL ask nuget.org for the published versions of its package at most on
 - **THEN** it makes no request and uses the recorded newest release
 
 #### Scenario: A recorded release is shown from the start
-- **WHEN** Vantage 0.16.0 starts within 24 hours of a check that recorded 0.99.0
-- **THEN** the header reads `Vantage: 0.16.0 (0.99.0 available, U to update)` without a key being pressed, and `U` offers the update
+- **WHEN** Vantage 0.16.0 using 29 MB starts within 24 hours of a check that recorded 0.99.0
+- **THEN** the header reads `Vantage: 0.16.0 (29 MB; 0.99.0 available, U to update)` without a key being pressed, and `U` offers the update
 
 #### Scenario: nuget.org cannot be reached
 - **WHEN** the request fails or takes longer than 3 seconds
@@ -40,22 +40,22 @@ The user configuration SHALL have a `checkForUpdates` setting, true when absent,
 
 #### Scenario: Turned off
 - **WHEN** `checkForUpdates` is false
-- **THEN** Vantage makes no request to nuget.org and the header shows only its own version
+- **THEN** Vantage makes no request to nuget.org and the header shows only its own version and memory
 
 #### Scenario: Configuration from an earlier version
 - **WHEN** `config.json` has no `checkForUpdates` property
 - **THEN** Vantage checks for updates as if it were true
 
 ### Requirement: The header names an available update
-When the newest recorded release is higher than the running version by semantic version precedence, the header's Vantage version line SHALL name that release and the update key. Prerelease versions on nuget.org SHALL be ignored.
+When the newest recorded release is higher than the running version by semantic version precedence, the header's Vantage version line SHALL name that release and the update key after Vantage's own memory figure, inside the same brackets. Prerelease versions on nuget.org SHALL be ignored.
 
 #### Scenario: A newer release exists
-- **WHEN** Vantage 0.9.0 runs and the newest recorded release is 0.10.0
-- **THEN** the header reads `Vantage: 0.9.0 (0.10.0 available, U to update)`
+- **WHEN** Vantage 0.9.0 runs using 29 MB and the newest recorded release is 0.10.0
+- **THEN** the header reads `Vantage: 0.9.0 (29 MB; 0.10.0 available, U to update)`
 
 #### Scenario: Already up to date
 - **WHEN** the newest recorded release equals the running version
-- **THEN** the header reads `Vantage: 0.9.0` with no notice
+- **THEN** the header reads `Vantage: 0.9.0 (29 MB)` with no notice
 
 ### Requirement: The update key updates Vantage in a new tab
 `U` in the sessions and worktrees views SHALL ask for confirmation and, when confirmed, open a Windows Terminal tab that waits for this Vantage to exit, runs `dotnet tool update -g Source191.Vantage`, and starts Vantage again when the update succeeds; Vantage SHALL then quit. Background sessions SHALL keep running.

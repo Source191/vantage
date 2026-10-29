@@ -11,13 +11,13 @@ public sealed class WordingOfKeysAndColumnsShould
         [
             "0 enter Attach", "0 o Open in tab", "0 n New session", "0 r Rename", "0 x Stop", "0 d Delete",
             "1 R Resume stopped", "1 C Close empty tabs", "1 b ", "1 w Worktrees", "1 / Filter", "1 ? Help", "1 q Quit", "0 , Settings",
-            "2 c Copy path", "2 e Editor", "2 v Solution", "2 p Open PR", "1 U ", "2 ! Report",
+            "2 c Copy path", "2 e Open folder", "2 v Solution", "2 p Open PR", "1 m ", "1 U ", "2 ! Report",
         ]);
         Wording.WorktreesKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
         [
             "0 d Remove", "0 D Force remove", "0 P Prune", "0 s Start session", "0 o Open shell", "0 enter Go to session",
             "1 w Sessions", "1 esc Sessions", "1 / Filter", "1 ? Help", "1 q Quit", "1 , Settings",
-            "2 c Copy path", "2 e Editor", "2 v Solution", "2 p Open PR", "1 U ", "2 ! Report",
+            "2 c Copy path", "2 e Open folder", "2 v Solution", "2 p Open PR", "1 U ", "2 ! Report",
         ]);
     }
 
@@ -45,7 +45,7 @@ public sealed class WordingOfKeysAndColumnsShould
     [Fact]
     public void ExplainEveryColumnOfEachView()
     {
-        Wording.SessionsColumns.Select(column => column.Name).ShouldBe(["NAME", "STATE", "REPOSITORY", "FOLDER", "BRANCH", "PR", "AGE", "TAB"]);
+        Wording.SessionsColumns.Select(column => column.Name).ShouldBe(["NAME", "STATE", "REPOSITORY", "FOLDER", "BRANCH", "PR", "AGE", "TAB", "MEM"]);
         Wording.WorktreesColumns.Select(column => column.Name).ShouldBe(["REPOSITORY", "FOLDER", "BRANCH", "PR", "DIRTY", "UNPUSHED", "LAST COMMIT", "SESSION", "HEALTH"]);
         Wording.SessionsColumns.Concat(Wording.WorktreesColumns).ShouldAllBe(column => column.Meaning.Length > 0);
     }
@@ -64,7 +64,8 @@ public sealed class WordingOfKeysAndColumnsShould
             q      quit                                    ,      edit roots, worktree root and editor
             c      copy the folder path                    e      open the folder in your editor
             v      open its solution                       p      open its pull request in the browser
-            U      update Vantage in a new tab             !      report a problem on GitHub
+            m      what its memory is made of              U      update Vantage in a new tab
+            !      report a problem on GitHub
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one
@@ -78,6 +79,7 @@ public sealed class WordingOfKeysAndColumnsShould
                         !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
             AGE         time since the session started
             TAB         terminal for a plain claude started in its own tab, open while a Vantage tab shows it
+            MEM         private working set of the session's process and everything it started; - when it has no process
 
             Claude Code: C:\Users\me\.local\bin\claude.exe
             """.ReplaceLineEndings("\n"));

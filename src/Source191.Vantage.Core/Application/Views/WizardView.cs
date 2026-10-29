@@ -7,7 +7,9 @@ namespace Source191.Vantage.Application.Views;
 /// The new-session wizard's rules as a pure function of state and input; the dialog only binds controls to it.
 /// Keyboard model: focus starts in the repository filter; typing narrows the list, the arrow keys move into the list,
 /// and Enter confirms the repository and moves to the name. Enter in the other one-line fields moves on; only Start
-/// (F5, or F6 to open a tab too) launches, so a stray Enter never starts a half-filled session.
+/// (F5, or F6 to open a tab too) launches, so a stray Enter never starts a half-filled session in a new worktree. A
+/// fixed folder (s on a worktree row) is the exception: its form is the name and the prompt, so Enter in the name
+/// starts the session and opens its tab, as F6 does.
 /// </summary>
 public static class WizardView
 {
@@ -24,6 +26,7 @@ public static class WizardView
             WizardInput.PromptChanged changed => Changed(state with { Prompt = changed.Text }),
             WizardInput.FieldFocused focused => Changed(state with { Focus = focused.Field }),
             WizardInput.ConfirmRepository => Changed(Confirmed(state)),
+            WizardInput.NextField when state is { Focus: WizardField.Name, ShowsChooser: false } => Started(state, openInTab: true),
             WizardInput.NextField => Changed(state with { Focus = Next(state) }),
             WizardInput.Start start => Started(state, start.OpenInTab),
             WizardInput.Cancel => new WizardUpdate(state, new WizardEffect.Close()),
@@ -62,7 +65,7 @@ public static class WizardView
             : state with { Problem = new WizardProblem.None(), Focus = WizardField.Name };
     }
 
-    /// <summary>Enter in the name moves to the Where choice when it shows; anywhere else it stays.</summary>
+    /// <summary>Enter moves through the form in its order: the name to the Where choice when it shows, Where to the base, the base to the prompt; the prompt keeps it.</summary>
     private static WizardField Next(WizardState state)
     {
         return state.Focus switch
@@ -70,8 +73,8 @@ public static class WizardView
             WizardField.Name => state.ShowsChooser ? WizardField.Mode : WizardField.Name,
             WizardField.RepositoryFilter => WizardField.RepositoryFilter,
             WizardField.RepositoryList => WizardField.RepositoryList,
-            WizardField.Mode => WizardField.Mode,
-            WizardField.Base => WizardField.Base,
+            WizardField.Mode => WizardField.Base,
+            WizardField.Base => WizardField.Prompt,
             WizardField.Prompt => WizardField.Prompt,
         };
     }
