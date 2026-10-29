@@ -1,0 +1,48 @@
+using Source191.Vantage.Application.Diagnostics;
+using Source191.Vantage.Ports;
+
+namespace Source191.Vantage.Core.Tests.Application.Diagnostics;
+
+public sealed class ProcessCountsShould
+{
+    private static readonly ChildCommand WorktreeList = ChildCommand.For(new ProcessRequest("git", ["worktree", "list", "--porcelain"], null));
+    private static readonly ChildCommand WorktreeRemove = ChildCommand.For(new ProcessRequest("git", ["worktree", "remove", "x"], null));
+
+    [Fact]
+    public void CountRunsByProgramSubcommandAndExitCode()
+    {
+        ProcessCounts counts = new();
+
+        counts.Add(WorktreeList, 0, TimeSpan.FromMilliseconds(41));
+        counts.Add(WorktreeRemove, 128, TimeSpan.FromMilliseconds(220));
+        counts.Add(WorktreeList, 0, TimeSpan.FromMilliseconds(90.6));
+        counts.Add(WorktreeList, 0, TimeSpan.FromMilliseconds(12));
+
+        DiagnosticLine.Render(counts).ShouldBe([
+            "counts git worktree list exit 0: 3 runs, longest 90 ms",
+            "counts git worktree remove exit 128: 1 run, longest 220 ms",
+        ]);
+    }
+
+    [Fact]
+    public void RenderNothingBeforeAnyRun()
+    {
+        DiagnosticLine.Render(new ProcessCounts()).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task CountRunsFromManyThreads()
+    {
+        ProcessCounts counts = new();
+
+        await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => Task.Run(() =>
+        {
+            foreach (int index in Enumerable.Range(0, 50))
+            {
+                counts.Add(WorktreeList, 0, TimeSpan.FromMilliseconds(index));
+            }
+        })));
+
+        DiagnosticLine.Render(counts).ShouldBe(["counts git worktree list exit 0: 400 runs, longest 49 ms"]);
+    }
+}
