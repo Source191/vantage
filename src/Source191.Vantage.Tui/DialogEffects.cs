@@ -14,7 +14,7 @@ namespace Source191.Vantage.Tui;
 /// Every effect that needs a dialog, for both views. Each flow asks its question, then hands the answer back through
 /// the reducer or dispatches the effect it settles on; the work itself is always a handler's.
 /// </summary>
-public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, SolutionFinder solutions, UpdateCheck updates, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree, ProblemReports reports)
+public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, SolutionFinder solutions, UpdateCheck updates, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree, ProblemReports reports, IProcessRegistry processes)
 {
     /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
@@ -32,6 +32,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(OpenSettings)] = (self, context, _) => self.EditSettings(context),
         [typeof(UpdateVantage)] = (self, context, _) => self.ConfirmUpdate(context),
         [typeof(ShowProblemReport)] = (self, context, effect) => self.ReportProblem(context, (ShowProblemReport)effect),
+        [typeof(ShowMemory)] = (self, context, effect) => self.ShowMemoryOf(context, (ShowMemory)effect),
     }.ToFrozenDictionary();
 
     /// <summary>Whether an effect of this type has a dialog flow.</summary>
@@ -208,6 +209,29 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         return new Footer.Working(effect);
     }
     /// <summary>Looks off the UI thread; back on it, one solution opens, none says so, and several are asked about.</summary>
+    /// <summary>Measures the session's tree off the UI thread (a snapshot of the whole table), then shows the breakdown; a process gone since the listing reads as nothing to measure.</summary>
+    private void ShowMemoryOf(IEffectContext context, ShowMemory show)
+    {
+        context.RunInBackground(
+            new Footer.Working(show),
+            _ => Task.FromResult(Measure(show)),
+            breakdown => breakdown is null ? new Footer.NothingToMeasure(show.Session.Name) : ShowBreakdown(context, breakdown));
+    }
+
+    private MemoryBreakdown? Measure(ShowMemory show)
+    {
+        ProcessTree? tree = ProcessTree.Under(show.ProcessId, processes.Snapshot(), processes.UsageOf);
+
+        return tree is null ? null : MemoryBreakdown.Of(show.Session.Name, tree);
+    }
+
+    private static Footer ShowBreakdown(IEffectContext context, MemoryBreakdown breakdown)
+    {
+        MemoryDialog.Show(context.App, context.Diagnostics, Wording.MemoryDialogTitle(breakdown.SessionName), Wording.MemoryBreakdownLines(breakdown));
+
+        return Footer.None;
+    }
+
     private void OpenSolutionOf(IEffectContext context, FindSolution find)
     {
         context.RunInBackground(

@@ -204,6 +204,7 @@ public static partial class Wording
             CopyFolderPath => "Copying...",
             OpenFolderInEditor open => $"Opening {open.Folder.Name} in the editor...",
             FindSolution find => $"Looking for a solution in {find.Folder.Name}...",
+            ShowMemory show => $"Measuring {show.Session.Name}...",
             OpenSolution solution => $"Opening {Path.GetFileName(solution.File)}...",
             OpenPullRequest open => $"Opening {PullRequestNumber(open.PullRequest.Host, open.PullRequest.Number)}...",
             SaveSettings => "Saving settings...",
@@ -232,6 +233,23 @@ public static partial class Wording
         const string Fields = "Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel";
 
         return wizard.ShowsChooser ? $"Type to filter, ↑↓ to choose, Enter confirms the repository   {Fields}" : Fields;
+    }
+
+    public static string MemoryDialogTitle(string sessionName) => $"Memory: {sessionName}";
+
+    /// <summary>The breakdown dialog's text: Claude Code, each program with its subtree's memory, then the total with the process count, figures right-aligned.</summary>
+    public static string MemoryBreakdownLines(MemoryBreakdown breakdown)
+    {
+        ArgumentNullException.ThrowIfNull(breakdown);
+        const string claudeCode = "Claude Code";
+        const string total = "Total";
+        const int figureWidth = 7;
+        IReadOnlyList<MemoryShare> shares = [new MemoryShare(claudeCode, breakdown.ClaudeCode), .. breakdown.Programs];
+        int labelWidth = shares.Select(share => share.Label.Length).Append(total.Length).Max() + 2;
+        IEnumerable<string> lines = shares.Select(share => $"{share.Label.PadRight(labelWidth)}{Memory(share.Memory).PadLeft(figureWidth)}");
+        string processes = breakdown.ProcessCount == 1 ? "process" : "processes";
+
+        return string.Join('\n', [.. lines, string.Empty, $"{total.PadRight(labelWidth)}{Memory(breakdown.Total).PadLeft(figureWidth)} in {breakdown.ProcessCount} {processes}"]);
     }
 
     public static string ChooseSolutionTitle => "Open solution";
@@ -334,6 +352,7 @@ public static partial class Wording
             Footer.LeftoverFolder leftover => $"{leftover.FolderName} is a leftover folder, not a worktree.",
             Footer.NoSessionIn none => $"No session is running in {none.FolderName}.",
             Footer.NoSolution none => $"No solution found in {none.FolderName} or its src folder.",
+            Footer.NothingToMeasure stopped => $"{stopped.Name} has no process to measure; it is stopped.",
             Footer.NoPullRequest none => Describe(none),
             Footer.UpToDate => "Vantage is up to date.",
             Footer.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",

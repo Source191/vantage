@@ -8,6 +8,9 @@ public sealed record SessionRow(Session Session, string Repository, BranchName? 
 {
     /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
     public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
+
+    /// <summary>What the session's process and everything it started use; null for a session with no process, or whose process has gone.</summary>
+    public MemorySize? Memory { get; init; }
 }
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
@@ -82,6 +85,9 @@ public sealed record SwitchToWorktrees : ViewEffect, ILeavesScreen;
 public sealed record Quit : ViewEffect, ILeavesScreen;
 
 public sealed record ShowHelp : ViewEffect, IDialogEffect;
+
+/// <summary>Measure the session's process tree and show what its memory is made of; the process id is the tree's root.</summary>
+public sealed record ShowMemory(Session Session, int ProcessId) : ViewEffect, IDialogEffect;
 
 public sealed record ViewUpdate(SessionsViewState State, IReadOnlyList<ViewEffect> Effects);
 
@@ -169,6 +175,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'e' } => FolderAction(state, (folder, _) => new OpenFolderInEditor(folder)),
             { Name: KeyName.Character, Character: 'v' } => FolderAction(state, (folder, repository) => new FindSolution(folder, repository)),
             { Name: KeyName.Character, Character: 'p' } => OpenPullRequest(state),
+            { Name: KeyName.Character, Character: 'm' } => MeasureMemory(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
             { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
             { Name: KeyName.Character, Character: 'w' } => Effect(state, new SwitchToWorktrees()),
@@ -236,6 +243,18 @@ public static class SessionsView
             { PullRequest: PullRequestLookup.Found found } => Effect(state with { Footer = Footer.None }, new OpenPullRequest(found.PullRequest)),
             { PullRequest: PullRequestLookup.Missing missing } row => Unchanged(state with { Footer = new Footer.NoPullRequest(row.Session.Name, missing.Gap, missing.Host) }),
             _ => Unchanged(state),
+        };
+    }
+
+    /// <summary>The memory breakdown of the selected session; a background session with no process is stopped, so there is nothing to measure.</summary>
+    private static ViewUpdate MeasureMemory(SessionsViewState state)
+    {
+        return state.Selected switch
+        {
+            null => Unchanged(state with { Footer = new Footer.NoSessionSelected() }),
+            { Session: BackgroundSession { ProcessId: int processId } session } => Effect(state with { Footer = Footer.None }, new ShowMemory(session, processId)),
+            { Session: InteractiveSession session } => Effect(state with { Footer = Footer.None }, new ShowMemory(session, session.ProcessId)),
+            SessionRow row => Unchanged(state with { Footer = new Footer.NothingToMeasure(row.Session.Name) }),
         };
     }
 

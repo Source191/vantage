@@ -78,6 +78,45 @@ public sealed class SessionRowEnricherShould : IDisposable
     }
 
     [Fact]
+    public async Task CarryTheMemoryOfARunningSessionsProcessTree()
+    {
+        registry.InTree(100, "claude", 1).Using(100, Noon.AddMinutes(-10), MemorySize.FromMegabytes(296))
+            .InTree(200, "cmd", 100).Using(200, Noon.AddMinutes(-9), MemorySize.FromMegabytes(607));
+        BackgroundSession running = Session(@"C:\repos\Northwind.Orders") with { ProcessId = 100 };
+
+        IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([running], CancellationToken.None);
+
+        rows.Single().Memory.ShouldBe(MemorySize.FromMegabytes(903));
+    }
+
+    [Fact]
+    public async Task CarryNoMemoryForASessionWithoutAProcessOrWhoseProcessHasGone()
+    {
+        registry.InTree(100, "claude", 1).Using(100, Noon.AddMinutes(-10), MemorySize.FromMegabytes(296));
+        BackgroundSession stopped = Session(@"C:\repos\Northwind.Orders");
+        BackgroundSession gone = Session(@"C:\repos\Northwind.Orders") with { ProcessId = 101 };
+        InteractiveSession terminal = new(SessionId.From("terminal"), "plain", FolderPath.From(@"C:\repos\Northwind.Orders"), Noon, DisplayState.Idle, ProcessId: 100);
+
+        IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([stopped, gone, terminal], CancellationToken.None);
+
+        rows[0].Memory.ShouldBeNull();
+        rows[1].Memory.ShouldBeNull();
+        rows[2].Memory.ShouldBe(MemorySize.FromMegabytes(296));
+    }
+
+    [Fact]
+    public async Task TakeOneSnapshotOfTheProcessTablePerRefresh()
+    {
+        registry.InTree(100, "claude", 1).Using(100, Noon, MemorySize.FromMegabytes(1)).InTree(101, "claude", 1).Using(101, Noon, MemorySize.FromMegabytes(2));
+        BackgroundSession first = Session(@"C:\repos\Northwind.Orders") with { ProcessId = 100 };
+        BackgroundSession second = Session(@"C:\repos\Northwind.Orders") with { ProcessId = 101 };
+
+        await Enricher.EnrichAsync([first, second], CancellationToken.None);
+
+        registry.Snapshots.ShouldBe(1);
+    }
+
+    [Fact]
     public async Task SayWhetherASessionHasATranscriptToResumeFrom()
     {
         Session withMessages = Session(@"C:\repos\Northwind.Orders");

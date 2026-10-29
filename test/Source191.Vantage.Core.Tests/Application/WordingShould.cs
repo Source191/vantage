@@ -203,6 +203,47 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void SayAStoppedSessionHasNothingToMeasure()
+    {
+        Wording.Describe(new Footer.NothingToMeasure("fix-123")).ShouldBe("fix-123 has no process to measure; it is stopped.");
+        Wording.Working(new ShowMemory(Job, 5151)).ShouldBe("Measuring fix-123...");
+    }
+
+    [Fact]
+    public void TitleTheMemoryDialogWithTheSessionName()
+    {
+        Wording.MemoryDialogTitle("fix-123").ShouldBe("Memory: fix-123");
+    }
+
+    [Fact]
+    public void LayOutTheMemoryBreakdownAsAlignedLines()
+    {
+        MemoryBreakdown breakdown = new(
+            "fix-123",
+            MemorySize.FromMegabytes(296),
+            [new MemoryShare("@azure-devops/mcp", MemorySize.FromMegabytes(100)), new MemoryShare("pwsh", MemorySize.FromMegabytes(78)), new MemoryShare("mcp-grafana", MemorySize.FromMegabytes(30))],
+            MemorySize.FromMegabytes(504),
+            16);
+
+        Wording.MemoryBreakdownLines(breakdown).ShouldBe("""
+            Claude Code         296 MB
+            @azure-devops/mcp   100 MB
+            pwsh                 78 MB
+            mcp-grafana          30 MB
+
+            Total               504 MB in 16 processes
+            """.ReplaceLineEndings("\n"));
+    }
+
+    [Fact]
+    public void LayOutAMemoryBreakdownOfOneProcess()
+    {
+        MemoryBreakdown alone = new("fix-123", MemorySize.FromMegabytes(296), [], MemorySize.FromMegabytes(296), 1);
+
+        Wording.MemoryBreakdownLines(alone).ShouldBe("Claude Code   296 MB\n\nTotal         296 MB in 1 process");
+    }
+
+    [Fact]
     public void SayNoSolutionWasFound()
     {
         Wording.Describe(new Footer.NoSolution("Northwind.Orders-fix-123")).ShouldBe("No solution found in Northwind.Orders-fix-123 or its src folder.");
