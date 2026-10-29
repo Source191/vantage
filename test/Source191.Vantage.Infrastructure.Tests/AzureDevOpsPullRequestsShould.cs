@@ -50,6 +50,19 @@ public sealed class AzureDevOpsPullRequestsShould
         ]);
     }
 
+    [Theory]
+    [InlineData("feature/x&calc")]
+    [InlineData("say\"hi\"")]
+    [InlineData("100%done")]
+    [InlineData("a|b")]
+    public async Task NotStartAzForABranchItCannotBeGiven(string branch)
+    {
+        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, BranchName.From(branch), CancellationToken.None);
+
+        listing.ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.BranchNotGivenToAz));
+        processes.CapturedRequests.ShouldBeEmpty();
+    }
+
     [Fact]
     public async Task KeepABranchWithASlash()
     {
