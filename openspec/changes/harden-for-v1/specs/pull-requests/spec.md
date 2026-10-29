@@ -35,7 +35,7 @@ Names taken from a remote URL, and the branch name, SHALL reach the `gh` or `az`
 - **THEN** gh is asked for that branch, since gh is an executable and reads its arguments as given
 
 ### Requirement: A missing pull request is explained
-When the selected row shows no pull request, the pull request key SHALL open nothing and the footer SHALL say why: no row is selected, the row has no branch, the repository has no origin remote, the host is not GitHub or Azure DevOps, the `gh` or `az` CLI is not installed, the user is not signed in to it, the lookup is still running, it failed, the branch has no pull request, or the branch name holds a character the Azure CLI cannot be given.
+When the selected row shows no pull request, the pull request key SHALL open nothing and the footer SHALL say why: no row is selected, the row has no branch, the repository has no origin remote, the host is not GitHub or Azure DevOps, the `gh` or `az` CLI is not installed, the user is not signed in to it, the lookup is still running, it failed, the branch has no pull request at all, or the branch name holds a character the Azure CLI cannot be given.
 
 #### Scenario: Not signed in
 - **WHEN** the user presses the pull request key on a row of an Azure DevOps repository and `az` reports that the user must sign in
@@ -46,8 +46,12 @@ When the selected row shows no pull request, the pull request key SHALL open not
 - **THEN** nothing opens and the footer says the GitHub CLI is needed to show pull requests
 
 #### Scenario: Still looking
-- **WHEN** the user presses the pull request key before the repository's first lookup has answered
+- **WHEN** the user presses the pull request key before the branch's first lookup has answered
 - **THEN** nothing opens and the footer says the pull request is still being looked up
+
+#### Scenario: No pull request
+- **WHEN** the user presses the pull request key on a row whose branch has no pull request
+- **THEN** nothing opens and the footer says no pull request was found for the row's branch, with no mention of a limit
 
 #### Scenario: Branch not given to az
 - **WHEN** the user presses the pull request key on a row of an Azure DevOps repository whose branch is feature/x&calc
