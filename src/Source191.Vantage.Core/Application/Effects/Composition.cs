@@ -31,10 +31,11 @@ public static class Composition
     public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts, CurrentSettings settings, VantageProcess vantage)
     {
         OpenTabHandler tabs = new(ports.Tabs, ports.Processes, ports.Terminal, ports.Clock, scripts);
+        SessionTabs sessionTabs = new(ports.Tabs, ports.Processes, ports.Clock);
 
         return new EffectDispatcher()
             .Register(tabs)
-            .Register(new StopSessionHandler(ports.Claude))
+            .Register(new StopSessionHandler(ports.Claude, sessionTabs))
             .Register(new AdoptSessionHandler(ports.Claude, ports.Processes, ports.Transcripts))
             .Register(new RenameSessionHandler(ports.Claude, ports.Transcripts))
             .Register(new CloseEmptyTerminalsHandler(ports.Processes, ports.Transcripts))

@@ -45,7 +45,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASessionStopped()
     {
-        Wording.Describe(new StopSessionOutcome("fix-123")).ShouldBe("Stopped fix-123.");
+        Wording.Describe(new StopSessionOutcome("fix-123", TabClosed: false)).ShouldBe("Stopped fix-123.");
     }
 
 
