@@ -1,6 +1,7 @@
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Source191.Vantage.Application;
 
@@ -33,6 +34,18 @@ public static partial class Wording
         DialogName.OpenSolution => "Open solution",
         DialogName.Update => "Update",
     };
+
+    /// <summary>An amount of memory as the table and the breakdown write it: whole megabytes below 1,000 MB, gigabytes to one decimal from there.</summary>
+    public static string Memory(MemorySize size)
+    {
+        double megabytes = (double)size.Bytes / MemorySize.BytesPerMegabyte;
+        long whole = (long)Math.Round(megabytes);
+
+        return whole < 1000 ? $"{whole} MB" : $"{(megabytes / 1024).ToString("F1", CultureInfo.InvariantCulture)} GB";
+    }
+
+    /// <summary>The MEM cell: the figure, or a dash for a session with no process to measure.</summary>
+    public static string MemoryCell(MemorySize? size) => size is MemorySize measured ? Memory(measured) : "-";
 
     /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
     public static string HeaderValues(ToolVersion vantage, ClaudeCodeVersion claude, Settings settings, UpdateStatus update)
