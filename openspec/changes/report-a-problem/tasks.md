@@ -12,12 +12,12 @@
 
 ## 3. The issue form
 
-- [ ] 3.1 Add `.github\ISSUE_TEMPLATE\problem-report.yml` (name, description, labels `bug` and `from-vantage`, textareas `what-happened` required, `expected`, `steps`, `diagnostics` with `render: text`). Red first: `Architecture\ProblemReportTemplateShould.DeclareTheFieldsTheAddressFills` reads the file from the repository root and asserts the template file name and the `diagnostics` id match `ProblemReportAddress`. Verify the fact passes.
+- [x] 3.1 Add `.github\ISSUE_TEMPLATE\problem-report.yml` (name, description, labels `bug` and `from-vantage`, textareas `what-happened` required, `expected`, `steps`, `diagnostics` with `render: text`). Red first: `ProblemReportTemplateShould` (in Infrastructure.Tests, beside the other facts that read repository files, since Core.Tests reads none) reads the file from the repository root and asserts the template file name and the `diagnostics` id match `ProblemReportAddress`. Verify the fact passes.
 
 ## 4. Adapters
 
-- [ ] 4.1 Red: `CrashFileShould.ReadAndRemoveTheCrash` (temporary folder) asserts `ReadAsync` returns the written text, null when absent, and `RemoveAsync` removes it and ignores a missing file. Green: `CrashFile` and `FakeCrashFile`. Verify the Infrastructure suite passes.
-- [ ] 4.2 Red: `DesktopShould.KeepTheLongestReportAddressUnderTheCommandLineLimit` over `FakeProcessRunner` asserts the recorded request's file name and joined arguments are under 32,767 characters for a 7,500-character address. Green: none expected. Verify the fact passes.
+- [x] 4.1 Red: `CrashFileShould.ReadAndRemoveTheCrash` (temporary folder) asserts `ReadAsync` returns the written text, null when absent, and `RemoveAsync` removes it and ignores a missing file. Green: `CrashFile` and `FakeCrashFile` (the red caught `File.Delete` throwing for a missing state folder). Verify the Infrastructure suite passes.
+- [x] 4.2 Red: `DesktopCommandLineShould.KeepTheLongestReportAddressUnderTheCommandLineLimit` (its own class: `DesktopShould` is an integration class that sets environment variables) over `FakeProcessRunner` asserts the recorded request's file name and joined arguments are under 32,767 characters for a 7,500-character address. Green: none expected. Verify the fact passes.
 
 ## 5. The key, effects and handlers (Application)
 

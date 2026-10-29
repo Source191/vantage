@@ -20,7 +20,11 @@ public sealed class CrashFile(string folder) : ICrashFile
 
     public Task RemoveAsync()
     {
-        File.Delete(FilePath);
+        // File.Delete ignores a missing file but not a missing folder.
+        if (File.Exists(FilePath))
+        {
+            File.Delete(FilePath);
+        }
 
         return Task.CompletedTask;
     }
