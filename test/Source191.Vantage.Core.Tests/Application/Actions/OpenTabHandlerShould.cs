@@ -101,6 +101,30 @@ public sealed class OpenTabHandlerShould
     }
 
     [Fact]
+    public async Task OpenANewTabWhenTheRegisteredShellHasGone()
+    {
+        TabRegistration stale = TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("sess-1")), TabPalette.Default[0], Noon.AddMinutes(-10)).ClaimedBy(4242, Noon.AddMinutes(-9));
+        await Store.WriteTabAsync(stale);
+
+        Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: true), CancellationToken.None);
+
+        terminal.Focused.ShouldBeEmpty();
+        terminal.Opened.Single().Title.ShouldBe("Refund retry policy");
+        (await Store.ReadTabsAsync()).ShouldNotContain(registration => registration.Id == stale.Id);
+        footer.ShouldBeOfType<OpenTabOutcome.Opened>();
+    }
+
+    [Fact]
+    public async Task OpenANewTabWhenNoRegistrationExists()
+    {
+        Outcome footer = await Handler.HandleAsync(new OpenTabForSession(Job(), HasLiveTab: true), CancellationToken.None);
+
+        terminal.Focused.ShouldBeEmpty();
+        terminal.Opened.ShouldHaveSingleItem();
+        footer.ShouldBeOfType<OpenTabOutcome.Opened>();
+    }
+
+    [Fact]
     public async Task SearchEveryWindowWhenTheTabShellHasNoKnownParent()
     {
         await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("sess-1")), TabPalette.Default[0], Noon));
