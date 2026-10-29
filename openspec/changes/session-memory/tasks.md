@@ -22,19 +22,19 @@
 
 - [x] 3.1 `ProcessRegistryShould` (Infrastructure, real processes): `Snapshot()` lists the test process with its parent and a child it starts (`pwsh -NoExit` through the existing runner pattern, ended in a `finally`); then the Toolhelp walk in `ProcessRegistry`. Verify with the Infrastructure tests.
 - [x] 3.2 `ProcessRegistryShould`: `UsageOf` for the child gives a start time within a minute, a positive private memory and a command line containing `pwsh`; for an identifier that has gone it gives null; for the test's own process the private memory is below its working set. Then `GetProcessTimes`, `GetProcessMemoryInfo` with `PROCESS_MEMORY_COUNTERS_EX2` (working-set fallback when the call fails, logged once) and `NtQueryInformationProcess` class 60 in `ProcessRegistry`. Verify with the Infrastructure tests.
-- [ ] 3.3 Record the verified facts in CLAUDE.md beside the Windows Terminal facts: private working set through `PROCESS_MEMORY_COUNTERS_EX2`, Toolhelp parent ids and identifier reuse, command lines through information class 60, and that command lines can carry secrets. Verify the section reads as the code does.
+- [x] 3.3 Record the verified facts in CLAUDE.md beside the Windows Terminal facts: private working set through `PROCESS_MEMORY_COUNTERS_EX2`, Toolhelp parent ids and identifier reuse, command lines through information class 60, and that command lines can carry secrets. Verify the section reads as the code does.
 
 ## 4. Tui: the column, the dialog and the header
 
-- [ ] 4.1 `SessionsScreenDefinition.Cell` maps column 8 to `Wording.Memory(row.Memory)` or `-`; verify in the headless capture (`drive` with a running session) that the MEM header and a figure appear and the table-fit scroll still reaches it at 120 columns.
+- [x] 4.1 `SessionsScreenDefinition.Cell` maps column 8 to `Wording.Memory(row.Memory)` or `-`; verify in the headless capture (`drive` with a running session) that the MEM header and a figure appear and the table-fit scroll still reaches it at 120 columns.
 - [x] 4.2 `DialogEffectsShould`: `ShowMemory` has a flow; then `MemoryDialog.Show(app, title, lines)` (Close button with `IsDefault`, Esc closes, `DialogTabTitle.Apply` with `DialogName.Memory`, Height from the line count capped at 24) and the flow in `DialogEffects` that snapshots, builds the tree and the breakdown through `RunInBackground` with `Footer.Working`, then shows the dialog. Verify with the Core tests and by opening the dialog on a running session.
-- [ ] 4.3 `Program.cs` reads `processes.UsageOf(Environment.ProcessId)` inside the header function and passes the memory to `HeaderValues`; verify the header shows `(.. MB)` on both views and changes after a refresh.
+- [x] 4.3 `Program.cs` reads `processes.UsageOf(Environment.ProcessId)` inside the header function and passes the memory to `HeaderValues`; verify the header shows `(.. MB)` on both views and changes after a refresh.
 
 ## 5. Release
 
-- [ ] 5.1 README: the MEM column in the sessions view's column list, `m` in the key list, and a sentence on what is measured (private working set of the session's process tree, not the daemon or the tab) and that command lines are never shown; verify the README's key and column lists match `Wording`.
-- [ ] 5.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one step as the release rule requires and verify `.github\scripts\Assert-VersionBumped.ps1` passes against `main`.
-- [ ] 5.3 Run the full loop: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes`, and `dotnet run --project tools\HeadlessTerminal -- check`; verify all pass.
+- [x] 5.1 README: the MEM column in the sessions view's column list, `m` in the key list, and a sentence on what is measured (private working set of the session's process tree, not the daemon or the tab) and that command lines are never shown; verify the README's key and column lists match `Wording`.
+- [x] 5.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one step as the release rule requires and verify `.github\scripts\Assert-VersionBumped.ps1` passes against `main`.
+- [x] 5.3 Run the full loop: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes`, and `dotnet run --project tools\HeadlessTerminal -- check`; verify all pass.
 
 ## Workflow follow-up
 
