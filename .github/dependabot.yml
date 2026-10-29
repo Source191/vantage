@@ -1,5 +1,5 @@
 # Weekly updates for the NuGet packages and the actions the workflows use. Each pull request
-# runs `check`, and one that changes the packaged tool needs a version bump (see README).
+# runs `check`; one that changes the packaged tool has its version raised by the Dependabot step in check.yml (see README).
 version: 2
 updates:
   - package-ecosystem: nuget

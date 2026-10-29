@@ -29,19 +29,72 @@ jobs:
     env:
       DISABLE_AUTOUPDATER: 1
     steps:
-      # No step pushes, so the token is not left in .git\config for the rest of the job. Depth 2 keeps
-      # both parents of a pull request's merge ref for the version check.
+      # The job's token is never left in .git\config: only the Dependabot step pushes, with a token of its own on the
+      # URL. Depth 2 keeps both parents of a pull request's merge ref for the version check.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
           persist-credentials: false
 
+      # Dependabot never raises Version, so for its pull requests that touch the tool this raises it one step on the
+      # pull request's own branch and pushes the commit with DEPENDABOT_BUMP_TOKEN, a fine-grained personal access token
+      # (Contents read and write on this repository) held as a Dependabot secret: the only secrets a Dependabot run can
+      # read, and a push made with GITHUB_TOKEN would start no new run. That push starts the run branch protection
+      # reads; this one skips its own version check and carries on. With the secret empty (a person pushed to the
+      # branch, so the run has repository secrets instead) it only says to raise Version by hand.
+      - name: Check out the Dependabot branch
+        if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.head_ref }}
+          path: dependabot-branch
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Raise the version for Dependabot
+        id: bump
+        if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+        shell: pwsh
+        working-directory: dependabot-branch
+        env:
+          BUMP_TOKEN: ${{ secrets.DEPENDABOT_BUMP_TOKEN }}
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          .github/scripts/Assert-VersionBumped.ps1 -Base "origin/$env:BASE_REF" -Head HEAD *> $null
+          if ($LASTEXITCODE -eq 0) {
+              Write-Host 'Version is already raised, or nothing that ships changed.'
+              exit 0
+          }
+
+          if ([string]::IsNullOrEmpty($env:BUMP_TOKEN)) {
+              Write-Host '::notice::DEPENDABOT_BUMP_TOKEN is not available to this run, so Version was not raised: run .github/scripts/Step-Version.ps1 and push.'
+              exit 0
+          }
+
+          $version = .github/scripts/Step-Version.ps1
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit --quiet --all --message "Raise Version to $version for the dependency update"
+          if ($LASTEXITCODE -ne 0) {
+              throw "git commit failed with exit code $LASTEXITCODE."
+          }
+
+          git push --quiet "https://x-access-token:$env:BUMP_TOKEN@github.com/$env:REPOSITORY.git" "HEAD:$env:HEAD_REF"
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host '::error::Pushing the version bump failed: DEPENDABOT_BUMP_TOKEN may have expired. Renew it under Settings, Secrets and variables, Dependabot (README.md, Version bumps).'
+              exit 1
+          }
+
+          Write-Host "::notice::Raised Version to $version and pushed it; the run for that commit is the one that counts."
+          'pushed=true' >> $env:GITHUB_OUTPUT
+
       # A pull request that changes the packaged tool must raise Version. The checkout is GitHub's
       # merge ref: HEAD^1 is the tip of the base branch (main, or the parent of a stacked pull request)
       # it was built on and HEAD is that branch after the merge, so the diff is exactly what the pull
-      # request changes. First, so a missing bump fails before the build.
+      # request changes. First, so a missing bump fails before the build; skipped when the step above pushed one.
       - name: Check the version was raised
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.bump.outputs.pushed != 'true'
         shell: pwsh
         run: .github/scripts/Assert-VersionBumped.ps1 -Base HEAD^1 -Head HEAD
 
