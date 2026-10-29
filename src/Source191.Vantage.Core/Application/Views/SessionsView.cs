@@ -17,6 +17,8 @@ public sealed record Key(KeyName Name, char Character)
     public static readonly Key Escape = new(KeyName.Escape, '\0');
     public static readonly Key Up = new(KeyName.Up, '\0');
     public static readonly Key Down = new(KeyName.Down, '\0');
+    public static readonly Key Left = new(KeyName.Left, '\0');
+    public static readonly Key Right = new(KeyName.Right, '\0');
     public static readonly Key Backspace = new(KeyName.Backspace, '\0');
     public static readonly Key Slash = new(KeyName.Character, '/');
 
@@ -30,6 +32,8 @@ public enum KeyName
     Escape,
     Up,
     Down,
+    Left,
+    Right,
     Backspace,
 }
 
