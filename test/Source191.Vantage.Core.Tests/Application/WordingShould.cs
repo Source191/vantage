@@ -238,6 +238,7 @@ public sealed class WordingShould
     [InlineData(PullRequestGap.Failed, PullRequestHost.GitHub, "The GitHub CLI (gh) could not list fix-123's pull requests.")]
     [InlineData(PullRequestGap.Failed, null, "Could not look up fix-123's pull requests.")]
     [InlineData(PullRequestGap.NoPullRequest, PullRequestHost.AzureDevOps, "No pull request found for fix-123's branch.")]
+    [InlineData(PullRequestGap.BranchNotGivenToAz, PullRequestHost.AzureDevOps, "fix-123's branch name holds a character the Azure CLI cannot be given, so it was not looked up.")]
     public void SayWhyThereIsNoPullRequest(PullRequestGap gap, PullRequestHost? host, string expected)
     {
         Wording.Describe(new Footer.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);
