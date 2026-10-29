@@ -446,5 +446,6 @@ Vantage is built in the gaps between rate limits. Help close the gaps: [buy me a
 - Still to observe at the terminal: whether `claude attach` to one session from two tabs is refused or allowed, and whether `claude --bg --resume <id>` or `claude respawn --all` is the right way to bring sessions back after a reboot (the listing side is documented: no pid, state failed or stopped).
 - A take-over key (stop the supervised session and resume it as a normal foreground `claude`, at the cost of supervision) is undecided; `b` covers the other direction.
 - Multiple Claude accounts: Claude Code's `CLAUDE_CONFIG_DIR` selects a configuration directory with its own login, settings, sessions and supervisor; Vantage would gain a profile column and set the variable when starting a session.
+- Installing with `winget install`, as a self-contained `vantage.exe` that needs no .NET SDK ([#93](https://github.com/Source191/vantage/issues/93)).
 - A per-path cache for the worktree scan, so the first press of `w` is quick on a large roots folder.
 - Pinning sessions, once the CLI exposes it outside the native agent view; configurable palette and Windows Terminal profile for the tabs Vantage opens.
