@@ -38,7 +38,7 @@
 ## 7. Version and checks
 
 - [x] 7.1 Raise `Version` one preview step above `main`'s (a patch raise). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
-- [ ] 7.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0.
+- [x] 7.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0.
 - [ ] 7.3 The product owner installs the build with `tools\install-local.ps1` and, on the laptop screen and the monitor, rests the mouse on a key, on its words and on the PR header, scrolls with Right and Left in both views, reads the Sessions line with every session needing input, and presses `?` on the laptop to scroll to the Claude Code path. Verify the tooltip reads as a tooltip, the words show it too, the PR tooltip stays on screen, TAB is reachable, the line reads a bare count, and the help's last line is reached; record here.
 
 ## Workflow follow-up
