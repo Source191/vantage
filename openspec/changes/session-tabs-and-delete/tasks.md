@@ -30,7 +30,7 @@
 ## 6. Delete and the shared remover (Infrastructure, Application)
 
 - [x] 6.1 Red: `GitCliShould.ReportAWorktreeFolderInUse` feeds the fake runner git's "failed to delete 'C:/Users/me/source/worktrees/Northwind.Orders-fix': Permission denied" and asserts `RemoveWorktreeAsync` throws a `GitException` whose `InUse` is true, and an ordinary failure throws one with `InUse` false. Green: the adapter. Verify `dotnet test test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build` passes.
-- [ ] 6.2 Refactor: lift the decision-carrying code of `RemoveWorktreeHandler` into `WorktreeRemover` with the handler delegating to it. Verify `RemoveWorktreeHandlerShould` passes unchanged.
+- [x] 6.2 Refactor: lift the decision-carrying code of `RemoveWorktreeHandler` into `WorktreeRemover` with the handler delegating to it. Verify `RemoveWorktreeHandlerShould` passes unchanged.
 - [ ] 6.3 Red: `DeleteSessionHandlerShould.CloseTheTabBeforeTouchingTheWorktree` (the shell ends before any git request), `DeleteABrokenWorktreesFolderAndPrune` (no git status run, `FakeFolders` deleted the folder, prune ran, outcome worded), `ReportAWorktreeStillInUse` (the in-use exception becomes the in-use outcome with the session deleted). Green: the handler with `SessionTabs`, `WorktreeRemover` and `IFolders`; `Program.cs` wiring. Verify the Core suite passes.
 - [ ] 6.4 Red: `RemoveWorktreeHandlerShould.ReportAWorktreeStillInUse`. Green: the same catch in the worktrees view's path. Verify the Core suite passes.
 
