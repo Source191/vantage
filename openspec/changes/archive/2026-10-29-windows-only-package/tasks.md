@@ -14,8 +14,8 @@
 
 ## 3. Winget on the roadmap
 
-- [ ] 3.1 Open a GitHub issue on `Source191/vantage`, "Install with winget, without the .NET SDK", describing the self-contained `win-x64` and `win-arm64` zips on the GitHub Release, the portable manifest with the `vantage` alias and its PowerShell, Git and Windows Terminal dependencies, the hand-run submission to `microsoft/winget-pkgs`, `U` and the update check moving to winget, previews, signing, and the last nuget.org release moving installs across; verify `gh issue view` shows it
-- [ ] 3.2 Add a line to the README's "Roadmap and known limits" linking to that issue; verify the link opens the issue and `openspec validate windows-only-package` passes
+- [x] 3.1 Open a GitHub issue on `Source191/vantage`, "Install with winget, without the .NET SDK", describing the self-contained `win-x64` and `win-arm64` zips on the GitHub Release, the portable manifest with the `vantage` alias and its PowerShell, Git and Windows Terminal dependencies, the hand-run submission to `microsoft/winget-pkgs`, `U` and the update check moving to winget, previews, signing, and the last nuget.org release moving installs across; verify `gh issue view` shows it
+- [x] 3.2 Add a line to the README's "Roadmap and known limits" linking to that issue; verify the link opens the issue and `openspec validate windows-only-package` passes
 
 ## Workflow follow-up
 
