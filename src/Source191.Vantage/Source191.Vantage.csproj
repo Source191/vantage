@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- The vantage tool: Program.cs wires Core, Infrastructure and Tui together. Packing includes the three referenced projects. -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -11,7 +10,8 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vantage</ToolCommandName>
     <PackageId>Source191.Vantage</PackageId>
-    <Version>0.17.0-preview.1</Version>
+    <Version>0.17.0-preview.2</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>Simon Vane</Authors>
     <Description>A terminal console for Claude Code sessions and git worktrees on Windows.</Description>
     <Copyright>Copyright 2026 Simon Vane</Copyright>
@@ -24,13 +24,10 @@
     <PackageTags>claude-code;worktrees;windows-terminal;tui;dotnet-tool</PackageTags>
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\packages</PackageOutputPath>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <!-- Vantage is English only, so the translated resources of System.CommandLine and Terminal.Gui are neither built nor packed. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <!-- release.yml generates each version's notes on its GitHub Release; nuget.org links there rather than to a changelog file. -->
     <PackageReleaseNotes>Release notes: https://github.com/Source191/vantage/releases/tag/v$(Version)</PackageReleaseNotes>
   </PropertyGroup>
 
-  <!-- The README is the package readme and the notices travel beside the tool, as the licences of the packed dependencies ask. -->
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="icon.png" Pack="true" PackagePath="\" />
