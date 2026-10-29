@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 namespace Source191.Vantage.Adapters.Terminal;
 
 /// <summary>
-/// Puts the terminal back into a known state after a child process (claude attach, the agent view) has owned it.
+/// Puts the terminal back into a known state after a child process (claude attach) has owned it.
 /// Claude Code leaves focus reporting on and the cursor hidden when it detaches, and its last terminal queries can
 /// be answered after it has exited, so the replies would otherwise be read by the next Terminal.Gui start-up.
 /// Everything here is idempotent and harmless when nothing needs undoing.

@@ -73,8 +73,6 @@ public sealed record OpenLaunchWizard : ViewEffect, IDialogEffect;
 
 public sealed record ResumeStoppedSessions(IReadOnlyList<SessionRow> Rows) : ViewEffect, IDialogEffect;
 
-public sealed record OpenAgentView : ViewEffect, ILeavesScreen;
-
 public sealed record SwitchToWorktrees : ViewEffect, ILeavesScreen;
 
 public sealed record Quit : ViewEffect, ILeavesScreen;
@@ -169,7 +167,6 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'p' } => OpenPullRequest(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
             { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
-            { Name: KeyName.Character, Character: 'a' } => Effect(state, new OpenAgentView()),
             { Name: KeyName.Character, Character: 'w' } => Effect(state, new SwitchToWorktrees()),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
