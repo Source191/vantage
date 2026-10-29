@@ -35,6 +35,25 @@ public sealed class WordingOfScreensShould
         Enum.GetValues<DialogName>().Length.ShouldBe(11, "a new dialog needs its own NameEachDialogInTheTabTitle case");
     }
 
+    [Theory]
+    [InlineData(0, "0 MB")]
+    [InlineData(29, "29 MB")]
+    [InlineData(903, "903 MB")]
+    [InlineData(1234, "1.2 GB")]
+    [InlineData(12595, "12.3 GB")]
+    public void WriteMemoryInWholeMegabytesThenGigabytesToOneDecimal(long megabytes, string expected)
+    {
+        Wording.Memory(MemorySize.FromMegabytes(megabytes)).ShouldBe(expected);
+    }
+
+    [Fact]
+    public void RoundMemoryToTheNearestMegabyte()
+    {
+        Wording.Memory(MemorySize.FromBytes(29 * MemorySize.BytesPerMegabyte + 600_000)).ShouldBe("30 MB");
+        Wording.MemoryCell(MemorySize.FromMegabytes(296)).ShouldBe("296 MB");
+        Wording.MemoryCell(null).ShouldBe("-");
+    }
+
     [Fact]
     public void ShowVersionsAndRootsInTheHeader()
     {
