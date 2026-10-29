@@ -63,6 +63,15 @@ public sealed class SettingsFileShould
     }
 
     [Fact]
+    public void ReadAnOldVisualStudioPresetAsVsCode()
+    {
+        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], null, null, new EditorSetting("VisualStudio", null, null)), Home);
+
+        settings.Editor.ShouldBe(EditorChoice.VsCode);
+        settings.RepositoryRoots.ShouldBe([FolderPath.From(@"D:\work")]);
+    }
+
+    [Fact]
     public void ReadAnUnknownEditorPresetAsVsCode()
     {
         SettingsFile.From(new VantageConfig(null, null, null, new EditorSetting("Notepad", null, null)), Home).Editor.ShouldBe(EditorChoice.VsCode);
