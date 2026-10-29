@@ -11,13 +11,16 @@ namespace Source191.Vantage.Application;
 /// A listed answer is kept for a minute; an unavailable one for three, so a signed-out CLI is not asked every minute
 /// per row. The origin remote is read again with each lookup, so a repository that moves host is followed.
 /// </summary>
-public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProvider clock)
+public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProvider clock) : IDisposable
 {
     private static readonly TimeSpan Window = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan UnavailableWindow = TimeSpan.FromMinutes(3);
 
     private readonly ConcurrentDictionary<string, Answer> answers = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, Lazy<Task>> running = new(StringComparer.Ordinal);
+
+    // A burst of rows becomes waves of four host processes rather than dozens at once.
+    private readonly SemaphoreSlim slots = new(4);
 
     public PullRequestLookup Find(FolderPath checkout, BranchName? branch) => (branch, branch is not null && answers.TryGetValue(KeyOf(checkout, branch), out Answer? answer) ? answer : null) switch
     {
@@ -51,6 +54,8 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
             ? new PullRequestLookup.Found(found)
             : new PullRequestLookup.Missing(PullRequestGap.NoPullRequest);
 
+    public void Dispose() => slots.Dispose();
+
     private static string KeyOf(FolderPath checkout, BranchName branch) => $"{checkout.Key}|{branch.Value}";
 
     private async Task RefreshAsync(FolderPath checkout, BranchName branch)
@@ -80,9 +85,20 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
             return (new PullRequestListing.Unavailable(PullRequestGap.NoRemote), null);
         }
 
-        return RemoteRepository.Parse(url) is RemoteRepository repository
-            ? (await hosts.ListAsync(repository, checkout, branch, CancellationToken.None), repository.Host)
-            : (new PullRequestListing.Unavailable(PullRequestGap.UnknownHost), null);
+        if (RemoteRepository.Parse(url) is not RemoteRepository repository)
+        {
+            return (new PullRequestListing.Unavailable(PullRequestGap.UnknownHost), null);
+        }
+
+        await slots.WaitAsync();
+        try
+        {
+            return (await hosts.ListAsync(repository, checkout, branch, CancellationToken.None), repository.Host);
+        }
+        finally
+        {
+            slots.Release();
+        }
     }
 
     private sealed record Answer(PullRequestListing Listing, PullRequestHost? Host, DateTimeOffset At)

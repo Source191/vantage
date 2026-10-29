@@ -7,7 +7,7 @@ using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application;
 
-public sealed class PullRequestCatalogueShould
+public sealed class PullRequestCatalogueShould : IDisposable
 {
     private static readonly FolderPath Checkout = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
     private static readonly GitHubRepository Orders = new("northwind", "Northwind.Orders");
@@ -178,5 +178,10 @@ public sealed class PullRequestCatalogueShould
         {
             await Task.Delay(10, TestContext.Current.CancellationToken);
         }
+    }
+
+    public void Dispose()
+    {
+        catalogue.Dispose();
     }
 }

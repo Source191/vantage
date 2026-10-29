@@ -8,7 +8,7 @@ using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application;
 
-public sealed class SessionRowEnricherShould
+public sealed class SessionRowEnricherShould : IDisposable
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
 
@@ -181,5 +181,10 @@ public sealed class SessionRowEnricherShould
     private static BackgroundSession Session(string workingDirectory)
     {
         return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From("81cdb0f9"), "name", FolderPath.From(workingDirectory), Noon, DisplayState.Working);
+    }
+
+    public void Dispose()
+    {
+        catalogue.Dispose();
     }
 }

@@ -59,6 +59,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     public void Dispose()
     {
+        catalogue.Dispose();
         root.Dispose();
     }
 
