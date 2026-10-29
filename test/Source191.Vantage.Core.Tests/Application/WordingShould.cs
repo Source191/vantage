@@ -201,6 +201,13 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void SayAStoppedSessionHasNothingToMeasure()
+    {
+        Wording.Describe(new Footer.NothingToMeasure("fix-123")).ShouldBe("fix-123 has no process to measure; it is stopped.");
+        Wording.Working(new ShowMemory(Job, 5151)).ShouldBe("Measuring fix-123...");
+    }
+
+    [Fact]
     public void TitleTheMemoryDialogWithTheSessionName()
     {
         Wording.MemoryDialogTitle("fix-123").ShouldBe("Memory: fix-123");
