@@ -106,12 +106,12 @@ public sealed class ScreenLoopShould : IDisposable
     {
         ScriptedSessionsScreen sessions = new(
             state => new ScreenExit(state, new AttachToSession(JobId.From("81cdb0f9"))),
-            state => new ScreenExit(state, new OpenAgentView()),
+            state => new ScreenExit(state, new AttachToSession(JobId.From("92def0a1"))),
             state => new ScreenExit(state, new Quit()));
 
         await Loop(sessions, new ScriptedWorktreesScreen()).RunAsync(processId: 100, CancellationToken.None);
 
-        processes.InteractiveRequests.Select(request => request.Arguments[0]).ShouldBe(["attach", "agents"]);
+        processes.InteractiveRequests.Select(request => request.Arguments[0]).ShouldBe(["attach", "attach"]);
         console.Recovered.ShouldBe(2);
         console.Shown.Count.ShouldBe(3, "once at start and once after each hand-off");
         log.Lines.ShouldContain("Handing the terminal to AttachToSession { JobId = 81cdb0f9 }");
