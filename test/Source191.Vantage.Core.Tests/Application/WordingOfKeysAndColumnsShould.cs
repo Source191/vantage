@@ -11,13 +11,13 @@ public sealed class WordingOfKeysAndColumnsShould
         [
             "0 enter Attach", "0 o Open in tab", "0 n New session", "0 r Rename", "0 x Stop", "0 d Delete",
             "1 R Resume stopped", "1 C Close empty tabs", "1 b ", "1 w Worktrees", "1 / Filter", "1 ? Help", "1 q Quit", "0 , Settings",
-            "2 c Copy path", "2 e Editor", "2 v Solution", "2 p Open PR", "1 U ",
+            "2 c Copy path", "2 e Open folder", "2 v Solution", "2 p Open PR", "1 U ",
         ]);
         Wording.WorktreesKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
         [
             "0 d Remove", "0 D Force remove", "0 P Prune", "0 s Start session", "0 o Open shell", "0 enter Go to session",
             "1 w Sessions", "1 esc Sessions", "1 / Filter", "1 ? Help", "1 q Quit", "1 , Settings",
-            "2 c Copy path", "2 e Editor", "2 v Solution", "2 p Open PR", "1 U ",
+            "2 c Copy path", "2 e Open folder", "2 v Solution", "2 p Open PR", "1 U ",
         ]);
     }
 
