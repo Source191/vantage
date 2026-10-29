@@ -29,9 +29,9 @@
 
 ## 5. Adapters
 
-- [ ] 5.1 Red: `DiagnosticFileShould` (Infrastructure, temporary folder) asserts two writes append two UTF-8 lines without a BOM and a write to a locked file does not throw. Green: `Adapters\Diagnostics\DiagnosticFile`; delete `FileLogger`. Verify the Infrastructure suite passes.
-- [ ] 5.2 Red: `TerminalGuiBridgeShould` asserts a Warning whose message quotes `C:\Users\me` and an input sequence records `TerminalGuiReported(Warning, null)` with neither in the rendered line, an Error with an exception carries its summary, and `IsEnabled` is false for Trace, Debug and Information. Green: `Adapters\Diagnostics\TerminalGuiBridge`. Verify the facts pass.
-- [ ] 5.3 Red: `CrashFileShould` (temporary folder as the state folder) asserts a write creates `last-crash.log` and a second replaces it whole. Green: `Adapters\Diagnostics\CrashFile`. Verify the facts pass.
+- [x] 5.1 Red: `DiagnosticFileShould` (Infrastructure, temporary folder) asserts two writes append two UTF-8 lines without a BOM and a write to a locked file does not throw. Green: `Adapters\Diagnostics\DiagnosticFile`; delete `FileLogger`. Verify the Infrastructure suite passes.
+- [x] 5.2 Red: `TerminalGuiBridgeShould` asserts a Warning whose message quotes `C:\Users\me` and an input sequence records `TerminalGuiReported(Warning, null)` with neither in the rendered line, an Error with an exception carries its summary, and `IsEnabled` is false for Trace, Debug and Information. Green: `Application\Diagnostics\TerminalGuiBridge` (in Application because it records into the `DiagnosticLog`, which adapters may not reference; Core keeps `Microsoft.Extensions.Logging.Abstractions` for it). Verify the facts pass.
+- [x] 5.3 Red: `CrashFileShould` (temporary folder as the state folder) asserts a write creates `last-crash.log` and a second replaces it whole. Green: `Adapters\Diagnostics\CrashFile`. Verify the facts pass.
 
 ## 6. Screens and wiring (Tui, Program.cs)
 

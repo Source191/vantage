@@ -28,12 +28,9 @@ string vantageExecutable = Environment.ProcessPath ?? "vantage";
 TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser(Path.Combine(AppContext.BaseDirectory, "vantage.ico"));
 
 // The diagnostic log is always kept in memory; VANTAGE_LOG=<file> also writes it to that file.
-DiagnosticLog log = new(TimeProvider.System, []);
 string? logPath = Environment.GetEnvironmentVariable("VANTAGE_LOG");
-if (!string.IsNullOrWhiteSpace(logPath))
-{
-    Terminal.Gui.App.Logging.Logger = new FileLogger(logPath, TimeProvider.System);
-}
+DiagnosticLog log = new(TimeProvider.System, string.IsNullOrWhiteSpace(logPath) ? [] : [new DiagnosticFile(logPath)]);
+Terminal.Gui.App.Logging.Logger = new TerminalGuiBridge(log);
 
 // Help, version and parse errors are System.CommandLine's and need neither Claude Code nor a terminal tab.
 RootCommand root = CommandLine.Build(new CommandActions(OpenConsoleAsync, StartHereAsync, SetUpTerminalAsync, ClaimTabAsync));
