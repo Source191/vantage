@@ -2,7 +2,7 @@
 
 ## 1. Guard (red)
 
-- [ ] 1.1 In `.github\actions\build-test-pack\action.yml`'s "Read the version and find the package" step, open the `.nupkg` and throw, naming the entries, when any path contains `/runtimes/` not followed by `win`; verify by running the step's script locally against today's package (packed into a scratch folder) and seeing it fail with the ten non-Windows `libonigwrap` entries
+- [x] 1.1 In `.github\actions\build-test-pack\action.yml`'s "Read the version and find the package" step, open the `.nupkg` and throw, naming the entries, when any path contains `/runtimes/` not followed by `win`; verify by running the step's script locally against today's package (packed into a scratch folder) and seeing it fail with the ten non-Windows `libonigwrap` entries
 
 ## 2. Filter (green)
 

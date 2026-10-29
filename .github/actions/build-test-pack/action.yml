@@ -64,6 +64,17 @@ runs:
         if ($packages.Count -ne 1) {
             throw "Expected exactly one .nupkg in artifacts\packages, found $($packages.Count)."
         }
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($packages[0].FullName)
+        try {
+            $foreign = @($archive.Entries.FullName | Where-Object { $_ -match '/runtimes/' -and $_ -notmatch '/runtimes/win' })
+        }
+        finally {
+            $archive.Dispose()
+        }
+        if ($foreign.Count -gt 0) {
+            throw "The package holds native assets for platforms other than Windows:`n$($foreign -join "`n")"
+        }
         $version = $packages[0].BaseName.Substring('Source191.Vantage.'.Length)
         "version=$version" >> $env:GITHUB_OUTPUT
         "package=$($packages[0].FullName)" >> $env:GITHUB_OUTPUT
