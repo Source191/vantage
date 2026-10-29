@@ -26,14 +26,14 @@ public sealed class GitHubPullRequestsShould
     private GitHubPullRequests Hosts => new(processes);
 
     [Fact]
-    public async Task ListEveryBranchFromOneCall()
+    public async Task AskForTheBranchOnly()
     {
         PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None);
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe("gh"),
             request => request.WorkingDirectory.ShouldBe(Checkout.Value),
-            request => request.Arguments.ShouldBe(["pr", "list", "--repo", "northwind/Northwind.Orders", "--state", "all", "--limit", "100", "--json", "number,url,state,isDraft,headRefName,createdAt"]));
+            request => request.Arguments.ShouldBe(["pr", "list", "--repo", "northwind/Northwind.Orders", "--head", "fix-123", "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"]));
         listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.ShouldBe(
         [
             Row("fix-123", 123, PullRequestState.Open, "2026-10-20T09:12:00Z"),
