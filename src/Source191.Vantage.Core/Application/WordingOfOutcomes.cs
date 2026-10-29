@@ -12,6 +12,7 @@ public static partial class Wording
     {
         return outcome switch
         {
+            StopSessionOutcome { TabClosed: true } stopped => $"Stopped {stopped.Name} and closed its tab.",
             StopSessionOutcome stopped => $"Stopped {stopped.Name}.",
             AdoptSessionOutcome adopt => Describe(adopt),
             RenameSessionOutcome rename => Describe(rename),
@@ -66,7 +67,8 @@ public static partial class Wording
         {
             AdoptSessionOutcome.NoMessages empty =>
                 $"{empty.Name} has no messages yet, so there is nothing to move. Send it something in its tab first, or close that tab and start a session from Vantage.",
-            AdoptSessionOutcome.Moved moved => $"Moved {moved.Name} under Vantage; its old tab is now a plain shell.",
+            AdoptSessionOutcome.Moved { TabClosed: true } moved => $"Moved {moved.Name} under Vantage and closed its old tab.",
+            AdoptSessionOutcome.Moved moved => $"Moved {moved.Name} under Vantage.",
             AdoptSessionOutcome.Failed failed => $"Could not move {failed.Name} under Vantage: {failed.Message}",
             _ => outcome.ToString(),
         };
@@ -77,7 +79,9 @@ public static partial class Wording
         return outcome switch
         {
             RenameSessionOutcome.NoMessages empty => $"{empty.Name} has no messages yet, so it cannot be renamed; send it something first.",
+            RenameSessionOutcome.Renamed { TabMoved: true } renamed => $"Renamed {renamed.OldName} to {renamed.NewName} and moved its tab; it restarts idle and keeps its conversation.",
             RenameSessionOutcome.Renamed renamed => $"Renamed {renamed.OldName} to {renamed.NewName}; it restarts idle and keeps its conversation.",
+            RenameSessionOutcome.Restored { TabClosed: true } restored => $"Could not rename {restored.OldName}: {restored.Failure}; it is back under its old name and its tab is closed: o opens a new one.",
             RenameSessionOutcome.Restored restored => $"Could not rename {restored.OldName}: {restored.Failure}; it is back under its old name.",
             RenameSessionOutcome.Unsupervised lost =>
                 $"Could not rename {lost.OldName}: {lost.Failure}; resume it with claude --bg --resume {lost.SessionId} ({lost.RestoreFailure}).",
@@ -126,10 +130,12 @@ public static partial class Wording
     {
         return outcome switch
         {
-            DeleteSessionOutcome.Deleted deleted => $"Deleted {deleted.Name}.",
-            DeleteSessionOutcome.KeptWorktree kept => $"Deleted {kept.Name}; kept its worktree because {Describe(kept.Reason)}.",
-            DeleteSessionOutcome.RemovedWorktreeAndBranch removed => $"Deleted {removed.Name} and removed the worktree and branch {removed.Branch}.",
-            DeleteSessionOutcome.BranchNotMerged unmerged => $"Deleted {unmerged.Name} and removed the worktree; branch {unmerged.Branch.Branch} is not merged.",
+            DeleteSessionOutcome.Deleted deleted => $"{Gone(deleted, deleted.Name)}.",
+            DeleteSessionOutcome.KeptWorktree kept => $"{Gone(kept, kept.Name)}; kept its worktree because {Describe(kept.Reason)}.",
+            DeleteSessionOutcome.RemovedWorktreeAndBranch removed => $"{Gone(removed, removed.Name)}{(removed.TabClosed ? "," : string.Empty)} and removed the worktree and branch {removed.Branch}.",
+            DeleteSessionOutcome.BranchNotMerged unmerged => $"{Gone(unmerged, unmerged.Name)}{(unmerged.TabClosed ? "," : string.Empty)} and removed the worktree; branch {unmerged.Branch.Branch} is not merged.",
+            DeleteSessionOutcome.RemovedWorktree removed => $"{Gone(removed, removed.Name)}; {Lowered(Describe(removed.Worktree))}",
+            DeleteSessionOutcome.WorktreeInUse inUse => $"{Gone(inUse, inUse.Name)}; its worktree folder {inUse.FolderName} is still in use by a tab or program: close it and remove the folder from the worktrees view.",
             _ => outcome.ToString(),
         };
     }
@@ -139,6 +145,7 @@ public static partial class Wording
         return outcome switch
         {
             RemoveWorktreeOutcome.Refused refused => $"Not removed: {Describe(refused.Reason)}.",
+            RemoveWorktreeOutcome.InUse inUse => $"Not removed: the folder {inUse.FolderName} is still in use by a tab or program; close it and remove again.",
             RemoveWorktreeOutcome.Removed removed => $"Removed {removed.FolderName}.",
             RemoveWorktreeOutcome.RemovedAndDeletedBranch removed => $"Removed {removed.FolderName} and deleted its merged branch {removed.Branch}.",
             RemoveWorktreeOutcome.BranchKept { CreatedByVantage: true } kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} is not merged.",
@@ -195,4 +202,10 @@ public static partial class Wording
             EditorPreset.Custom => Path.GetFileNameWithoutExtension(editor.Executable),
         };
     }
+
+    /// <summary>How a delete sentence opens: the session deleted, and its tab closed when there was one.</summary>
+    private static string Gone(DeleteSessionOutcome outcome, string name) => outcome.TabClosed ? $"Deleted {name} and closed its tab" : $"Deleted {name}";
+
+    /// <summary>A sentence carried on after a semicolon: its first letter lowered.</summary>
+    private static string Lowered(string sentence) => sentence.Length == 0 ? sentence : char.ToLowerInvariant(sentence[0]) + sentence[1..];
 }

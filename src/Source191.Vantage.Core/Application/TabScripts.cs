@@ -16,7 +16,8 @@ public sealed class TabScripts(string claudeExecutable, string vantageExecutable
 
     /// <summary>
     /// A session's tab: the shell claims the registration with its own $PID (so it outlives the short-lived claim-tab
-    /// process), clears what the profile printed, then attaches full screen.
+    /// process), clears what the profile printed, then attaches full screen. A detach, a stop or a removal ends the attach
+    /// with 0 (measured with CLI 2.1.312), so the shell exits and Windows Terminal closes the tab; a failed attach keeps the prompt.
     /// </summary>
     public TabLaunch Attach(BackgroundSession session, TabRegistration registration) => new TabLaunch(
         session.Name,
@@ -25,7 +26,8 @@ public sealed class TabScripts(string claudeExecutable, string vantageExecutable
         string.Join('\n',
             $"{PowerShellScript.Invoke(vantageExecutable, ["claim-tab", registration.Id.ToString("N")])} $PID",
             "Clear-Host",
-            PowerShellScript.Invoke(claudeExecutable, ["attach", session.JobId.Value])));
+            PowerShellScript.Invoke(claudeExecutable, ["attach", session.JobId.Value]),
+            "if ($LASTEXITCODE -eq 0) { exit }"));
 
     /// <summary>
     /// A plain Claude tab in an untrusted folder, so the trust prompt can be accepted interactively. The folder name is
