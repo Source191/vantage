@@ -56,7 +56,7 @@
 
 - [x] 8.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` (every project) and `dotnet format --verify-no-changes` all pass.
 - [x] 8.2 `openspec validate harden-for-v1` passes.
-- [ ] 8.3 The smoke check of the packed tool passes: `tools\install-local.ps1`, then `dotnet run --project tools\HeadlessTerminal -- smoke <exe> Northwind.Smoke-smoke` (or the CI check job). Not run locally on 29 October 2026 because a Vantage was open (the installer would have stopped it); the pull request's `check` job runs it.
+- [x] 8.3 The smoke check of the packed tool passes: `tools\install-local.ps1`, then `dotnet run --project tools\HeadlessTerminal -- smoke <exe> Northwind.Smoke-smoke` (or the CI check job). Not run locally on 29 October 2026 because a Vantage was open (the installer would have stopped it); passed in pull request #110's `check` run on 29 October 2026 (https://github.com/Source191/vantage/actions/runs/40928229898), which installs the packed nupkg and runs the smoke script.
 
 ## Workflow follow-up
 
