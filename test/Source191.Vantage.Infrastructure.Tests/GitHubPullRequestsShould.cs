@@ -69,6 +69,19 @@ public sealed class GitHubPullRequestsShould
     }
 
     [Fact]
+    public async Task LeaveOutAPullRequestWhoseLinkIsNotHttps()
+    {
+        processes.AnswerAll(new ProcessResult(0, """
+            [{"createdAt":"2026-10-20T09:12:00Z","headRefName":"fix-123","isDraft":false,"number":123,"state":"OPEN","url":"file:///C:/Users/me/notes.html"},
+             {"createdAt":"2026-10-19T15:40:21Z","headRefName":"fix-123","isDraft":false,"number":121,"state":"MERGED","url":"https://github.com/northwind/Northwind.Orders/pull/121"}]
+            """, string.Empty));
+
+        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None);
+
+        listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.Select(row => row.PullRequest.Number).ShouldBe([121]);
+    }
+
+    [Fact]
     public async Task ReportCliMissingWhenGhCannotStart()
     {
         processes.Fail(new Win32Exception(2, "The system cannot find the file specified."));

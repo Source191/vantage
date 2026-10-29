@@ -93,6 +93,22 @@ public sealed class WorktreeInventoryLeftoversShould : IDisposable
     }
 
     [Fact]
+    public async Task ReportAWorktreeOfARepositoryOutsideTheRootsAsElsewhere()
+    {
+        string worktree = Path.Combine(WorktreeRoot, "Northwind.Ledger-fix");
+        folders.WithFile(Path.Combine(worktree, ".git"), "gitdir: D:/other/Northwind.Ledger/.git/worktrees/fix\n")
+            .WithDirectory(@"D:\other\Northwind.Ledger\.git\worktrees\fix")
+            .WithFile(Path.Combine(worktree, "notes.txt"));
+
+        WorktreeRow row = (await Inventory.ScanAsync([], CancellationToken.None)).Single();
+
+        row.Health.Kind.ShouldBe(WorktreeHealthKind.Elsewhere);
+        row.Health.Reason.ShouldBe(new HealthReason.RepositoryOutsideRoots(FolderPath.From(@"D:\other\Northwind.Ledger")));
+        row.Repository.Value.ShouldBe(@"D:\other\Northwind.Ledger");
+        row.OwnerExists.ShouldBeTrue();
+    }
+
+    [Fact]
     public async Task FindABrokenWorktreeUnderTheWorktreeRoot()
     {
         string worktree = Path.Combine(WorktreeRoot, "Northwind.Orders-republish");

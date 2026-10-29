@@ -65,7 +65,7 @@ public sealed class TabScriptsShould
         tab.StartingDirectory.ShouldBe(home);
         string[] lines = tab.Script.Split('\n');
         lines[0].ShouldBe("Wait-Process -Id '4242' -ErrorAction SilentlyContinue");
-        lines[1].ShouldBe("& 'dotnet' 'tool' 'update' '-g' 'Source191.Vantage'");
+        lines[1].ShouldBe("& 'dotnet' 'tool' 'update' '-g' 'Source191.Vantage' '--source' 'https://api.nuget.org/v3/index.json'", customMessage: "the update must come from the feed the check consulted, whatever other sources the machine has");
         lines[2].ShouldBe($"if ($LASTEXITCODE -eq 0) {{ & '{Vantage}' }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}");
     }
 

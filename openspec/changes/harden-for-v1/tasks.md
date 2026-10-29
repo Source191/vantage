@@ -8,7 +8,7 @@
 - [x] 1.4 `SettingsShould.RefuseACustomEditorThatIsNotAFullPath` (`subl` refused as `SettingsProblem.ExecutableNotFullPath`, a batch file still refused as a batch file) and `EditorChoiceShould.ReadACustomEditorByBareNameAsVsCode`. Then the record and the check in `EditorChoice.Problem`.
 - [x] 1.5 `WorktreeHealthShould.BeElsewhereForAWorktreeOfARepositoryOutsideTheRoots` (unregistered, `.git` target exists, owner exists): kind `Elsewhere`, reason `RepositoryOutsideRoots` naming the owner; an owner that is gone stays broken. Then `OwnerRepositoryExists` on `WorktreeObservation`, the kind, the reason and the arm in `WorktreeHealth.From`; every switch over `WorktreeHealthKind` names the new member (`RemovalDecision`, `WorktreesScreenDefinition.RowColour`).
 - [x] 1.6 `RemovalDecisionShould.RefuseAnElsewhereWorktreeEvenWhenForced` (refused, reason `RemovalReason.RepositoryOutsideRoots`, cannot be forced). Then the arm in `RemovalDecision.For`.
-- [ ] 1.7 `Ports\ClaudeLocation`: `Found(Path)`, `BatchFileOnly(Path)`, `Missing` (used by 3.2 and 5.3; built by that test).
+- [x] 1.7 `Ports\ClaudeLocation`: `Found(Path)`, `BatchFileOnly(Path)`, `Missing` (used by 3.2 and 5.3; built by that test).
 
 ## 2. Wording
 
@@ -16,12 +16,12 @@
 
 ## 3. Adapters
 
-- [ ] 3.1 `ProgramLocatorShould` (new, Core.Tests\Application, over `FakeFolders`): finds `git.exe` in the first PATH folder that holds it, appends `.exe` to a bare name, answers null for a `gh.cmd` alone, and never answers a file in a folder that is not on the PATH. Then `Adapters\Processes\ProgramLocator` with a `ForCurrentUser` that reads the PATH.
-- [ ] 3.2 `ClaudeExecutableShould` (new): `~\.local\bin\claude.exe` wins over the PATH, `claude.exe` on the PATH is found, `claude.cmd` alone is `BatchFileOnly` naming it, nothing is `Missing`. Then `ClaudeExecutable.Locate(folders, pathFolders, home)` answering `ClaudeLocation`, a parameterless `Locate()` for `Program.cs`; `ProcessRunnerIntegrationShould` and `Contract\ClaudeContract` take the `Found` path.
-- [ ] 3.3 `GitCliShould.RunTheGivenExecutable`: the request's file name is the path the adapter was built with. Then `GitCli(processes, executable)`; every test and `Program.cs` pass one.
-- [ ] 3.4 `GitHubPullRequestsShould.ReportCliMissingWithoutGh` (null, no process started) and the request's file name is the given path. Then `GitHubPullRequests(processes, string? gh)`.
-- [ ] 3.5 `WindowsTerminalShould.ThrowNamingWtWhenItIsNotOnThePath` and the request's file name is the given path. Then `WindowsTerminal(processes, fragment, string? wt)`.
-- [ ] 3.6 `DesktopShould.ThrowNamingPwshWhenItIsNotOnThePath` and `OpenAsync` runs the given path (fake runner). Then `Desktop(processes, string? pwsh)`.
+- [x] 3.1 `ProgramLocatorShould` (new, Core.Tests\Application, over `FakeFolders`): finds `git.exe` in the first PATH folder that holds it, appends `.exe` to a bare name, answers null for a `gh.cmd` alone, and never answers a file in a folder that is not on the PATH. Then `Adapters\Processes\ProgramLocator` with a `ForCurrentUser` that reads the PATH.
+- [x] 3.2 `ClaudeExecutableShould` (new): `~\.local\bin\claude.exe` wins over the PATH, `claude.exe` on the PATH is found, `claude.cmd` alone is `BatchFileOnly` naming it, nothing is `Missing`. Then `ClaudeExecutable.Locate(folders, pathFolders, home)` answering `ClaudeLocation`, a parameterless `Locate()` for `Program.cs`; `ProcessRunnerIntegrationShould` and `Contract\ClaudeContract` take the `Found` path.
+- [x] 3.3 `GitCliShould.RunTheGivenExecutable`: the request's file name is the path the adapter was built with. Then `GitCli(processes, executable)`; every test and `Program.cs` pass one.
+- [x] 3.4 `GitHubPullRequestsShould.ReportCliMissingWithoutGh` (null, no process started) and the request's file name is the given path. Then `GitHubPullRequests(processes, string? gh)`.
+- [x] 3.5 `WindowsTerminalShould.ThrowNamingWtWhenItIsNotOnThePath` and the request's file name is the given path. Then `WindowsTerminal(processes, fragment, string? wt)`.
+- [x] 3.6 `DesktopShould.ThrowNamingPwshWhenItIsNotOnThePath` and `OpenAsync` runs the given path (fake runner). Then `Desktop(processes, string? pwsh)`.
 - [ ] 3.7 `AzureDevOpsPullRequestsShould.NotStartAzForABranchItCannotBeGiven` (`feature/x&calc`: `Unavailable(BranchNotGivenToAz)`, nothing captured) and `KeepABranchWithASlash` still asks. Then the check in `ListAsync` through `BatchFileArgument.IsSafe`.
 - [ ] 3.8 `GitHubPullRequestsShould.LeaveOutAPullRequestWhoseLinkIsNotHttps` (a `file:` url row is dropped, the https rows stay). Then the scheme check in `GitHubPullRequests.Row`; the Azure DevOps page is built by Vantage over https, so it needs no test.
 - [ ] 3.9 `WorktreeInventoryLeftoversShould.ReportAWorktreeOfARepositoryOutsideTheRootsAsElsewhere` (a sibling whose `.git` file names an existing registration under `D:\other\Northwind.Ledger\.git\worktrees\fix`, that repository's `.git` present): health `Elsewhere`, repository `Northwind.Ledger`, owner exists; the broken cases unchanged. Then the observation in `WorktreeInventory.BrokenWorktree`.
