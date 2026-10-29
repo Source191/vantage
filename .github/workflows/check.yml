@@ -9,6 +9,12 @@ on:
   push:
     branches: [main]
 
+# A new commit on a pull request cancels the run for the older one, whose result branch protection no longer reads.
+# Each push to main has a group of its own (its run id), so it is never cancelled or queued behind another.
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # Read-only token for every job: nothing here writes to the repository, both jobs run the downloaded Claude Code
 # installer, and the handoff job runs a live Claude session in the checkout.
 permissions:
@@ -39,16 +45,47 @@ jobs:
         shell: pwsh
         run: .github/scripts/Assert-VersionBumped.ps1 -Base HEAD^1 -Head HEAD
 
+      # A pull request that changes only documentation (openspec\, or .md files outside .github\) passes here
+      # without building: nothing it changes is compiled, tested or run. Every later step checks the output, so the
+      # job still runs and reports `check`, which branch protection requires (a workflow-level paths-ignore would
+      # leave that check pending for ever). Pushes to main always run every step, and pack README.md there.
+      - name: Skip the build for a documentation-only change
+        id: documentation
+        if: github.event_name == 'pull_request'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (.github/scripts/Test-DocumentationOnly.ps1 -Base HEAD^1 -Head HEAD) {
+              Write-Host '::notice::Documentation-only change: the build, tests, pack and smoke check were skipped.'
+              'skip=true' >> $env:GITHUB_OUTPUT
+          }
+
+      # The installer runs in a process of its own while the build runs, and "Finish the Claude Code install"
+      # waits for it. Start-Process, not Start-Job: a job would end with this step's PowerShell, while the runner
+      # ends leftover processes only when the job ends. No secret is in this job's environment.
+      - name: Start the Claude Code install
+        id: claude
+        if: steps.documentation.outputs.skip != 'true'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $log = Join-Path $env:RUNNER_TEMP 'claude-install.log'
+          $process = Start-Process pwsh -PassThru -ArgumentList '-NoLogo', '-NoProfile', '-Command', "irm https://claude.ai/install.ps1 | iex *> '$log'"
+          "pid=$($process.Id)" >> $env:GITHUB_OUTPUT
+          Write-Host "Claude Code install started as process $($process.Id), logging to $log."
+
       # Packed as <Version>-ci.<run number>: a distinct version per run, so installing it never
       # collides with a version the tool cache already holds.
       - uses: ./.github/actions/build-test-pack
         id: build
+        if: steps.documentation.outputs.skip != 'true'
         with:
           version-suffix: ci.${{ github.run_number }}
 
       # The packed tool from any commit, installable with
       # tools\install-local.ps1 -FromArtifact <downloaded folder>.
       - uses: actions/upload-artifact@v7
+        if: steps.documentation.outputs.skip != 'true'
         with:
           name: Source191.Vantage-${{ steps.build.outputs.version }}
           path: ${{ steps.build.outputs.package }}
@@ -57,19 +94,31 @@ jobs:
       # The smoke check (CLAUDE.md, "Smoke check of the packed tool") runs the package a user would install, so a
       # missing DLL or a screen that no longer opens fails the pull request. Vantage needs the Claude Code CLI to
       # start; signed out, `claude agents --json` prints [] and the sessions view is simply empty. No workspace
-      # trust is seeded: the smoke check never starts a session.
-      - name: Install Claude Code
+      # trust is seeded: the smoke check never starts a session. If the background install is not there, it is run
+      # again in the foreground, so the job never depends on the background process having survived.
+      - name: Finish the Claude Code install
+        if: steps.documentation.outputs.skip != 'true'
         shell: pwsh
+        env:
+          INSTALL_PID: ${{ steps.claude.outputs.pid }}
         run: |
           $ErrorActionPreference = 'Stop'
-          irm https://claude.ai/install.ps1 | iex
+          Wait-Process -Id $env:INSTALL_PID -Timeout 300 -ErrorAction SilentlyContinue
+          $log = Join-Path $env:RUNNER_TEMP 'claude-install.log'
+          if (Test-Path $log) { Get-Content $log }
+          $claude = "$env:USERPROFILE\.local\bin\claude.exe"
+          if (-not (Test-Path $claude)) {
+              Write-Host '::warning::The background Claude Code install did not finish; installing in the foreground.'
+              irm https://claude.ai/install.ps1 | iex
+          }
           Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.local\bin"
-          & "$env:USERPROFILE\.local\bin\claude.exe" --version
+          & $claude --version
 
       # The runner has no config.json, so the default roots apply: repositories in ~\source\repos and worktrees in
       # ~\source\worktrees. The linked worktree is the one force remove is opened (and cancelled) on; it must have
       # no session in it, or the removal is refused with no dialog.
       - name: Seed a repository for the smoke check
+        if: steps.documentation.outputs.skip != 'true'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -82,6 +131,7 @@ jobs:
 
       # Into a tool path of its own, so the runner's global tools are untouched and the exe is the packed one.
       - name: Install the packed tool
+        if: steps.documentation.outputs.skip != 'true'
         shell: pwsh
         env:
           PACKAGE: ${{ steps.build.outputs.package }}
@@ -94,6 +144,7 @@ jobs:
       # `vantage --version` prints exactly the csproj Version, with no commit after it: what a release's package
       # shows on nuget.org. A check run packs as Version-ci.<run> with --no-build, so the assembly keeps Version.
       - name: Check the installed tool's version
+        if: steps.documentation.outputs.skip != 'true'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -104,6 +155,7 @@ jobs:
           }
 
       - name: Smoke check
+        if: steps.documentation.outputs.skip != 'true'
         shell: pwsh
         working-directory: tools\HeadlessTerminal
         run: dotnet run --project . -c Release -- smoke "$env:RUNNER_TEMP\vantage-tool\vantage.exe" Northwind.Smoke-smoke
@@ -128,43 +180,80 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 15
     continue-on-error: true
-    # The token is given only to the gate and the hand-off check, never to the job, so the downloaded
-    # installer and the build never see it.
+    # The token is given only to the hand-off check, never to the job, so the downloaded installer and the
+    # build never see it; the gate sees only whether it exists.
     env:
       DISABLE_AUTOUPDATER: 1
     steps:
-      - name: Gate on the token secret
+      # Depth 2 keeps both parents of a pull request's merge ref for the documentation gate, as in check.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      # One output for both reasons to skip: no token, or a pull request that changes only documentation.
+      - name: Gate on the token secret and the change
         id: gate
         shell: pwsh
         env:
-          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          HAS_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
         run: |
-          if ([string]::IsNullOrEmpty($env:CLAUDE_CODE_OAUTH_TOKEN)) {
+          $ErrorActionPreference = 'Stop'
+          if ($env:HAS_TOKEN -ne 'true') {
               Write-Host "::notice::handoff skipped: no CLAUDE_CODE_OAUTH_TOKEN secret"
+              "enabled=false" >> $env:GITHUB_OUTPUT
+          }
+          elseif ($env:GITHUB_EVENT_NAME -eq 'pull_request' -and (.github/scripts/Test-DocumentationOnly.ps1 -Base HEAD^1 -Head HEAD)) {
+              Write-Host "::notice::handoff skipped: documentation-only change"
               "enabled=false" >> $env:GITHUB_OUTPUT
           }
           else {
               "enabled=true" >> $env:GITHUB_OUTPUT
           }
 
-      - uses: actions/checkout@v7
+      # The runner image's SDK, chosen by global.json, as in the build-test-pack action.
+      - name: Show the .NET SDK
         if: steps.gate.outputs.enabled == 'true'
-        with:
-          persist-credentials: false
+        shell: pwsh
+        run: dotnet --version
 
-      - uses: actions/setup-dotnet@v6
-        if: steps.gate.outputs.enabled == 'true'
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Install Claude Code
+      # In the background while the tool builds, as in check; finished before the trust step, because the
+      # installer and that step may both write ~\.claude.json.
+      - name: Start the Claude Code install
+        id: claude
         if: steps.gate.outputs.enabled == 'true'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          irm https://claude.ai/install.ps1 | iex
+          $log = Join-Path $env:RUNNER_TEMP 'claude-install.log'
+          $process = Start-Process pwsh -PassThru -ArgumentList '-NoLogo', '-NoProfile', '-Command', "irm https://claude.ai/install.ps1 | iex *> '$log'"
+          "pid=$($process.Id)" >> $env:GITHUB_OUTPUT
+          Write-Host "Claude Code install started as process $($process.Id), logging to $log."
+
+      # Only the tool: the hand-off check runs bin\Release\net10.0\vantage.exe, and dotnet run builds
+      # tools\HeadlessTerminal itself. The test projects are built and run by check.
+      - name: Build the tool (Release)
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        run: dotnet build src\Source191.Vantage -c Release
+
+      - name: Finish the Claude Code install
+        if: steps.gate.outputs.enabled == 'true'
+        shell: pwsh
+        env:
+          INSTALL_PID: ${{ steps.claude.outputs.pid }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Wait-Process -Id $env:INSTALL_PID -Timeout 300 -ErrorAction SilentlyContinue
+          $log = Join-Path $env:RUNNER_TEMP 'claude-install.log'
+          if (Test-Path $log) { Get-Content $log }
+          $claude = "$env:USERPROFILE\.local\bin\claude.exe"
+          if (-not (Test-Path $claude)) {
+              Write-Host '::warning::The background Claude Code install did not finish; installing in the foreground.'
+              irm https://claude.ai/install.ps1 | iex
+          }
           Add-Content $env:GITHUB_PATH "$env:USERPROFILE\.local\bin"
-          & "$env:USERPROFILE\.local\bin\claude.exe" --version
+          & $claude --version
 
       # The runner has no desktop to accept the trust prompt on, so trust the checkout here. The
       # only places this record is ever written by a script; see CLAUDE.md.
@@ -181,11 +270,6 @@ jobs:
           $config['projects'][$key] = @{ hasTrustDialogAccepted = $true }
           $config | ConvertTo-Json -Depth 10 | Set-Content $path -NoNewline
           Write-Host "Trusted $key"
-
-      - name: Build Release
-        if: steps.gate.outputs.enabled == 'true'
-        shell: pwsh
-        run: dotnet build -c Release
 
       - name: Hand-off check
         if: steps.gate.outputs.enabled == 'true'
