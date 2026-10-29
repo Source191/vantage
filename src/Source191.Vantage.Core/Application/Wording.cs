@@ -20,7 +20,9 @@ public static partial class Wording
     public static string NameLooksLikeAnOption(string token) => $"{token} looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- {token}";
 
     /// <summary>Where to support Vantage, printed under its description in <c>vantage --help</c>.</summary>
-    public static string SupportLine => string.Empty;
+    public static string SupportLine => $"Buy me a sliver of a Claude Max plan: {SupportPage}";
+
+    private static readonly Uri SupportPage = new("https://buymeacoffee.com/simonvane");
 
     private const string SetupTerminalSyntax = "vantage setup-terminal [--sound <wav>] [--session-sound <wav>] [--yes] [--remove]";
 
