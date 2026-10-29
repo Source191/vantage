@@ -4,8 +4,8 @@ namespace Source191.Vantage.HeadlessTerminal;
 
 /// <summary>
 /// The smoke run's steps, built from Wording so a renamed title or a rebound key needs no change here: open and cancel
-/// the Keys help, Settings and the new-session wizard on the sessions view, then on the worktrees view its help and the
-/// force-remove confirmation for the named worktree, and quit. Dialogs are recognised by the tab title each one sets,
+/// the Keys help, Settings and the new-session wizard on the sessions view, then on the worktrees view its help, the
+/// force-remove confirmation and the fixed-folder wizard for the named worktree, and quit. Dialogs are recognised by the tab title each one sets,
 /// views by a column only that view has; a key is looked up by its hint, and a lost hint fails with its name.
 /// </summary>
 public static class SmokeScript
@@ -40,6 +40,9 @@ public static class SmokeScript
             new SmokeStep(CaptureMarker.Nothing, Sequence("enter"), Usual),
             new SmokeStep(CaptureMarker.Nothing, KeyFor(worktrees, "Force remove"), Usual),
             new SmokeStep(Opened(DialogName.ForceRemove), escape, Usual),
+            new SmokeStep(closed, KeyFor(worktrees, "Start session"), Usual),
+            // The fixed-folder wizard shares the new-session tab title, so its own dialog title tells it apart.
+            new SmokeStep(new CaptureMarker.ScreenText($"New session in {worktreeFolder}"), escape, Usual),
             new SmokeStep(closed, KeyFor(worktrees, "Sessions"), Usual),
             new SmokeStep(sessionsView, KeyFor(sessions, "Quit"), Usual),
         ];
