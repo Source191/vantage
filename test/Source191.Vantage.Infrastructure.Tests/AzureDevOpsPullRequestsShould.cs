@@ -12,13 +12,16 @@ public sealed class AzureDevOpsPullRequestsShould
     private const string Az = @"C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin\az.cmd";
     private const string WebUrl = "https://dev.azure.com/northwind/Northwind%20Trading/_git/Northwind.Orders";
 
-    /// <summary>Recorded from az repos pr list --output json, trimmed to the fields read, with the organisation made up.</summary>
-    private const string Recorded = $$"""
+    /// <summary>
+    /// In the shape az repos pr list --output json really prints, trimmed to the fields read, with the organisation made
+    /// up: the repository object carries no webUrl, which is why the link is built from the remote.
+    /// </summary>
+    private const string Recorded = """
         [
-          {"creationDate":"2026-10-20T09:12:00.1234567+00:00","isDraft":false,"pullRequestId":4521,"repository":{"name":"Northwind.Orders","webUrl":"{{WebUrl}}"},"sourceRefName":"refs/heads/fix-123","status":"active"},
-          {"creationDate":"2026-10-19T15:40:21+00:00","isDraft":true,"pullRequestId":4519,"repository":{"name":"Northwind.Orders","webUrl":"{{WebUrl}}"},"sourceRefName":"refs/heads/feature/refund-retry","status":"active"},
-          {"creationDate":"2026-10-12T08:01:44+00:00","isDraft":false,"pullRequestId":4460,"repository":{"name":"Northwind.Orders","webUrl":"{{WebUrl}}"},"sourceRefName":"refs/heads/tidy-logging","status":"completed"},
-          {"creationDate":"2026-10-02T11:30:00+00:00","isDraft":false,"pullRequestId":4401,"repository":{"name":"Northwind.Orders","webUrl":"{{WebUrl}}"},"sourceRefName":"refs/heads/spike-cache","status":"abandoned"}
+          {"creationDate":"2026-10-20T09:12:00.1234567+00:00","isDraft":false,"pullRequestId":4521,"repository":{"name":"Northwind.Orders","url":"https://dev.azure.com/northwind/0f1c/_apis/git/repositories/9a2b"},"sourceRefName":"refs/heads/fix-123","status":"active"},
+          {"creationDate":"2026-10-19T15:40:21+00:00","isDraft":true,"pullRequestId":4519,"repository":{"name":"Northwind.Orders","url":"https://dev.azure.com/northwind/0f1c/_apis/git/repositories/9a2b"},"sourceRefName":"refs/heads/feature/refund-retry","status":"active"},
+          {"creationDate":"2026-10-12T08:01:44+00:00","isDraft":false,"pullRequestId":4460,"repository":{"name":"Northwind.Orders","url":"https://dev.azure.com/northwind/0f1c/_apis/git/repositories/9a2b"},"sourceRefName":"refs/heads/tidy-logging","status":"completed"},
+          {"creationDate":"2026-10-02T11:30:00+00:00","isDraft":false,"pullRequestId":4401,"repository":{"name":"Northwind.Orders","url":"https://dev.azure.com/northwind/0f1c/_apis/git/repositories/9a2b"},"sourceRefName":"refs/heads/spike-cache","status":"abandoned"}
         ]
         """;
 
@@ -30,14 +33,14 @@ public sealed class AzureDevOpsPullRequestsShould
     private AzureDevOpsPullRequests Hosts => new(processes, Az);
 
     [Fact]
-    public async Task ListEveryBranchFromOneCall()
+    public async Task AskForTheBranchOnly()
     {
         PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None);
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe(Az),
             request => request.WorkingDirectory.ShouldBe(Checkout.Value),
-            request => request.Arguments.ShouldBe(["repos", "pr", "list", "--org", "https://dev.azure.com/northwind", "--project", "Northwind Trading", "--repository", "Northwind.Orders", "--status", "all", "--top", "100", "--output", "json"]));
+            request => request.Arguments.ShouldBe(["repos", "pr", "list", "--org", "https://dev.azure.com/northwind", "--project", "Northwind Trading", "--repository", "Northwind.Orders", "--source-branch", "fix-123", "--status", "all", "--top", "20", "--output", "json"]));
         listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.ShouldBe(
         [
             Row("fix-123", 4521, PullRequestState.Active, "2026-10-20T09:12:00.1234567+00:00"),
@@ -45,6 +48,15 @@ public sealed class AzureDevOpsPullRequestsShould
             Row("tidy-logging", 4460, PullRequestState.Completed, "2026-10-12T08:01:44+00:00"),
             Row("spike-cache", 4401, PullRequestState.Abandoned, "2026-10-02T11:30:00+00:00"),
         ]);
+    }
+
+    [Fact]
+    public async Task BuildTheLinkFromTheRemote()
+    {
+        PullRequestListing listing = await Hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None);
+
+        listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests[0].PullRequest.Url
+            .ShouldBe(new Uri("https://dev.azure.com/northwind/Northwind%20Trading/_git/Northwind.Orders/pullrequest/4521"));
     }
 
     [Fact]
