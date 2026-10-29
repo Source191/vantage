@@ -12,7 +12,8 @@
 
 ## 3. Tooltips (Tui)
 
-- [ ] 3.1 `TableScreen.ShowToolTips` registers a view factory for each key label and hint label that builds an amber-on-background `Label` with a one-cell margin showing the key's `Tip`; `ShowColumnToolTip` builds the same view from the column's meaning with its line breaks kept. Verify with `dotnet run --project tools\HeadlessTerminal -- drive` and a script that hovers the x key (SGR motion after 8000 ms) and the PR header: the capture (`grid`) shows the tip in amber on its own cells, two lines for PR, nothing running past column 120.
+- [x] 3.1 `TableScreen.ShowToolTips` registers a view factory for each key label and hint label that builds an amber-on-background `Label` with a one-cell margin showing the key's `Tip`; `ShowColumnToolTip` builds the same view from the column's meaning with its line breaks kept. Verify with `dotnet run --project tools\HeadlessTerminal -- drive` and a script that hovers the x key (SGR motion after 8000 ms) and the PR header: the capture (`grid`) shows the tip in amber on its own cells, two lines for PR, nothing running past column 120.
+  - Recorded 29 October 2026 at 120 x 40 (the headless size): hovering `<x>` shows "Stop the session; it stays listed as stopped and can be resumed later." as black on amber (`38;2;12;12;12` on `48;2;255;185;0`) with a space either side; hovering the PR header shows its two lines below the table, the longer 91 cells, within the screen.
 
 ## 4. Caps and the sideways scroll (Tui)
 

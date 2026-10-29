@@ -266,12 +266,12 @@ internal sealed class TableScreen<TState, TRow>(
             Window.SetNeedsDraw();
         }
 
-        /// <summary>Shows each key hint's help line as a tooltip while the mouse rests on its key or its words, and a column's meaning while it rests on the column's header.</summary>
+        /// <summary>Shows each key's tip as a tooltip while the mouse rests on its key or its words, and a column's meaning while it rests on the column's header.</summary>
         public void ShowToolTips(IApplication app)
         {
             foreach ((Label label, KeyHelp key) in keyLabels)
             {
-                app.ToolTips?.SetToolTip(label, key.Line);
+                app.ToolTips?.SetToolTip(label, () => ToolTipView(key.Tip));
             }
 
             table.MousePositionTracking = true;
@@ -309,7 +309,7 @@ internal sealed class TableScreen<TState, TRow>(
             if (header is int column && column < definition.Columns.Count)
             {
                 ColumnHelp help = definition.Columns[column];
-                app.ToolTips?.ShowFor(table, new ToolTipProvider($"{help.Name}: {help.Meaning.Replace("\n", " ", StringComparison.Ordinal)}"));
+                app.ToolTips?.ShowFor(table, new ToolTipProvider(() => ToolTipView($"{help.Name}: {help.Meaning}")));
             }
         }
 
@@ -330,6 +330,19 @@ internal sealed class TableScreen<TState, TRow>(
                     row++;
                 }
             }
+        }
+
+        /// <summary>
+        /// A tooltip drawn in the crumb's colours, so it reads as a tooltip and not as more header text: each line keeps
+        /// its breaks and a cell of margin either side, and the view is exactly as tall as its lines.
+        /// </summary>
+        private static Label ToolTipView(string text)
+        {
+            string[] lines = [.. text.Split('\n').Select(line => $" {line} ")];
+            Label label = new() { Width = lines.Max(line => line.Length), Height = lines.Length, Text = string.Join('\n', lines) };
+            label.SetScheme(Palette.Pair(Palette.Background, Palette.Amber));
+
+            return label;
         }
 
         private Scheme? RowColour(RowColorGetterArgs args)
