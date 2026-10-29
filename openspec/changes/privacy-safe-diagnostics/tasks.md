@@ -2,10 +2,10 @@
 
 ## 1. The values an event may hold (Application\Diagnostics)
 
-- [ ] 1.1 Red: `CodeNameShould.NameAnEffectType` asserts `CodeName.For(typeof(AttachToSession))` renders `AttachToSession` and a nested outcome type renders `StartSessionOutcome.Started`. Green: `CodeName` with only the `Type` and `MethodBase` factories. Verify the Core suite passes.
-- [ ] 1.2 Red: `ExceptionSummaryShould.KeepTypesAndFramesButNoMessage` throws an `InvalidOperationException` whose message and `Data` name `C:\Users\me\source\repos\Northwind.Orders`, wrapping a `GitException`, and asserts the summary names both types and the throwing method, and the rendered text contains neither the message nor `C:\Users\me`. Green: `ExceptionSummary.From`. Verify the fact passes.
-- [ ] 1.3 Red: `ExceptionSummaryShould.ShowTheSourceFileWithoutItsFolder` asserts a frame with a file path renders `GitCli.cs:145` and never the folder, and `ShouldCapFramesAndDepth` asserts at most 20 frames and three inner exceptions. Green: the frame rendering and caps. Verify the facts pass.
-- [ ] 1.4 Red: `ClaudeVersionShould.ReadTheLeadingNumber` asserts `2.1.310` parses to `Version(2, 1, 310)` and `unknown` does not. Green: `ClaudeVersion.TryParse`. Verify the fact passes.
+- [x] 1.1 Red: `CodeNameShould.NameAnEffectType` asserts `CodeName.For(typeof(AttachToSession))` renders `AttachToSession` and a nested outcome type renders `StartSessionOutcome.Started`. Green: `CodeName` with only the `Type` and `MethodBase` factories. Verify the Core suite passes.
+- [x] 1.2 Red: `ExceptionSummaryShould.KeepTypesAndFramesButNoMessage` throws an `InvalidOperationException` whose message and `Data` name `C:\Users\me\source\repos\Northwind.Orders`, wrapping a `GitException`, and asserts the summary names both types and the throwing method, and the rendered text contains neither the message nor `C:\Users\me`. Green: `ExceptionSummary.From`. Verify the fact passes.
+- [x] 1.3 Red: `ExceptionSummaryShould.ShowTheSourceFileWithoutItsFolder` asserts a frame with a file path renders `GitCli.cs:145` and never the folder, and `ShouldCapFramesAndDepth` asserts at most 20 frames and three inner exceptions. Green: the frame rendering and caps. Verify the facts pass.
+- [x] 1.4 Red: `ClaudeVersionShould.ReadTheLeadingNumber` asserts `2.1.310` parses to `Version(2, 1, 310)` and `unknown` does not. Green: `ClaudeVersion.TryParse`. Verify the fact passes.
 
 ## 2. Events, rendering and the log (Application\Diagnostics)
 
