@@ -162,13 +162,19 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         }
     }
 
-    /// <summary>A direct child of a root or the worktree root with a .git file that no repository under the roots lists.</summary>
+    /// <summary>
+    /// A direct child of a root or the worktree root with a .git file that no repository under the roots lists: broken
+    /// when its registration is gone, elsewhere when the registration and its repository both exist (that repository
+    /// is not under the roots, so it was never asked), an orphan otherwise.
+    /// </summary>
     private WorktreeRow BrokenWorktree(FolderPath folder)
     {
         string? gitDir = GitDirOf(IOPath.Combine(folder.Value, ".git"));
-        FolderPath owner = OwnerOf(gitDir) ?? folder.Parent ?? folder;
+        FolderPath? registeredWith = OwnerOf(gitDir);
+        FolderPath owner = registeredWith ?? folder.Parent ?? folder;
         bool ownerExists = folders.DirectoryExists(IOPath.Combine(owner.Value, ".git"));
-        WorktreeObservation observation = new(false, true, null, false, GitFileTargetExists: gitDir is not null && folders.DirectoryExists(gitDir), false);
+        bool targetExists = gitDir is not null && folders.DirectoryExists(gitDir);
+        WorktreeObservation observation = new(false, true, null, false, GitFileTargetExists: targetExists, false, OwnerRepository: registeredWith is not null && ownerExists ? registeredWith : null);
 
         return Leftover(owner, folder, observation, ownerExists);
     }

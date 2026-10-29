@@ -41,7 +41,8 @@ public sealed class TabScripts(string claudeExecutable, string vantageExecutable
 
     /// <summary>
     /// The update tab: waits for the Vantage that opened it to exit (a running vantage.exe locks its files), updates the
-    /// tool, then starts Vantage again only when the update succeeded; otherwise dotnet's output stays on screen with a hint.
+    /// tool from nuget.org alone (the feed the check consulted), then starts Vantage again only when the update
+    /// succeeded; otherwise dotnet's output stays on screen with a hint.
     /// </summary>
     public TabLaunch Update(int vantageProcessId, FolderPath startingDirectory) => new TabLaunch(
         "Update Vantage",
@@ -49,7 +50,7 @@ public sealed class TabScripts(string claudeExecutable, string vantageExecutable
         startingDirectory,
         string.Join('\n',
             $"Wait-Process -Id {PowerShellScript.Quote(vantageProcessId.ToString(System.Globalization.CultureInfo.InvariantCulture))} -ErrorAction SilentlyContinue",
-            PowerShellScript.Invoke("dotnet", ["tool", "update", "-g", UpdateCheck.PackageId]),
+            PowerShellScript.Invoke("dotnet", ["tool", "update", "-g", UpdateCheck.PackageId, "--source", UpdateCheck.Source]),
             $"if ($LASTEXITCODE -eq 0) {{ {PowerShellScript.Invoke(vantageExecutable, [])} }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}"));
 
     /// <summary>A plain PowerShell tab in a worktree.</summary>

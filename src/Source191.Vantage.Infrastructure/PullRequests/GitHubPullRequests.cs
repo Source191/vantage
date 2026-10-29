@@ -64,10 +64,14 @@ public sealed class GitHubPullRequests(IProcessRunner processes, string? gh)
         }
     }
 
+    /// <summary>A row whose link is not https is left out: the link is handed to the shell to open, so only a web page is accepted.</summary>
     private static BranchPullRequest? Row(JsonElement item)
     {
         PullRequestState? state = State(item.GetProperty("state").GetString(), item.GetProperty("isDraft").GetBoolean());
-        if (state is null || !BranchName.TryParse(item.GetProperty("headRefName").GetString(), out BranchName? branch) || !Uri.TryCreate(item.GetProperty("url").GetString(), UriKind.Absolute, out Uri? url))
+        if (state is null
+            || !BranchName.TryParse(item.GetProperty("headRefName").GetString(), out BranchName? branch)
+            || !Uri.TryCreate(item.GetProperty("url").GetString(), UriKind.Absolute, out Uri? url)
+            || url.Scheme != Uri.UriSchemeHttps)
         {
             return null;
         }
