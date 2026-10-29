@@ -6,7 +6,8 @@
 
 ## 2. Filter (green)
 
-- [ ] 2.1 Add the target to `src\Source191.Vantage\Source191.Vantage.csproj` that removes non-Windows `ResolvedFileToPublish` items by `RuntimeIdentifier` (design.md); verify that `dotnet build -c Release` then `dotnet pack src\Source191.Vantage -c Release --no-build` into a scratch folder gives one `.nupkg` holding only `runtimes/win-arm64`, `win-x64` and `win-x86`, that the 1.1 script passes on it, and record the new package size
+- [x] 2.1 Add the target to `src\Source191.Vantage\Source191.Vantage.csproj` that removes non-Windows `ResolvedFileToPublish` items by `RuntimeIdentifier` (design.md); verify that `dotnet build -c Release` then `dotnet pack src\Source191.Vantage -c Release --no-build` into a scratch folder gives one `.nupkg` holding only `runtimes/win-arm64`, `win-x64` and `win-x86`, that the 1.1 script passes on it, and record the new package size
+  - Recorded 29 October 2026: the package is 3,512,666 bytes, down from 5,526,470, with only `runtimes/win-arm64`, `win-x64` and `win-x86` inside; the guard passes on it.
 - [ ] 2.2 Install that package with `dotnet tool install --tool-path` into a scratch folder and verify the folder has `vantage.exe` (not a `.cmd`), `vantage.exe --version` prints the packed version, and `dotnet run --project tools\HeadlessTerminal -- smoke <that exe> <an idle linked worktree>` exits 0
 - [ ] 2.3 Add the "Package settings" bullet to `src\Source191.Vantage\README.md` (Onigwrap, the RIDs kept, the rejected RID-specific route in a sentence) and raise `Version` to `0.17.0-preview.4`; verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `.github\scripts\Assert-VersionBumped.ps1` against `main` all pass
 

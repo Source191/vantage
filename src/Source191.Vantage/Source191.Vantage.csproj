@@ -41,4 +41,10 @@
     <ProjectReference Include="..\Source191.Vantage.Tui\Source191.Vantage.Tui.csproj" />
   </ItemGroup>
 
+  <Target Name="RemoveNonWindowsNativeAssets" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.RuntimeIdentifier)' != '' And !$([System.String]::Copy('%(ResolvedFileToPublish.RuntimeIdentifier)').StartsWith('win'))" />
+    </ItemGroup>
+  </Target>
+
 </Project>
