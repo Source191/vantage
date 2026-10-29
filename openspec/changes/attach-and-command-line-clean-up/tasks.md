@@ -23,7 +23,7 @@
 ## 5. The 2.1.310 facts
 
 - [x] 5.1 Red: `CommandLineShould` asserts `vantage here --help` describes `--prompt` with "waits at its prompt" and never mentions an agent list. Green: the description in `CommandLine.Here`; the wizard's prompt caption in `WizardControls` reads "Opening prompt (wraps; blank leaves the session waiting at its prompt)". Verify the Core suite passes.
-- [ ] 5.2 Docs: README's "Opening prompt", "Attach in this tab", `vantage here` options and troubleshooting passages; CLAUDE.md's CLI facts (the `--bg -n` and attach sentences) with the heading's date and version moved to 2026-10-29 and 2.1.310. Verify `grep -rn "agent list" src README.md CLAUDE.md` finds nothing.
+- [x] 5.2 Docs: README's "Opening prompt", "Attach in this tab", `vantage here` options and troubleshooting passages; CLAUDE.md's CLI facts (the `--bg -n` and attach sentences) with the heading's date and version moved to 2026-10-29 and 2.1.310. Verify `grep -rn "agent list" src README.md CLAUDE.md` finds nothing.
 
 ## 6. vantage here -d x
 

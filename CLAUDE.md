@@ -25,13 +25,13 @@ A Terminal.Gui console for Claude Code sessions and git worktrees on Windows, pa
 - A project's `.csproj` carries no comments: what is worth recording about a project or one of its settings goes in the `README.md` in that project's folder, which the root README's "Developing Vantage" section links to. The root `Directory.Build.props` is the exception and keeps its comments beside its settings.
 - Commit only when asked.
 
-## Claude Code CLI facts (verified 2026-10-23, CLI 2.1.309)
+## Claude Code CLI facts (verified 2026-10-29, CLI 2.1.310)
 
 Re-verify these, and move the date and version above, whenever a change accepts new help snapshots or raises `ClaudeCodeSupport.Minimum` (the header's below-minimum warning, stated as "2.1.309 or later" in the README and `openspec\config.yaml`, which `DocumentedMinimumShould` keeps in step).
 
 - `claude --version` prints `2.1.310 (Claude Code)`; `IClaudeCli.VersionAsync` takes the leading dotted number (null on failure) once per run for the header.
 - `claude agents --json [--all]` is the scripting surface. Fields: pid, id, cwd, kind (interactive or background), startedAt, sessionId, name, status (busy, idle, waiting), state (working, blocked, done, failed, stopped), waitingFor. The job `id` is the first 8 characters of `sessionId`. A stopped session is a row without pid or status.
-- `claude --bg -n <name> [prompt]` starts a supervised session; with no prompt it idles on the agent list. `attach` accepts a name, `stop` and `rm` need the id. Attaching to a session with no messages lands on Claude's agent list (Esc leaves it, Space sends a prompt); Ctrl+Z only detaches from a conversation.
+- `claude --bg -n <name> [prompt]` starts a supervised session; with no prompt it waits at its own prompt. `attach` accepts a name, `stop` and `rm` need the id. Attaching to a session with no messages lands at that session's own prompt, and Ctrl+Z detaches from it as from any conversation.
 - A session's transcript `~\.claude\projects\<cwd-encoded>\<sessionId>.jsonl` is written on the first message. Resuming a session with no transcript fails with "source session not found", so adopt (`b`), rename (`r`), attach and resume all check `ITranscripts` first.
 - `claude --bg --resume <sessionId> -n <name>` continues a *non-background* transcript under the supervisor with the same id (how `b` adopts a terminal session after ending its process). For a *listed background* job the same command with flags starts a copy, as the docs say ("keeps its own saved options"); `claude rm <id>` first (the transcript stays on disc) and the resume then continues the same id under the new name, which is how `r` renames. Never run `claude --bg --resume --help`: it starts a session.
 - Interactive sessions register in `~\.claude\sessions\<pid>.json`; they cannot be attached, stopped or removed from outside. Windows Terminal closes a tab when its root shell exits with code 0 and keeps it after a kill, so `d` and `C` end claude and then end the tab's shell cleanly (`TerminalTab`, `IProcessRegistry.EndCleanly`).

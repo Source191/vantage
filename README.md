@@ -169,7 +169,7 @@ Press `n`. The left column lists your repositories (recent ones first, then ever
 - **Session name (required):** the label shown in the NAME column. It also names the worktree folder and branch when you choose a worktree.
 - **Where:** `New worktree`, the default, creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it in [Settings](#settings)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
 - **Worktree base:** the branch the new worktree starts from, `origin` default branch or the current HEAD.
-- **Opening prompt:** sent to the session as soon as it starts. It wraps as you type. Leave it blank and the session opens on Claude's agent list until you send it something.
+- **Opening prompt:** sent to the session as soon as it starts. It wraps as you type. Leave it blank and the session waits at its prompt until you send it something.
 
 A cyan line under the choices says exactly what will happen ("Worktree Northwind.Orders-fix-tests under C:\Users\you\source\worktrees, on branch fix-tests."). Then:
 
@@ -181,7 +181,7 @@ Enter never starts a session, so there is nothing to undo if you press it too so
 
 ## Attaching, tabs and getting back
 
-**Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. If the session has never had a message, Claude shows its agent list instead of a conversation: Space on the session sends it a prompt, Esc returns to Vantage. Vantage prints this reminder before every attach.
+**Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. A session that has never had a message opens at its own prompt, and Ctrl+Z returns from it in the same way. Vantage prints a one-line reminder before every attach and erases it when you come back, so the scrollback keeps no copies.
 
 **Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows `open`. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); close the tab (or detach in it) and the column clears within a few seconds.
 
@@ -250,7 +250,7 @@ vantage here --help   # the options
 vh fix-tests          # with the profile shortcut
 ```
 
-Options: `-p`/`--prompt` sends an opening prompt (without one the session opens on the agent list). Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder) or the command line could not be parsed, 2 when the name is refused. A name that starts with `-` is refused as a likely mistyped option (`vantage here --promt` names `--promt`, shows the help and exits 1); to use such a name, or one that starts with `@` (which otherwise reads a response file), put `--` before it: `vantage here -- -experiment`.
+Options: `-p`/`--prompt` sends an opening prompt (without one the session waits at its prompt). Ctrl+Z detaches and returns to the shell; the session keeps running and is listed in Vantage. Exit codes: 0 after a detach, 1 when the start failed (for example an untrusted folder) or the command line could not be parsed, 2 when the name is refused. A name that starts with `-` is refused as a likely mistyped option (`vantage here --promt` names `--promt`, shows the help and exits 1); to use such a name, or one that starts with `@` (which otherwise reads a response file), put `--` before it: `vantage here -- -experiment`.
 
 ## Notifications
 
@@ -362,7 +362,6 @@ A dotnet global tool never updates itself, so Vantage looks for you. Once a day 
 ## Troubleshooting
 
 - **Keys stop working after returning from a session.** Set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage; the log records every hand-off and Terminal.Gui's own diagnostics. The known cause (blocking the UI thread after a hand-off) is fixed and guarded by the check in `tools\HeadlessTerminal`.
-- **Attach shows a grey list, not a conversation.** The session has no messages yet; that is Claude's agent list. Space sends it a prompt, Esc returns to Vantage. Give sessions an opening prompt to skip this.
 - **"not trusted yet".** Claude Code refuses to start in a folder you have not trusted. Open a tab there, run `claude`, accept the prompt, then start again. Vantage never edits the trust records.
 - **No bell when a session needs you.** Run `vantage setup-terminal` and see [Windows Terminal setup](#windows-terminal-setup); it covers `preferredNotifChannel` in `~\.claude\settings.json` and the bell style and sound of the Windows Terminal profile. Claude only rings when it thinks you are away from the terminal.
 - **Tabs or sessions opened from Vantage have no colours.** Vantage was started from inside a Claude Code session, whose environment sets NO_COLOR; start Vantage from an ordinary tab.
@@ -407,7 +406,7 @@ Branch protection on `main` has "Require branches to be up to date before mergin
 
 - **The claude-cli issue:** when the latest CLI fails to install or a contract test fails, the workflow comments on the open issue labelled `claude-cli`, or opens one when none is open, with the CLI version, the run link and the failing tests' messages. It assigns a new issue to the GitHub login in the `CLAUDE_CLI_WATCHER` repository variable (Settings, Secrets and variables, Actions, Variables); an assignee is subscribed to the issue, so GitHub notifies them of every comment. Close the issue by hand once the fix is merged. The hand-off check marks the run but never raises the issue.
 - **Accepting a snapshot:** a difference leaves `<name>.received.txt` in the run's `contract-results` artefact (and in the test output folder locally). Copy it over the snapshot in a change that re-checks the CLI facts in CLAUDE.md, so a new flag is either used, deliberately ignored or recorded.
-- **Locally:** `$env:VANTAGE_CLAUDE_CONTRACT = 1; dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug -- --filter-trait "Category=ClaudeContract"` from a trusted repository. An ordinary `dotnet test` skips these tests, so it never adds a session to your agent list.
+- **Locally:** `$env:VANTAGE_CLAUDE_CONTRACT = 1; dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug -- --filter-trait "Category=ClaudeContract"` from a trusted repository. An ordinary `dotnet test` skips these tests, so it never adds a session to your `claude agents` listing.
 
 ### Manual checks for tab and attach changes
 
