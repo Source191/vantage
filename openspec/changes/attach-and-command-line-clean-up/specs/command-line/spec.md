@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: A name that looks like an option needs --
-`vantage here` SHALL refuse a name that starts with `-` unless `--` came before it: standard error SHALL name the token and say to put `--` before it to use it as a name, before any other parse error the command line has, the help for `vantage here` SHALL follow, nothing SHALL start, and the exit code SHALL be 1.
+`vantage here` SHALL refuse a name that starts with `-` unless `--` came before it: standard error SHALL name the token and say to put `--` before it to use it as a name, before any other parse error the command line has, the help for `vantage here` SHALL follow, nothing SHALL start, and the exit code SHALL be 1. `--` ends Vantage's own options only: the Claude Code CLI has no such marker, so an opening prompt that starts with `-` is refused by the session start (session-launch) rather than passed on.
 
 #### Scenario: A mistyped option on its own
 - **WHEN** the user runs vantage here --promt
@@ -19,4 +19,4 @@
 
 #### Scenario: A prompt that starts with a dash
 - **WHEN** the user runs vantage here fix-tests -p "-fix the tests" in a trusted repository
-- **THEN** a session named fix-tests starts with the opening prompt -fix the tests
+- **THEN** the command line parses, the start refuses the prompt with the sentence that an opening prompt cannot start with a dash, no session starts, and the exit code is 2

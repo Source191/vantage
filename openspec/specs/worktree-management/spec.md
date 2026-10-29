@@ -17,7 +17,7 @@ The worktrees view SHALL list every linked worktree of every git repository foun
 - **THEN** the view shows both rows
 
 ### Requirement: Leftover folders are detected
-The view SHALL also show folders that git no longer recognises: a folder under a repository's .claude\worktrees that the listing omits is an orphan; a folder directly under a root or under the worktree root whose .git file points at a worktree registration that no longer exists is broken; an empty folder named with a .worktrees suffix directly under a root is empty.
+The view SHALL also show folders that git no longer recognises: a folder under a repository's .claude\worktrees that the listing omits is an orphan; a folder directly under a root or under the worktree root whose .git file points at a worktree registration that no longer exists is broken; an empty folder named with a .worktrees suffix directly under a root is empty. A folder directly under a root or under the worktree root whose .git file points at a registration that still exists, in a repository that still has its .git folder but is not under the roots, is elsewhere, and its row SHALL name that repository.
 
 #### Scenario: Orphan folder
 - **WHEN** a folder exists under .claude\worktrees but is absent from git's listing
@@ -34,6 +34,10 @@ The view SHALL also show folders that git no longer recognises: a folder under a
 #### Scenario: Empty leftover
 - **WHEN** an empty folder named Northwind.Orders.worktrees sits directly under a root
 - **THEN** the view shows it with health empty
+
+#### Scenario: Worktree of a repository outside the roots
+- **WHEN** a folder under C:\Users\me\source\worktrees has a .git file naming the registration D:\other\Northwind.Ledger\.git\worktrees\fix, that registration exists, D:\other\Northwind.Ledger\.git exists, and D:\other is not a root
+- **THEN** the view shows it with health elsewhere, its repository as Northwind.Ledger, and the footer says its repository D:\other\Northwind.Ledger is not under the roots
 
 ### Requirement: Locked worktrees are marked
 A worktree that git reports as locked SHALL show health locked and SHALL show the lock reason when git provides one.
@@ -91,7 +95,7 @@ After removing a worktree, Vantage SHALL delete its branch automatically only wh
 - **THEN** Vantage asks whether to delete the branch and keeps it unless the user agrees
 
 ### Requirement: Leftover folders can be deleted as plain folders
-For rows with health orphan, broken or empty, the remove key SHALL delete the folder from disc without git, and for broken rows SHALL also prune the stale registration from the owning repository when that repository still exists. An orphan or broken folder that still contains files SHALL be refused unless forced, because git no longer tracks that work, and a leftover folder with a live session inside SHALL be refused even when forced.
+For rows with health orphan, broken or empty, the remove key SHALL delete the folder from disc without git, and for broken rows SHALL also prune the stale registration from the owning repository when that repository still exists. An orphan or broken folder that still contains files SHALL be refused unless forced, because git no longer tracks that work, and a leftover folder with a live session inside SHALL be refused even when forced. A row with health elsewhere is not a leftover and SHALL NOT be deleted this way.
 
 #### Scenario: Delete empty leftover
 - **WHEN** the user presses remove on an empty row
@@ -109,11 +113,15 @@ The prune key SHALL run git's worktree prune for the selected row's repository a
 - **THEN** the registration is removed and the footer reports one pruned
 
 ### Requirement: A session or shell can be started in a worktree
-From a worktree row the user SHALL be able to start a new session in that worktree through the launch wizard with the directory preselected, or open a plain PowerShell tab there.
+From a worktree row whose folder exists and whose health is ok, locked or elsewhere, the user SHALL be able to start a new session in that worktree through the launch wizard with the directory preselected, or open a plain PowerShell tab there.
 
 #### Scenario: Start session here
 - **WHEN** the user presses the start-session key on a worktree row
 - **THEN** the launch wizard opens with that worktree as the chosen directory and no new worktree option
+
+#### Scenario: Shell in an elsewhere worktree
+- **WHEN** the user presses the open-shell key on an elsewhere row
+- **THEN** a PowerShell tab opens in that folder
 
 ### Requirement: Scanning is visible
 The worktrees view SHALL show a spinner with the words "Scanning worktrees" in the middle of the table until the first scan arrives, and SHALL show a spinner beside the footer's working text while an action started from the view runs; neither spinner SHALL appear for the timed rescans.
@@ -195,3 +203,10 @@ When Vantage deletes a leftover folder from disc, it SHALL refuse a path that is
 #### Scenario: An ordinary leftover folder with a trailing separator
 - **WHEN** the user removes an orphan folder whose path is written C:\Users\me\source\worktrees\Northwind.Orders-fix\
 - **THEN** the folder is deleted as before
+
+### Requirement: A worktree of a repository outside the roots is never deleted as a leftover
+For a row with health elsewhere, the remove and force-remove keys SHALL refuse, even after a typed confirmation, with a reason saying the worktree's repository is not under the roots and to add that root in settings or remove the worktree with git there.
+
+#### Scenario: Remove an elsewhere row
+- **WHEN** the user presses remove or force-remove on an elsewhere row
+- **THEN** nothing is deleted and the footer says the repository is not under the roots, without offering force-remove
