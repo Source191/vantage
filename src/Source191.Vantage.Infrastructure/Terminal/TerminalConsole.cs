@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
@@ -14,9 +15,9 @@ public sealed class TerminalConsole(TextWriter console, string title) : ITermina
 
     public void ClearOwnTab() => ConsoleRecovery.WriteSequence(console, TabEscapes.ClearTitle + TabEscapes.ResetBackground);
 
-    public void ShowReturnHint() => throw new NotSupportedException();
+    public void ShowReturnHint() => ConsoleRecovery.WriteSequence(console, Wording.ReturnHint + console.NewLine);
 
-    public void RemoveReturnHint() => throw new NotSupportedException();
+    public void RemoveReturnHint() => ConsoleRecovery.WriteSequence(console, ConsoleRecovery.EraseLineAbove);
 
     public void RecoverAfterChild() => ConsoleRecovery.AfterChildProcess(console);
 }
