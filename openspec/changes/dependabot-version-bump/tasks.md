@@ -11,7 +11,8 @@
 
 ## 3. The workflow
 
-- [ ] 3.1 Add the "Raise the version for Dependabot" step to `check.yml` as design.md describes (actor condition, head-branch checkout without persisted credentials, the Assert against `origin/<base>`, the script, the commit, the push with the secret, the `pushed` output, the notice when the secret is empty), and skip the existing version check when `pushed` is true. Verify the workflow still parses: push the branch and confirm the pull request's own `check` run starts and the step is skipped for a human actor.
+- [x] 3.1 Add the "Raise the version for Dependabot" step to `check.yml` as design.md describes (actor condition, head-branch checkout without persisted credentials, the Assert against `origin/<base>`, the script, the commit, the push with the secret, the `pushed` output, the notice when the secret is empty), and skip the existing version check when `pushed` is true. Verify the workflow still parses: push the branch and confirm the pull request's own `check` run starts and the step is skipped for a human actor.
+  - Recorded 29 October 2026 on pull request #107 (run 40924363492): the workflow parsed, `check` passed, and for a human actor "Check out the Dependabot branch" and "Raise the version for Dependabot" were skipped while "Check the version was raised" ran.
 - [x] 3.2 README's "Version bumps" paragraph: Dependabot pull requests are bumped by the step, the secret's name and how to renew it, `Step-Version.ps1` as the hand tool; `dependabot.yml`'s comment no longer says a bump is needed by hand. Verify by reading both against design.md.
 - [ ] 3.3 On the next Dependabot pull request that touches `src\` (or one started from Insights, Dependency graph, Dependabot, "Check for updates"), verify the bot's bump commit appears on the branch, the new run's version check passes and the pull request is green; record the pull request number and run id here.
 
