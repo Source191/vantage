@@ -44,6 +44,25 @@ public static partial class Wording
 
     public static string ClipboardUnavailable => "The clipboard is not available here; Shift+drag selects text in Windows Terminal.";
 
+    public const string ProblemReportDialogTitle = "Report a problem";
+
+    public static string ProblemReportExplanation => "Holds no names, paths or code. Opening the page passes the title and this text to GitHub in its address; nothing is public until you submit it there, where you describe the problem.";
+
+    public static string ProblemReportTitleCaption => "Title (blank for a default)";
+
+    public static string ProblemReportPreviewCaption => "Diagnostics the page will be filled in with";
+
+    /// <summary>The problem report dialog's buttons, in order: open (the default), copy, cancel.</summary>
+    public static IReadOnlyList<string> ProblemReportButtons { get; } = ["Open in browser", "Copy text", "Cancel"];
+
+    /// <summary>The title of a report whose title box was left blank.</summary>
+    public static string DefaultReportTitle(ToolVersion version)
+    {
+        ArgumentNullException.ThrowIfNull(version);
+
+        return $"Problem report from Vantage {version.Text}";
+    }
+
     public static string Describe(Footer footer)
     {
         return footer switch
@@ -69,6 +88,13 @@ public static partial class Wording
             _ => DescribeWorktreesAndScreen(footer),
         };
     }
+
+    /// <summary>Why a typed problem report title is refused, under the dialog's title box.</summary>
+    public static string Describe(ReportTitleProblem problem) => problem switch
+    {
+        ReportTitleProblem.Missing => "Type a title.",
+        ReportTitleProblem.TooLong => $"A title can have at most {ReportTitle.MostCharacters} characters.",
+    };
 
     /// <summary>Why a typed session name is refused, in the rename footer, the wizard and vantage here alike.</summary>
     public static string Describe(NameProblem problem)
@@ -193,6 +219,9 @@ public static partial class Wording
             OpenPullRequest open => $"Opening {PullRequestNumber(open.PullRequest.Host, open.PullRequest.Number)}...",
             SaveSettings => "Saving settings...",
             StartUpdate update => $"Opening a tab to update to {update.Newest}...",
+            ShowProblemReport => "Gathering the diagnostics...",
+            OpenProblemReport => "Opening the problem report in your browser...",
+            CopyProblemReport => "Copying the problem report...",
             _ => "Working...",
         };
     }

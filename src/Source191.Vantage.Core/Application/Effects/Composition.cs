@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -17,7 +18,8 @@ public sealed record EffectPorts(
     IClipboard Clipboard,
     IDesktop Desktop,
     IEditorLocator Editors,
-    IFolders Folders);
+    IFolders Folders,
+    ICrashFile CrashFile);
 
 /// <summary>This Vantage's process, which the update tab waits for, and the folder that tab starts in.</summary>
 public sealed record VantageProcess(int ProcessId, FolderPath Home);
@@ -28,12 +30,12 @@ public sealed record VantageProcess(int ProcessId, FolderPath Home);
 /// </summary>
 public static class Composition
 {
-    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts, CurrentSettings settings, VantageProcess vantage)
+    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts, CurrentSettings settings, VantageProcess vantage, DiagnosticLog log)
     {
         OpenTabHandler tabs = new(ports.Tabs, ports.Processes, ports.Terminal, ports.Clock, scripts);
         SessionTabs sessionTabs = new(ports.Tabs, ports.Processes, ports.Clock);
 
-        return new EffectDispatcher()
+        return new EffectDispatcher(log, ports.Clock)
             .Register(tabs)
             .Register(new StopSessionHandler(ports.Claude, sessionTabs))
             .Register(new AdoptSessionHandler(ports.Claude, ports.Processes, ports.Transcripts))
@@ -45,6 +47,8 @@ public static class Composition
             .Register(new OpenShellHandler(ports.Terminal))
             .Register(new StartSessionHandler(launches, tabs, ports.Terminal, scripts))
             .Register(new CopyFolderPathHandler(ports.Clipboard))
+            .Register(new OpenProblemReportHandler(ports.Desktop, ports.CrashFile))
+            .Register(new CopyProblemReportHandler(ports.Clipboard))
             .Register(new OpenSolutionHandler(ports.Desktop))
             .Register(new OpenPullRequestHandler(ports.Desktop))
             .Register(new OpenInEditorHandler(ports.Editors, ports.Desktop, ports.Folders, settings))

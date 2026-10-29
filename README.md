@@ -35,6 +35,8 @@ I built Vantage because I wanted a tool that worked the way I work. Before start
 - [What Vantage trusts](#what-vantage-trusts)
 - [Settings](#settings)
 - [Updates](#updates)
+- [What Vantage records](#what-vantage-records)
+- [Reporting a problem](#reporting-a-problem)
 - [Troubleshooting](#troubleshooting)
 - [Developing Vantage](#developing-vantage)
 - [Continuous integration](#continuous-integration)
@@ -168,6 +170,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | p | Open the row's pull request in your default browser; with none, the footer says why (no origin remote, a host Vantage does not know, `gh` or `az` missing or signed out, no pull request for the branch, or the lookup still running) |
 | , | Settings: the repository roots, the worktree root, the editor, the default worktree base and the update check (see [Settings](#settings)) |
 | U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
+| ! | Report a problem: shows the diagnostics a GitHub issue would carry, then opens the issue form in your browser or copies the text (see [Reporting a problem](#reporting-a-problem)) |
 | w | Switch to the worktrees view |
 | / | Filter by name, repository or branch; Enter keeps the filter, Esc clears it |
 | ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
@@ -242,6 +245,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | c, e, v | Copy the folder path, open the folder in your editor, open its solution, as in the sessions view; refused for a leftover whose folder is gone |
 | , | Settings, as in the sessions view |
 | U | Update Vantage, as in the sessions view |
+| ! | Report a problem, as in the sessions view |
 
 Branches: when a removed worktree's branch was created by Vantage and is merged, the branch is deleted too; when Vantage created it but it is not merged, or you created it by hand, Vantage asks before deleting it.
 
@@ -338,6 +342,7 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 | `recent\` | One file per recently used repository, with when it was last used; the ten most recent are shown first in the wizard |
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
 | `tabs\` | One file per tab Vantage opened, so a second `o` switches to the tab instead of opening another |
+| `last-crash.log` | Written only when an exception ends Vantage: its diagnostic log, the child program counts and the crash; replaced by the next crash; see [What Vantage records](#what-vantage-records) |
 
 `vantage setup-terminal` also writes `%LOCALAPPDATA%\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json`, which belongs to Windows Terminal's fragment mechanism rather than to Vantage's own folder, and can set one line in `~\.claude\settings.json` (see [Windows Terminal setup](#windows-terminal-setup)).
 
@@ -349,7 +354,7 @@ Vantage trusts every repository under its roots: it runs git in each of them on 
 
 It runs the Claude Code it finds at `~\.local\bin\claude.exe` or as `claude.exe` on the PATH, `git`, `gh` and `az` for repositories and pull requests, and `wt.exe` and `pwsh.exe` for tabs. Each is found in the PATH folders once, as Vantage starts, and run by its full path, so a program planted in the folder you started Vantage from is never run (Windows would otherwise look there first for a bare name). A `.cmd` or `.bat` is never run with a session name, a prompt or a path: Claude Code must be an executable, a custom editor's executable must be a full path to one, and the Azure CLI, which is a batch file, is given plain text only (see [Pull requests](#pull-requests)). An opening prompt that starts with a dash is refused rather than passed to Claude Code as options.
 
-Its own state lives in `%LOCALAPPDATA%\Vantage`; it never edits Claude Code's trust records and stores no credential. Once a day it asks nuget.org for its newest version, which the setting or `VANTAGE_NO_UPDATE_CHECK` turns off, and the update tab installs from nuget.org alone. The diagnostic log that `VANTAGE_LOG` turns on records Terminal.Gui's internals, key events included, so a log you share may hold what you typed.
+Its own state lives in `%LOCALAPPDATA%\Vantage`; it never edits Claude Code's trust records and stores no credential. Once a day it asks nuget.org for its newest version, which the setting or `VANTAGE_NO_UPDATE_CHECK` turns off, and the update tab installs from nuget.org alone. The diagnostic log and a problem report hold only what [What Vantage records](#what-vantage-records) lists: never a path, a name, a prompt or anything typed.
 
 ## Settings
 
@@ -383,9 +388,30 @@ A dotnet global tool never updates itself, so Vantage looks for you. Once a day 
 
 **What the check sends:** one anonymous HTTPS request to `https://api.nuget.org/v3-flatcontainer/source191.vantage/index.json`, the public list of the package's versions, with a `Vantage/<version>` user agent and nothing else that identifies you or your machine. Turn it off with **Check for updates daily** in [Settings](#settings) or `"checkForUpdates": false` in `config.json`. Setting the environment variable `VANTAGE_NO_UPDATE_CHECK` to any non-empty value (for a script or test harness) turns it off without touching `config.json`: no request is made and no `update-check.json` is written. The hand-off check in `tools\HeadlessTerminal` sets it.
 
+## What Vantage records
+
+Vantage keeps a diagnostic log in memory while it runs (the latest 500 events) so a problem can be diagnosed; it never leaves your machine by itself. It holds only facts Vantage defines in its own code:
+
+- **Start:** the Vantage, Claude Code, Windows and .NET versions and the terminal's size.
+- **What you did, as kinds:** the view and each dialog opened, each key's effect with the kind of its outcome and how long it took, each hand-off to `claude attach` or the agent view and the return.
+- **Failures:** where they happened and an exception summary: the exception's type and Vantage's stack frames (method, source file name and line), never the exception's message.
+- **Child programs:** counts by program (git, claude, gh, az, pwsh, wt, vswhere, dotnet or another program), subcommand from a fixed list of words and exit code, with the longest run; a line for one that takes longer than 5 seconds or cannot be started.
+- **Terminal.Gui:** its warnings and errors by level, without its message text, which can quote input it could not read.
+
+It never holds a path, a repository, branch, worktree or session name, a job or session id, a prompt, pull-request detail, a file name, anything a program printed, your user or machine name, or anything you typed; `DiagnosticEventsShould` and `DiagnosticsPrivacyShould` fail the build's tests if it could. `VANTAGE_LOG` writes the same lines to a file, and a crash writes them to `last-crash.log` (see [Where Vantage keeps things](#where-vantage-keeps-things)).
+
+## Reporting a problem
+
+Press `!` in either view. A dialog shows a title box and, read-only, exactly the diagnostics the report will carry: the Vantage, Claude Code, Windows and .NET versions, the terminal's size, the editor preset, whether update checks are on and how many repository roots you have, the recent events of [What Vantage records](#what-vantage-records), the child program counts and, after a crash, the crash. It holds no names, paths or code.
+
+**Open in browser** (or Enter) opens the repository's "Problem report" issue form with the title and the diagnostics filled in; you describe the problem there, where Markdown and screenshots work, change or delete anything, and submit it from your own GitHub account. Vantage sends nothing itself and holds no token. Opening the page does pass the title and the diagnostics to GitHub in the page's address, so read the preview first; nothing is public until you submit. A blank title becomes `Problem report from Vantage <version>`. The page's address is kept under 7,500 characters, so a long log leaves out its oldest ordinary lines first and says how many; the versions, failures and the crash are kept. A report that opens takes `last-crash.log` with it and removes it, so the next report does not repeat an old crash.
+
+**Copy text** puts the title and the whole diagnostics on the clipboard instead, for someone without a GitHub account or when the browser cannot be opened. Esc cancels.
+
 ## Troubleshooting
 
-- **Keys stop working after returning from a session.** Set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage; the log records every hand-off and Terminal.Gui's own diagnostics, key events included, so read it before sharing it. The known cause (blocking the UI thread after a hand-off) is fixed and guarded by the check in `tools\HeadlessTerminal`.
+- **Something else went wrong.** Press `!` to [report it](#reporting-a-problem) with Vantage's diagnostics filled in.
+- **Keys stop working after returning from a session.** Set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage; the file gets Vantage's diagnostic log as it happens (every hand-off and its return, the views and dialogs, failures, Terminal.Gui's warnings and errors) and the child program counts when Vantage quits; see [What Vantage records](#what-vantage-records). The known cause (blocking the UI thread after a hand-off) is fixed and guarded by the check in `tools\HeadlessTerminal`.
 - **"not trusted yet".** Claude Code refuses to start in a folder you have not trusted. Open a tab there, run `claude`, accept the prompt, then start again. Vantage never edits the trust records.
 - **No bell when a session needs you.** Run `vantage setup-terminal` and see [Windows Terminal setup](#windows-terminal-setup); it covers `preferredNotifChannel` in `~\.claude\settings.json` and the bell style and sound of the Windows Terminal profile. Claude only rings when it thinks you are away from the terminal.
 - **Tabs or sessions opened from Vantage have no colours.** Vantage was started from inside a Claude Code session, whose environment sets NO_COLOR; start Vantage from an ordinary tab.

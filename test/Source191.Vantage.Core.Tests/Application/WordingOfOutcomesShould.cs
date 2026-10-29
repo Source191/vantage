@@ -422,6 +422,15 @@ public sealed class WordingOfOutcomesShould
             .ShouldBe("Could not start: something broke");
     }
 
+    [Fact]
+    public void SayWhatBecameOfAProblemReport()
+    {
+        Wording.Describe(new ProblemReportOutcome.Opened()).ShouldBe("Opened a problem report in your browser; describe the problem there and submit it.");
+        Wording.Describe(new ProblemReportOutcome.Copied()).ShouldBe("Copied the problem report to the clipboard.");
+        Wording.Describe(new ProblemReportOutcome.NotOpened("No application is associated with the address."))
+            .ShouldBe("Could not open the browser: No application is associated with the address. Press ! and choose Copy text instead.");
+    }
+
     private static object Placeholder(Type type)
     {
         return type switch

@@ -239,6 +239,12 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
+    public void ReportAProblemOnBang()
+    {
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('!'))).Effects.ShouldBe([new ShowProblemReport()]);
+    }
+
+    [Fact]
     public void KnowWhetherTheFirstScanHasArrived()
     {
         WorktreesViewState.Empty.Loaded.ShouldBeFalse();
