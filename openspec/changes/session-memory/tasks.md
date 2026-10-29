@@ -10,8 +10,8 @@
 
 ## 2. Application: the figure on the row, the breakdown, the words
 
-- [ ] 2.1 `WordingShould`: `Wording.Memory` gives `0 MB`, `29 MB`, `903 MB`, `1.2 GB`, `12.3 GB`, with a megabyte 1,048,576 bytes as Task Manager counts it; then the method in `WordingOfScreens`. Verify with the Core tests.
-- [ ] 2.2 `SessionRowEnricherShould`: a running session's row carries the tree's total as `Memory`; a stopped session's row carries null; a session whose root has gone from the snapshot carries null; one snapshot is taken per refresh (the fake counts). Then `SessionRow.Memory` and the enricher's measurement. Verify with the Core tests.
+- [x] 2.1 `WordingShould`: `Wording.Memory` gives `0 MB`, `29 MB`, `903 MB`, `1.2 GB`, `12.3 GB`, with a megabyte 1,048,576 bytes as Task Manager counts it; then the method in `WordingOfScreens`. Verify with the Core tests.
+- [x] 2.2 `SessionRowEnricherShould`: a running session's row carries the tree's total as `Memory`; a stopped session's row carries null; a session whose root has gone from the snapshot carries null; one snapshot is taken per refresh (the fake counts). Then `SessionRow.Memory` and the enricher's measurement. Verify with the Core tests.
 - [ ] 2.3 `MemoryBreakdownShould`: Claude Code first, children largest first with their labels, total and count, from a tree built with the fake; then `Application\MemoryBreakdown.cs` (`Of(sessionName, tree)`) over `ProgramLabel`. Verify with the Core tests.
 - [ ] 2.4 `WordingShould`: `Wording.MemoryBreakdownLines` renders the spec's fix-123 example as its lines and `Wording.MemoryDialogTitle` gives `Memory: fix-123`; then the methods. Verify with the Core tests.
 - [ ] 2.5 `SessionsViewShould`: `m` on a running session raises `ShowMemory(session, processId)`; `m` on a stopped session sets `Footer.NothingToMeasure` and raises nothing; `m` with no selection does nothing. Then the effect record (`IDialogEffect`), the footer case, the reducer arm, and its words in `Wording` with a `WordingShould` fact (the reflection fact fails until the words exist). Verify with the Core tests.
