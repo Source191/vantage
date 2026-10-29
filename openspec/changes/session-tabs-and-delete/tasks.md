@@ -46,7 +46,7 @@
 ## 9. Version and checks
 
 - [x] 9.1 Raise `Version` one preview step above `main`'s (a minor raise). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
-- [ ] 9.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0.
+- [x] 9.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`. Verify exit 0.
 - [ ] 9.3 The product owner installs the build with `tools\install-local.ps1` and runs through: `o`, close the tab by hand, `o` again (a new tab, not "switched"); Enter in that tab's session then Ctrl+Z (the tab closes, TAB clears, Enter attaches in the console); `r` on a session with an open tab (one tab under the new name, same colour); `x` on one with a tab (tab closes); `d` on a session started with F6 (tab closes, worktree removed); `b` on a plain claude tab with messages (old tab closes); `d` on a session whose worktree has lost its `.git` (folder deleted, prune reported); `o` on a worktrees row, then `d` on that worktree (in use), close the shell tab, `d` again (gone). Verify each and record here; the README's manual checks for tabs and attach run in the same session.
 
 ## Workflow follow-up
