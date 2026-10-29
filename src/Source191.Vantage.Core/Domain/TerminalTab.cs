@@ -1,14 +1,19 @@
 namespace Source191.Vantage.Domain;
 
 /// <summary>
-/// Finds the shell that owns a Windows Terminal tab: walking up from a process, it is the one whose parent is the
-/// WindowsTerminal process. Ending that shell cleanly closes the tab. Null when the process is not inside a tab.
+/// Walks up from a process to the Windows Terminal that holds it: the shell is the process whose parent is the
+/// WindowsTerminal process (any case), within eight steps. Ending that shell cleanly closes the tab. Null when the
+/// process is not inside a tab.
 /// </summary>
 public static class TerminalTab
 {
     private const int MaxDepth = 8;
 
-    public static int? ShellOf(int processId, IProcessRegistry processes)
+    public static int? ShellOf(int processId, IProcessRegistry processes) => Walk(processId, processes)?.Shell;
+
+    public static int? TerminalOf(int processId, IProcessRegistry processes) => Walk(processId, processes)?.Terminal;
+
+    private static (int Shell, int Terminal)? Walk(int processId, IProcessRegistry processes)
     {
         int current = processId;
         for (int depth = 0; depth < MaxDepth; depth++)
@@ -21,7 +26,7 @@ public static class TerminalTab
 
             if (string.Equals(parent.Name, "WindowsTerminal", StringComparison.OrdinalIgnoreCase))
             {
-                return current;
+                return (current, parent.ProcessId);
             }
 
             current = parent.ProcessId;

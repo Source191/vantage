@@ -10,7 +10,7 @@
 
 ## 2. The parent-chain walker (Domain)
 
-- [ ] 2.1 Red: `TerminalTabShould` and `TabRegistrationShould` assert both `ShellOf` and `OwningTerminal` find `WindowsTerminal` whatever its case and within eight steps, through one shared function. Green: the shared walker. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
+- [x] 2.1 Red: `TerminalTabShould` and `TabRegistrationShould` assert both `ShellOf` and `OwningTerminal` find `WindowsTerminal` whatever its case and within eight steps, through one shared function. Green: the shared walker. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
 
 ## 3. SessionTabs (Application)
 
