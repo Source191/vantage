@@ -48,7 +48,6 @@ public sealed class EditorChoiceShould
     [InlineData(EditorPreset.VsCode)]
     [InlineData(EditorPreset.Cursor)]
     [InlineData(EditorPreset.Rider)]
-    [InlineData(EditorPreset.VisualStudio)]
     [InlineData(EditorPreset.Explorer)]
     public void KeepAPresetWithoutAnyCommand(EditorPreset preset)
     {

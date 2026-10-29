@@ -25,16 +25,17 @@ public sealed record EditorFolders(IReadOnlyList<string> PathFolders, string Loc
 /// two folders up, beside the shim's bin folder) or its usual install folders, but the shim itself is never answered,
 /// because Windows would run it through cmd.exe.
 /// </summary>
-public sealed class EditorLocator(IFolders folders, IProcessRunner processes, EditorFolders where) : IEditorLocator
+public sealed class EditorLocator(IFolders folders, EditorFolders where) : IEditorLocator
 {
-    public async Task<string?> LocateAsync(EditorPreset preset, CancellationToken cancellationToken)
+    public Task<string?> LocateAsync(EditorPreset preset, CancellationToken cancellationToken) => Task.FromResult(Locate(preset));
+
+    private string? Locate(EditorPreset preset)
     {
         return preset switch
         {
             EditorPreset.VsCode => FirstExisting([.. CodeBesideTheShim(), Path.Combine(where.LocalAppData, "Programs", "Microsoft VS Code", "Code.exe"), Path.Combine(where.ProgramFiles, "Microsoft VS Code", "Code.exe")]),
             EditorPreset.Cursor => FirstExisting([Path.Combine(where.LocalAppData, "Programs", "cursor", "Cursor.exe")]),
             EditorPreset.Rider => NewestRider(),
-            EditorPreset.VisualStudio => await VisualStudioAsync(cancellationToken),
             EditorPreset.Explorer => Path.Combine(where.Windows, "explorer.exe"),
             EditorPreset.Custom => null,
         };
@@ -66,17 +67,4 @@ public sealed class EditorLocator(IFolders folders, IProcessRunner processes, Ed
     }
 
     private IEnumerable<string> Children(string folder) => folders.DirectoryExists(folder) ? folders.Directories(folder) : [];
-    private async Task<string?> VisualStudioAsync(CancellationToken cancellationToken)
-    {
-        string vswhere = Path.Combine(where.ProgramFilesX86, "Microsoft Visual Studio", "Installer", "vswhere.exe");
-        if (!folders.FileExists(vswhere))
-        {
-            return null;
-        }
-
-        ProcessResult result = await processes.RunAsync(new ProcessRequest(vswhere, ["-latest", "-property", "productPath"], WorkingDirectory: null), cancellationToken);
-        string? productPath = result.StandardOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
-
-        return result.ExitCode == 0 && productPath is not null && folders.FileExists(productPath) ? productPath : null;
-    }
 }

@@ -6,7 +6,6 @@ public enum EditorPreset
     VsCode,
     Cursor,
     Rider,
-    VisualStudio,
     Explorer,
     Custom,
 }

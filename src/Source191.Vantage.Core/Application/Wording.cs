@@ -140,7 +140,6 @@ public static partial class Wording
             EditorPreset.VsCode => "VS Code",
             EditorPreset.Cursor => "Cursor",
             EditorPreset.Rider => "Rider",
-            EditorPreset.VisualStudio => "Visual Studio",
             EditorPreset.Explorer => "Explorer",
             EditorPreset.Custom => "Custom",
         };
