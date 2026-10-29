@@ -374,6 +374,15 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void FitEveryColumnMeaningOnItsLines()
+    {
+        foreach (ColumnHelp column in Wording.SessionsColumns.Concat(Wording.WorktreesColumns))
+        {
+            column.Meaning.Split('\n').ShouldAllBe(line => line.Length <= 100, $"{column.Name} has a line over 100 characters");
+        }
+    }
+
+    [Fact]
     public void ReturnHintIsOneShortLine()
     {
         Wording.ReturnHint.ShouldBe("Ctrl+Z returns to Vantage.");
