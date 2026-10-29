@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
@@ -16,12 +17,12 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 internal static class TypedConfirmationDialog
 {
-    public static string? Show(IApplication app, DialogName name, string title, string message, string expected, string expectedKind)
+    public static string? Show(IApplication app, DiagnosticLog log, DialogName name, string title, string message, string expected, string expectedKind)
     {
         string? confirmed = null;
         using Dialog dialog = new() { Title = title, Width = 76, Height = 15 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
-        DialogTabTitle.Apply(app, dialog, name);
+        DialogTabTitle.Apply(app, log, dialog, name);
 
         Label text = new() { X = 1, Y = 1, Width = Dim.Fill(1), Height = 2, Text = message };
         text.SetScheme(Palette.Plain(Palette.Amber));

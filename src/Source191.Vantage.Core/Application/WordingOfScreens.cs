@@ -13,6 +13,7 @@ public static partial class Wording
     private const string SettingsLine = "edit roots, worktree root and editor";
 
     private const string UpdateLine = "update Vantage in a new tab";
+    private const string ReportLine = "report a problem on GitHub";
 
     /// <summary>The title of Vantage's own tab outside a dialog; every writer of it uses this one value. The version is in the header.</summary>
     public static string TabTitle => "Vantage";
@@ -34,6 +35,7 @@ public static partial class Wording
         DialogName.OpenSolution => "Open solution",
         DialogName.Update => "Update",
         DialogName.Memory => "Memory",
+        DialogName.ProblemReport => ProblemReportDialogTitle,
     };
 
     /// <summary>An amount of memory as the table and the breakdown write it: whole megabytes below 1,000 MB, gigabytes to one decimal from there.</summary>
@@ -125,6 +127,7 @@ public static partial class Wording
         new("p", "Open PR", "open its pull request in the browser", Column: 2, Tip: "Open the row's pull request in your browser."),
         new("m", Hint: null, "what its memory is made of", Column: 1, Tip: "Show what the session's memory is made of: Claude Code and each program it runs."),
         new("U", Hint: null, UpdateLine, Column: 1, Tip: "Update Vantage to the newest release, in a tab of its own."),
+        new("!", "Report", ReportLine, Column: 2, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
     ];
 
     public static IReadOnlyList<KeyHelp> WorktreesKeys { get; } =
@@ -146,6 +149,7 @@ public static partial class Wording
         new("v", "Solution", "open its solution", Column: 2, Tip: "Open the row's Visual Studio solution, asking when there are several."),
         new("p", "Open PR", "open its pull request in the browser", Column: 2, Tip: "Open the row's pull request in your browser."),
         new("U", Hint: null, UpdateLine, Column: 1, Tip: "Update Vantage to the newest release, in a tab of its own."),
+        new("!", "Report", ReportLine, Column: 2, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
     ];
 
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =

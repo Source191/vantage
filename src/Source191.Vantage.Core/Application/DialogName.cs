@@ -15,4 +15,5 @@ public enum DialogName
     OpenSolution,
     Update,
     Memory,
+    ProblemReport,
 }

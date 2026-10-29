@@ -25,6 +25,7 @@ public sealed class WordingOfScreensShould
     [InlineData(DialogName.OpenSolution, "Vantage (Open solution)")]
     [InlineData(DialogName.Update, "Vantage (Update)")]
     [InlineData(DialogName.Memory, "Vantage (Memory)")]
+    [InlineData(DialogName.ProblemReport, "Vantage (Report a problem)")]
     public void NameEachDialogInTheTabTitle(DialogName dialog, string title)
     {
         Wording.TabTitleDuring(dialog).ShouldBe(title);
@@ -33,7 +34,7 @@ public sealed class WordingOfScreensShould
     [Fact]
     public void HaveATabTitleForEveryDialog()
     {
-        Enum.GetValues<DialogName>().Length.ShouldBe(12, "a new dialog needs its own NameEachDialogInTheTabTitle case");
+        Enum.GetValues<DialogName>().Length.ShouldBe(13, "a new dialog needs its own NameEachDialogInTheTabTitle case");
     }
 
     [Theory]

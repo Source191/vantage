@@ -26,7 +26,7 @@ Vantage SHALL ask nuget.org for the published versions of its package at most on
 
 #### Scenario: The check fails unexpectedly
 - **WHEN** anything inside the check fails, such as the record that cannot be written
-- **THEN** the console keeps running and shows no update notice, the failure is written only to the diagnostic log (when `VANTAGE_LOG` turns it on), and the next start tries again
+- **THEN** the console keeps running and shows no update notice, the failure is recorded only in the diagnostic log (as an exception summary, also written to the `VANTAGE_LOG` file when that is set), and the next start tries again
 
 ### Requirement: Development builds never check
 A Vantage whose own version is a prerelease (a local or CI build) SHALL NOT check for updates and SHALL NOT offer one.

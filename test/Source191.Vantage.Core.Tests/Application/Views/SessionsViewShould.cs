@@ -313,6 +313,7 @@ public sealed class SessionsViewShould
     [InlineData('?', typeof(ShowHelp))]
     [InlineData(',', typeof(OpenSettings))]
     [InlineData('U', typeof(UpdateVantage))]
+    [InlineData('!', typeof(ShowProblemReport))]
     public void EmitTheEffectForTheKey(char key, Type effect)
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of(key)));

@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using System.Text;
 using Terminal.Gui.App;
 using Terminal.Gui.ViewBase;
@@ -16,13 +17,13 @@ internal static class MemoryDialog
 {
     private static readonly Rune NoHotKey = new('￿');
 
-    public static void Show(IApplication app, string title, string text)
+    public static void Show(IApplication app, DiagnosticLog log, string title, string text)
     {
         string[] lines = text.Split('\n');
         int width = Math.Clamp(Math.Max(lines.Max(line => line.Length), title.Length) + 6, 40, 110);
         using Dialog dialog = new() { Title = title, Width = width, Height = lines.Length + 8 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
-        DialogTabTitle.Apply(app, dialog, DialogName.Memory);
+        DialogTabTitle.Apply(app, log, dialog, DialogName.Memory);
 
         for (int index = 0; index < lines.Length; index++)
         {

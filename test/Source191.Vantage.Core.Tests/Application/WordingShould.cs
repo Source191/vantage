@@ -1,7 +1,9 @@
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.Reporting;
 using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -930,5 +932,38 @@ public sealed class WordingShould
     public void ReportAFailedSetupWrite()
     {
         Wording.TerminalSetupFailed(@"C:\f\vantage.json", "access denied").ShouldBe(@"Could not write C:\f\vantage.json: access denied");
+    }
+
+    [Fact]
+    public void SayWhereAProblemReportGoesBeforeItGoes()
+    {
+        Wording.ProblemReportDialogTitle.ShouldBe("Report a problem");
+        Wording.ProblemReportExplanation.ShouldBe("Holds no names, paths or code. Opening the page passes the title and this text to GitHub in its address; nothing is public until you submit it there, where you describe the problem.");
+        Wording.ProblemReportTitleCaption.ShouldBe("Title (blank for a default)");
+        Wording.ProblemReportPreviewCaption.ShouldBe("Diagnostics the page will be filled in with");
+        Wording.ProblemReportButtons.ShouldBe(["Open in browser", "Copy text", "Cancel"]);
+    }
+
+    [Fact]
+    public async Task SayWhatTheProblemReportIsDoing()
+    {
+        ProblemReport report = await new ProblemReports(new DiagnosticLog(TimeProvider.System, []), new ProcessCounts(), new FakeCrashFile(), new Started(new ToolVersion("0.18.0"), null, new Version(10, 0), new Version(10, 0), 120, 36), TestSettings.Current(@"C:\Users\me\source\repos")).BuildAsync();
+
+        Wording.Working(new ShowProblemReport()).ShouldBe("Gathering the diagnostics...");
+        Wording.Working(new OpenProblemReport(ReportTitle.From("x"), report)).ShouldBe("Opening the problem report in your browser...");
+        Wording.Working(new CopyProblemReport(ReportTitle.From("x"), report)).ShouldBe("Copying the problem report...");
+    }
+
+    [Fact]
+    public void GiveABlankReportTitleTheVersion()
+    {
+        Wording.DefaultReportTitle(new ToolVersion("0.18.0")).ShouldBe("Problem report from Vantage 0.18.0");
+    }
+
+    [Fact]
+    public void SayWhyAReportTitleIsRefused()
+    {
+        Wording.Describe(ReportTitleProblem.TooLong).ShouldBe("A title can have at most 200 characters.");
+        Wording.Describe(ReportTitleProblem.Missing).ShouldBe("Type a title.");
     }
 }

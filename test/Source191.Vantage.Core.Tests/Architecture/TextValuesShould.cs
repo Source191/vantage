@@ -24,7 +24,7 @@ public sealed class TextValuesShould
     [Fact]
     public void FindEveryTextValue()
     {
-        TextValueTypes.Select(type => type.Name).ShouldBe(["BranchName", "FolderPath", "JobId", "SessionId", "SessionName", "WorktreeSlug"], ignoreOrder: true);
+        TextValueTypes.Select(type => type.Name).ShouldBe(["BranchName", "FolderPath", "JobId", "ReportTitle", "SessionId", "SessionName", "WorktreeSlug"], ignoreOrder: true);
     }
 
     [Theory]
