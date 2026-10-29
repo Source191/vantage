@@ -237,7 +237,7 @@ public sealed class WordingShould
     [InlineData(PullRequestGap.Looking, null, "Still looking up fix-123's pull request; try again in a moment.")]
     [InlineData(PullRequestGap.Failed, PullRequestHost.GitHub, "The GitHub CLI (gh) could not list fix-123's pull requests.")]
     [InlineData(PullRequestGap.Failed, null, "Could not look up fix-123's pull requests.")]
-    [InlineData(PullRequestGap.NoPullRequest, PullRequestHost.AzureDevOps, "No pull request found for fix-123's branch among the latest 100.")]
+    [InlineData(PullRequestGap.NoPullRequest, PullRequestHost.AzureDevOps, "No pull request found for fix-123's branch.")]
     public void SayWhyThereIsNoPullRequest(PullRequestGap gap, PullRequestHost? host, string expected)
     {
         Wording.Describe(new Footer.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);

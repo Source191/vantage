@@ -7,16 +7,16 @@ using System.Text.Json;
 namespace Source191.Vantage.Adapters.PullRequests;
 
 /// <summary>
-/// Lists a GitHub repository's pull requests with gh pr list. The only place gh's words are read: exit code 4 (and its
+/// Lists one branch's pull requests in a GitHub repository with gh pr list. The only place gh's words are read: exit code 4 (and its
 /// gh auth login hint) is not signed in, a gh that cannot start is missing, anything else failed.
 /// </summary>
 public sealed class GitHubPullRequests(IProcessRunner processes)
 {
     private const int NotSignedInExitCode = 4;
 
-    public async Task<PullRequestListing> ListAsync(GitHubRepository repository, FolderPath checkout, CancellationToken cancellationToken)
+    public async Task<PullRequestListing> ListAsync(GitHubRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken)
     {
-        ProcessRequest request = new("gh", ["pr", "list", "--repo", $"{repository.Owner}/{repository.Name}", "--state", "all", "--limit", "100", "--json", "number,url,state,isDraft,headRefName,createdAt"], checkout.Value);
+        ProcessRequest request = new("gh", ["pr", "list", "--repo", $"{repository.Owner}/{repository.Name}", "--head", branch.Value, "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"], checkout.Value);
         ProcessResult result;
         try
         {

@@ -38,13 +38,36 @@ public sealed class WorktreeInventoryShould : IDisposable
         hosts.Answer(new GitHubRepository("northwind", "Northwind.Orders"), new PullRequestListing.Listed([new BranchPullRequest(BranchName.From("fix-1"), open)]));
 
         WorktreeRow first = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
-        await catalogue.RefreshStaleAsync([FolderPath.From(repository)]);
+        await catalogue.RefreshStaleAsync([(FolderPath.From(repository), BranchName.From("fix-1"))]);
         WorktreeRow second = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
 
         first.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
         second.PullRequest.ShouldBe(new PullRequestLookup.Found(open));
         hosts.Calls.Count.ShouldBe(1);
         remotes.CapturedRequests.ShouldAllBe(request => request.WorkingDirectory == repository);
+    }
+
+    [Fact]
+    public async Task LookUpOnlyTheBranchesWithRows()
+    {
+        string orders = await root.CreateRepositoryAsync("Northwind.Orders");
+        string billing = await root.CreateRepositoryAsync("Northwind.Billing");
+        foreach (string idle in new[] { "Northwind.Sales", "Northwind.Shipping", "Northwind.Catalogue" })
+        {
+            await root.CreateRepositoryAsync(idle);
+        }
+
+        await root.AddSiblingWorktreeAsync(orders, "fix-1");
+        await root.AddSiblingWorktreeAsync(billing, "fix-2");
+
+        await Inventory.ScanAsync([], TestContext.Current.CancellationToken);
+        while (hosts.Requests.Count < 2)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        await Task.Delay(100, TestContext.Current.CancellationToken);
+        hosts.Requests.Select(request => request.Branch.Value).ShouldBe(["fix-1", "fix-2"], ignoreOrder: true);
     }
 
     /// <summary>Plain claude running in the folder, or a stopped job there when it has no process.</summary>
@@ -59,6 +82,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     public void Dispose()
     {
+        catalogue.Dispose();
         root.Dispose();
     }
 
