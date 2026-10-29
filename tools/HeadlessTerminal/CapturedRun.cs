@@ -6,16 +6,13 @@ using System.Text.Json;
 namespace Source191.Vantage.HeadlessTerminal;
 
 /// <summary>
-/// One program running in a 120 by 40 pseudo-console: everything it writes is captured, terminal queries are answered
+/// One program running in a pseudo-console of the options' size (120 by 40 unless set): everything it writes is captured, terminal queries are answered
 /// when the options say so, and finishing writes the capture to drive-raw.txt and reports whether it exited by itself.
 /// Both run modes use it: fixed-delay keystrokes (<see cref="Driver"/>) and marker-led steps (<see cref="StepRunner"/>).
 /// </summary>
 [SupportedOSPlatform("windows")]
 public sealed class CapturedRun : IDisposable
 {
-    private const int Columns = 120;
-    private const int Rows = 40;
-
     private readonly PseudoConsole console;
     private readonly DriverOptions options;
     private readonly TerminalQueries queries;
@@ -37,7 +34,7 @@ public sealed class CapturedRun : IDisposable
     public bool HasExited => console.HasExited;
 
     public static CapturedRun Start(DriverOptions options, string exe, IReadOnlyList<string> arguments)
-        => new(PseudoConsole.Start(exe, arguments, Environment.CurrentDirectory, Columns, Rows, options.ChildEnvironment()), options);
+        => new(PseudoConsole.Start(exe, arguments, Environment.CurrentDirectory, options.Columns, options.Rows, options.ChildEnvironment()), options);
 
     public string Captured()
     {

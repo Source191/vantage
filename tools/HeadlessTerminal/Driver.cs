@@ -3,15 +3,17 @@ using System.Text.Json;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
-/// <summary>How a drive runs: whether to pretend to be Windows Terminal and answer its queries, and the XTVERSION delay.</summary>
-public sealed record DriverOptions(bool PretendWindowsTerminal, bool AnswerQueries, int XtversionDelayMs)
+/// <summary>How a drive runs: whether to pretend to be Windows Terminal and answer its queries, the XTVERSION delay, and the pseudo-console's size.</summary>
+public sealed record DriverOptions(bool PretendWindowsTerminal, bool AnswerQueries, int XtversionDelayMs, int Columns = 120, int Rows = 40)
 {
     public static DriverOptions FromEnvironment()
     {
         return new DriverOptions(
             PretendWindowsTerminal: Environment.GetEnvironmentVariable("HARNESS_PLAIN") is null,
             AnswerQueries: Environment.GetEnvironmentVariable("HARNESS_RESPOND") is not null,
-            XtversionDelayMs: int.TryParse(Environment.GetEnvironmentVariable("HARNESS_DCS_DELAY_MS"), out int delay) ? delay : 0);
+            XtversionDelayMs: int.TryParse(Environment.GetEnvironmentVariable("HARNESS_DCS_DELAY_MS"), out int delay) ? delay : 0,
+            Columns: int.TryParse(Environment.GetEnvironmentVariable("HARNESS_COLUMNS"), out int columns) ? columns : 120,
+            Rows: int.TryParse(Environment.GetEnvironmentVariable("HARNESS_ROWS"), out int rows) ? rows : 40);
     }
 
     public IReadOnlyDictionary<string, string> ChildEnvironment()

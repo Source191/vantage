@@ -18,7 +18,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
     {
-        [typeof(ShowHelp)] = (_, context, _) => Confirm.Query(context.App, context.Diagnostics, DialogName.Keys, "Keys", context.HelpText, "Close"),
+        [typeof(ShowHelp)] = (_, context, _) => HelpDialog.Show(context.App, context.Diagnostics, "Keys", context.HelpText),
         [typeof(OpenLaunchWizard)] = (self, context, _) => self.StartSession(context, fixedDirectory: null),
         [typeof(StartSessionIn)] = (self, context, effect) => self.StartSession(context, ((StartSessionIn)effect).Row.Path),
         [typeof(AskForNewName)] = (_, context, effect) => Rename(context, ((AskForNewName)effect).Session),

@@ -101,7 +101,8 @@ public sealed class DiagnosticsPrivacyShould
         ScriptedSessionsScreen sessions = new(
             current => new ScreenExit(current, new AttachToSession(JobId.From(Job))),
             current => new ScreenExit(current, new Quit()));
-        ScreenLoop loop = new(sessions, new ScriptedWorktreesScreen(), ownTab, new FakeTerminalConsole(), new TerminalEffects(claude, new StringWriter()), updates, log);
+        FakeTerminalConsole console = new();
+        ScreenLoop loop = new(sessions, new ScriptedWorktreesScreen(), ownTab, console, new TerminalEffects(claude, console), updates, log);
 
         await loop.RunAsync(processId: 100, CancellationToken.None);
     }

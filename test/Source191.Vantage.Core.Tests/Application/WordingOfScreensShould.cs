@@ -87,6 +87,24 @@ public sealed class WordingOfScreensShould
     }
 
     [Fact]
+    public void SummariseSessionsByState()
+    {
+        SessionRow[] mixed = [.. Enumerable.Range(0, 9).Select(index => SessionIn(index < 4 ? DisplayState.Stopped : DisplayState.NeedsInput, index))];
+        SessionRow[] allWaiting = [.. Enumerable.Range(0, 6).Select(index => SessionIn(DisplayState.NeedsInput, index))];
+
+        Wording.SessionsSummary(mixed).ShouldBe("9 (4 stopped)");
+        Wording.SessionsSummary(allWaiting).ShouldBe("6");
+        Wording.SessionsSummary([]).ShouldBe("none");
+    }
+
+    private static SessionRow SessionIn(DisplayState state, int index)
+    {
+        BackgroundSession session = new(SessionId.From($"sess-{index}"), JobId.From($"81cdb0f{index}"), $"fix-{index}", FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), DateTimeOffset.UnixEpoch, state);
+
+        return new SessionRow(session, "Northwind.Orders", BranchName.From("main"), HasLiveTab: false, HasTranscript: true);
+    }
+
+    [Fact]
     public void IgnoreAFilterOfOnlySpaces()
     {
         Wording.Describe(new TableTitle("session", Shown: 3, Total: 3, Filter: "  ", Selected: null)).ShouldBe("3 sessions");

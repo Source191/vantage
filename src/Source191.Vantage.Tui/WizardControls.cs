@@ -47,7 +47,7 @@ internal sealed class WizardControls
             Caption(RightColumn, 3, "Session name (required)"),
             Name,
             Preview,
-            Caption(RightColumn, 14, "Opening prompt (wraps; blank opens on the agent list until you send one)"),
+            Caption(RightColumn, 14, "Opening prompt (wraps; blank leaves the session waiting at its prompt)"),
             Prompt,
             Problem,
             Hint,

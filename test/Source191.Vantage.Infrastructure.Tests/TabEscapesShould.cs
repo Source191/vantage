@@ -19,8 +19,8 @@ public sealed class TabEscapesShould
     }
 
     [Fact]
-    public void ResetTheTabColourIndicesWithDecac()
+    public void ResetPaletteEntry264ThenTheTabColourIndices()
     {
-        TabEscapes.ResetBackground.ShouldBe("\u001b[2;263;264,|");
+        TabEscapes.ResetBackground.ShouldBe("\u001b]104;264\u001b\\" + "\u001b[2;263;264,|");
     }
 }

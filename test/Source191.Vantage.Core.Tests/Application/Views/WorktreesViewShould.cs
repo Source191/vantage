@@ -18,6 +18,18 @@ public sealed class WorktreesViewShould
 
     private static readonly WorktreesViewState Loaded = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Gone, Busy, Empty, Orphan, Locked, Dirty, Clean]));
 
+    [Theory]
+    [MemberData(nameof(SidewaysKeys))]
+    public void LeaveSidewaysScrollingToTheScreen(Key key)
+    {
+        WorktreesViewUpdate update = WorktreesView.Reduce(Loaded, new KeyPressed(key));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.ShouldBe(Loaded);
+    }
+
+    public static TheoryData<Key> SidewaysKeys => new(Key.Left, Key.Right);
+
     [Fact]
     public void OrderRowsByRepositoryThenPathAndSelectTheFirst()
     {

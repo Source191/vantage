@@ -12,6 +12,9 @@ public sealed class FakeTerminalConsole : ITerminalConsole
 
     public int Recovered { get; private set; }
 
+    /// <summary>The return hint's showing and removal, in order; a test may add other fakes' events to put them in sequence.</summary>
+    public List<string> Events { get; } = [];
+
     public void ShowOwnTab(TabColour? colour)
     {
         Shown.Add(colour);
@@ -20,6 +23,16 @@ public sealed class FakeTerminalConsole : ITerminalConsole
     public void ClearOwnTab()
     {
         Cleared++;
+    }
+
+    public void ShowReturnHint(string hint)
+    {
+        Events.Add($"return hint shown: {hint}");
+    }
+
+    public void RemoveReturnHint()
+    {
+        Events.Add("return hint removed");
     }
 
     public void RecoverAfterChild()
