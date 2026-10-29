@@ -9,6 +9,7 @@ public sealed class FakeProcessRegistry : IProcessRegistry
 {
     private readonly Dictionary<int, DateTimeOffset> running = [];
     private readonly Dictionary<int, (int ParentId, string Name)> tree = [];
+    private readonly Dictionary<int, ProcessUsage> usage = [];
 
     public FakeProcessRegistry Running(int processId, DateTimeOffset startedAt)
     {
@@ -16,16 +17,26 @@ public sealed class FakeProcessRegistry : IProcessRegistry
         return this;
     }
 
-    /// <summary>Declares a process, its name and its parent, so a tab's shell can be found by walking up.</summary>
+    /// <summary>Declares a process, its name and its parent, so a tab's shell can be found by walking up and a tree by walking down.</summary>
     public FakeProcessRegistry InTree(int processId, string name, int parentId)
     {
         tree[processId] = (parentId, name);
         return this;
     }
 
+    /// <summary>Declares what a process uses; one declared in the tree but not here reads as refusing the query.</summary>
+    public FakeProcessRegistry Using(int processId, DateTimeOffset startedAt, MemorySize privateMemory, string commandLine = "")
+    {
+        usage[processId] = new ProcessUsage(startedAt, privateMemory, commandLine);
+        return this;
+    }
+
     public List<int> Terminated { get; } = [];
 
     public List<int> EndedCleanly { get; } = [];
+
+    /// <summary>How many times the table was read.</summary>
+    public int Snapshots { get; private set; }
 
     public DateTimeOffset? StartTimeOf(int processId)
     {
@@ -52,5 +63,17 @@ public sealed class FakeProcessRegistry : IProcessRegistry
     {
         EndedCleanly.Add(processId);
         running.Remove(processId);
+    }
+
+    public IReadOnlyList<ProcessFacts> Snapshot()
+    {
+        Snapshots++;
+
+        return [.. tree.Select(entry => new ProcessFacts(entry.Key, entry.Value.ParentId, entry.Value.Name))];
+    }
+
+    public ProcessUsage? UsageOf(int processId)
+    {
+        return usage.TryGetValue(processId, out ProcessUsage? found) ? found : null;
     }
 }

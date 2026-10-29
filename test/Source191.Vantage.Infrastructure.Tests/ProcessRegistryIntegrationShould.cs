@@ -32,6 +32,7 @@ public sealed class ProcessRegistryIntegrationShould
     {
         registry.StartTimeOf(int.MaxValue - 7).ShouldBeNull();
         registry.ParentOf(int.MaxValue - 7).ShouldBeNull();
+        registry.UsageOf(int.MaxValue - 7).ShouldBeNull();
     }
 
     [Fact]
@@ -50,6 +51,57 @@ public sealed class ProcessRegistryIntegrationShould
         {
             child.Kill(entireProcessTree: true);
         }
+    }
+
+    [Fact]
+    public void ListThisProcessAndAChildItStartedInTheSnapshot()
+    {
+        using Process child = StartSleeper();
+        try
+        {
+            IReadOnlyList<ProcessFacts> snapshot = registry.Snapshot();
+
+            ProcessFacts self = snapshot.Single(process => process.ProcessId == Environment.ProcessId);
+            self.Name.ShouldBe(Process.GetCurrentProcess().ProcessName);
+            ProcessFacts sleeper = snapshot.Single(process => process.ProcessId == child.Id);
+            sleeper.ParentId.ShouldBe(Environment.ProcessId);
+            sleeper.Name.ShouldBe("cmd");
+        }
+        finally
+        {
+            child.Kill(entireProcessTree: true);
+        }
+    }
+
+    [Fact]
+    public void MeasureAChildItStarted()
+    {
+        DateTimeOffset before = DateTimeOffset.UtcNow.AddMinutes(-1);
+        using Process child = StartSleeper();
+        try
+        {
+            ProcessUsage? usage = registry.UsageOf(child.Id);
+
+            usage.ShouldNotBeNull();
+            usage.StartedAt.ShouldBeInRange(before, DateTimeOffset.UtcNow.AddMinutes(1));
+            usage.StartedAt.Offset.ShouldBe(TimeSpan.Zero);
+            usage.PrivateMemory.Bytes.ShouldBeGreaterThan(0);
+            usage.CommandLine.ShouldContain("ping -n 30 127.0.0.1");
+        }
+        finally
+        {
+            child.Kill(entireProcessTree: true);
+        }
+    }
+
+    [Fact]
+    public void MeasureThisProcessBelowItsWorkingSet()
+    {
+        ProcessUsage? usage = registry.UsageOf(Environment.ProcessId);
+
+        usage.ShouldNotBeNull();
+        usage.PrivateMemory.Bytes.ShouldBeGreaterThan(0);
+        usage.PrivateMemory.Bytes.ShouldBeLessThan(Process.GetCurrentProcess().WorkingSet64);
     }
 
     [Fact]
