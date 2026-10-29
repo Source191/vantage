@@ -101,6 +101,7 @@ public static partial class Wording
         new("e", "Editor", "open the folder in your editor", Column: 2),
         new("v", "Solution", "open its solution", Column: 2),
         new("p", "Open PR", "open its pull request in the browser", Column: 2),
+        new("m", Hint: null, "what its memory is made of", Column: 1),
         new("U", Hint: null, UpdateLine, Column: 1),
     ];
 
@@ -135,6 +136,7 @@ public static partial class Wording
         new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed), !123 on Azure DevOps\n(active, draft, completed, abandoned); blank when there is none or it is still being looked up"),
         new("AGE", "time since the session started"),
         new("TAB", "terminal for a plain claude started in its own tab, open while a Vantage tab shows it"),
+        new("MEM", "private working set of the session's process and everything it started; - when it has no process"),
     ];
 
     public static IReadOnlyList<ColumnHelp> WorktreesColumns { get; } =
