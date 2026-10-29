@@ -775,7 +775,7 @@ public sealed class WordingShould
     public void HintTheWizardsKeys()
     {
         Wording.WizardHint(Wizard()).ShouldBe("Type to filter, ↑↓ to choose, Enter confirms the repository   Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel");
-        Wording.WizardHint(Wizard(FixedFolder)).ShouldBe("Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel");
+        Wording.WizardHint(Wizard(FixedFolder)).ShouldBe("Enter starts and opens in tab   F5 start without a tab   Esc cancel");
     }
 
     /// <summary>A wizard with no repositories to offer, or fixed in one folder.</summary>
