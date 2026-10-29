@@ -7,7 +7,7 @@
 ## What Changes
 
 - The tool's informational version no longer carries the source revision, so `vantage --version` prints exactly the package version (`0.17.0-preview.2`, or `0.17.0-local.<timestamp>` for a local build).
-- The `check` job's smoke step asserts that the installed tool's `--version` is exactly the packed version.
+- The `check` job's smoke step asserts that the installed tool's `--version` is exactly the csproj `Version`.
 - `Version` rises to `0.17.0-preview.2`.
 - `.csproj` files lose their comments: each project's notes move to a `README.md` in its folder, the root README's "Developing Vantage" section links every project README, and `CLAUDE.md` gains the rule. The root `Directory.Build.props` keeps its comments.
 

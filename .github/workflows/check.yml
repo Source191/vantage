@@ -91,16 +91,16 @@ jobs:
           $PSNativeCommandUseErrorActionPreference = $true
           dotnet tool install Source191.Vantage --tool-path "$env:RUNNER_TEMP\vantage-tool" --add-source (Split-Path $env:PACKAGE) --version $env:VERSION
 
-      # `vantage --version` prints exactly the package version a person sees on nuget.org, with no commit after it.
+      # `vantage --version` prints exactly the csproj Version, with no commit after it: what a release's package
+      # shows on nuget.org. A check run packs as Version-ci.<run> with --no-build, so the assembly keeps Version.
       - name: Check the installed tool's version
         shell: pwsh
-        env:
-          VERSION: ${{ steps.build.outputs.version }}
         run: |
           $ErrorActionPreference = 'Stop'
+          $expected = (Select-Xml -Path src\Source191.Vantage\Source191.Vantage.csproj -XPath '//Version').Node.InnerText
           $printed = (& "$env:RUNNER_TEMP\vantage-tool\vantage.exe" --version | Out-String).Trim()
-          if ($LASTEXITCODE -ne 0 -or $printed -ne $env:VERSION) {
-              throw "vantage --version printed '$printed' (exit $LASTEXITCODE); expected '$env:VERSION'."
+          if ($LASTEXITCODE -ne 0 -or $printed -ne $expected) {
+              throw "vantage --version printed '$printed' (exit $LASTEXITCODE); expected '$expected'."
           }
 
       - name: Smoke check
