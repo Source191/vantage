@@ -35,4 +35,25 @@ public sealed class CrashFileShould : IDisposable
 
         File.ReadAllText(Path.Combine(folder, "last-crash.log")).ShouldBe("second\n");
     }
+
+    [Fact]
+    public async Task ReadAndRemoveTheCrash()
+    {
+        CrashFile file = new(folder);
+        file.Write("crash\n");
+
+        (await file.ReadAsync()).ShouldBe("crash\n");
+        await file.RemoveAsync();
+
+        (await file.ReadAsync()).ShouldBeNull();
+    }
+
+    [Fact]
+    public async Task AnswerNullAndRemoveQuietlyWithoutACrash()
+    {
+        CrashFile file = new(folder);
+
+        (await file.ReadAsync()).ShouldBeNull();
+        await Should.NotThrowAsync(file.RemoveAsync);
+    }
 }

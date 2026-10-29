@@ -12,6 +12,7 @@ using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.Reporting;
 using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
@@ -33,7 +34,8 @@ DiagnosticLog log = new(TimeProvider.System, string.IsNullOrWhiteSpace(logPath) 
 Terminal.Gui.App.Logging.Logger = new TerminalGuiBridge(log);
 ProcessCounts processCounts = new();
 RecordedProcessRunner processes = new(new ProcessRunner(), log, processCounts, TimeProvider.System);
-CrashRecorder crashes = new(log, processCounts, new CrashFile(stateFolder));
+CrashFile crashFile = new(stateFolder);
+CrashRecorder crashes = new(log, processCounts, crashFile);
 AppDomain.CurrentDomain.UnhandledException += (_, unhandled) =>
 {
     if (unhandled.ExceptionObject is Exception exception)
@@ -119,12 +121,13 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     using NuGetPackageVersions packageVersions = new(version);
     bool optOutOfUpdateCheck = UpdateCheckOptOut.Applies(Environment.GetEnvironmentVariable(UpdateCheckOptOut.VariableName));
     UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
-    EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
+    EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders, crashFile);
     EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home), log);
-    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders));
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);
     string? claudeVersionText = await claudeVersion;
-    RecordStart(claudeVersionText);
+    Started start = RecordStart(claudeVersionText);
+    ProblemReports reports = new(log, processCounts, crashFile, start, settings);
+    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders), reports);
     ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionText);
     ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeCode, settings.Value, updates.Status), clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
@@ -162,8 +165,11 @@ async Task<string?> LocateClaudeAsync()
 }
 
 // The start facts: versions and the terminal's size, never a path or a name.
-void RecordStart(string? claudeVersionText)
+Started RecordStart(string? claudeVersionText)
 {
     Version? claudeCodeVersion = ClaudeVersion.TryParse(claudeVersionText, out Version? parsed) ? parsed : null;
-    log.Record(new Started(version, claudeCodeVersion, Environment.OSVersion.Version, Environment.Version, Console.WindowWidth, Console.WindowHeight));
+    Started start = new(version, claudeCodeVersion, Environment.OSVersion.Version, Environment.Version, Console.WindowWidth, Console.WindowHeight);
+    log.Record(start);
+
+    return start;
 }

@@ -6,10 +6,12 @@ using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.Reporting;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
+using System.Web;
 
 namespace Source191.Vantage.Core.Tests.Application.Diagnostics;
 
@@ -64,16 +66,7 @@ public sealed class DiagnosticsPrivacyShould
     [Fact]
     public async Task RecordNothingFromTheFixtures()
     {
-        ClaudeCli claude = new(processes, Claude);
-        GitCli git = new(processes);
-        CrashRecorder crashes = new(log, counts, crashFile);
-
-        await LoadTheSessionsAsync(claude);
-        await AttachAsync(claude);
-        await StartASessionWithAPromptAsync(claude, git);
-        await RemoveADirtyWorktreeAsync(git);
-        await FailALoadAsync();
-        await Should.ThrowAsync<InvalidOperationException>(() => crashes.GuardAsync(() => throw new InvalidOperationException($"{Name} in {Worktree} stopped: {Prompt}")));
+        await RunTheDailyFlowsAsync();
 
         IReadOnlyList<string> lines = sink.Lines;
         lines.ShouldContain(line => line.Contains("hand-off AttachToSession", StringComparison.Ordinal));
@@ -84,6 +77,41 @@ public sealed class DiagnosticsPrivacyShould
         DiagnosticLine.Render(counts).ShouldContain("counts git worktree remove exit 128: 1 run, longest 0 ms");
         string everything = string.Join('\n', [.. lines, crashFile.Written ?? string.Empty, .. DiagnosticLine.Render(counts)]);
         Seeded.Where(value => everything.Contains(value, StringComparison.OrdinalIgnoreCase)).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ReportNothingFromTheFixturesButTheTitleTyped()
+    {
+        await RunTheDailyFlowsAsync();
+        ReportTitle title = ReportTitle.From("Northwind.Orders secret title");
+        Started start = new(new ToolVersion("0.17.0-preview.6"), new Version(2, 1, 312), new Version(10, 0, 26100), new Version(10, 0, 14), 120, 36);
+        ProblemReport report = await new ProblemReports(log, counts, crashFile, start, TestSettings.Current(Repository)).BuildAsync();
+        FakeDesktop desktop = new();
+        EffectDispatcher dispatcher = new EffectDispatcher(log, clock).Register(new OpenProblemReportHandler(desktop, crashFile));
+
+        await dispatcher.DispatchAsync(new OpenProblemReport(title, report), CancellationToken.None);
+
+        report.HasCrash.ShouldBeTrue();
+        string diagnostics = HttpUtility.ParseQueryString(new Uri(desktop.Opened.Single()).Query)[ProblemReportAddress.DiagnosticsField]!;
+        diagnostics.ShouldBe(report.Fitted);
+        string everything = string.Join('\n', report.Text, diagnostics, desktop.Opened.Single().Replace(Uri.EscapeDataString(title.Value), string.Empty, StringComparison.Ordinal));
+        Seeded.Where(value => everything.Contains(value, StringComparison.OrdinalIgnoreCase)).ShouldBeEmpty();
+        sink.Lines.ShouldContain(line => line.Contains("effect OpenProblemReport -> ProblemReportOutcome.Opened", StringComparison.Ordinal));
+        sink.Lines.ShouldAllBe(line => !line.Contains("secret title", StringComparison.Ordinal));
+    }
+
+    private async Task RunTheDailyFlowsAsync()
+    {
+        ClaudeCli claude = new(processes, Claude);
+        GitCli git = new(processes);
+        CrashRecorder crashes = new(log, counts, crashFile);
+
+        await LoadTheSessionsAsync(claude);
+        await AttachAsync(claude);
+        await StartASessionWithAPromptAsync(claude, git);
+        await RemoveADirtyWorktreeAsync(git);
+        await FailALoadAsync();
+        await Should.ThrowAsync<InvalidOperationException>(() => crashes.GuardAsync(() => throw new InvalidOperationException($"{Name} in {Worktree} stopped: {Prompt}")));
     }
 
     private async Task LoadTheSessionsAsync(ClaudeCli claude)
@@ -111,7 +139,7 @@ public sealed class DiagnosticsPrivacyShould
     {
         InMemoryState store = new();
         LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);
-        EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders());
+        EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders(), new FakeCrashFile());
         EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, Vantage), TestSettings.Current(), new VantageProcess(4242, FolderPath.From(@"C:\Users\me")), log);
         PlannedWorktree worktree = PlannedWorktree.For(FolderPath.From(WorktreeRoot), FolderPath.From(Repository), WorktreeSlug.From(Branch));
         LaunchPlan plan = new(FolderPath.From(Repository), SessionName.From(Name), worktree, ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, Prompt, new RepositoryChoice("Northwind.Orders", FolderPath.From(Repository), IsRepository: true));

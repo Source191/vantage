@@ -35,6 +35,7 @@ I built Vantage because I wanted a tool that worked the way I work. Before start
 - [Settings](#settings)
 - [Updates](#updates)
 - [What Vantage records](#what-vantage-records)
+- [Reporting a problem](#reporting-a-problem)
 - [Troubleshooting](#troubleshooting)
 - [Developing Vantage](#developing-vantage)
 - [Continuous integration](#continuous-integration)
@@ -168,6 +169,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | p | Open the row's pull request in your default browser; with none, the footer says why (no origin remote, a host Vantage does not know, `gh` or `az` missing or signed out, no pull request for the branch, or the lookup still running) |
 | , | Settings: the repository roots, the worktree root, the editor, the default worktree base and the update check (see [Settings](#settings)) |
 | U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
+| ! | Report a problem: shows the diagnostics a GitHub issue would carry, then opens the issue form in your browser or copies the text (see [Reporting a problem](#reporting-a-problem)) |
 | w | Switch to the worktrees view |
 | / | Filter by name, repository or branch; Enter keeps the filter, Esc clears it |
 | ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
@@ -242,6 +244,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | c, e, v | Copy the folder path, open the folder in your editor, open its solution, as in the sessions view; refused for a leftover whose folder is gone |
 | , | Settings, as in the sessions view |
 | U | Update Vantage, as in the sessions view |
+| ! | Report a problem, as in the sessions view |
 
 Branches: when a removed worktree's branch was created by Vantage and is merged, the branch is deleted too; when Vantage created it but it is not merged, or you created it by hand, Vantage asks before deleting it.
 
@@ -387,8 +390,17 @@ Vantage keeps a diagnostic log in memory while it runs (the latest 500 events) s
 
 It never holds a path, a repository, branch, worktree or session name, a job or session id, a prompt, pull-request detail, a file name, anything a program printed, your user or machine name, or anything you typed; `DiagnosticEventsShould` and `DiagnosticsPrivacyShould` fail the build's tests if it could. `VANTAGE_LOG` writes the same lines to a file, and a crash writes them to `last-crash.log` (see [Where Vantage keeps things](#where-vantage-keeps-things)).
 
+## Reporting a problem
+
+Press `!` in either view. A dialog shows a title box and, read-only, exactly the diagnostics the report will carry: the Vantage, Claude Code, Windows and .NET versions, the terminal's size, the editor preset, whether update checks are on and how many repository roots you have, the recent events of [What Vantage records](#what-vantage-records), the child program counts and, after a crash, the crash. It holds no names, paths or code.
+
+**Open in browser** (or Enter) opens the repository's "Problem report" issue form with the title and the diagnostics filled in; you describe the problem there, where Markdown and screenshots work, change or delete anything, and submit it from your own GitHub account. Vantage sends nothing itself and holds no token. Opening the page does pass the title and the diagnostics to GitHub in the page's address, so read the preview first; nothing is public until you submit. A blank title becomes `Problem report from Vantage <version>`. The page's address is kept under 7,500 characters, so a long log leaves out its oldest ordinary lines first and says how many; the versions, failures and the crash are kept. A report that opens takes `last-crash.log` with it and removes it, so the next report does not repeat an old crash.
+
+**Copy text** puts the title and the whole diagnostics on the clipboard instead, for someone without a GitHub account or when the browser cannot be opened. Esc cancels.
+
 ## Troubleshooting
 
+- **Something else went wrong.** Press `!` to [report it](#reporting-a-problem) with Vantage's diagnostics filled in.
 - **Keys stop working after returning from a session.** Set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage; the file gets Vantage's diagnostic log as it happens (every hand-off and its return, the views and dialogs, failures, Terminal.Gui's warnings and errors) and the child program counts when Vantage quits; see [What Vantage records](#what-vantage-records). The known cause (blocking the UI thread after a hand-off) is fixed and guarded by the check in `tools\HeadlessTerminal`.
 - **"not trusted yet".** Claude Code refuses to start in a folder you have not trusted. Open a tab there, run `claude`, accept the prompt, then start again. Vantage never edits the trust records.
 - **No bell when a session needs you.** Run `vantage setup-terminal` and see [Windows Terminal setup](#windows-terminal-setup); it covers `preferredNotifChannel` in `~\.claude\settings.json` and the bell style and sound of the Windows Terminal profile. Claude only rings when it thinks you are away from the terminal.

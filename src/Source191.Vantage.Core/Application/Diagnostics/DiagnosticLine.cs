@@ -23,9 +23,17 @@ public static class DiagnosticLine
         return [.. counts.Snapshot().Select(count => $"counts {count.Command} exit {count.ExitCode}: {Runs(count.Runs)}, longest {Milliseconds(count.Longest)}")];
     }
 
+    /// <summary>The start facts without the time, as a problem report's environment line shows them.</summary>
+    public static string Environment(Started started)
+    {
+        ArgumentNullException.ThrowIfNull(started);
+
+        return $"Vantage {started.Vantage.Text}, Claude Code {started.ClaudeCode?.ToString() ?? "unknown"}, Windows {started.Windows}, .NET {started.Runtime}, terminal {started.Columns}x{started.Rows}";
+    }
+
     private static string Body(DiagnosticEvent diagnostic) => diagnostic switch
     {
-        Started started => $"started Vantage {started.Vantage.Text}, Claude Code {started.ClaudeCode?.ToString() ?? "unknown"}, Windows {started.Windows}, .NET {started.Runtime}, terminal {started.Columns}x{started.Rows}",
+        Started started => $"started {Environment(started)}",
         ViewShown view => $"view {view.View}",
         DialogShown dialog => $"dialog {dialog.Dialog}",
         EffectRan ran => $"effect {ran.Effect} -> {ran.Outcome} in {Milliseconds(ran.Duration)}",

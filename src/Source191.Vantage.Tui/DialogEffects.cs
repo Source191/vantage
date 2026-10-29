@@ -2,6 +2,7 @@ using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Application.Reporting;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -13,7 +14,7 @@ namespace Source191.Vantage.Tui;
 /// Every effect that needs a dialog, for both views. Each flow asks its question, then hands the answer back through
 /// the reducer or dispatches the effect it settles on; the work itself is always a handler's.
 /// </summary>
-public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, SolutionFinder solutions, UpdateCheck updates, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree)
+public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, SolutionFinder solutions, UpdateCheck updates, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree, ProblemReports reports)
 {
     /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
@@ -30,6 +31,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(FindSolution)] = (self, context, effect) => self.OpenSolutionOf(context, (FindSolution)effect),
         [typeof(OpenSettings)] = (self, context, _) => self.EditSettings(context),
         [typeof(UpdateVantage)] = (self, context, _) => self.ConfirmUpdate(context),
+        [typeof(ShowProblemReport)] = (self, context, effect) => self.ReportProblem(context, (ShowProblemReport)effect),
     }.ToFrozenDictionary();
 
     /// <summary>Whether an effect of this type has a dialog flow.</summary>
@@ -184,6 +186,27 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
                 : new Footer.Reported(outcome));
     }
 
+    /// <summary>Builds the report off the UI thread; back on it, the dialog shows it, and opening or copying is dispatched.</summary>
+    private void ReportProblem(IEffectContext context, ShowProblemReport show) => context.RunInBackground(new Footer.Working(show), _ => reports.BuildAsync(), report => AskAboutReport(context, report));
+
+    private Footer AskAboutReport(IEffectContext context, ProblemReport report)
+    {
+        ProblemReportEffect answer = ProblemReportDialog.Show(context.App, context.Diagnostics, report, reports.DefaultTitle);
+
+        return answer switch
+        {
+            ProblemReportEffect.Open open => Dispatched(context, new OpenProblemReport(open.Title, report)),
+            ProblemReportEffect.Copy copy => Dispatched(context, new CopyProblemReport(copy.Title, report)),
+            _ => Footer.None,
+        };
+    }
+
+    private static Footer.Working Dispatched(IEffectContext context, ViewEffect effect)
+    {
+        context.Dispatch(effect);
+
+        return new Footer.Working(effect);
+    }
     /// <summary>Looks off the UI thread; back on it, one solution opens, none says so, and several are asked about.</summary>
     private void OpenSolutionOf(IEffectContext context, FindSolution find)
     {

@@ -18,7 +18,8 @@ public sealed record EffectPorts(
     IClipboard Clipboard,
     IDesktop Desktop,
     IEditorLocator Editors,
-    IFolders Folders);
+    IFolders Folders,
+    ICrashFile CrashFile);
 
 /// <summary>This Vantage's process, which the update tab waits for, and the folder that tab starts in.</summary>
 public sealed record VantageProcess(int ProcessId, FolderPath Home);
@@ -46,6 +47,8 @@ public static class Composition
             .Register(new OpenShellHandler(ports.Terminal))
             .Register(new StartSessionHandler(launches, tabs, ports.Terminal, scripts))
             .Register(new CopyFolderPathHandler(ports.Clipboard))
+            .Register(new OpenProblemReportHandler(ports.Desktop, ports.CrashFile))
+            .Register(new CopyProblemReportHandler(ports.Clipboard))
             .Register(new OpenSolutionHandler(ports.Desktop))
             .Register(new OpenPullRequestHandler(ports.Desktop))
             .Register(new OpenInEditorHandler(ports.Editors, ports.Desktop, ports.Folders, settings))
