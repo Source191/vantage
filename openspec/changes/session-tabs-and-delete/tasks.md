@@ -19,7 +19,7 @@
 ## 4. Opening and switching (Application)
 
 - [x] 4.1 Red: `OpenTabHandlerShould.OpenANewTabWhenTheRegisteredShellHasGone` (the effect says live, the process is gone: a tab is opened, the stale registration removed, `FocusTabAsync` never called) and `OpenANewTabWhenNoRegistrationExists`. Green: liveness read in `SwitchToTabAsync`. Verify the existing switch fact still passes.
-- [ ] 4.2 Red: `OpenTabHandlerShould.DropEarlierRegistrationsForTheSession` asserts one registration remains after `OpenAsync` and the old colour is chosen again. Green: `OpenAsync` removes them first. Verify the Core suite passes.
+- [x] 4.2 Red: `OpenTabHandlerShould.DropEarlierRegistrationsForTheSession` asserts one registration remains after `OpenAsync` and the old colour is chosen again. Green: `OpenAsync` removes them first. Verify the Core suite passes.
 
 ## 5. Stop, rename and adopt (Application)
 

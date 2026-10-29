@@ -20,10 +20,15 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
             : await OpenAsync(effect.Session, cancellationToken);
     }
 
-    /// <summary>Opens a tab for a session that is not a listed row yet, such as one the wizard has just started.</summary>
+    /// <summary>Opens a tab for a session, a listed row or one the wizard has just started, after forgetting any earlier tab registered for it, so that tab's colour is free again.</summary>
     public async Task<OpenTabOutcome> OpenAsync(BackgroundSession session, CancellationToken cancellationToken)
     {
         DateTimeOffset now = clock.GetUtcNow();
+        foreach (TabRegistration earlier in (await tabs.ReadTabsAsync()).Where(tab => tab.Owner == new TabOwner.ForSession(session.SessionId)))
+        {
+            await tabs.RemoveTabAsync(earlier.Id);
+        }
+
         IReadOnlyList<TabRegistration> live = new TabRegistrations(await tabs.ReadTabsAsync()).Live(now, processes);
         ColourChoice colour = colours.Choose([.. live.Select(registration => registration.Colour)]);
         TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), colour.Colour, now);
@@ -43,7 +48,6 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
         TabRegistration? registration = (await tabs.ReadTabsAsync()).FirstOrDefault(tab => tab.Owner == new TabOwner.ForSession(session.SessionId));
         if (registration is null || !registration.IsLive(clock.GetUtcNow(), processes))
         {
-            await ForgetAsync(registration);
             return await OpenAsync(session, cancellationToken);
         }
 
@@ -53,14 +57,6 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
         return found
             ? new OpenTabOutcome.SwitchedTo(session.Name)
             : new OpenTabOutcome.NotFound(session.Name);
-    }
-
-    private async Task ForgetAsync(TabRegistration? registration)
-    {
-        if (registration is not null)
-        {
-            await tabs.RemoveTabAsync(registration.Id);
-        }
     }
 }
 
