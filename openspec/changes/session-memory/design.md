@@ -1,0 +1,54 @@
+# Design
+
+## Context
+
+See proposal.md for the motivation. What shapes the approach:
+
+- The CLI listing gives each running session's process id (`BackgroundSession.ProcessId`, `InteractiveSession.ProcessId`); a stopped session has none. `SessionRowEnricher` turns the listing into rows on every refresh (every 5 seconds on the sessions view, off the UI thread), and already holds `IProcessRegistry`.
+- `IProcessRegistry` (Domain) answers start times and parents and ends processes; its adapter opens a `Process` per query and treats a refused or vanished process as null. `FakeProcessRegistry` holds a running set and a parent tree. Nothing reads memory or command lines today.
+- A spike on 29 October against seven live sessions found: a Toolhelp snapshot of 664 processes takes a few milliseconds; measuring one session's 41-process tree takes about 10 ms; the session's own process is 296 MB private working set against 393 MB working set; summing working sets gave 1.9 GB for a tree whose private working sets sum to 903 MB, because thirty node processes share the runtime's pages; one session's tree contained a dictation app (440 MB, 13 processes) whose recorded parent id had been reused by the session's process; one MCP server's command line carried an API key.
+- A session's direct children are the roots of what it started: `cmd /c npx -y @azure-devops/mcp m-kopa`, `cmd.exe /d /s /c "npx ^"@playwright/mcp@latest^""`, `uvx mcp-grafana@latest`, `gk-alpha.exe mcp --host=claude-cli`, `node_repl.exe`, and a `cmd.exe /d /s /c ""chcp.com" 65001 >nul & "pwsh.exe" -NoProfile ...` for a shell command the session is running.
+- Dialog effects follow `FindSolution`: the reducer raises an `IDialogEffect`, `DialogEffects` runs the lookup through `RunInBackground` with a working footer, then shows the dialog on the UI thread. Every dialog sets its tab title through `DialogTabTitle.Apply` with a `DialogName`.
+- The header's value column is 45 cells wide and the Vantage line already carries the update notice (`0.17.0 (0.18.0 available, U to update)`), whose text the tool-updates spec names.
+
+## Goals / Non-Goals
+
+**Goals:**
+
+- One port query for the operating system's process table and one for a process's usage, so the tree rule, the start-time guard and the labels are pure Domain code tested with the fake.
+- No new package: the adapter stays on P/Invoke, as it already is for parents.
+- The figures agree with Task Manager's Memory column, so a person can check them.
+
+**Non-Goals:**
+
+- Attributing the daemon, the pty hosts or a tab's `claude attach` to a session.
+- A live-updating dialog: the breakdown is a snapshot.
+- Naming servers from Claude Code's configuration files (`.mcp.json`, `~\.claude.json`): Vantage depends only on the documented CLI surface, so the name comes from the process itself.
+
+## Decisions
+
+- **Private working set, through `GetProcessMemoryInfo` with `PROCESS_MEMORY_COUNTERS_EX2`.** Its `PrivateWorkingSetSize` is what Task Manager's Memory column shows and it excludes shared pages, so a tree sums honestly; verified on Windows 11 26100 in the spike. The handle is opened with `PROCESS_QUERY_LIMITED_INFORMATION`, which every process of the user's own session granted.
+  - *Rejected: `Process.WorkingSet64`.* Doubles a tree's figure through shared pages.
+  - *Rejected: `Process.PrivateMemorySize64` (commit).* 849 MB for a process whose private working set is 296 MB; it is a reservation, not use.
+  - *Rejected: WMI `Win32_Process`.* Hundreds of milliseconds per query and a `System.Management` dependency.
+- **A Toolhelp snapshot for the table, a per-process query for the usage.** `IProcessRegistry` gains `Snapshot()`, every process as `ProcessFacts(ProcessId, ParentId, Name)` from one `CreateToolhelp32Snapshot` (no handles opened), and `UsageOf(processId)`, a `ProcessUsage(StartedAt, PrivateMemory, CommandLine)` from one handle (`GetProcessTimes`, `GetProcessMemoryInfo`, `NtQueryInformationProcess` class `ProcessCommandLineInformation`, 60) or null when the process has gone or refuses. `ProcessFacts.Name` is the executable's name without its extension, as `ProcessParent.Name` already is (the adapter strips Toolhelp's `szExeFile`), so the label rule compares against `cmd`. The Domain rule `ProcessTree.Under(rootId, snapshot, usageOf)` walks the descendants by parent id and keeps a child only when its start time is later than its parent's; a member whose usage is null counts as zero and keeps its own children, each judged against the nearest measured ancestor's start time (a root with no usage is no tree at all). A megabyte is 1,048,576 bytes throughout, as Task Manager counts it, so the figures can be checked against it. The enricher takes one snapshot per refresh and a tree per running session; the dialog takes a fresh snapshot for its one session. The fake declares each process with `InTree(id, name, parentId)` as now, plus `Using(id, startedAt, bytes, commandLine)`.
+  - *Rejected: `Process.GetProcesses()` with `NtQueryInformationProcess` per process for parents.* Opens six hundred handles to find forty children.
+  - *Rejected: a port method that returns a measured tree.* Puts the start-time rule and the walk in the adapter, where they are only testable against real processes.
+- **The start-time guard is a Domain rule, not an adapter detail.** Windows reuses identifiers; a program whose parent exited before the session started keeps the dead parent's id, which the session's process may now hold. "A child started after its parent" is the whole rule, and `TabRegistration.IsLive` already reasons about start times the same way.
+- **`MemorySize` is a value type in Domain; its words are Wording's.** Bytes wrapped, with addition; `Wording.Memory(MemorySize)` gives `903 MB` below 1,000 MB and `1.2 GB` from there, so the column and the dialog agree and no other code formats bytes.
+- **Labels come from a pure rule over the executable name and the command line, `ProgramLabel.From(name, commandLine)`.** When the command line runs `npx` or `uvx`, the label is the first following argument that is not a switch, with a trailing `@version` removed (`@azure-devops/mcp`, `@playwright/mcp`, `@azure/mcp`, `@upstash/context7-mcp`, `mcp-grafana`); the `^"` escapes and quotes `cmd.exe` adds are stripped first. Otherwise, when the process's name is `cmd`, the label is the file name of the first `.exe` named on the line that is not cmd.exe or chcp.com (`pwsh`); otherwise it is the executable's name without its extension (`gk-alpha`, `node_repl`, `Wispr Flow`). The label is the only thing kept from a command line: the usage record is built, labelled and dropped inside the breakdown, never logged, never shown.
+  - *Rejected: naming from the leaf process.* The leaf is `node` with a path into the npm cache; the direct child's line is where the package name is.
+  - *Rejected: merging lines with the same label.* Two `@playwright/mcp` entries with different switches are two servers; the person can see both.
+- **The breakdown is an Application read model, `MemoryBreakdown.Of(session name, tree)`.** Claude Code's own process first, then each direct child's subtree, largest first, with its label and memory, then the total and process count; `Wording.MemoryBreakdownLines` turns it into the dialog's lines so `MemoryDialog` only lays text out. The reducer's `m` raises `ShowMemory(Session, ProcessId)` (an `IDialogEffect`) for a session with a process and sets `Footer.NothingToMeasure` for one without; the key is help-only (`Hint: null`, as `b` and `U` are) because the header's hint grid is full and the key bar replaces it next; `DialogEffects` runs the snapshot, tree and breakdown through `RunInBackground` with `Footer.Working`, then shows `MemoryDialog` (title `Memory: <name>`, `DialogName.Memory`, one Close button, Esc closes). The flow is where `DialogEffectsShould` expects it; no `IEffectHandler` is involved, as for `FindSolution` and `ShowHelp`.
+- **The row carries the figure; the cell asks Wording.** `SessionRow` gains `MemorySize? Memory` (null without a process or when the root has gone), the enricher fills it from the tree, `SessionsScreenDefinition.Cell` maps it to `Wording.Memory` or `-`, and MEM is the last entry of `Wording.SessionsColumns` so the help, the tooltip and the column header follow.
+- **Vantage's own figure is the same usage query on its own id.** `Program.cs` reads `processes.UsageOf(Environment.ProcessId)` inside the header function so it is fresh on every redraw, and `Wording.VantageVersion` writes `0.17.0 (29 MB)` or `0.17.0 (29 MB; 0.18.0 available, U to update)`. The short-lived `claude agents` child the listing runs is a separate process and is not in the figure.
+  - *Rejected: a Memory row in the header.* The header's six rows are laid out against the hint columns and the logo; a seventh moves the table.
+
+## Risks / Trade-offs
+
+- [The Vantage line can reach 46 cells with a three-digit memory and an update notice, one over the value column] -> Vantage's own figure is two digits today (29 MB) and the notice names a release version, so the common case fits; the header-tooltips-and-table-fit change owns the value column's width and a preview version already overflows it, so this is not made worse in a way that change does not already handle.
+- [A session's work that re-parents itself (a detached `start`, an installer) leaves the tree] -> It is no longer the session's process tree, and the figure says what it measures; the dialog's process count makes a missing program noticeable.
+- [`PROCESS_MEMORY_COUNTERS_EX2` is newer than the psapi structure .NET's `Process` uses] -> The spike read it on Windows 11 26100; the adapter checks the returned `cb` and, if the call fails, falls back to `PROCESS_MEMORY_COUNTERS_EX`'s working set so a figure still shows, logged once.
+- [A protected or elevated process in a tree refuses the handle] -> It counts as zero and its children are still walked from the snapshot, which needs no handle.
+- [The dialog's labels are a heuristic over command lines] -> The real lines from the spike are the test fixtures (key redacted), and an unrecognised shape falls back to the executable's name, which is never wrong, only less specific.
+- [Reading a command line for every process in every tree every 5 seconds] -> Tens of microseconds each, a few hundred at most; measured alongside the memory query in the spike at about 10 ms per tree. If it ever matters, the usage query can take a flag; not done now.
