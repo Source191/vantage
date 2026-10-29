@@ -24,7 +24,8 @@
 
 ## 5. The hint layout (Tui)
 
-- [ ] 5.1 Red: `KeyHintColumnsShould.EndEveryKeyBy112AndEveryWordBy123`, `OverlapNoColumnOnAnyRow` (rows considered, so the third column under the logo is allowed) and `StartTheThirdColumnBelowTheLogo` (first row 2). Green: `Layout` with a first row per column and the widths design.md names. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
+- [x] 5.1 Red: `KeyHintColumnsShould.EndEveryKeyBy112AndEveryWordBy123`, `OverlapNoColumnOnAnyRow` (rows considered, so the third column under the logo is allowed) and `StartTheThirdColumnBelowTheLogo` (first row 2). Green: `Layout` with a first row per column and the widths design.md names. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
+  - The second column's key sits at 85 with width 6, not 86 with width 4 as design.md says: the worktrees view's `<esc>` is five cells and sits in that column, and 85 leaves a cell before its words at 91. Everything else is as designed.
 - [ ] 5.2 `TableScreen.AddKeyHints` starts each column at its first row. Verify with a headless capture at 126 x 36 that `<p>` reads "Open PR" beside it in both views under the logo, and at 120 x 36 that `<p>` shows with its words cut and "Close empty tabs" is whole.
 
 ## 6. The help fits the screen (issue #89)
