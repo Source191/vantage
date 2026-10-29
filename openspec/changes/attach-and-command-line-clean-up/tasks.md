@@ -18,7 +18,7 @@
 ## 4. Remove the agent-view key
 
 - [x] 4.1 Red: in `SessionsViewShould` the `'a'` row of the key table goes and a fact asserts `a` produces no effect; `WordingOfKeysAndColumnsShould`'s expected lines lose "a Agent view"; `ScreenLoopShould`'s hand-off case uses `AttachToSession`; `TerminalEffectsShould.OpenTheNativeAgentView` and `ClaudeCliShould.OpenTheNativeAgentViewInteractively` are deleted. Green: delete `OpenAgentView`, its reducer case, the `TerminalEffects` case, `IClaudeCli.OpenAgentViewAsync` and `ClaudeCli`'s method, and the `a` line in `SessionsKeys`; the build names every other user. Verify both suites pass, including the reflection facts for keys and leaving effects.
-- [ ] 4.2 README: remove the `a` row from the keys table, the "The native agent view (a)" paragraph and the "Something needs Claude Code's own screen" entry's key, saying `claude agents` in a shell instead; reword the roadmap's pinning line without the key. Verify `grep -n "agent view" README.md` finds only the roadmap and the troubleshooting sentence.
+- [x] 4.2 README: remove the `a` row from the keys table, the "The native agent view (a)" paragraph and the "Something needs Claude Code's own screen" entry's key, saying `claude agents` in a shell instead; reword the roadmap's pinning line without the key. Verify `grep -n "agent view" README.md` finds only the roadmap and the troubleshooting sentence.
 
 ## 5. The 2.1.310 facts
 

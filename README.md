@@ -149,7 +149,6 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | C | Close every tab whose plain `claude` has never been sent a message, after a confirmation naming them |
 | b | Move a plain terminal session under Vantage's supervision (its tab becomes an ordinary shell) |
 | R | Resume sessions that stopped with a reboot |
-| a | Open Claude Code's own agent view |
 | c | Copy the selected row's full folder path to the clipboard |
 | e | Open the folder in your editor (VS Code unless you chose another in [Settings](#settings)); works on terminal and stopped sessions too |
 | v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which; none says so in the footer |
@@ -185,8 +184,6 @@ Enter never starts a session, so there is nothing to undo if you press it too so
 **Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. If the session has never had a message, Claude shows its agent list instead of a conversation: Space on the session sends it a prompt, Esc returns to Vantage. Vantage prints this reminder before every attach.
 
 **Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows `open`. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); close the tab (or detach in it) and the column clears within a few seconds.
-
-**The native agent view (a):** Claude Code's own `claude agents` screen, for anything Vantage does not do, such as pinning. Esc returns.
 
 ## The worktrees view
 
@@ -312,7 +309,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 **Find out what is cluttering the repositories folder.** `w` lists every worktree with dirty and unpushed counts and health. Empty leftover folders go with `d`; a worktree with uncommitted work needs `D` and the copied folder name, which is deliberate.
 
-**Something needs Claude Code's own screen.** `a` opens the native agent view; Esc returns.
+**Something needs Claude Code's own screen.** Run `claude agents` in any shell for the native agent view; Esc returns.
 
 ## Where Vantage keeps things
 
