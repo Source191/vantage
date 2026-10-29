@@ -69,13 +69,18 @@ public static partial class Wording
     /// <summary>The header's Sessions line: how many are listed, with a count for each state other than needs input, busiest first.</summary>
     public static string SessionsSummary(IReadOnlyList<SessionRow> rows)
     {
-        IEnumerable<string> byState = rows
+        string[] byState = [.. rows
             .Where(row => row.Session.State.Kind != DisplayStateKind.NeedsInput)
             .GroupBy(row => row.Session.State.Label)
             .OrderByDescending(group => group.Count())
-            .Select(group => $"{group.Count()} {group.Key}");
+            .Select(group => $"{group.Count()} {group.Key}")];
 
-        return rows.Count == 0 ? "none" : $"{rows.Count} ({string.Join(", ", byState)})";
+        return (rows.Count, byState.Length) switch
+        {
+            (0, _) => "none",
+            (_, 0) => $"{rows.Count}",
+            _ => $"{rows.Count} ({string.Join(", ", byState)})",
+        };
     }
 
     private static string Counted(int count, string noun) => count == 1 ? $"{count} {noun}" : $"{count} {noun}s";
