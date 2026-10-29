@@ -36,7 +36,7 @@ public static class CommandLine
     private static Command Here(CommandActions actions)
     {
         Argument<string?> name = new("name") { Arity = ArgumentArity.ZeroOrOne, Description = "The session's name; the folder's name when left out." };
-        Option<string?> prompt = new("--prompt", "-p") { Description = "An opening prompt to send; without one the session opens on Claude's agent list." };
+        Option<string?> prompt = new("--prompt", "-p") { Description = "An opening prompt to send; without one the session waits at its prompt." };
         Command here = new("here", "Start a supervised Claude Code session in this folder, on its current branch, and attach to it in this tab. Ctrl+Z detaches; the session keeps running.") { name, prompt };
         here.SetAction((parsed, cancellationToken) => OptionLikeName(parsed, name) is string token
             ? RefuseAsync(parsed, token)
