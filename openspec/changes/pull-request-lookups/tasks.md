@@ -19,7 +19,7 @@
 
 ## 4. Words and docs
 
-- [ ] 4.1 Red: `WordingOfPullRequestsShould` asserts the no-pull-request sentence reads "No pull request found for <row>'s branch." with no mention of 100. Green: the sentence. Verify the Core suite passes.
+- [x] 4.1 Red: `WordingOfPullRequestsShould` asserts the no-pull-request sentence reads "No pull request found for <row>'s branch." with no mention of 100. Green: the sentence. Verify the Core suite passes.
 - [ ] 4.2 README's "Pull requests" section: lookups run per branch for rows on screen, the 60-second and three-minute windows, four at once, and what a lookup costs; remove the "latest 100" wording. Verify by reading the section against design.md.
 
 ## 5. Version and checks
