@@ -203,7 +203,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static Footer ShowBreakdown(IEffectContext context, MemoryBreakdown breakdown)
     {
-        Confirm.Query(context.App, DialogName.Memory, Wording.MemoryDialogTitle(breakdown.SessionName), Wording.MemoryBreakdownLines(breakdown), "Close");
+        MemoryDialog.Show(context.App, Wording.MemoryDialogTitle(breakdown.SessionName), Wording.MemoryBreakdownLines(breakdown));
 
         return Footer.None;
     }
