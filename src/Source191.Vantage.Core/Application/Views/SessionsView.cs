@@ -175,6 +175,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
             { Name: KeyName.Character, Character: ',' } => Effect(state, new OpenSettings()),
             { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
+            { Name: KeyName.Character, Character: '!' } => Effect(state, new ShowProblemReport()),
             _ => Unchanged(state),
         };
     }

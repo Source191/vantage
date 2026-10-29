@@ -30,6 +30,9 @@ public static partial class Wording
             OpenTabOutcome tab => Describe(tab),
             StartSessionOutcome start => Describe(start),
             SaveSettingsOutcome => "Settings saved.",
+            ProblemReportOutcome.Opened => "Opened a problem report in your browser; describe the problem there and submit it.",
+            ProblemReportOutcome.NotOpened notOpened => $"Could not open the browser: {notOpened.Reason} Press ! and choose Copy text instead.",
+            ProblemReportOutcome.Copied => "Copied the problem report to the clipboard.",
             UpdateStartedOutcome update => $"Updating to {update.Newest} in a new tab; Vantage starts again there when it is done.",
             _ => outcome.ToString(),
         };

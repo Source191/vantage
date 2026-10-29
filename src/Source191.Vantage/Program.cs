@@ -33,7 +33,8 @@ DiagnosticLog log = new(TimeProvider.System, string.IsNullOrWhiteSpace(logPath) 
 Terminal.Gui.App.Logging.Logger = new TerminalGuiBridge(log);
 ProcessCounts processCounts = new();
 RecordedProcessRunner processes = new(new ProcessRunner(), log, processCounts, TimeProvider.System);
-CrashRecorder crashes = new(log, processCounts, new CrashFile(stateFolder));
+CrashFile crashFile = new(stateFolder);
+CrashRecorder crashes = new(log, processCounts, crashFile);
 AppDomain.CurrentDomain.UnhandledException += (_, unhandled) =>
 {
     if (unhandled.ExceptionObject is Exception exception)
@@ -118,7 +119,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     using NuGetPackageVersions packageVersions = new(version);
     bool optOutOfUpdateCheck = UpdateCheckOptOut.Applies(Environment.GetEnvironmentVariable(UpdateCheckOptOut.VariableName));
     UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
-    EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
+    EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders, crashFile);
     EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home), log);
     DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store), new RemoveWorktreeHandler(git, store, folders));
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);

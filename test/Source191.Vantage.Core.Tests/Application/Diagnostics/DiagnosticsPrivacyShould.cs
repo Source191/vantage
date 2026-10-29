@@ -110,7 +110,7 @@ public sealed class DiagnosticsPrivacyShould
     {
         InMemoryState store = new();
         LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);
-        EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders());
+        EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders(), new FakeCrashFile());
         EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, Vantage), TestSettings.Current(), new VantageProcess(4242, FolderPath.From(@"C:\Users\me")), log);
         PlannedWorktree worktree = PlannedWorktree.For(FolderPath.From(WorktreeRoot), FolderPath.From(Repository), WorktreeSlug.From(Branch));
         LaunchPlan plan = new(FolderPath.From(Repository), SessionName.From(Name), worktree, ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, Prompt, new RepositoryChoice("Northwind.Orders", FolderPath.From(Repository), IsRepository: true));

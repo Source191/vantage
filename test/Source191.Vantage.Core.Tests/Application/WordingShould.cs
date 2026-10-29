@@ -869,4 +869,27 @@ public sealed class WordingShould
     {
         Wording.TerminalSetupFailed(@"C:\f\vantage.json", "access denied").ShouldBe(@"Could not write C:\f\vantage.json: access denied");
     }
+
+    [Fact]
+    public void SayWhereAProblemReportGoesBeforeItGoes()
+    {
+        Wording.ProblemReportDialogTitle.ShouldBe("Report a problem");
+        Wording.ProblemReportExplanation.ShouldBe("Holds no names, paths or code. Opening the page passes the title and this text to GitHub in its address; nothing is public until you submit it there, where you describe the problem.");
+        Wording.ProblemReportTitleCaption.ShouldBe("Title (blank for a default)");
+        Wording.ProblemReportPreviewCaption.ShouldBe("Diagnostics the page will be filled in with");
+        Wording.ProblemReportButtons.ShouldBe(["Open in browser", "Copy text", "Cancel"]);
+    }
+
+    [Fact]
+    public void GiveABlankReportTitleTheVersion()
+    {
+        Wording.DefaultReportTitle(new ToolVersion("0.18.0")).ShouldBe("Problem report from Vantage 0.18.0");
+    }
+
+    [Fact]
+    public void SayWhyAReportTitleIsRefused()
+    {
+        Wording.Describe(ReportTitleProblem.TooLong).ShouldBe("A title can have at most 200 characters.");
+        Wording.Describe(ReportTitleProblem.Missing).ShouldBe("Type a title.");
+    }
 }

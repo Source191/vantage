@@ -12,6 +12,7 @@ public static partial class Wording
     private const string SettingsLine = "edit roots, worktree root and editor";
 
     private const string UpdateLine = "update Vantage in a new tab";
+    private const string ReportLine = "report a problem on GitHub";
 
     /// <summary>The title of Vantage's own tab outside a dialog; every writer of it uses this one value. The version is in the header.</summary>
     public static string TabTitle => "Vantage";
@@ -32,6 +33,7 @@ public static partial class Wording
         DialogName.ForceRemove => "Force remove",
         DialogName.OpenSolution => "Open solution",
         DialogName.Update => "Update",
+        DialogName.ProblemReport => ProblemReportDialogTitle,
     };
 
     /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
@@ -90,6 +92,7 @@ public static partial class Wording
         new("v", "Solution", "open its solution", Column: 2),
         new("p", "Open PR", "open its pull request in the browser", Column: 2),
         new("U", Hint: null, UpdateLine, Column: 1),
+        new("!", "Report", ReportLine, Column: 2),
     ];
 
     public static IReadOnlyList<KeyHelp> WorktreesKeys { get; } =
@@ -111,6 +114,7 @@ public static partial class Wording
         new("v", "Solution", "open its solution", Column: 2),
         new("p", "Open PR", "open its pull request in the browser", Column: 2),
         new("U", Hint: null, UpdateLine, Column: 1),
+        new("!", "Report", ReportLine, Column: 2),
     ];
 
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =
