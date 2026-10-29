@@ -141,6 +141,20 @@ public sealed class WizardViewShould
     }
 
     [Fact]
+    public void MoveEnterThroughTheFormInOrder()
+    {
+        WizardState inName = Reduce(InAgents, new WizardInput.ConfirmRepository());
+        WizardState inMode = Reduce(inName, new WizardInput.NextField());
+        WizardState inBase = Reduce(inMode, new WizardInput.NextField());
+        WizardState inPrompt = Reduce(inBase, new WizardInput.NextField());
+
+        inMode.Focus.ShouldBe(WizardField.Mode);
+        inBase.Focus.ShouldBe(WizardField.Base);
+        inPrompt.Focus.ShouldBe(WizardField.Prompt);
+        Reduce(inPrompt, new WizardInput.NextField()).Focus.ShouldBe(WizardField.Prompt);
+    }
+
+    [Fact]
     public void FollowFocusMovedByTheTerminal()
     {
         Reduce(InAgents, new WizardInput.FieldFocused(WizardField.Base)).Focus.ShouldBe(WizardField.Base);
