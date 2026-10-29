@@ -32,7 +32,7 @@ public sealed class WizardViewShould
     {
         WizardState opened = Opened;
 
-        opened.Choices.Select(choice => choice.Name).ShouldBe(["Northwind.Templates", "Northwind.Agents", "Northwind.Billing", "repos (no repository)"]);
+        opened.Choices.Select(choice => choice.Name).ShouldBe(["Northwind.Templates", "Northwind.Agents", "Northwind.Billing"]);
         opened.Chosen!.Name.ShouldBe("Northwind.Templates");
         opened.Focus.ShouldBe(WizardField.RepositoryFilter);
         opened.Problem.ShouldBe(new WizardProblem.None());
@@ -60,7 +60,7 @@ public sealed class WizardViewShould
     public void MoveAndPageTheListWithinBounds()
     {
         Reduce(Opened, new WizardInput.ListMoved(1)).Chosen!.Name.ShouldBe("Northwind.Agents");
-        Reduce(Opened, new WizardInput.ListMoved(20)).Chosen!.Name.ShouldBe("repos (no repository)", "a page past the end stops on the last choice");
+        Reduce(Opened, new WizardInput.ListMoved(20)).Chosen!.Name.ShouldBe("Northwind.Billing", "a page past the end stops on the last choice");
         Reduce(Opened, new WizardInput.ListMoved(-1)).Chosen!.Name.ShouldBe("Northwind.Templates", "the first choice is as far up as it goes");
         Reduce(Opened, new WizardInput.ChoiceSelected(2)).Chosen!.Name.ShouldBe("Northwind.Billing", "the list's own selection is the choice");
         Reduce(Opened, new WizardInput.ChoiceSelected(9)).Chosen!.Name.ShouldBe("Northwind.Templates", "an index outside the list changes nothing");
@@ -210,18 +210,6 @@ public sealed class WizardViewShould
         plan.Worktree.ShouldNotBeNull();
     }
 
-    [Fact]
-    public void StartWithTheDefaultsRefusesAFolderThatIsNotARepository()
-    {
-        WizardState noRepository = Reduce(Reduce(Opened, new WizardInput.FilterChanged("no repository")), new WizardInput.NameChanged("fix-123"));
-
-        WizardUpdate refused = WizardView.Reduce(noRepository, new WizardInput.Start(OpenInTab: false));
-
-        refused.ShouldSatisfyAllConditions(
-            update => update.Effect.ShouldBe(new WizardEffect.None()),
-            update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.WorktreeNeedsRepository())),
-            update => update.State.Focus.ShouldBe(WizardField.Name));
-    }
 
     [Fact]
     public void StartReusesAWorktreeFolderThatExists()
