@@ -24,13 +24,19 @@ public static class CommandLine
 
     /// <summary>
     /// Parses and runs. The library's termination handler is off (<c>ProcessTerminationTimeout</c> null): it would
-    /// cancel the action on Ctrl+C and force an exit two seconds later, even under an attached session.
+    /// cancel the action on Ctrl+C and force an exit two seconds later, even under an attached session. When the parse
+    /// has errors the action never runs, so an option-like name is named here first and the library's errors follow.
     /// </summary>
-    public static Task<int> InvokeAsync(RootCommand root, IReadOnlyList<string> arguments, TextWriter output, TextWriter error)
+    public static async Task<int> InvokeAsync(RootCommand root, IReadOnlyList<string> arguments, TextWriter output, TextWriter error)
     {
         InvocationConfiguration configuration = new() { Output = output, Error = error, ProcessTerminationTimeout = null };
+        ParseResult parsed = root.Parse(arguments);
+        if (parsed.Errors.Count > 0 && OptionLikeName(parsed) is string token)
+        {
+            await error.WriteLineAsync(Wording.NameLooksLikeAnOption(token));
+        }
 
-        return root.Parse(arguments).InvokeAsync(configuration);
+        return await parsed.InvokeAsync(configuration);
     }
 
     private static Command Here(CommandActions actions)
@@ -38,7 +44,7 @@ public static class CommandLine
         Argument<string?> name = new("name") { Arity = ArgumentArity.ZeroOrOne, Description = "The session's name; the folder's name when left out." };
         Option<string?> prompt = new("--prompt", "-p") { Description = "An opening prompt to send; without one the session waits at its prompt." };
         Command here = new("here", "Start a supervised Claude Code session in this folder, on its current branch, and attach to it in this tab. Ctrl+Z detaches; the session keeps running.") { name, prompt };
-        here.SetAction((parsed, cancellationToken) => OptionLikeName(parsed, name) is string token
+        here.SetAction((parsed, cancellationToken) => OptionLikeName(parsed) is string token
             ? RefuseAsync(parsed, token)
             : actions.StartHere(parsed.GetValue(name), parsed.GetValue(prompt), cancellationToken));
 
@@ -50,9 +56,11 @@ public static class CommandLine
     /// so this is most likely a mistyped one. Only the parse result's token list holds the <c>--</c>; a validator on the
     /// argument cannot see it.
     /// </summary>
-    private static string? OptionLikeName(ParseResult parsed, Argument<string?> name)
+    private static string? OptionLikeName(ParseResult parsed)
     {
-        if (parsed.GetResult(name)?.Tokens is not [Token token] || !token.Value.StartsWith('-'))
+        if (parsed.CommandResult.Command is not { Name: "here", Arguments: [Argument name] }
+            || parsed.GetResult(name)?.Tokens is not [Token token]
+            || !token.Value.StartsWith('-'))
         {
             return null;
         }

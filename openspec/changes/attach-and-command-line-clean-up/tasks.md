@@ -27,7 +27,7 @@
 
 ## 6. vantage here -d x
 
-- [ ] 6.1 Red: `CommandLineShould.NameTheOptionLikeNameBeforeTheLibrarysOwnError` invokes `here -d x` and asserts standard error starts with `Wording.NameLooksLikeAnOption("-d")`, then holds the library's sentence naming `x`, the exit code is 1 and `StartHere` was never called. Green: `CommandLine.InvokeAsync` inspects the parse result for an option-like name before invoking, as design.md says. Verify the Core suite passes and the existing `--promt` fact still passes.
+- [x] 6.1 Red: `CommandLineShould.NameTheOptionLikeNameBeforeTheLibrarysOwnError` invokes `here -d x` and asserts standard error starts with `Wording.NameLooksLikeAnOption("-d")`, then holds the library's sentence naming `x`, the exit code is 1 and `StartHere` was never called. Green: `CommandLine.InvokeAsync` inspects the parse result for an option-like name before invoking, as design.md says. Verify the Core suite passes and the existing `--promt` fact still passes.
 
 ## 7. Version and checks
 

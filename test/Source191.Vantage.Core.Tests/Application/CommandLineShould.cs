@@ -65,7 +65,7 @@ public sealed class CommandLineShould : IDisposable
 
         exitCode.ShouldBe(1);
         calls.ShouldBeEmpty();
-        error.ToString().ShouldContain(Wording.NameLooksLikeAnOption(token));
+        error.ToString().Split(Wording.NameLooksLikeAnOption(token)).Length.ShouldBe(2, "the sentence is written once");
         output.ToString().ShouldContain("--prompt");
     }
 
@@ -77,6 +77,7 @@ public sealed class CommandLineShould : IDisposable
         exitCode.ShouldBe(1);
         calls.ShouldBeEmpty();
         error.ToString().ShouldStartWith(Wording.NameLooksLikeAnOption("-d"));
+        error.ToString().Split(Wording.NameLooksLikeAnOption("-d")).Length.ShouldBe(2, "the sentence is written once");
         error.ToString().ShouldContain("'x'");
     }
 
