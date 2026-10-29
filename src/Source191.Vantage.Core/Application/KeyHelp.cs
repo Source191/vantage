@@ -4,7 +4,7 @@ namespace Source191.Vantage.Application;
 /// One key of a view: what the header shows (<paramref name="Hint"/>, null for a key only the help lists), the sentence
 /// the help and the hint's tooltip share (<paramref name="Line"/>) and the header column its hint sits in.
 /// </summary>
-public sealed record KeyHelp(string Key, string? Hint, string Line, int Column)
+public sealed record KeyHelp(string Key, string? Hint, string Line, int Column, string Tip = "")
 {
     /// <summary>The key as the header draws it, such as "&lt;enter&gt;" or "&lt;R&gt;".</summary>
     public string HeaderKey => $"<{Key}>";
