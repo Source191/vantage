@@ -43,9 +43,9 @@ internal sealed class SettingsControls
         [
             Caption(LeftColumn, 0, "Repository roots (one per line; repositories are found directly under each)"),
             Roots,
-            Caption(LeftColumn, 6, "Worktree root (new worktrees go here; created when first used)"),
+            Caption(LeftColumn, 6, "Worktree root (new worktrees go here; the worktrees view lists every worktree wherever it is)"),
             WorktreeRoot,
-            Caption(LeftColumn, 9, "Editor (↑↓ then Space to choose)"),
+            Caption(LeftColumn, 9, "Open folder with (↑↓ then Space to choose)"),
             Editor,
             .. Custom,
             Caption(BaseColumn, 9, "Worktree base (↑↓ then Space)"),
