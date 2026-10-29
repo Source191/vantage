@@ -4,7 +4,16 @@
 
 [![Buy me a sliver of a Claude Max plan](https://img.shields.io/badge/Buy_me_a_sliver_of_a-Claude_Max_plan-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/simonvane)
 
-Vantage is mission control for Claude Code on Windows. Every session on the machine sits in one Windows Terminal tab, with its state, repository, branch and pull request, so you no longer have to remember which tab is doing what or which one is waiting for you. Start a session in a fresh git worktree, attach to any session from the list, or open it in its own tab, named after the session and coloured so you can tell it apart at a glance; the terminal bell tells you when one needs you. Sessions run under Claude Code's own background supervisor, so they keep working when no terminal shows them, and they are still listed after you close the terminal or reboot, ready to resume with one key. When the work is done, one key deletes a session and removes its worktree too, unless that would lose uncommitted or unpushed work.
+Vantage is mission control for Claude Code on Windows: one Windows Terminal tab that shows every session on the machine, so you no longer have to remember which tab is doing what or which one is waiting for you.
+
+- **See every session at once:** each one is listed with its state, repository, branch and pull request.
+- **Start in a fresh worktree:** a new session gets its own git worktree, so sessions never trip over each other's changes.
+- **Attach, or open a tab:** attach to any session from the list, or open it in its own tab, named after the session and coloured so you can tell it apart at a glance.
+- **Hear when one needs you:** the terminal bell rings when a session finishes or pauses for you.
+- **Keep working when the terminal closes:** sessions run under Claude Code's own background supervisor, so they carry on when no terminal shows them and are still listed after a reboot, ready to resume with one key.
+- **Tidy up with one key:** when the work is done, delete a session and its worktree together, unless that would lose uncommitted or unpushed work.
+
+I built Vantage because I wanted a tool that worked the way I work. Before starting it I tried [Orca](https://github.com/stablyai/orca) and [Kepler](https://gitkraken.com/kepler), and there is a lot I like about both of them. But I live in the terminal and I want to stay in the terminal, and both of them also do a great deal that I was not interested in. Perhaps my mind will change over time; for now I wanted something that fits how I use Claude Code and nothing more. By all means try the others, but give Vantage a go too 😊
 
 > **To do:** add a screenshot of the sessions view here before the repository is made public.
 
