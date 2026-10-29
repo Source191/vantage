@@ -66,6 +66,18 @@ public static partial class Wording
         return $"{title.Shown} of {Counted(title.Total, title.Noun)} {verb} \"{title.Filter}\"{selection}";
     }
 
+    /// <summary>The header's Sessions line: how many are listed, with a count for each state other than needs input, busiest first.</summary>
+    public static string SessionsSummary(IReadOnlyList<SessionRow> rows)
+    {
+        IEnumerable<string> byState = rows
+            .Where(row => row.Session.State.Kind != DisplayStateKind.NeedsInput)
+            .GroupBy(row => row.Session.State.Label)
+            .OrderByDescending(group => group.Count())
+            .Select(group => $"{group.Count()} {group.Key}");
+
+        return rows.Count == 0 ? "none" : $"{rows.Count} ({string.Join(", ", byState)})";
+    }
+
     private static string Counted(int count, string noun) => count == 1 ? $"{count} {noun}" : $"{count} {noun}s";
 
     public static IReadOnlyList<KeyHelp> SessionsKeys { get; } =
