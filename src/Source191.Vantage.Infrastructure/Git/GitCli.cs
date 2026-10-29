@@ -29,7 +29,25 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
 
         arguments.Add(path);
 
-        return RunOrThrowAsync(repository, arguments, cancellationToken);
+        return RemoveAsync(repository, arguments, cancellationToken);
+    }
+
+    /// <summary>
+    /// Git deletes what it can and stops at a folder a tab or program still has open ("failed to delete ...: Permission
+    /// denied", or "Directory not empty" once the files are gone): read here, so no handler reads git's words.
+    /// </summary>
+    private async Task RemoveAsync(string repository, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    {
+        ProcessResult result = await RunAsync(repository, arguments, cancellationToken);
+        if (result.ExitCode == 0)
+        {
+            return;
+        }
+
+        string words = result.StandardError.Trim();
+        bool inUse = words.Contains("Permission denied", StringComparison.Ordinal) || words.Contains("Directory not empty", StringComparison.Ordinal);
+
+        throw new GitException($"git {string.Join(' ', arguments)} failed: {words}", inUse);
     }
 
     public async Task<int> PruneWorktreesAsync(string repository, CancellationToken cancellationToken)

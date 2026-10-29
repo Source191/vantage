@@ -77,4 +77,18 @@ public sealed class TabRegistrationShould
             colour: TabPalette.Default[0],
             createdAt: createdAt);
     }
+
+    [Fact]
+    public void FindTheOwningTerminalWhateverItsCaseAndUpToEightStepsAway()
+    {
+        FakeProcessRegistry processes = new FakeProcessRegistry().InTree(1, "windowsterminal", 0).InTree(4000, "pwsh", 1);
+        for (int process = 4001; process <= 4007; process++)
+        {
+            processes.InTree(process, "node", process - 1);
+        }
+
+        TabRegistration claimed = Pending(createdAt: Now).ClaimedBy(4007, ProcessStart);
+
+        claimed.OwningTerminal(processes).ShouldBe(1);
+    }
 }

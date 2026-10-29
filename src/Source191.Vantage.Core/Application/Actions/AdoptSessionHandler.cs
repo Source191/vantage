@@ -7,9 +7,11 @@ namespace Source191.Vantage.Application.Actions;
 
 /// <summary>
 /// Moves a session started as plain claude in another tab under the supervisor: end its process, then resume the
-/// same conversation with --bg and its name. The old tab drops back to its shell prompt. A session that has never
-/// been sent a message has no transcript, so there is nothing to resume and its process is left alone; so is a
-/// process that is no longer the session's (<see cref="ProcessIdentity"/>), because ending it would end something else.
+/// same conversation with --bg and its name. Its tab's shell is found before claude ends (the parent chain cannot be
+/// read afterwards) and ended cleanly once the resume continued, so the old tab closes; a failed resume keeps the shell
+/// at its prompt in the session's folder. A session that has never been sent a message has no transcript, so there is
+/// nothing to resume and its process is left alone; so is a process that is no longer the session's
+/// (<see cref="ProcessIdentity"/>), because ending it would end something else.
 /// </summary>
 public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry processes, ITranscripts transcripts) : IEffectHandler<AdoptSession>
 {
@@ -26,14 +28,24 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
             return new AdoptSessionOutcome.ProcessGone(session.Name);
         }
 
+        // The tab's shell, unless claude was the tab's root process itself and ending it closes the tab already.
+        int? shell = TerminalTab.ShellOf(session.ProcessId, processes) is int root && root != session.ProcessId ? root : null;
         processes.Terminate(session.ProcessId);
         // The port resumes under a name or under none: a listed name SessionName refuses resumes unnamed, so the bool is not needed.
         _ = SessionName.TryParse(session.Name, out SessionName? name);
         ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken);
 
-        return result.Continued
-            ? new AdoptSessionOutcome.Moved(session.Name)
-            : new AdoptSessionOutcome.Failed(session.Name, result.Message);
+        if (!result.Continued)
+        {
+            return new AdoptSessionOutcome.Failed(session.Name, result.Message);
+        }
+
+        if (shell is int tab)
+        {
+            processes.EndCleanly(tab);
+        }
+
+        return new AdoptSessionOutcome.Moved(session.Name, TabClosed: shell is not null);
     }
 }
 
@@ -42,7 +54,8 @@ public abstract record AdoptSessionOutcome : Outcome
 {
     public sealed record NoMessages(string Name) : AdoptSessionOutcome;
 
-    public sealed record Moved(string Name) : AdoptSessionOutcome;
+    /// <summary>Moved under the supervisor; TabClosed when the old tab's shell was ended, closing that tab.</summary>
+    public sealed record Moved(string Name, bool TabClosed) : AdoptSessionOutcome;
 
     public sealed record Failed(string Name, string Message) : AdoptSessionOutcome;
 

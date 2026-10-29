@@ -304,7 +304,7 @@ public sealed class WordingShould
     [Fact]
     public void SayWhatAHandlerDid()
     {
-        Wording.Describe(new Footer.Reported(new StopSessionOutcome("fix-123"))).ShouldBe("Stopped fix-123.");
+        Wording.Describe(new Footer.Reported(new StopSessionOutcome("fix-123", TabClosed: false))).ShouldBe("Stopped fix-123.");
     }
 
     [Fact]
@@ -626,7 +626,7 @@ public sealed class WordingShould
             _ when type == typeof(FolderPath) => FolderPath.From(@"D:\nowhere"),
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
-            _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123"),
+            _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123", TabClosed: false),
             _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
             _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
             _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),

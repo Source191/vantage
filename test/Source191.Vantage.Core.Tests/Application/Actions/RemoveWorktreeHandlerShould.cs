@@ -28,6 +28,16 @@ public sealed class RemoveWorktreeHandlerShould
     }
 
     [Fact]
+    public async Task ReportAWorktreeStillInUse()
+    {
+        processes.Answer(request => request.Arguments.Contains("remove"), new ProcessResult(255, string.Empty, "error: failed to delete 'C:/repos/Northwind.Orders-fix-123': Permission denied\n"));
+
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok), forced: false, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.InUse("Northwind.Orders-fix-123"));
+    }
+
+    [Fact]
     public async Task DeleteTheBranchWhenVantageCreatedItAndItIsMerged()
     {
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Noon));

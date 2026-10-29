@@ -45,7 +45,8 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASessionStopped()
     {
-        Wording.Describe(new StopSessionOutcome("fix-123")).ShouldBe("Stopped fix-123.");
+        Wording.Describe(new StopSessionOutcome("fix-123", TabClosed: false)).ShouldBe("Stopped fix-123.");
+        Wording.Describe(new StopSessionOutcome("fix-123", TabClosed: true)).ShouldBe("Stopped fix-123 and closed its tab.");
     }
 
 
@@ -59,7 +60,8 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASessionMovedUnderVantage()
     {
-        Wording.Describe(new AdoptSessionOutcome.Moved("repos-31")).ShouldBe("Moved repos-31 under Vantage; its old tab is now a plain shell.");
+        Wording.Describe(new AdoptSessionOutcome.Moved("repos-31", TabClosed: false)).ShouldBe("Moved repos-31 under Vantage.");
+        Wording.Describe(new AdoptSessionOutcome.Moved("repos-31", TabClosed: true)).ShouldBe("Moved repos-31 under Vantage and closed its old tab.");
     }
 
     [Fact]
@@ -77,13 +79,15 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASessionWasRenamed()
     {
-        Wording.Describe(new RenameSessionOutcome.Renamed("fix-123", "fix-124")).ShouldBe("Renamed fix-123 to fix-124; it restarts idle and keeps its conversation.");
+        Wording.Describe(new RenameSessionOutcome.Renamed("fix-123", "fix-124", TabMoved: false)).ShouldBe("Renamed fix-123 to fix-124; it restarts idle and keeps its conversation.");
+        Wording.Describe(new RenameSessionOutcome.Renamed("fix-123", "fix-124", TabMoved: true)).ShouldBe("Renamed fix-123 to fix-124 and moved its tab; it restarts idle and keeps its conversation.");
     }
 
     [Fact]
     public void SayAFailedRenameWasPutBack()
     {
-        Wording.Describe(new RenameSessionOutcome.Restored("fix-123", "boom")).ShouldBe("Could not rename fix-123: boom; it is back under its old name.");
+        Wording.Describe(new RenameSessionOutcome.Restored("fix-123", "boom", TabClosed: false)).ShouldBe("Could not rename fix-123: boom; it is back under its old name.");
+        Wording.Describe(new RenameSessionOutcome.Restored("fix-123", "boom", TabClosed: true)).ShouldBe("Could not rename fix-123: boom; it is back under its old name and its tab is closed: o opens a new one.");
     }
 
     [Fact]
@@ -176,6 +180,8 @@ public sealed class WordingOfOutcomesShould
     public void SayASessionWasDeleted()
     {
         Wording.Describe(new DeleteSessionOutcome.Deleted("fix-123")).ShouldBe("Deleted fix-123.");
+        Wording.Describe(new DeleteSessionOutcome.Deleted("fix-123") { TabClosed = true }).ShouldBe("Deleted fix-123 and closed its tab.");
+        Wording.Describe(new DeleteSessionOutcome.RemovedWorktreeAndBranch("fix-123", BranchName.From("fix-123")) { TabClosed = true }).ShouldBe("Deleted fix-123 and closed its tab, and removed the worktree and branch fix-123.");
     }
 
     [Fact]
@@ -209,6 +215,21 @@ public sealed class WordingOfOutcomesShould
     public void GiveTheReasonARemovalWasRefused()
     {
         Wording.Describe(new RemoveWorktreeOutcome.Refused(new RemovalReason.ChangesWouldBeLost(3))).ShouldBe("Not removed: 3 changed or untracked files would be lost.");
+    }
+
+    [Fact]
+    public void SayAWorktreeIsStillInUse()
+    {
+        Wording.Describe(new RemoveWorktreeOutcome.InUse("Northwind.Orders-fix-123")).ShouldBe("Not removed: the folder Northwind.Orders-fix-123 is still in use by a tab or program; close it and remove again.");
+        Wording.Describe(new DeleteSessionOutcome.WorktreeInUse("fix-123", "Northwind.Orders-fix-123"))
+            .ShouldBe("Deleted fix-123; its worktree folder Northwind.Orders-fix-123 is still in use by a tab or program: close it and remove the folder from the worktrees view.");
+    }
+
+    [Fact]
+    public void SayABrokenWorktreeWasDeletedWithTheSession()
+    {
+        Wording.Describe(new DeleteSessionOutcome.RemovedWorktree("fix-123", new RemoveWorktreeOutcome.DeletedFolderAndPruned("Northwind.Orders-fix-123", 1, "Northwind.Orders")))
+            .ShouldBe("Deleted fix-123; deleted the folder Northwind.Orders-fix-123 and pruned 1 stale registration from Northwind.Orders.");
     }
 
     [Fact]
@@ -416,6 +437,7 @@ public sealed class WordingOfOutcomesShould
             _ when type == typeof(SessionId) => SessionId.From("sess-1"),
             _ when type == typeof(BranchName) => BranchName.From("fix-123"),
             _ when type == typeof(OpenTabOutcome) => new OpenTabOutcome.SwitchedTo("fix-123"),
+            _ when type == typeof(RemoveWorktreeOutcome) => new RemoveWorktreeOutcome.DeletedFolder("Northwind.Orders-fix-123"),
             _ when type == typeof(IReadOnlyList<string>) => new List<string> { "fix-123" },
             _ when type == typeof(IReadOnlyList<SkippedSession>) => new List<SkippedSession>(),
             _ when type == typeof(IReadOnlyList<ResumeNote>) => new List<ResumeNote>(),

@@ -20,11 +20,11 @@ public sealed class EffectDispatcherShould
     [Fact]
     public async Task RouteAnEffectToItsHandler()
     {
-        EffectDispatcher dispatcher = new EffectDispatcher().Register(new StopSessionHandler(new ClaudeCli(processes, Claude)));
+        EffectDispatcher dispatcher = new EffectDispatcher().Register(new StopSessionHandler(new ClaudeCli(processes, Claude), new SessionTabs(new InMemoryState(), new FakeProcessRegistry(), TimeProvider.System)));
         StopSession stop = new(Job(Repository));
 
         dispatcher.Handles(typeof(StopSession)).ShouldBeTrue();
-        (await dispatcher.DispatchAsync(stop, CancellationToken.None)).ShouldBe(new StopSessionOutcome("fix-123"));
+        (await dispatcher.DispatchAsync(stop, CancellationToken.None)).ShouldBe(new StopSessionOutcome("fix-123", TabClosed: false));
         processes.CapturedRequests.Single().Arguments.ShouldBe(["stop", "81cdb0f9"]);
     }
 

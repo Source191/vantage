@@ -27,7 +27,7 @@ public sealed class AdoptSessionHandlerShould
         ProcessRequest resume = processes.CapturedRequests.Single(request => request.Arguments.Contains("--resume"));
         resume.WorkingDirectory.ShouldBe(Repository);
         resume.Arguments.ShouldBe(["--bg", "--resume", "sess-9", "-n", "repos-31"]);
-        message.ShouldBe(new AdoptSessionOutcome.Moved("repos-31"));
+        message.ShouldBe(new AdoptSessionOutcome.Moved("repos-31", TabClosed: false));
     }
 
     [Fact]
@@ -67,4 +67,28 @@ public sealed class AdoptSessionHandlerShould
         processes.CapturedRequests.ShouldBeEmpty();
     }
 
+    [Fact]
+    public async Task CloseTheOldTabAfterAContinuedResume()
+    {
+        processTable.InTree(1, "WindowsTerminal", 0).InTree(4000, "pwsh", 1).InTree(4242, "claude", 4000);
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · repos-31", string.Empty));
+
+        Outcome message = await Handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-31", 4242)), CancellationToken.None);
+
+        processTable.Terminated.ShouldBe([4242]);
+        processTable.EndedCleanly.ShouldBe([4000]);
+        message.ShouldBe(new AdoptSessionOutcome.Moved("repos-31", TabClosed: true));
+    }
+
+    [Fact]
+    public async Task KeepTheOldShellWhenTheResumeFails()
+    {
+        processTable.InTree(1, "WindowsTerminal", 0).InTree(4000, "pwsh", 1).InTree(4242, "claude", 4000);
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(1, string.Empty, "source session not found"));
+
+        Outcome message = await Handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-31", 4242)), CancellationToken.None);
+
+        processTable.EndedCleanly.ShouldBeEmpty();
+        message.ShouldBeOfType<AdoptSessionOutcome.Failed>();
+    }
 }
