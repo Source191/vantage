@@ -127,9 +127,10 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     string? claudeVersionText = await claudeVersion;
     Started start = RecordStart(claudeVersionText);
     ProblemReports reports = new(log, processCounts, crashFile, start, settings);
-    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders), reports);
+    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders), reports, processRegistry);
+
     ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionText);
-    ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeCode, settings.Value, updates.Status), clipboard, log);
+    ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeCode, settings.Value, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero), clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
     WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context, folderLabels);

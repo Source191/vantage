@@ -334,6 +334,48 @@ public sealed class SessionsViewShould
     public static TheoryData<Key> SidewaysKeys => new(Key.Left, Key.Right);
 
     [Fact]
+    public void ShowTheMemoryOfARunningSessionOnM()
+    {
+        BackgroundSession running = WaitingJob with { ProcessId = 5151 };
+        SessionsViewState state = Reduce(SessionsViewState.Empty, new RowsLoaded([Row(running)]));
+
+        ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('m')));
+
+        update.Effects.ShouldBe([new ShowMemory(running, 5151)]);
+        update.State.Footer.ShouldBe(Footer.None);
+        new ShowMemory(running, 5151).ShouldBeAssignableTo<IDialogEffect>();
+    }
+
+    [Fact]
+    public void ShowTheMemoryOfATerminalSessionOnM()
+    {
+        SessionsViewState onInteractive = Press(Press(Loaded, Key.Down), Key.Down);
+        onInteractive.Selected.ShouldBe(Interactive);
+
+        ViewUpdate update = SessionsView.Reduce(onInteractive, new KeyPressed(Key.Of('m')));
+
+        update.Effects.ShouldBe([new ShowMemory(InteractiveTerminal, 4242)]);
+    }
+
+    [Fact]
+    public void SayThereIsNothingToMeasureForAStoppedSession()
+    {
+        SessionsViewState onStopped = Press(Press(Press(Loaded, Key.Down), Key.Down), Key.Down);
+        onStopped.Selected.ShouldBe(Stopped);
+
+        ViewUpdate update = SessionsView.Reduce(onStopped, new KeyPressed(Key.Of('m')));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Footer.ShouldBe(new Footer.NothingToMeasure("old-spike"));
+    }
+
+    [Fact]
+    public void SayNoSessionIsSelectedOnM()
+    {
+        SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of('m'))).State.Footer.ShouldBe(new Footer.NoSessionSelected());
+    }
+
+    [Fact]
     public void IgnoreTheRetiredAgentViewKey()
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('a')));

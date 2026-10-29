@@ -14,5 +14,6 @@ public enum DialogName
     ForceRemove,
     OpenSolution,
     Update,
+    Memory,
     ProblemReport,
 }

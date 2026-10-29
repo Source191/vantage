@@ -1,6 +1,7 @@
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Source191.Vantage.Application;
 
@@ -33,12 +34,25 @@ public static partial class Wording
         DialogName.ForceRemove => "Force remove",
         DialogName.OpenSolution => "Open solution",
         DialogName.Update => "Update",
+        DialogName.Memory => "Memory",
         DialogName.ProblemReport => ProblemReportDialogTitle,
     };
 
-    /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
-    public static string HeaderValues(ToolVersion vantage, ClaudeCodeVersion claude, Settings settings, UpdateStatus update)
-    => string.Join('\n', VantageVersion(vantage, update), ClaudeVersion(claude), string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
+    /// <summary>An amount of memory as the table and the breakdown write it: whole megabytes below 1,000 MB, gigabytes to one decimal from there.</summary>
+    public static string Memory(MemorySize size)
+    {
+        double megabytes = (double)size.Bytes / MemorySize.BytesPerMegabyte;
+        long whole = (long)Math.Round(megabytes);
+
+        return whole < 1000 ? $"{whole} MB" : $"{(megabytes / 1024).ToString("F1", CultureInfo.InvariantCulture)} GB";
+    }
+
+    /// <summary>The MEM cell: the figure, or a dash for a session with no process to measure.</summary>
+    public static string MemoryCell(MemorySize? size) => size is MemorySize measured ? Memory(measured) : "-";
+
+    /// <summary>The header's first four values, one per line: Vantage's version with its own memory, the Claude Code version, the repository roots and the worktree root.</summary>
+    public static string HeaderValues(ToolVersion vantage, ClaudeCodeVersion claude, Settings settings, UpdateStatus update, MemorySize vantageMemory)
+    => string.Join('\n', VantageVersion(vantage, update, vantageMemory), ClaudeVersion(claude), string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
 
     /// <summary>The Claude Code header value: the version as the CLI printed it, and the minimum with a prompt to update when it is older.</summary>
     private static string ClaudeVersion(ClaudeCodeVersion claude) => claude switch
@@ -49,9 +63,13 @@ public static partial class Wording
         _ => throw new UnreachableException(),
     };
 
-    /// <summary>The Vantage header value: the running version, and the newer release with the update key when one is known.</summary>
-    private static string VantageVersion(ToolVersion vantage, UpdateStatus update)
-        => update is UpdateStatus.Available available ? $"{vantage.Text} ({available.Newest} available, U to update)" : vantage.Text;
+    /// <summary>The Vantage header value: the running version, its own process's memory, and the newer release with the update key when one is known.</summary>
+    private static string VantageVersion(ToolVersion vantage, UpdateStatus update, MemorySize memory)
+    {
+        string notice = update is UpdateStatus.Available available ? $"; {available.Newest} available, U to update" : string.Empty;
+
+        return $"{vantage.Text} ({Memory(memory)}{notice})";
+    }
 
     /// <summary>The table's title: "7 sessions, selected: fix-123", or "2 of 7 sessions match "templates", selected: templates-sync" while a filter is set.</summary>
     public static string Describe(TableTitle title)
@@ -107,6 +125,7 @@ public static partial class Wording
         new("e", "Open folder", "open the folder in your editor", Column: 2, Tip: "Open the row's folder in the editor chosen in Settings."),
         new("v", "Solution", "open its solution", Column: 2, Tip: "Open the row's Visual Studio solution, asking when there are several."),
         new("p", "Open PR", "open its pull request in the browser", Column: 2, Tip: "Open the row's pull request in your browser."),
+        new("m", Hint: null, "what its memory is made of", Column: 1, Tip: "Show what the session's memory is made of: Claude Code and each program it runs."),
         new("U", Hint: null, UpdateLine, Column: 1, Tip: "Update Vantage to the newest release, in a tab of its own."),
         new("!", "Report", ReportLine, Column: 2, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
     ];
@@ -143,6 +162,7 @@ public static partial class Wording
         new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
         new("AGE", "time since the session started"),
         new("TAB", "terminal for a plain claude started in its own tab, open while a Vantage tab shows it"),
+        new("MEM", "private working set of the session's process and everything it started; - when it has no process"),
     ];
 
     public static IReadOnlyList<ColumnHelp> WorktreesColumns { get; } =

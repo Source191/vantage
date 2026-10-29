@@ -145,6 +145,7 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | PR | The branch's pull request: `#123 open` on GitHub (open, draft, merged, closed), `!123 active` on Azure DevOps (active, draft, completed, abandoned); an open one wins, else the most recent. Blank when there is none or it cannot be looked up; `p` says why. See [Pull requests](#pull-requests) |
 | AGE | Time since the session started |
 | TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session (the tab closes when its attach ends, so `open` clears with it) |
+| MEM | The memory the session's process and everything it started are using now: the private working set, the figure Task Manager's Memory column shows, so pages shared between the MCP servers' node processes count once and pages Windows has paged out do not count. `-` for a stopped session |
 
 NAME, REPOSITORY, FOLDER and BRANCH are cut at 28 characters with an ellipsis, so one long name cannot push the other columns off screen; Left and Right scroll the table to them, and the title, the filter and every key still use the full value.
 
@@ -167,6 +168,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | e | Open folder: open the row's folder with the program chosen under "Open folder with" in [Settings](#settings) (VS Code unless you chose another); works on terminal and stopped sessions too |
 | v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which from a list of their paths; none says so in the footer |
 | p | Open the row's pull request in your default browser; with none, the footer says why (no origin remote, a host Vantage does not know, `gh` or `az` missing or signed out, no pull request for the branch, or the lookup still running) |
+| m | Show what the session's memory is made of: Claude Code itself, then one line per program it started (an MCP server named from the package or executable that launched it, a shell running a command, anything else) with that program's whole tree, largest first, and the total with the process count. A snapshot, taken when the dialog opens; Esc or Close closes it. A stopped session has nothing to measure. Programs are named from their command lines, which are never shown or written anywhere |
 | , | Settings: the repository roots, the worktree root, what opens folders, the default worktree base and the update check (see [Settings](#settings)) |
 | U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | ! | Report a problem: shows the diagnostics a GitHub issue would carry, then opens the issue form in your browser or copies the text (see [Reporting a problem](#reporting-a-problem)) |
