@@ -21,7 +21,10 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
     }
 
     /// <summary>Opens a tab for a session, a listed row or one the wizard has just started, after forgetting any earlier tab registered for it, so that tab's colour is free again.</summary>
-    public async Task<OpenTabOutcome> OpenAsync(BackgroundSession session, CancellationToken cancellationToken)
+    public Task<OpenTabOutcome> OpenAsync(BackgroundSession session, CancellationToken cancellationToken) => OpenAsync(session, preferred: null, cancellationToken);
+
+    /// <summary>Opens a tab as above, in the preferred colour when no live tab uses it, such as a renamed session's old colour.</summary>
+    public async Task<OpenTabOutcome> OpenAsync(BackgroundSession session, TabColour? preferred, CancellationToken cancellationToken)
     {
         DateTimeOffset now = clock.GetUtcNow();
         foreach (TabRegistration earlier in (await tabs.ReadTabsAsync()).Where(tab => tab.Owner == new TabOwner.ForSession(session.SessionId)))
@@ -30,7 +33,8 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
         }
 
         IReadOnlyList<TabRegistration> live = new TabRegistrations(await tabs.ReadTabsAsync()).Live(now, processes);
-        ColourChoice colour = colours.Choose([.. live.Select(registration => registration.Colour)]);
+        TabColour[] inUse = [.. live.Select(registration => registration.Colour)];
+        ColourChoice colour = preferred is null ? colours.Choose(inUse) : colours.Choose(inUse, preferred);
         TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), colour.Colour, now);
         await tabs.WriteTabAsync(pending);
 

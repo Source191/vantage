@@ -77,13 +77,13 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASessionWasRenamed()
     {
-        Wording.Describe(new RenameSessionOutcome.Renamed("fix-123", "fix-124")).ShouldBe("Renamed fix-123 to fix-124; it restarts idle and keeps its conversation.");
+        Wording.Describe(new RenameSessionOutcome.Renamed("fix-123", "fix-124", TabMoved: false)).ShouldBe("Renamed fix-123 to fix-124; it restarts idle and keeps its conversation.");
     }
 
     [Fact]
     public void SayAFailedRenameWasPutBack()
     {
-        Wording.Describe(new RenameSessionOutcome.Restored("fix-123", "boom")).ShouldBe("Could not rename fix-123: boom; it is back under its old name.");
+        Wording.Describe(new RenameSessionOutcome.Restored("fix-123", "boom", TabClosed: false)).ShouldBe("Could not rename fix-123: boom; it is back under its old name.");
     }
 
     [Fact]

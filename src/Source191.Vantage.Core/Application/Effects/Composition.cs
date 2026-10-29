@@ -37,7 +37,7 @@ public static class Composition
             .Register(tabs)
             .Register(new StopSessionHandler(ports.Claude, sessionTabs))
             .Register(new AdoptSessionHandler(ports.Claude, ports.Processes, ports.Transcripts))
-            .Register(new RenameSessionHandler(ports.Claude, ports.Transcripts))
+            .Register(new RenameSessionHandler(ports.Claude, ports.Transcripts, ports.Tabs, sessionTabs, tabs))
             .Register(new CloseEmptyTerminalsHandler(ports.Processes, ports.Transcripts))
             .Register(new ResumeSessionsHandler(ports.Claude, ports.Transcripts))
             .Register(new DeleteBranchHandler(ports.Git))
