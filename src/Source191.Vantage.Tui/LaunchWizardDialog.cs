@@ -28,7 +28,10 @@ internal static class LaunchWizardDialog
         bool binding = false;
         IReadOnlyList<string> listed = [];
         WizardControls controls = new(state);
-        using Dialog dialog = new() { Title = Wording.WizardTitle(state), Width = Dim.Percent(90), Height = Dim.Percent(90) };
+        // A fixed folder's form is the directory, the name, a two-line preview and the prompt, so its dialog is sized to them.
+        using Dialog dialog = state.ShowsChooser
+            ? new() { Title = Wording.WizardTitle(state), Width = Dim.Percent(90), Height = Dim.Percent(90) }
+            : new() { Title = Wording.WizardTitle(state), Width = 84, Height = 23 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
         DialogTabTitle.Apply(app, dialog, DialogName.NewSession);
         dialog.Add(controls.All);
@@ -94,7 +97,18 @@ internal static class LaunchWizardDialog
         controls.Repositories.KeyDown += (_, key) => key.Handled = (key == GuiKey.Backspace || (!key.IsAlt && !key.IsCtrl && key.AsRune.Value >= ' ')) && controls.Filter.SetFocus() && controls.Filter.NewKeyDownEvent(key);
         controls.Filter.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.ConfirmRepository()));
         controls.Repositories.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.ConfirmRepository()));
-        controls.Name.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() => Apply(new WizardInput.NextField()));
+        // Enter in the name moves on, or for a fixed folder starts the session in a tab, so the texts are read again first as Start does.
+        controls.Name.Accepting += (_, accepting) => accepting.Handled = WizardControls.Handled(() =>
+        {
+            Apply(new WizardInput.NameChanged(controls.Name.Text));
+            Apply(new WizardInput.PromptChanged(controls.Prompt.Text));
+            Apply(new WizardInput.NextField());
+        });
+        // Enter on a selector's option would also choose that option; it only moves on, and the arrows change the choice.
+        // The focused option sees the key before the selector does, so the options are where it is caught.
+        controls.WhenEnterInSelectors(() => Apply(new WizardInput.NextField()));
+        // An Enter no control took would otherwise close the dialog with nothing started.
+        dialog.Accepting += (_, accepting) => accepting.Handled = true;
         dialog.KeyDown += (_, key) => key.Handled = (key == GuiKey.F5 || key == GuiKey.F6) && WizardControls.Handled(() => Start(openInTab: key == GuiKey.F6));
         // No default button: Enter never starts anything by itself. The function keys and the buttons do.
         dialog.AddButton(WizardControls.Button("_Start (F5)", () => Start(openInTab: false)));
