@@ -369,6 +369,12 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void SayWhereToSupportVantage()
+    {
+        Wording.SupportLine.ShouldBe("Buy me a sliver of a Claude Max plan: https://buymeacoffee.com/simonvane");
+    }
+
+    [Fact]
     public void WarnBeforeAForcedRemoval()
     {
         Wording.ForceRemoveWarning.ShouldBe("This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:");
