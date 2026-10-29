@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Domain;
 using System.Collections.ObjectModel;
 using Terminal.Gui.App;
@@ -12,7 +13,7 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 internal static class ChooseSolutionDialog
 {
-    public static int? Show(IApplication app, FolderPath folder, IReadOnlyList<string> files)
+    public static int? Show(IApplication app, DiagnosticLog log, FolderPath folder, IReadOnlyList<string> files)
     {
         int? answer = null;
         string question = Wording.ChooseSolutionQuestion(folder.Name);
@@ -22,7 +23,7 @@ internal static class ChooseSolutionDialog
         int height = Math.Min(paths.Length + 8, app.Screen.Height - 2);
         using Dialog dialog = new() { Title = Wording.ChooseSolutionTitle, Width = width, Height = height };
         dialog.SetScheme(Palette.Focusable(Palette.White));
-        DialogTabTitle.Apply(app, dialog, DialogName.OpenSolution);
+        DialogTabTitle.Apply(app, log, dialog, DialogName.OpenSolution);
 
         Label text = new() { X = 1, Y = 0, Width = Dim.Fill(1), Height = 1, Text = question };
         text.SetScheme(Palette.Plain(Palette.Amber));

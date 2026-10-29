@@ -1,0 +1,30 @@
+name: Problem report
+description: Report a problem with Vantage. Press ! in Vantage to open this form with its diagnostics filled in.
+labels: ["bug", "from-vantage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. The diagnostics below hold no names, paths or code: only versions, the kinds of what Vantage did, failures without their messages, and counts of the programs it ran. Read them, and delete anything you would rather not share before you submit.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did and what Vantage did. Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps
+      description: The keys you pressed, if you can repeat it.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics from Vantage
+      description: Filled in by Vantage's ! key. Leave it empty if you opened this form yourself.
+      render: text

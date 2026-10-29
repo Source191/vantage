@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Terminal.Gui.App;
@@ -55,6 +56,9 @@ internal interface IScreenDefinition<TState, TRow>
 internal interface IEffectContext
 {
     IApplication App { get; }
+
+    /// <summary>The diagnostic log, which every dialog records itself in by name when it opens.</summary>
+    DiagnosticLog Diagnostics { get; }
 
     /// <summary>The screen's key help, for the help dialog.</summary>
     string HelpText { get; }

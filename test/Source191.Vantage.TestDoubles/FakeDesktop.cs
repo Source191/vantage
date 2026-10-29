@@ -9,8 +9,16 @@ public sealed class FakeDesktop : IDesktop
 
     public List<ProcessRequest> Started { get; } = [];
 
+    /// <summary>When set, opening throws this, as Windows does when it cannot start the associated application.</summary>
+    public Exception? OpenFailure { get; set; }
+
     public Task OpenAsync(string file, CancellationToken cancellationToken)
     {
+        if (OpenFailure is not null)
+        {
+            throw OpenFailure;
+        }
+
         Opened.Add(file);
 
         return Task.CompletedTask;

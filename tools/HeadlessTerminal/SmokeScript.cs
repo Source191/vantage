@@ -4,8 +4,8 @@ namespace Source191.Vantage.HeadlessTerminal;
 
 /// <summary>
 /// The smoke run's steps, built from Wording so a renamed title or a rebound key needs no change here: open and cancel
-/// the Keys help, Settings and the new-session wizard on the sessions view, then on the worktrees view its help, the
-/// force-remove confirmation, the fixed-folder wizard and the solution chooser for the named worktree, and quit. Dialogs are recognised by the tab title each one sets,
+/// the Keys help, Settings, the new-session wizard and the problem report on the sessions view, then on the worktrees view its help,
+/// the force-remove confirmation, the fixed-folder wizard and the solution chooser for the named worktree, and quit. Dialogs are recognised by the tab title each one sets,
 /// views by a column only that view has; a key is looked up by its hint, and a lost hint fails with its name.
 /// </summary>
 public static class SmokeScript
@@ -31,6 +31,8 @@ public static class SmokeScript
             new SmokeStep(Opened(DialogName.Settings), escape, Usual),
             new SmokeStep(closed, KeyFor(sessions, "New session"), Usual),
             new SmokeStep(Opened(DialogName.NewSession), escape, Usual),
+            new SmokeStep(closed, KeyFor(sessions, "Report"), Usual),
+            new SmokeStep(Opened(DialogName.ProblemReport), escape, Usual),
             new SmokeStep(closed, KeyFor(sessions, "Worktrees"), Usual),
             new SmokeStep(worktreesView, string.Empty, Usual),
             // The scan has finished once the worktree is in the table; keys typed into the filter before then are lost.

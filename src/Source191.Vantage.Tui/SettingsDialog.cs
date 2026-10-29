@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.App;
@@ -16,7 +17,7 @@ namespace Source191.Vantage.Tui;
 internal static class SettingsDialog
 {
     /// <summary>The settings to save, or null when the dialog was cancelled.</summary>
-    public static Settings? Show(IApplication app, Settings current, Func<string, bool> folderExists)
+    public static Settings? Show(IApplication app, DiagnosticLog log, Settings current, Func<string, bool> folderExists)
     {
         SettingsState state = SettingsState.Open(current, folderExists);
         Settings? result = null;
@@ -24,7 +25,7 @@ internal static class SettingsDialog
         SettingsControls controls = new(state);
         using Dialog dialog = new() { Title = "Settings", Width = Dim.Percent(90), Height = 26 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
-        DialogTabTitle.Apply(app, dialog, DialogName.Settings);
+        DialogTabTitle.Apply(app, log, dialog, DialogName.Settings);
         dialog.Add(controls.All);
 
         void Apply(SettingsInput input)
