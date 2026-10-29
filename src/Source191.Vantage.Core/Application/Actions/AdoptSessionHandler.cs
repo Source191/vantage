@@ -26,7 +26,7 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
         ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken);
 
         return result.Continued
-            ? new AdoptSessionOutcome.Moved(session.Name)
+            ? new AdoptSessionOutcome.Moved(session.Name, TabClosed: false)
             : new AdoptSessionOutcome.Failed(session.Name, result.Message);
     }
 }
@@ -36,7 +36,8 @@ public abstract record AdoptSessionOutcome : Outcome
 {
     public sealed record NoMessages(string Name) : AdoptSessionOutcome;
 
-    public sealed record Moved(string Name) : AdoptSessionOutcome;
+    /// <summary>Moved under the supervisor; TabClosed when the old tab's shell was ended, closing that tab.</summary>
+    public sealed record Moved(string Name, bool TabClosed) : AdoptSessionOutcome;
 
     public sealed record Failed(string Name, string Message) : AdoptSessionOutcome;
 }

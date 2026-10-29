@@ -59,7 +59,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASessionMovedUnderVantage()
     {
-        Wording.Describe(new AdoptSessionOutcome.Moved("repos-31")).ShouldBe("Moved repos-31 under Vantage; its old tab is now a plain shell.");
+        Wording.Describe(new AdoptSessionOutcome.Moved("repos-31", TabClosed: false)).ShouldBe("Moved repos-31 under Vantage; its old tab is now a plain shell.");
     }
 
     [Fact]
