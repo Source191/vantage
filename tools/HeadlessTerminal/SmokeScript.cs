@@ -4,8 +4,8 @@ namespace Source191.Vantage.HeadlessTerminal;
 
 /// <summary>
 /// The smoke run's steps, built from Wording so a renamed title or a rebound key needs no change here: open and cancel
-/// the Keys help, Settings, the new-session wizard and the problem report on the sessions view, then on the worktrees view its help and the
-/// force-remove confirmation for the named worktree, and quit. Dialogs are recognised by the tab title each one sets,
+/// the Keys help, Settings, the new-session wizard and the problem report on the sessions view, then on the worktrees view its help,
+/// the force-remove confirmation, the fixed-folder wizard and the solution chooser for the named worktree, and quit. Dialogs are recognised by the tab title each one sets,
 /// views by a column only that view has; a key is looked up by its hint, and a lost hint fails with its name.
 /// </summary>
 public static class SmokeScript
@@ -13,7 +13,7 @@ public static class SmokeScript
     private static readonly TimeSpan Slow = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan Usual = TimeSpan.FromSeconds(20);
 
-    /// <param name="worktreeFolder">The folder name of an idle linked worktree under a repository root: force remove is refused with no dialog while a session uses it.</param>
+    /// <param name="worktreeFolder">The folder name of an idle linked worktree under a repository root, holding two solutions: force remove is refused with no dialog while a session uses it, and v asks only when there is more than one.</param>
     public static IReadOnlyList<SmokeStep> Build(string worktreeFolder)
     {
         IReadOnlyList<KeyHelp> sessions = Wording.SessionsKeys;
@@ -42,6 +42,12 @@ public static class SmokeScript
             new SmokeStep(CaptureMarker.Nothing, Sequence("enter"), Usual),
             new SmokeStep(CaptureMarker.Nothing, KeyFor(worktrees, "Force remove"), Usual),
             new SmokeStep(Opened(DialogName.ForceRemove), escape, Usual),
+            new SmokeStep(closed, KeyFor(worktrees, "Start session"), Usual),
+            // The fixed-folder wizard shares the new-session tab title, so its own dialog title tells it apart.
+            new SmokeStep(new CaptureMarker.ScreenText($"New session in {worktreeFolder}"), escape, Usual),
+            // The worktree holds two solutions, neither named after its repository, so v asks which one.
+            new SmokeStep(closed, KeyFor(worktrees, "Solution"), Usual),
+            new SmokeStep(Opened(DialogName.OpenSolution), escape, Usual),
             new SmokeStep(closed, KeyFor(worktrees, "Sessions"), Usual),
             new SmokeStep(sessionsView, KeyFor(sessions, "Quit"), Usual),
         ];

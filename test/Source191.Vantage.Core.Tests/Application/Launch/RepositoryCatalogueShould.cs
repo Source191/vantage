@@ -27,14 +27,12 @@ public sealed class RepositoryCatalogueShould
     }
 
     [Fact]
-    public void OfferTheRootItselfAsTheNoRepositoryChoiceLast()
+    public void OfferNoRootAsAChoice()
     {
-        IReadOnlyList<RepositoryChoice> choices = Catalogue.Choices(recent: [], filter: string.Empty);
+        IReadOnlyList<RepositoryChoice> choices = Catalogue.Choices(recent: [Path.Combine(Root, "Northwind.Templates")], filter: string.Empty);
 
-        RepositoryChoice last = choices[^1];
-        last.IsRepository.ShouldBeFalse();
-        last.Path.Value.ShouldBe(Root);
-        last.Name.ShouldContain("no repository");
+        choices.ShouldAllBe(choice => choice.IsRepository, "vantage here starts a session in any folder");
+        choices.Select(choice => choice.Name).ShouldBe(["Northwind.Templates", "Northwind.Agents", "Northwind.Billing"]);
     }
 
     [Fact]

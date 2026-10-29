@@ -5,6 +5,12 @@ namespace Source191.Vantage.Core.Tests.Domain;
 public sealed class EditorChoiceShould
 {
     [Fact]
+    public void OfferNoVisualStudioPreset()
+    {
+        Enum.GetValues<EditorPreset>().ShouldBe([EditorPreset.VsCode, EditorPreset.Cursor, EditorPreset.Rider, EditorPreset.Explorer, EditorPreset.Custom], "v opens solutions in Visual Studio; e opens folders");
+    }
+
+    [Fact]
     public void DefaultToVsCode()
     {
         EditorChoice.FromFile(preset: null, executable: null, arguments: null).ShouldBe(EditorChoice.VsCode);
@@ -42,7 +48,6 @@ public sealed class EditorChoiceShould
     [InlineData(EditorPreset.VsCode)]
     [InlineData(EditorPreset.Cursor)]
     [InlineData(EditorPreset.Rider)]
-    [InlineData(EditorPreset.VisualStudio)]
     [InlineData(EditorPreset.Explorer)]
     public void KeepAPresetWithoutAnyCommand(EditorPreset preset)
     {

@@ -11,8 +11,8 @@ public sealed record RepositoryChoice(string Name, FolderPath Path, bool IsRepos
 
 /// <summary>
 /// The repositories the wizard offers: every main checkout directly under the roots saved now, recently used ones
-/// first, and each root itself as a "no repository" choice for cross-repository work. A linked worktree (a .git
-/// file rather than a folder) under a root is not offered as a repository.
+/// first. A linked worktree (a .git file rather than a folder) under a root is not offered, and neither is a root
+/// itself: vantage here starts a session in any folder.
 /// </summary>
 public sealed class RepositoryCatalogue(IFolders folders, CurrentSettings settings)
 {
@@ -29,11 +29,8 @@ public sealed class RepositoryCatalogue(IFolders folders, CurrentSettings settin
             .Select(path => repositories.FirstOrDefault(choice => choice.Path == path))
             .OfType<RepositoryChoice>()];
         IEnumerable<RepositoryChoice> rest = repositories.Where(choice => !recentFirst.Contains(choice));
-        IEnumerable<RepositoryChoice> noRepository = roots
-            .Select(root => new RepositoryChoice($"{root.Name} (no repository)", root, IsRepository: false));
 
-        return [.. recentFirst.Concat(rest).Concat(noRepository)
-            .Where(choice => choice.Matches(filter))];
+        return [.. recentFirst.Concat(rest).Where(choice => choice.Matches(filter))];
     }
 
     private bool IsMainCheckout(string path) => folders.DirectoryExists(System.IO.Path.Combine(path, ".git"));

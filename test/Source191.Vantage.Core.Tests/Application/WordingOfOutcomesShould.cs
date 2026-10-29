@@ -289,7 +289,7 @@ public sealed class WordingOfOutcomesShould
     public void SayWhichEditorOpenedWhichFolder()
     {
         Wording.Describe(new OpenInEditorOutcome.Opened("Northwind.Orders", EditorChoice.VsCode)).ShouldBe("Opened Northwind.Orders in VS Code.");
-        Wording.Describe(new OpenInEditorOutcome.Opened("Northwind.Orders", EditorChoice.Of(EditorPreset.VisualStudio))).ShouldBe("Opened Northwind.Orders in Visual Studio.");
+        Wording.Describe(new OpenInEditorOutcome.Opened("Northwind.Orders", EditorChoice.Of(EditorPreset.Rider))).ShouldBe("Opened Northwind.Orders in Rider.");
         Wording.Describe(new OpenInEditorOutcome.Opened("Northwind.Orders", EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]))).ShouldBe("Opened Northwind.Orders in subl.");
     }
 

@@ -165,11 +165,11 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | b | Move a plain terminal session under Vantage's supervision; its old tab closes once the session has resumed (a failed resume leaves it at its prompt) |
 | R | Resume sessions that stopped with a reboot |
 | c | Copy the selected row's full folder path to the clipboard |
-| e | Open the folder in your editor (VS Code unless you chose another in [Settings](#settings)); works on terminal and stopped sessions too |
-| v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which; none says so in the footer |
+| e | Open folder: open the row's folder with the program chosen under "Open folder with" in [Settings](#settings) (VS Code unless you chose another); works on terminal and stopped sessions too |
+| v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which from a list of their paths; none says so in the footer |
 | p | Open the row's pull request in your default browser; with none, the footer says why (no origin remote, a host Vantage does not know, `gh` or `az` missing or signed out, no pull request for the branch, or the lookup still running) |
 | m | Show what the session's memory is made of: Claude Code itself, then one line per program it started (an MCP server named from the package or executable that launched it, a shell running a command, anything else) with that program's whole tree, largest first, and the total with the process count. A snapshot, taken when the dialog opens; Esc or Close closes it. A stopped session has nothing to measure. Programs are named from their command lines, which are never shown or written anywhere |
-| , | Settings: the repository roots, the worktree root, the editor, the default worktree base and the update check (see [Settings](#settings)) |
+| , | Settings: the repository roots, the worktree root, what opens folders, the default worktree base and the update check (see [Settings](#settings)) |
 | U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | ! | Report a problem: shows the diagnostics a GitHub issue would carry, then opens the issue form in your browser or copies the text (see [Reporting a problem](#reporting-a-problem)) |
 | w | Switch to the worktrees view |
@@ -181,7 +181,7 @@ Rows marked `terminal` are sessions started by hand with `claude` in some tab. V
 
 ## The new session wizard
 
-Press `n`. The left column lists your repositories (recent ones first, then everything under the roots, then the roots themselves for a session with no repository); type to filter it and use the arrows to choose, then Enter confirms the repository and moves to the form. The right column is the form:
+Press `n`. The left column lists your repositories (recent ones first, then everything under the roots); type to filter it and use the arrows to choose, then Enter confirms the repository and moves to the form. For a folder that is not a repository, run `vantage here` there instead. The right column is the form, and Tab and Enter both move down it in order: name, Where, worktree base, prompt (Enter on Where or the base only moves on; the arrows change them):
 
 - **Session name (required):** the label shown in the NAME column. It also names the worktree folder and branch when you choose a worktree.
 - **Where:** `New worktree`, the default, creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it in [Settings](#settings)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
@@ -194,7 +194,7 @@ A cyan line under the choices says exactly what will happen ("Worktree Northwind
 - **F6 Start and open in tab:** start it and open it in its own Windows Terminal tab straight away, as `o` does; Vantage stays on screen.
 - **Esc:** cancel.
 
-Enter never starts a session, so there is nothing to undo if you press it too soon. If a repository has not been trusted by Claude Code yet, the start is refused with an explanation and Vantage offers to open a plain tab there so you can run `claude` once and accept the trust prompt.
+Enter never starts a session here, so there is nothing to undo if you press it too soon. If a repository has not been trusted by Claude Code yet, the start is refused with an explanation and Vantage offers to open a plain tab there so you can run `claude` once and accept the trust prompt.
 
 ## Attaching, tabs and getting back
 
@@ -237,13 +237,13 @@ When nothing else needs saying, the footer explains the selected row's health in
 | D | Force removal: the folder name opens selected in a read-only box, so Ctrl+C copies it (F2 also copies, from anywhere in the dialog); Tab or Enter moves to the answer box, Ctrl+V pastes, Enter confirms. There is no Remove button; a wrong or empty answer keeps the dialog open and says what was typed, and Esc cancels. Never forces a locked worktree or one with a live session |
 | P | Prune stale registrations in the row's repository (`p` before 0.11.0) |
 | p | Open the row's pull request in your default browser, as in the sessions view |
-| s | Start a session in this worktree (the wizard opens with the directory fixed) |
+| s | Start a session in this worktree: a compact wizard with only the name and the prompt; type a name and Enter starts the session and opens it in its own tab (F5 starts it without a tab) |
 | o | Open a plain PowerShell tab in the worktree |
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
 | w, Esc | Back to the sessions view (Esc clears a filter first) |
 | Left, Right | Scroll the table sideways, as in the sessions view |
 | / | Filter by repository, folder, branch or health |
-| c, e, v | Copy the folder path, open the folder in your editor, open its solution, as in the sessions view; refused for a leftover whose folder is gone |
+| c, e, v | Copy the folder path, open the folder, open its solution (choosing from a list when there are several), as in the sessions view; refused for a leftover whose folder is gone |
 | , | Settings, as in the sessions view |
 | U | Update Vantage, as in the sessions view |
 | ! | Report a problem, as in the sessions view |
@@ -354,7 +354,7 @@ Press `,` in either view. The dialog shows:
 
 - **Repository roots:** one folder per line; the wizard offers every repository directly under each, and the worktrees view scans them. Each must be a full path that exists.
 - **Worktree root:** where new worktrees go, as `<worktree root>\<repository>-<name>`. It must be a full path; it is created when the first worktree goes there. Worktrees made beside their repository by earlier versions stay where they are and are still listed, removed and opened as before.
-- **Editor:** VS Code, Cursor, Rider, Visual Studio, Explorer, or Custom: an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The `e` key opens the selected row's folder in this editor.
+- **Open folder with:** VS Code, Cursor, Rider, Explorer, or Custom: an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The `e` key opens the selected row's folder with it. Visual Studio is not offered, because `v` opens solutions in it; a `config.json` that still names `VisualStudio` reads as VS Code, the other settings kept.
 - **Worktree base:** where a new worktree's branch starts by default, origin's default branch or the current HEAD.
 - **Check for updates daily:** whether Vantage asks nuget.org once a day for a newer release of itself (see [Updates](#updates)); on unless you turn it off.
 

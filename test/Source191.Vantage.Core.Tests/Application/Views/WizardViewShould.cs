@@ -32,7 +32,7 @@ public sealed class WizardViewShould
     {
         WizardState opened = Opened;
 
-        opened.Choices.Select(choice => choice.Name).ShouldBe(["Northwind.Templates", "Northwind.Agents", "Northwind.Billing", "repos (no repository)"]);
+        opened.Choices.Select(choice => choice.Name).ShouldBe(["Northwind.Templates", "Northwind.Agents", "Northwind.Billing"]);
         opened.Chosen!.Name.ShouldBe("Northwind.Templates");
         opened.Focus.ShouldBe(WizardField.RepositoryFilter);
         opened.Problem.ShouldBe(new WizardProblem.None());
@@ -60,7 +60,7 @@ public sealed class WizardViewShould
     public void MoveAndPageTheListWithinBounds()
     {
         Reduce(Opened, new WizardInput.ListMoved(1)).Chosen!.Name.ShouldBe("Northwind.Agents");
-        Reduce(Opened, new WizardInput.ListMoved(20)).Chosen!.Name.ShouldBe("repos (no repository)", "a page past the end stops on the last choice");
+        Reduce(Opened, new WizardInput.ListMoved(20)).Chosen!.Name.ShouldBe("Northwind.Billing", "a page past the end stops on the last choice");
         Reduce(Opened, new WizardInput.ListMoved(-1)).Chosen!.Name.ShouldBe("Northwind.Templates", "the first choice is as far up as it goes");
         Reduce(Opened, new WizardInput.ChoiceSelected(2)).Chosen!.Name.ShouldBe("Northwind.Billing", "the list's own selection is the choice");
         Reduce(Opened, new WizardInput.ChoiceSelected(9)).Chosen!.Name.ShouldBe("Northwind.Templates", "an index outside the list changes nothing");
@@ -141,6 +141,20 @@ public sealed class WizardViewShould
     }
 
     [Fact]
+    public void MoveEnterThroughTheFormInOrder()
+    {
+        WizardState inName = Reduce(InAgents, new WizardInput.ConfirmRepository());
+        WizardState inMode = Reduce(inName, new WizardInput.NextField());
+        WizardState inBase = Reduce(inMode, new WizardInput.NextField());
+        WizardState inPrompt = Reduce(inBase, new WizardInput.NextField());
+
+        inMode.Focus.ShouldBe(WizardField.Mode);
+        inBase.Focus.ShouldBe(WizardField.Base);
+        inPrompt.Focus.ShouldBe(WizardField.Prompt);
+        Reduce(inPrompt, new WizardInput.NextField()).Focus.ShouldBe(WizardField.Prompt);
+    }
+
+    [Fact]
     public void FollowFocusMovedByTheTerminal()
     {
         Reduce(InAgents, new WizardInput.FieldFocused(WizardField.Base)).Focus.ShouldBe(WizardField.Base);
@@ -196,18 +210,6 @@ public sealed class WizardViewShould
         plan.Worktree.ShouldNotBeNull();
     }
 
-    [Fact]
-    public void StartWithTheDefaultsRefusesAFolderThatIsNotARepository()
-    {
-        WizardState noRepository = Reduce(Reduce(Opened, new WizardInput.FilterChanged("no repository")), new WizardInput.NameChanged("fix-123"));
-
-        WizardUpdate refused = WizardView.Reduce(noRepository, new WizardInput.Start(OpenInTab: false));
-
-        refused.ShouldSatisfyAllConditions(
-            update => update.Effect.ShouldBe(new WizardEffect.None()),
-            update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.WorktreeNeedsRepository())),
-            update => update.State.Focus.ShouldBe(WizardField.Name));
-    }
 
     [Fact]
     public void StartReusesAWorktreeFolderThatExists()
@@ -247,8 +249,21 @@ public sealed class WizardViewShould
         fixedInBilling.Focus.ShouldBe(WizardField.Name);
         fixedInBilling.Chosen.ShouldBe(new RepositoryChoice("Northwind.Billing", FolderPath.From(Billing), IsRepository: true));
         fixedInBilling.Base.ShouldBe(WorktreeBase.Head, "the default base still comes from settings");
-        Reduce(fixedInBilling, new WizardInput.NextField())
-            .Focus.ShouldBe(WizardField.Name, "the Where choice is hidden, so Enter has nowhere to go");
+    }
+
+    [Fact]
+    public void StartAndOpenATabOnEnterInAFixedFoldersName()
+    {
+        WizardState named = Reduce(FixedInBilling, new WizardInput.NameChanged("Refund retry policy"));
+
+        WizardUpdate started = WizardView.Reduce(named, new WizardInput.NextField());
+        WizardUpdate blank = WizardView.Reduce(FixedInBilling, new WizardInput.NextField());
+
+        WizardEffect.Launch launch = started.Effect.ShouldBeOfType<WizardEffect.Launch>();
+        launch.OpenInTab.ShouldBeTrue();
+        launch.Plan.Directory.Value.ShouldBe(Billing);
+        blank.Effect.ShouldBeOfType<WizardEffect.None>();
+        blank.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)));
     }
 
     [Fact]
