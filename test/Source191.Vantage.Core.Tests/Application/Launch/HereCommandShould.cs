@@ -44,6 +44,12 @@ public sealed class HereCommandShould
     }
 
     [Fact]
+    public void RefuseADashLedPromptAsAFact()
+    {
+        HereCommand.Plan(Directory, "fix-tests", "-fix the tests", isRepository: _ => true).ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.PromptLooksLikeAnOption()));
+    }
+
+    [Fact]
     public void PlanANameWithASemicolonOrDoubleQuote()
     {
         HereCommand.Plan(Directory, "a;b", prompt: null, isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan.Name.Value.ShouldBe("a;b");

@@ -20,7 +20,7 @@ public sealed class PullRequestHostsShould : IDisposable
     public async Task SendEachRemoteToItsHost(string expected)
     {
         RemoteRepository repository = expected == "gh" ? new GitHubRepository("northwind", "Northwind.Orders") : new AzureDevOpsRepository("northwind", "Trading", "Northwind.Orders");
-        PullRequestHosts hosts = new(new GitHubPullRequests(processes), new AzureDevOpsPullRequests(processes, Az));
+        PullRequestHosts hosts = new(new GitHubPullRequests(processes, "gh"), new AzureDevOpsPullRequests(processes, Az));
 
         PullRequestListing listing = await hosts.ListAsync(repository, Checkout, BranchName.From("fix-123"), CancellationToken.None);
 

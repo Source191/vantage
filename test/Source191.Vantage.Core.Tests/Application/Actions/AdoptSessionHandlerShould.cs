@@ -43,6 +43,19 @@ public sealed class AdoptSessionHandlerShould
     }
 
     [Fact]
+    public async Task RefuseWhenTheProcessIdNowBelongsToAnotherProcess()
+    {
+        FakeProcessRegistry reused = new FakeProcessRegistry().Running(4242, Noon.AddMinutes(10));
+        AdoptSessionHandler handler = new(new ClaudeCli(processes, Claude), reused, transcripts);
+
+        Outcome message = await handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-31", 4242)), CancellationToken.None);
+
+        message.ShouldBe(new AdoptSessionOutcome.ProcessGone("repos-31"));
+        reused.Terminated.ShouldBeEmpty();
+        processes.CapturedRequests.ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task RefuseToAdoptASessionThatHasNoMessagesYetBecauseThereIsNothingToResume()
     {
         AdoptSessionHandler handler = new(new ClaudeCli(processes, Claude), processTable, new FakeTranscripts());

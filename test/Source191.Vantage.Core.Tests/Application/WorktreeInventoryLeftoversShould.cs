@@ -19,9 +19,9 @@ public sealed class WorktreeInventoryLeftoversShould : IDisposable
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
         .Answer(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/Users/me/source/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n", string.Empty));
 
-    private readonly PullRequestCatalogue catalogue = new(new GitCli(new FakeProcessRunner().AnswerAll(new ProcessResult(2, string.Empty, string.Empty))), new FakePullRequests(), TimeProvider.System);
+    private readonly PullRequestCatalogue catalogue = new(new GitCli(new FakeProcessRunner().AnswerAll(new ProcessResult(2, string.Empty, string.Empty)), "git"), new FakePullRequests(), TimeProvider.System);
 
-    private WorktreeInventory Inventory => new(new GitCli(processes), folders, TestSettings.Current(Root), catalogue);
+    private WorktreeInventory Inventory => new(new GitCli(processes, "git"), folders, TestSettings.Current(Root), catalogue);
 
     [Fact]
     public async Task AskGitThreeThingsPerRegisteredWorktreeAndNothingAboutMergeState()
@@ -93,6 +93,22 @@ public sealed class WorktreeInventoryLeftoversShould : IDisposable
     }
 
     [Fact]
+    public async Task ReportAWorktreeOfARepositoryOutsideTheRootsAsElsewhere()
+    {
+        string worktree = Path.Combine(WorktreeRoot, "Northwind.Ledger-fix");
+        folders.WithFile(Path.Combine(worktree, ".git"), "gitdir: D:/other/Northwind.Ledger/.git/worktrees/fix\n")
+            .WithDirectory(@"D:\other\Northwind.Ledger\.git\worktrees\fix")
+            .WithFile(Path.Combine(worktree, "notes.txt"));
+
+        WorktreeRow row = (await Inventory.ScanAsync([], CancellationToken.None)).Single();
+
+        row.Health.Kind.ShouldBe(WorktreeHealthKind.Elsewhere);
+        row.Health.Reason.ShouldBe(new HealthReason.RepositoryOutsideRoots(FolderPath.From(@"D:\other\Northwind.Ledger")));
+        row.Repository.Value.ShouldBe(@"D:\other\Northwind.Ledger");
+        row.OwnerExists.ShouldBeTrue();
+    }
+
+    [Fact]
     public async Task FindABrokenWorktreeUnderTheWorktreeRoot()
     {
         string worktree = Path.Combine(WorktreeRoot, "Northwind.Orders-republish");
@@ -118,7 +134,7 @@ public sealed class WorktreeInventoryLeftoversShould : IDisposable
     {
         string sibling = Path.Combine(Root, "Northwind.Orders-republish");
         folders.WithFile(Path.Combine(sibling, ".git"), "gitdir: C:/Users/me/source/repos/Northwind.Orders/.git/worktrees/republish\n");
-        WorktreeInventory inventory = new(new GitCli(processes), folders, TestSettings.Current(TestSettings.For([Root], worktreeRoot: Root)), catalogue);
+        WorktreeInventory inventory = new(new GitCli(processes, "git"), folders, TestSettings.Current(TestSettings.For([Root], worktreeRoot: Root)), catalogue);
 
         (await inventory.ScanAsync([], CancellationToken.None)).Select(row => row.Path.Value).ShouldBe([sibling]);
     }
@@ -130,7 +146,7 @@ public sealed class WorktreeInventoryLeftoversShould : IDisposable
         string sibling = Path.Combine(Work, "Northwind.Ledger-republish");
         folders.WithFile(Path.Combine(sibling, ".git"), "gitdir: D:/work/Northwind.Ledger/.git/worktrees/republish\n");
         CurrentSettings settings = TestSettings.Current(Root);
-        WorktreeInventory inventory = new(new GitCli(processes), folders, settings, catalogue);
+        WorktreeInventory inventory = new(new GitCli(processes, "git"), folders, settings, catalogue);
 
         await settings.SaveAsync(TestSettings.For(Root, Work));
 

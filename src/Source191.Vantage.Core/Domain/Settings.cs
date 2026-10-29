@@ -133,6 +133,9 @@ public abstract record SettingsProblem
 
     public sealed record NoExecutable : SettingsProblem;
 
+    /// <summary>A bare name or a relative path would be searched for in the folder Vantage was started from.</summary>
+    public sealed record ExecutableNotFullPath : SettingsProblem;
+
     public sealed record BatchFileExecutable : SettingsProblem;
 
     public sealed record NoFolderPlaceholder : SettingsProblem;

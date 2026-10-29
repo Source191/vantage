@@ -16,11 +16,14 @@ jobs:
     name: Publish a release if the version changed
     runs-on: windows-latest
     timeout-minutes: 20
+    # contents to publish the release; id-token and attestations to sign the package's provenance.
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     steps:
       # The release is published with gh and GH_TOKEN, never git push, so git keeps no credentials.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
           persist-credentials: false
@@ -64,6 +67,13 @@ jobs:
       - uses: ./.github/actions/build-test-pack
         if: steps.check.outputs.changed == 'true'
         id: build
+
+      # Signed build provenance for the package: which commit and workflow built it, kept by GitHub and checked
+      # with `gh attestation verify <nupkg> --repo Source191/vantage` before a publish or an install.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        if: steps.check.outputs.changed == 'true'
+        with:
+          subject-path: ${{ steps.build.outputs.package }}
 
       # gh is on the runner, so no third-party action is needed for the release itself. A version with a
       # prerelease label (0.16.2-preview.1; the csproj never carries build metadata) is published as a

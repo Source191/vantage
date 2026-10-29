@@ -24,7 +24,7 @@ public sealed class PullRequestCatalogueShould : IDisposable
 
     public PullRequestCatalogueShould()
     {
-        catalogue = new PullRequestCatalogue(new GitCli(processes), hosts, clock);
+        catalogue = new PullRequestCatalogue(new GitCli(processes, "git"), hosts, clock);
     }
 
     [Fact]

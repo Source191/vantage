@@ -18,4 +18,7 @@ public abstract record HealthReason
     public sealed record EmptyLeftover : HealthReason;
 
     public sealed record NotRegistered : HealthReason;
+
+    /// <summary>A live worktree whose repository was not scanned because it is not under the roots.</summary>
+    public sealed record RepositoryOutsideRoots(FolderPath Repository) : HealthReason;
 }

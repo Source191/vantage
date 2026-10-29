@@ -14,7 +14,7 @@ public sealed class RemoveWorktreeHandlerShould
     private readonly FakeFolders folders = new();
     private readonly InMemoryState store = new();
 
-    private RemoveWorktreeHandler Handler => new(new GitCli(processes), store, folders);
+    private RemoveWorktreeHandler Handler => new(new GitCli(processes, "git"), store, folders);
 
     [Fact]
     public async Task RemoveACleanWorktreeAndOfferToDeleteAHandMadeBranch()
@@ -80,6 +80,22 @@ public sealed class RemoveWorktreeHandlerShould
         await Handler.RemoveAsync(dirty, forced: true, CancellationToken.None);
 
         GitCalls(processes).Single(request => request.Arguments.Contains("remove")).Arguments.ShouldBe(["worktree", "remove", "--force", Worktree]);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RefuseAnElsewhereRowAndTouchNothing(bool forced)
+    {
+        string folder = Path.Combine(Root, "Northwind.Ledger-fix");
+        folders.WithFile(Path.Combine(folder, "notes.txt"));
+        WorktreeRow elsewhere = Row(WorktreeHealthKind.Elsewhere, folder) with { DirtyFiles = 3 };
+
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(elsewhere, forced, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.Refused(new RemovalReason.RepositoryOutsideRoots()));
+        folders.DirectoryExists(folder).ShouldBeTrue();
+        GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("remove") || request.Arguments.Contains("prune"));
     }
 
     [Fact]

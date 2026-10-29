@@ -7,16 +7,22 @@ using System.Text.Json;
 namespace Source191.Vantage.Adapters.PullRequests;
 
 /// <summary>
-/// Lists one branch's pull requests in a GitHub repository with gh pr list. The only place gh's words are read: exit code 4 (and its
+/// Lists one branch's pull requests in a GitHub repository with gh pr list, run by the full path of gh.exe (null when
+/// it is not on the PATH, which reads as the CLI missing). The only place gh's words are read: exit code 4 (and its
 /// gh auth login hint) is not signed in, a gh that cannot start is missing, anything else failed.
 /// </summary>
-public sealed class GitHubPullRequests(IProcessRunner processes)
+public sealed class GitHubPullRequests(IProcessRunner processes, string? gh)
 {
     private const int NotSignedInExitCode = 4;
 
     public async Task<PullRequestListing> ListAsync(GitHubRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken)
     {
-        ProcessRequest request = new("gh", ["pr", "list", "--repo", $"{repository.Owner}/{repository.Name}", "--head", branch.Value, "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"], checkout.Value);
+        if (gh is null)
+        {
+            return new PullRequestListing.Unavailable(PullRequestGap.CliMissing);
+        }
+
+        ProcessRequest request = new(gh, ["pr", "list", "--repo", $"{repository.Owner}/{repository.Name}", "--head", branch.Value, "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"], checkout.Value);
         ProcessResult result;
         try
         {
@@ -58,10 +64,14 @@ public sealed class GitHubPullRequests(IProcessRunner processes)
         }
     }
 
+    /// <summary>A row whose link is not https is left out: the link is handed to the shell to open, so only a web page is accepted.</summary>
     private static BranchPullRequest? Row(JsonElement item)
     {
         PullRequestState? state = State(item.GetProperty("state").GetString(), item.GetProperty("isDraft").GetBoolean());
-        if (state is null || !BranchName.TryParse(item.GetProperty("headRefName").GetString(), out BranchName? branch) || !Uri.TryCreate(item.GetProperty("url").GetString(), UriKind.Absolute, out Uri? url))
+        if (state is null
+            || !BranchName.TryParse(item.GetProperty("headRefName").GetString(), out BranchName? branch)
+            || !Uri.TryCreate(item.GetProperty("url").GetString(), UriKind.Absolute, out Uri? url)
+            || url.Scheme != Uri.UriSchemeHttps)
         {
             return null;
         }

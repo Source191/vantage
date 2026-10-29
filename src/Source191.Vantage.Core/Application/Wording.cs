@@ -19,6 +19,13 @@ public static partial class Wording
     /// <summary>vantage here refuses a dash-led name that did not follow --, since it is most likely a mistyped option.</summary>
     public static string NameLooksLikeAnOption(string token) => $"{token} looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- {token}";
 
+    /// <summary>The console and vantage here print one of the next three and exit 1 when a program they need cannot be run.</summary>
+    public static string ClaudeNotFound => "Claude Code was not found. Install it with irm https://claude.ai/install.ps1 | iex, or put claude.exe on the PATH.";
+
+    public static string ClaudeIsABatchFile(string path) => $"Claude Code was found only as the batch file {path}, which Vantage does not run: cmd.exe would read session names and prompts as commands. Install the native build with irm https://claude.ai/install.ps1 | iex.";
+
+    public static string GitNotFound => "git was not found on the PATH. Install Git for Windows (winget install --id Git.Git --exact --source winget) and open a new terminal.";
+
     /// <summary>Where to support Vantage, printed under its description in <c>vantage --help</c>.</summary>
     public static string SupportLine => $"Buy me a sliver of a Claude Max plan: {SupportPage}";
 
@@ -110,6 +117,7 @@ public static partial class Wording
             RemovalReason.ChangesWouldBeLost changes => $"{changes.Count} changed or untracked files would be lost",
             RemovalReason.UnpushedCommits unpushed => $"branch {unpushed.Branch} has {unpushed.Count} unpushed commits",
             RemovalReason.LeftoverFolder => "leftover folder",
+            RemovalReason.RepositoryOutsideRoots => "its repository is not under the roots; add that root in settings or remove the worktree with git there",
             _ => reason.ToString(),
         };
     }
@@ -126,6 +134,7 @@ public static partial class Wording
             HealthReason.UnderClaudeWorktrees => @"under .claude\worktrees but git no longer lists it",
             HealthReason.EmptyLeftover => "leftover folder with nothing in it",
             HealthReason.NotRegistered => "folder is not registered with git",
+            HealthReason.RepositoryOutsideRoots outside => $"its repository {outside.Repository} is not under the roots",
             _ => reason.ToString(),
         };
     }
@@ -138,6 +147,7 @@ public static partial class Wording
             LaunchProblem.InvalidName invalid => Describe(invalid.Problem),
             LaunchProblem.WorktreeNeedsRepository => "A worktree needs a repository; choose one or start on the current branch.",
             LaunchProblem.WorktreeNeedsLetters => "A worktree needs a name with some letters or digits in it.",
+            LaunchProblem.PromptLooksLikeAnOption => "A prompt cannot start with a dash: Claude Code would read it as options. Start with a word.",
             _ => problem.ToString(),
         };
     }
@@ -152,6 +162,7 @@ public static partial class Wording
             SettingsProblem.RootMissing missing => $"{missing.Path} does not exist.",
             SettingsProblem.WorktreeRootNotFullPath => @"The worktree root must be a full path, such as C:\Users\me\source\worktrees.",
             SettingsProblem.NoExecutable => "A custom editor needs an executable.",
+            SettingsProblem.ExecutableNotFullPath => @"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Vantage was started from.",
             SettingsProblem.BatchFileExecutable => "A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.",
             SettingsProblem.NoFolderPlaceholder => $"A custom editor's arguments need {EditorChoice.FolderPlaceholder} where the folder goes.",
             _ => problem.ToString(),

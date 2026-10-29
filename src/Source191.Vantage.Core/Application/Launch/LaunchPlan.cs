@@ -35,6 +35,9 @@ public abstract record LaunchProblem
     public sealed record WorktreeNeedsRepository : LaunchProblem;
 
     public sealed record WorktreeNeedsLetters : LaunchProblem;
+
+    /// <summary>The opening prompt starts with a dash, which the CLI reads as options and has no -- to stop.</summary>
+    public sealed record PromptLooksLikeAnOption : LaunchProblem;
 }
 
 /// <summary>A plan, or the reason there is none.</summary>
@@ -60,6 +63,10 @@ public static class LaunchPlanBuilder
     private static LaunchPlanResult Build(LaunchRequest request, SessionName name, FolderPath worktreeRoot, Func<string, bool> folderExists)
     {
         string? prompt = Blank(request.OpeningPromptText) ? null : request.OpeningPromptText.Trim();
+        if (prompt is not null && prompt.StartsWith('-'))
+        {
+            return new LaunchPlanResult.Refused(new LaunchProblem.PromptLooksLikeAnOption());
+        }
 
         if (request.Mode == LaunchMode.CurrentBranch)
         {

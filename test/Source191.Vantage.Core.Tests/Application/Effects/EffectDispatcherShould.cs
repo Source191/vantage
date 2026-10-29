@@ -72,7 +72,7 @@ public sealed class EffectDispatcherShould
     public void HaveAHandlerForEveryEffectTheReducersCanProduce()
     {
         InMemoryState store = new();
-        GitCli git = new(processes);
+        GitCli git = new(processes, "git");
         ClaudeCli claude = new(processes, Claude);
         LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);
         EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders(), new FakeCrashFile());

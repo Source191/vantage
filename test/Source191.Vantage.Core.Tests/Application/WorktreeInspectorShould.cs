@@ -13,7 +13,7 @@ public sealed class WorktreeInspectorShould
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
 
-    private WorktreeInspector Inspector => new(new GitCli(processes));
+    private WorktreeInspector Inspector => new(new GitCli(processes, "git"));
 
     [Fact]
     public async Task GatherFactsForARegisteredWorktree()

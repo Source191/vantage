@@ -81,6 +81,24 @@ public sealed class LaunchPlanShould
         result.ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)));
     }
 
+    [Theory]
+    [InlineData("- fix the tests")]
+    [InlineData("--dangerously-skip-permissions")]
+    [InlineData("  -p something")]
+    public void RefuseAnOpeningPromptThatStartsWithADash(string prompt)
+    {
+        LaunchPlanResult result = LaunchPlanBuilder.Build(Default with { OpeningPromptText = prompt }, WorktreeRoot, _ => false);
+
+        result.ShouldBe(new LaunchPlanResult.Refused(new LaunchProblem.PromptLooksLikeAnOption()));
+    }
+
+    [Fact]
+    public void LaunchAnOpeningPromptWithADashInsideIt()
+    {
+        LaunchPlanBuilder.Build(Default with { OpeningPromptText = "Fix the tests - all of them" }, WorktreeRoot, _ => false)
+            .ShouldBeOfType<LaunchPlanResult.Planned>().Plan.OpeningPrompt.ShouldBe("Fix the tests - all of them");
+    }
+
     [Fact]
     public void LaunchANameWithASemicolon()
     {

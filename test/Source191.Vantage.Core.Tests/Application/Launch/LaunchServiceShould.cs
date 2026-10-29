@@ -29,7 +29,7 @@ public sealed class LaunchServiceShould
     {
         get
         {
-            GitCli git = new(processes);
+            GitCli git = new(processes, "git");
             return new LaunchService(new ClaudeCli(processes, Claude), git, Store, Store, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
         }
     }

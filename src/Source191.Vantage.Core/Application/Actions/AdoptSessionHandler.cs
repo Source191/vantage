@@ -10,7 +10,8 @@ namespace Source191.Vantage.Application.Actions;
 /// same conversation with --bg and its name. Its tab's shell is found before claude ends (the parent chain cannot be
 /// read afterwards) and ended cleanly once the resume continued, so the old tab closes; a failed resume keeps the shell
 /// at its prompt in the session's folder. A session that has never been sent a message has no transcript, so there is
-/// nothing to resume and its process is left alone.
+/// nothing to resume and its process is left alone; so is a process that is no longer the session's
+/// (<see cref="ProcessIdentity"/>), because ending it would end something else.
 /// </summary>
 public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry processes, ITranscripts transcripts) : IEffectHandler<AdoptSession>
 {
@@ -20,6 +21,11 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
         if (!transcripts.HasMessages(session.SessionId.Value))
         {
             return new AdoptSessionOutcome.NoMessages(session.Name);
+        }
+
+        if (!ProcessIdentity.StillTheSession(processes.StartTimeOf(session.ProcessId), session.StartedAt))
+        {
+            return new AdoptSessionOutcome.ProcessGone(session.Name);
         }
 
         // The tab's shell, unless claude was the tab's root process itself and ending it closes the tab already.
@@ -52,4 +58,7 @@ public abstract record AdoptSessionOutcome : Outcome
     public sealed record Moved(string Name, bool TabClosed) : AdoptSessionOutcome;
 
     public sealed record Failed(string Name, string Message) : AdoptSessionOutcome;
+
+    /// <summary>The listed process id now belongs to another process, so nothing was ended or resumed.</summary>
+    public sealed record ProcessGone(string Name) : AdoptSessionOutcome;
 }

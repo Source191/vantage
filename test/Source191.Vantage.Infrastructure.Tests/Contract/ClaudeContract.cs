@@ -1,4 +1,5 @@
 using Source191.Vantage.Adapters.Claude;
+using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Infrastructure.Tests.Contract;
 
@@ -16,7 +17,7 @@ internal static class ClaudeContract
     public static string Executable()
     {
         Assert.SkipUnless(Environment.GetEnvironmentVariable(Variable) == "1", $"Set {Variable}=1 to check the installed Claude Code CLI.");
-        string? executable = ClaudeExecutable.Locate();
+        string? executable = ClaudeExecutable.Locate() is ClaudeLocation.Found found ? found.Path : null;
         Assert.SkipWhen(executable is null, "Claude Code is not installed on this machine.");
 
         return executable;

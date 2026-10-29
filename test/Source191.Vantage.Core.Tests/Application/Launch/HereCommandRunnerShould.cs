@@ -29,7 +29,7 @@ public sealed class HereCommandRunnerShould : IDisposable
         get
         {
             ClaudeCli claude = new(processes, Claude);
-            GitCli git = new(processes);
+            GitCli git = new(processes, "git");
             InMemoryState state = new();
             LaunchService launches = new(claude, git, state, state, new WorktreeIncludeCopier(git), new FakeTimeProvider(Noon));
 
@@ -80,6 +80,16 @@ public sealed class HereCommandRunnerShould : IDisposable
         exitCode.ShouldBe(2);
         error.ToString().ShouldBe("A session name is required." + Environment.NewLine);
         processes.CapturedRequests.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ExitTwoAndStartNothingForADashLedPrompt()
+    {
+        int exitCode = await Runner.RunAsync(Directory, "fix-tests", "-fix the tests", CancellationToken.None);
+
+        exitCode.ShouldBe(2);
+        processes.CapturedRequests.ShouldBeEmpty();
+        processes.InteractiveRequests.ShouldBeEmpty();
     }
 
     public void Dispose()

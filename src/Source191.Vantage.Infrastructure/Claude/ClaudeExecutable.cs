@@ -1,31 +1,39 @@
+using Source191.Vantage.Adapters.Files;
+using Source191.Vantage.Adapters.Processes;
+using Source191.Vantage.Ports;
+
 namespace Source191.Vantage.Adapters.Claude;
 
 /// <summary>
-/// Finds the Claude Code executable: the native user-scope install first, then anything named claude on the PATH.
+/// Finds the Claude Code executable: the native user-scope install first, then a claude.exe in a folder on the PATH.
+/// A claude.cmd or claude.bat alone (the npm shim) is reported, never run: cmd.exe would read session names and
+/// prompts as commands.
 /// </summary>
 public static class ClaudeExecutable
 {
-    public static string? Locate()
+    private static readonly string[] BatchFiles = ["claude.cmd", "claude.bat"];
+
+    public static ClaudeLocation Locate() => Locate(new Folders(), PathFolders.ForCurrentUser(), Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
+
+    public static ClaudeLocation Locate(IFolders folders, IReadOnlyList<string> pathFolders, string home)
     {
-        string native = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local", "bin", "claude.exe");
-        if (File.Exists(native))
+        ArgumentNullException.ThrowIfNull(folders);
+        ArgumentNullException.ThrowIfNull(pathFolders);
+        string native = Path.Combine(home, ".local", "bin", "claude.exe");
+        if (folders.FileExists(native))
         {
-            return native;
+            return new ClaudeLocation.Found(native);
         }
 
-        string path = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
-        foreach (string folder in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        if (new ProgramLocator(folders, pathFolders).Locate("claude") is string executable)
         {
-            foreach (string candidate in new[] { "claude.exe", "claude.cmd" })
-            {
-                string full = Path.Combine(folder.Trim(), candidate);
-                if (File.Exists(full))
-                {
-                    return full;
-                }
-            }
+            return new ClaudeLocation.Found(executable);
         }
 
-        return null;
+        string? batchFile = pathFolders
+            .SelectMany(folder => BatchFiles.Select(name => Path.Combine(folder, name)))
+            .FirstOrDefault(folders.FileExists);
+
+        return batchFile is null ? new ClaudeLocation.Missing() : new ClaudeLocation.BatchFileOnly(batchFile);
     }
 }

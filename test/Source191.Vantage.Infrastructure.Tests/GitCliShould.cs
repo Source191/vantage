@@ -12,9 +12,19 @@ public sealed class GitCliShould
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
 
-    private GitCli Git => new(processes);
+    private GitCli Git => new(processes, "git");
 
     private ProcessRequest Only => processes.CapturedRequests.Single();
+
+    [Fact]
+    public async Task RunTheExecutableItWasGiven()
+    {
+        GitCli git = new(processes, @"C:\Program Files\Git\cmd\git.exe");
+
+        await git.CurrentBranchAsync(Worktree, CancellationToken.None);
+
+        Only.FileName.ShouldBe(@"C:\Program Files\Git\cmd\git.exe");
+    }
 
     [Fact]
     public async Task ReportAWorktreeFolderInUse()
