@@ -82,6 +82,16 @@ public sealed class HereCommandRunnerShould : IDisposable
         processes.CapturedRequests.ShouldBeEmpty();
     }
 
+    [Fact]
+    public async Task ExitTwoAndStartNothingForADashLedPrompt()
+    {
+        int exitCode = await Runner.RunAsync(Directory, "fix-tests", "-fix the tests", CancellationToken.None);
+
+        exitCode.ShouldBe(2);
+        processes.CapturedRequests.ShouldBeEmpty();
+        processes.InteractiveRequests.ShouldBeEmpty();
+    }
+
     public void Dispose()
     {
         output.Dispose();
