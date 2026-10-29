@@ -34,6 +34,7 @@ I built Vantage because I wanted a tool that worked the way I work. Before start
 - [Where Vantage keeps things](#where-vantage-keeps-things)
 - [Settings](#settings)
 - [Updates](#updates)
+- [What Vantage records](#what-vantage-records)
 - [Troubleshooting](#troubleshooting)
 - [Developing Vantage](#developing-vantage)
 - [Continuous integration](#continuous-integration)
@@ -336,6 +337,7 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 | `recent\` | One file per recently used repository, with when it was last used; the ten most recent are shown first in the wizard |
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
 | `tabs\` | One file per tab Vantage opened, so a second `o` switches to the tab instead of opening another |
+| `last-crash.log` | Written only when an exception ends Vantage: its diagnostic log, the child program counts and the crash; replaced by the next crash; see [What Vantage records](#what-vantage-records) |
 
 `vantage setup-terminal` also writes `%LOCALAPPDATA%\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json`, which belongs to Windows Terminal's fragment mechanism rather than to Vantage's own folder, and can set one line in `~\.claude\settings.json` (see [Windows Terminal setup](#windows-terminal-setup)).
 
@@ -373,9 +375,21 @@ A dotnet global tool never updates itself, so Vantage looks for you. Once a day 
 
 **What the check sends:** one anonymous HTTPS request to `https://api.nuget.org/v3-flatcontainer/source191.vantage/index.json`, the public list of the package's versions, with a `Vantage/<version>` user agent and nothing else that identifies you or your machine. Turn it off with **Check for updates daily** in [Settings](#settings) or `"checkForUpdates": false` in `config.json`. Setting the environment variable `VANTAGE_NO_UPDATE_CHECK` to any non-empty value (for a script or test harness) turns it off without touching `config.json`: no request is made and no `update-check.json` is written. The hand-off check in `tools\HeadlessTerminal` sets it.
 
+## What Vantage records
+
+Vantage keeps a diagnostic log in memory while it runs (the latest 500 events) so a problem can be diagnosed; it never leaves your machine by itself. It holds only facts Vantage defines in its own code:
+
+- **Start:** the Vantage, Claude Code, Windows and .NET versions and the terminal's size.
+- **What you did, as kinds:** the view and each dialog opened, each key's effect with the kind of its outcome and how long it took, each hand-off to `claude attach` or the agent view and the return.
+- **Failures:** where they happened and an exception summary: the exception's type and Vantage's stack frames (method, source file name and line), never the exception's message.
+- **Child programs:** counts by program (git, claude, gh, az, pwsh, wt, vswhere, dotnet or another program), subcommand from a fixed list of words and exit code, with the longest run; a line for one that takes longer than 5 seconds or cannot be started.
+- **Terminal.Gui:** its warnings and errors by level, without its message text, which can quote input it could not read.
+
+It never holds a path, a repository, branch, worktree or session name, a job or session id, a prompt, pull-request detail, a file name, anything a program printed, your user or machine name, or anything you typed; `DiagnosticEventsShould` and `DiagnosticsPrivacyShould` fail the build's tests if it could. `VANTAGE_LOG` writes the same lines to a file, and a crash writes them to `last-crash.log` (see [Where Vantage keeps things](#where-vantage-keeps-things)).
+
 ## Troubleshooting
 
-- **Keys stop working after returning from a session.** Set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage; the log records every hand-off and Terminal.Gui's own diagnostics. The known cause (blocking the UI thread after a hand-off) is fixed and guarded by the check in `tools\HeadlessTerminal`.
+- **Keys stop working after returning from a session.** Set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage; the file gets Vantage's diagnostic log as it happens (every hand-off and its return, the views and dialogs, failures, Terminal.Gui's warnings and errors) and the child program counts when Vantage quits; see [What Vantage records](#what-vantage-records). The known cause (blocking the UI thread after a hand-off) is fixed and guarded by the check in `tools\HeadlessTerminal`.
 - **"not trusted yet".** Claude Code refuses to start in a folder you have not trusted. Open a tab there, run `claude`, accept the prompt, then start again. Vantage never edits the trust records.
 - **No bell when a session needs you.** Run `vantage setup-terminal` and see [Windows Terminal setup](#windows-terminal-setup); it covers `preferredNotifChannel` in `~\.claude\settings.json` and the bell style and sound of the Windows Terminal profile. Claude only rings when it thinks you are away from the terminal.
 - **Tabs or sessions opened from Vantage have no colours.** Vantage was started from inside a Claude Code session, whose environment sets NO_COLOR; start Vantage from an ordinary tab.

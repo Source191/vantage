@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Diagnostics;
 using Source191.Vantage.Adapters.Files;
@@ -10,6 +9,7 @@ using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Adapters.Terminal;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.TerminalSetup;
@@ -27,18 +27,28 @@ ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?
 string vantageExecutable = Environment.ProcessPath ?? "vantage";
 TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser(Path.Combine(AppContext.BaseDirectory, "vantage.ico"));
 
-// VANTAGE_LOG=<file> turns on a diagnostic log of Vantage's hand-offs and Terminal.Gui's internals.
-ILogger log = Microsoft.Extensions.Logging.Abstractions.NullLogger.Instance;
+// The diagnostic log is always kept in memory; VANTAGE_LOG=<file> also writes it to that file.
 string? logPath = Environment.GetEnvironmentVariable("VANTAGE_LOG");
-if (!string.IsNullOrWhiteSpace(logPath))
+DiagnosticLog log = new(TimeProvider.System, string.IsNullOrWhiteSpace(logPath) ? [] : [new DiagnosticFile(logPath)]);
+Terminal.Gui.App.Logging.Logger = new TerminalGuiBridge(log);
+ProcessCounts processCounts = new();
+RecordedProcessRunner processes = new(new ProcessRunner(), log, processCounts, TimeProvider.System);
+CrashRecorder crashes = new(log, processCounts, new CrashFile(stateFolder));
+AppDomain.CurrentDomain.UnhandledException += (_, unhandled) =>
 {
-    log = new FileLogger(logPath, TimeProvider.System);
-    Terminal.Gui.App.Logging.Logger = log;
-    log.Started(Environment.ProcessId);
-}
+    if (unhandled.ExceptionObject is Exception exception)
+    {
+        crashes.Record(exception);
+    }
+};
+TaskScheduler.UnobservedTaskException += (_, unobserved) => crashes.RecordUnobserved(unobserved.Exception);
 
 // Help, version and parse errors are System.CommandLine's and need neither Claude Code nor a terminal tab.
-RootCommand root = CommandLine.Build(new CommandActions(OpenConsoleAsync, StartHereAsync, SetUpTerminalAsync, ClaimTabAsync));
+RootCommand root = CommandLine.Build(new CommandActions(
+    cancellationToken => crashes.GuardAsync(() => OpenConsoleAsync(cancellationToken)),
+    (name, prompt, cancellationToken) => crashes.GuardAsync(() => StartHereAsync(name, prompt, cancellationToken)),
+    SetUpTerminalAsync,
+    ClaimTabAsync));
 
 return await CommandLine.InvokeAsync(root, args, Console.Out, Console.Error);
 
@@ -67,10 +77,11 @@ async Task<int> StartHereAsync(string? name, string? prompt, CancellationToken c
         return 1;
     }
 
-    ProcessRunner processes = new();
     ClaudeCli claude = new(processes, claudeExecutable);
     GitCli git = new(processes);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
+    // here does not ask Claude Code for its version, so as not to slow the attach down.
+    RecordStart(null);
     TerminalConsole hereConsole = new(Console.Out, Wording.TabTitle);
     HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, hereConsole), hereConsole, Console.Out, Console.Error);
 
@@ -85,7 +96,6 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
         return 1;
     }
 
-    ProcessRunner processes = new();
     ClaudeCli claude = new(processes, claudeExecutable);
     string tabTitle = Wording.TabTitle;
     GitCli git = new(processes);
@@ -110,11 +120,13 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     bool optOutOfUpdateCheck = UpdateCheckOptOut.Applies(Environment.GetEnvironmentVariable(UpdateCheckOptOut.VariableName));
     UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
     EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders);
-    EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home));
+    EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home), log);
     DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders));
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);
-    ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(await claudeVersion);
-    ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeCode, settings.Value, updates.Status), clipboard);
+    string? claudeVersionText = await claudeVersion;
+    RecordStart(claudeVersionText);
+    ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionText);
+    ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeCode, settings.Value, updates.Status), clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
     WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context, folderLabels);
@@ -147,4 +159,11 @@ async Task<string?> LocateClaudeAsync()
     }
 
     return claudeExecutable;
+}
+
+// The start facts: versions and the terminal's size, never a path or a name.
+void RecordStart(string? claudeVersionText)
+{
+    Version? claudeCodeVersion = ClaudeVersion.TryParse(claudeVersionText, out Version? parsed) ? parsed : null;
+    log.Record(new Started(version, claudeCodeVersion, Environment.OSVersion.Version, Environment.Version, Console.WindowWidth, Console.WindowHeight));
 }

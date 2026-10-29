@@ -2,6 +2,7 @@ using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -19,7 +20,7 @@ public sealed class ScreenLoopShould : IDisposable
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
     private readonly FakeProcessRegistry registry = new FakeProcessRegistry().Running(100, Noon);
     private readonly FakeTerminalConsole console = new();
-    private readonly RecordingLogger log = new();
+    private readonly DiagnosticLog log = new(new FakeTimeProvider(Noon), []);
     private readonly StringWriter terminal = new();
 
     private ScreenLoop Loop(ScriptedSessionsScreen sessions, ScriptedWorktreesScreen worktrees, UpdateCheck? updates = null)
@@ -58,7 +59,9 @@ public sealed class ScreenLoopShould : IDisposable
 
         exitCode.ShouldBe(0);
         updates.Status.ShouldBe(new UpdateStatus.UpToDate());
-        log.Lines.ShouldBe(["The update check failed"]);
+        Failed failed = log.Snapshot().Select(timed => timed.Event).OfType<Failed>().Single();
+        failed.Site.ShouldBe(FailureSite.UpdateCheck);
+        failed.What.ShouldBe(CodeName.For(typeof(UpdateCheck)));
     }
 
     [Fact]
@@ -70,7 +73,7 @@ public sealed class ScreenLoopShould : IDisposable
         await loop.RunAsync(processId: 100, new CancellationToken(canceled: true));
 
         await Should.ThrowAsync<OperationCanceledException>(() => loop.UpdateCheckTask);
-        log.Lines.ShouldBeEmpty();
+        log.Snapshot().Select(timed => timed.Event).OfType<Failed>().ShouldBeEmpty();
     }
 
     [Fact]
@@ -99,6 +102,7 @@ public sealed class ScreenLoopShould : IDisposable
         worktrees.Runs.ShouldBe(2);
         sessions.Given[1].Selected.ShouldBe(Second);
         sessions.Given[2].Selected.ShouldBe(Second, "the selection survives the second trip");
+        log.Snapshot().Select(timed => ((ViewShown)timed.Event).View).ShouldBe([ViewKind.Sessions, ViewKind.Worktrees, ViewKind.Sessions, ViewKind.Worktrees, ViewKind.Sessions]);
     }
 
     [Fact]
@@ -114,7 +118,14 @@ public sealed class ScreenLoopShould : IDisposable
         processes.InteractiveRequests.Select(request => request.Arguments[0]).ShouldBe(["attach", "attach"]);
         console.Recovered.ShouldBe(2);
         console.Shown.Count.ShouldBe(3, "once at start and once after each hand-off");
-        log.Lines.ShouldContain("Handing the terminal to AttachToSession { JobId = 81cdb0f9 }");
+        log.Snapshot().Select(timed => timed.Event).ShouldBe([
+            new ViewShown(ViewKind.Sessions),
+            new HandingOver(CodeName.For(typeof(AttachToSession))),
+            new ChildReturned(),
+            new HandingOver(CodeName.For(typeof(AttachToSession))),
+            new ChildReturned(),
+        ]);
+        log.Snapshot().Select(DiagnosticLine.Render).ShouldAllBe(line => !line.Contains("81cdb0f9") && !line.Contains("92def0a1"));
     }
 
     public static TheoryData<Type> EffectsThatLeaveTheScreen => new(

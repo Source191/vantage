@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Actions;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -28,12 +29,12 @@ public sealed record VantageProcess(int ProcessId, FolderPath Home);
 /// </summary>
 public static class Composition
 {
-    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts, CurrentSettings settings, VantageProcess vantage)
+    public static EffectDispatcher Handlers(EffectPorts ports, LaunchService launches, TabScripts scripts, CurrentSettings settings, VantageProcess vantage, DiagnosticLog log)
     {
         OpenTabHandler tabs = new(ports.Tabs, ports.Processes, ports.Terminal, ports.Clock, scripts);
         SessionTabs sessionTabs = new(ports.Tabs, ports.Processes, ports.Clock);
 
-        return new EffectDispatcher()
+        return new EffectDispatcher(log, ports.Clock)
             .Register(tabs)
             .Register(new StopSessionHandler(ports.Claude, sessionTabs))
             .Register(new AdoptSessionHandler(ports.Claude, ports.Processes, ports.Transcripts))

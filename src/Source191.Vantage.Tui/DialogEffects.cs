@@ -18,7 +18,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// <summary>One flow per dialog effect, keyed by the effect's type; <see cref="Handles"/> lets <c>DialogEffectsShould</c> check the set is complete.</summary>
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
     {
-        [typeof(ShowHelp)] = (_, context, _) => HelpDialog.Show(context.App, "Keys", context.HelpText),
+        [typeof(ShowHelp)] = (_, context, _) => HelpDialog.Show(context.App, context.Diagnostics, "Keys", context.HelpText),
         [typeof(OpenLaunchWizard)] = (self, context, _) => self.StartSession(context, fixedDirectory: null),
         [typeof(StartSessionIn)] = (self, context, effect) => self.StartSession(context, ((StartSessionIn)effect).Row.Path),
         [typeof(AskForNewName)] = (_, context, effect) => Rename(context, ((AskForNewName)effect).Session),
@@ -49,7 +49,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>
     private static Footer AskAboutBranch(IEffectContext context, Outcome removal, BranchToConfirm branch, bool createdByVantage)
     {
-        int? answer = Confirm.Query(context.App, DialogName.DeleteBranch, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch.Value, createdByVantage), "Delete branch", "Keep");
+        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.DeleteBranch, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch.Value, createdByVantage), "Delete branch", "Keep");
         if (answer != 0)
         {
             return new Footer.BranchKept(removal);
@@ -63,14 +63,14 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static void Rename(IEffectContext context, BackgroundSession session)
     {
-        string? typed = NameDialog.Show(context.App, DialogName.Rename, "Rename session", Wording.RenamePrompt(session.Name), session.Name);
+        string? typed = NameDialog.Show(context.App, context.Diagnostics, DialogName.Rename, "Rename session", Wording.RenamePrompt(session.Name), session.Name);
         context.Reduce(new RenameConfirmed(session, typed));
     }
 
     private static void ConfirmCloseEmpty(IEffectContext context, CloseEmptyTerminals close)
     {
         string question = Wording.CloseEmptyQuestion([.. close.Sessions.Select(session => session.Name)]);
-        int? answer = Confirm.Query(context.App, DialogName.CloseEmpty, "Close empty terminal sessions", question, "Close", "Keep");
+        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.CloseEmpty, "Close empty terminal sessions", question, "Close", "Keep");
         if (answer != 0)
         {
             context.ShowFooter(new Footer.Kept());
@@ -84,7 +84,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     {
         // The checklist lists sessions in the order the table shows them, not the order the listing returned them.
         ResumePlan plan = ResumeSessionsHandler.Plan(rows);
-        IReadOnlyList<SessionRow> chosen = plan.ToChoose.Count == 0 ? [] : ResumeChecklistDialog.Show(context.App, plan.ToChoose);
+        IReadOnlyList<SessionRow> chosen = plan.ToChoose.Count == 0 ? [] : ResumeChecklistDialog.Show(context.App, context.Diagnostics, plan.ToChoose);
         List<SessionRow> toResume = [.. plan.Automatic, .. chosen];
         if (toResume.Count == 0)
         {
@@ -99,6 +99,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     {
         string? typed = TypedConfirmationDialog.Show(
             context.App,
+            context.Diagnostics,
             DialogName.ForceRemove,
             "Force remove",
             Wording.ForceRemoveWarning,
@@ -120,7 +121,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             return;
         }
 
-        int? answer = Confirm.Query(context.App, DialogName.Update, "Update Vantage", Wording.UpdateQuestion(available.Newest), "Update", "Cancel");
+        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.Update, "Update Vantage", Wording.UpdateQuestion(available.Newest), "Update", "Cancel");
         if (answer != 0)
         {
             return;
@@ -135,7 +136,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private void StartSession(IEffectContext context, FolderPath? fixedDirectory)
     {
-        WizardResult? wizard = LaunchWizardDialog.Show(context.App, catalogue, recent, folders, settings.Value, fixedDirectory);
+        WizardResult? wizard = LaunchWizardDialog.Show(context.App, context.Diagnostics, catalogue, recent, folders, settings.Value, fixedDirectory);
         if (wizard is null)
         {
             return;
@@ -147,7 +148,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// <summary>The settings dialog over the settings saved now; a save is dispatched, so the footer confirms it and the refresh after it uses the new values.</summary>
     private void EditSettings(IEffectContext context)
     {
-        Settings? saved = SettingsDialog.Show(context.App, settings.Value, folders.DirectoryExists);
+        Settings? saved = SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, folders.DirectoryExists);
         if (saved is null)
         {
             return;
@@ -159,7 +160,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     private void ConfirmDelete(IEffectContext context, DeleteSession deletion)
     {
         BackgroundSession session = deletion.Session;
-        int? answer = Confirm.Query(context.App, DialogName.DeleteSession, "Delete session", Wording.DeleteSessionQuestion(session.Name), "Delete", "Cancel");
+        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.DeleteSession, "Delete session", Wording.DeleteSessionQuestion(session.Name), "Delete", "Cancel");
         if (answer != 0)
         {
             return;
@@ -200,7 +201,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     private static Footer ChooseSolution(IEffectContext context, FindSolution find, IReadOnlyList<string> files)
     {
         string[] buttons = [.. files.Select(Path.GetFileName)!, "Cancel"];
-        int? answer = Confirm.Query(context.App, DialogName.OpenSolution, Wording.ChooseSolutionTitle, Wording.ChooseSolutionQuestion(find.Folder.Name), buttons);
+        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.OpenSolution, Wording.ChooseSolutionTitle, Wording.ChooseSolutionQuestion(find.Folder.Name), buttons);
 
         return answer is int chosen && chosen < files.Count
             ? Open(context, files[chosen])
