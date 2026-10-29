@@ -25,7 +25,7 @@
 
 - [x] 5.1 Red: `StopSessionHandlerShould.CloseTheTabAfterStopping` asserts the stop ran, then the shell was ended, and the outcome says the tab closed; `SayNothingAboutATabWhenThereIsNone`. Green: `StopSessionHandler` gains `SessionTabs`; `StopSessionOutcome` gains `TabClosed`; `Composition` wires it. Verify the Core suite passes.
 - [x] 5.2 Red: `RenameSessionHandlerShould.MoveTheTab` asserts the order rm, shell ended, resume, tab opened under the new name in the old colour, and the outcome `Renamed(old, new, TabMoved: true)`; `CloseTheTabWhenTheResumeFails` asserts no tab is opened and the outcome names the restore. Green: the handler with `SessionTabs` and `OpenTabHandler`. Verify the Core suite passes.
-- [ ] 5.3 Red: `AdoptSessionHandlerShould.CloseTheOldTabAfterAContinuedResume` (the shell found before claude is ended, ended after `Continued`) and `KeepTheOldShellWhenTheResumeFails`, using the process tree from `CloseEmptyTerminalsHandlerShould`. Green: the handler; `Moved` gains `TabClosed`. Verify the Core suite passes.
+- [x] 5.3 Red: `AdoptSessionHandlerShould.CloseTheOldTabAfterAContinuedResume` (the shell found before claude is ended, ended after `Continued`) and `KeepTheOldShellWhenTheResumeFails`, using the process tree from `CloseEmptyTerminalsHandlerShould`. Green: the handler; `Moved` gains `TabClosed`. Verify the Core suite passes.
 
 ## 6. Delete and the shared remover (Infrastructure, Application)
 
