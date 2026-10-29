@@ -33,6 +33,7 @@ public static partial class Wording
         DialogName.ForceRemove => "Force remove",
         DialogName.OpenSolution => "Open solution",
         DialogName.Update => "Update",
+        DialogName.Memory => "Memory",
     };
 
     /// <summary>An amount of memory as the table and the breakdown write it: whole megabytes below 1,000 MB, gigabytes to one decimal from there.</summary>
@@ -47,9 +48,9 @@ public static partial class Wording
     /// <summary>The MEM cell: the figure, or a dash for a session with no process to measure.</summary>
     public static string MemoryCell(MemorySize? size) => size is MemorySize measured ? Memory(measured) : "-";
 
-    /// <summary>The header's first four values, one per line: Vantage's version, the Claude Code version, the repository roots and the worktree root.</summary>
-    public static string HeaderValues(ToolVersion vantage, ClaudeCodeVersion claude, Settings settings, UpdateStatus update)
-    => string.Join('\n', VantageVersion(vantage, update), ClaudeVersion(claude), string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
+    /// <summary>The header's first four values, one per line: Vantage's version with its own memory, the Claude Code version, the repository roots and the worktree root.</summary>
+    public static string HeaderValues(ToolVersion vantage, ClaudeCodeVersion claude, Settings settings, UpdateStatus update, MemorySize vantageMemory)
+    => string.Join('\n', VantageVersion(vantage, update, vantageMemory), ClaudeVersion(claude), string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot);
 
     /// <summary>The Claude Code header value: the version as the CLI printed it, and the minimum with a prompt to update when it is older.</summary>
     private static string ClaudeVersion(ClaudeCodeVersion claude) => claude switch
@@ -60,9 +61,13 @@ public static partial class Wording
         _ => throw new UnreachableException(),
     };
 
-    /// <summary>The Vantage header value: the running version, and the newer release with the update key when one is known.</summary>
-    private static string VantageVersion(ToolVersion vantage, UpdateStatus update)
-        => update is UpdateStatus.Available available ? $"{vantage.Text} ({available.Newest} available, U to update)" : vantage.Text;
+    /// <summary>The Vantage header value: the running version, its own process's memory, and the newer release with the update key when one is known.</summary>
+    private static string VantageVersion(ToolVersion vantage, UpdateStatus update, MemorySize memory)
+    {
+        string notice = update is UpdateStatus.Available available ? $"; {available.Newest} available, U to update" : string.Empty;
+
+        return $"{vantage.Text} ({Memory(memory)}{notice})";
+    }
 
     /// <summary>The table's title: "7 sessions, selected: fix-123", or "2 of 7 sessions match "templates", selected: templates-sync" while a filter is set.</summary>
     public static string Describe(TableTitle title)
