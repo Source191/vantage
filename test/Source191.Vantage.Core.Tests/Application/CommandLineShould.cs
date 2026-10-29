@@ -156,6 +156,15 @@ public sealed class CommandLineShould : IDisposable
     }
 
     [Fact]
+    public async Task SayAnEmptySessionWaitsAtItsPrompt()
+    {
+        await InvokeAsync("here", "--help");
+
+        output.ToString().ShouldContain("waits at its prompt");
+        output.ToString().ShouldNotContain("agent list");
+    }
+
+    [Fact]
     public async Task PrintTheHelpOfSetupTerminal()
     {
         int exitCode = await InvokeAsync("setup-terminal", "-h");
