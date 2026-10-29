@@ -41,7 +41,7 @@ public sealed class MemorySizeShould
         sizes.OrderDescending().ShouldBe([MemorySize.FromMegabytes(100), MemorySize.FromMegabytes(30), MemorySize.Zero]);
         (MemorySize.FromMegabytes(30) < MemorySize.FromMegabytes(100)).ShouldBeTrue();
         (MemorySize.FromMegabytes(100) > MemorySize.FromMegabytes(30)).ShouldBeTrue();
-        (MemorySize.Zero <= MemorySize.Zero).ShouldBeTrue();
-        (MemorySize.Zero >= MemorySize.Zero).ShouldBeTrue();
+        (MemorySize.Zero <= MemorySize.FromMegabytes(0)).ShouldBeTrue();
+        (MemorySize.FromMegabytes(30) >= MemorySize.FromMegabytes(30)).ShouldBeTrue();
     }
 }
