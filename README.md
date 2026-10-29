@@ -134,7 +134,7 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | PR | The branch's pull request: `#123 open` on GitHub (open, draft, merged, closed), `!123 active` on Azure DevOps (active, draft, completed, abandoned); an open one wins, else the most recent. Blank when there is none or it cannot be looked up; `p` says why. See [Pull requests](#pull-requests) |
 | AGE | Time since the session started |
 | TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session |
-| MEM | The memory the session's process and everything it started are using now: the private working set, the figure Task Manager's Memory column shows, so pages shared between the MCP servers' node processes count once and pages Windows has paged out do not count. `-` for a stopped session. `m` shows what it is made of |
+| MEM | The memory the session's process and everything it started are using now: the private working set, the figure Task Manager's Memory column shows, so pages shared between the MCP servers' node processes count once and pages Windows has paged out do not count. `-` for a stopped session |
 
 Keys (every key is dispatched by the tested reducer, so this table is the reference):
 
