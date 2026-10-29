@@ -7,7 +7,7 @@
 
 ## 2. The wizard's rules (Application)
 
-- [ ] 2.1 Red: `WizardViewShould.MoveEnterThroughTheFormInOrder` asserts `NextField` goes name to Where with the chooser, name to prompt without it, Where to base, base to prompt, and prompt stays. Green: `WizardView.Next`. Verify the Core suite passes.
+- [x] 2.1 Red: `WizardViewShould.MoveEnterThroughTheFormInOrder` asserts `NextField` goes name to Where with the chooser, name to prompt without it, Where to base, base to prompt, and prompt stays. Green: `WizardView.Next`. Verify the Core suite passes.
 - [ ] 2.2 Red: `WizardViewShould.StartAndOpenATabOnEnterInAFixedFoldersName` asserts `NextField` from the name with a fixed choice and a valid name yields `WizardEffect.Launch` with `OpenInTab` true, and with a blank name the required-name problem. Green: the reducer. Verify the fact passes.
 - [ ] 2.3 Red: `RepositoryCatalogueShould.OfferNoRootAsAChoice` asserts the choices hold no "(no repository)" entry and recent-first ordering is unchanged. Green: drop the `noRepository` choices. Verify the Core suite passes.
 - [ ] 2.4 Red: `WordingShould` asserts `WizardHint` for a fixed folder reads "Enter starts and opens in tab   F5 start without a tab   Esc cancel" and for the full wizard is unchanged. Green: the sentence. Verify the fact passes.

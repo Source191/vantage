@@ -62,7 +62,7 @@ public static class WizardView
             : state with { Problem = new WizardProblem.None(), Focus = WizardField.Name };
     }
 
-    /// <summary>Enter in the name moves to the Where choice when it shows; anywhere else it stays.</summary>
+    /// <summary>Enter moves through the form in its order: the name to the Where choice when it shows, Where to the base, the base to the prompt; the prompt keeps it.</summary>
     private static WizardField Next(WizardState state)
     {
         return state.Focus switch
@@ -70,8 +70,8 @@ public static class WizardView
             WizardField.Name => state.ShowsChooser ? WizardField.Mode : WizardField.Name,
             WizardField.RepositoryFilter => WizardField.RepositoryFilter,
             WizardField.RepositoryList => WizardField.RepositoryList,
-            WizardField.Mode => WizardField.Mode,
-            WizardField.Base => WizardField.Base,
+            WizardField.Mode => WizardField.Base,
+            WizardField.Base => WizardField.Prompt,
             WizardField.Prompt => WizardField.Prompt,
         };
     }
