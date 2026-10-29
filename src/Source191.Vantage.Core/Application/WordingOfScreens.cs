@@ -175,7 +175,7 @@ public static partial class Wording
         new("UNPUSHED", "commits on its branch that no remote has"),
         new("LAST COMMIT", "time since the last commit"),
         new("SESSION", "the session running in it, if any"),
-        new("HEALTH", "ok; locked (by another tool); orphan (a folder git has forgotten);\nbroken (registration or owner gone); empty (a leftover folder)"),
+        new("HEALTH", "ok; locked (by another tool); orphan (a folder git has forgotten);\nbroken (registration or owner gone); empty (a leftover folder);\nelsewhere (a worktree of a repository outside the roots)"),
     ];
 
     /// <summary>The sessions view's help: its keys and columns, then the Claude Code executable Vantage drives.</summary>

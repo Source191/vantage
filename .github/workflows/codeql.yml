@@ -1,0 +1,48 @@
+name: codeql
+
+# CodeQL over the C# and the workflows, on every pull request and push to main, and once a week so a query that
+# lands after the last merge still runs. C# is analysed without a build (build-mode none), so it needs neither a
+# Windows runner nor an SDK. Not a required check: it adds minutes to a pull request, and a change to documentation
+# alone skips it. Findings land under Security, Code scanning.
+on:
+  pull_request:
+    paths-ignore: ['**/*.md', 'openspec/**']
+  push:
+    branches: [main]
+    paths-ignore: ['**/*.md', 'openspec/**']
+  schedule:
+    - cron: '41 4 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  analyse:
+    name: analyse (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: csharp
+            build-mode: none
+          - language: actions
+            build-mode: none
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.language }}

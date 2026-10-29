@@ -64,8 +64,8 @@ public sealed class SettingsShould
     [Fact]
     public void CompareByValue()
     {
-        Settings first = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.Custom("subl.exe", ["{folder}"]), defaultBase: null, Home);
-        Settings second = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.Custom("subl.exe", ["{folder}"]), defaultBase: null, Home);
+        Settings first = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]), defaultBase: null, Home);
+        Settings second = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]), defaultBase: null, Home);
 
         first.ShouldBe(second);
     }
@@ -127,6 +127,15 @@ public sealed class SettingsShould
         Refusal(Typed with { Preset = EditorPreset.Custom, Executable = executable, Arguments = "{folder}" }).ShouldBe(new SettingsProblem.BatchFileExecutable());
     }
 
+    [Theory]
+    [InlineData("subl")]
+    [InlineData("subl.exe")]
+    [InlineData(@"Tools\subl.exe")]
+    public void RefuseACustomEditorThatIsNotAFullPath(string executable)
+    {
+        Refusal(Typed with { Preset = EditorPreset.Custom, Executable = executable, Arguments = "{folder}" }).ShouldBe(new SettingsProblem.ExecutableNotFullPath());
+    }
+
     [Fact]
     public void RefuseACustomEditorWithNoPlaceholder()
     {
@@ -153,9 +162,9 @@ public sealed class SettingsShould
     [Fact]
     public void GiveBackTheTextItWasTypedFrom()
     {
-        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom("subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home);
 
-        settings.ToText().ShouldBe(new SettingsText($"{Root}\nD:\\work", @"E:\trees", EditorPreset.Custom, "subl.exe", "-n {folder}", WorktreeBase.Head));
+        settings.ToText().ShouldBe(new SettingsText($"{Root}\nD:\\work", @"E:\trees", EditorPreset.Custom, @"C:\Tools\subl.exe", "-n {folder}", WorktreeBase.Head));
     }
 
     [Fact]

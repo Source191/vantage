@@ -66,6 +66,20 @@ public sealed class RemovalDecisionShould
         decision.PruneRegistration.ShouldBeFalse();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void RefuseAnElsewhereWorktreeEvenWhenForced(bool forced)
+    {
+        RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Elsewhere, DirtyFileCount = 3 }, forced);
+
+        decision.Outcome.ShouldBe(RemovalOutcome.Refused);
+        decision.Reason.ShouldBe(new RemovalReason.RepositoryOutsideRoots());
+        decision.CanBeForced.ShouldBeFalse();
+        decision.Forced.ShouldBeFalse();
+        decision.Branch.ShouldBe(BranchAction.None);
+    }
+
     [Fact]
     public void RefuseAWorktreeWithALiveSessionEvenWhenForced()
     {

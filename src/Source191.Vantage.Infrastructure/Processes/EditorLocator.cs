@@ -9,10 +9,8 @@ public sealed record EditorFolders(IReadOnlyList<string> PathFolders, string Loc
 {
     public static EditorFolders ForCurrentUser()
     {
-        string[] path = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty).Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
         return new EditorFolders(
-            path,
+            Processes.PathFolders.ForCurrentUser(),
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),

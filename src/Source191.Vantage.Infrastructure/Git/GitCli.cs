@@ -4,7 +4,8 @@ using System.Globalization;
 
 namespace Source191.Vantage.Adapters.Git;
 
-public sealed class GitCli(IProcessRunner processes) : IGit
+/// <summary>Runs git by the full path it was given, so Windows never resolves a bare name against the current directory.</summary>
+public sealed class GitCli(IProcessRunner processes, string executable) : IGit
 {
     // Windows' "The directory name is invalid": the working directory given to CreateProcess does not exist.
     private const int ErrorDirectory = 267;
@@ -160,7 +161,7 @@ public sealed class GitCli(IProcessRunner processes) : IGit
     {
         try
         {
-            return await processes.RunAsync(new ProcessRequest("git", arguments, directory), cancellationToken);
+            return await processes.RunAsync(new ProcessRequest(executable, arguments, directory), cancellationToken);
         }
         catch (Win32Exception exception) when (exception.NativeErrorCode == ErrorDirectory)
         {

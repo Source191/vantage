@@ -25,10 +25,10 @@ public sealed class SessionRowEnricherShould : IDisposable
 
     public SessionRowEnricherShould()
     {
-        catalogue = new PullRequestCatalogue(new GitCli(remotes), hosts, clock);
+        catalogue = new PullRequestCatalogue(new GitCli(remotes, "git"), hosts, clock);
     }
 
-    private SessionRowEnricher Enricher => new(new GitCli(processes), store, registry, clock, transcripts, catalogue);
+    private SessionRowEnricher Enricher => new(new GitCli(processes, "git"), store, registry, clock, transcripts, catalogue);
 
     [Fact]
     public async Task CarryEachRowsPullRequest()

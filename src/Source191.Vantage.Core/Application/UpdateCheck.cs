@@ -12,6 +12,9 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
 {
     public const string PackageId = "Source191.Vantage";
 
+    /// <summary>The feed the check consults, and the only one the update tab installs from, whatever else the machine has configured.</summary>
+    public const string Source = "https://api.nuget.org/v3/index.json";
+
     private string? newest;
 
     /// <summary>What the update key and the header offer now, read on every use so turning the setting off applies at once.</summary>

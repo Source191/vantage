@@ -42,6 +42,7 @@ public static partial class Wording
         PullRequestGap.Failed when none.Host is PullRequestHost host => $"{Capitalised(Cli(host))} could not list {none.RowName}'s pull requests.",
         PullRequestGap.Failed => $"Could not look up {none.RowName}'s pull requests.",
         PullRequestGap.NoPullRequest => $"No pull request found for {none.RowName}'s branch.",
+        PullRequestGap.BranchNotGivenToAz => $"{none.RowName}'s branch name holds a character the Azure CLI cannot be given, so it was not looked up.",
     };
 
     private static string Cli(PullRequestHost? host) => host switch

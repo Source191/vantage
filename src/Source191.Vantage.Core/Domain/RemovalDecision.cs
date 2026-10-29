@@ -32,6 +32,7 @@ public sealed record RemovalDecision(
         {
             { LiveSessionName: not null } => Refused(new RemovalReason.LiveSession(facts.LiveSessionName), canBeForced: false),
             { Health: WorktreeHealthKind.Locked } => Refused(new RemovalReason.Locked(), canBeForced: false),
+            { Health: WorktreeHealthKind.Elsewhere } => Refused(new RemovalReason.RepositoryOutsideRoots(), canBeForced: false),
             { Health: WorktreeHealthKind.Empty } => DeleteFolder(forced, prune: false),
             { Health: WorktreeHealthKind.Orphan or WorktreeHealthKind.Broken, LeftoverFileCount: > 0 } when !forced => Refused(new RemovalReason.LeftoverFilesWouldBeLost(facts.LeftoverFileCount, AtLeast: facts.LeftoverFileCount >= WorktreeRemovalFacts.LeftoverFileLimit), canBeForced: true),
             { Health: WorktreeHealthKind.Broken } => DeleteFolder(forced, prune: true),

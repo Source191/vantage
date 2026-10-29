@@ -75,6 +75,25 @@ public sealed class WorktreeHealthShould
     }
 
     [Fact]
+    public void BeElsewhereForAWorktreeOfARepositoryOutsideTheRoots()
+    {
+        FolderPath ledger = FolderPath.From(@"D:\other\Northwind.Ledger");
+
+        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = true, OwnerRepository = ledger });
+
+        health.Kind.ShouldBe(WorktreeHealthKind.Elsewhere);
+        health.Reason.ShouldBe(new HealthReason.RepositoryOutsideRoots(ledger));
+    }
+
+    [Fact]
+    public void StayBrokenWhenTheRegistrationIsGoneWhateverTheOwner()
+    {
+        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = false, OwnerRepository = FolderPath.From(@"D:\other\Northwind.Ledger") });
+
+        health.Kind.ShouldBe(WorktreeHealthKind.Broken);
+    }
+
+    [Fact]
     public void BeOrphanForAnyOtherFolderGitDoesNotRegister()
     {
         WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = null });

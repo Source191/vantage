@@ -103,7 +103,7 @@ public sealed class DiagnosticsPrivacyShould
     private async Task RunTheDailyFlowsAsync()
     {
         ClaudeCli claude = new(processes, Claude);
-        GitCli git = new(processes);
+        GitCli git = new(processes, "git");
         CrashRecorder crashes = new(log, counts, crashFile);
 
         await LoadTheSessionsAsync(claude);

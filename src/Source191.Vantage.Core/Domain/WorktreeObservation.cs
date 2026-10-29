@@ -9,10 +9,12 @@ namespace Source191.Vantage.Domain;
 /// <param name="UnderClaudeWorktrees">The folder sits under a repository's .claude\worktrees directory.</param>
 /// <param name="GitFileTargetExists">For an unregistered folder with a .git file, whether the registration it points at still exists; null when there is no .git file.</param>
 /// <param name="EmptyLeftoverFolder">The folder is an empty leftover such as a .worktrees folder.</param>
+/// <param name="OwnerRepository">For an unregistered folder with a .git file, the repository its registration sits in when that repository still has its .git folder; null otherwise.</param>
 public sealed record WorktreeObservation(
     bool RegisteredWithGit,
     bool FolderExists,
     string? LockReason,
     bool UnderClaudeWorktrees,
     bool? GitFileTargetExists,
-    bool EmptyLeftoverFolder);
+    bool EmptyLeftoverFolder,
+    FolderPath? OwnerRepository = null);

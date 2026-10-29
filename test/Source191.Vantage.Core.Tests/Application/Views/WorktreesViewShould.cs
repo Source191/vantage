@@ -15,6 +15,7 @@ public sealed class WorktreesViewShould
     private static readonly WorktreeRow Empty = Row(@"C:\repos\Northwind.Orders.worktrees", null, WorktreeHealthKind.Empty) with { Repository = FolderPath.From(@"C:\repos") };
     private static readonly WorktreeRow Gone = Row(@"C:\repos\Northwind.Retired-republish", null, WorktreeHealthKind.Broken) with { Repository = FolderPath.From(@"C:\repos\Northwind.Retired"), OwnerExists = false };
     private static readonly WorktreeRow Busy = Row(@"C:\repos\Northwind.Orders-fix-3", "fix-3", WorktreeHealthKind.Ok) with { SessionId = SessionId.From("sess-fix-3"), SessionName = "fix-the-tests" };
+    private static readonly WorktreeRow Elsewhere = Row(@"C:\Users\me\source\worktrees\Northwind.Ledger-fix", "fix", WorktreeHealthKind.Elsewhere, new HealthReason.RepositoryOutsideRoots(FolderPath.From(@"D:\other\Northwind.Ledger"))) with { Repository = FolderPath.From(@"D:\other\Northwind.Ledger"), DirtyFiles = 3 };
 
     private static readonly WorktreesViewState Loaded = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Gone, Busy, Empty, Orphan, Locked, Dirty, Clean]));
 
@@ -180,6 +181,25 @@ public sealed class WorktreesViewShould
         WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('s'))).Effects.ShouldBe([new StartSessionIn(Clean)]);
         WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenShellTab(Clean)]);
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('s'))).State.Footer.ShouldBe(new Footer.LeftoverFolder("Northwind.Orders.worktrees"));
+    }
+
+    [Fact]
+    public void TreatAnElsewhereWorktreeAsRealForSessionsAndShells()
+    {
+        WorktreesViewState onElsewhere = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean, Elsewhere])) with { SelectedPath = Elsewhere.Path.Key };
+
+        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('s'))).Effects.ShouldBe([new StartSessionIn(Elsewhere)]);
+        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenShellTab(Elsewhere)]);
+    }
+
+    [Fact]
+    public void NeverRemoveAnElsewhereWorktreeNorOfferForce()
+    {
+        WorktreesViewState onElsewhere = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean, Elsewhere])) with { SelectedPath = Elsewhere.Path.Key };
+
+        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.RepositoryOutsideRoots(), OfferForce: false));
+        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.RepositoryOutsideRoots(), OfferForce: false));
+        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('D'))).Effects.ShouldBeEmpty();
     }
 
     [Fact]

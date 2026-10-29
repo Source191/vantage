@@ -4,8 +4,8 @@ namespace Source191.Vantage.Domain;
 
 /// <summary>
 /// The repository an origin remote points at, on a host Vantage can ask for pull requests: github.com or Azure DevOps.
-/// Any other remote, and an Azure DevOps name holding a character outside letters, digits, space, dot, underscore and
-/// hyphen, reads as null: az is a .cmd file that cmd.exe parses, so its arguments must hold none of its special characters.
+/// Any other remote, and an Azure DevOps name that is not plain text for a batch file (<see cref="BatchFileArgument"/>),
+/// reads as null: az is a .cmd file that cmd.exe parses, so its arguments must hold none of its special characters.
 /// </summary>
 public abstract partial record RemoteRepository
 {
@@ -30,7 +30,7 @@ public abstract partial record RemoteRepository
         string project = Uri.UnescapeDataString(match.Groups["project"].Value);
         string name = Uri.UnescapeDataString(match.Groups["name"].Value);
 
-        return new[] { organisation, project, name }.All(SafeName().IsMatch) ? new AzureDevOpsRepository(organisation, project, name) : null;
+        return new[] { organisation, project, name }.All(BatchFileArgument.IsSafe) ? new AzureDevOpsRepository(organisation, project, name) : null;
     }
 
     [GeneratedRegex(@"^(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)(?<owner>[^/\s]+)/(?<name>[^/\s]+?)(?:\.git)?/?$", RegexOptions.IgnoreCase)]
@@ -41,9 +41,6 @@ public abstract partial record RemoteRepository
         @"|git@ssh\.dev\.azure\.com:v3/(?<org>[^/\s]+)/(?<project>[^/\s]+)/(?<name>[^/\s]+?)" +
         @"|[^@/\s]+@vs-ssh\.visualstudio\.com:v3/(?<org>[^/\s]+)/(?<project>[^/\s]+)/(?<name>[^/\s]+?))/?$", RegexOptions.IgnoreCase)]
     private static partial Regex AzureDevOps();
-
-    [GeneratedRegex(@"^[A-Za-z0-9 ._-]+$")]
-    private static partial Regex SafeName();
 }
 
 /// <summary>A repository on github.com.</summary>

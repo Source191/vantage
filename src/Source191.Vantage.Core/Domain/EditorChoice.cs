@@ -67,7 +67,10 @@ public sealed record EditorChoice
         };
     }
 
-    /// <summary>Why a custom command cannot be used, or null: no executable, a batch file (cmd.exe would parse the folder path), or no placeholder.</summary>
+    /// <summary>
+    /// Why a custom command cannot be used, or null: no executable, not a full path (Windows would look for a bare name in
+    /// the folder Vantage was started from), a batch file (cmd.exe would parse the folder path), or no placeholder.
+    /// </summary>
     public static SettingsProblem? Problem(string executable, IReadOnlyList<string> arguments)
     {
         string trimmed = executable.Trim();
@@ -75,6 +78,7 @@ public sealed record EditorChoice
         return trimmed switch
         {
             "" => new SettingsProblem.NoExecutable(),
+            _ when !Path.IsPathFullyQualified(trimmed) => new SettingsProblem.ExecutableNotFullPath(),
             _ when IsBatchFile(trimmed) => new SettingsProblem.BatchFileExecutable(),
             _ when !arguments.Any(argument => argument.Contains(FolderPlaceholder, StringComparison.Ordinal)) => new SettingsProblem.NoFolderPlaceholder(),
             _ => null,

@@ -281,6 +281,7 @@ public sealed class WordingShould
     [InlineData(PullRequestGap.Failed, PullRequestHost.GitHub, "The GitHub CLI (gh) could not list fix-123's pull requests.")]
     [InlineData(PullRequestGap.Failed, null, "Could not look up fix-123's pull requests.")]
     [InlineData(PullRequestGap.NoPullRequest, PullRequestHost.AzureDevOps, "No pull request found for fix-123's branch.")]
+    [InlineData(PullRequestGap.BranchNotGivenToAz, PullRequestHost.AzureDevOps, "fix-123's branch name holds a character the Azure CLI cannot be given, so it was not looked up.")]
     public void SayWhyThereIsNoPullRequest(PullRequestGap gap, PullRequestHost? host, string expected)
     {
         Wording.Describe(new Footer.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);
@@ -562,6 +563,12 @@ public sealed class WordingShould
         Wording.Describe(new RemovalReason.LeftoverFolder()).ShouldBe("leftover folder");
     }
 
+    [Fact]
+    public void SayAWorktreeOfARepositoryOutsideTheRootsIsNotRemoved()
+    {
+        Wording.Describe(new RemovalReason.RepositoryOutsideRoots()).ShouldBe("its repository is not under the roots; add that root in settings or remove the worktree with git there");
+    }
+
     public static TheoryData<Type> HealthReasons => new(typeof(HealthReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(HealthReason))));
 
     [Theory]
@@ -614,6 +621,12 @@ public sealed class WordingShould
     public void SayAFolderIsNotRegistered()
     {
         Wording.Describe(new HealthReason.NotRegistered()).ShouldBe("folder is not registered with git");
+    }
+
+    [Fact]
+    public void NameTheRepositoryOfAWorktreeThatIsElsewhere()
+    {
+        Wording.Describe(new HealthReason.RepositoryOutsideRoots(FolderPath.From(@"D:\other\Northwind.Ledger"))).ShouldBe(@"its repository D:\other\Northwind.Ledger is not under the roots");
     }
 
     // The typed-confirmation dialog.
@@ -718,6 +731,7 @@ public sealed class WordingShould
         Wording.Describe(new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere"))).ShouldBe(@"D:\nowhere does not exist.");
         Wording.Describe(new SettingsProblem.WorktreeRootNotFullPath()).ShouldBe(@"The worktree root must be a full path, such as C:\Users\me\source\worktrees.");
         Wording.Describe(new SettingsProblem.NoExecutable()).ShouldBe("A custom editor needs an executable.");
+        Wording.Describe(new SettingsProblem.ExecutableNotFullPath()).ShouldBe(@"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Vantage was started from.");
         Wording.Describe(new SettingsProblem.BatchFileExecutable()).ShouldBe("A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.");
         Wording.Describe(new SettingsProblem.NoFolderPlaceholder()).ShouldBe("A custom editor's arguments need {folder} where the folder goes.");
     }
@@ -788,9 +802,34 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void SayAnOpeningPromptCannotStartWithADash()
+    {
+        Wording.Describe(new LaunchProblem.PromptLooksLikeAnOption()).ShouldBe("A prompt cannot start with a dash: Claude Code would read it as options. Start with a word.");
+    }
+
+    [Fact]
     public void SayANameLooksLikeAnOption()
     {
         Wording.NameLooksLikeAnOption("--promt").ShouldBe("--promt looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- --promt");
+    }
+
+    [Fact]
+    public void SayClaudeCodeWasNotFound()
+    {
+        Wording.ClaudeNotFound.ShouldBe("Claude Code was not found. Install it with irm https://claude.ai/install.ps1 | iex, or put claude.exe on the PATH.");
+    }
+
+    [Fact]
+    public void SayClaudeCodeIsOnlyABatchFileAndNameIt()
+    {
+        Wording.ClaudeIsABatchFile(@"C:\Users\me\AppData\Roaming\npm\claude.cmd")
+            .ShouldBe(@"Claude Code was found only as the batch file C:\Users\me\AppData\Roaming\npm\claude.cmd, which Vantage does not run: cmd.exe would read session names and prompts as commands. Install the native build with irm https://claude.ai/install.ps1 | iex.");
+    }
+
+    [Fact]
+    public void SayGitWasNotFound()
+    {
+        Wording.GitNotFound.ShouldBe("git was not found on the PATH. Install Git for Windows (winget install --id Git.Git --exact --source winget) and open a new terminal.");
     }
 
     [Fact]

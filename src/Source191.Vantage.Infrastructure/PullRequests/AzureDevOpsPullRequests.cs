@@ -9,8 +9,9 @@ namespace Source191.Vantage.Adapters.PullRequests;
 /// <summary>
 /// Lists one branch's pull requests in an Azure DevOps repository with az repos pr list, run through the full path of az.cmd (null
 /// when it is not on the PATH). The only place az's words are read: its login hints are not signed in, a missing
-/// azure-devops extension is a missing CLI, anything else failed. Every argument is a fixed flag or a name the Domain
-/// has already checked, so cmd.exe, which reads az.cmd's arguments, finds nothing special in them.
+/// azure-devops extension is a missing CLI, anything else failed. Every argument is a fixed flag, a name the Domain
+/// has already checked, or the branch, checked here by the same rule, so cmd.exe, which reads az.cmd's arguments,
+/// finds nothing special in them; a branch that fails the rule is not looked up at all.
 /// </summary>
 public sealed class AzureDevOpsPullRequests(IProcessRunner processes, string? az)
 {
@@ -21,6 +22,11 @@ public sealed class AzureDevOpsPullRequests(IProcessRunner processes, string? az
         if (az is null)
         {
             return new PullRequestListing.Unavailable(PullRequestGap.CliMissing);
+        }
+
+        if (!BatchFileArgument.IsSafe(branch.Value))
+        {
+            return new PullRequestListing.Unavailable(PullRequestGap.BranchNotGivenToAz);
         }
 
         ProcessRequest request = new(az, ["repos", "pr", "list", "--org", $"https://dev.azure.com/{repository.Organisation}", "--project", repository.Project, "--repository", repository.Name, "--source-branch", branch.Value, "--status", "all", "--top", "20", "--output", "json"], checkout.Value);

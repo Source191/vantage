@@ -8,6 +8,8 @@ namespace Source191.Vantage.Infrastructure.Tests;
 [Trait("Category", "Integration")]
 public sealed class DesktopShould : IDisposable
 {
+    private const string Pwsh = "pwsh.exe";
+
     private readonly string folder = Path.Combine(Path.GetTempPath(), "vantage-desktop-" + Guid.NewGuid().ToString("N"));
     private static readonly string[] Markers = ["CLAUDECODE", "NO_COLOR", "CLAUDE_PID", "CLAUDE_CODE_SESSION_ID"];
 
@@ -28,7 +30,7 @@ public sealed class DesktopShould : IDisposable
         string report = Path.Combine(folder, "environment.txt");
         string script = $"Start-Sleep -Milliseconds 1500; Get-ChildItem env: | ForEach-Object Name | Set-Content '{report}'";
 
-        await new Desktop(new ProcessRunner()).StartAsync(new ProcessRequest("pwsh", ["-NoProfile", "-Command", script], WorkingDirectory: null), TestContext.Current.CancellationToken);
+        await new Desktop(new ProcessRunner(), Pwsh).StartAsync(new ProcessRequest("pwsh", ["-NoProfile", "-Command", script], WorkingDirectory: null), TestContext.Current.CancellationToken);
 
         File.Exists(report).ShouldBeFalse("the call returned before the child had finished");
         await WaitForAsync(report);
@@ -49,7 +51,7 @@ public sealed class DesktopShould : IDisposable
         // The report is renamed into place once set has finished writing it, so a reader never sees half of it.
         await File.WriteAllTextAsync(file, $"@set > \"{report}.tmp\"\r\n@ren \"{report}.tmp\" \"{Path.GetFileName(report)}\"", TestContext.Current.CancellationToken);
 
-        await new Desktop(new ProcessRunner()).OpenAsync(file, TestContext.Current.CancellationToken);
+        await new Desktop(new ProcessRunner(), Pwsh).OpenAsync(file, TestContext.Current.CancellationToken);
 
         await WaitForAsync(report);
         string[] lines = await File.ReadAllLinesAsync(report, TestContext.Current.CancellationToken);
@@ -77,7 +79,7 @@ public sealed class DesktopShould : IDisposable
         using CancellationTokenSource limit = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
         limit.CancelAfter(TimeSpan.FromSeconds(30));
 
-        await new Desktop(new ProcessRunner()).OpenAsync(file, limit.Token);
+        await new Desktop(new ProcessRunner(), Pwsh).OpenAsync(file, limit.Token);
 
         File.Exists(report).ShouldBeFalse("the opened program finished before it was released");
         await File.WriteAllTextAsync(release, "go", TestContext.Current.CancellationToken);
@@ -89,9 +91,30 @@ public sealed class DesktopShould : IDisposable
     {
         string gone = Path.Combine(folder, "Northwind.Orders.slnx");
 
-        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(new ProcessRunner()).OpenAsync(gone, TestContext.Current.CancellationToken));
+        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(new ProcessRunner(), Pwsh).OpenAsync(gone, TestContext.Current.CancellationToken));
 
         failure.Message.ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public async Task OpenThroughTheGivenPowerShell()
+    {
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
+
+        await new Desktop(processes, @"C:\Program Files\PowerShell\7\pwsh.exe").OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken);
+
+        processes.CapturedRequests.Single().FileName.ShouldBe(@"C:\Program Files\PowerShell\7\pwsh.exe");
+    }
+
+    [Fact]
+    public async Task ThrowNamingPwshWhenItIsNotOnThePath()
+    {
+        FakeProcessRunner processes = new();
+
+        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes, powerShell: null).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
+
+        failure.Message.ShouldContain("pwsh.exe");
+        processes.CapturedRequests.ShouldBeEmpty();
     }
 
     [Fact]
@@ -99,7 +122,7 @@ public sealed class DesktopShould : IDisposable
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(1, string.Empty, "Cannot find the file.\r\n"));
 
-        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
+        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes, Pwsh).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
 
         failure.Message.ShouldBe("Cannot find the file.");
     }
@@ -109,7 +132,7 @@ public sealed class DesktopShould : IDisposable
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(5, string.Empty, string.Empty));
 
-        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
+        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes, Pwsh).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
 
         failure.Message.ShouldContain("5");
     }

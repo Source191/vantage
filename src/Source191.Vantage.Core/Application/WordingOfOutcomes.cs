@@ -70,6 +70,7 @@ public static partial class Wording
             AdoptSessionOutcome.Moved { TabClosed: true } moved => $"Moved {moved.Name} under Vantage and closed its old tab.",
             AdoptSessionOutcome.Moved moved => $"Moved {moved.Name} under Vantage.",
             AdoptSessionOutcome.Failed failed => $"Could not move {failed.Name} under Vantage: {failed.Message}",
+            AdoptSessionOutcome.ProcessGone gone => $"Could not move {gone.Name}: it no longer runs under its listed process. Refresh and try again.",
             _ => outcome.ToString(),
         };
     }
@@ -91,10 +92,11 @@ public static partial class Wording
 
     private static string Describe(CloseEmptyTerminalsOutcome outcome)
     {
-        IEnumerable<string> skipped = outcome.Skipped.Select(session => $"{session.Name} has messages (press b to move it under Vantage)");
+        IEnumerable<string> skipped = outcome.Skipped.Select(session => $"{session.Name} has messages (press b to move it under Vantage)")
+            .Concat(outcome.Gone.Select(name => $"{name} no longer runs under its listed process (refresh and try again)"));
         if (outcome.Closed.Count == 0 && outcome.Ended.Count == 0)
         {
-            return outcome.Skipped.Count == 0 ? "Nothing to close." : $"Nothing closed: {string.Join("; ", skipped)}.";
+            return skipped.Any() ? $"Nothing closed: {string.Join("; ", skipped)}." : "Nothing to close.";
         }
 
         List<string> parts = [];
@@ -108,7 +110,7 @@ public static partial class Wording
             parts.Add($"Ended {Count(outcome.Ended.Count, "session")}: {string.Join(", ", outcome.Ended)} (not in a Windows Terminal tab, so nothing to close).");
         }
 
-        if (outcome.Skipped.Count > 0)
+        if (skipped.Any())
         {
             parts.Add($"Skipped: {string.Join("; ", skipped)}.");
         }

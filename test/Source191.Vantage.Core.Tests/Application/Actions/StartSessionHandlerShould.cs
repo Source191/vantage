@@ -38,7 +38,7 @@ public sealed class StartSessionHandlerShould
         get
         {
             InMemoryState store = new();
-            GitCli git = new(processes);
+            GitCli git = new(processes, "git");
             FakeTimeProvider clock = new(Noon);
             LaunchService service = new(new ClaudeCli(processes, Claude), git, store, store, new WorktreeIncludeCopier(git), clock);
             OpenTabHandler tabs = new(store, new FakeProcessRegistry(), terminal, clock, new TabScripts(Claude, Vantage));
