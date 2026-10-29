@@ -8,8 +8,8 @@ public sealed class StopSessionHandler(IClaudeCli claude, SessionTabs tabs) : IE
 {
     public async Task<Outcome> HandleAsync(StopSession effect, CancellationToken cancellationToken)
     {
-        TabClosure closure = await tabs.CloseAsync(effect.Session.SessionId);
         await claude.StopAsync(effect.Session.JobId.Value, cancellationToken);
+        TabClosure closure = await tabs.CloseAsync(effect.Session.SessionId);
 
         return new StopSessionOutcome(effect.Session.Name, closure == TabClosure.Closed);
     }
