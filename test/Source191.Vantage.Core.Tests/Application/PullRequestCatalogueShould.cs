@@ -55,6 +55,32 @@ public sealed class PullRequestCatalogueShould
     }
 
     [Fact]
+    public async Task KeepAListedAnswerForAMinute()
+    {
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+        clock.Advance(TimeSpan.FromSeconds(50));
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+        hosts.Calls.Count.ShouldBe(1);
+
+        clock.Advance(TimeSpan.FromSeconds(11));
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+
+        hosts.Calls.Count.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task KeepAnUnavailableAnswerForThreeMinutes()
+    {
+        hosts.Answer(Orders, new PullRequestListing.Unavailable(PullRequestGap.NotSignedIn));
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+
+        clock.Advance(TimeSpan.FromMinutes(2));
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+
+        hosts.Calls.Count.ShouldBe(1);
+    }
+
+    [Fact]
     public async Task NotCallAgainWithinThreeMinutes()
     {
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
