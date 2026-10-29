@@ -7,7 +7,7 @@ Writes to assets\header:
   Support cards overlap the bottom of the middle half, so the words stay in the middle half and above that strip.
 - readme-banner.png, 1600 x 400, the top of the README (shown at about 800 px wide, sharp on high-DPI screens).
 - social-preview.png, 1280 x 640, the repository's social preview (uploaded by hand under Settings > General); GitHub crops 40 px at each edge.
-With -QrCode, also writes assets\support\buy-me-a-coffee-qr.png, that QR code at 320 px (shown at 160 px in the README).
+With -QrCode, also writes assets\support\buy-me-a-coffee-qr.png, that QR code at 160 px (Markdown shows an image at its own size, and the README avoids HTML).
 The output is committed, so a build never needs this script; run it to change the drawing. The mark comes from VantageMark.ps1, as the icon's does.
 #>
 [CmdletBinding()]
@@ -172,14 +172,14 @@ if ($QrCode) {
     New-Item -ItemType Directory -Force $QrOutputFolder | Out-Null
     $qrPath = Join-Path (Resolve-Path $QrOutputFolder).Path 'buy-me-a-coffee-qr.png'
     $source = [System.Drawing.Bitmap]::new((Resolve-Path $QrCode).Path)
-    $qr = [System.Drawing.Bitmap]::new(320, 320)
+    $qr = [System.Drawing.Bitmap]::new(160, 160)
     $graphics = [System.Drawing.Graphics]::FromImage($qr)
     $graphics.InterpolationMode = 'HighQualityBicubic'
     $graphics.PixelOffsetMode = 'HighQuality'
-    $graphics.DrawImage($source, 0, 0, 320, 320)
+    $graphics.DrawImage($source, 0, 0, 160, 160)
     $graphics.Dispose()
     $source.Dispose()
     Save-Png $qr $qrPath
-    Assert-Size $qrPath 320 320
+    Assert-Size $qrPath 160 160
     Write-Host "Wrote $qrPath"
 }

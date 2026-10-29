@@ -24,7 +24,7 @@ The Buy Me a Coffee cover is shown full width at a fixed height of about 390 px 
   - Cover, 3200 x 800: mark and words centred in the top 70 %, within the middle 2000 px, so a narrow window's crop keeps them and the cards cover only background.
   - README banner, 1600 x 400 (shown at 800 px wide on GitHub, sharp on high-DPI screens): content centred, full height.
   - Social preview, 1280 x 640: content centred, with the tagline wrapped onto two lines if needed; GitHub keeps 40 px clear at each edge.
-- **QR code.** The supplied 1920 px QR is resized to 320 px (shown at 160 px on high-DPI screens) by the same script's resize helper and committed as `assets\support\buy-me-a-coffee-qr.png`; plain Markdown cannot size an image, and the README already avoids HTML. The source file is not committed.
+- **QR code.** The supplied 1920 px QR is resized to 160 px by the same script's resize helper and committed as `assets\support\buy-me-a-coffee-qr.png`; plain Markdown cannot size an image, and the README already avoids HTML. The source file is not committed.
 - **Badge.** `https://img.shields.io/badge/Buy_me_a_sliver_of_a-Claude_Max_plan-FFDD00?logo=buymeacoffee&logoColor=black`, linking to the page, on the line under the banner.
 
 ## Risks / Trade-offs

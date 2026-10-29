@@ -9,12 +9,12 @@
 ## 2. Header artwork
 
 - [x] 2.1 Move the mark's drawing out of `tools\New-Icon.ps1` into `tools\VantageMark.ps1` (`Add-VantageMark`), dot-sourced by `New-Icon.ps1`; verify by re-running `New-Icon.ps1` and seeing no change under `assets\icon\` in `git status`
-- [x] 2.2 Write `tools\New-Header.ps1` (comment-based help in `New-Icon.ps1`'s style) drawing the cover (3200 x 800), README banner (1600 x 400) and social preview (1280 x 640) to `assets\header\`, and the 320 px QR code to `assets\support\buy-me-a-coffee-qr.png` from a `-QrCode` path; verify the script's own size checks pass and inspect each PNG by eye
+- [x] 2.2 Write `tools\New-Header.ps1` (comment-based help in `New-Icon.ps1`'s style) drawing the cover (3200 x 800), README banner (1600 x 400) and social preview (1280 x 640) to `assets\header\`, and the 160 px QR code to `assets\support\buy-me-a-coffee-qr.png` from a `-QrCode` path; verify the script's own size checks pass and inspect each PNG by eye
 - [x] 2.3 Check the cover against the Buy Me a Coffee layout: overlay the card zone (middle 1000 px, bottom fifth, at the page's 2000 x 390 display) on a scaled copy in `$CLAUDE_JOB_DIR\tmp` and verify no text or mark falls inside it
 
 ## 3. README and GitHub
 
-- [ ] 3.1 Replace the README's icon line with the banner, add the shields badge linking to the page under it, add the "Support Vantage" section before "Roadmap and known limits" with the rate-limits wording, the link and the QR image, and add it to Contents; verify every image and link is an absolute URL and the Contents anchor matches the heading
+- [x] 3.1 Replace the README's icon line with the banner, add the shields badge linking to the page under it, add the "Support Vantage" section before "Roadmap and known limits" with the rate-limits wording, the link and the QR image, and add it to Contents; verify every image and link is an absolute URL and the Contents anchor matches the heading
 - [ ] 3.2 Add `.github\FUNDING.yml` with `buy_me_a_coffee: simonvane`; verify the key against GitHub's documented FUNDING.yml keys
 - [ ] 3.3 Run `openspec validate support-links` and verify it passes
 

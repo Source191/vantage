@@ -1,6 +1,8 @@
 # Vantage
 
-![The Vantage icon: two branches merging into one node, shaped as a V](https://raw.githubusercontent.com/Source191/vantage/main/assets/icon/vantage-128.png)
+![Vantage, a console for Claude Code sessions and git worktrees on Windows, beside its icon: two branches merging into one node, shaped as a V](https://raw.githubusercontent.com/Source191/vantage/main/assets/header/readme-banner.png)
+
+[![Buy me a sliver of a Claude Max plan](https://img.shields.io/badge/Buy_me_a_sliver_of_a-Claude_Max_plan-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/simonvane)
 
 A terminal console for Claude Code sessions and git worktrees on Windows.
 
@@ -29,6 +31,7 @@ Supervise your Claude Code sessions from one terminal tab: start, attach, rename
 - [Developing Vantage](#developing-vantage)
 - [Continuous integration](#continuous-integration)
 - [Working with OpenSpec](#working-with-openspec)
+- [Support Vantage](#support-vantage)
 - [Roadmap and known limits](#roadmap-and-known-limits)
 
 ## Prerequisites
@@ -432,6 +435,12 @@ The repository uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-
 - **Apply:** `/opsx:apply <name>` works through the tasks test-first, ticking each one; `openspec status --change <name>` shows progress.
 - **Archive:** `/opsx:archive <name>` when the tasks are done; the delta specs are merged into `openspec\specs` so they stay the single account of current behaviour.
 - `openspec\config.yaml` holds the project context every change inherits (platform, CLI surface, worktree conventions, coding style); update it when a rule changes rather than repeating the rule in each proposal.
+
+## Support Vantage
+
+Vantage is built in the gaps between rate limits. Help close the gaps: [buy me a sliver of a Claude Max plan](https://buymeacoffee.com/simonvane).
+
+![QR code for buymeacoffee.com/simonvane](https://raw.githubusercontent.com/Source191/vantage/main/assets/support/buy-me-a-coffee-qr.png)
 
 ## Roadmap and known limits
 
