@@ -126,6 +126,14 @@ public sealed class CommandLineShould : IDisposable
         output.ToString().ShouldNotContain("claim-tab");
     }
 
+    [Fact]
+    public async Task SayWhereToSupportVantageInTheHelp()
+    {
+        await InvokeAsync("--help");
+
+        output.ToString().ShouldContain(Wording.SupportLine);
+    }
+
     [Theory]
     [InlineData("here", "--help")]
     [InlineData("here", "fix-tests", "-h")]

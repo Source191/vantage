@@ -2,7 +2,7 @@
 
 ## 1. The support line in vantage --help
 
-- [ ] 1.1 Red: `WordingShould.SayWhereToSupportVantage` expects `Wording.SupportLine` to be `Buy me a sliver of a Claude Max plan: https://buymeacoffee.com/simonvane`; green: add `SupportUrl` and `SupportLine` to `Wording`; verify with the Core test run
+- [x] 1.1 Red: `WordingShould.SayWhereToSupportVantage` expects `Wording.SupportLine` to be `Buy me a sliver of a Claude Max plan: https://buymeacoffee.com/simonvane`; green: add `SupportUrl` and `SupportLine` to `Wording`; verify with the Core test run
 - [ ] 1.2 Red: `CommandLineShould.SayWhereToSupportVantageInTheHelp` runs `--help` and expects the support line in standard output; green: append `Wording.SupportLine` on a second line of the root description in `CommandLine.Build`; verify with the Core test run and that the existing help facts still pass
 - [ ] 1.3 Raise `Version` to `0.17.0-preview.3` and verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass, and that `vantage --help` from the Debug build shows the line
 
