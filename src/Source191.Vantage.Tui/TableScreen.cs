@@ -112,6 +112,7 @@ internal sealed class TableScreen<TState, TRow>(
             }
 
             key.Handled = true;
+            live.Scroll(mapped);
             Apply(new KeyPressed(mapped));
         }
 
@@ -195,6 +196,7 @@ internal sealed class TableScreen<TState, TRow>(
         private TRow? selected;
         private readonly string[] columnNames;
         private int? headerUnderMouse;
+        private int columnOffset;
 
         public Live(IScreenDefinition<TState, TRow> definition, ScreenContext context)
         {
@@ -229,6 +231,7 @@ internal sealed class TableScreen<TState, TRow>(
             table.Style.ExpandLastColumn = true;
             table.SetScheme(Palette.Plain(Palette.White));
             table.Style.RowColorGetter = RowColour;
+            CapLongColumns();
 
             int crumbWidth = definition.Crumb.Length;
             Label crumb = Text(1, Pos.AnchorEnd(2), crumbWidth, definition.Crumb, Palette.Background);
@@ -243,6 +246,26 @@ internal sealed class TableScreen<TState, TRow>(
 
         public Window Window { get; }
 
+        /// <summary>Left and Right move the table one column sideways, within its columns; presentation only, so the reducer never sees a change.</summary>
+        public void Scroll(Key key)
+        {
+            int step = key.Name switch
+            {
+                KeyName.Left => -1,
+                KeyName.Right => 1,
+                _ => 0,
+            };
+            if (step == 0)
+            {
+                return;
+            }
+
+            // Kept here as well as on the table, because every redraw replaces the table's source, which resets its offset.
+            columnOffset = Math.Clamp(columnOffset + step, 0, columnNames.Length - 1);
+            table.ColumnOffset = columnOffset;
+            table.SetNeedsDraw();
+        }
+
         /// <summary>The footer spinner: on while an action runs off the UI thread, off once its outcome is shown.</summary>
         public void ShowBusy(bool working) => busy.Show(working);
 
@@ -251,6 +274,7 @@ internal sealed class TableScreen<TState, TRow>(
             IReadOnlyList<TRow> rows = state.List.Visible;
             selected = state.List.Selected;
             table.Table = new TableSource<TRow>(rows, columnNames, (row, column) => definition.Cell(row, column, now));
+            table.ColumnOffset = columnOffset;
             contextValues.Text = $"{context.HeaderValues()}\n{definition.ContextLines(state)}";
             string described = Wording.Describe(state.Title);
             title.Text = state.List.FilterEditing ? $"{described}  filter: {state.List.Filter.Text}_" : described;
@@ -310,6 +334,21 @@ internal sealed class TableScreen<TState, TRow>(
             {
                 ColumnHelp help = definition.Columns[column];
                 app.ToolTips?.ShowFor(table, new ToolTipProvider(() => ToolTipView($"{help.Name}: {help.Meaning}")));
+            }
+        }
+
+        /// <summary>Names, repositories, folders and branches are cut at 28 cells with an ellipsis, so one long value cannot push the other columns off screen; rows keep the full values.</summary>
+        private void CapLongColumns()
+        {
+            string[] capped = ["NAME", "REPOSITORY", "FOLDER", "BRANCH"];
+            for (int column = 0; column < columnNames.Length; column++)
+            {
+                if (capped.Contains(columnNames[column]))
+                {
+                    ColumnStyle style = table.Style.GetOrCreateColumnStyle(column);
+                    style.MaxWidth = 28;
+                    style.TruncationIndicator = "…";
+                }
             }
         }
 

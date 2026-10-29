@@ -18,7 +18,8 @@
 ## 4. Caps and the sideways scroll (Tui)
 
 - [x] 4.1 `KeyMapping` maps CursorLeft and CursorRight to two `Key` names the reducers ignore (a `SessionsViewShould` and `WorktreesViewShould` fact each: no effect, state unchanged). Verify the Core suite passes.
-- [ ] 4.2 `TableScreen` sets `ColumnStyles` for NAME, REPOSITORY, FOLDER and BRANCH (`MaxWidth` 28, truncation indicator "…") from the definition's column names, and moves `table.ColumnOffset` on Left and Right within bounds. Verify with a headless drive at 120 x 36 against a worktree whose folder label is longer than 28 characters: the capture shows the ellipsis, and after Right the PR, AGE and TAB columns.
+- [x] 4.2 `TableScreen` sets `ColumnStyles` for NAME, REPOSITORY, FOLDER and BRANCH (`MaxWidth` 28, truncation indicator "…") from the definition's column names, and moves `table.ColumnOffset` on Left and Right within bounds. Verify with a headless drive at 120 x 36 against a worktree whose folder label is longer than 28 characters: the capture shows the ellipsis, and after Right the PR, AGE and TAB columns.
+  - Recorded 29 October 2026 at 120 x 40 (the headless size), on a throwaway `Northwind.Ellipsis-Check-With-A-Long-Repository` and its linked worktree, removed afterwards: REPOSITORY and FOLDER end in "…" at 28 cells, the title keeps the full folder name, and Right scrolls the worktrees table until HEALTH shows whole. Every redraw replaces the table's source, which resets `ColumnOffset`, so the screen keeps its own offset and sets it again after each redraw.
 - [ ] 4.3 README: the keys table gains Left and Right, and the sessions and worktrees sections say long names are cut with an ellipsis. Verify the README's keys match `Wording`'s key lists by reading both.
 
 ## 5. The hint layout (Tui)
