@@ -24,6 +24,7 @@ public sealed class WordingOfScreensShould
     [InlineData(DialogName.ForceRemove, "Vantage (Force remove)")]
     [InlineData(DialogName.OpenSolution, "Vantage (Open solution)")]
     [InlineData(DialogName.Update, "Vantage (Update)")]
+    [InlineData(DialogName.Memory, "Vantage (Memory)")]
     public void NameEachDialogInTheTabTitle(DialogName dialog, string title)
     {
         Wording.TabTitleDuring(dialog).ShouldBe(title);
@@ -32,7 +33,7 @@ public sealed class WordingOfScreensShould
     [Fact]
     public void HaveATabTitleForEveryDialog()
     {
-        Enum.GetValues<DialogName>().Length.ShouldBe(11, "a new dialog needs its own NameEachDialogInTheTabTitle case");
+        Enum.GetValues<DialogName>().Length.ShouldBe(12, "a new dialog needs its own NameEachDialogInTheTabTitle case");
     }
 
     [Theory]
@@ -57,8 +58,8 @@ public sealed class WordingOfScreensShould
     [Fact]
     public void ShowVersionsAndRootsInTheHeader()
     {
-        Wording.HeaderValues(new ToolVersion("0.5.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate())
-            .ShouldBe("0.5.0\n2.1.310\nC:\\Users\\me\\source\\repos; D:\\work\nC:\\Users\\me\\source\\worktrees");
+        Wording.HeaderValues(new ToolVersion("0.5.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate(), VantageMemory)
+            .ShouldBe("0.5.0 (29 MB)\n2.1.310\nC:\\Users\\me\\source\\repos; D:\\work\nC:\\Users\\me\\source\\worktrees");
     }
 
     [Fact]
@@ -66,15 +67,15 @@ public sealed class WordingOfScreensShould
     {
         UpdateStatus available = new UpdateStatus.Available(ReleaseVersion.TryParse("0.9.0")!, ReleaseVersion.TryParse("0.10.0")!);
 
-        Wording.HeaderValues(new ToolVersion("0.9.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), available)
-            .ShouldStartWith("0.9.0 (0.10.0 available, U to update)\n2.1.310\n");
+        Wording.HeaderValues(new ToolVersion("0.9.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), available, VantageMemory)
+            .ShouldStartWith("0.9.0 (29 MB; 0.10.0 available, U to update)\n2.1.310\n");
     }
 
     [Fact]
     public void ShowAnUnreadableClaudeVersionAsUnknown()
     {
-        Wording.HeaderValues(new ToolVersion("0.5.0-local"), new ClaudeCodeVersion.Unknown(), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.Off())
-            .ShouldBe("0.5.0-local\nunknown\nC:\\Users\\me\\source\\repos\nC:\\Users\\me\\source\\worktrees");
+        Wording.HeaderValues(new ToolVersion("0.5.0-local"), new ClaudeCodeVersion.Unknown(), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.Off(), VantageMemory)
+            .ShouldBe("0.5.0-local (29 MB)\nunknown\nC:\\Users\\me\\source\\repos\nC:\\Users\\me\\source\\worktrees");
     }
 
     [Fact]
@@ -82,9 +83,11 @@ public sealed class WordingOfScreensShould
     {
         ClaudeCodeVersion old = new ClaudeCodeVersion.BelowMinimum(ReleaseVersion.TryParse("2.1.302")!, ReleaseVersion.TryParse("2.1.309")!);
 
-        Wording.HeaderValues(new ToolVersion("0.13.0"), old, Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate())
-            .ShouldStartWith("0.13.0\n2.1.302 (below 2.1.309, update Claude Code)\n");
+        Wording.HeaderValues(new ToolVersion("0.13.0"), old, Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), VantageMemory)
+            .ShouldStartWith("0.13.0 (29 MB)\n2.1.302 (below 2.1.309, update Claude Code)\n");
     }
+
+    private static MemorySize VantageMemory => MemorySize.FromMegabytes(29);
 
     private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => FolderPath.From(root))], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me"));
 
