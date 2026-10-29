@@ -7,7 +7,7 @@ using System.Text.Json;
 namespace Source191.Vantage.Adapters.PullRequests;
 
 /// <summary>
-/// Lists an Azure DevOps repository's pull requests with az repos pr list, run through the full path of az.cmd (null
+/// Lists one branch's pull requests in an Azure DevOps repository with az repos pr list, run through the full path of az.cmd (null
 /// when it is not on the PATH). The only place az's words are read: its login hints are not signed in, a missing
 /// azure-devops extension is a missing CLI, anything else failed. Every argument is a fixed flag or a name the Domain
 /// has already checked, so cmd.exe, which reads az.cmd's arguments, finds nothing special in them.
@@ -23,7 +23,7 @@ public sealed class AzureDevOpsPullRequests(IProcessRunner processes, string? az
             return new PullRequestListing.Unavailable(PullRequestGap.CliMissing);
         }
 
-        ProcessRequest request = new(az, ["repos", "pr", "list", "--org", $"https://dev.azure.com/{repository.Organisation}", "--project", repository.Project, "--repository", repository.Name, "--status", "all", "--top", "100", "--output", "json"], checkout.Value);
+        ProcessRequest request = new(az, ["repos", "pr", "list", "--org", $"https://dev.azure.com/{repository.Organisation}", "--project", repository.Project, "--repository", repository.Name, "--source-branch", branch.Value, "--status", "all", "--top", "20", "--output", "json"], checkout.Value);
         ProcessResult result;
         try
         {
@@ -34,7 +34,7 @@ public sealed class AzureDevOpsPullRequests(IProcessRunner processes, string? az
             return new PullRequestListing.Unavailable(PullRequestGap.CliMissing);
         }
 
-        return result.ExitCode == 0 ? Parse(result.StandardOutput) : new PullRequestListing.Unavailable(Gap(result.StandardError));
+        return result.ExitCode == 0 ? Parse(result.StandardOutput, repository) : new PullRequestListing.Unavailable(Gap(result.StandardError));
     }
 
     private static PullRequestGap Gap(string words) => words switch
@@ -44,7 +44,7 @@ public sealed class AzureDevOpsPullRequests(IProcessRunner processes, string? az
         _ => PullRequestGap.Failed,
     };
 
-    private static PullRequestListing Parse(string json)
+    private static PullRequestListing Parse(string json, AzureDevOpsRepository repository)
     {
         try
         {
@@ -52,7 +52,7 @@ public sealed class AzureDevOpsPullRequests(IProcessRunner processes, string? az
             List<BranchPullRequest> rows = [];
             foreach (JsonElement item in document.RootElement.EnumerateArray())
             {
-                if (Row(item) is BranchPullRequest row)
+                if (Row(item, repository) is BranchPullRequest row)
                 {
                     rows.Add(row);
                 }
@@ -66,16 +66,17 @@ public sealed class AzureDevOpsPullRequests(IProcessRunner processes, string? az
         }
     }
 
-    private static BranchPullRequest? Row(JsonElement item)
+    /// <summary>The page is built from the remote's organisation, project and repository: az's listing carries no web URL.</summary>
+    private static BranchPullRequest? Row(JsonElement item, AzureDevOpsRepository repository)
     {
         int number = item.GetProperty("pullRequestId").GetInt32();
         string source = item.GetProperty("sourceRefName").GetString() ?? string.Empty;
-        string webUrl = item.GetProperty("repository").GetProperty("webUrl").GetString() ?? string.Empty;
+        string page = $"https://dev.azure.com/{Uri.EscapeDataString(repository.Organisation)}/{Uri.EscapeDataString(repository.Project)}/_git/{Uri.EscapeDataString(repository.Name)}/pullrequest/{number}";
         PullRequestState? state = State(item.GetProperty("status").GetString(), item.GetProperty("isDraft").GetBoolean());
         if (state is null
             || !source.StartsWith(BranchPrefix, StringComparison.Ordinal)
             || !BranchName.TryParse(source[BranchPrefix.Length..], out BranchName? branch)
-            || !Uri.TryCreate($"{webUrl}/pullrequest/{number}", UriKind.Absolute, out Uri? url))
+            || !Uri.TryCreate(page, UriKind.Absolute, out Uri? url))
         {
             return null;
         }
