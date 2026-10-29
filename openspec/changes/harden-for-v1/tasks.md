@@ -2,7 +2,7 @@
 
 ## 1. Domain rules
 
-- [ ] 1.1 `BatchFileArgumentShould` (new, Core.Tests\Domain): letters, digits, space, dot, underscore, hyphen and slash are safe; `&`, `|`, `%`, `"`, `<`, `>`, `^`, `!` and an empty text are not. Then `Domain\BatchFileArgument.IsSafe` and `RemoteRepository` using it in place of its own regex; `RemoteRepositoryShould` still passes.
+- [x] 1.1 `BatchFileArgumentShould` (new, Core.Tests\Domain): letters, digits, space, dot, underscore, hyphen and slash are safe; `&`, `|`, `%`, `"`, `<`, `>`, `^`, `!` and an empty text are not. Then `Domain\BatchFileArgument.IsSafe` and `RemoteRepository` using it in place of its own regex; `RemoteRepositoryShould` still passes.
 - [ ] 1.2 `ProcessIdentityShould` (new): a process started before or at the session's listed start is still the session's, one started six seconds after is not, an unknown start time is not. Then `Domain\ProcessIdentity.StillTheSession`.
 - [ ] 1.3 `LaunchPlanShould.RefuseAnOpeningPromptThatStartsWithADash` (`- fix` and `--dangerously-skip-permissions` refused as `LaunchProblem.PromptLooksLikeAnOption`, `Fix - all` planned) and `HereCommandShould.RefuseADashLedPromptAsAFact`. Then the record and the check in `LaunchPlanBuilder`.
 - [ ] 1.4 `SettingsShould.RefuseACustomEditorThatIsNotAFullPath` (`subl` refused as `SettingsProblem.ExecutableNotFullPath`, a batch file still refused as a batch file) and `EditorChoiceShould.ReadACustomEditorByBareNameAsVsCode`. Then the record and the check in `EditorChoice.Problem`.
