@@ -31,7 +31,7 @@ jobs:
     steps:
       # No step pushes, so the token is not left in .git\config for the rest of the job. Depth 2 keeps
       # both parents of a pull request's merge ref for the version check.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
           persist-credentials: false
@@ -84,7 +84,7 @@ jobs:
 
       # The packed tool from any commit, installable with
       # tools\install-local.ps1 -FromArtifact <downloaded folder>.
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.documentation.outputs.skip != 'true'
         with:
           name: Source191.Vantage-${{ steps.build.outputs.version }}
@@ -161,7 +161,7 @@ jobs:
         run: dotnet run --project . -c Release -- smoke "$env:RUNNER_TEMP\vantage-tool\vantage.exe" Northwind.Smoke-smoke
 
       # Read it with the tool's `grid drive-raw.txt <marker>` or `count`; the failed step is named in the log.
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: smoke-capture
@@ -186,7 +186,7 @@ jobs:
       DISABLE_AUTOUPDATER: 1
     steps:
       # Depth 2 keeps both parents of a pull request's merge ref for the documentation gate, as in check.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
           persist-credentials: false
@@ -279,7 +279,7 @@ jobs:
         working-directory: tools\HeadlessTerminal
         run: dotnet run --project . -- check
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && steps.gate.outputs.enabled == 'true'
         with:
           name: handoff-capture

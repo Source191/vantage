@@ -35,17 +35,17 @@
 
 ## 5. Screens, wiring and version
 
-- [ ] 5.1 `WorktreesViewShould`: the start-session and open-shell keys on an elsewhere row raise their effects; remove and force-remove on it give the refusal footer without offering force. Then `InRealWorktree` admits `Elsewhere` and `RowColour` paints it amber.
-- [ ] 5.2 `SettingsControls` caption reads "Executable (full path, not a .cmd or .bat)"; verify by the smoke check's Settings step and by reading the dialog.
-- [ ] 5.3 `Program.cs`: locate git, gh, wt.exe and pwsh.exe through `ProgramLocator.ForCurrentUser()`, Claude through `ClaudeExecutable.Locate()`; print `Wording.GitNotFound`, `ClaudeNotFound` or `ClaudeIsABatchFile` and exit 1; hand the paths to the adapters. Verify: `dotnet run --project src\Source191.Vantage -- --version` and a console start from a folder holding a planted `git.exe` (a copy of cmd.exe) still scans with the real git.
-- [ ] 5.4 Raise `Version` to 0.17.0-preview.8 and verify `.github\scripts\Assert-VersionBumped.ps1 -Base origin/main -Head HEAD` passes.
+- [x] 5.1 `WorktreesViewShould`: the start-session and open-shell keys on an elsewhere row raise their effects; remove and force-remove on it give the refusal footer without offering force. Then `InRealWorktree` admits `Elsewhere` and `RowColour` paints it amber.
+- [x] 5.2 `SettingsControls` caption reads "Executable (full path, not a .cmd or .bat)"; verify by the smoke check's Settings step and by reading the dialog.
+- [x] 5.3 `Program.cs`: locate git, gh, wt.exe and pwsh.exe through `ProgramLocator.ForCurrentUser()`, Claude through `ClaudeExecutable.Locate()`; print `Wording.GitNotFound`, `ClaudeNotFound` or `ClaudeIsABatchFile` and exit 1; hand the paths to the adapters. Verify: `dotnet run --project src\Source191.Vantage -- --version` and a console start from a folder holding a planted `git.exe` (a copy of cmd.exe) still scans with the real git.
+- [x] 5.4 Raise `Version` to 0.17.0-preview.8 and verify `.github\scripts\Assert-VersionBumped.ps1 -Base origin/main -Head HEAD` passes.
 
 ## 6. CI and repository
 
-- [ ] 6.1 Pin every `uses:` in `check.yml`, `release.yml`, `claude-contract.yml` and `publish.yml` to its release commit SHA with a `# vX.Y.Z` comment (checkout v7.0.1 3d3c42e5aac5ba805825da76410c181273ba90b1, upload-artifact v7.0.2 cf430e030ddbb5b0abf93d22962f4752f3646cd9, setup-dotnet v6.0.0 a98b56852c35b8e3190ac28c8c2271da59106c68). Verify: a search of `.github` for `uses:` shows only 40-hex pins and local actions.
-- [ ] 6.2 Add `.github\workflows\codeql.yml`: csharp (build mode none) and actions, on pull requests and pushes to main with documentation paths ignored, weekly on a schedule, `security-events: write`, codeql-action v4.39.1 (9b3254085494b55a0f7c4c2b3d2d52cc712ce370). Verify the YAML parses (powershell-yaml if present, else by review) and `gh workflow list` shows it after the push.
-- [ ] 6.3 Add the attestation step to `release.yml` after the pack (actions/attest-build-provenance v4.2.2 4d101475d8b20a2381f78447822ac1eab6504dd8, `subject-path` the package) with `id-token: write` and `attestations: write`. Verify by review; the first release after the merge shows the attestation on the package.
-- [ ] 6.4 Turn on Dependabot security updates: `gh api -X PUT repos/Source191/vantage/automated-security-fixes`; verify `gh api repos/Source191/vantage --jq .security_and_analysis.dependabot_security_updates.status` answers enabled.
+- [x] 6.1 Pin every `uses:` in `check.yml`, `release.yml`, `claude-contract.yml` and `publish.yml` to its release commit SHA with a `# vX.Y.Z` comment (checkout v7.0.1 3d3c42e5aac5ba805825da76410c181273ba90b1, upload-artifact v7.0.2 cf430e030ddbb5b0abf93d22962f4752f3646cd9, setup-dotnet v6.0.0 a98b56852c35b8e3190ac28c8c2271da59106c68). Verify: a search of `.github` for `uses:` shows only 40-hex pins and local actions.
+- [x] 6.2 Add `.github\workflows\codeql.yml`: csharp (build mode none) and actions, on pull requests and pushes to main with documentation paths ignored, weekly on a schedule, `security-events: write`, codeql-action v4.39.1 (9b3254085494b55a0f7c4c2b3d2d52cc712ce370). Verify the YAML parses (powershell-yaml if present, else by review) and `gh workflow list` shows it after the push.
+- [x] 6.3 Add the attestation step to `release.yml` after the pack (actions/attest-build-provenance v4.2.2 4d101475d8b20a2381f78447822ac1eab6504dd8, `subject-path` the package) with `id-token: write` and `attestations: write`. Verify by review; the first release after the merge shows the attestation on the package.
+- [x] 6.4 Turn on Dependabot security updates: `gh api -X PUT repos/Source191/vantage/automated-security-fixes`; verify `gh api repos/Source191/vantage --jq .security_and_analysis.dependabot_security_updates.status` answers enabled.
 
 ## 7. Documentation
 
