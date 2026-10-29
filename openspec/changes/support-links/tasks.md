@@ -16,7 +16,7 @@
 
 - [x] 3.1 Replace the README's icon line with the banner, add the shields badge linking to the page under it, add the "Support Vantage" section before "Roadmap and known limits" with the rate-limits wording, the link and the QR image, and add it to Contents; verify every image and link is an absolute URL and the Contents anchor matches the heading
 - [x] 3.2 Add `.github\FUNDING.yml` with `buy_me_a_coffee: simonvane`; verify the key against GitHub's documented FUNDING.yml keys
-- [ ] 3.3 Run `openspec validate support-links` and verify it passes
+- [x] 3.3 Run `openspec validate support-links` and verify it passes
 
 ## Workflow follow-up
 
