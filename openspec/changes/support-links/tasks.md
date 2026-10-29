@@ -9,8 +9,8 @@
 ## 2. Header artwork
 
 - [x] 2.1 Move the mark's drawing out of `tools\New-Icon.ps1` into `tools\VantageMark.ps1` (`Add-VantageMark`), dot-sourced by `New-Icon.ps1`; verify by re-running `New-Icon.ps1` and seeing no change under `assets\icon\` in `git status`
-- [ ] 2.2 Write `tools\New-Header.ps1` (comment-based help in `New-Icon.ps1`'s style) drawing the cover (3200 x 800), README banner (1600 x 400) and social preview (1280 x 640) to `assets\header\`, and the 320 px QR code to `assets\support\buy-me-a-coffee-qr.png` from a `-QrCode` path; verify the script's own size checks pass and inspect each PNG by eye
-- [ ] 2.3 Check the cover against the Buy Me a Coffee layout: overlay the card zone (middle 1000 px, bottom fifth, at the page's 2000 x 390 display) on a scaled copy in `$CLAUDE_JOB_DIR\tmp` and verify no text or mark falls inside it
+- [x] 2.2 Write `tools\New-Header.ps1` (comment-based help in `New-Icon.ps1`'s style) drawing the cover (3200 x 800), README banner (1600 x 400) and social preview (1280 x 640) to `assets\header\`, and the 320 px QR code to `assets\support\buy-me-a-coffee-qr.png` from a `-QrCode` path; verify the script's own size checks pass and inspect each PNG by eye
+- [x] 2.3 Check the cover against the Buy Me a Coffee layout: overlay the card zone (middle 1000 px, bottom fifth, at the page's 2000 x 390 display) on a scaled copy in `$CLAUDE_JOB_DIR\tmp` and verify no text or mark falls inside it
 
 ## 3. README and GitHub
 
