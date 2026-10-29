@@ -15,8 +15,9 @@ public sealed class SessionTabs(ITabRegistry tabs, IProcessRegistry processes, T
         TabClosure closure = TabClosure.NoTab;
         foreach (TabRegistration tab in (await tabs.ReadTabsAsync()).Where(tab => tab.Owner == new TabOwner.ForSession(session)))
         {
-            if (tab is { ProcessId: int } && tab.IsLive(now, processes))
+            if (tab is { ProcessId: int shell } && tab.IsLive(now, processes))
             {
+                processes.EndCleanly(shell);
                 closure = TabClosure.Closed;
             }
 

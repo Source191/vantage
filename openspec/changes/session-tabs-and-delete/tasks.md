@@ -14,7 +14,7 @@
 
 ## 3. SessionTabs (Application)
 
-- [ ] 3.1 Red: `SessionTabsShould.EndEveryLiveShellAndForgetTheRegistrations` with two claimed live registrations for one session asserts `FakeProcessRegistry.EndedCleanly` holds both pids and the registrations are gone; `ForgetAPendingRegistrationWithoutEndingAnything`; `AnswerNoTabWhenThereIsNone`. Green: `SessionTabs.CloseAsync` and `TabClosure`. Verify the Core suite passes.
+- [x] 3.1 Red: `SessionTabsShould.EndEveryLiveShellAndForgetTheRegistrations` with two claimed live registrations for one session asserts `FakeProcessRegistry.EndedCleanly` holds both pids and the registrations are gone; `ForgetAPendingRegistrationWithoutEndingAnything`; `AnswerNoTabWhenThereIsNone`. Green: `SessionTabs.CloseAsync` and `TabClosure`. Verify the Core suite passes.
 
 ## 4. Opening and switching (Application)
 
