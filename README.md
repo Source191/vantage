@@ -240,8 +240,9 @@ Branches: when a removed worktree's branch was created by Vantage and is merged,
 The PR column in both views shows the pull request for each row's branch, read from the repository's `origin` remote: a `github.com` remote is asked through the GitHub CLI, an Azure DevOps remote (`dev.azure.com`, `*.visualstudio.com`, HTTPS or SSH) through the Azure CLI. Any other host leaves the column blank.
 
 - **Signing in:** run `gh auth login` once for GitHub; for Azure DevOps install the Azure CLI, run `az extension add --name azure-devops` and `az login`. Vantage never signs in for you and stores no credential.
-- **Refreshing:** each repository is listed in one call (its latest 100 pull requests) at most once every three minutes, in the background; the rows never wait for it, so the column fills on the refresh after the answer lands.
+- **Refreshing:** each row's branch is looked up on its own (`gh pr list --head`, `az repos pr list --source-branch`, twenty pull requests at most), only for rows on screen, never for every repository under the roots. An answer is kept for a minute, so a change shows within about 75 seconds; a signed-out or missing CLI is asked again only after three minutes. At most four lookups run at once, and the rows never wait for them: the column fills on the refresh after an answer lands. Each lookup is one short `gh` or `az` process returning a few kilobytes.
 - **Which one:** a branch with an open (or draft, or active) pull request shows that one; otherwise its most recent.
+- **Links:** an Azure DevOps pull request opens at `https://dev.azure.com/<organisation>/<project>/_git/<repository>/pullrequest/<number>`, built from the `origin` remote.
 
 ## vantage here
 
