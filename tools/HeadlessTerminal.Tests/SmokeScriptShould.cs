@@ -22,6 +22,7 @@ public sealed class SmokeScriptShould
             Wording.TabTitleDuring(DialogName.Keys), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.ForceRemove), Wording.TabTitle,
             Wording.TabTitle,
+            Wording.TabTitleDuring(DialogName.OpenSolution), Wording.TabTitle,
         ]);
     }
 
@@ -57,6 +58,7 @@ public sealed class SmokeScriptShould
             Key(Wording.WorktreesKeys, "Filter") + Worktree, "\r",
             Key(Wording.WorktreesKeys, "Force remove"), Escape,
             Key(Wording.WorktreesKeys, "Start session"), Escape,
+            Key(Wording.WorktreesKeys, "Solution"), Escape,
             Key(Wording.WorktreesKeys, "Sessions"),
             Key(Wording.SessionsKeys, "Quit"),
         ]);

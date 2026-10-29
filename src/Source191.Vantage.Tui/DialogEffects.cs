@@ -199,8 +199,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static Footer ChooseSolution(IEffectContext context, FindSolution find, IReadOnlyList<string> files)
     {
-        string[] buttons = [.. files.Select(Path.GetFileName)!, "Cancel"];
-        int? answer = Confirm.Query(context.App, DialogName.OpenSolution, Wording.ChooseSolutionTitle, Wording.ChooseSolutionQuestion(find.Folder.Name), buttons);
+        int? answer = ChooseSolutionDialog.Show(context.App, find.Folder, files);
 
         return answer is int chosen && chosen < files.Count
             ? Open(context, files[chosen])
