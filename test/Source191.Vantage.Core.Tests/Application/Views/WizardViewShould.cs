@@ -261,8 +261,21 @@ public sealed class WizardViewShould
         fixedInBilling.Focus.ShouldBe(WizardField.Name);
         fixedInBilling.Chosen.ShouldBe(new RepositoryChoice("Northwind.Billing", FolderPath.From(Billing), IsRepository: true));
         fixedInBilling.Base.ShouldBe(WorktreeBase.Head, "the default base still comes from settings");
-        Reduce(fixedInBilling, new WizardInput.NextField())
-            .Focus.ShouldBe(WizardField.Name, "the Where choice is hidden, so Enter has nowhere to go");
+    }
+
+    [Fact]
+    public void StartAndOpenATabOnEnterInAFixedFoldersName()
+    {
+        WizardState named = Reduce(FixedInBilling, new WizardInput.NameChanged("Refund retry policy"));
+
+        WizardUpdate started = WizardView.Reduce(named, new WizardInput.NextField());
+        WizardUpdate blank = WizardView.Reduce(FixedInBilling, new WizardInput.NextField());
+
+        WizardEffect.Launch launch = started.Effect.ShouldBeOfType<WizardEffect.Launch>();
+        launch.OpenInTab.ShouldBeTrue();
+        launch.Plan.Directory.Value.ShouldBe(Billing);
+        blank.Effect.ShouldBeOfType<WizardEffect.None>();
+        blank.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)));
     }
 
     [Fact]
