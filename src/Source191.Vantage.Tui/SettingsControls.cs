@@ -94,6 +94,9 @@ internal sealed class SettingsControls
         Fields[state.Focus].SetFocus();
     }
 
+    /// <summary>Puts the roots the state holds into their box, after the folder picker has added to them.</summary>
+    public void ShowRoots(SettingsState state) => Roots.Text = state.Text.Roots;
+
     /// <summary>Tells the dialog which field took focus, by Tab, a click or the dialog itself.</summary>
     public void WhenFocused(Action<SettingsField> focused)
     {

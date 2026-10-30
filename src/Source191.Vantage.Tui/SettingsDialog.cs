@@ -68,6 +68,26 @@ internal static class SettingsDialog
             Apply(new SettingsInput.Save());
         }
 
+        // The picker answers folders; the reducer adds them as lines and F5 checks them with the typed ones.
+        void Browse()
+        {
+            using OpenDialog picker = new() { Title = Wording.FolderPickerTitle, OpenMode = OpenMode.Directory, AllowsMultipleSelection = true };
+            if (state.BrowseFrom is FolderPath from)
+            {
+                picker.Path = from.Value;
+            }
+
+            picker.SetScheme(Palette.Focusable(Palette.White));
+            DialogTabTitle.Apply(app, log, picker, DialogName.FolderPicker);
+            app.Run(picker);
+            Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
+            Apply(new SettingsInput.FoldersChosen(picker.Canceled ? [] : picker.FilePaths));
+            binding = true;
+            controls.ShowRoots(state);
+            binding = false;
+        }
+
+        bool browses = scope is SettingsScope.Roots;
         controls.WhenFocused(field => Apply(new SettingsInput.FieldFocused(field)));
         controls.Roots.ContentsChanged += (_, _) => Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
         controls.WorktreeRoot.TextChanging += (_, changing) => Apply(new SettingsInput.WorktreeRootChanged(changing.Result ?? string.Empty));
@@ -80,7 +100,12 @@ internal static class SettingsDialog
         controls.WorktreeRoot.Accepting += (_, accepting) => accepting.Handled = true;
         controls.Executable.Accepting += (_, accepting) => accepting.Handled = true;
         controls.Arguments.Accepting += (_, accepting) => accepting.Handled = true;
-        dialog.KeyDown += (_, key) => key.Handled = key == GuiKey.F5 && WizardControls.Handled(Save);
+        dialog.KeyDown += (_, key) => key.Handled = (key == GuiKey.F5 && WizardControls.Handled(Save)) || (browses && key == GuiKey.F3 && WizardControls.Handled(Browse));
+        if (browses)
+        {
+            dialog.AddButton(WizardControls.Button(Wording.BrowseButton, Browse));
+        }
+
         dialog.AddButton(WizardControls.Button("_Save (F5)", Save));
         dialog.AddButton(WizardControls.Button("_Cancel (Esc)", () => Apply(new SettingsInput.Cancel())));
         dialog.Initialized += (_, _) => Push();
