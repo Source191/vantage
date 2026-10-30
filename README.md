@@ -159,7 +159,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | n | New session wizard |
 | r | Rename the session from Vantage: type the new name, Enter. The session restarts under the new name with the same id and conversation, so it is refused while the session is working or before its first message. A Vantage tab showing it closes and a tab under the new name opens in the same colour |
 | x | Stop the session (it stays listed and can be resumed); a Vantage tab showing it closes |
-| d | Delete the session, after a confirmation, closing a Vantage tab showing it first, and the worktree Vantage created for it when nothing in it would be lost; asks before deleting that worktree's branch when it is not merged. A worktree whose `.git` has gone has its folder deleted and its registration pruned; one whose folder a tab or program still has open is reported as in use, by name, and a remove from the worktrees view finishes it once that is closed. On a `terminal` row that has never been sent a message, closes that tab instead |
+| d | Delete the session, after a confirmation, closing a Vantage tab showing it first, and the worktree Vantage created for it when nothing in it would be lost; asks before deleting that worktree's branch when it is not merged. A worktree whose `.git` has gone has its folder deleted and its registration pruned; one whose folder a tab or program still has open is reported as in use, by name, and a remove from the worktrees view finishes it once that is closed. On a row with the hollow `▯` swatch (a plain `claude` in its own terminal) that has never been sent a message, closes that tab instead |
 | C | Close every tab whose plain `claude` has never been sent a message, after a confirmation naming them |
 | b | Move a plain terminal session under Vantage's supervision; its old tab closes once the session has resumed (a failed resume leaves it at its prompt) |
 | R | Resume sessions that stopped with a reboot |
@@ -176,7 +176,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
 | q | Quit |
 
-Rows marked `terminal` are sessions started by hand with `claude` in some tab. Vantage can see them but cannot attach to or stop them; press `b` to bring one under supervision, or type `/bg` inside it. One that has never been sent a message has nothing to keep: `d` closes its tab, `C` closes all such tabs, and the footer says so. Vantage ends the claude process, then ends the tab's shell with a clean exit code, which is what makes Windows Terminal close the tab; a session not inside a Windows Terminal tab is just ended.
+Rows with the hollow `▯` swatch in TAB are sessions started by hand with `claude` in some tab. Vantage can see them but cannot attach to or stop them; press `b` to bring one under supervision, or type `/bg` inside it. One that has never been sent a message has nothing to keep: `d` closes its tab, `C` closes all such tabs, and the footer says so. Vantage ends the claude process, then ends the tab's shell with a clean exit code, which is what makes Windows Terminal close the tab; a session not inside a Windows Terminal tab is just ended.
 
 ## The new session wizard
 
@@ -199,7 +199,7 @@ Enter never starts a session here, so there is nothing to undo if you press it t
 
 **Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. A session that has never had a message opens at its own prompt, and Ctrl+Z returns from it in the same way. Vantage prints a one-line reminder before every attach and erases it when you come back, so the scrollback keeps no copies.
 
-**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows `open`. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the column clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
+**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows a solid `▮` in that tab's colour. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
 
 ## The worktrees view
 
@@ -318,11 +318,11 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
-**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows `open`; `o` again switches to that tab until it is closed.
+**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows a solid `▮` in the tab's colour; `o` again switches to that tab until it is closed.
 
 **Start Claude from a repository folder you are already in.** `vh fix-tests -p "..."` instead of `claude`. It shows up in Vantage with a job id, so `o`, `x` and `d` work on it later.
 
-**A session you started with plain `claude` needs the same treatment.** Select its `terminal` row and press `b` while it is idle or waiting. Vantage ends the plain process and resumes the same conversation under the supervisor with the same name; the old tab becomes an ordinary shell. A session you have not sent anything to yet is refused, because Claude writes no transcript until the first message and there would be nothing to resume: `d` closes that tab instead.
+**A session you started with plain `claude` needs the same treatment.** Select its row (the hollow `▯` swatch) and press `b` while it is idle or waiting. Vantage ends the plain process and resumes the same conversation under the supervisor with the same name; the old tab becomes an ordinary shell. A session you have not sent anything to yet is refused, because Claude writes no transcript until the first message and there would be nothing to resume: `d` closes that tab instead.
 
 **After a reboot.** Sessions show as stopped or failed with no process. `R` resumes the failed ones and offers the stopped ones as a checklist.
 
