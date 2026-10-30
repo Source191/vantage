@@ -21,6 +21,10 @@ The worktrees table SHALL show the repository and the folder in one WORKTREE col
 - **WHEN** the user filters by broken
 - **THEN** the broken rows stay in the table though no cell shows the health
 
+#### Scenario: The help names the column
+- **WHEN** the help is shown on the worktrees view
+- **THEN** it lists WORKTREE with its meaning, and the header shows the same words on hover
+
 ### Requirement: Each row shows work at risk
 For every registered worktree the view SHALL show the age of the last commit and the name of any session whose working directory is that worktree in its row, and the count of changed or untracked files and the count of commits not on any remote branch in the detail pane's Changes line when the row is selected.
 
@@ -42,6 +46,10 @@ The worktrees view SHALL be the Worktrees tab of the console, under the same set
 - **WHEN** the user presses the help key on the Worktrees tab
 - **THEN** the help names every column of the worktrees table with its meaning, and its Pane section names every line of the pane, including what each health word means
 
+#### Scenario: Worktrees help on a short terminal
+- **WHEN** the user presses the help key in the worktrees view on a 120 x 36 terminal
+- **THEN** every line of the help is reachable with the arrow keys and PageDown
+
 #### Scenario: Hover over a key hint
 - **WHEN** the mouse pointer rests on P Prune in the key bar of the Worktrees tab
 - **THEN** a tooltip says it prunes stale registrations in the row's repository
@@ -53,3 +61,7 @@ The worktrees view SHALL be the Worktrees tab of the console, under the same set
 #### Scenario: Hover over a column header
 - **WHEN** the mouse pointer rests on the LAST COMMIT header
 - **THEN** a tooltip names the column and explains it
+
+#### Scenario: The worktree bar
+- **WHEN** an ok worktree with a session inside it is selected
+- **THEN** the first bar row reads d Remove, D Force remove, P Prune, s Start session, o Open shell and Enter Go to session, and the second c Copy path, e Open folder, v Solution, p Open PR, / Filter, ? Help, ! Report and q Quit

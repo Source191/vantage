@@ -6,7 +6,7 @@ Starts a named Claude Code session in a chosen repository, either on the branch 
 ## Requirements
 
 ### Requirement: Repository is chosen from configured roots
-The wizard SHALL offer every git repository's main checkout found directly under the configured repository roots, the most recently used repositories first, and a "no repository" option that starts in the roots folder. A linked worktree directly under a root SHALL NOT be offered as a repository.
+The wizard SHALL offer every git repository's main checkout found directly under the configured repository roots, the most recently used repositories first, and SHALL NOT offer a root folder itself or a linked worktree directly under a root.
 
 #### Scenario: Filtering the picker
 - **WHEN** the user types part of a repository name
@@ -19,6 +19,10 @@ The wizard SHALL offer every git repository's main checkout found directly under
 #### Scenario: Old sibling worktree under a root
 - **WHEN** the root holds Northwind.Orders and its linked worktree Northwind.Orders-fix-123
 - **THEN** the picker offers Northwind.Orders and does not offer Northwind.Orders-fix-123
+
+#### Scenario: Roots are not choices
+- **WHEN** the picker opens with the root C:\Users\me\source\repos
+- **THEN** no "(no repository)" entry is listed; a session in the root folder itself is started with vantage here from that folder
 
 ### Requirement: A session name is mandatory
 The wizard SHALL require a non-blank name, SHALL accept any other name, including one holding a semicolon or a double quote, and SHALL use the name exactly as typed as the session name, the tab title and the Remote Control name. A refused name SHALL be explained in a plain sentence, in the wizard and by `vantage here`, with nothing after it.
@@ -44,7 +48,7 @@ The wizard SHALL require a non-blank name, SHALL accept any other name, includin
 - **THEN** it prints exactly "A session name is required." and starts nothing
 
 ### Requirement: A new worktree is the default launch mode
-The wizard opened from the overview SHALL default to starting the session in a new worktree, and SHALL offer the repository's main checkout on whatever branch is checked out as the alternative. The wizard opened on a fixed folder SHALL offer no choice and start on that folder's current branch.
+The wizard opened from the overview SHALL default to starting the session in a new worktree, and SHALL offer the repository's main checkout on whatever branch is checked out as the alternative. The wizard opened on a fixed folder SHALL offer no choice, start on that folder's current branch, show only the directory, the name, the preview and the prompt in a dialog sized to them, and start the session and open its tab on Enter in the name field.
 
 #### Scenario: Accepting the defaults
 - **WHEN** the user opens the wizard with `n`, chooses Northwind.Orders, names the session "Fix 123" and accepts the other defaults
@@ -55,12 +59,20 @@ The wizard opened from the overview SHALL default to starting the session in a n
 - **THEN** the session starts in the repository's main checkout and no worktree is created
 
 #### Scenario: Default left in place for a folder that is not a repository
-- **WHEN** the user opens the wizard with `n`, chooses "(no repository)", names the session and starts without changing Where
-- **THEN** the wizard starts nothing and explains that a worktree needs a repository
+- **WHEN** a session is wanted in a folder that is not a repository, such as a root folder itself
+- **THEN** the wizard offers no such folder, so the worktree default never meets one, and vantage here run from that folder starts the session there with no worktree
 
 #### Scenario: Wizard on a fixed folder
-- **WHEN** the user starts a session with `s` on a worktree row
-- **THEN** the session starts in that worktree on its current branch and no new worktree is created
+- **WHEN** the user starts a session with `s` on a worktree row, types a name and presses Enter
+- **THEN** the session starts in that worktree on its current branch, no new worktree is created, and it opens in its own tab
+
+#### Scenario: Fixed folder without a tab
+- **WHEN** the user starts a session with `s` on a worktree row, types a name and presses F5
+- **THEN** the session starts in that worktree and no tab is opened
+
+#### Scenario: Fixed folder dialog is compact
+- **WHEN** the wizard opens from a worktree row
+- **THEN** the dialog shows the directory, the name, the preview and the prompt from its left edge, with no empty repository column, and its hint line says Enter starts and opens in a tab
 
 ### Requirement: A new worktree goes under the worktree root
 When the user chooses a worktree, Vantage SHALL create it at `<worktree root>\<repository>-<slug>` on a new branch named `<slug>`, creating the worktree root when it does not exist, where the slug is the name lower-cased with every run of characters other than a-z and 0-9 replaced by one hyphen and leading and trailing hyphens removed.
@@ -185,3 +197,22 @@ The `.worktreeinclude` copy SHALL only read files inside the repository and only
 #### Scenario: Rooted and network paths in git's listing
 - **WHEN** git's ignored-file listing names C:/Users/me/secrets.local.json and //server/share/secrets.local.json
 - **THEN** neither is copied, and only the in-repository matches reach the worktree
+
+### Requirement: The wizard's keys move through the form in order
+Tab and Enter SHALL move focus through the wizard in its reading order: from the repository list to the name, from the name to Where when it is shown and otherwise to the prompt, from Where to the base, and from the base to the prompt. Enter SHALL never close the wizard or start a session, except in a fixed folder's name field, and only F5, F6 and the buttons SHALL start one.
+
+#### Scenario: Tab from the list
+- **WHEN** the user presses Tab on the repository list
+- **THEN** focus moves to the name field, as it does on Enter
+
+#### Scenario: Enter on Where
+- **WHEN** the user presses Enter on the Where selector
+- **THEN** focus moves to the worktree base and the wizard stays open
+
+#### Scenario: Enter on the base
+- **WHEN** the user presses Enter on the worktree base selector
+- **THEN** focus moves to the opening prompt and the wizard stays open
+
+#### Scenario: Enter in the prompt
+- **WHEN** the user presses Enter in the opening prompt
+- **THEN** the prompt gains a new line and the wizard stays open
