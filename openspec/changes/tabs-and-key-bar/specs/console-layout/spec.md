@@ -33,15 +33,15 @@ The console SHALL show the sessions view and the worktrees view as two tabs of o
 - **THEN** the Sessions tab is shown with that session selected, without leaving the console
 
 ### Requirement: The active tab stands out
-The active tab's title and frame SHALL be drawn in cyan and the other tab's title in grey, so the tab shown is plain at a glance.
+The active tab's title and frame, every join of that frame and the table's header box, closed on all four sides with the column names white inside it, SHALL be drawn in cyan, and the other tab's title in grey, so the tab shown is plain at a glance.
 
 #### Scenario: Sessions active
 - **WHEN** the Sessions tab is shown
-- **THEN** its title and the frame around the table are cyan and the Worktrees title is grey
+- **THEN** its title, the frame around the table and the lines of the table's header box are cyan and the Worktrees title is grey
 
 #### Scenario: Worktrees active
 - **WHEN** the user presses 2
-- **THEN** the Worktrees title and frame turn cyan and the Sessions title grey
+- **THEN** the Worktrees title and frame turn cyan, including the frame's left corner where the Sessions tab meets it, and the Sessions title grey
 
 ### Requirement: The settings take two lines
 The first two rows SHALL show the settings, labels orange, values white, parts separated by a grey ·: first Vantage with its version and memory, then Claude and its version, with the update notice and the below-minimum warning in their places; second Repository roots with every root, then Worktree root. When the second row is too wide the roots SHALL be elided first, then the worktree root, each with an ellipsis.

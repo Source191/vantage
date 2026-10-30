@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
-Writes the console's icon as raw pixels: assets\icon\vantage-48.rgba, the Vantage mark without its tile.
+Writes the console's icon as raw pixels: assets\icon\vantage-48.rgba, the Vantage icon with a light edge round its tile.
 .DESCRIPTION
 The console draws the icon through Terminal.Gui's ImageView, which takes pixels and has no image decoder, so the
-pixels are committed beside the PNGs and embedded in the Tui assembly. The mark is drawn without its dark tile, which
-disappeared against the console's black, and with its rings' centres in the console's own background colour; the
-corners stay transparent and the console blends them with that background. The file is the width and the height as
+pixels are committed beside the PNGs and embedded in the Tui assembly. The dark tile vanished against the console's
+black, so this copy has a light edge round it (the mark alone was tried too, and read worse); the tile's rounded
+corners stay transparent and the console blends them with its background. The file is the width and the height as
 one byte each, then four bytes (red, green, blue, alpha) per pixel, row by row. Run it after VantageMark.ps1 changes
 the drawing.
 #>
@@ -13,7 +13,7 @@ the drawing.
 param(
     [string]$IconFolder = (Join-Path $PSScriptRoot '..\assets\icon'),
     [int]$Size = 48,
-    [string]$ConsoleBackground = '#0C0C0C'
+    [string]$Outline = '#E2E8F0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -27,7 +27,7 @@ try {
     $graphics = [System.Drawing.Graphics]::FromImage($large)
     $graphics.SmoothingMode = 'AntiAlias'
     $graphics.PixelOffsetMode = 'HighQuality'
-    Add-VantageMark $graphics 0 0 $master -NoTile -NodeCentre $ConsoleBackground
+    Add-VantageMark $graphics 0 0 $master -Outline $Outline
     $graphics.Dispose()
 
     $graphics = [System.Drawing.Graphics]::FromImage($small)

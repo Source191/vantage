@@ -36,15 +36,20 @@ function Add-Node([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [flo
     $graphics.DrawEllipse((New-Pen $ring ($radius * 0.55)), $x - $inner, $y - $inner, 2 * $inner, 2 * $inner)
 }
 
-function Add-VantageMark([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [float]$size, [switch]$NoTile, [string]$NodeCentre = '#0F172A') {
+function Add-VantageMark([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [float]$size, [switch]$NoTile, [string]$NodeCentre = '#0F172A', [string]$Outline) {
     $layout = 512
     $state = $graphics.Save()
     $graphics.TranslateTransform($x, $y)
     $graphics.ScaleTransform($size / $layout, $size / $layout)
     if (-not $NoTile) {
-        $graphics.SetClip((New-RoundedRectangle $layout 96))
+        $tile = New-RoundedRectangle $layout 96
+        $graphics.SetClip($tile)
         $background = [System.Drawing.Drawing2D.LinearGradientBrush]::new((PointOf 0 0), (PointOf 0 $layout), (ColourOf '#1E1B4B'), (ColourOf '#0F172A'))
         $graphics.FillRectangle($background, 0, 0, $layout, $layout)
+        if ($Outline) {
+            # Drawn inside the clip, so half the pen's width shows: a light edge that sets the dark tile off a black background.
+            $graphics.DrawPath([System.Drawing.Pen]::new((ColourOf $Outline), 56), $tile)
+        }
     }
 
     # The stem is drawn first so the branches' round ends cover its top and the join is clean.

@@ -78,6 +78,7 @@ public sealed class ConsoleScreen(
         private readonly Tabs tabs;
         private readonly View counts;
         private readonly Label frameTitle;
+        private readonly Label junction;
         private readonly View bar;
         private readonly TableBody<SessionsViewState, SessionRow> sessions;
         private readonly TableBody<WorktreesViewState, WorktreeRow> worktrees;
@@ -111,7 +112,9 @@ public sealed class ConsoleScreen(
             counts = new View { X = HeaderSpan() + 2, Y = TitleRow, Width = Dim.Fill(), Height = 1 };
             frameTitle = new Label { X = 0, Y = TitleRow, Width = 0, Height = 1, HotKeySpecifier = new System.Text.Rune(0xFFFF), Text = string.Empty };
             bar = new View { X = 0, Y = Pos.AnchorEnd(2), Width = Dim.Fill(), Height = 2 };
-            View[] views = [icon, .. settings, tabs, counts, frameTitle, bar];
+            junction = new Label { X = 0, Y = StripTop + 2, Width = 1, Height = 1, Text = "├" };
+            junction.SetScheme(Palette.Plain(Palette.Cyan));
+            View[] views = [icon, .. settings, tabs, counts, frameTitle, junction, bar];
             Window.Add(views);
 
             Window.KeyDown += (_, key) => Active.OnKey(key);
@@ -194,6 +197,7 @@ public sealed class ConsoleScreen(
             binding = false;
             sessions.View.SetScheme(Palette.Plain(tab == ConsoleTab.Sessions ? Palette.Cyan : Palette.Grey));
             worktrees.View.SetScheme(Palette.Plain(tab == ConsoleTab.Worktrees ? Palette.Cyan : Palette.Grey));
+            CoverInactiveJunction(tab);
             if (tab != screen.shown)
             {
                 screen.shown = tab;
@@ -231,6 +235,20 @@ public sealed class ConsoleScreen(
                     view.KeyBindings.Remove(key);
                 }
             }
+        }
+
+        /// <summary>
+        /// Where the inactive tab's side meets the frame's top line, `Tabs` draws the join in the inactive tab's grey, which
+        /// broke the active frame's cyan at one cell: the left edge's ├ when Worktrees is shown, the ┴ after the titles
+        /// when Sessions is. A cyan label draws that join again.
+        /// </summary>
+        private void CoverInactiveJunction(ConsoleTab tab)
+        {
+            (junction.X, junction.Text) = tab switch
+            {
+                ConsoleTab.Sessions => (Pos.Absolute(HeaderSpan() - 1), "┴"),
+                ConsoleTab.Worktrees => (Pos.Absolute(0), "├"),
+            };
         }
 
         /// <summary>A click on a tab's title selects it in the strip; the console follows as if the tab's key had been pressed.</summary>
