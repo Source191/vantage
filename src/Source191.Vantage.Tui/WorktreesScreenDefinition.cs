@@ -54,7 +54,7 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
         };
     }
 
-    public string TabTitle(WorktreesViewState state) => Wording.TabTitleFor(ConsoleTab.Worktrees, state.Loaded ? state.Rows.Count : null);
+    public string TabTitle(WorktreesViewState state) => Wording.TabTitleFor(ConsoleTab.Worktrees);
 
     public IReadOnlyList<TextPart> Counts(WorktreesViewState state) => Wording.WorktreeCounts(state.Rows);
 

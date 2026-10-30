@@ -12,6 +12,7 @@ public enum TextTone
     Green,
     Red,
     Grey,
+    Orange,
 }
 
 /// <summary>A piece of the frame's text in its tone, such as "◐ 2 need input" in amber or "Vantage " in orange.</summary>
@@ -40,44 +41,53 @@ public static partial class Wording
     private static readonly string[] SecondBarRowForSessions = ["c", "e", "v", "p", "w", "/", ",", "?", "!", "q"];
     private static readonly string[] FirstBarRowForWorktrees = ["d", "D", "P", "s", "o", "enter"];
 
-    /// <summary>The first row of the console: Vantage, Claude, the repository roots and the worktree root, the roots cut first and the worktree root next when the line is wider than <paramref name="width"/>.</summary>
-    public static string SettingsLine(ToolVersion vantage, ClaudeCodeVersion claude, Settings settings, UpdateStatus update, MemorySize vantageMemory, int width)
+    private const string RootsLabel = "Repository roots ";
+    private const string WorktreeRootLabel = "Worktree root ";
+
+    private static readonly TextPart Dot = new(" · ", TextTone.Grey);
+
+    /// <summary>
+    /// The console's two settings rows, labels orange and values white: Vantage and Claude first, then the repository roots
+    /// and the worktree root, the roots cut first and the worktree root next when the second row is wider than <paramref name="width"/>.
+    /// </summary>
+    public static IReadOnlyList<IReadOnlyList<TextPart>> SettingsRows(ToolVersion vantage, ClaudeCodeVersion claude, Settings settings, UpdateStatus update, MemorySize vantageMemory, int width)
     {
         ArgumentNullException.ThrowIfNull(settings);
-        string head = $"Vantage {VantageVersion(vantage, update, vantageMemory)} · Claude {ClaudeVersion(claude)} · Repository roots ";
-        string roots = string.Join("; ", settings.RepositoryRoots);
-        string worktreeRoot = settings.WorktreeRoot.Value;
-        string Line(string rootsText, string worktreeText) => $"{head}{rootsText} · Worktree root {worktreeText}";
+        IReadOnlyList<TextPart> versions = [Label("Vantage "), Value(VantageVersion(vantage, update, vantageMemory)), Dot, Label("Claude "), Value(ClaudeVersion(claude))];
 
-        string whole = Line(roots, worktreeRoot);
-        if (whole.Length <= width)
-        {
-            return whole;
-        }
-
-        int rootsRoom = width - Line(string.Empty, worktreeRoot).Length;
-        if (rootsRoom >= Ellipsis.Length)
-        {
-            return Line(CutEnd(roots, rootsRoom), worktreeRoot);
-        }
-
-        int worktreeRoom = width - Line(Ellipsis, string.Empty).Length;
-
-        return worktreeRoom >= Ellipsis.Length
-            ? Line(Ellipsis, CutEnd(worktreeRoot, worktreeRoom))
-            : CutEnd(Line(Ellipsis, Ellipsis), Math.Max(width, Ellipsis.Length));
+        return [versions, Roots(string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot.Value, width)];
     }
 
-    /// <summary>A tab's title: its name, with the rows it lists in brackets once loaded.</summary>
-    public static string TabTitleFor(ConsoleTab tab, int? count)
+    /// <summary>A tab's title, which never changes, so the tab strip never has to measure it again.</summary>
+    public static string TabTitleFor(ConsoleTab tab) => tab switch
     {
-        string name = tab switch
-        {
-            ConsoleTab.Sessions => "Sessions",
-            ConsoleTab.Worktrees => "Worktrees",
-        };
+        ConsoleTab.Sessions => "Sessions",
+        ConsoleTab.Worktrees => "Worktrees",
+    };
 
-        return count is int rows ? $"{name} ({rows})" : name;
+    private static TextPart Label(string text) => new(text, TextTone.Orange);
+
+    private static TextPart Value(string text) => new(text, TextTone.Plain);
+
+    private static IReadOnlyList<TextPart> Roots(string roots, string worktreeRoot, int width)
+    {
+        IReadOnlyList<TextPart> Row(string rootsText, string worktreeText) => [Label(RootsLabel), Value(rootsText), Dot, Label(WorktreeRootLabel), Value(worktreeText)];
+        int Length(string rootsText, string worktreeText) => RootsLabel.Length + rootsText.Length + Dot.Text.Length + WorktreeRootLabel.Length + worktreeText.Length;
+
+        if (Length(roots, worktreeRoot) <= width)
+        {
+            return Row(roots, worktreeRoot);
+        }
+
+        int rootsRoom = width - Length(string.Empty, worktreeRoot);
+        if (rootsRoom >= Ellipsis.Length)
+        {
+            return Row(CutEnd(roots, rootsRoom), worktreeRoot);
+        }
+
+        int worktreeRoom = Math.Max(width - Length(Ellipsis, string.Empty), Ellipsis.Length);
+
+        return Row(Ellipsis, CutEnd(worktreeRoot, worktreeRoom));
     }
 
     /// <summary>The sessions counts beside the tabs: a glyph, a count and a state word per state present, in attention order.</summary>

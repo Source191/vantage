@@ -22,6 +22,9 @@ internal interface ITabBody
 
     IReadOnlyList<TextPart> Counts { get; }
 
+    /// <summary>The table's title for the frame's line, or the failure banner in red when the last load failed.</summary>
+    TextPart FrameTitle { get; }
+
     KeyBar Bar(bool updateKnown);
 
     void OnKey(GuiKey key);
@@ -44,7 +47,7 @@ internal interface ITabHost
 }
 
 /// <summary>
-/// One tab of the console: a view's rows in a table with its title, crumb, footer and waiting indicator, the reducer it
+/// One tab of the console: a view's rows in a table with its crumb, footer and waiting indicator (its title goes on the frame), the reducer it
 /// feeds keys to, and the effects it routes (a dialog to <see cref="DialogEffects"/>, a background effect to its handler
 /// through the <see cref="EffectDispatcher"/> with a busy spinner, a tab switch or an exit to the console). A definition
 /// supplies everything specific to the view.
@@ -64,8 +67,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly IApplication app;
     private readonly ITabHost host;
     private readonly TableView table;
-    private readonly Label title;
-    private readonly Label banner;
     private readonly Label footer;
     private readonly SpinnerView busy;
     private readonly WaitingIndicator waiting;
@@ -91,12 +92,10 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         View = new View { Title = definition.TabTitle(initial), Width = Dim.Fill(), Height = Dim.Fill(), CanFocus = true };
         View.SetScheme(Palette.Plain(Palette.White));
 
-        banner = Text(0, 0, Dim.Fill(), string.Empty, Palette.Red);
-        title = Text(1, 0, Dim.Fill(), string.Empty, Palette.Cyan);
         table = new TableView
         {
             X = 0,
-            Y = 1,
+            Y = 0,
             Width = Dim.Fill(),
             Height = Dim.Fill(1),
             CanFocus = false,
@@ -117,7 +116,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         waiting = new WaitingIndicator(definition.WaitingText);
         footer = Text(crumbWidth + 3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
 
-        View.Add(banner, title, table, crumb, busy, footer, waiting);
+        View.Add(table, crumb, busy, footer, waiting);
         ShowColumnToolTips();
     }
 
@@ -130,6 +129,13 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     public string Title => definition.TabTitle(State);
 
     public IReadOnlyList<TextPart> Counts => definition.Counts(State);
+
+    public TextPart FrameTitle => State.Banner is null
+        ? new TextPart(DescribedTitle, TextTone.Cyan)
+        : new TextPart($"{definition.LoadFailurePrefix}: {State.Banner}", TextTone.Red);
+
+    /// <summary>The table's title, with the filter being typed after it.</summary>
+    private string DescribedTitle => State.List.FilterEditing ? $"{Wording.Describe(State.Title)}  filter: {State.List.Filter.Text}_" : Wording.Describe(State.Title);
 
     public IApplication App => app;
 
@@ -217,10 +223,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         table.Table = new TableSource<TRow>(rows, columnNames, (row, column) => definition.Cell(row, column, now, column == definition.ElasticColumn ? elasticWidth : int.MaxValue));
         table.ColumnOffset = columnOffset;
         View.Title = definition.TabTitle(State);
-        string described = Wording.Describe(State.Title);
-        title.Text = State.List.FilterEditing ? $"{described}  filter: {State.List.Filter.Text}_" : described;
-        banner.Text = State.Banner is null ? string.Empty : $" {definition.LoadFailurePrefix}: {State.Banner}";
-        title.Visible = State.Banner is null;
         footer.Text = Wording.Describe(State.Shown);
         if (rows.Count > 0)
         {
@@ -396,7 +398,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
         return paint switch
         {
-            { Fill: Color fill } => Palette.Fill(paint.Foreground, fill),
+            { Always: true } when Equals(row, selected) => Palette.SelectedRow(paint.Foreground),
             not null when !Equals(row, selected) => Palette.Plain(paint.Foreground),
             _ => null,
         };
@@ -412,7 +414,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         TRow row = source.RowAt(args.RowIndex);
 
         return Equals(row, selected)
-            ? Palette.Highlight()
+            ? Palette.SelectedRow()
             : Palette.Plain(definition.RowColour(row));
     }
 

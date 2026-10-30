@@ -53,13 +53,19 @@ internal static class Palette
 
     public static Scheme Highlight() => Pair(new Color(0, 0, 0), Cyan);
 
+    /// <summary>The selected table row's background: the bright cyan Terminal.Gui derived from <see cref="Highlight"/> for a table that cannot take focus, now named.</summary>
+    public static readonly Color SelectionBackground = new(41, 241, 255);
+
+    private static readonly Color SelectionText = new(51, 51, 51);
+
     /// <summary>
-    /// A cell filled with an exact colour on every row: the selected row of a table that cannot take focus is drawn with
-    /// the Active role, which Terminal.Gui otherwise derives as a dimmer shade, so it is set here too.
+    /// The selected table row, bold dark grey on bright cyan, with the given foreground for a cell that keeps its own
+    /// colour there (the TAB block). Such a table draws the selected row with the Active role, which Terminal.Gui otherwise
+    /// derives from Normal as a lighter shade, so every role is set to the exact colours.
     /// </summary>
-    public static Scheme Fill(Color foreground, Color background)
+    public static Scheme SelectedRow(Color? foreground = null)
     {
-        Attribute attribute = new(foreground, background);
+        Attribute attribute = new(foreground ?? SelectionText, SelectionBackground, TextStyle.Bold);
 
         return new Scheme { Normal = attribute, Focus = attribute, HotNormal = attribute, HotFocus = attribute, Active = attribute, HotActive = attribute, Disabled = attribute };
     }
@@ -71,7 +77,7 @@ internal static class Palette
         return new Scheme { Normal = attribute, Focus = attribute, HotNormal = attribute, HotFocus = attribute, Disabled = attribute };
     }
 
-    /// <summary>The colour of a count beside the tabs.</summary>
+    /// <summary>The colour of a piece of the frame's text.</summary>
     public static Color ForTone(TextTone tone)
     {
         return tone switch
@@ -82,6 +88,7 @@ internal static class Palette
             TextTone.Green => Green,
             TextTone.Red => Red,
             TextTone.Grey => Grey,
+            TextTone.Orange => Orange,
         };
     }
 

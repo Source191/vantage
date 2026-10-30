@@ -63,17 +63,22 @@ public sealed class ConsoleScreen(
         return frame.Exit;
     }
 
-    /// <summary>One run's views and state: the window, the settings line, the two tabs, the counts, the key bar and the timers.</summary>
+    /// <summary>One run's views and state: the window, the icon and settings rows, the two tabs, the counts and title beside them, the key bar and the timers.</summary>
     private sealed class Frame : ITabHost, IDisposable
     {
-        private const string CountSeparator = " · ";
-        private const int TitleRow = 2;
+        private const string Separator = " · ";
+        private const int SettingsRows = 2;
+        private const int StripTop = SettingsRows;
+        private const int TitleRow = StripTop + 1;
+        private const int FrameRow = StripTop + 2;
 
         private readonly ConsoleScreen screen;
         private readonly IApplication app;
-        private readonly Label settingsLine;
+        private readonly ImageView icon;
+        private readonly View[] settings;
         private readonly Tabs tabs;
         private readonly View counts;
+        private readonly Label frameTitle;
         private readonly View bar;
         private readonly TableBody<SessionsViewState, SessionRow> sessions;
         private readonly TableBody<WorktreesViewState, WorktreeRow> worktrees;
@@ -83,6 +88,7 @@ public sealed class ConsoleScreen(
         private bool binding;
         private KeyBar? shownBar;
         private IReadOnlyList<TextPart> shownCounts = [];
+        private IReadOnlyList<IReadOnlyList<TextPart>> shownSettings = [];
 
         public Frame(ConsoleScreen screen, IApplication app, ConsoleState initial)
         {
@@ -95,16 +101,18 @@ public sealed class ConsoleScreen(
             Window = new Window { BorderStyle = LineStyle.None, Title = context.Title };
             Window.SetScheme(Palette.Plain(Palette.White));
 
-            settingsLine = new Label { X = 0, Y = 0, Width = Dim.Fill(), Height = 1, Text = string.Empty };
-            settingsLine.SetScheme(Palette.Plain(Palette.Grey));
-            tabs = new Tabs { X = 0, Y = 1, Width = Dim.Fill(), Height = Dim.Fill(2) };
-            tabs.SetScheme(Palette.Plain(Palette.White));
+            icon = VantageIcon.Create();
+            settings = [.. Enumerable.Range(0, SettingsRows).Select(row => new View { X = 0, Y = row, Width = Dim.Fill(), Height = 1 })];
+            tabs = new Tabs { X = 0, Y = StripTop, Width = Dim.Fill(), Height = Dim.Fill(2) };
+            tabs.SetScheme(Palette.Plain(Palette.Grey));
             sessions = new TableBody<SessionsViewState, SessionRow>(new SessionsScreenDefinition(screen.notifier, screen.claudeExecutable, screen.folders), screen.dialogs, screen.dispatcher, screen.loadSessions, screen.clock, context, app, this, initial.Sessions);
             worktrees = new TableBody<WorktreesViewState, WorktreeRow>(new WorktreesScreenDefinition(screen.folders), screen.dialogs, screen.dispatcher, screen.scanWorktrees, screen.clock, context, app, this, initial.Worktrees);
             tabs.Add(sessions.View, worktrees.View);
-            counts = new View { X = 0, Y = TitleRow, Width = Dim.Fill(), Height = 1 };
+            counts = new View { X = HeaderSpan() + 2, Y = TitleRow, Width = Dim.Fill(), Height = 1 };
+            frameTitle = new Label { X = HeaderSpan() + 1, Y = FrameRow, Width = Dim.Auto(), Height = 1, HotKeySpecifier = new System.Text.Rune(0xFFFF), Text = string.Empty };
             bar = new View { X = 0, Y = Pos.AnchorEnd(2), Width = Dim.Fill(), Height = 2 };
-            Window.Add(settingsLine, tabs, counts, bar);
+            View[] views = [icon, .. settings, tabs, counts, frameTitle, bar];
+            Window.Add(views);
 
             Window.KeyDown += (_, key) => Active.OnKey(key);
             tabs.ValueChanged += (_, _) => OnTabClicked();
@@ -145,8 +153,9 @@ public sealed class ConsoleScreen(
 
         public void FrameChanged()
         {
-            settingsLine.Text = screen.context.SettingsLine(Window.Viewport.Width > 0 ? Window.Viewport.Width : app.Screen.Width);
+            ShowSettings();
             ShowCounts(Active.Counts);
+            ShowFrameTitle(Active.FrameTitle);
             ShowBar(Active.Bar(screen.context.UpdateKnown()));
             Window.SetNeedsDraw();
         }
@@ -171,13 +180,20 @@ public sealed class ConsoleScreen(
             Window.Dispose();
         }
 
-        /// <summary>Shows a tab: selects it in the strip (ignoring the change event that raises), records it, and starts the worktrees scan the first time it is shown.</summary>
+        private int ScreenWidth => Window.Viewport.Width > 0 ? Window.Viewport.Width : app.Screen.Width;
+
+        /// <summary>
+        /// Shows a tab: selects it in the strip (ignoring the change event that raises), draws its title and frame in cyan
+        /// and the other's title in grey, records it, and starts the worktrees scan the first time it is shown.
+        /// </summary>
         private void Show(ConsoleTab tab)
         {
             active = tab;
             binding = true;
             tabs.Value = tab == ConsoleTab.Sessions ? sessions.View : worktrees.View;
             binding = false;
+            sessions.View.SetScheme(Palette.Plain(tab == ConsoleTab.Sessions ? Palette.Cyan : Palette.Grey));
+            worktrees.View.SetScheme(Palette.Plain(tab == ConsoleTab.Worktrees ? Palette.Cyan : Palette.Grey));
             if (tab != screen.shown)
             {
                 screen.shown = tab;
@@ -212,6 +228,67 @@ public sealed class ConsoleScreen(
             }
         }
 
+        /// <summary>The icon shows where the terminal draws images, and the two settings rows start after it; elsewhere they start at the left edge.</summary>
+        private void ShowSettings()
+        {
+            icon.Visible = app.Driver?.SixelSupport?.IsSupported == true;
+            int indent = icon.Visible ? VantageIcon.Indent : 0;
+            IReadOnlyList<IReadOnlyList<TextPart>> rows = screen.context.SettingsRows(ScreenWidth - indent);
+            if (settings[0].X.Equals(Pos.Absolute(indent)) && rows.Count == shownSettings.Count && rows.Zip(shownSettings).All(pair => pair.First.SequenceEqual(pair.Second)))
+            {
+                return;
+            }
+
+            shownSettings = rows;
+            for (int row = 0; row < settings.Length; row++)
+            {
+                settings[row].X = indent;
+                Fill(settings[row], row < rows.Count ? rows[row] : [], separator: null);
+            }
+        }
+
+        /// <summary>The table's title written into the frame's line after the tabs, a space either side, cut to stop short of the frame's corner.</summary>
+        private void ShowFrameTitle(TextPart title)
+        {
+            int room = Math.Max(ScreenWidth - HeaderSpan() - 3, 0);
+            string text = $" {title.Text} ";
+            frameTitle.Text = text.Length <= room ? text : text[..room];
+            frameTitle.SetScheme(Palette.Plain(Palette.ForTone(title.Tone)));
+        }
+
+        /// <summary>The counts after the tab strip's titles, each in its tone and joined by a grey dot; rebuilt only when they change.</summary>
+        private void ShowCounts(IReadOnlyList<TextPart> parts)
+        {
+            if (parts.SequenceEqual(shownCounts))
+            {
+                return;
+            }
+
+            shownCounts = parts;
+            Fill(counts, parts, new TextPart(Separator, TextTone.Grey));
+        }
+
+        /// <summary>Replaces a row's labels with one per part, in its tone, with the separator between parts when one is given.</summary>
+        private static void Fill(View row, IReadOnlyList<TextPart> parts, TextPart? separator)
+        {
+            row.RemoveAll();
+            int x = 0;
+            for (int index = 0; index < parts.Count; index++)
+            {
+                if (index > 0 && separator is not null)
+                {
+                    row.Add(Text(x, 0, separator.Text, Palette.ForTone(separator.Tone)));
+                    x += separator.Text.Length;
+                }
+
+                row.Add(Text(x, 0, parts[index].Text, Palette.ForTone(parts[index].Tone)));
+                x += parts[index].Text.Length;
+            }
+        }
+
+        /// <summary>The strip's width: each title with a border cell either side, adjacent tabs sharing one (measured with the spike of 30 October 2026); the titles never change, so neither does this.</summary>
+        private int HeaderSpan() => sessions.View.Title.Length + worktrees.View.Title.Length + 3;
+
         /// <summary>The sessions tab refreshes always; the worktrees tab only while it is shown, once its first scan has been asked for.</summary>
         private void Start(ITabBody body, bool always)
         {
@@ -236,34 +313,6 @@ public sealed class ConsoleScreen(
         }
 
         /// <summary>The counts after the tab strip's titles, each in its tone and joined by a grey dot; rebuilt when they or the titles change.</summary>
-        private void ShowCounts(IReadOnlyList<TextPart> parts)
-        {
-            int start = HeaderSpan() + 2;
-            if (parts.SequenceEqual(shownCounts) && counts.X.Equals(Pos.Absolute(start)))
-            {
-                return;
-            }
-
-            shownCounts = parts;
-            counts.X = start;
-            counts.RemoveAll();
-            int x = 0;
-            for (int index = 0; index < parts.Count; index++)
-            {
-                if (index > 0)
-                {
-                    counts.Add(Text(x, 0, CountSeparator, Palette.Grey));
-                    x += CountSeparator.Length;
-                }
-
-                counts.Add(Text(x, 0, parts[index].Text, Palette.ForTone(parts[index].Tone)));
-                x += parts[index].Text.Length;
-            }
-        }
-
-        /// <summary>The strip's width: each title with a border cell either side, adjacent tabs sharing one (measured with the spike of 30 October 2026).</summary>
-        private int HeaderSpan() => sessions.View.Title.Length + worktrees.View.Title.Length + 3;
-
         /// <summary>The two rows of the key bar: each item a blue key and a white word, both answering a click with the key and a hover with its tip; rebuilt only when the items change.</summary>
         private void ShowBar(KeyBar keys)
         {
