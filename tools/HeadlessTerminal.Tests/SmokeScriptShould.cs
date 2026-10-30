@@ -6,6 +6,7 @@ public sealed class SmokeScriptShould
 {
     private const string Worktree = "Northwind.Smoke-smoke";
     private const string Escape = "\u001b";
+    private const string F3 = "\u001bOR";
 
     private static readonly IReadOnlyList<SmokeStep> Steps = SmokeScript.Build(Worktree);
 
@@ -19,7 +20,7 @@ public sealed class SmokeScriptShould
             Wording.TabTitleDuring(DialogName.Keys), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.NewSession), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.ProblemReport), Wording.TabTitle,
-            Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitle,
+            Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitleDuring(DialogName.FolderPicker), Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.Keys), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.ForceRemove), Wording.TabTitle,
             Wording.TabTitle,
@@ -55,7 +56,7 @@ public sealed class SmokeScriptShould
             Key(Wording.SessionsKeys, "Help"), Escape,
             Key(Wording.SessionsKeys, "New session"), Escape,
             Key(Wording.SessionsKeys, "Report"), Escape,
-            "3", Key(Wording.ConfigKeys, "Edit"), Escape,
+            "3", Key(Wording.ConfigKeys, "Edit"), F3, Escape, Escape,
             "2", string.Empty,
             Key(Wording.WorktreesKeys, "Help"), Escape,
             Key(Wording.WorktreesKeys, "Filter") + Worktree, "\r",
@@ -70,8 +71,8 @@ public sealed class SmokeScriptShould
     [Fact]
     public void SendEnterAndDForceRemoveWithoutAMarkerOfTheirOwn()
     {
-        Steps[14].Marker.ShouldBe(CaptureMarker.Nothing);
-        Steps[15].Marker.ShouldBe(CaptureMarker.Nothing);
+        Steps[16].Marker.ShouldBe(CaptureMarker.Nothing);
+        Steps[17].Marker.ShouldBe(CaptureMarker.Nothing);
     }
 
     [Fact]
@@ -80,8 +81,8 @@ public sealed class SmokeScriptShould
         TimeSpan[] timeouts = [.. Steps.Select(step => step.Timeout)];
 
         timeouts[0].ShouldBe(TimeSpan.FromSeconds(60));
-        timeouts[11].ShouldBe(TimeSpan.FromSeconds(60));
-        timeouts.Where((_, index) => index is not 0 and not 11).ShouldAllBe(timeout => timeout == TimeSpan.FromSeconds(20));
+        timeouts[13].ShouldBe(TimeSpan.FromSeconds(60));
+        timeouts.Where((_, index) => index is not 0 and not 13).ShouldAllBe(timeout => timeout == TimeSpan.FromSeconds(20));
     }
 
     [Fact]
