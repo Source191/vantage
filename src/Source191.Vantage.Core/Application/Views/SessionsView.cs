@@ -48,7 +48,11 @@ public enum KeyName
 
 public abstract record ViewInput;
 
-public sealed record RowsLoaded(IReadOnlyList<SessionRow> Rows) : ViewInput;
+public sealed record RowsLoaded(IReadOnlyList<SessionRow> Rows) : ViewInput
+{
+    /// <summary>The automated runs the same listing held, which are not rows.</summary>
+    public AutomatedRuns AutomatedRuns { get; init; } = AutomatedRuns.None;
+}
 
 public sealed record LoadFailed(string Message) : ViewInput;
 
@@ -109,6 +113,9 @@ public sealed record SessionsViewState(
     /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
     public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: Footer.None);
 
+    /// <summary>The automated runs the last listing held, for the counts; kept when a listing fails, as the rows are.</summary>
+    public AutomatedRuns AutomatedRuns { get; init; } = AutomatedRuns.None;
+
     private static readonly ListPolicy<SessionRow> Policy = new(
         KeyOf: row => row.Session.SessionId.Value,
         FilterFields: row => [row.Session.Name, row.Repository, row.Branch?.Value],
@@ -147,7 +154,7 @@ public static class SessionsView
     {
         return input switch
         {
-            RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
+            RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null, AutomatedRuns = loaded.AutomatedRuns }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
             UpdateTabOpened => Effect(state, new Quit()),

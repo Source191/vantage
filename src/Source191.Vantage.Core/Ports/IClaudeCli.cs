@@ -18,7 +18,7 @@ public sealed record ResumeResult(bool Continued, string Message);
 /// </summary>
 public interface IClaudeCli
 {
-    Task<IReadOnlyList<Session>> ListSessionsAsync(CancellationToken cancellationToken);
+    Task<SessionListing> ListSessionsAsync(CancellationToken cancellationToken);
 
     Task<StartResult> StartBackgroundAsync(string directory, SessionName name, string? openingPrompt, CancellationToken cancellationToken);
 

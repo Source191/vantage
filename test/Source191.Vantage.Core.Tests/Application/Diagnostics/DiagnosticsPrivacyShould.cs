@@ -116,9 +116,9 @@ public sealed class DiagnosticsPrivacyShould
 
     private async Task LoadTheSessionsAsync(ClaudeCli claude)
     {
-        IReadOnlyList<Session> sessions = await Attempt.RunAsync(log, FailureSite.Load, CodeName.For(typeof(SessionsViewState)), () => claude.ListSessionsAsync(CancellationToken.None), _ => []);
+        SessionListing listing = await Attempt.RunAsync(log, FailureSite.Load, CodeName.For(typeof(SessionsViewState)), () => claude.ListSessionsAsync(CancellationToken.None), _ => SessionListing.Empty);
 
-        sessions.Single().Name.ShouldBe(Name);
+        listing.Sessions.Single().Name.ShouldBe(Name);
     }
 
     private async Task AttachAsync(ClaudeCli claude)

@@ -54,7 +54,7 @@ public sealed class ProcessRunnerIntegrationShould
 
         ClaudeCli cli = new(runner, executable);
 
-        IReadOnlyList<Session> sessions = await cli.ListSessionsAsync(TestContext.Current.CancellationToken);
+        IReadOnlyList<Session> sessions = (await cli.ListSessionsAsync(TestContext.Current.CancellationToken)).Sessions;
 
         sessions.ShouldNotBeNull();
     }

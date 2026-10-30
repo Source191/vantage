@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 
@@ -29,6 +30,27 @@ public sealed class SessionsViewShould
         Reduce(SessionsViewState.Empty, new LoadFailed("claude is not installed")).Loaded.ShouldBeFalse();
         Loaded.Loaded.ShouldBeTrue();
         Reduce(Loaded, new RowsLoaded([])).Loaded.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void KeepTheAutomatedRunsEachListingCarries()
+    {
+        AutomatedRuns one = new(1, MemorySize.FromMegabytes(216));
+
+        SessionsViewState withRun = Reduce(Loaded, new RowsLoaded([Working]) { AutomatedRuns = one });
+
+        withRun.AutomatedRuns.ShouldBe(one);
+        withRun.Title.ShouldBe(Reduce(Loaded, new RowsLoaded([Working])).Title, "a run is not a row the title counts");
+        Reduce(withRun, new RowsLoaded([Working])).AutomatedRuns.ShouldBe(AutomatedRuns.None);
+        SessionsViewState.Empty.AutomatedRuns.ShouldBe(AutomatedRuns.None);
+    }
+
+    [Fact]
+    public void KeepTheLastAutomatedRunsWhenAListingFails()
+    {
+        SessionsViewState withRun = Reduce(Loaded, new RowsLoaded([Working]) { AutomatedRuns = new AutomatedRuns(1, MemorySize.FromMegabytes(216)) });
+
+        Reduce(withRun, new LoadFailed("claude is not installed")).AutomatedRuns.ShouldBe(new AutomatedRuns(1, MemorySize.FromMegabytes(216)));
     }
 
     [Fact]

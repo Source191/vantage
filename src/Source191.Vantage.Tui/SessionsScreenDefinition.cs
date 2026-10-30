@@ -61,7 +61,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public string TabTitle(SessionsViewState state) => Wording.TabTitleFor(ConsoleTab.Sessions);
 
-    public IReadOnlyList<TextPart> Counts(SessionsViewState state) => Wording.SessionCounts(state.Rows);
+    public IReadOnlyList<TextPart> Counts(SessionsViewState state) => Wording.SessionCounts(state.Rows, state.AutomatedRuns);
 
     public KeyBar Bar(SessionsViewState state, bool updateKnown) => Wording.SessionsBar(state, updateKnown);
 
