@@ -36,11 +36,11 @@ public static class ClaudeAgentsListing
 
         if (row is { Kind: "interactive", Pid: int processId })
         {
-            return new InteractiveSession(sessionId, name, workingDirectory, startedAt, state, processId);
+            return new InteractiveSession(sessionId, name, workingDirectory, startedAt, state, processId) { WaitingFor = row.WaitingFor };
         }
 
         return JobId.TryParse(row.Id, out JobId? jobId) || JobId.TryParse(sessionId, out jobId)
-            ? new BackgroundSession(sessionId, jobId, name, workingDirectory, startedAt, state, row.Pid)
+            ? new BackgroundSession(sessionId, jobId, name, workingDirectory, startedAt, state, row.Pid) { WaitingFor = row.WaitingFor }
             : null;
     }
 
