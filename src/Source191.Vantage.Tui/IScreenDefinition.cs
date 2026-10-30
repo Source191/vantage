@@ -37,7 +37,14 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>The table's columns, in cell order: their names head the table and their meanings are the tooltips and the help.</summary>
     IReadOnlyList<ColumnHelp> Columns { get; }
 
-    string Cell(TRow row, int column, DateTimeOffset now);
+    /// <summary>The column that takes the width the others leave (WHERE, WORKTREE), or null when every column has its natural width.</summary>
+    int? ElasticColumn { get; }
+
+    /// <summary>A cell's text; <paramref name="width"/> is the cells the elastic column has, and int.MaxValue for every other column.</summary>
+    string Cell(TRow row, int column, DateTimeOffset now, int width);
+
+    /// <summary>A colour for one cell that differs from its row's (the TAB swatch), or null for the row's colour.</summary>
+    Color? CellColour(TRow row, int column);
 
     Color RowColour(TRow row);
 
