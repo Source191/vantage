@@ -113,6 +113,52 @@ public sealed class SettingsViewShould
     }
 
     [Fact]
+    public void AddEachFolderChosenAsALineAfterTheRootsInTheOrderChosen()
+    {
+        SettingsState state = Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.FoldersChosen([Work, @"E:\personal"]));
+
+        state.Text.Roots.ShouldBe($"{Root}\n{Work}\nE:\\personal");
+        state.Problem.ShouldBeNull();
+        state.Focus.ShouldBe(SettingsField.Roots);
+    }
+
+    [Fact]
+    public void AddAChosenFolderAfterATrailingNewLineWithoutABlankLine()
+    {
+        SettingsState typed = Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged($"{Root}\r\n\r\n"));
+
+        Reduce(typed, new SettingsInput.FoldersChosen([Work])).Text.Roots.ShouldBe($"{Root}\n{Work}");
+        Reduce(Reduce(typed, new SettingsInput.RootsChanged(" ")), new SettingsInput.FoldersChosen([Work])).Text.Roots.ShouldBe(Work, "an empty box takes the folder as its first line");
+    }
+
+    [Fact]
+    public void ChangeNothingWhenThePickerChoosesNothing()
+    {
+        SettingsState opened = Opened(new SettingsScope.Roots());
+
+        Reduce(opened, new SettingsInput.FoldersChosen([])).ShouldBe(opened);
+    }
+
+    [Fact]
+    public void RefuseABrowsedFolderThatIsAlreadyARootOnlyAtSave()
+    {
+        SettingsState chosen = Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.FoldersChosen([Root]));
+
+        SettingsState refused = Reduce(chosen, new SettingsInput.Save());
+
+        refused.Problem.ShouldBe(new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)));
+        refused.Focus.ShouldBe(SettingsField.Roots);
+    }
+
+    [Fact]
+    public void BrowseFromTheFolderHoldingTheFirstRoot()
+    {
+        Opened(new SettingsScope.Roots()).BrowseFrom.ShouldBe(FolderPath.From(@"C:\Users\me\source"));
+        Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("relative\nD:\\")).BrowseFrom.ShouldBe(FolderPath.From(@"D:\"), "a root with no parent is its own start");
+        Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged(" ")).BrowseFrom.ShouldBeNull();
+    }
+
+    [Fact]
     public void ClearTheProblemOnceTheValueIsValid()
     {
         SettingsState refused = SettingsView.Reduce(Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("repos")), new SettingsInput.Save()).State;

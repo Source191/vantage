@@ -98,6 +98,13 @@ public sealed class WordingOfConfigShould
     }
 
     [Fact]
+    public void NameTheBrowseButtonAndThePicker()
+    {
+        Wording.BrowseButton.ShouldBe("_Browse… (F3)");
+        Wording.FolderPickerTitle.ShouldBe("Add repository roots");
+    }
+
+    [Fact]
     public void CaptionThePlaceDialogAndNameEachPlace()
     {
         Wording.PlaceCaption.ShouldBe("Where the wizard opened with n starts a session (↑↓ then Space)");
