@@ -2,17 +2,18 @@ namespace Source191.Vantage.Domain;
 
 /// <summary>
 /// Vantage's settings, complete and immutable: where repositories live, where new worktrees go, which editor opens a
-/// folder and how new worktrees branch. Whatever a file leaves out has been resolved to its default by <see cref="Resolve"/>.
+/// folder, how new worktrees branch and where the wizard starts a new session. Whatever a file leaves out has been resolved to its default by <see cref="Resolve"/>.
 /// </summary>
 public sealed record Settings
 {
-    private Settings(IReadOnlyList<FolderPath> repositoryRoots, FolderPath worktreeRoot, EditorChoice editor, WorktreeBase defaultBase, bool checkForUpdates)
+    private Settings(IReadOnlyList<FolderPath> repositoryRoots, FolderPath worktreeRoot, EditorChoice editor, WorktreeBase defaultBase, bool checkForUpdates, LaunchMode defaultPlace)
     {
         RepositoryRoots = repositoryRoots;
         WorktreeRoot = worktreeRoot;
         Editor = editor;
         DefaultBase = defaultBase;
         CheckForUpdates = checkForUpdates;
+        DefaultPlace = defaultPlace;
     }
 
     public IReadOnlyList<FolderPath> RepositoryRoots { get; }
@@ -26,18 +27,21 @@ public sealed record Settings
     /// <summary>Whether Vantage asks nuget.org, at most once a day, for a newer release of itself.</summary>
     public bool CheckForUpdates { get; }
 
+    /// <summary>Where the wizard opened with n starts a new session: a new worktree, or the repository's current branch.</summary>
+    public LaunchMode DefaultPlace { get; }
+
     /// <summary>
     /// Fills in what is missing: no roots means <c>&lt;home&gt;\source\repos</c>; no worktree root means <c>worktrees</c>
-    /// beside the first root (inside it when it has no parent, such as <c>D:\</c>); no base means origin's default branch; no update setting means the check is on.
+    /// beside the first root (inside it when it has no parent, such as <c>D:\</c>); no base means origin's default branch; no update setting means the check is on; no place means a new worktree.
     /// </summary>
-    public static Settings Resolve(IReadOnlyList<FolderPath>? roots, FolderPath? worktreeRoot, EditorChoice editor, WorktreeBase? defaultBase, FolderPath home, bool? checkForUpdates = null)
+    public static Settings Resolve(IReadOnlyList<FolderPath>? roots, FolderPath? worktreeRoot, EditorChoice editor, WorktreeBase? defaultBase, FolderPath home, bool? checkForUpdates = null, LaunchMode? defaultPlace = null)
     {
         ArgumentNullException.ThrowIfNull(editor);
         ArgumentNullException.ThrowIfNull(home);
         IReadOnlyList<FolderPath> resolvedRoots = roots is { Count: > 0 } ? roots : [home.Combine(Path.Combine("source", "repos"))];
         FolderPath first = resolvedRoots[0];
 
-        return new Settings(resolvedRoots, worktreeRoot ?? (first.Parent ?? first).Combine("worktrees"), editor, defaultBase ?? WorktreeBase.RemoteDefault, checkForUpdates ?? true);
+        return new Settings(resolvedRoots, worktreeRoot ?? (first.Parent ?? first).Combine("worktrees"), editor, defaultBase ?? WorktreeBase.RemoteDefault, checkForUpdates ?? true, defaultPlace ?? LaunchMode.NewWorktree);
     }
 
     /// <summary>
@@ -81,11 +85,12 @@ public sealed record Settings
             Editor.Executable,
             CommandArguments.Join(Editor.Arguments),
             DefaultBase,
-            CheckForUpdates);
+            CheckForUpdates,
+            DefaultPlace);
     }
 
     /// <summary>These settings with the update check turned the other way.</summary>
-    public Settings WithUpdateCheckToggled() => new(RepositoryRoots, WorktreeRoot, Editor, DefaultBase, !CheckForUpdates);
+    public Settings WithUpdateCheckToggled() => new(RepositoryRoots, WorktreeRoot, Editor, DefaultBase, !CheckForUpdates, DefaultPlace);
 
     public bool Equals(Settings? other)
     {
@@ -94,7 +99,8 @@ public sealed record Settings
             && WorktreeRoot.Equals(other.WorktreeRoot)
             && Editor.Equals(other.Editor)
             && DefaultBase == other.DefaultBase
-            && CheckForUpdates == other.CheckForUpdates;
+            && CheckForUpdates == other.CheckForUpdates
+            && DefaultPlace == other.DefaultPlace;
     }
 
     public override int GetHashCode() => HashCode.Combine(RepositoryRoots.Count, WorktreeRoot, Editor, DefaultBase);
@@ -108,21 +114,21 @@ public sealed record Settings
 
         if (text.Preset != EditorPreset.Custom)
         {
-            return new SettingsValidation.Valid(new Settings(roots, worktreeRoot, EditorChoice.Of(text.Preset), text.Base, text.CheckForUpdates));
+            return new SettingsValidation.Valid(new Settings(roots, worktreeRoot, EditorChoice.Of(text.Preset), text.Base, text.CheckForUpdates, text.Place));
         }
 
         IReadOnlyList<string> arguments = CommandArguments.Split(text.Arguments);
 
         return EditorChoice.Problem(text.Executable, arguments) is SettingsProblem problem
             ? Refused(problem)
-            : new SettingsValidation.Valid(new Settings(roots, worktreeRoot, EditorChoice.Custom(text.Executable, arguments), text.Base, text.CheckForUpdates));
+            : new SettingsValidation.Valid(new Settings(roots, worktreeRoot, EditorChoice.Custom(text.Executable, arguments), text.Base, text.CheckForUpdates, text.Place));
     }
 
     private static SettingsValidation.Refused Refused(SettingsProblem problem) => new(problem);
 }
 
 /// <summary>The settings dialog's fields as typed, before any rule is applied.</summary>
-public sealed record SettingsText(string Roots, string WorktreeRoot, EditorPreset Preset, string Executable, string Arguments, WorktreeBase Base, bool CheckForUpdates = true);
+public sealed record SettingsText(string Roots, string WorktreeRoot, EditorPreset Preset, string Executable, string Arguments, WorktreeBase Base, bool CheckForUpdates = true, LaunchMode Place = LaunchMode.NewWorktree);
 
 /// <summary>Why typed settings are refused, as a fact; <c>Wording</c> says it.</summary>
 public abstract record SettingsProblem
