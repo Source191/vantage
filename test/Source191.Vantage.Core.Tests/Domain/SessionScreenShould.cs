@@ -53,6 +53,30 @@ public sealed class SessionScreenShould
         SessionScreen.Bottom(logs, rows: 1).ShouldBe([Output[^1]]);
     }
 
+    /// <summary>A new session's stream is a screen drawn line by line: a clear, rows ended by CR LF, gaps by cursor-forward and erase-characters.</summary>
+    [Fact]
+    public void ReplayAScreenDrawnLineByLine()
+    {
+        string[] chrome = Chrome(60);
+        string logs = "\u001b[2J\u001b[H\u001b[K"
+            + "● Read(src/Northwind.Orders/Processor.cs)\u001b[K\r\n"
+            + "\u001b[K\r\n"
+            + "Do you want\u001b[1Cto make this edit?\u001b[K\r\n"
+            + "\u001b[5X\u001b[2C1. Yes\u001b[K\r\n"
+            + string.Concat(chrome.Select(row => row + "\u001b[K\r\n"))
+            + "\u001b[47;3H";
+
+        SessionScreen.Bottom(logs, rows: 3).ShouldBe(["", "Do you want to make this edit?", "  1. Yes"]);
+    }
+
+    [Fact]
+    public void KeepOneBlankRowWhereTheScreenHasSeveral()
+    {
+        string logs = Screen(80, [Output[0], "", "", "", Output[3], .. Chrome(80)]);
+
+        SessionScreen.Bottom(logs, rows: 5).ShouldBe([Output[0], "", Output[3]]);
+    }
+
     [Fact]
     public void AnswerNothingWithoutTheInputBoxRule()
     {

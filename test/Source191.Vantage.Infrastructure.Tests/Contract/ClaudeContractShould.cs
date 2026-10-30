@@ -55,6 +55,29 @@ public sealed class ClaudeContractShould
         }
     }
 
+    /// <summary>The detail pane rebuilds the session's screen from claude logs at the width of Claude's input-box rule; a new idle session shows its welcome above the box.</summary>
+    [Fact]
+    public async Task PrintLogsForTheStartedSessionThatRebuildIntoItsScreen()
+    {
+        ClaudeCli cli = new(runner, ClaudeContract.Executable());
+        SessionName name = UniqueName("logs");
+
+        string jobId = await StartAsync(cli, name);
+        try
+        {
+            await ListedAsync(cli, name);
+
+            string? logs = await cli.LogsAsync(jobId, Cancellation);
+
+            logs.ShouldNotBeNull("claude logs failed for the started session");
+            SessionScreen.Bottom(logs, rows: 50).ShouldNotBeEmpty("no row of the rebuilt screen survived: the input-box rule that gives the width was not found");
+        }
+        finally
+        {
+            await EndAsync(cli, jobId);
+        }
+    }
+
     [Fact]
     public async Task GiveTheStartedRowEveryFieldVantageReads()
     {
