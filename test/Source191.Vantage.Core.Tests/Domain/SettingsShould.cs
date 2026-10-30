@@ -24,6 +24,7 @@ public sealed class SettingsShould
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees"));
         settings.Editor.ShouldBe(EditorChoice.VsCode);
         settings.DefaultBase.ShouldBe(WorktreeBase.RemoteDefault);
+        settings.DefaultPlace.ShouldBe(LaunchMode.NewWorktree);
     }
 
     [Fact]
@@ -35,6 +36,16 @@ public sealed class SettingsShould
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
         settings.Editor.ShouldBe(EditorChoice.VsCode);
         settings.DefaultBase.ShouldBe(WorktreeBase.Head);
+        settings.DefaultPlace.ShouldBe(LaunchMode.NewWorktree);
+    }
+
+    [Fact]
+    public void KeepADefaultPlaceThatIsGiven()
+    {
+        Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home, defaultPlace: LaunchMode.CurrentBranch);
+
+        settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
+        settings.ShouldNotBe(Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home));
     }
 
     [Fact]
@@ -73,13 +84,22 @@ public sealed class SettingsShould
     [Fact]
     public void AcceptTypedSettings()
     {
-        SettingsText typed = Typed with { Roots = $"{Root}\r\n\r\n  D:\\work  \n", Base = WorktreeBase.Head };
+        SettingsText typed = Typed with { Roots = $"{Root}\r\n\r\n  D:\\work  \n", Base = WorktreeBase.Head, Place = LaunchMode.CurrentBranch };
 
         Settings settings = Settings.Validate(typed, Exists(Root, @"D:\work")).ShouldBeOfType<SettingsValidation.Valid>().Settings;
 
         settings.RepositoryRoots.ShouldBe([FolderPath.From(Root), FolderPath.From(@"D:\work")]);
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees"));
         settings.DefaultBase.ShouldBe(WorktreeBase.Head);
+        settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
+    }
+
+    [Fact]
+    public void KeepTheDefaultPlaceForACustomEditor()
+    {
+        SettingsText typed = Typed with { Preset = EditorPreset.Custom, Executable = @"C:\Tools\subl.exe", Arguments = "{folder}", Place = LaunchMode.CurrentBranch };
+
+        Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Valid>().Settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
     }
 
     [Fact]
@@ -174,14 +194,15 @@ public sealed class SettingsShould
 
         settings.WithUpdateCheckToggled().CheckForUpdates.ShouldBeFalse();
         settings.WithUpdateCheckToggled().WithUpdateCheckToggled().ShouldBe(settings);
+        Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home, defaultPlace: LaunchMode.CurrentBranch).WithUpdateCheckToggled().DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
     }
 
     [Fact]
     public void GiveBackTheTextItWasTypedFrom()
     {
-        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home, defaultPlace: LaunchMode.CurrentBranch);
 
-        settings.ToText().ShouldBe(new SettingsText($"{Root}\nD:\\work", @"E:\trees", EditorPreset.Custom, @"C:\Tools\subl.exe", "-n {folder}", WorktreeBase.Head));
+        settings.ToText().ShouldBe(new SettingsText($"{Root}\nD:\\work", @"E:\trees", EditorPreset.Custom, @"C:\Tools\subl.exe", "-n {folder}", WorktreeBase.Head, Place: LaunchMode.CurrentBranch));
     }
 
     [Fact]
