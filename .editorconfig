@@ -120,6 +120,9 @@ dotnet_diagnostic.IDE0340.severity = warning
 dotnet_diagnostic.IDE0360.severity = warning
 dotnet_diagnostic.IDE0370.severity = warning
 dotnet_diagnostic.IDE0380.severity = warning
+
+# Platform calls are source-generated: [LibraryImport], never [DllImport].
+dotnet_diagnostic.SYSLIB1054.severity = warning
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:silent
 
 # Code-block preferences

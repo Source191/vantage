@@ -51,7 +51,8 @@ Every group ends green: `dotnet build -c Debug`, `dotnet test -c Debug --no-buil
   - Recorded 30 October 2026: `ConsoleRecoveryShould` and `TerminalConsoleShould` passed (5); the hand-off check against a Release build exited 0.
 - [x] 8.3 Replace `ProcessEntry.ExeFile`'s `ByValTStr` string with an `[InlineArray(260)]` `ushort` buffer read through `MemoryMarshal.Cast<ushort, char>` up to its first zero, and drop `CharSet.Unicode` from its `StructLayout`; then convert `ProcessRegistry`'s ten `[DllImport]`s to `[LibraryImport]` with `SetLastError` and the `bool` marshalling kept. Verify `ProcessRegistryIntegrationShould` passes (the test process's own name and parent chain, the memory figures, two hundred queries under a second) along with `ProcessTreeShould` and `TerminalTabShould`.
   - Recorded 30 October 2026: `ProcessRegistryIntegrationShould` passed (9, including the snapshot test that reads this process's own name and the child's `cmd` through the new buffer), with `ProcessTreeShould` and `TerminalTabShould` (8). Sonar's S1144 read the inline array's one declared field as unused while its type was private, so `ExecutableName` is `internal` (design.md says why) rather than carrying the repository's first `SuppressMessage`.
-- [ ] 8.4 Add `dotnet_diagnostic.SYSLIB1054.severity = warning` to `.editorconfig`. Verify the build passes and `Select-String 'DllImport\('` over `src` finds nothing.
+- [x] 8.4 Add `dotnet_diagnostic.SYSLIB1054.severity = warning` to `.editorconfig`. Verify the build passes and `Select-String 'DllImport\('` over `src` finds nothing.
+  - Recorded 30 October 2026: the scan found nothing, a scratch `[DllImport]` in Infrastructure failed with SYSLIB1054 before it was deleted, and the full suite passed (1,703 passed, 7 skipped).
 
 ## 9. Documentation and release
 
