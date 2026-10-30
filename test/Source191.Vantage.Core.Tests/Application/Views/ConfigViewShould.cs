@@ -32,6 +32,7 @@ public sealed class ConfigViewShould
     [InlineData("worktree-root")]
     [InlineData("open-folder-with")]
     [InlineData("default-base")]
+    [InlineData("default-place")]
     public void EditASettingOnEnter(string key)
     {
         ConfigViewState state = At(key);

@@ -22,6 +22,7 @@ public sealed class SettingsViewShould
         { new SettingsScope.WorktreeRoot(), SettingsField.WorktreeRoot },
         { new SettingsScope.Editor(), SettingsField.Editor },
         { new SettingsScope.Base(), SettingsField.Base },
+        { new SettingsScope.Place(), SettingsField.Place },
     };
 
     [Theory]
@@ -103,6 +104,15 @@ public sealed class SettingsViewShould
     }
 
     [Fact]
+    public void SaveThePlace()
+    {
+        SettingsState state = Reduce(Opened(new SettingsScope.Place()), new SettingsInput.PlaceChanged(LaunchMode.CurrentBranch));
+
+        state.Text.Place.ShouldBe(LaunchMode.CurrentBranch);
+        SettingsView.Reduce(state, new SettingsInput.Save()).Effect.ShouldBeOfType<SettingsEffect.Save>().Settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
+    }
+
+    [Fact]
     public void ClearTheProblemOnceTheValueIsValid()
     {
         SettingsState refused = SettingsView.Reduce(Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("repos")), new SettingsInput.Save()).State;
@@ -156,6 +166,7 @@ public sealed class SettingsViewShould
         SettingsScope.For(rows.OfType<ConfigRow.WorktreeRoot>().Single()).ShouldBe(new SettingsScope.WorktreeRoot());
         SettingsScope.For(rows.OfType<ConfigRow.OpenFolderWith>().Single()).ShouldBe(new SettingsScope.Editor());
         SettingsScope.For(rows.OfType<ConfigRow.DefaultBase>().Single()).ShouldBe(new SettingsScope.Base());
+        SettingsScope.For(rows.OfType<ConfigRow.DefaultPlace>().Single()).ShouldBe(new SettingsScope.Place());
     }
 
     private static SettingsState Reduce(SettingsState state, SettingsInput input)

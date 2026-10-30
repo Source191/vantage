@@ -18,6 +18,8 @@ public sealed class WordingOfConfigShould
         { new ConfigRow.OpenFolderWith(EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"])), "Open folder with", @"C:\Tools\subl.exe -n {folder}" },
         { new ConfigRow.DefaultBase(WorktreeBase.RemoteDefault), "Default base", "origin's default branch" },
         { new ConfigRow.DefaultBase(WorktreeBase.Head), "Default base", "current HEAD" },
+        { new ConfigRow.DefaultPlace(LaunchMode.NewWorktree), "Default place", "New worktree" },
+        { new ConfigRow.DefaultPlace(LaunchMode.CurrentBranch), "Default place", "Current branch" },
         { new ConfigRow.CheckForUpdates(On: true), "Check for updates", "on" },
         { new ConfigRow.CheckForUpdates(On: false), "Check for updates", "off" },
         { new ConfigRow.Setup(SetupItem.SettingsFile, new SetupState.At(@"C:\Users\me\AppData\Local\Vantage\config.json")), "Settings file", @"C:\Users\me\AppData\Local\Vantage\config.json" },
@@ -43,6 +45,7 @@ public sealed class WordingOfConfigShould
             new ConfigRow.WorktreeRoot(FolderPath.From(@"C:\Users\me\source\worktrees")),
             new ConfigRow.OpenFolderWith(EditorChoice.VsCode),
             new ConfigRow.DefaultBase(WorktreeBase.RemoteDefault),
+            new ConfigRow.DefaultPlace(LaunchMode.NewWorktree),
             new ConfigRow.CheckForUpdates(On: true),
             .. Enum.GetValues<SetupItem>().Select(item => new ConfigRow.Setup(item, new SetupState.Reading())),
         ];
@@ -91,5 +94,13 @@ public sealed class WordingOfConfigShould
         Wording.SettingsDialogTitle(new SettingsScope.WorktreeRoot()).ShouldBe("Worktree root");
         Wording.SettingsDialogTitle(new SettingsScope.Editor()).ShouldBe("Open folder with");
         Wording.SettingsDialogTitle(new SettingsScope.Base()).ShouldBe("Worktree base");
+        Wording.SettingsDialogTitle(new SettingsScope.Place()).ShouldBe("Default place");
+    }
+
+    [Fact]
+    public void CaptionThePlaceDialogAndNameEachPlace()
+    {
+        Wording.PlaceCaption.ShouldBe("Where the wizard opened with n starts a session (↑↓ then Space)");
+        Enum.GetValues<LaunchMode>().Select(Wording.Describe).ShouldBe(["Current branch", "New worktree"]);
     }
 }
