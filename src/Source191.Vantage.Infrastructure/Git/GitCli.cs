@@ -78,9 +78,20 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
             : throw new GitException($"git rev-list --count gave '{result.StandardOutput.Trim()}', not a number");
     }
 
-    public Task<IReadOnlyList<UnpushedCommit>> UnpushedCommitsAsync(string worktree, int limit, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<UnpushedCommit>>([]);
+    public async Task<IReadOnlyList<UnpushedCommit>> UnpushedCommitsAsync(string worktree, int limit, CancellationToken cancellationToken)
+    {
+        ProcessResult result = await RunOrThrowAsync(worktree, ["log", "-n", limit.ToString(CultureInfo.InvariantCulture), "--format=%h%x09%cI%x09%s", "HEAD", "--not", "--remotes"], cancellationToken);
 
-    public Task<IReadOnlyList<string>> ChangedFilesAsync(string worktree, int limit, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
+        return [.. Lines(result.StandardOutput).Select(UnpushedCommitOf).OfType<UnpushedCommit>()];
+    }
+
+    public async Task<IReadOnlyList<string>> ChangedFilesAsync(string worktree, int limit, CancellationToken cancellationToken)
+    {
+        ProcessResult result = await RunOrThrowAsync(worktree, ["status", "--porcelain"], cancellationToken);
+
+        // A porcelain line is two status letters (the first may be a space, so lines are not trimmed), a space and the path.
+        return [.. result.StandardOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(line => line.TrimEnd('\r')).Where(line => line.Length > 3).Select(line => line[3..]).Take(limit)];
+    }
 
     public async Task<DateTimeOffset?> LastCommitAtAsync(string worktree, CancellationToken cancellationToken)
     {
@@ -179,4 +190,14 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
     private static List<string> NulSeparated(string output) => [.. output.Split('\0', StringSplitOptions.RemoveEmptyEntries)];
 
     private static string ToWindowsPath(string output) => output.Trim().Replace('/', Path.DirectorySeparatorChar);
+
+    /// <summary>A hash, a commit time and a subject, tab-separated; a line that is not is skipped.</summary>
+    private static UnpushedCommit? UnpushedCommitOf(string line)
+    {
+        string[] parts = line.Split('\t', 3);
+
+        return parts.Length == 3 && DateTimeOffset.TryParse(parts[1], CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset at)
+            ? new UnpushedCommit(parts[0], at, parts[2])
+            : null;
+    }
 }
