@@ -82,7 +82,7 @@ jobs:
 
           git push --quiet "https://x-access-token:$env:BUMP_TOKEN@github.com/$env:REPOSITORY.git" "HEAD:$env:HEAD_REF"
           if ($LASTEXITCODE -ne 0) {
-              Write-Host '::error::Pushing the version bump failed: DEPENDABOT_BUMP_TOKEN may have expired. Renew it under Settings, Secrets and variables, Dependabot (README.md, Version bumps).'
+              Write-Host '::error::Pushing the version bump failed: DEPENDABOT_BUMP_TOKEN may have expired. Renew it under Settings, Secrets and variables, Dependabot (CONTRIBUTING.md, Dependabot and the version bump token).'
               exit 1
           }
 

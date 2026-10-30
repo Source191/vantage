@@ -10,7 +10,7 @@
 
 ## 3. Repointed references
 
-- [ ] 3.1 Update CLAUDE.md, `.github\CODEOWNERS`, `.github\dependabot.yml`, `.github\workflows\check.yml` and `.github\scripts\Assert-VersionBumped.ps1` to name `CONTRIBUTING.md` sections instead of the README's. Verify a search outside `openspec\changes\archive` for "see README", "README, Continuous", "README.md, Version bumps" and "Developing Vantage" finds nothing stale, and `openspec validate contributing-guide` passes.
+- [x] 3.1 Update CLAUDE.md, `.github\CODEOWNERS`, `.github\dependabot.yml`, `.github\workflows\check.yml` and `.github\scripts\Assert-VersionBumped.ps1` to name `CONTRIBUTING.md` sections instead of the README's. Verify a search outside `openspec\changes\archive` for "see README", "README, Continuous", "README.md, Version bumps" and "Developing Vantage" finds nothing stale, and `openspec validate contributing-guide` passes.
 
 ## Workflow follow-up
 
