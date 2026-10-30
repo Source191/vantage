@@ -2,7 +2,7 @@
 
 ## 1. The settings rules (Domain)
 
-- [x] 1.1 Red: `SettingsShould` asserts `Validate` answers `SettingsProblem.RootAlreadyListed` for a root listed twice (compared as `FolderPath`), `WithRootRemoved` drops the root at an index keeping every other setting and answers `SettingsProblem.LastRoot` for the only one, and `WithUpdateCheckToggled` turns the check either way. Green: the check in `Validate` (so a root dialog, which validates the saved settings with its one value changed, refuses a duplicate through the same rule), the two methods and their words. Verify `dotnet test testSource191.Vantage.Core.Tests -c Debug --no-build`.
+- [x] 1.1 Red: `SettingsShould` asserts `Validate` answers `SettingsProblem.RootAlreadyListed` for a root listed twice (compared as `FolderPath`), `WithRootRemoved` drops the root at an index keeping every other setting and answers `SettingsProblem.LastRoot` for the only one, and `WithUpdateCheckToggled` turns the check either way. Green: the check in `Validate` (so a root dialog, which validates the saved settings with its one value changed, refuses a duplicate through the same rule), the two methods and their words. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build`.
 
 ## 2. The rows (Application)
 
