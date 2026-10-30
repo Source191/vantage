@@ -71,7 +71,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         return new ResumeResult(Continued: note is null, note ?? result.StandardOutput.Trim());
     }
 
-    private ProcessRequest Request(IReadOnlyList<string> arguments, string? workingDirectory = null) => new ProcessRequest(executable, arguments, workingDirectory);
+    private ProcessRequest Request(IReadOnlyList<string> arguments, string? workingDirectory = null) => new(executable, arguments, workingDirectory);
 
     private static StartResult InterpretStart(ProcessResult result)
     {

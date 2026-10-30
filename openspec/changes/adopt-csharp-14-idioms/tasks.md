@@ -15,7 +15,8 @@ Every group ends green: `dotnet build -c Debug`, `dotnet test -c Debug --no-buil
 
 ## 3. Target-typed new
 
-- [ ] 3.1 Add `csharp_style_implicit_object_creation_when_type_is_apparent = true:warning` and `dotnet_diagnostic.IDE0090.severity = warning`, run `dotnet format style --diagnostics IDE0090 --severity warn`, then fix what the build still lists. Verify the build and every suite pass and that `new Derived()` assignments to a base type (`Footer.None`, `TabOwner.Vantage`) are untouched.
+- [x] 3.1 Add `csharp_style_implicit_object_creation_when_type_is_apparent = true:warning` and `dotnet_diagnostic.IDE0090.severity = warning`, run `dotnet format style --diagnostics IDE0090 --severity warn`, then fix what the build still lists. Verify the build and every suite pass and that `new Derived()` assignments to a base type (`Footer.None`, `TabOwner.Vantage`) are untouched.
+  - Recorded 30 October 2026: the fixer changed 21 expression-bodied members in 16 files whose return type names the object (`=> new TabLaunch(...)` to `=> new(...)`), with nothing left for a hand fix; `Footer.None` and `TabOwner.Vantage` still read `new Blank()` and `new ForVantage()`; the full suite passed.
 
 ## 4. Primary constructors
 

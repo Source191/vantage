@@ -19,7 +19,7 @@ public sealed class TabScripts(string claudeExecutable, string vantageExecutable
     /// process), clears what the profile printed, then attaches full screen. A detach, a stop or a removal ends the attach
     /// with 0 (measured with CLI 2.1.312), so the shell exits and Windows Terminal closes the tab; a failed attach keeps the prompt.
     /// </summary>
-    public TabLaunch Attach(BackgroundSession session, TabRegistration registration) => new TabLaunch(
+    public TabLaunch Attach(BackgroundSession session, TabRegistration registration) => new(
         session.Name,
         registration.Colour,
         session.WorkingDirectory,
@@ -33,7 +33,7 @@ public sealed class TabScripts(string claudeExecutable, string vantageExecutable
     /// A plain Claude tab in an untrusted folder, so the trust prompt can be accepted interactively. The folder name is
     /// user text, so the whole message is one quoted value, never script source.
     /// </summary>
-    public TabLaunch Trust(FolderPath directory) => new TabLaunch(
+    public TabLaunch Trust(FolderPath directory) => new(
         $"Trust {directory.Name}",
         TrustColour,
         directory,
@@ -46,7 +46,7 @@ public sealed class TabScripts(string claudeExecutable, string vantageExecutable
     /// tool from nuget.org alone (the feed the check consulted), then starts Vantage again only when the update
     /// succeeded; otherwise dotnet's output stays on screen with a hint.
     /// </summary>
-    public TabLaunch Update(int vantageProcessId, FolderPath startingDirectory) => new TabLaunch(
+    public TabLaunch Update(int vantageProcessId, FolderPath startingDirectory) => new(
         "Update Vantage",
         ShellColour,
         startingDirectory,
@@ -56,5 +56,5 @@ public sealed class TabScripts(string claudeExecutable, string vantageExecutable
             $"if ($LASTEXITCODE -eq 0) {{ {PowerShellScript.Invoke(vantageExecutable, [])} }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}"));
 
     /// <summary>A plain PowerShell tab in a worktree.</summary>
-    public static TabLaunch Shell(FolderPath worktree) => new TabLaunch(worktree.Name, ShellColour, worktree, "Clear-Host");
+    public static TabLaunch Shell(FolderPath worktree) => new(worktree.Name, ShellColour, worktree, "Clear-Host");
 }

@@ -13,7 +13,7 @@ public sealed record WorktreeCounts(int DirtyFiles, int UnpushedCommits, DateTim
 /// </summary>
 public sealed class WorktreeInspector(IGit git)
 {
-    public async Task<WorktreeCounts> CountAsync(FolderPath worktree, CancellationToken cancellationToken) => new WorktreeCounts(
+    public async Task<WorktreeCounts> CountAsync(FolderPath worktree, CancellationToken cancellationToken) => new(
         await git.CountChangedFilesAsync(worktree.Value, cancellationToken),
         await git.CountUnpushedCommitsAsync(worktree.Value, cancellationToken),
         await git.LastCommitAtAsync(worktree.Value, cancellationToken));

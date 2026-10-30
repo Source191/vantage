@@ -73,6 +73,10 @@ csharp_style_var_for_built_in_types = false:warning
 csharp_style_var_when_type_is_apparent = false:warning
 dotnet_diagnostic.IDE0008.severity = warning
 
+# Target-typed new where the type is already written on the left: Model model = new();
+csharp_style_implicit_object_creation_when_type_is_apparent = true:warning
+dotnet_diagnostic.IDE0090.severity = warning
+
 # Expression-bodied members
 csharp_style_expression_bodied_accessors = true:silent
 csharp_style_expression_bodied_constructors = false:silent
