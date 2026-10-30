@@ -383,10 +383,11 @@ internal sealed class TableScreen<TState, TRow>(
                 }
             }
 
+            // The table sizes a column to its content, so the minimum is what makes the elastic column take the spare width.
             int width = Math.Max(contentWidth - others - columnNames.Length - 1, ElasticFloor);
             ColumnStyle style = table.Style.GetOrCreateColumnStyle(elastic);
             style.MaxWidth = width;
-            style.MinWidth = Math.Min(width, ElasticFloor);
+            style.MinWidth = width;
 
             return width;
         }
