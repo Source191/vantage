@@ -134,8 +134,8 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         ? new TextPart(DescribedTitle, TextTone.Cyan)
         : new TextPart($"{definition.LoadFailurePrefix}: {State.Banner}", TextTone.Red);
 
-    /// <summary>The table's title, with the filter being typed after it.</summary>
-    private string DescribedTitle => State.List.FilterEditing ? $"{Wording.Describe(State.Title)}  filter: {State.List.Filter.Text}_" : Wording.Describe(State.Title);
+    /// <summary>The table's title, with a filter being typed before it, so the typed text stays in view when the title is cut.</summary>
+    private string DescribedTitle => State.List.FilterEditing ? $"filter: {State.List.Filter.Text}_  {Wording.Describe(State.Title)}" : Wording.Describe(State.Title);
 
     public IApplication App => app;
 

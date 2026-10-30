@@ -70,7 +70,6 @@ public sealed class ConsoleScreen(
         private const int SettingsRows = 2;
         private const int StripTop = SettingsRows;
         private const int TitleRow = StripTop + 1;
-        private const int FrameRow = StripTop + 2;
 
         private readonly ConsoleScreen screen;
         private readonly IApplication app;
@@ -110,7 +109,7 @@ public sealed class ConsoleScreen(
             tabs.Add(sessions.View, worktrees.View);
             ReleaseNavigationKeys(tabs, sessions.View, worktrees.View);
             counts = new View { X = HeaderSpan() + 2, Y = TitleRow, Width = Dim.Fill(), Height = 1 };
-            frameTitle = new Label { X = HeaderSpan() + 1, Y = FrameRow, Width = Dim.Auto(), Height = 1, HotKeySpecifier = new System.Text.Rune(0xFFFF), Text = string.Empty };
+            frameTitle = new Label { X = 0, Y = TitleRow, Width = 0, Height = 1, HotKeySpecifier = new System.Text.Rune(0xFFFF), Text = string.Empty };
             bar = new View { X = 0, Y = Pos.AnchorEnd(2), Width = Dim.Fill(), Height = 2 };
             View[] views = [icon, .. settings, tabs, counts, frameTitle, bar];
             Window.Add(views);
@@ -268,12 +267,15 @@ public sealed class ConsoleScreen(
             }
         }
 
-        /// <summary>The table's title written into the frame's line after the tabs, a space either side, cut to stop short of the frame's corner.</summary>
+        /// <summary>The table's title at the right end of the tab titles' row, a cell from the edge; cut at its end with an ellipsis when it would reach the counts.</summary>
         private void ShowFrameTitle(TextPart title)
         {
-            int room = Math.Max(ScreenWidth - HeaderSpan() - 3, 0);
-            string text = $" {title.Text} ";
-            frameTitle.Text = text.Length <= room ? text : text[..room];
+            int countsEnd = HeaderSpan() + 2 + string.Join(Separator, shownCounts.Select(part => part.Text)).Length;
+            int room = Math.Max(ScreenWidth - 1 - (countsEnd + 2), 0);
+            string text = title.Text.Length <= room ? title.Text : title.Text[..Math.Max(room - 1, 0)] + "…";
+            frameTitle.X = Math.Max(ScreenWidth - 1 - text.Length, 0);
+            frameTitle.Width = text.Length;
+            frameTitle.Text = text;
             frameTitle.SetScheme(Palette.Plain(Palette.ForTone(title.Tone)));
         }
 
