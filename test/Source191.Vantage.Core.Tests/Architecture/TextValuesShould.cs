@@ -19,7 +19,7 @@ public sealed class TextValuesShould
         .Where(type => type.GetMethod("<Clone>$") is not null)
         .Where(type => type.GetProperty("Value", BindingFlags.Public | BindingFlags.Instance)?.PropertyType == typeof(string));
 
-    public static TheoryData<Type> TextValues => new(TextValueTypes);
+    public static TheoryData<Type> TextValues => [.. TextValueTypes];
 
     [Fact]
     public void FindEveryTextValue()

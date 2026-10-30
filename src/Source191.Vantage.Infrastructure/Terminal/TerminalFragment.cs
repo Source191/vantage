@@ -19,7 +19,7 @@ public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = 
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public static TerminalFragment ForCurrentUser(string? iconSource = null) => new TerminalFragment(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "Windows Terminal", "Fragments"), iconSource);
+    public static TerminalFragment ForCurrentUser(string? iconSource = null) => new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "Windows Terminal", "Fragments"), iconSource);
 
     private string FragmentFolder => Path.Combine(fragmentsRoot, "Vantage");
 

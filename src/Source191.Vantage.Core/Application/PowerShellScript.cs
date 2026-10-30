@@ -33,7 +33,8 @@ public static class PowerShellScript
 
     public static string Invoke(string executable, IReadOnlyList<string> arguments)
     {
-        IEnumerable<string> quoted = new[] { executable }.Concat(arguments).Select(Quote);
+        string[] words = [executable, .. arguments];
+        IEnumerable<string> quoted = words.Select(Quote);
 
         return $"& {string.Join(' ', quoted)}";
     }

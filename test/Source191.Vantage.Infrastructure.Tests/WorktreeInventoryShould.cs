@@ -52,7 +52,8 @@ public sealed class WorktreeInventoryShould : IDisposable
     {
         string orders = await root.CreateRepositoryAsync("Northwind.Orders");
         string billing = await root.CreateRepositoryAsync("Northwind.Billing");
-        foreach (string idle in new[] { "Northwind.Sales", "Northwind.Shipping", "Northwind.Catalogue" })
+        string[] idles = ["Northwind.Sales", "Northwind.Shipping", "Northwind.Catalogue"];
+        foreach (string idle in idles)
         {
             await root.CreateRepositoryAsync(idle);
         }

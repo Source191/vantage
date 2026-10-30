@@ -9,25 +9,13 @@ namespace Source191.Vantage.Adapters.Packages;
 /// nuget.org's flat-container index for a package (<c>{"versions": [...]}</c>, every listed version, no key needed):
 /// one anonymous request with a 3 second timeout and a <c>Vantage/&lt;version&gt;</c> user agent. Any failure answers null.
 /// </summary>
-public sealed class NuGetPackageVersions : IPackageVersions, IDisposable
+public sealed class NuGetPackageVersions(ToolVersion version, HttpMessageHandler handler) : IPackageVersions, IDisposable
 {
     public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(3);
 
     private static readonly Uri Index = new("https://api.nuget.org/v3-flatcontainer/");
 
-    private readonly HttpClient client;
-
-    public NuGetPackageVersions(ToolVersion version)
-        : this(version, new HttpClientHandler())
-    {
-    }
-
-    public NuGetPackageVersions(ToolVersion version, HttpMessageHandler handler)
-    {
-        ArgumentNullException.ThrowIfNull(version);
-        client = new HttpClient(handler) { BaseAddress = Index, Timeout = Timeout };
-        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Vantage", version.Text));
-    }
+    private readonly HttpClient client = ClientFor(version ?? throw new ArgumentNullException(nameof(version)), handler);
 
     public async Task<IReadOnlyList<string>?> ListAsync(string packageId, CancellationToken cancellationToken)
     {
@@ -60,6 +48,14 @@ public sealed class NuGetPackageVersions : IPackageVersions, IDisposable
     }
 
     public void Dispose() => client.Dispose();
+
+    private static HttpClient ClientFor(ToolVersion version, HttpMessageHandler handler)
+    {
+        HttpClient client = new(handler) { BaseAddress = Index, Timeout = Timeout };
+        client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Vantage", version.Text));
+
+        return client;
+    }
 
     private sealed record VersionIndex(IReadOnlyList<string>? Versions);
 }

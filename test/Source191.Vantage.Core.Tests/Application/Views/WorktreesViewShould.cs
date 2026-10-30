@@ -44,7 +44,7 @@ public sealed class WorktreesViewShould
     {
         Press(Loaded, Key.Down, Key.Down).Selected.ShouldBe(Clean);
         Press(Loaded, Key.Up).Selected.ShouldBe(Empty);
-        Press(Loaded, Enumerable.Repeat(Key.Down, 10).ToArray()).Selected.ShouldBe(Gone);
+        Press(Loaded, [.. Enumerable.Repeat(Key.Down, 10)]).Selected.ShouldBe(Gone);
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public sealed class WorktreesViewShould
     [Fact]
     public void PruneWithCapitalPUnlessTheRepositoryHasGone()
     {
-        WorktreesViewState onGone = Press(Loaded, Enumerable.Repeat(Key.Down, 6).ToArray());
+        WorktreesViewState onGone = Press(Loaded, [.. Enumerable.Repeat(Key.Down, 6)]);
 
         WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Of('P'))).Effects.ShouldBe([new PruneRepository(FolderPath.From(Repository))]);
         WorktreesViewUpdate refused = WorktreesView.Reduce(onGone, new KeyPressed(Key.Of('P')));

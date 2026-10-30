@@ -51,5 +51,5 @@ public static class SettingsView
         };
     }
 
-    private static SettingsUpdate Changed(SettingsState state) => new SettingsUpdate(state, new SettingsEffect.None());
+    private static SettingsUpdate Changed(SettingsState state) => new(state, new SettingsEffect.None());
 }

@@ -63,7 +63,8 @@ public sealed record WhereLabel(string? Repository, string Place, string? Branch
             return string.Empty;
         }
 
-        string? prefix = new[] { repository + "-", repository + "\\" }.FirstOrDefault(candidate => label.StartsWith(candidate, StringComparison.OrdinalIgnoreCase));
+        string[] prefixes = [repository + "-", repository + "\\"];
+        string? prefix = prefixes.FirstOrDefault(candidate => label.StartsWith(candidate, StringComparison.OrdinalIgnoreCase));
 
         return prefix is null ? label : label[prefix.Length..];
     }

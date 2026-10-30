@@ -57,6 +57,16 @@ public sealed class NuGetPackageVersionsShould
     }
 
     [Fact]
+    public void RefuseANullVersion()
+    {
+        using StubHandler handler = new(_ => Json("{}"));
+
+        ArgumentNullException refused = Should.Throw<ArgumentNullException>(() => new NuGetPackageVersions(null!, handler));
+
+        refused.ParamName.ShouldBe("version");
+    }
+
+    [Fact]
     public void GiveUpAfterThreeSeconds()
     {
         NuGetPackageVersions.Timeout.ShouldBe(TimeSpan.FromSeconds(3));

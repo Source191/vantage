@@ -196,7 +196,7 @@ public static class WorktreesView
             : (new JumpToSession(row.SessionId), Footer.None);
     }
 
-    private static WorktreesViewUpdate Unchanged(WorktreesViewState state) => new WorktreesViewUpdate(state, []);
+    private static WorktreesViewUpdate Unchanged(WorktreesViewState state) => new(state, []);
 
-    private static WorktreesViewUpdate Effect(WorktreesViewState state, ViewEffect effect) => new WorktreesViewUpdate(state, [effect]);
+    private static WorktreesViewUpdate Effect(WorktreesViewState state, ViewEffect effect) => new(state, [effect]);
 }
