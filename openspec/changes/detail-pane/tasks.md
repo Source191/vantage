@@ -35,7 +35,8 @@
 
 - [x] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
   - Done 30 October 2026: 0.18.0-preview.8 (main is 0.18.0-preview.7); the build has no warnings, 1867 tests pass (the eight Claude contract tests skip without `VANTAGE_CLAUDE_CONTRACT`), format and validate pass.
-- [ ] 5.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` and the smoke check against the packed tool. Verify both exit 0.
+- [x] 5.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` and the smoke check against the packed tool. Verify both exit 0.
+  - Done 30 October 2026: the hand-off check exits 0 (Claude's screen in the capture, the throwaway session stopped and removed) and the smoke check, against the nupkg packed as 0.18.0-preview.8-smoke and installed into a temporary tool path with `Northwind.Smoke` and its `Northwind.Smoke-smoke` worktree seeded and removed afterwards, exits 0. On this machine both ran with real sessions listed, so the pane read `claude logs`; CI's runner lists none, so there the pane shows only worktree detail and no logs call happens.
 - [ ] 5.3 The product owner installs the build with `tools\install-local.ps1`, starts a session with a prompt that will ask for permission, selects it and reads the question in the pane before attaching, answers it, and reads Prompted update; selects a worktree with unpushed commits and reads them; drags the divider; opens `!` and confirms no output line is in the preview. Record here.
 
 ## Workflow follow-up
