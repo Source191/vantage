@@ -1,0 +1,171 @@
+using Microsoft.Extensions.Time.Testing;
+using Source191.Vantage.Adapters.Claude;
+using Source191.Vantage.Adapters.Git;
+using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
+using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
+using Source191.Vantage.TestDoubles;
+
+namespace Source191.Vantage.Core.Tests.Application.Detail;
+
+public sealed class DetailLoaderShould
+{
+    private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
+    private static readonly DateTimeOffset Noon = new(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
+    private static readonly FolderPath Worktree = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Billing-invoice-pdf");
+    private static readonly FolderPath Repository = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Billing");
+
+    private static readonly string Screen = string.Concat(((string[])
+    [
+        "● Update(src/Northwind.Billing/Invoice.cs)",
+        "Do you want to make this edit to Invoice.cs?",
+        "❯ 1. Yes",
+        new string('─', 60),
+        "❯",
+        new string('─', 60),
+        "  opus  effort:high",
+    ]).Select(row => row.PadRight(60)));
+
+    private readonly FakeProcessRunner processes = new FakeProcessRunner()
+        .AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
+
+    private readonly InMemoryState state = new();
+    private readonly FakeTimeProvider clock = new(Noon);
+
+    private DetailLoader Loader(SessionActivity? activity = null) => new(new ClaudeCli(processes, Claude), new GitCli(processes, "git"), state, activity ?? new SessionActivity(clock));
+
+    [Fact]
+    public async Task FillASessionsDetail()
+    {
+        processes
+            .Answer(request => request.Arguments.Contains("logs"), new ProcessResult(0, Screen, string.Empty))
+            .Answer(request => request.Arguments.Contains("status"), new ProcessResult(0, " M a.cs\n M b.cs\n?? c.cs\n", string.Empty))
+            .Answer(request => request.Arguments.Contains("rev-list"), new ProcessResult(0, "0\n", string.Empty))
+            .Answer(request => request.Arguments.Contains("log"), new ProcessResult(0, "2026-10-30T11:00:00+00:00\n", string.Empty));
+        SessionRow row = Row(processId: 4242);
+
+        SessionDetail detail = await Loader().SessionAsync(row, outputRows: 2, readOutput: true, CancellationToken.None);
+
+        detail.Row.ShouldBe(row);
+        detail.Counts.ShouldBe(new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new DateTimeOffset(2026, 10, 30, 11, 0, 0, TimeSpan.Zero))));
+        detail.Output.ShouldBeOfType<SessionOutput.Screen>().Rows.ShouldBe(["Do you want to make this edit to Invoice.cs?", "❯ 1. Yes"]);
+        detail.LastPromptedAt.ShouldBeNull();
+        processes.CapturedRequests.ShouldContain(request => request.Arguments.Count == 2 && request.Arguments[0] == "logs" && request.Arguments[1] == "81cdb0f9");
+    }
+
+    [Fact]
+    public async Task CarryTheTimeTheSessionWasLastPrompted()
+    {
+        SessionActivity activity = new(clock);
+        SessionRow waiting = Row(processId: 4242) with { Session = Row(processId: 4242).Session with { State = DisplayState.NeedsInput } };
+        SessionRow working = waiting with { Session = waiting.Session with { State = DisplayState.Working } };
+        clock.Advance(TimeSpan.FromMinutes(3));
+        activity.Observe([waiting], [working]);
+
+        SessionDetail detail = await Loader(activity).SessionAsync(working, outputRows: 2, readOutput: false, CancellationToken.None);
+
+        detail.LastPromptedAt.ShouldBe(Noon.AddMinutes(3));
+        detail.Output.ShouldBeOfType<SessionOutput.NotRead>();
+        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("logs"));
+    }
+
+    [Fact]
+    public async Task ReadNoOutputForASessionWithoutAProcessOrOutsideTheSupervisor()
+    {
+        SessionDetail stopped = await Loader().SessionAsync(Row(processId: null), outputRows: 5, readOutput: true, CancellationToken.None);
+        SessionRow terminal = Row(processId: null) with { Session = new InteractiveSession(SessionId.From("82db48ec-63de-49db-9831-b8147075dc3a"), "repos-93", Worktree, Noon, DisplayState.Idle, ProcessId: 51432) };
+        SessionDetail interactive = await Loader().SessionAsync(terminal, outputRows: 5, readOutput: true, CancellationToken.None);
+
+        stopped.Output.ShouldBeOfType<SessionOutput.NoProcess>();
+        interactive.Output.ShouldBeOfType<SessionOutput.NotSupervised>();
+        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("logs"));
+    }
+
+    [Fact]
+    public async Task MarkFailedOutputAndFailedGitUnavailableAndKeepTheRest()
+    {
+        processes
+            .Answer(request => request.Arguments.Contains("logs"), new ProcessResult(1, string.Empty, "job not found"))
+            .Answer(request => request.Arguments.Contains("status"), new ProcessResult(128, string.Empty, "fatal: not a git repository"));
+        SessionRow row = Row(processId: 4242);
+
+        SessionDetail detail = await Loader().SessionAsync(row, outputRows: 5, readOutput: true, CancellationToken.None);
+
+        detail.Output.ShouldBeOfType<SessionOutput.Unavailable>();
+        detail.Counts.ShouldBeOfType<DetailFact<WorktreeCounts>.Unavailable>();
+        detail.Row.ShouldBe(row);
+    }
+
+    [Fact]
+    public async Task LeaveOutGitCountsForAFolderOutsideARepository()
+    {
+        SessionRow outside = Row(processId: null) with { Checkout = null };
+
+        SessionDetail detail = await Loader().SessionAsync(outside, outputRows: 5, readOutput: false, CancellationToken.None);
+
+        detail.Counts.ShouldBeOfType<DetailFact<WorktreeCounts>.NotApplicable>();
+    }
+
+    [Fact]
+    public async Task FillAWorktreesDetailWithItsUnpushedCommits()
+    {
+        await state.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, BranchName.From("invoice-pdf"), Repository, new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero)));
+        processes
+            .Answer(request => request.Arguments.Contains("symbolic-ref"), new ProcessResult(0, "origin/main\n", string.Empty))
+            .Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty))
+            .Answer(request => request.Arguments.Contains("log"), new ProcessResult(0, "a1b2c3d\t2026-10-30T10:00:00+00:00\tSplit the invoice totals\n", string.Empty));
+
+        WorktreeDetail detail = await Loader().WorktreeAsync(WorktreeRowOf(unpushed: 12, dirty: 0), listRows: 4, CancellationToken.None);
+
+        detail.Created!.CreatedAt.ShouldBe(new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero));
+        detail.Merge.ShouldBe(new DetailFact<MergeState>.Known(new MergeState("origin/main", Merged: false)));
+        detail.Commits.ShouldBeOfType<DetailFact<IReadOnlyList<UnpushedCommit>>.Known>().Value.Single().Subject.ShouldBe("Split the invoice totals");
+        detail.ChangedFiles.ShouldBeOfType<DetailFact<IReadOnlyList<string>>.NotApplicable>();
+        processes.CapturedRequests.ShouldContain(request => request.Arguments.Contains("-n") && request.Arguments.Contains("4"));
+    }
+
+    [Fact]
+    public async Task ListTheChangedFilesWhenNothingIsUnpushed()
+    {
+        processes.Answer(request => request.Arguments.Contains("status"), new ProcessResult(0, " M Invoice.cs\n?? Totals.cs\n", string.Empty));
+
+        WorktreeDetail detail = await Loader().WorktreeAsync(WorktreeRowOf(unpushed: 0, dirty: 2), listRows: 4, CancellationToken.None);
+
+        detail.Created.ShouldBeNull();
+        detail.ChangedFiles.ShouldBe(new DetailFact<IReadOnlyList<string>>.Known(["Invoice.cs", "Totals.cs"]), new ListOfStringsComparer());
+        detail.Commits.ShouldBeOfType<DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable>();
+    }
+
+    [Fact]
+    public async Task MarkTheGitLinesOfALeftoverUnavailable()
+    {
+        WorktreeRow leftover = WorktreeRowOf(unpushed: 0, dirty: 0) with { FolderExists = false, OwnerExists = false, Branch = null };
+
+        WorktreeDetail detail = await Loader().WorktreeAsync(leftover, listRows: 4, CancellationToken.None);
+
+        detail.Merge.ShouldBeOfType<DetailFact<MergeState>.NotApplicable>();
+        detail.Commits.ShouldBeOfType<DetailFact<IReadOnlyList<UnpushedCommit>>.Unavailable>();
+        detail.ChangedFiles.ShouldBeOfType<DetailFact<IReadOnlyList<string>>.Unavailable>();
+    }
+
+    private static SessionRow Row(int? processId)
+    {
+        BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon, DisplayState.Working, processId);
+
+        return new SessionRow(session, "Northwind.Billing", BranchName.From("invoice-pdf"), HasLiveTab: false, HasTranscript: true) { Checkout = Repository };
+    }
+
+    private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
+        new(Repository, Worktree, BranchName.From("invoice-pdf"), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Noon, SessionId: null, SessionName: null, LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+
+    /// <summary>Records compare lists by reference, so a known list is compared by its items.</summary>
+    private sealed class ListOfStringsComparer : IEqualityComparer<DetailFact<IReadOnlyList<string>>>
+    {
+        public bool Equals(DetailFact<IReadOnlyList<string>>? x, DetailFact<IReadOnlyList<string>>? y) =>
+            x is DetailFact<IReadOnlyList<string>>.Known known && y is DetailFact<IReadOnlyList<string>>.Known other && known.Value.SequenceEqual(other.Value);
+
+        public int GetHashCode(DetailFact<IReadOnlyList<string>> obj) => 0;
+    }
+}
