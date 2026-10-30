@@ -82,16 +82,18 @@ public static partial class Wording
 
     private static TextPart Value(string text) => new(text, TextTone.Plain);
 
-    /// <summary>The sessions counts beside the tabs: a glyph, a count and a state word per state present, in attention order.</summary>
-    public static IReadOnlyList<TextPart> SessionCounts(IReadOnlyList<SessionRow> rows)
+    /// <summary>The sessions counts beside the tabs: a glyph, a count and a state word per state present, in attention order, then the automated runs and their memory while any run.</summary>
+    public static IReadOnlyList<TextPart> SessionCounts(IReadOnlyList<SessionRow> rows, AutomatedRuns automated)
     {
         ArgumentNullException.ThrowIfNull(rows);
+        ArgumentNullException.ThrowIfNull(automated);
         DisplayStateKind[] order = [DisplayStateKind.NeedsInput, DisplayStateKind.Working, DisplayStateKind.Idle, DisplayStateKind.Completed, DisplayStateKind.Failed, DisplayStateKind.Stopped, DisplayStateKind.Unknown];
 
         return [.. order
             .Select(kind => (Kind: kind, Rows: rows.Where(row => row.Session.State.Kind == kind).ToList()))
             .Where(group => group.Rows.Count > 0)
-            .Select(group => new TextPart($"{StateGlyph(group.Kind)} {group.Rows.Count} {CountedState(group.Kind, group.Rows)}", ToneOf(group.Kind)))];
+            .Select(group => new TextPart($"{StateGlyph(group.Kind)} {group.Rows.Count} {CountedState(group.Kind, group.Rows)}", ToneOf(group.Kind))),
+            .. automated.Count > 0 ? [new TextPart($"◇ {automated.Count} automated {Memory(automated.Memory)}", TextTone.Grey)] : Array.Empty<TextPart>()];
     }
 
     /// <summary>The worktrees counts beside the tabs: a count per health present, then how many have changes and unpushed commits.</summary>

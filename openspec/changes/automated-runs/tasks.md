@@ -17,7 +17,7 @@
 
 ## 4. The words and the screen
 
-- [ ] 4.1 Red: `WordingOfScreensShould` facts: `SessionCounts` with one working, one stopped and `AutomatedRuns(1, 216 MB)` ends with `TextPart("◇ 1 automated 216 MB", TextTone.Grey)`; two runs read `◇ 2 automated 431 MB`; `AutomatedRuns.None` adds nothing; no sessions and one run show only the run's part. Green: the words in `WordingOfConsole`; `SessionsScreenDefinition.Counts` passes the state's summary. Verify the Core facts pass.
+- [x] 4.1 Red: `WordingOfScreensShould` facts: `SessionCounts` with one working, one stopped and `AutomatedRuns(1, 216 MB)` ends with `TextPart("◇ 1 automated 216 MB", TextTone.Grey)`; two runs read `◇ 2 automated 431 MB`; `AutomatedRuns.None` adds nothing; no sessions and one run show only the run's part. Green: the words in `WordingOfConsole`; `SessionsScreenDefinition.Counts` passes the state's summary. Verify the Core facts pass.
 - [ ] 4.2 README: the Sessions section and the counts say what an automated run is, why it is not a row and what the ◇ part shows. CLAUDE.md's CLI facts: the measured table from design.md (the review, `claude -p`, a real `claude`'s first 130 ms, `claude logs` never registering), with the date and CLI version. Verify the README's words match `Wording`.
 
 ## 5. Version and checks
