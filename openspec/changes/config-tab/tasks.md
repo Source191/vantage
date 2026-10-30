@@ -6,9 +6,9 @@
 
 ## 2. The rows (Application)
 
-- [ ] 2.1 Red: `ConfigRowsShould` asserts the setting rows for the default settings, two roots and a custom editor (the three "The Config tab lists the settings" scenarios), each row's kind and key. Green: `ConfigRowKind`, `ConfigRow`, `ConfigRows.Settings(CurrentSettings)`.
-- [ ] 2.2 Red: `ConfigRowsShould` asserts the setup rows from a `SetupFacts` for the "everything set up", "nothing set up", "another channel" and "unreadable Claude settings" scenarios, and "reading…" before the facts arrive. Green: `SetupFacts`, `ConfigRows.Setup`.
-- [ ] 2.3 Red: `SetupFactsReaderShould`, over `FakeTerminalFragment`, `FakeClaudeSettings`, `FakeUpdateCheckRecords` and a log path, asserts each fact and that a throwing port gives that fact only as unreadable. Green: `SetupFactsReader.ReadAsync`, with the fakes added to `TestDoubles` where they are missing.
+- [x] 2.1 Red: `ConfigRowsShould` asserts the setting rows for the default settings, two roots and a custom editor (the three "The Config tab lists the settings" scenarios), each row's kind and key. Green: `ConfigRow` (a case per kind of row carrying its facts, its key stable across a save) and `ConfigRows.For(Settings, SetupFacts?)`.
+- [x] 2.2 Red: `ConfigRowsShould` asserts the setup rows from a `SetupFacts` for the "everything set up", "nothing set up", "another channel" and "unreadable Claude settings" scenarios, and "reading…" before the facts arrive. Green: `SetupItem`, `SetupState`, `SetupFacts`; the last update check reads off while the check is off.
+- [x] 2.3 Red: `SetupFactsReaderShould`, over `FakeTerminalFragment`, `FakeClaudeSettings`, `FakeUpdateCheckRecords` and a log path, asserts each fact and that a throwing port gives that fact only as unreadable. Green: `SetupFactsReader.ReadAsync` (I/O failures per fact), with `FakeClaudeSettings.FailTheReadWith`.
 
 ## 3. The tab's reducer and keys (Application)
 
