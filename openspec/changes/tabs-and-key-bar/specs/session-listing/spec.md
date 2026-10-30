@@ -2,6 +2,29 @@
 
 ## MODIFIED Requirements
 
+### Requirement: The TAB column is a swatch
+The sessions table's TAB column SHALL be filled across its whole width with the colour of the Vantage tab showing the session while that tab is alive, on the highlighted row as on every other, SHALL show a hollow grey block for a session running as plain claude in its own terminal, and nothing otherwise. The help and the column's tooltip SHALL say what each means.
+
+#### Scenario: A session open in a Vantage tab
+- **WHEN** fix-123 is shown in a Vantage tab coloured yellow
+- **THEN** its TAB cell is filled with yellow across the column's width
+
+#### Scenario: A terminal session
+- **WHEN** study was started as plain claude in a tab of its own
+- **THEN** its TAB cell is a hollow block drawn in grey
+
+#### Scenario: No tab
+- **WHEN** a background session has no live Vantage tab
+- **THEN** its TAB cell is blank
+
+#### Scenario: The help names the blocks
+- **WHEN** the help is shown on the sessions view
+- **THEN** TAB's line says the cell is filled with the tab's colour while a Vantage tab shows the session and a hollow block marks a plain claude in its own terminal
+
+#### Scenario: The highlighted row keeps the colour
+- **WHEN** fix-123, shown in a Vantage tab coloured red, is the selected row
+- **THEN** its TAB cell is filled with exactly that red, not the highlight's colour or a dimmer shade
+
 ### Requirement: The screen is a header, a table and a footer
 The sessions view SHALL be the Sessions tab of the console: under the settings line and the tabs' row, a bordered table whose title counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; and beneath the table a footer crumb naming the view with a status line beside it, above the key bar.
 
