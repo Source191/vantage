@@ -340,7 +340,7 @@ public sealed class WizardViewShould
         new WizardInput.NextField(),
     ];
 
-    public static TheoryData<WizardInput> InputsThatOnlyChangeState => new(StateOnlyInputs.AsEnumerable());
+    public static TheoryData<WizardInput> InputsThatOnlyChangeState => [.. StateOnlyInputs.AsEnumerable()];
     [Theory]
     [MemberData(nameof(InputsThatOnlyChangeState))]
     public void GiveNoEffectForAnyInputButStartAndCancel(WizardInput input)

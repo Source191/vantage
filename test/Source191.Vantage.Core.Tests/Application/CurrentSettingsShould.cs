@@ -37,4 +37,20 @@ public sealed class CurrentSettingsShould
 
         (await CurrentSettings.LoadAsync(state, Home)).Value.ShouldBe(Saved);
     }
+
+    [Fact]
+    public void RefuseNullInitialSettings()
+    {
+        ArgumentNullException refused = Should.Throw<ArgumentNullException>(() => new CurrentSettings(null!, new InMemoryState()));
+
+        refused.ParamName.ShouldBe("initial");
+    }
+
+    [Fact]
+    public void RefuseANullStore()
+    {
+        ArgumentNullException refused = Should.Throw<ArgumentNullException>(() => new CurrentSettings(Saved, null!));
+
+        refused.ParamName.ShouldBe("store");
+    }
 }

@@ -13,7 +13,7 @@ public sealed record TabRegistration(
 {
     private static readonly TimeSpan PendingGracePeriod = TimeSpan.FromSeconds(60);
 
-    public static TabRegistration Pending(TabOwner owner, TabColour colour, DateTimeOffset createdAt) => new TabRegistration(Guid.NewGuid(), owner, colour, createdAt, ProcessId: null, ProcessStartedAt: null);
+    public static TabRegistration Pending(TabOwner owner, TabColour colour, DateTimeOffset createdAt) => new(Guid.NewGuid(), owner, colour, createdAt, ProcessId: null, ProcessStartedAt: null);
 
     public TabRegistration ClaimedBy(int processId, DateTimeOffset processStartedAt) => this with { ProcessId = processId, ProcessStartedAt = processStartedAt };
 

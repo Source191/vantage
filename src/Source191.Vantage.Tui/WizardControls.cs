@@ -42,7 +42,8 @@ internal sealed class WizardControls
         int form = state.ShowsChooser ? RightColumn : LeftColumn;
         // Without the Where and base choices the preview and the prompt move up into their rows.
         int previewRow = state.ShowsChooser ? 12 : 6;
-        foreach (View field in new View[] { Chosen, Name, Mode, BaseRef, Preview, Prompt })
+        View[] aligned = [Chosen, Name, Mode, BaseRef, Preview, Prompt];
+        foreach (View field in aligned)
         {
             field.X = form;
         }

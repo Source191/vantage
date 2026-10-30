@@ -14,8 +14,8 @@ public sealed class WordingOfOutcomesShould
 {
     private static readonly BranchToConfirm Branch = new(FolderPath.From(@"C:\repos\Northwind.Orders"), BranchName.From("fix-123"));
 
-    public static TheoryData<Type> OutcomeCases => new(
-        typeof(Outcome).Assembly.GetTypes().Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(Outcome))));
+    public static TheoryData<Type> OutcomeCases =>
+        [.. typeof(Outcome).Assembly.GetTypes().Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(Outcome)))];
 
     [Theory]
     [MemberData(nameof(OutcomeCases))]

@@ -30,7 +30,9 @@ public abstract partial record RemoteRepository
         string project = Uri.UnescapeDataString(match.Groups["project"].Value);
         string name = Uri.UnescapeDataString(match.Groups["name"].Value);
 
-        return new[] { organisation, project, name }.All(BatchFileArgument.IsSafe) ? new AzureDevOpsRepository(organisation, project, name) : null;
+        string[] parts = [organisation, project, name];
+
+        return parts.All(BatchFileArgument.IsSafe) ? new AzureDevOpsRepository(organisation, project, name) : null;
     }
 
     [GeneratedRegex(@"^(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)(?<owner>[^/\s]+)/(?<name>[^/\s]+?)(?:\.git)?/?$", RegexOptions.IgnoreCase)]

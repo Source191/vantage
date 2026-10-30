@@ -26,7 +26,7 @@ public sealed class WordingShould
     private static readonly InteractiveSession Terminal = Sessions.Terminal("fix-123", 4242);
     private static readonly WorktreeRow Worktree = Worktrees.Row(WorktreeHealthKind.Ok);
 
-    public static TheoryData<Type> FooterCases => new(typeof(Footer).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(Footer))));
+    public static TheoryData<Type> FooterCases => [.. typeof(Footer).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(Footer)))];
 
     [Theory]
     [MemberData(nameof(FooterCases))]
@@ -503,7 +503,7 @@ public sealed class WordingShould
 
     // Why a worktree cannot be removed, and what is wrong with it.
 
-    public static TheoryData<Type> RemovalReasons => new(typeof(RemovalReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(RemovalReason))));
+    public static TheoryData<Type> RemovalReasons => [.. typeof(RemovalReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(RemovalReason)))];
 
     [Theory]
     [MemberData(nameof(RemovalReasons))]
@@ -569,7 +569,7 @@ public sealed class WordingShould
         Wording.Describe(new RemovalReason.RepositoryOutsideRoots()).ShouldBe("its repository is not under the roots; add that root in settings or remove the worktree with git there");
     }
 
-    public static TheoryData<Type> HealthReasons => new(typeof(HealthReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(HealthReason))));
+    public static TheoryData<Type> HealthReasons => [.. typeof(HealthReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(HealthReason)))];
 
     [Theory]
     [MemberData(nameof(HealthReasons))]
@@ -679,7 +679,7 @@ public sealed class WordingShould
 
     // The new-session wizard.
 
-    public static TheoryData<Type> WizardProblems => new(typeof(WizardProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(WizardProblem))));
+    public static TheoryData<Type> WizardProblems => [.. typeof(WizardProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(WizardProblem)))];
 
     [Theory]
     [MemberData(nameof(WizardProblems))]
@@ -712,7 +712,7 @@ public sealed class WordingShould
 
     // The settings dialog.
 
-    public static TheoryData<Type> SettingsProblems => new(typeof(SettingsProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(SettingsProblem))));
+    public static TheoryData<Type> SettingsProblems => [.. typeof(SettingsProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(SettingsProblem)))];
 
     [Theory]
     [MemberData(nameof(SettingsProblems))]
@@ -761,7 +761,7 @@ public sealed class WordingShould
     }
 
     // Refusals on the launch path, in the wizard and vantage here.
-    public static TheoryData<Type> LaunchProblems => new(typeof(LaunchProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(LaunchProblem))));
+    public static TheoryData<Type> LaunchProblems => [.. typeof(LaunchProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(LaunchProblem)))];
 
     [Theory]
     [MemberData(nameof(LaunchProblems))]
@@ -883,7 +883,7 @@ public sealed class WordingShould
         Wording.SetupTerminalUsage.ShouldBe(SetupUsage);
     }
 
-    public static TheoryData<Type> SetupProblems => new(typeof(TerminalSetupProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(TerminalSetupProblem))));
+    public static TheoryData<Type> SetupProblems => [.. typeof(TerminalSetupProblem).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(TerminalSetupProblem)))];
 
     [Theory]
     [MemberData(nameof(SetupProblems))]

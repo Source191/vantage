@@ -196,7 +196,8 @@ public sealed class SessionsViewShould
         SessionRow stub = Row(stubJob) with { HasTranscript = false };
         SessionsViewState withStub = Reduce(Loaded, new RowsLoaded([stub]));
 
-        foreach (Key key in new[] { Key.Enter, Key.Of('o'), Key.Of('r') })
+        Key[] keys = [Key.Enter, Key.Of('o'), Key.Of('r')];
+        foreach (Key key in keys)
         {
             ViewUpdate update = SessionsView.Reduce(withStub, new KeyPressed(key));
 

@@ -96,5 +96,5 @@ public static class WizardView
         };
     }
 
-    private static WizardUpdate Changed(WizardState state) => new WizardUpdate(state, new WizardEffect.None());
+    private static WizardUpdate Changed(WizardState state) => new(state, new WizardEffect.None());
 }

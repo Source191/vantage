@@ -31,7 +31,7 @@ public sealed record Key(KeyName Name, char Character)
     public static readonly Key Backspace = new(KeyName.Backspace, '\0');
     public static readonly Key Slash = new(KeyName.Character, '/');
 
-    public static Key Of(char character) => new Key(KeyName.Character, character);
+    public static Key Of(char character) => new(KeyName.Character, character);
 }
 
 public enum KeyName
@@ -324,7 +324,7 @@ public static class SessionsView
         };
     }
 
-    private static ViewUpdate Unchanged(SessionsViewState state) => new ViewUpdate(state, []);
+    private static ViewUpdate Unchanged(SessionsViewState state) => new(state, []);
 
-    private static ViewUpdate Effect(SessionsViewState state, ViewEffect effect) => new ViewUpdate(state, [effect]);
+    private static ViewUpdate Effect(SessionsViewState state, ViewEffect effect) => new(state, [effect]);
 }

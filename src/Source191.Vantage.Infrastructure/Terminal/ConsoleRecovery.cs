@@ -8,7 +8,7 @@ namespace Source191.Vantage.Adapters.Terminal;
 /// be answered after it has exited, so the replies would otherwise be read by the next Terminal.Gui start-up.
 /// Everything here is idempotent and harmless when nothing needs undoing.
 /// </summary>
-public static class ConsoleRecovery
+public static partial class ConsoleRecovery
 {
     private const int StandardInputHandle = -10;
     private const int StandardOutputHandle = -11;
@@ -78,18 +78,18 @@ public static class ConsoleRecovery
         }
     }
 
-    [DllImport("kernel32.dll")]
-    private static extern nint GetStdHandle(int standardHandle);
+    [LibraryImport("kernel32.dll")]
+    private static partial nint GetStdHandle(int standardHandle);
 
-    [DllImport("kernel32.dll")]
+    [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool FlushConsoleInputBuffer(nint consoleInput);
+    private static partial bool FlushConsoleInputBuffer(nint consoleInput);
 
-    [DllImport("kernel32.dll")]
+    [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetConsoleMode(nint consoleHandle, out uint mode);
+    private static partial bool GetConsoleMode(nint consoleHandle, out uint mode);
 
-    [DllImport("kernel32.dll")]
+    [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool SetConsoleMode(nint consoleHandle, uint mode);
+    private static partial bool SetConsoleMode(nint consoleHandle, uint mode);
 }

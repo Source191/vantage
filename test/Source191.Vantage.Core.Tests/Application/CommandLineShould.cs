@@ -183,7 +183,8 @@ public sealed class CommandLineShould : IDisposable
 
         exitCode.ShouldBe(0);
         calls.ShouldBeEmpty();
-        foreach (string option in new[] { "--sound", "--session-sound", "--yes", "--remove" })
+        string[] options = ["--sound", "--session-sound", "--yes", "--remove"];
+        foreach (string option in options)
         {
             output.ToString().ShouldContain(option);
         }

@@ -135,7 +135,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     StateTransitionNotifier notifier = new(Console.Out);
     OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
     ScreenClipboard clipboard = new();
-    using NuGetPackageVersions packageVersions = new(version);
+    using NuGetPackageVersions packageVersions = new(version, new HttpClientHandler());
     bool optOutOfUpdateCheck = UpdateCheckOptOut.Applies(Environment.GetEnvironmentVariable(UpdateCheckOptOut.VariableName));
     UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
     EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes, programs.Locate("pwsh")), new EditorLocator(folders, EditorFolders.ForCurrentUser()), folders, crashFile);

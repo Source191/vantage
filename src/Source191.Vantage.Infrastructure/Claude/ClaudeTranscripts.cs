@@ -7,7 +7,7 @@ namespace Source191.Vantage.Adapters.Claude;
 /// </summary>
 public sealed class ClaudeTranscripts(string claudeHome) : ITranscripts
 {
-    public static ClaudeTranscripts ForCurrentUser() => new ClaudeTranscripts(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude"));
+    public static ClaudeTranscripts ForCurrentUser() => new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude"));
 
     public bool HasMessages(string sessionId)
     {

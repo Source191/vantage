@@ -10,7 +10,7 @@ public sealed record ListPolicy<TRow>(
     StringComparison KeyComparison)
 {
     /// <summary>A selection with no rows yet, governed by this policy.</summary>
-    public ListSelection<TRow> EmptyList() => new ListSelection<TRow>(this, [], SelectedKey: null, RowFilter.None, FilterEditing: false, Loaded: false);
+    public ListSelection<TRow> EmptyList() => new(this, [], SelectedKey: null, RowFilter.None, FilterEditing: false, Loaded: false);
 }
 
 /// <summary>

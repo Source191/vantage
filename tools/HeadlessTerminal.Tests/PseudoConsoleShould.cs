@@ -38,7 +38,8 @@ public sealed class PseudoConsoleShould
             RedirectStandardOutput = true,
             UseShellExecute = false,
         };
-        foreach (string argument in new[] { driver, "drive", "pwsh", "500:\\r", "-NoProfile", "-Command", "[Console]::Out.WriteLine('NETOUT'); cmd /c echo GRANDCHILD; Start-Sleep 1" })
+        string[] arguments = [driver, "drive", "pwsh", "500:\\r", "-NoProfile", "-Command", "[Console]::Out.WriteLine('NETOUT'); cmd /c echo GRANDCHILD; Start-Sleep 1"];
+        foreach (string argument in arguments)
         {
             startInfo.ArgumentList.Add(argument);
         }

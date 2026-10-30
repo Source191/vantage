@@ -30,5 +30,5 @@ public sealed record WorktreeRow(
     public string FolderName => Path.Name;
 
     /// <summary>The removal facts as far as the scan knows them; the branch flags are settled by the action.</summary>
-    public WorktreeRemovalFacts Facts(bool branchCreatedByVantage = false, bool branchMerged = false) => new WorktreeRemovalFacts(Health.Kind, Branch?.Value ?? FolderName, DirtyFiles, UnpushedCommits, SessionName, branchCreatedByVantage, branchMerged, LeftoverFileCount);
+    public WorktreeRemovalFacts Facts(bool branchCreatedByVantage = false, bool branchMerged = false) => new(Health.Kind, Branch?.Value ?? FolderName, DirtyFiles, UnpushedCommits, SessionName, branchCreatedByVantage, branchMerged, LeftoverFileCount);
 }
