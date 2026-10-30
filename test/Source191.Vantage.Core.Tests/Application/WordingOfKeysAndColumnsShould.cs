@@ -70,7 +70,7 @@ public sealed class WordingOfKeysAndColumnsShould
 
             Columns
             NAME   the session name given at launch, or the folder name for an unnamed one
-            TAB    ▮ in its colour while a Vantage tab shows the session,
+            TAB    filled with the tab's colour while a Vantage tab shows the session,
                    ▯ grey for a plain claude in its own terminal
             STATE  ◐ needs input (amber), ● working (cyan), ○ idle (white),
                    ✓ completed (green), ✗ failed (red), ■ stopped (grey)
