@@ -33,5 +33,5 @@
 
 ## Workflow follow-up
 
-- Archive after wizard-one-form, in its own pull request, syncing the new detail-pane spec and the session-listing delta into `openspec\specs`.
+- Archive after where-column, tabs-and-key-bar and config-tab have archived, in its own pull request, syncing the new detail-pane spec and the session-listing delta into `openspec\specs`.
 - Once the series is archived, the owner decides when `Version` drops its preview suffix for 0.18.0.

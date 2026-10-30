@@ -26,7 +26,7 @@ The memory used by a running session's process tree, the session's process and e
 - **THEN** it lists no MEM column, and the m key's line says the pane shows the figure and m what it is made of
 
 ### Requirement: Long names never hide columns
-The sessions table SHALL give WHERE the width its other columns leave, 64 cells on a 120-column terminal, and SHALL fit every column there; a WHERE value too long for its width SHALL lose the middle of its repository name, marked with an ellipsis, and keep its slug and branch whole. NAME SHALL keep its cap and ellipsis, the row SHALL keep the full values for every key that uses them, and Left and Right SHALL still scroll the table on a narrower terminal. The key bar SHALL show every key that applies within 120 columns, with its words.
+The sessions table SHALL give WHERE the width its other columns leave, 64 cells on a 120-column terminal, and SHALL fit every column there; a WHERE value too long for its width SHALL lose the middle of its repository name, marked with an ellipsis, and keep its slug and branch whole. NAME SHALL keep its cap and ellipsis, the row SHALL keep the full values for every key that uses them, and < and > SHALL scroll the table on a narrower terminal, Left and Right being the tab keys. The key bar SHALL show every key that applies within 120 columns, with its words.
 
 #### Scenario: Long repository name in the sessions view
 - **WHEN** a session runs in the worktree Northwind.Integration.CosmosDb.ChangeFeedMonitoring-fix-123 and the terminal is 120 columns wide
@@ -55,3 +55,7 @@ The sessions table SHALL give WHERE the width its other columns leave, 64 cells 
 #### Scenario: A longer name at 120 columns
 - **WHEN** a session runs in a worktree of a repository whose name is 70 characters long and the terminal is 120 columns wide
 - **THEN** the WHERE cell keeps › and the slug whole and the repository name's middle is replaced by an ellipsis
+
+#### Scenario: Scroll on a narrow terminal
+- **WHEN** the terminal is 100 columns wide and the user presses > on the Sessions tab
+- **THEN** the table scrolls one column to the right and the Sessions tab stays shown

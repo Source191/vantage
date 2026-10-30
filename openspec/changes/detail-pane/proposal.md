@@ -24,7 +24,7 @@ Out of scope: a live cockpit or wall of panes (options 11 and 13), reading the t
 
 ### Modified Capabilities
 
-- `session-listing`: "Rows show the session's memory" moves the figure to the pane and drops the column; "Long names never hide columns" (as tabs-and-key-bar leaves it) gives WHERE 64 cells at 120.
+- `session-listing`: "Rows show the session's memory" moves the figure to the pane and drops the column; "Long names never hide columns" (as config-tab leaves it) gives WHERE 64 cells at 120.
 
 ## Impact
 
@@ -39,4 +39,4 @@ Out of scope: a live cockpit or wall of panes (options 11 and 13), reading the t
 
 ## Order
 
-The last of four changes from the UI review, after where-column, tabs-and-key-bar and wizard-one-form. Its MODIFIED block for "Long names never hide columns" is based on tabs-and-key-bar's text; "Rows show the session's memory" on the main spec's. The smoke script's sessions marker is the first column unique to the sessions table, NAME, before and after MEM goes, so the script is unchanged.
+The third of the UI review's changes to be applied, after where-column, tabs-and-key-bar and config-tab (the owner chose it before wizard-one-form, 30 October 2026). Its MODIFIED block for "Long names never hide columns" is based on config-tab's text (`<` and `>` scroll); "Rows show the session's memory" on the main spec's. The smoke script's sessions marker is the first column unique to the sessions table, NAME, before and after MEM goes, so the script is unchanged.
