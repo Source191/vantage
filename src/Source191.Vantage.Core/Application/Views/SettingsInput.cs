@@ -54,8 +54,5 @@ public abstract record SettingsEffect
 
 public sealed record SettingsUpdate(SettingsState State, SettingsEffect Effect);
 
-/// <summary>The settings key: open the settings dialog.</summary>
-public sealed record OpenSettings : ViewEffect, IDialogEffect;
-
 /// <summary>What the settings dialog settles on: write config.json and use these settings from now on.</summary>
 public sealed record SaveSettings(Settings Settings) : ViewEffect;

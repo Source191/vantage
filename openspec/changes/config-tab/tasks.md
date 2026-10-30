@@ -12,15 +12,15 @@
 
 ## 3. The tab's reducer and keys (Application)
 
-- [ ] 3.1 Red: `ConfigViewShould` asserts Enter on a setting row raises `EditSetting` with its key, on Check for updates `ToggleUpdateCheck`, on a setup row the advice footer per kind ("A setup row says how to change it"); `a` raises `AddRepositoryRoot`; `d` on a root raises `RemoveRepositoryRoot(index)` and elsewhere the footer; `c` and `e` raise the folder effects with the full value (a file's folder for `e`). Green: `ConfigView.Reduce` over `ListSelection<ConfigRow>`, `ConfigViewState`, the effects.
-- [ ] 3.2 Red: `ConsoleViewShould` asserts `NextTab` and `PreviousTab` move Sessions → Worktrees → Config and back, stopping at the ends, `SelectTab` for 1, 2 and 3, and Esc with no filter on Worktrees or Config returning to Sessions; `SessionsViewShould` and `WorktreesViewShould` assert `w` and `,` do nothing. Green: `ConsoleTab.Config`, the `ISwitchesTab` effects, the reducers' key cases; `SwitchToWorktrees`, `SwitchToSessions` and `OpenSettings` removed. Verify `EffectRoutingShould` still passes.
+- [x] 3.1 Red: `ConfigViewShould` asserts Enter on a setting row raises `EditSetting` with its key, on Check for updates `ToggleUpdateCheck`, on a setup row the advice footer per kind ("A setup row says how to change it"); `a` raises `AddRepositoryRoot`; `d` on a root raises `RemoveRepositoryRoot(index)` and elsewhere the footer; `c` and `e` raise the folder effects with the full value (a file's folder for `e`). Green: `ConfigView.Reduce` over `ListSelection<ConfigRow>`, `ConfigViewState`, the effects.
+- [x] 3.2 Red: `ConsoleViewShould` asserts `NextTab` and `PreviousTab` move Sessions → Worktrees → Config and back, stopping at the ends, `SelectTab` for 1, 2 and 3, and Esc with no filter on Worktrees or Config returning to Sessions; `SessionsViewShould` and `WorktreesViewShould` assert `w` and `,` do nothing. Green: `ConsoleTab.Config`, `SelectTab`, `NextTab` and `PreviousTab` (`ISwitchesTab`), one `TabKeys.For` rule every reducer asks; `SwitchToWorktrees`, `SwitchToSessions` and `OpenSettings` removed. Verify `EffectRoutingShould` still passes.
 - [ ] 3.3 Red: `SettingsViewShould` reshaped: `SettingsState.Open` for one field (a root at an index, a new root, the worktree root, the editor, the base); Save validates that field only, refuses a duplicate root, and settles on `SaveSettings` with the whole new `Settings`. Green: the narrowed reducer; the old whole-dialog tests that no longer apply removed.
 
 ## 4. The handlers (Application)
 
-- [ ] 4.1 Red: `RemoveRepositoryRootHandlerShould` asserts the saved settings without the root (over `InMemoryState` and `TestSettings`) and the `LastRoot` outcome for the only root. Green: `RemoveRepositoryRootHandler` and its outcome record, registered in `Composition.Handlers`.
-- [ ] 4.2 Red: `ToggleUpdateCheckHandlerShould` asserts the flipped flag is saved and returned. Green: `ToggleUpdateCheckHandler` and its outcome, registered.
-- [ ] 4.3 Red: `EffectDispatcherShould` and `DialogEffectsShould` pass with `EditSetting` and `AddRepositoryRoot` as dialog effects and the two handlers registered. Green: the registrations.
+- [x] 4.1 Red: `RemoveRepositoryRootHandlerShould` asserts the saved settings without the root (over `InMemoryState` and `TestSettings`) and the `LastRoot` outcome for the only root. Green: `RemoveRepositoryRootHandler` and its outcome record, registered in `Composition.Handlers`.
+- [x] 4.2 Red: `ToggleUpdateCheckHandlerShould` asserts the flipped flag is saved and returned. Green: `ToggleUpdateCheckHandler` and its outcome, registered.
+- [x] 4.3 Red: `EffectDispatcherShould` and `DialogEffectsShould` pass with `EditSetting` and `AddRepositoryRoot` as dialog effects and the two handlers registered. Green: the registrations; until 6.2 both dialog effects open the existing settings dialog.
 
 ## 5. The words (Wording)
 

@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
+using System.Diagnostics;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;

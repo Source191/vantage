@@ -31,7 +31,7 @@ public sealed record ConsoleState(SessionsViewState Sessions, WorktreesViewState
 /// </summary>
 public static class ConsoleView
 {
-    private static readonly HashSet<Type> Handled = [typeof(SwitchToSessions), typeof(SwitchToWorktrees), typeof(JumpToSession), typeof(SelectTab), typeof(NextTab), typeof(PreviousTab)];
+    private static readonly HashSet<Type> Handled = [typeof(SelectTab), typeof(NextTab), typeof(PreviousTab), typeof(JumpToSession)];
 
     public static ConsoleState Apply(ConsoleState state, ISwitchesTab effect)
     {
@@ -39,9 +39,9 @@ public static class ConsoleView
 
         return effect switch
         {
-            SwitchToWorktrees => state with { Active = ConsoleTab.Worktrees },
-            SwitchToSessions => state with { Active = ConsoleTab.Sessions },
-            SelectTab or NextTab or PreviousTab => state,
+            SelectTab select => state with { Active = select.Tab },
+            NextTab => state with { Active = state.Active == ConsoleTab.Config ? ConsoleTab.Config : state.Active + 1 },
+            PreviousTab => state with { Active = state.Active == ConsoleTab.Sessions ? ConsoleTab.Sessions : state.Active - 1 },
             JumpToSession jump => state with { Active = ConsoleTab.Sessions, Sessions = SessionsView.Reduce(state.Sessions, new SelectSession(jump.SessionId)).State },
             _ => throw new UnreachableException($"{effect.GetType().Name} switches tab but ConsoleView.Apply has no case for it; EffectRoutingShould guards this."),
         };
@@ -49,4 +49,22 @@ public static class ConsoleView
 
     /// <summary>Whether <see cref="Apply"/> has a case for the effect type; the reflection fact asks this for every tab-switching effect.</summary>
     public static bool Handles(Type effectType) => Handled.Contains(effectType);
+}
+/// <summary>The keys every tab shares for moving between tabs: 1, 2 and 3 choose one, Left and Right step through them.</summary>
+public static class TabKeys
+{
+    public static ViewEffect? For(Key key)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+
+        return key switch
+        {
+            { Name: KeyName.Left } => new PreviousTab(),
+            { Name: KeyName.Right } => new NextTab(),
+            { Name: KeyName.Character, Character: '1' } => new SelectTab(ConsoleTab.Sessions),
+            { Name: KeyName.Character, Character: '2' } => new SelectTab(ConsoleTab.Worktrees),
+            { Name: KeyName.Character, Character: '3' } => new SelectTab(ConsoleTab.Config),
+            _ => null,
+        };
+    }
 }

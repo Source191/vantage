@@ -130,7 +130,7 @@ public sealed class ConfigViewShould
     [Fact]
     public void ClearAFilterOnEscapeBeforeLeaving()
     {
-        ConfigViewState filtered = Press(Loaded, Key.Slash, Key.Of('w'), Key.Of('o'), Key.Of('r'), Key.Enter);
+        ConfigViewState filtered = Press(Loaded, Key.Slash, Key.Of('t'), Key.Of('r'), Key.Of('e'), Key.Of('e'), Key.Enter);
 
         filtered.Selected.ShouldBe(new ConfigRow.WorktreeRoot(FolderPath.From(@"C:\Users\me\source\worktrees")));
         ConfigViewUpdate update = ConfigView.Reduce(filtered, new KeyPressed(Key.Escape));
