@@ -70,41 +70,18 @@ public sealed class WordingOfScreensShould
     }
 
     [Fact]
-    public void WriteTheVersionsOnTheFirstRowAndTheRootsOnTheSecond()
+    public void WriteTheVersionsOnTheOneSettingsRow()
     {
-        IReadOnlyList<IReadOnlyList<TextPart>> rows = Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 114);
+        IReadOnlyList<TextPart> row = Wording.SettingsRow(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35));
 
-        rows[0].ShouldBe([new TextPart("Vantage ", TextTone.Orange), new TextPart("0.18.0 (35 MB)", TextTone.Plain), new TextPart(" · ", TextTone.Grey), new TextPart("Claude ", TextTone.Orange), new TextPart("2.1.310", TextTone.Plain)]);
-        rows[1].ShouldBe([new TextPart("Repository roots ", TextTone.Orange), new TextPart(@"C:\Users\me\source\repos", TextTone.Plain), new TextPart(" · ", TextTone.Grey), new TextPart("Worktree root ", TextTone.Orange), new TextPart(@"C:\Users\me\source\worktrees", TextTone.Plain)]);
-    }
-
-    [Fact]
-    public void JoinSeveralRepositoryRoots()
-    {
-        IReadOnlyList<IReadOnlyList<TextPart>> rows = Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 200);
-
-        Text(rows[1]).ShouldBe(@"Repository roots C:\Users\me\source\repos; D:\work · Worktree root C:\Users\me\source\worktrees");
-    }
-
-    [Fact]
-    public void CutTheRepositoryRootsFirstAndThenTheWorktreeRoot()
-    {
-        Settings three = Roots(@"C:\Users\me\source\repos", @"D:\work\northwind", @"E:\archive\northwind-old");
-
-        string eighty = Text(Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), three, new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 80)[1]);
-        string fifty = Text(Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), three, new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 50)[1]);
-
-        eighty.ShouldBe(@"Repository roots C:\Users\me\sourc… · Worktree root C:\Users\me\source\worktrees");
-        eighty.Length.ShouldBe(80);
-        fifty.ShouldBe(@"Repository roots … · Worktree root C:\Users\me\so…");
-        fifty.Length.ShouldBe(50);
+        row.ShouldBe([new TextPart("Vantage ", TextTone.Orange), new TextPart("0.18.0 (35 MB)", TextTone.Plain), new TextPart(" · ", TextTone.Grey), new TextPart("Claude ", TextTone.Orange), new TextPart("2.1.310", TextTone.Plain)]);
     }
 
     [Theory]
     [InlineData("0.18.0", "2.1.310", true, false, "Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310")]
     [InlineData("0.5.0-local", null, false, false, "Vantage 0.5.0-local (35 MB) · Claude unknown")]
     [InlineData("0.18.0", "2.1.302", false, true, "Vantage 0.18.0 (35 MB) · Claude 2.1.302 (below 2.1.309, update Claude Code)")]
-    public void KeepTheNoticeAndTheWarningOnTheFirstRow(string vantage, string? claude, bool updateAvailable, bool belowMinimum, string expected)
+    public void KeepTheNoticeAndTheWarningOnTheSettingsRow(string vantage, string? claude, bool updateAvailable, bool belowMinimum, string expected)
     {
         ClaudeCodeVersion version = (claude, belowMinimum) switch
         {
@@ -114,7 +91,7 @@ public sealed class WordingOfScreensShould
         };
         UpdateStatus update = updateAvailable ? new UpdateStatus.Available(ReleaseVersion.TryParse("0.18.0")!, ReleaseVersion.TryParse("0.19.0")!) : new UpdateStatus.UpToDate();
 
-        Text(Wording.SettingsRows(new ToolVersion(vantage), version, Roots(@"C:\Users\me\source\repos"), update, MemorySize.FromMegabytes(35), width: 114)[0]).ShouldBe(expected);
+        Text(Wording.SettingsRow(new ToolVersion(vantage), version, update, MemorySize.FromMegabytes(35))).ShouldBe(expected);
     }
 
     [Fact]
@@ -122,6 +99,16 @@ public sealed class WordingOfScreensShould
     {
         Wording.TabTitleFor(ConsoleTab.Sessions).ShouldBe("Sessions");
         Wording.TabTitleFor(ConsoleTab.Worktrees).ShouldBe("Worktrees");
+        Wording.TabTitleFor(ConsoleTab.Config).ShouldBe("Config");
+    }
+
+    [Fact]
+    public void CountTheSettingsAndTheSetupLeftToDo()
+    {
+        SetupFacts facts = new(new SetupState.At(@"C:\Users\me\AppData\Local\Vantage\config.json"), new SetupState.NotSetUp(), new SetupState.Enabled(), new SetupState.Disabled(), new SetupState.Never());
+
+        Wording.ConfigCounts(ConfigRows.For(Roots(@"C:\Users\me\source\repos", @"D:\work"), facts)).ShouldBe([new TextPart("6 settings", TextTone.Plain), new TextPart("1 to set up", TextTone.Amber)]);
+        Wording.ConfigCounts(ConfigRows.For(Roots(@"C:\Users\me\source\repos"), facts with { TerminalProfiles = new SetupState.Enabled() })).ShouldBe([new TextPart("5 settings", TextTone.Plain)]);
     }
 
     private static string Text(IReadOnlyList<TextPart> row) => string.Concat(row.Select(part => part.Text));

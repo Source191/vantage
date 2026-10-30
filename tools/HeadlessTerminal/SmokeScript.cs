@@ -5,7 +5,7 @@ namespace Source191.Vantage.HeadlessTerminal;
 
 /// <summary>
 /// The smoke run's steps, built from Wording so a renamed title or a rebound key needs no change here: open and cancel
-/// the Keys help, Settings, the new-session wizard and the problem report on the sessions view, then on the worktrees view its help,
+/// the Keys help, the new-session wizard and the problem report on the sessions view, a setting's dialog on the Config tab, then on the worktrees view its help,
 /// the force-remove confirmation, the fixed-folder wizard and the solution chooser for the named worktree, and quit. Dialogs are recognised by the tab title each one sets,
 /// views by a column only that view has; a key is looked up by its hint, and a lost hint fails with its name.
 /// </summary>
@@ -19,8 +19,10 @@ public static class SmokeScript
     {
         IReadOnlyList<KeyHelp> sessions = Wording.SessionsKeys;
         IReadOnlyList<KeyHelp> worktrees = Wording.WorktreesKeys;
+        IReadOnlyList<KeyHelp> config = Wording.ConfigKeys;
         CaptureMarker sessionsView = new CaptureMarker.ScreenText(ColumnOnlyIn(Wording.SessionsColumns, Wording.WorktreesColumns));
         CaptureMarker worktreesView = new CaptureMarker.ScreenText(ColumnOnlyIn(Wording.WorktreesColumns, Wording.SessionsColumns));
+        CaptureMarker configView = new CaptureMarker.ScreenText(ColumnOnlyIn(Wording.ConfigColumns, [.. Wording.SessionsColumns, .. Wording.WorktreesColumns]));
         CaptureMarker closed = new CaptureMarker.Title(Wording.TabTitle);
         string escape = Sequence("esc");
 
@@ -28,13 +30,15 @@ public static class SmokeScript
         [
             new SmokeStep(sessionsView, KeyFor(sessions, "Help"), Slow),
             new SmokeStep(Opened(DialogName.Keys), escape, Usual),
-            new SmokeStep(closed, KeyFor(sessions, "Settings"), Usual),
-            new SmokeStep(Opened(DialogName.Settings), escape, Usual),
             new SmokeStep(closed, KeyFor(sessions, "New session"), Usual),
             new SmokeStep(Opened(DialogName.NewSession), escape, Usual),
             new SmokeStep(closed, KeyFor(sessions, "Report"), Usual),
             new SmokeStep(Opened(DialogName.ProblemReport), escape, Usual),
-            new SmokeStep(closed, KeyFor(sessions, "Worktrees"), Usual),
+            new SmokeStep(closed, TabKey(sessions, ConsoleTab.Config), Usual),
+            // The Config tab opens on the first repository root, and Enter edits it in a setting's dialog.
+            new SmokeStep(configView, KeyFor(config, "Edit"), Usual),
+            new SmokeStep(Opened(DialogName.Settings), escape, Usual),
+            new SmokeStep(closed, TabKey(config, ConsoleTab.Worktrees), Usual),
             new SmokeStep(worktreesView, string.Empty, Usual),
             // The scan has finished once the table's title names a selection; keys typed into the filter before then are lost.
             // The WORKTREE cell reads "repository › slug", so the folder name itself is not on screen until the title or the filter shows it.
@@ -62,6 +66,14 @@ public static class SmokeScript
             ?? throw new InvalidOperationException($"No key has the hint \"{hint}\"; the smoke script looks keys up by their hints in Wording.");
 
         return Sequence(help.Key);
+    }
+
+    /// <summary>The key that chooses a tab, which has no bar hint: the one the help says shows that tab.</summary>
+    public static string TabKey(IReadOnlyList<KeyHelp> keys, ConsoleTab tab)
+    {
+        string line = $"the {Wording.TabTitleFor(tab)} tab";
+
+        return Sequence(keys.First(key => key.Line == line).Key);
     }
 
     /// <summary>What a terminal sends for a key as the help names it.</summary>

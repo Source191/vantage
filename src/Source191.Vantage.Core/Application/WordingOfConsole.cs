@@ -34,28 +34,42 @@ public sealed record KeyBar(IReadOnlyList<KeyBarItem> First, IReadOnlyList<KeyBa
 /// <summary>The words of the console's frame: the settings line, the tab titles, the counts beside them and the key bar.</summary>
 public static partial class Wording
 {
-    private const string Ellipsis = "…";
     private const int BarStart = 1;
     private const int BarGap = 2;
 
-    private static readonly string[] SecondBarRowForSessions = ["c", "e", "v", "p", "w", "/", ",", "?", "!", "q"];
+    private static readonly string[] SecondBarRowForSessions = ["c", "e", "v", "p", "/", "?", "!", "q"];
+    private static readonly string[] SecondBarRowForConfig = ["c", "e", "/", "?", "!", "q"];
     private static readonly string[] FirstBarRowForWorktrees = ["d", "D", "P", "s", "o", "enter"];
-
-    private const string RootsLabel = "Repository roots ";
-    private const string WorktreeRootLabel = "Worktree root ";
 
     private static readonly TextPart Dot = new(" · ", TextTone.Grey);
 
-    /// <summary>
-    /// The console's two settings rows, labels orange and values white: Vantage and Claude first, then the repository roots
-    /// and the worktree root, the roots cut first and the worktree root next when the second row is wider than <paramref name="width"/>.
-    /// </summary>
-    public static IReadOnlyList<IReadOnlyList<TextPart>> SettingsRows(ToolVersion vantage, ClaudeCodeVersion claude, Settings settings, UpdateStatus update, MemorySize vantageMemory, int width)
-    {
-        ArgumentNullException.ThrowIfNull(settings);
-        IReadOnlyList<TextPart> versions = [Label("Vantage "), Value(VantageVersion(vantage, update, vantageMemory)), Dot, Label("Claude "), Value(ClaudeVersion(claude))];
+    /// <summary>The console's settings row, labels orange and values white: Vantage and Claude; the roots are on the Config tab.</summary>
+    public static IReadOnlyList<TextPart> SettingsRow(ToolVersion vantage, ClaudeCodeVersion claude, UpdateStatus update, MemorySize vantageMemory) =>
+        [Label("Vantage "), Value(VantageVersion(vantage, update, vantageMemory)), Dot, Label("Claude "), Value(ClaudeVersion(claude))];
 
-        return [versions, Roots(string.Join("; ", settings.RepositoryRoots), settings.WorktreeRoot.Value, width)];
+    /// <summary>The Config counts beside the tabs: how many settings, then how much setup is left to do, in amber.</summary>
+    public static IReadOnlyList<TextPart> ConfigCounts(IReadOnlyList<ConfigRow> rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        int settings = rows.Count(row => row is not ConfigRow.Setup);
+        int toSetUp = rows.Count(row => row is ConfigRow.Setup { State: SetupState.NotSetUp });
+
+        return [new TextPart(Counted(settings, "setting"), TextTone.Plain), .. toSetUp > 0 ? [new TextPart($"{toSetUp} to set up", TextTone.Amber)] : Array.Empty<TextPart>()];
+    }
+
+    /// <summary>The Config tab's key bar: edit, add a root and, on a root, remove it, then Update when a release is known; the folder and view keys below.</summary>
+    public static KeyBar ConfigBar(ConfigViewState state, bool updateKnown)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        IReadOnlyList<(string Key, string? Word)> first =
+        [
+            ("enter", null),
+            ("a", null),
+            .. state.Selected is ConfigRow.RepositoryRoot ? [("d", (string?)null)] : Array.Empty<(string, string?)>(),
+            .. updateKnown ? [("U", (string?)null)] : Array.Empty<(string, string?)>(),
+        ];
+
+        return new KeyBar(Placed(ConfigKeys, first), Placed(ConfigKeys, [.. SecondBarRowForConfig.Select(key => (key, (string?)null))]));
     }
 
     /// <summary>A tab's title, which never changes, so the tab strip never has to measure it again.</summary>
@@ -69,27 +83,6 @@ public static partial class Wording
     private static TextPart Label(string text) => new(text, TextTone.Orange);
 
     private static TextPart Value(string text) => new(text, TextTone.Plain);
-
-    private static IReadOnlyList<TextPart> Roots(string roots, string worktreeRoot, int width)
-    {
-        IReadOnlyList<TextPart> Row(string rootsText, string worktreeText) => [Label(RootsLabel), Value(rootsText), Dot, Label(WorktreeRootLabel), Value(worktreeText)];
-        int Length(string rootsText, string worktreeText) => RootsLabel.Length + rootsText.Length + Dot.Text.Length + WorktreeRootLabel.Length + worktreeText.Length;
-
-        if (Length(roots, worktreeRoot) <= width)
-        {
-            return Row(roots, worktreeRoot);
-        }
-
-        int rootsRoom = width - Length(string.Empty, worktreeRoot);
-        if (rootsRoom >= Ellipsis.Length)
-        {
-            return Row(CutEnd(roots, rootsRoom), worktreeRoot);
-        }
-
-        int worktreeRoom = Math.Max(width - Length(Ellipsis, string.Empty), Ellipsis.Length);
-
-        return Row(Ellipsis, CutEnd(worktreeRoot, worktreeRoom));
-    }
 
     /// <summary>The sessions counts beside the tabs: a glyph, a count and a state word per state present, in attention order.</summary>
     public static IReadOnlyList<TextPart> SessionCounts(IReadOnlyList<SessionRow> rows)
@@ -211,5 +204,4 @@ public static partial class Wording
 
     private const string TerminalTabTip = "Close this terminal session's tab; it was never sent a message, so nothing is lost.";
 
-    private static string CutEnd(string text, int width) => text.Length <= width ? text : text[..Math.Max(width - Ellipsis.Length, 0)] + Ellipsis;
 }

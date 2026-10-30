@@ -752,10 +752,13 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void SayTheSettingsKeyInHelp()
+    public void SayTheConfigTabKeyInEveryHelpAndNoSettingsKey()
     {
-        Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe").ShouldContain(",      edit roots, worktree root and editor");
-        Wording.WorktreesHelp.ShouldContain(",      edit roots, worktree root and editor");
+        foreach (string help in new[] { Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe"), Wording.WorktreesHelp, Wording.ConfigHelp })
+        {
+            help.ShouldContain("3       the Config tab");
+            help.ShouldNotContain("edit roots, worktree root and editor");
+        }
     }
 
     // Refusals on the launch path, in the wizard and vantage here.

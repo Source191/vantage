@@ -24,8 +24,8 @@
 
 ## 5. The words (Wording)
 
-- [ ] 5.1 Red: `WordingOfScreensShould` asserts the one settings row (the two "The settings take one line" scenarios), `ConfigCounts` (`6 settings · 1 to set up`, the second part amber), the Config columns' `ColumnHelp`, `ConfigKeys` and the help listing 1, 2, 3, Left, Right, Shift+Left and Shift+Right without w or ,. Green: `SettingsRows` down to one row, the Config words, the key lists.
-- [ ] 5.2 Red: `WordingShould` asserts the Config bar (on a root row and elsewhere) and that every tab's bar fits 120 columns for every row kind; `WordingOfOutcomesShould` the remove and toggle outcomes and the advice footers. Green: the words.
+- [x] 5.1 Red: `WordingOfScreensShould` asserts the one settings row (the two "The settings take one line" scenarios), `ConfigCounts` (`6 settings · 1 to set up`, the second part amber), the Config columns' `ColumnHelp`, `ConfigKeys` and the help listing 1, 2, 3, Left, Right, Shift+Left and Shift+Right without w or ,. Green: `SettingsRows` down to one row, the Config words, the key lists.
+- [x] 5.2 Red: `WordingShould` asserts the Config bar (on a root row and elsewhere) and that every tab's bar fits 120 columns for every row kind; `WordingOfOutcomesShould` the remove and toggle outcomes and the advice footers. Green: the words.
 
 ## 6. The screen (Tui)
 

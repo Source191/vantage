@@ -40,6 +40,20 @@ public sealed class WordingOfOutcomesShould
         Wording.Describe(new SaveSettingsOutcome()).ShouldBe("Settings saved.");
     }
 
+    [Fact]
+    public void SayARootWasRemovedOrKept()
+    {
+        Wording.Describe(new RemoveRepositoryRootOutcome.Removed(FolderPath.From(@"D:\work"))).ShouldBe(@"Removed the repository root D:\work; the next worktree scan leaves it out.");
+        Wording.Describe(new RemoveRepositoryRootOutcome.OnlyRoot()).ShouldBe("Vantage needs at least one repository root, so the only one cannot be removed.");
+    }
+
+    [Fact]
+    public void SayWhetherTheUpdateCheckIsOn()
+    {
+        Wording.Describe(new ToggleUpdateCheckOutcome(On: true)).ShouldBe("The update check is on: Vantage asks nuget.org at most once a day.");
+        Wording.Describe(new ToggleUpdateCheckOutcome(On: false)).ShouldBe("The update check is off.");
+    }
+
     // Sessions.
 
     [Fact]
