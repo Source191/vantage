@@ -91,7 +91,8 @@ public sealed class WordingOfKeyBarShould
     public void FitTheKeyBarAt120ForEveryRowKind()
     {
         SessionRow[] everyKind = [Running, Stopped, EmptyTerminal, BusyTerminal];
-        foreach (bool updateKnown in new[] { false, true })
+        bool[] both = [false, true];
+        foreach (bool updateKnown in both)
         {
             foreach (SessionRow selected in everyKind)
             {

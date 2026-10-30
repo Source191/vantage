@@ -18,9 +18,9 @@ public sealed class DiagnosticEventsShould
     private static IEnumerable<Type> Events => typeof(DiagnosticEvent).Assembly.GetTypes()
         .Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(DiagnosticEvent)));
 
-    public static TheoryData<Type> EventTypes => new(Events);
+    public static TheoryData<Type> EventTypes => [.. Events];
 
-    public static TheoryData<Type> VettedValueTypes => new(VettedValues);
+    public static TheoryData<Type> VettedValueTypes => [.. VettedValues];
 
     [Fact]
     public void FindEveryEvent()

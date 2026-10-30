@@ -24,7 +24,8 @@ public sealed class WordingOfKeysAndColumnsShould
     [Fact]
     public void GiveEveryKeyALineAndNoKeyTwice()
     {
-        foreach (IReadOnlyList<KeyHelp> keys in new[] { Wording.SessionsKeys, Wording.WorktreesKeys })
+        IReadOnlyList<KeyHelp>[] views = [Wording.SessionsKeys, Wording.WorktreesKeys];
+        foreach (IReadOnlyList<KeyHelp> keys in views)
         {
             keys.ShouldAllBe(key => key.Line.Length > 0);
             keys.Select(key => key.Key).Distinct().Count().ShouldBe(keys.Count);

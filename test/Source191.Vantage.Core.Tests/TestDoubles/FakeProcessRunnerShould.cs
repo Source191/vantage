@@ -18,7 +18,8 @@ public sealed class FakeProcessRunnerShould
         string two = (await runner.RunAsync(Listing, CancellationToken.None)).StandardOutput;
         string three = (await runner.RunAsync(Listing, CancellationToken.None)).StandardOutput;
 
-        new[] { one, two, three }.ShouldBe(["first", "second", "second"]);
+        string[] answers = [one, two, three];
+        answers.ShouldBe(["first", "second", "second"]);
     }
 
     [Fact]

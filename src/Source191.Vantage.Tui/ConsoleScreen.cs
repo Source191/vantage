@@ -356,7 +356,8 @@ public sealed class ConsoleScreen(
             {
                 Label key = Text(item.X, row, item.Key, Palette.Blue);
                 Label word = Text(item.X + item.Key.Length + 1, row, item.Word, Palette.White);
-                foreach (Label label in new[] { key, word })
+                Label[] pair = [key, word];
+                foreach (Label label in pair)
                 {
                     label.MouseEvent += (_, mouse) => Click(mouse, item);
                     app.ToolTips?.SetToolTip(label, () => ToolTips.View(item.Tip));

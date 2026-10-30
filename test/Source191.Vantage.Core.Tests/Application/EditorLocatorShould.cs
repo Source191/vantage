@@ -42,7 +42,8 @@ public sealed class EditorLocatorShould
     [Fact]
     public async Task AnswerNullWhenNotInstalled()
     {
-        foreach (EditorPreset preset in new[] { EditorPreset.VsCode, EditorPreset.Cursor, EditorPreset.Rider, EditorPreset.Custom })
+        EditorPreset[] presets = [EditorPreset.VsCode, EditorPreset.Cursor, EditorPreset.Rider, EditorPreset.Custom];
+        foreach (EditorPreset preset in presets)
         {
             (await Locate(new FakeFolders(), preset)).ShouldBeNull(preset.ToString());
         }

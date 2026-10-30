@@ -33,7 +33,8 @@ public sealed class ProblemReportShould
             log.Record(index % 50 == 0 ? new Failed(FailureSite.Effect, CodeName.For(typeof(Quit)), ExceptionSummary.From(new GitException("x"))) : new ViewShown(ViewKind.Sessions));
         }
 
-        foreach (string program in new[] { "status", "log", "branch", "rev-list" })
+        string[] programs = ["status", "log", "branch", "rev-list"];
+        foreach (string program in programs)
         {
             counts.Add(ChildCommand.For(new ProcessRequest("git", [program], null)), 0, TimeSpan.FromMilliseconds(5));
             counts.Add(ChildCommand.For(new ProcessRequest("git", [program], null)), 128, TimeSpan.FromMilliseconds(5));

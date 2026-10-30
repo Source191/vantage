@@ -10,7 +10,7 @@ namespace Source191.Vantage.HeadlessTerminal;
 /// </summary>
 public sealed class ScreenReplay(int columns, int rows)
 {
-    private readonly char[][] grid = Enumerable.Range(0, rows).Select(_ => Enumerable.Repeat(' ', columns).ToArray()).ToArray();
+    private readonly char[][] grid = [.. Enumerable.Range(0, rows).Select(_ => Enumerable.Repeat(' ', columns).ToArray())];
     private int row;
     private int column;
 
@@ -121,7 +121,7 @@ public sealed class ScreenReplay(int columns, int rows)
             return capture.Length;
         }
 
-        int[] numbers = capture[(i + 2)..j].TrimStart('?', '<', '>', '=').Split(';').Select(n => int.TryParse(n, out int value) ? value : 0).ToArray();
+        int[] numbers = [.. capture[(i + 2)..j].TrimStart('?', '<', '>', '=').Split(';').Select(n => int.TryParse(n, out int value) ? value : 0)];
         int first = numbers.Length > 0 && numbers[0] > 0 ? numbers[0] : 1;
         int second = numbers.Length > 1 && numbers[1] > 0 ? numbers[1] : 1;
         Apply(capture[j], first, second, numbers);

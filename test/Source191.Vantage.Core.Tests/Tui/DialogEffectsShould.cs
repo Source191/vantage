@@ -9,8 +9,8 @@ namespace Source191.Vantage.Core.Tests.Tui;
 /// </summary>
 public sealed class DialogEffectsShould
 {
-    public static TheoryData<Type> DialogEffectTypes => new(
-        typeof(ViewEffect).Assembly.GetTypes().Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(IDialogEffect))));
+    public static TheoryData<Type> DialogEffectTypes =>
+        [.. typeof(ViewEffect).Assembly.GetTypes().Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(IDialogEffect)))];
 
     [Theory]
     [MemberData(nameof(DialogEffectTypes))]
