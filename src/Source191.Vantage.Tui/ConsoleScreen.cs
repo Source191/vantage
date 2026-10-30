@@ -108,6 +108,7 @@ public sealed class ConsoleScreen(
             sessions = new TableBody<SessionsViewState, SessionRow>(new SessionsScreenDefinition(screen.notifier, screen.claudeExecutable, screen.folders), screen.dialogs, screen.dispatcher, screen.loadSessions, screen.clock, context, app, this, initial.Sessions);
             worktrees = new TableBody<WorktreesViewState, WorktreeRow>(new WorktreesScreenDefinition(screen.folders), screen.dialogs, screen.dispatcher, screen.scanWorktrees, screen.clock, context, app, this, initial.Worktrees);
             tabs.Add(sessions.View, worktrees.View);
+            ReleaseNavigationKeys(tabs, sessions.View, worktrees.View);
             counts = new View { X = HeaderSpan() + 2, Y = TitleRow, Width = Dim.Fill(), Height = 1 };
             frameTitle = new Label { X = HeaderSpan() + 1, Y = FrameRow, Width = Dim.Auto(), Height = 1, HotKeySpecifier = new System.Text.Rune(0xFFFF), Text = string.Empty };
             bar = new View { X = 0, Y = Pos.AnchorEnd(2), Width = Dim.Fill(), Height = 2 };
@@ -211,6 +212,26 @@ public sealed class ConsoleScreen(
             }
 
             Active.Redraw();
+        }
+
+        /// <summary>
+        /// `Tabs` binds the arrow and paging keys to moving between tabs, so Up and Down switched tabs instead of moving
+        /// the selection; without those bindings the keys reach the window and go to the active tab's reducer.
+        /// </summary>
+        private static void ReleaseNavigationKeys(params View[] views)
+        {
+            Terminal.Gui.Input.Key[] keys =
+            [
+                Terminal.Gui.Input.Key.CursorUp, Terminal.Gui.Input.Key.CursorDown, Terminal.Gui.Input.Key.CursorLeft, Terminal.Gui.Input.Key.CursorRight,
+                Terminal.Gui.Input.Key.PageUp, Terminal.Gui.Input.Key.PageDown, Terminal.Gui.Input.Key.Home, Terminal.Gui.Input.Key.End,
+            ];
+            foreach (View view in views)
+            {
+                foreach (Terminal.Gui.Input.Key key in keys)
+                {
+                    view.KeyBindings.Remove(key);
+                }
+            }
         }
 
         /// <summary>A click on a tab's title selects it in the strip; the console follows as if the tab's key had been pressed.</summary>

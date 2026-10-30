@@ -1,37 +1,55 @@
 <#
 .SYNOPSIS
-Writes the console's icon as raw pixels: assets\icon\vantage-48.rgba, from assets\icon\vantage-48.png.
+Writes the console's icon as raw pixels: assets\icon\vantage-48.rgba, the Vantage mark without its tile.
 .DESCRIPTION
 The console draws the icon through Terminal.Gui's ImageView, which takes pixels and has no image decoder, so the
-pixels are committed beside the PNGs and embedded in the Tui assembly. The file is the width and the height as one
-byte each, then four bytes (red, green, blue, alpha) per pixel, row by row. Run it after New-Icon.ps1 changes the drawing.
+pixels are committed beside the PNGs and embedded in the Tui assembly. The mark is drawn without its dark tile, which
+disappeared against the console's black, and with its rings' centres in the console's own background colour; the
+corners stay transparent and the console blends them with that background. The file is the width and the height as
+one byte each, then four bytes (red, green, blue, alpha) per pixel, row by row. Run it after VantageMark.ps1 changes
+the drawing.
 #>
 [CmdletBinding()]
 param(
     [string]$IconFolder = (Join-Path $PSScriptRoot '..\assets\icon'),
-    [int]$Size = 48
+    [int]$Size = 48,
+    [string]$ConsoleBackground = '#0C0C0C'
 )
 
 $ErrorActionPreference = 'Stop'
-Add-Type -AssemblyName System.Drawing
+. (Join-Path $PSScriptRoot 'VantageMark.ps1')
 
-$source = Join-Path $IconFolder "vantage-$Size.png"
+$master = 512
 $target = Join-Path $IconFolder "vantage-$Size.rgba"
-$bitmap = [System.Drawing.Bitmap]::new($source)
+$large = [System.Drawing.Bitmap]::new($master, $master)
+$small = [System.Drawing.Bitmap]::new($Size, $Size)
 try {
+    $graphics = [System.Drawing.Graphics]::FromImage($large)
+    $graphics.SmoothingMode = 'AntiAlias'
+    $graphics.PixelOffsetMode = 'HighQuality'
+    Add-VantageMark $graphics 0 0 $master -NoTile -NodeCentre $ConsoleBackground
+    $graphics.Dispose()
+
+    $graphics = [System.Drawing.Graphics]::FromImage($small)
+    $graphics.InterpolationMode = 'HighQualityBicubic'
+    $graphics.PixelOffsetMode = 'HighQuality'
+    $graphics.DrawImage($large, 0, 0, $Size, $Size)
+    $graphics.Dispose()
+
     $bytes = [System.Collections.Generic.List[byte]]::new()
-    $bytes.Add([byte]$bitmap.Width)
-    $bytes.Add([byte]$bitmap.Height)
-    foreach ($y in 0..($bitmap.Height - 1)) {
-        foreach ($x in 0..($bitmap.Width - 1)) {
-            $pixel = $bitmap.GetPixel($x, $y)
+    $bytes.Add([byte]$Size)
+    $bytes.Add([byte]$Size)
+    foreach ($y in 0..($Size - 1)) {
+        foreach ($x in 0..($Size - 1)) {
+            $pixel = $small.GetPixel($x, $y)
             $bytes.AddRange([byte[]]@($pixel.R, $pixel.G, $pixel.B, $pixel.A))
         }
     }
 
     [System.IO.File]::WriteAllBytes($target, $bytes.ToArray())
-    Write-Output "Wrote $target ($($bitmap.Width) x $($bitmap.Height), $($bytes.Count) bytes)."
+    Write-Output "Wrote $target ($Size x $Size, $($bytes.Count) bytes)."
 }
 finally {
-    $bitmap.Dispose()
+    $large.Dispose()
+    $small.Dispose()
 }

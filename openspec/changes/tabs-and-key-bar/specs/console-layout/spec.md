@@ -20,6 +20,10 @@ The console SHALL show the sessions view and the worktrees view as two tabs of o
 - **WHEN** the console starts and the worktrees tab has never been opened
 - **THEN** no worktree scan has run, and the scan starts, with its waiting indicator, when the tab is first selected
 
+#### Scenario: The arrows stay with the table
+- **WHEN** the Sessions tab is shown and the user presses Down twice
+- **THEN** the selection moves down two rows and the Sessions tab stays shown
+
 #### Scenario: Esc on the worktrees tab
 - **WHEN** the worktrees tab is shown with no filter and the user presses Esc
 - **THEN** the Sessions tab is shown
