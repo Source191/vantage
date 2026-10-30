@@ -152,7 +152,7 @@ public static class SessionsView
             RenameConfirmed confirmed => RenameWith(state, confirmed),
             UpdateTabOpened => Effect(state, new Quit()),
             SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId.Value))),
-            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key))),
+            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Footer = Footer.None }),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
         };
@@ -162,11 +162,12 @@ public static class SessionsView
     {
         return key switch
         {
-            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1))),
-            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1))),
+            // Moving on or filtering clears the last message, so the status line goes until there is something new to say.
+            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = Footer.None }),
+            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = Footer.None }),
             { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Enter } => SessionAction(state, (_, session) => new AttachToSession(session.JobId), Attachment.Here),
-            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter())),
+            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
             { Name: KeyName.Character, Character: 'o' } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
             { Name: KeyName.Character, Character: 'x' } => SessionAction(state, (_, session) => new StopSession(session), Attachment.None),

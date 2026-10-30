@@ -165,6 +165,15 @@ public sealed class ConfigViewShould
         moved.Footer.ShouldBe(Footer.None);
     }
 
+    [Fact]
+    public void ClearAMessageWhenTheFilterChanges()
+    {
+        ConfigViewState advised = ConfigView.Reduce(At("setup:ClaudeBell"), new KeyPressed(Key.Enter)).State;
+
+        Press(advised, Key.Of('/')).Footer.ShouldBe(Footer.None);
+        Press(Press(advised, Key.Of('/')) with { Footer = new Footer.Kept() }, Key.Of('w')).Footer.ShouldBe(Footer.None);
+    }
+
     private static ConfigViewState At(string key) => Loaded.With(Loaded.List.Select(key));
 
     private static ConfigViewState Press(ConfigViewState state, params Key[] keys) => keys.Aggregate(state, (current, key) => ConfigView.Reduce(current, new KeyPressed(key)).State);

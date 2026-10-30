@@ -52,7 +52,7 @@ public static class ConfigView
             ConfigRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
             UpdateTabOpened => Effect(state, new Quit()),
-            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key))),
+            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Footer = Footer.None }),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
         };

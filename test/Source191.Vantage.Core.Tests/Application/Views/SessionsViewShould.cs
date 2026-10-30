@@ -411,6 +411,17 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
+    public void ClearAMessageWhenTheSelectionMovesOrTheFilterChanges()
+    {
+        SessionsViewState said = Loaded with { Footer = new Footer.Kept() };
+
+        Press(said, Key.Down).Footer.ShouldBe(Footer.None);
+        Press(said, Key.Up).Footer.ShouldBe(Footer.None);
+        Press(said, Key.Of('/')).Footer.ShouldBe(Footer.None);
+        Press(Press(said, Key.Of('/')) with { Footer = new Footer.Kept() }, Key.Of('k')).Footer.ShouldBe(Footer.None);
+    }
+
+    [Fact]
     public void HandTheResumeChecklistTheRowsInTheOrderTheTableShowsThem()
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('R')));
