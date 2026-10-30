@@ -23,13 +23,13 @@ public sealed class ScreenLoopShould : IDisposable
     private readonly DiagnosticLog log = new(new FakeTimeProvider(Noon), []);
     private readonly StringWriter terminal = new();
 
-    private ScreenLoop Loop(ScriptedSessionsScreen sessions, ScriptedWorktreesScreen worktrees, UpdateCheck? updates = null)
+    private ScreenLoop Loop(ScriptedConsoleScreen screen, UpdateCheck? updates = null)
     {
         OwnTab ownTab = new(new InMemoryState(), registry, new FakeTimeProvider(Noon));
         TerminalEffects effects = new(new ClaudeCli(processes, "claude.exe"), console);
         UpdateCheck checkTurnedOff = new(Running, () => false, new InMemoryState(), new FakePackageVersions([]), new FakeTimeProvider(Noon));
 
-        return new ScreenLoop(sessions, worktrees, ownTab, console, effects, updates ?? checkTurnedOff, log);
+        return new ScreenLoop(screen, ownTab, console, effects, updates ?? checkTurnedOff, log);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public sealed class ScreenLoopShould : IDisposable
         await records.WriteUpdateCheckAsync(new UpdateCheckRecord(Noon.AddHours(-1), "0.10.0"));
         FakePackageVersions packages = new(["0.10.0"]);
         UpdateCheck updates = new(Running, () => true, records, packages, new FakeTimeProvider(Noon));
-        ScreenLoop loop = Loop(new ScriptedSessionsScreen(state => new ScreenExit(state, new Quit())), new ScriptedWorktreesScreen(), updates);
+        ScreenLoop loop = Loop(new ScriptedConsoleScreen(state => new ConsoleExit(state, new Quit())), updates);
 
         await loop.RunAsync(processId: 100, CancellationToken.None);
         await loop.UpdateCheckTask;
@@ -52,7 +52,7 @@ public sealed class ScreenLoopShould : IDisposable
     public async Task LogAFailedUpdateCheckAndKeepRunning()
     {
         UpdateCheck updates = new(Running, () => true, new UnwritableRecords(Noon.AddDays(-1)), new FakePackageVersions(["0.9.0"]), new FakeTimeProvider(Noon));
-        ScreenLoop loop = Loop(new ScriptedSessionsScreen(state => new ScreenExit(state, new Quit())), new ScriptedWorktreesScreen(), updates);
+        ScreenLoop loop = Loop(new ScriptedConsoleScreen(state => new ConsoleExit(state, new Quit())), updates);
 
         int exitCode = await loop.RunAsync(processId: 100, CancellationToken.None);
         await loop.UpdateCheckTask;
@@ -68,7 +68,7 @@ public sealed class ScreenLoopShould : IDisposable
     public async Task LogNothingWhenTheUpdateCheckIsCancelled()
     {
         UpdateCheck updates = new(Running, () => true, new UnwritableRecords(Noon.AddDays(-1)), new FakePackageVersions(["0.9.0"]), new FakeTimeProvider(Noon));
-        ScreenLoop loop = Loop(new ScriptedSessionsScreen(state => new ScreenExit(state, new Quit())), new ScriptedWorktreesScreen(), updates);
+        ScreenLoop loop = Loop(new ScriptedConsoleScreen(state => new ConsoleExit(state, new Quit())), updates);
 
         await loop.RunAsync(processId: 100, new CancellationToken(canceled: true));
 
@@ -79,9 +79,9 @@ public sealed class ScreenLoopShould : IDisposable
     [Fact]
     public async Task LabelTheOwnTabAtStartAndClearItOnQuit()
     {
-        ScriptedSessionsScreen sessions = new(state => new ScreenExit(state, new Quit()));
+        ScriptedConsoleScreen screen = new(state => new ConsoleExit(state, new Quit()));
 
-        int exitCode = await Loop(sessions, new ScriptedWorktreesScreen()).RunAsync(processId: 100, CancellationToken.None);
+        int exitCode = await Loop(screen).RunAsync(processId: 100, CancellationToken.None);
 
         exitCode.ShouldBe(0);
         console.Shown.ShouldBe([TabPalette.Default[4]]);
@@ -89,37 +89,38 @@ public sealed class ScreenLoopShould : IDisposable
     }
 
     [Fact]
-    public async Task AlternateScreensAndSelectTheJumpedToSessionById()
+    public async Task StartOnTheSessionsTabAndQuitWhenTheConsoleReturnsNoEffect()
     {
-        ScriptedSessionsScreen sessions = new(
-            state => new ScreenExit(SessionsView.Reduce(state, new RowsLoaded([First, Second])).State, new SwitchToWorktrees()),
-            state => new ScreenExit(state, new SwitchToWorktrees()),
-            state => new ScreenExit(state, null));
-        ScriptedWorktreesScreen worktrees = new(new JumpToSession(SessionId.From("sess-2")), new SwitchToSessions());
+        ScriptedConsoleScreen screen = new(state => new ConsoleExit(state, null));
 
-        await Loop(sessions, worktrees).RunAsync(processId: 100, CancellationToken.None);
+        await Loop(screen).RunAsync(processId: 100, CancellationToken.None);
 
-        worktrees.Runs.ShouldBe(2);
-        sessions.Given[1].Selected.ShouldBe(Second);
-        sessions.Given[2].Selected.ShouldBe(Second, "the selection survives the second trip");
-        log.Snapshot().Select(timed => ((ViewShown)timed.Event).View).ShouldBe([ViewKind.Sessions, ViewKind.Worktrees, ViewKind.Sessions, ViewKind.Worktrees, ViewKind.Sessions]);
+        screen.Given.Single().ShouldBe(ConsoleState.Empty);
+        console.Cleared.ShouldBe(1);
     }
 
     [Fact]
-    public async Task RunTerminalEffectsBetweenScreensAndRelabelTheTabAfterwards()
+    public async Task RunTerminalEffectsBetweenRunsAndHandTheStateBack()
     {
-        ScriptedSessionsScreen sessions = new(
-            state => new ScreenExit(state, new AttachToSession(JobId.From("81cdb0f9"))),
-            state => new ScreenExit(state, new AttachToSession(JobId.From("92def0a1"))),
-            state => new ScreenExit(state, new Quit()));
+        ConsoleState onWorktrees = ConsoleState.Empty with
+        {
+            Sessions = SessionsView.Reduce(SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([First, Second])).State, new KeyPressed(Key.Down)).State,
+            Active = ConsoleTab.Worktrees,
+        };
+        ScriptedConsoleScreen screen = new(
+            _ => new ConsoleExit(onWorktrees, new AttachToSession(JobId.From("81cdb0f9"))),
+            state => new ConsoleExit(state, new AttachToSession(JobId.From("92def0a1"))),
+            state => new ConsoleExit(state, new Quit()));
 
-        await Loop(sessions, new ScriptedWorktreesScreen()).RunAsync(processId: 100, CancellationToken.None);
+        await Loop(screen).RunAsync(processId: 100, CancellationToken.None);
 
         processes.InteractiveRequests.Select(request => request.Arguments[0]).ShouldBe(["attach", "attach"]);
+        screen.Given[1].ShouldBe(onWorktrees, "the console comes back to the tab and selection it left");
+        screen.Given[1].Sessions.Selected.ShouldBe(Second);
+        screen.Given[2].Active.ShouldBe(ConsoleTab.Worktrees);
         console.Recovered.ShouldBe(2);
         console.Shown.Count.ShouldBe(3, "once at start and once after each hand-off");
         log.Snapshot().Select(timed => timed.Event).ShouldBe([
-            new ViewShown(ViewKind.Sessions),
             new HandingOver(CodeName.For(typeof(AttachToSession))),
             new ChildReturned(),
             new HandingOver(CodeName.For(typeof(AttachToSession))),
@@ -128,38 +129,9 @@ public sealed class ScreenLoopShould : IDisposable
         log.Snapshot().Select(DiagnosticLine.Render).ShouldAllBe(line => !line.Contains("81cdb0f9") && !line.Contains("92def0a1"));
     }
 
-    public static TheoryData<Type> EffectsThatLeaveTheScreen => new(
-        typeof(ViewEffect).Assembly.GetTypes().Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(ILeavesScreen))));
-
-    [Theory]
-    [MemberData(nameof(EffectsThatLeaveTheScreen))]
-    public async Task SwitchQuitOrUseTheTerminalForEveryEffectThatLeavesTheScreen(Type type)
-    {
-        ScriptedSessionsScreen sessions = new(state => new ScreenExit(state, Instantiate(type)), state => new ScreenExit(state, new Quit()));
-
-        await Loop(sessions, new ScriptedWorktreesScreen(new SwitchToSessions())).RunAsync(processId: 100, CancellationToken.None);
-
-        bool usedTheTerminalWhenHandedIt = console.Recovered == 0 || processes.InteractiveRequests.Count == 1;
-        usedTheTerminalWhenHandedIt.ShouldBeTrue($"{type.Name} was handed the terminal, which did nothing with it");
-    }
-
     public void Dispose()
     {
         terminal.Dispose();
-    }
-
-    /// <summary>An instance of an effect record whose fields are ids, such as a job or session id.</summary>
-    private static ViewEffect Instantiate(Type type)
-    {
-        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single();
-        object[] arguments = [.. constructor.GetParameters().Select(parameter => parameter.ParameterType switch
-        {
-            Type id when id == typeof(JobId) => JobId.From("81cdb0f9"),
-            Type id when id == typeof(SessionId) => (object)SessionId.From("sess-1"),
-            _ => throw new InvalidOperationException($"{type.Name} needs a {parameter.ParameterType.Name}; extend {nameof(Instantiate)}."),
-        })];
-
-        return (ViewEffect)constructor.Invoke(arguments);
     }
 
     private static SessionRow Row(string sessionId, string name)

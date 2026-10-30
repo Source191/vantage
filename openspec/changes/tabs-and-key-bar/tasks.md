@@ -7,8 +7,8 @@
 
 ## 2. The console state and the tab switch (Application)
 
-- [ ] 2.1 Red: `ConsoleViewShould` asserts `Apply` on `SwitchToWorktrees` sets the active tab to Worktrees, `SwitchToSessions` to Sessions, `JumpToSession` to Sessions with that session selected (clearing a filter that hides it), and leaves both view states otherwise untouched. Green: `ConsoleState`, `ConsoleTab`, `ConsoleView.Apply`, and the three effects marked `ISwitchesTab` instead of `ILeavesScreen`. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
-- [ ] 2.2 Red: `SessionsViewShould` and `WorktreesViewShould` assert `1` raises `SwitchToSessions`, `2` raises `SwitchToWorktrees`, and `w` and Esc keep their effects. Green: the key cases. Verify the Core suite passes.
+- [x] 2.1 Red: `ConsoleViewShould` asserts `Apply` on `SwitchToWorktrees` sets the active tab to Worktrees, `SwitchToSessions` to Sessions, `JumpToSession` to Sessions with that session selected (clearing a filter that hides it), and leaves both view states otherwise untouched. Green: `ConsoleState`, `ConsoleTab`, `ConsoleView.Apply`, and the three effects marked `ISwitchesTab` instead of `ILeavesScreen`. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
+- [x] 2.2 Red: `SessionsViewShould` and `WorktreesViewShould` assert `1` raises `SwitchToSessions`, `2` raises `SwitchToWorktrees`, and `w` and Esc keep their effects. Green: the key cases. Verify the Core suite passes.
 - [ ] 2.3 Red: `EffectRoutingShould` asserts every `ILeavesScreen` effect type is `Quit` or handled by `TerminalEffects`, and every `ISwitchesTab` type is handled by `ConsoleView.Apply`. Green: the reflection fact and the handling. Verify the Core suite passes.
 - [ ] 2.4 Red: `ScreenLoopShould` reshaped: a fake `IConsoleScreen` returns `Quit` (the tab is cleared, exit 0), then `AttachToSession` followed by `Quit` (the attach runs through `TerminalEffects`, the console is run again with the returned state, `HandingOver` and `ChildReturned` are recorded). Green: `IConsoleScreen`, `ConsoleExit`, the loop. Verify the Core suite passes.
 
