@@ -29,6 +29,12 @@ public interface IGit
     /// <summary>Null when git fails or there are no commits.</summary>
     Task<DateTimeOffset?> LastCommitAtAsync(string worktree, CancellationToken cancellationToken);
 
+    /// <summary>The newest commits on no remote branch, up to <paramref name="limit"/>. Throws <see cref="GitException"/> when git fails.</summary>
+    Task<IReadOnlyList<UnpushedCommit>> UnpushedCommitsAsync(string worktree, int limit, CancellationToken cancellationToken);
+
+    /// <summary>The changed and untracked paths, up to <paramref name="limit"/>. Throws <see cref="GitException"/> when git fails.</summary>
+    Task<IReadOnlyList<string>> ChangedFilesAsync(string worktree, int limit, CancellationToken cancellationToken);
+
     /// <summary>Throws <see cref="GitException"/> when git fails, for example on an unmerged branch without force.</summary>
     Task DeleteBranchAsync(string repository, string branch, bool force, CancellationToken cancellationToken);
 
@@ -53,3 +59,6 @@ public interface IGit
     /// <summary>Repository-relative paths, with forward slashes, of every file git ignores in the checkout. Throws <see cref="GitException"/> when git fails.</summary>
     Task<IReadOnlyList<string>> ListIgnoredFilesAsync(string repository, CancellationToken cancellationToken);
 }
+
+/// <summary>A commit no remote has: its short hash, when it was committed and its subject line.</summary>
+public sealed record UnpushedCommit(string Hash, DateTimeOffset At, string Subject);

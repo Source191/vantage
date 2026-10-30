@@ -78,6 +78,10 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
             : throw new GitException($"git rev-list --count gave '{result.StandardOutput.Trim()}', not a number");
     }
 
+    public Task<IReadOnlyList<UnpushedCommit>> UnpushedCommitsAsync(string worktree, int limit, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<UnpushedCommit>>([]);
+
+    public Task<IReadOnlyList<string>> ChangedFilesAsync(string worktree, int limit, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<string>>([]);
+
     public async Task<DateTimeOffset?> LastCommitAtAsync(string worktree, CancellationToken cancellationToken)
     {
         ProcessResult result = await RunAsync(worktree, ["log", "-1", "--format=%cI"], cancellationToken);

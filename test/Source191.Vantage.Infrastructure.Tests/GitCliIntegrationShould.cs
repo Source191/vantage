@@ -57,6 +57,36 @@ public sealed class GitCliIntegrationShould : IDisposable
     }
 
     [Fact]
+    public async Task ListTheUnpushedCommitsNewestFirstUpToTheLimit()
+    {
+        await CreateRepositoryWithOneCommitAsync();
+        foreach (string subject in new[] { "Add the refund rule", "Retry the refund twice" })
+        {
+            await File.AppendAllTextAsync(Path.Combine(Repository, "README.md"), subject, TestContext.Current.CancellationToken);
+            await RunGitAsync("commit", "-q", "-am", subject);
+        }
+
+        IReadOnlyList<UnpushedCommit> commits = await git.UnpushedCommitsAsync(Repository, 2, TestContext.Current.CancellationToken);
+
+        commits.Select(commit => commit.Subject).ShouldBe(["Retry the refund twice", "Add the refund rule"]);
+        commits.ShouldAllBe(commit => commit.Hash.Length >= 7);
+        commits[0].At.ShouldBeGreaterThan(DateTimeOffset.UnixEpoch);
+    }
+
+    [Fact]
+    public async Task ListTheChangedAndUntrackedFilesUpToTheLimit()
+    {
+        await CreateRepositoryWithOneCommitAsync();
+        await File.AppendAllTextAsync(Path.Combine(Repository, "README.md"), "changed", TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(Repository, "Refunds.cs"), "new", TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(Repository, "Retry.cs"), "new", TestContext.Current.CancellationToken);
+
+        IReadOnlyList<string> files = await git.ChangedFilesAsync(Repository, 2, TestContext.Current.CancellationToken);
+
+        files.ShouldBe(["README.md", "Refunds.cs"]);
+    }
+
+    [Fact]
     public async Task PruneARegistrationWhoseFolderWasDeletedByHand()
     {
         await CreateRepositoryWithOneCommitAsync();
