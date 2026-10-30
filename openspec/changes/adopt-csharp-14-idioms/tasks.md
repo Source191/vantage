@@ -57,7 +57,8 @@ Every group ends green: `dotnet build -c Debug`, `dotnet test -c Debug --no-buil
 ## 9. Documentation and release
 
 - [x] 9.1 In `CLAUDE.md`'s code rules and `CONTRIBUTING.md`'s "C# style" bullet (which today names "the throw helpers for guard clauses"), say that `.editorconfig` holds the idioms at `warning` (file-scoped namespaces, explicit types, `is null` patterns, primary constructors with `?? throw` guards, target-typed `new`, collection expressions, `Lock`, `[LibraryImport]`), and that private constructors behind `From` and `TryParse` are the expected exception to IDE0290. Verify by reading it against design.md.
-- [ ] 9.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one step with `.github\scripts\Step-Version.ps1` (from `0.18.0-preview.5`, or whatever `main` holds when the pull request opens). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
+- [x] 9.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one step with `.github\scripts\Step-Version.ps1` (from `0.18.0-preview.5`, or whatever `main` holds when the pull request opens). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
+  - Recorded 30 October 2026: `0.18.0-preview.5` (also `origin/main`'s) became `0.18.0-preview.6`.
 
 ## 10. Integration
 
