@@ -30,21 +30,6 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         }
     }
 
-    /// <summary>Only the job id reaches the command, never a name; the output goes back to the caller and nowhere else.</summary>
-    public async Task<string?> LogsAsync(string jobId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            ProcessResult result = await processes.RunAsync(Request(["logs", jobId]), cancellationToken);
-
-            return result.ExitCode == 0 ? result.StandardOutput : null;
-        }
-        catch (Exception exception) when (exception is Win32Exception or InvalidOperationException or IOException)
-        {
-            return null;
-        }
-    }
-
     public async Task<StartResult> StartBackgroundAsync(string directory, SessionName name, string? openingPrompt, CancellationToken cancellationToken)
     {
         List<string> arguments = ["--bg", "-n", name.Value];

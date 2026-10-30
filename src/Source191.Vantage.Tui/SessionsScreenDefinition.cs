@@ -11,7 +11,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
     private const int TabColumn = 1;
-    private const int WhereColumn = 3;
+    private const int RepositoryColumn = 3;
 
     /// <summary>The block a Vantage tab's colour is drawn with: two cells, leaving the column's third as space before the state.</summary>
     private const string TabBlock = "██";
@@ -30,7 +30,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public IReadOnlyList<ColumnHelp> Columns => Wording.SessionsColumns;
 
-    public int? ElasticColumn => WhereColumn;
+    public int? ElasticColumn => RepositoryColumn;
 
     public string Cell(SessionRow row, int column, DateTimeOffset now, int width)
     {
@@ -39,7 +39,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
             0 => row.Session.Name,
             TabColumn => Swatch(row),
             2 => $"{Wording.StateGlyph(row.Session.State.Kind)} {row.Session.State.Label}",
-            WhereColumn => Where(row).Fit(width),
+            RepositoryColumn => Repository(row).Fit(width),
             4 => Wording.PullRequestCell(row.PullRequest),
             _ => Durations.Age(now - row.Session.StartedAt),
         };
@@ -82,7 +82,10 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         }
     }
 
-    private WhereLabel Where(SessionRow row) => WhereLabel.For(row.Repository, folders.For(row.Session.WorkingDirectory), row.Branch?.Value, row.Checkout is not null);
+    /// <summary>The repository alone, its middle elided when too long; outside a repository the folder's label, cut at its end. The place and branch are the pane's.</summary>
+    private WhereLabel Repository(SessionRow row) => row.Checkout is null
+        ? new WhereLabel(null, folders.For(row.Session.WorkingDirectory), null)
+        : new WhereLabel(row.Repository, string.Empty, null);
 
     /// <summary>A filled cell while a Vantage tab shows the session, a hollow block for a session started outside Vantage in its own tab, nothing otherwise.</summary>
     private static string Swatch(SessionRow row)

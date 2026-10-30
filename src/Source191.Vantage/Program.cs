@@ -152,7 +152,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     ScreenContext context = new(tabTitle, _ => [Wording.SettingsRow(version, claudeCode, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero)], () => updates.Status is UpdateStatus.Available, clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SetupFactsReader setup = new(terminalFragment, ClaudeSettings.ForCurrentUser(), store, store.ConfigFile, logPath);
-    ConsoleScreen consoleScreen = new(LoadAsync, ScanAsync, ReadConfigAsync, () => ConfigRows.For(settings.Value, facts: null), notifier, activity, new DetailLoader(claude, git, store, activity), dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
+    ConsoleScreen consoleScreen = new(LoadAsync, ScanAsync, ReadConfigAsync, () => ConfigRows.For(settings.Value, facts: null), notifier, activity, new DetailLoader(git, store, activity), dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
     ScreenLoop loop = new(consoleScreen, ownTab, console, terminalEffects, updates, log);
 
     return await loop.RunAsync(Environment.ProcessId, cancellationToken);

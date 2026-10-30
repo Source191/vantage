@@ -8,26 +8,18 @@ namespace Source191.Vantage.Application.Detail;
 /// Reads the selected row's detail, off the UI thread, one fact at a time: a fact whose read fails is unavailable on its
 /// own, so one failing call never blanks the pane, and nothing here throws into the screen.
 /// </summary>
-public sealed class DetailLoader(IClaudeCli claude, IGit git, ICreatedWorktrees created, SessionActivity activity)
+public sealed class DetailLoader(IGit git, ICreatedWorktrees created, SessionActivity activity)
 {
-    /// <summary>Output larger than this is not kept: a session's screen history has measured a few hundred kilobytes.</summary>
-    private const int MostOutput = 1024 * 1024;
-
     private readonly WorktreeInspector inspector = new(git);
 
-    /// <param name="row"></param>
-    /// <param name="outputRows">How many rows of the session's screen the pane has room for.</param>
-    /// <param name="readOutput">Whether to read the screen this time; it is read every other refresh.</param>
-    /// <param name="cancellationToken"></param>
-    public async Task<SessionDetail> SessionAsync(SessionRow row, int outputRows, bool readOutput, CancellationToken cancellationToken)
+    public async Task<SessionDetail> SessionAsync(SessionRow row, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(row);
         DetailFact<WorktreeCounts> counts = row.Checkout is null
             ? new DetailFact<WorktreeCounts>.NotApplicable()
             : await Read(() => inspector.CountAsync(row.Session.WorkingDirectory, cancellationToken));
-        SessionOutput output = readOutput ? await OutputAsync(row.Session, outputRows, cancellationToken) : new SessionOutput.NotRead();
 
-        return new SessionDetail(row, activity.LastPromptedAt(row.Session.SessionId), counts, output);
+        return new SessionDetail(row, activity.LastPromptedAt(row.Session.SessionId), counts);
     }
 
     /// <param name="row"></param>
@@ -53,24 +45,6 @@ public sealed class DetailLoader(IClaudeCli claude, IGit git, ICreatedWorktrees 
             : new DetailFact<IReadOnlyList<string>>.NotApplicable();
 
         return new WorktreeDetail(row, record, merge, commits, changed);
-    }
-
-    private async Task<SessionOutput> OutputAsync(Session session, int rows, CancellationToken cancellationToken)
-    {
-        if (session is not BackgroundSession background)
-        {
-            return new SessionOutput.NotSupervised();
-        }
-
-        if (background.ProcessId is null)
-        {
-            return new SessionOutput.NoProcess();
-        }
-
-        string? logs = await claude.LogsAsync(background.JobId.Value, cancellationToken);
-        IReadOnlyList<string> screen = logs is { Length: <= MostOutput } ? SessionScreen.Bottom(logs, rows) : [];
-
-        return screen.Count > 0 ? new SessionOutput.Screen(screen) : new SessionOutput.Unavailable();
     }
 
     private async Task<CreatedWorktree?> CreatedRecordAsync(WorktreeRow row)

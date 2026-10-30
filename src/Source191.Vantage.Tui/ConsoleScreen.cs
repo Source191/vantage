@@ -48,9 +48,6 @@ public sealed class ConsoleScreen(
     private ConsoleTab? shown;
     private bool worktreesScanned;
 
-    /// <summary>The detail panes' height: nine rows until a divider is dragged, then the dragged height for as long as Vantage runs.</summary>
-    private int paneRows = 9;
-
     public ConsoleExit Run(ConsoleState initial)
     {
         using IApplication app = Terminal.Gui.App.Application.Create().Init();
@@ -169,11 +166,6 @@ public sealed class ConsoleScreen(
 
             Show(state.Active);
         }
-
-        public int PaneRows => screen.paneRows;
-
-        /// <summary>One tab's divider was dragged: every tab's pane takes the height, the hidden ones when they are next shown.</summary>
-        public void PaneResized(int rows) => screen.paneRows = rows;
 
         public void FrameChanged()
         {

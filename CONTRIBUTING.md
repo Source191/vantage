@@ -82,7 +82,7 @@ Or by hand: `dotnet pack src\Source191.Vantage -c Release` then `dotnet tool ins
 
 | Project | What it holds |
 | --- | --- |
-| [src\Source191.Vantage.Core](src/Source191.Vantage.Core/README.md) | `Domain` (rules and value objects, depends on nothing), `Ports` (the boundary interfaces and their records), `Application` (use cases in `Actions` and `Launch`, read models, the `Views` reducers, the detail pane's reading, ordering and layout in `Detail`, `ScreenLoop`, `CommandLine`, `Wording`) |
+| [src\Source191.Vantage.Core](src/Source191.Vantage.Core/README.md) | `Domain` (rules and value objects, depends on nothing), `Ports` (the boundary interfaces and their records), `Application` (use cases in `Actions` and `Launch`, read models, the `Views` reducers, `ScreenLoop`, `CommandLine`, `Wording`) |
 | [src\Source191.Vantage.Infrastructure](src/Source191.Vantage.Infrastructure/README.md) | The adapters: git, the Claude CLI, Windows Terminal, processes, files, state, pull requests, diagnostics |
 | [src\Source191.Vantage.Tui](src/Source191.Vantage.Tui/README.md) | Terminal.Gui rendering and dialogs, nothing else |
 | [src\Source191.Vantage](src/Source191.Vantage/README.md) | `Program.cs`, the only composition root, packed as the tool with the other three inside |

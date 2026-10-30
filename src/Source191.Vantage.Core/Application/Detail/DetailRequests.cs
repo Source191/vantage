@@ -1,55 +1,30 @@
 namespace Source191.Vantage.Application.Detail;
 
-/// <summary>One request for the selected row's detail: its place in the order asked, the row's key, and whether it reads the session's screen.</summary>
-public sealed record DetailRequest(int Number, object Key, bool ReadScreen);
+/// <summary>One request for the selected row's detail: its place in the order asked, and the row's key.</summary>
+public sealed record DetailRequest(int Number, object Key);
 
 /// <summary>
-/// The order of one tab's detail requests and which answers the pane shows. Moving the selection asks for the facts at
-/// once and, on a tab with a screen, for the screen behind them (it takes a second or two); a refresh asks again, reading
-/// the screen every other time. An answer is shown only while its row is still selected: its facts only when no newer
-/// facts are shown, its screen only when no newer screen is, and a screen not read keeps the one last shown for the row.
-/// Used on the UI thread only.
+/// The order of one tab's detail requests and which answers the pane shows: moving the selection or refreshing the rows
+/// asks again, and an answer is shown only while its row is still selected and no newer answer has been shown. Used on
+/// the UI thread only.
 /// </summary>
-public sealed class DetailRequests(bool readsScreen)
+public sealed class DetailRequests
 {
     private int asked;
-    private int refreshes;
+    private int shown;
     private object? selected;
-    private int factsShown;
-    private int screenShown;
-    private DetailContent? shown;
-    private IReadOnlyList<DetailLine>? screen;
 
-    /// <summary>The selection moved to this row, or its tab was shown again.</summary>
-    public IReadOnlyList<DetailRequest> Selected(object key)
+    /// <summary>The selection moved to this row, the rows were refreshed, or its tab was shown again.</summary>
+    public DetailRequest Ask(object key)
     {
         ArgumentNullException.ThrowIfNull(key);
-        if (Equals(key, selected))
-        {
-            return [Next(readsScreen)];
-        }
-
-        selected = key;
-        refreshes = 0;
-        factsShown = 0;
-        screenShown = 0;
-        shown = null;
-        screen = null;
-
-        return readsScreen ? [Next(false), Next(true)] : [Next(false)];
-    }
-
-    /// <summary>The rows were refreshed with this row selected.</summary>
-    public IReadOnlyList<DetailRequest> Refreshed(object key)
-    {
         if (!Equals(key, selected))
         {
-            return Selected(key);
+            selected = key;
+            shown = 0;
         }
 
-        refreshes++;
-
-        return [Next(readsScreen && refreshes % 2 == 0)];
+        return new DetailRequest(++asked, key);
     }
 
     /// <summary>No row is selected: every answer still on its way is dropped.</summary>
@@ -60,27 +35,13 @@ public sealed class DetailRequests(bool readsScreen)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(content);
-        bool newerFacts = request.Number > factsShown;
-        bool newerScreen = request.ReadScreen && request.Number > screenShown;
-        if (!Equals(request.Key, selected) || !(newerFacts || newerScreen))
+        if (!Equals(request.Key, selected) || request.Number <= shown)
         {
             return null;
         }
 
-        if (newerFacts)
-        {
-            factsShown = request.Number;
-            shown = content;
-        }
+        shown = request.Number;
 
-        if (newerScreen)
-        {
-            screenShown = request.Number;
-            screen = content.Below;
-        }
-
-        return readsScreen ? shown! with { Below = screen ?? Wording.ScreenBeingRead } : shown;
+        return content;
     }
-
-    private DetailRequest Next(bool readScreen) => new(++asked, selected!, readScreen);
 }

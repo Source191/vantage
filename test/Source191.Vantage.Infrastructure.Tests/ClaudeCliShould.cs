@@ -36,33 +36,6 @@ public sealed class ClaudeCliShould
     }
 
     [Fact]
-    public async Task ReadLogsByJobId()
-    {
-        processes.AnswerAll(new ProcessResult(0, "[H● Done", string.Empty));
-
-        string? logs = await Cli.LogsAsync("81cdb0f9", CancellationToken.None);
-
-        processes.CapturedRequests.Single().Arguments.ShouldBe(["logs", "81cdb0f9"]);
-        logs.ShouldBe("[H● Done");
-    }
-
-    [Fact]
-    public async Task AnswerNullWhenLogsFail()
-    {
-        processes.AnswerAll(new ProcessResult(1, string.Empty, "Couldn't read logs for 81cdb0f9"));
-
-        (await Cli.LogsAsync("81cdb0f9", CancellationToken.None)).ShouldBeNull();
-    }
-
-    [Fact]
-    public async Task AnswerNullWhenLogsCannotBeRun()
-    {
-        processes.Fail(new System.ComponentModel.Win32Exception("The system cannot find the file specified"));
-
-        (await Cli.LogsAsync("81cdb0f9", CancellationToken.None)).ShouldBeNull();
-    }
-
-    [Fact]
     public async Task ReadTheVersionFromVersionOutput()
     {
         processes.AnswerAll(new ProcessResult(0, "2.1.310 (Claude Code)\n", string.Empty));

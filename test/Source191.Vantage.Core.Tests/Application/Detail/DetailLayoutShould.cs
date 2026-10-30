@@ -14,7 +14,7 @@ public sealed class DetailLayoutShould
     [Fact]
     public void LineTheFactsUpInColumnsGivingTheLastTheSpareWidth()
     {
-        DetailContent content = new("fix-123", Facts, Below: null, KeepsLastLines: true);
+        DetailContent content = new("fix-123", Facts, Below: []);
 
         IReadOnlyList<IReadOnlyList<TextPart>> rows = DetailLayout.Rows(content, width: 60, height: 5);
 
@@ -29,7 +29,7 @@ public sealed class DetailLayoutShould
     public void WidenTheColumnsAWideFactSpansBeforeGivingTheLastTheRest()
     {
         string folder = new('x', 40);
-        DetailContent content = new("fix-123", [Facts[0], [new("Folder", folder, Span: 2), new("Session", "s1")]], Below: null, KeepsLastLines: true);
+        DetailContent content = new("fix-123", [Facts[0], [new("Folder", folder, Span: 2), new("Session", "s1")]], Below: []);
 
         string second = Text(DetailLayout.Rows(content, width: 80, height: 5))[1];
 
@@ -39,7 +39,7 @@ public sealed class DetailLayoutShould
     [Fact]
     public void ColourLabelsOrangeAndTextInItsTone()
     {
-        DetailContent content = new("fix-123", Facts, Below: null, KeepsLastLines: true);
+        DetailContent content = new("fix-123", Facts, Below: []);
 
         IReadOnlyList<TextPart> first = DetailLayout.Rows(content, width: 60, height: 5)[0];
 
@@ -50,7 +50,7 @@ public sealed class DetailLayoutShould
     [Fact]
     public void NarrowTheWidestColumnFirstAndCutWhatNoLongerFits()
     {
-        DetailContent content = new("fix-123", Facts, Below: null, KeepsLastLines: true);
+        DetailContent content = new("fix-123", Facts, Below: []);
 
         IReadOnlyList<IReadOnlyList<TextPart>> rows = DetailLayout.Rows(content, width: 40, height: 5);
 
@@ -59,17 +59,9 @@ public sealed class DetailLayoutShould
     }
 
     [Fact]
-    public void KeepTheEndOfAScreenThatDoesNotFit()
-    {
-        DetailContent content = new("fix-123", Facts, [new(string.Empty, "one"), new(string.Empty, "two"), new(string.Empty, "three")], KeepsLastLines: true);
-
-        Text(DetailLayout.Rows(content, width: 60, height: 4))[2..].Select(row => row.TrimEnd()).ShouldBe(["two", "three"]);
-    }
-
-    [Fact]
     public void KeepTheStartOfAListingWithItsLabelsAligned()
     {
-        DetailContent content = new("Northwind.Orders-fix-123", Facts, [new("Unpushed", "a1b2c31"), new(string.Empty, "a1b2c32"), new(string.Empty, "… 3 more", TextTone.Grey)], KeepsLastLines: false);
+        DetailContent content = new("Northwind.Orders-fix-123", Facts, [new("Unpushed", "a1b2c31"), new(string.Empty, "a1b2c32"), new(string.Empty, "… 3 more", TextTone.Grey)]);
 
         Text(DetailLayout.Rows(content, width: 60, height: 4))[2..].Select(row => row.TrimEnd()).ShouldBe(["Unpushed a1b2c31", "         a1b2c32"]);
     }
@@ -77,7 +69,7 @@ public sealed class DetailLayoutShould
     [Fact]
     public void ShowAsManyFactRowsAsThePaneHas()
     {
-        DetailContent content = new("fix-123", Facts, [new(string.Empty, "one")], KeepsLastLines: true);
+        DetailContent content = new("fix-123", Facts, [new(string.Empty, "one")]);
 
         DetailLayout.Rows(content, width: 60, height: 1).Count.ShouldBe(1);
         DetailLayout.Rows(content, width: 60, height: 0).ShouldBeEmpty();

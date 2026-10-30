@@ -32,7 +32,7 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>The table's columns, in cell order: their names head the table and their meanings are the tooltips and the help.</summary>
     IReadOnlyList<ColumnHelp> Columns { get; }
 
-    /// <summary>The column that takes the width the others leave (WHERE, WORKTREE), or null when every column has its natural width.</summary>
+    /// <summary>The column that takes the width the others leave (REPOSITORY, WORKTREE), or null when every column has its natural width.</summary>
     int? ElasticColumn { get; }
 
     /// <summary>A cell's text; <paramref name="width"/> is the cells the elastic column has, and int.MaxValue for every other column.</summary>

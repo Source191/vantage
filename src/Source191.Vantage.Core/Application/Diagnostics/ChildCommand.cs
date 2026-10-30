@@ -85,7 +85,7 @@ public static class ChildCommandWords
 
     public static readonly IReadOnlySet<string> Claude = new HashSet<string>(StringComparer.Ordinal)
     {
-        "agents", "attach", "stop", "rm", "logs", "--version", "--bg", "--resume", "--json", "--all",
+        "agents", "attach", "stop", "rm", "--version", "--bg", "--resume", "--json", "--all",
     };
 
     public static readonly IReadOnlySet<string> Gh = new HashSet<string>(StringComparer.Ordinal) { "pr", "list", "auth", "status" };

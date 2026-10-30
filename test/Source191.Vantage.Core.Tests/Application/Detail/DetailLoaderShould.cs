@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Time.Testing;
-using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Detail;
@@ -12,21 +11,9 @@ namespace Source191.Vantage.Core.Tests.Application.Detail;
 
 public sealed class DetailLoaderShould
 {
-    private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
     private static readonly DateTimeOffset Noon = new(2026, 10, 30, 12, 0, 0, TimeSpan.Zero);
     private static readonly FolderPath Worktree = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Billing-invoice-pdf");
     private static readonly FolderPath Repository = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Billing");
-
-    private static readonly string Screen = string.Concat(((string[])
-    [
-        "● Update(src/Northwind.Billing/Invoice.cs)",
-        "Do you want to make this edit to Invoice.cs?",
-        "❯ 1. Yes",
-        new string('─', 60),
-        "❯",
-        new string('─', 60),
-        "  opus  effort:high",
-    ]).Select(row => row.PadRight(60)));
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner()
         .AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
@@ -34,25 +21,22 @@ public sealed class DetailLoaderShould
     private readonly InMemoryState state = new();
     private readonly FakeTimeProvider clock = new(Noon);
 
-    private DetailLoader Loader(SessionActivity? activity = null) => new(new ClaudeCli(processes, Claude), new GitCli(processes, "git"), state, activity ?? new SessionActivity(clock));
+    private DetailLoader Loader(SessionActivity? activity = null) => new(new GitCli(processes, "git"), state, activity ?? new SessionActivity(clock));
 
     [Fact]
     public async Task FillASessionsDetail()
     {
         processes
-            .Answer(request => request.Arguments.Contains("logs"), new ProcessResult(0, Screen, string.Empty))
             .Answer(request => request.Arguments.Contains("status"), new ProcessResult(0, " M a.cs\n M b.cs\n?? c.cs\n", string.Empty))
             .Answer(request => request.Arguments.Contains("rev-list"), new ProcessResult(0, "0\n", string.Empty))
             .Answer(request => request.Arguments.Contains("log"), new ProcessResult(0, "2026-10-30T11:00:00+00:00\n", string.Empty));
         SessionRow row = Row(processId: 4242);
 
-        SessionDetail detail = await Loader().SessionAsync(row, outputRows: 2, readOutput: true, CancellationToken.None);
+        SessionDetail detail = await Loader().SessionAsync(row, CancellationToken.None);
 
         detail.Row.ShouldBe(row);
         detail.Counts.ShouldBe(new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new DateTimeOffset(2026, 10, 30, 11, 0, 0, TimeSpan.Zero))));
-        detail.Output.ShouldBeOfType<SessionOutput.Screen>().Rows.ShouldBe(["Do you want to make this edit to Invoice.cs?", "❯ 1. Yes"]);
         detail.LastPromptedAt.ShouldBeNull();
-        processes.CapturedRequests.ShouldContain(request => request.Arguments.Count == 2 && request.Arguments[0] == "logs" && request.Arguments[1] == "81cdb0f9");
     }
 
     [Fact]
@@ -64,36 +48,20 @@ public sealed class DetailLoaderShould
         clock.Advance(TimeSpan.FromMinutes(3));
         activity.Observe([waiting], [working]);
 
-        SessionDetail detail = await Loader(activity).SessionAsync(working, outputRows: 2, readOutput: false, CancellationToken.None);
+        SessionDetail detail = await Loader(activity).SessionAsync(working, CancellationToken.None);
 
         detail.LastPromptedAt.ShouldBe(Noon.AddMinutes(3));
-        detail.Output.ShouldBeOfType<SessionOutput.NotRead>();
-        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("logs"));
     }
 
     [Fact]
-    public async Task ReadNoOutputForASessionWithoutAProcessOrOutsideTheSupervisor()
-    {
-        SessionDetail stopped = await Loader().SessionAsync(Row(processId: null), outputRows: 5, readOutput: true, CancellationToken.None);
-        SessionRow terminal = Row(processId: null) with { Session = new InteractiveSession(SessionId.From("82db48ec-63de-49db-9831-b8147075dc3a"), "repos-93", Worktree, Noon, DisplayState.Idle, ProcessId: 51432) };
-        SessionDetail interactive = await Loader().SessionAsync(terminal, outputRows: 5, readOutput: true, CancellationToken.None);
-
-        stopped.Output.ShouldBeOfType<SessionOutput.NoProcess>();
-        interactive.Output.ShouldBeOfType<SessionOutput.NotSupervised>();
-        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("logs"));
-    }
-
-    [Fact]
-    public async Task MarkFailedOutputAndFailedGitUnavailableAndKeepTheRest()
+    public async Task MarkFailedGitUnavailableAndKeepTheRest()
     {
         processes
-            .Answer(request => request.Arguments.Contains("logs"), new ProcessResult(1, string.Empty, "job not found"))
             .Answer(request => request.Arguments.Contains("status"), new ProcessResult(128, string.Empty, "fatal: not a git repository"));
         SessionRow row = Row(processId: 4242);
 
-        SessionDetail detail = await Loader().SessionAsync(row, outputRows: 5, readOutput: true, CancellationToken.None);
+        SessionDetail detail = await Loader().SessionAsync(row, CancellationToken.None);
 
-        detail.Output.ShouldBeOfType<SessionOutput.Unavailable>();
         detail.Counts.ShouldBeOfType<DetailFact<WorktreeCounts>.Unavailable>();
         detail.Row.ShouldBe(row);
     }
@@ -103,7 +71,7 @@ public sealed class DetailLoaderShould
     {
         SessionRow outside = Row(processId: null) with { Checkout = null };
 
-        SessionDetail detail = await Loader().SessionAsync(outside, outputRows: 5, readOutput: false, CancellationToken.None);
+        SessionDetail detail = await Loader().SessionAsync(outside, CancellationToken.None);
 
         detail.Counts.ShouldBeOfType<DetailFact<WorktreeCounts>.NotApplicable>();
     }

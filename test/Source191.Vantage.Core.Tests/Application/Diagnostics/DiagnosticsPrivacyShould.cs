@@ -3,7 +3,6 @@ using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
-using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
@@ -36,16 +35,6 @@ public sealed class DiagnosticsPrivacyShould
     private const string GitRefusal = @"fatal: 'C:/Users/me/source/worktrees/Northwind.Orders-fix-flaky-tests' contains modified or untracked files, use --force to delete it";
 
     private static readonly string Listing = $$"""[{"pid":4242,"id":"{{Job}}","cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"background","startedAt":1,"sessionId":"{{SessionIdentity}}","name":"{{Name}}","status":"idle","state":"blocked"}]""";
-    /// <summary>A session's screen as claude logs prints it: rows padded to the session's width, naming the fixtures.</summary>
-    private static readonly string Screen = string.Concat(((string[])
-    [
-        $@"● Update({Worktree}\src\PaymentGateway.cs)",
-        $"Allow edit to PaymentGateway.cs on {Branch}? {Prompt}",
-        new string('─', 120),
-        "❯",
-        new string('─', 120),
-    ]).Select(row => row.PadRight(120)));
-
     private static readonly string Started = $"Starting background service…\nbackgrounded · {Job} · {Name} (idle — send a prompt to start)\n";
 
     /// <summary>Every value the fixtures above seed, in each spelling a program might print it.</summary>
@@ -70,7 +59,6 @@ public sealed class DiagnosticsPrivacyShould
             .AnswerAll(new ProcessResult(0, $"worktree {Repository}\nbranch refs/heads/{Branch}\n", string.Empty))
             .Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(0, Started, string.Empty))
             .Answer(request => request.Arguments.Contains("agents"), new ProcessResult(0, Listing, string.Empty))
-            .Answer(request => request.Arguments.Contains("logs"), new ProcessResult(0, Screen, string.Empty))
             .Answer(request => request.Arguments.Contains("remove"), new ProcessResult(128, string.Empty, GitRefusal));
         processes = new RecordedProcessRunner(children, log, counts, clock);
     }
@@ -87,7 +75,6 @@ public sealed class DiagnosticsPrivacyShould
         lines.ShouldContain(line => line.Contains("failed Load SessionsViewState: InvalidOperationException", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Crash: InvalidOperationException", StringComparison.Ordinal));
         DiagnosticLine.Render(counts).ShouldContain("counts git worktree remove exit 128: 1 run, longest 0 ms");
-        DiagnosticLine.Render(counts).ShouldContain(line => line.StartsWith("counts claude logs exit 0", StringComparison.Ordinal));
         string everything = string.Join('\n', [.. lines, crashFile.Written ?? string.Empty, .. DiagnosticLine.Render(counts)]);
         Seeded.Where(value => everything.Contains(value, StringComparison.OrdinalIgnoreCase)).ShouldBeEmpty();
     }
@@ -123,7 +110,6 @@ public sealed class DiagnosticsPrivacyShould
         await AttachAsync(claude);
         await StartASessionWithAPromptAsync(claude, git);
         await RemoveADirtyWorktreeAsync(git);
-        await ReadTheSelectedSessionsDetailAsync(claude, git);
         await FailALoadAsync();
         await Should.ThrowAsync<InvalidOperationException>(() => crashes.GuardAsync(() => throw new InvalidOperationException($"{Name} in {Worktree} stopped: {Prompt}")));
     }
@@ -133,18 +119,6 @@ public sealed class DiagnosticsPrivacyShould
         IReadOnlyList<Session> sessions = await Attempt.RunAsync(log, FailureSite.Load, CodeName.For(typeof(SessionsViewState)), () => claude.ListSessionsAsync(CancellationToken.None), _ => []);
 
         sessions.Single().Name.ShouldBe(Name);
-    }
-
-    /// <summary>The detail pane reads the selected session's screen; it is drawn and dropped, never recorded.</summary>
-    private async Task ReadTheSelectedSessionsDetailAsync(ClaudeCli claude, GitCli git)
-    {
-        BackgroundSession session = new(SessionId.From(SessionIdentity), JobId.From(Job), Name, FolderPath.From(Worktree), Noon, DisplayState.NeedsInput, ProcessId: 4242);
-        SessionRow row = new(session, "Northwind.Orders", BranchName.From(Branch), HasLiveTab: false, HasTranscript: true);
-        DetailLoader loader = new(claude, git, new InMemoryState(), new SessionActivity(clock));
-
-        SessionDetail detail = await loader.SessionAsync(row, outputRows: 5, readOutput: true, CancellationToken.None);
-
-        detail.Output.ShouldBeOfType<SessionOutput.Screen>().Rows.ShouldContain(line => line.Contains("PaymentGateway", StringComparison.Ordinal));
     }
 
     private async Task AttachAsync(ClaudeCli claude)

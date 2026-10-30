@@ -51,12 +51,6 @@ internal interface ITabHost
     void Switch(ISwitchesTab effect);
 
     void FrameChanged();
-
-    /// <summary>The detail panes' height, one for every tab while the console runs.</summary>
-    int PaneRows { get; }
-
-    /// <summary>A pane's divider was dragged to this height.</summary>
-    void PaneResized(int rows);
 }
 
 /// <summary>
@@ -137,18 +131,17 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         Label crumb = Text(0, Pos.AnchorEnd(1), crumbWidth, definition.Crumb, Palette.Background);
         crumb.SetScheme(Palette.Pair(Palette.Background, Palette.Amber));
         busy = Spinners.Create(crumbWidth + 1, Pos.AnchorEnd(1));
-        waiting = new WaitingIndicator(definition.WaitingText);
+        // In the middle of the table, whatever the pane under it takes, so the spinner never lands in the pane.
+        waiting = new WaitingIndicator(definition.WaitingText) { Y = Pos.Func(_ => table.Frame.Y + (table.Frame.Height / 2), table) };
         footer = Text(crumbWidth + 3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
 
         View.Add(table, crumb, busy, footer, waiting);
         if (detail is not null)
         {
-            requests = new DetailRequests(detail.ReadsScreen);
-            DetailPane detailPane = new(host.PaneRows);
-            detailPane.Resized += host.PaneResized;
-            table.Height = Dim.Fill(Dim.Func(_ => detailPane.Rows + 1));
-            View.Add(detailPane);
-            pane = detailPane;
+            requests = new DetailRequests();
+            pane = new DetailPane(detail.Rows);
+            table.Height = Dim.Fill(pane.Rows + 1);
+            View.Add(pane);
         }
 
         ShowColumnToolTips();
@@ -265,14 +258,13 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }, CancellationToken.None);
     }
 
-    /// <summary>A tab shown again takes the panes' height and reads its selected row's detail afresh.</summary>
+    /// <summary>A tab shown again reads its selected row's detail afresh.</summary>
     public void Shown(bool shown)
     {
         isShown = shown;
         busy.Show(shown && running);
         if (shown)
         {
-            pane?.Take(host.PaneRows);
             detailKey = null;
         }
 
@@ -327,19 +319,16 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
 
         detailKey = key;
-        foreach (DetailRequest request in refreshed ? requests.Refreshed(key) : requests.Selected(key))
-        {
-            ReadDetail(row, request, pane.Lines);
-        }
+        ReadDetail(row, requests.Ask(key));
     }
 
     /// <summary>Reads one request's detail off the UI thread and shows it there, unless a newer answer or another row came first.</summary>
-    private void ReadDetail(TRow row, DetailRequest request, int lines)
+    private void ReadDetail(TRow row, DetailRequest request)
     {
         CancellationToken token = lifetime.Token;
         Task.Run(async () =>
         {
-            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(row, request, lines, token), _ => null);
+            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(row, token), _ => null);
             if (content is null || token.IsCancellationRequested)
             {
                 return;
@@ -349,11 +338,11 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }, token);
     }
 
-    private async Task<DetailContent?> ReadAsync(TRow row, DetailRequest request, int lines, CancellationToken token)
+    private async Task<DetailContent?> ReadAsync(TRow row, CancellationToken token)
     {
         try
         {
-            return await detail!.ReadAsync(row, lines, request.ReadScreen, token);
+            return await detail!.ReadAsync(row, token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
@@ -459,17 +448,16 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     }
 
     /// <summary>
-    /// Names and branches are cut at 28 cells with an ellipsis, so one long value cannot push the other columns off
+    /// Names are cut at 28 cells with an ellipsis, so one long value cannot push the other columns off
     /// screen; rows keep the full values. Ages are right-aligned, and every column asks the definition for a cell's own paint.
     /// </summary>
     private void StyleColumns()
     {
-        string[] capped = ["NAME", "BRANCH"];
         for (int column = 0; column < columnNames.Length; column++)
         {
             ColumnStyle style = table.Style.GetOrCreateColumnStyle(column);
             style.ColorGetter = CellColour;
-            if (capped.Contains(columnNames[column]))
+            if (columnNames[column] == "NAME")
             {
                 style.MaxWidth = LongColumnCap;
                 style.TruncationIndicator = "…";

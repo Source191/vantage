@@ -5,130 +5,70 @@ namespace Source191.Vantage.Core.Tests.Application.Detail;
 
 public sealed class DetailRequestsShould
 {
-    private static readonly IReadOnlyList<DetailLine> Screen = [new(string.Empty, "Allow edit to Processor.cs?")];
-
     [Fact]
-    public void AskForTheFactsAtOnceAndTheScreenBehindThemWhenTheSelectionMoves()
+    public void NumberEachRequestInTheOrderAsked()
     {
-        DetailRequests requests = new(readsScreen: true);
+        DetailRequests requests = new();
 
-        IReadOnlyList<DetailRequest> asked = requests.Selected("fix-123");
+        DetailRequest first = requests.Ask("fix-123");
+        DetailRequest second = requests.Ask("fix-123");
 
-        asked.Select(request => request.ReadScreen).ShouldBe([false, true]);
-        asked.Select(request => request.Number).ShouldBe([1, 2]);
+        (first.Number, second.Number).ShouldBe((1, 2));
+        second.Key.ShouldBe("fix-123");
     }
 
     [Fact]
-    public void AskForTheFactsAloneOnATabWithoutAScreen()
+    public void ShowAnAnswerForTheSelectedRow()
     {
-        DetailRequests requests = new(readsScreen: false);
+        DetailRequests requests = new();
+        DetailRequest asked = requests.Ask("fix-123");
 
-        requests.Selected("Northwind.Orders-fix-123").Select(request => request.ReadScreen).ShouldBe([false]);
-        requests.Refreshed("Northwind.Orders-fix-123").Select(request => request.ReadScreen).ShouldBe([false]);
-    }
-
-    [Fact]
-    public void ReadTheScreenEveryOtherRefresh()
-    {
-        DetailRequests requests = new(readsScreen: true);
-        requests.Selected("fix-123");
-
-        IEnumerable<bool> reads = Enumerable.Range(0, 4).Select(_ => requests.Refreshed("fix-123").Single().ReadScreen);
-
-        reads.ShouldBe([false, true, false, true]);
-    }
-
-    [Fact]
-    public void TreatARefreshThatMovedTheSelectionAsAMove()
-    {
-        DetailRequests requests = new(readsScreen: true);
-        requests.Selected("fix-123");
-
-        requests.Refreshed("invoice-pdf").Select(request => request.ReadScreen).ShouldBe([false, true]);
-    }
-
-    [Fact]
-    public void SayTheScreenIsBeingReadUntilItArrives()
-    {
-        DetailRequests requests = new(readsScreen: true);
-        DetailRequest facts = requests.Selected("fix-123")[0];
-
-        DetailContent? shown = requests.Accept(facts, Content("facts", below: null));
-
-        shown.ShouldNotBeNull().Below.ShouldBe(Wording.ScreenBeingRead);
-    }
-
-    [Fact]
-    public void ShowTheScreenWhenItArrivesAndKeepItWhileItIsNotRead()
-    {
-        DetailRequests requests = new(readsScreen: true);
-        IReadOnlyList<DetailRequest> asked = requests.Selected("fix-123");
-        requests.Accept(asked[0], Content("facts", below: null));
-        requests.Accept(asked[1], Content("facts", Screen)).ShouldNotBeNull().Below.ShouldBe(Screen);
-
-        DetailContent? refreshed = requests.Accept(requests.Refreshed("fix-123").Single(), Content("newer facts", below: null));
-
-        refreshed.ShouldNotBeNull().Title.ShouldBe("newer facts");
-        refreshed.Below.ShouldBe(Screen);
+        requests.Accept(asked, Content("fix-123")).ShouldNotBeNull().Title.ShouldBe("fix-123");
     }
 
     [Fact]
     public void DropAnAnswerForARowNoLongerSelected()
     {
-        DetailRequests requests = new(readsScreen: true);
-        IReadOnlyList<DetailRequest> first = requests.Selected("fix-123");
-        requests.Selected("invoice-pdf");
+        DetailRequests requests = new();
+        DetailRequest first = requests.Ask("fix-123");
+        requests.Ask("invoice-pdf");
 
-        requests.Accept(first[1], Content("fix-123", Screen)).ShouldBeNull();
+        requests.Accept(first, Content("fix-123")).ShouldBeNull();
     }
 
     [Fact]
-    public void NeverShowAnotherRowsScreen()
+    public void DropTheOldRowsAnswerOnceTheSelectionMoves()
     {
-        DetailRequests requests = new(readsScreen: true);
-        IReadOnlyList<DetailRequest> first = requests.Selected("fix-123");
-        requests.Accept(first[1], Content("fix-123", Screen));
+        DetailRequests requests = new();
+        DetailRequest first = requests.Ask("fix-123");
 
-        DetailContent? moved = requests.Accept(requests.Selected("invoice-pdf")[0], Content("invoice-pdf", below: null));
+        DetailRequest moved = requests.Ask("invoice-pdf");
 
-        moved.ShouldNotBeNull().Below.ShouldBe(Wording.ScreenBeingRead);
+        requests.Accept(first, Content("fix-123")).ShouldBeNull();
+        requests.Accept(moved, Content("invoice-pdf")).ShouldNotBeNull();
     }
 
     [Fact]
-    public void DropFactsOlderThanTheFactsShown()
+    public void DropAnAnswerOlderThanTheOneShown()
     {
-        DetailRequests requests = new(readsScreen: false);
-        DetailRequest older = requests.Selected("Northwind.Orders-fix-123").Single();
-        DetailRequest newer = requests.Refreshed("Northwind.Orders-fix-123").Single();
-        requests.Accept(newer, Content("newer", below: [])).ShouldNotBeNull();
+        DetailRequests requests = new();
+        DetailRequest older = requests.Ask("Northwind.Orders-fix-123");
+        DetailRequest newer = requests.Ask("Northwind.Orders-fix-123");
+        requests.Accept(newer, Content("newer")).ShouldNotBeNull();
 
-        requests.Accept(older, Content("older", below: [])).ShouldBeNull();
-    }
-
-    [Fact]
-    public void KeepTheFactsShownWhenAnOlderScreenArrivesAfterNewerFacts()
-    {
-        DetailRequests requests = new(readsScreen: true);
-        IReadOnlyList<DetailRequest> asked = requests.Selected("fix-123");
-        DetailRequest refresh = requests.Refreshed("fix-123").Single();
-        requests.Accept(refresh, Content("newer", below: null));
-
-        DetailContent? shown = requests.Accept(asked[1], Content("older", Screen));
-
-        shown.ShouldNotBeNull().Title.ShouldBe("newer");
-        shown.Below.ShouldBe(Screen);
+        requests.Accept(older, Content("older")).ShouldBeNull();
     }
 
     [Fact]
     public void ShowNothingOnceNoRowIsSelected()
     {
-        DetailRequests requests = new(readsScreen: true);
-        IReadOnlyList<DetailRequest> asked = requests.Selected("fix-123");
+        DetailRequests requests = new();
+        DetailRequest asked = requests.Ask("fix-123");
 
         requests.Cleared();
 
-        requests.Accept(asked[0], Content("fix-123", below: null)).ShouldBeNull();
+        requests.Accept(asked, Content("fix-123")).ShouldBeNull();
     }
 
-    private static DetailContent Content(string title, IReadOnlyList<DetailLine>? below) => new(title, [], below, KeepsLastLines: true);
+    private static DetailContent Content(string title) => new(title, [], []);
 }

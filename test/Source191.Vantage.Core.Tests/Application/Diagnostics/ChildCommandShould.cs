@@ -12,7 +12,6 @@ public sealed class ChildCommandShould
     [InlineData(@"C:\Users\me\.local\bin\claude.exe", new[] { "--bg", "-n", "Fix flaky tests" }, "claude --bg")]
     [InlineData(@"C:\Users\me\.local\bin\claude.exe", new[] { "--bg", "--resume", "81cdb0f9-0000", "-n", "Fix" }, "claude --bg --resume")]
     [InlineData("claude", new[] { "agents", "--json", "--all" }, "claude agents --json --all")]
-    [InlineData("claude", new[] { "logs", "81cdb0f9" }, "claude logs")]
     [InlineData("gh", new[] { "pr", "list", "--repo", "northwind/orders" }, "gh pr list")]
     [InlineData(@"C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin\az.cmd", new[] { "repos", "pr", "list", "--org" }, "az repos pr list")]
     [InlineData("wt.exe", new[] { "-w", "0", "new-tab", "--title", "Fix" }, "wt -w 0 new-tab")]

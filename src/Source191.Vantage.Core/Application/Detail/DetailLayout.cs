@@ -4,7 +4,7 @@ namespace Source191.Vantage.Application.Detail;
 /// Sets the detail pane's content on its rows: the facts in three columns, each as wide as its widest one-column fact
 /// (labels orange, padded to the column's longest label) with the spare width going to the last, the widest column
 /// narrowed first when the pane is too narrow and a cut fact ending in an ellipsis; then the lines beneath, from their
-/// start or, for a screen, their end, as many as the rows left hold.
+/// start, as many as the rows left hold.
 /// </summary>
 public static class DetailLayout
 {
@@ -17,9 +17,9 @@ public static class DetailLayout
         IReadOnlyList<IReadOnlyList<DetailLine>> facts = [.. content.Facts.Take(Math.Max(height, 0))];
         int[] labels = LabelWidths(content.Facts);
         int[] widths = ColumnWidths(content.Facts, labels, width);
-        IReadOnlyList<DetailLine> below = content.Below ?? [];
+        IReadOnlyList<DetailLine> below = content.Below;
         int room = Math.Max(height - facts.Count, 0);
-        IEnumerable<DetailLine> shown = content.KeepsLastLines ? below.TakeLast(room) : below.Take(room);
+        IEnumerable<DetailLine> shown = below.Take(room);
         int belowLabel = below.Any(line => line.Label.Length > 0) ? below.Max(line => line.Label.Length) + 1 : 0;
 
         return [.. facts.Select(row => FactRow(row, labels, widths)), .. shown.Select(line => Cell(line, belowLabel, width))];
