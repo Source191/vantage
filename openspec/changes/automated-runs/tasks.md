@@ -13,7 +13,7 @@
 ## 3. The memory (Application)
 
 - [x] 3.1 Red: `SessionRowEnricherShould` facts with the fake process registry: two runs whose trees use 215 MB and 216 MB give `AutomatedRuns(2, 431 MB)`; a run whose process has gone is counted and adds nothing; no runs give `AutomatedRuns.None`; the rows are unchanged. Green: `SessionRowEnricher.Measure(runs)` returns the summary from a process snapshot of its own, measured as MEM is (kept apart from `EnrichAsync` so its many facts stay as they are; a second snapshot costs a few milliseconds). Verify the Core facts pass.
-- [ ] 3.2 Red: `SessionsViewShould` facts: `RowsLoaded` with a summary sets `SessionsViewState.AutomatedRuns`; `LoadFailed` keeps the last one; the table title counts sessions only. Green: `RowsLoaded(rows, automated)` and the state member; `Program.LoadAsync` passes the summary. Verify the Core facts pass.
+- [x] 3.2 Red: `SessionsViewShould` facts: `RowsLoaded` with a summary sets `SessionsViewState.AutomatedRuns`; `LoadFailed` keeps the last one; the table title counts sessions only. Green: `RowsLoaded(rows, automated)` and the state member; `Program.LoadAsync` passes the summary. Verify the Core facts pass.
 
 ## 4. The words and the screen
 
