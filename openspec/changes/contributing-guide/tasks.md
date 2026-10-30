@@ -6,7 +6,7 @@
 
 ## 2. The README as a user guide
 
-- [ ] 2.1 Remove Developing Vantage, Continuous integration and Working with OpenSpec and their Contents entries, and the Install section's work-on-Vantage steps; add a "Contributing" section and Contents entry linking `CONTRIBUTING.md` by absolute URL. Verify `grep` finds no `#developing-vantage`, `#continuous-integration` or `#working-with-openspec` anchors left in the README, and `DocumentedMinimumShould` still passes (`dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug -- --filter-class *DocumentedMinimumShould`).
+- [x] 2.1 Remove Developing Vantage, Continuous integration and Working with OpenSpec and their Contents entries, and the Install section's work-on-Vantage steps; add a "Contributing" section and Contents entry linking `CONTRIBUTING.md` by absolute URL. Verify `grep` finds no `#developing-vantage`, `#continuous-integration` or `#working-with-openspec` anchors left in the README, and `DocumentedMinimumShould` still passes (`dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug -- --filter-class *DocumentedMinimumShould`).
 
 ## 3. Repointed references
 
