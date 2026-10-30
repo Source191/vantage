@@ -70,13 +70,61 @@ public sealed class WordingOfScreensShould
     }
 
     [Fact]
-    public void ShowALocalBuildAndAnUnreadableClaudeVersionInTheSettingsLine()
+    public void WriteTheVersionsOnTheFirstRowAndTheRootsOnTheSecond()
     {
-        Wording.SettingsLine(new ToolVersion("0.5.0-local"), new ClaudeCodeVersion.Unknown(), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.Off(), VantageMemory, width: 200)
-            .ShouldBe(@"Vantage 0.5.0-local (29 MB) · Claude unknown · Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees");
+        IReadOnlyList<IReadOnlyList<TextPart>> rows = Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 114);
+
+        rows[0].ShouldBe([new TextPart("Vantage ", TextTone.Orange), new TextPart("0.18.0 (35 MB)", TextTone.Plain), new TextPart(" · ", TextTone.Grey), new TextPart("Claude ", TextTone.Orange), new TextPart("2.1.310", TextTone.Plain)]);
+        rows[1].ShouldBe([new TextPart("Repository roots ", TextTone.Orange), new TextPart(@"C:\Users\me\source\repos", TextTone.Plain), new TextPart(" · ", TextTone.Grey), new TextPart("Worktree root ", TextTone.Orange), new TextPart(@"C:\Users\me\source\worktrees", TextTone.Plain)]);
     }
 
-    private static MemorySize VantageMemory => MemorySize.FromMegabytes(29);
+    [Fact]
+    public void JoinSeveralRepositoryRoots()
+    {
+        IReadOnlyList<IReadOnlyList<TextPart>> rows = Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 200);
+
+        Text(rows[1]).ShouldBe(@"Repository roots C:\Users\me\source\repos; D:\work · Worktree root C:\Users\me\source\worktrees");
+    }
+
+    [Fact]
+    public void CutTheRepositoryRootsFirstAndThenTheWorktreeRoot()
+    {
+        Settings three = Roots(@"C:\Users\me\source\repos", @"D:\work\northwind", @"E:\archive\northwind-old");
+
+        string eighty = Text(Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), three, new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 80)[1]);
+        string fifty = Text(Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), three, new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 50)[1]);
+
+        eighty.ShouldBe(@"Repository roots C:\Users\me\sourc… · Worktree root C:\Users\me\source\worktrees");
+        eighty.Length.ShouldBe(80);
+        fifty.ShouldBe(@"Repository roots … · Worktree root C:\Users\me\so…");
+        fifty.Length.ShouldBe(50);
+    }
+
+    [Theory]
+    [InlineData("0.18.0", "2.1.310", true, false, "Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310")]
+    [InlineData("0.5.0-local", null, false, false, "Vantage 0.5.0-local (35 MB) · Claude unknown")]
+    [InlineData("0.18.0", "2.1.302", false, true, "Vantage 0.18.0 (35 MB) · Claude 2.1.302 (below 2.1.309, update Claude Code)")]
+    public void KeepTheNoticeAndTheWarningOnTheFirstRow(string vantage, string? claude, bool updateAvailable, bool belowMinimum, string expected)
+    {
+        ClaudeCodeVersion version = (claude, belowMinimum) switch
+        {
+            (null, _) => new ClaudeCodeVersion.Unknown(),
+            (_, true) => new ClaudeCodeVersion.BelowMinimum(ReleaseVersion.TryParse(claude)!, ReleaseVersion.TryParse("2.1.309")!),
+            _ => new ClaudeCodeVersion.Reported(claude),
+        };
+        UpdateStatus update = updateAvailable ? new UpdateStatus.Available(ReleaseVersion.TryParse("0.18.0")!, ReleaseVersion.TryParse("0.19.0")!) : new UpdateStatus.UpToDate();
+
+        Text(Wording.SettingsRows(new ToolVersion(vantage), version, Roots(@"C:\Users\me\source\repos"), update, MemorySize.FromMegabytes(35), width: 114)[0]).ShouldBe(expected);
+    }
+
+    [Fact]
+    public void TitleTheTabsWithoutCounts()
+    {
+        Wording.TabTitleFor(ConsoleTab.Sessions).ShouldBe("Sessions");
+        Wording.TabTitleFor(ConsoleTab.Worktrees).ShouldBe("Worktrees");
+    }
+
+    private static string Text(IReadOnlyList<TextPart> row) => string.Concat(row.Select(part => part.Text));
 
     private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => FolderPath.From(root))], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me"));
 
@@ -97,43 +145,6 @@ public sealed class WordingOfScreensShould
         Wording.Describe(new TableTitle("session", Shown: 1, Total: 1, Filter: "fix", Selected: "fix-123")).ShouldBe("1 of 1 session matches \"fix\", selected: fix-123");
     }
 
-    [Fact]
-    public void BuildTheSettingsLineWholeWhenItFits()
-    {
-        Wording.SettingsLine(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 128)
-            .ShouldBe(@"Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees");
-    }
-
-    [Fact]
-    public void CutTheRepositoryRootsFirstToFitTheLine()
-    {
-        string line = Wording.SettingsLine(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 120);
-
-        line.ShouldBe(@"Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\me\sou… · Worktree root C:\Users\me\source\worktrees");
-        line.Length.ShouldBe(120);
-    }
-
-    [Fact]
-    public void CutTheWorktreeRootNextAndKeepTheNoticeWhole()
-    {
-        UpdateStatus available = new UpdateStatus.Available(ReleaseVersion.TryParse("0.18.0")!, ReleaseVersion.TryParse("0.19.0")!);
-
-        string narrow = Wording.SettingsLine(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), available, MemorySize.FromMegabytes(35), width: 120);
-        string wide = Wording.SettingsLine(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), available, MemorySize.FromMegabytes(35), width: 160);
-
-        narrow.ShouldBe(@"Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310 · Repository roots … · Worktree root C:\Users\me…");
-        narrow.Length.ShouldBe(120);
-        wide.ShouldBe(@"Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310 · Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees");
-    }
-
-    [Fact]
-    public void JoinSeveralRepositoryRootsAndShowAClaudeWarning()
-    {
-        ClaudeCodeVersion old = new ClaudeCodeVersion.BelowMinimum(ReleaseVersion.TryParse("2.1.302")!, ReleaseVersion.TryParse("2.1.309")!);
-
-        Wording.SettingsLine(new ToolVersion("0.18.0"), old, Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 200)
-            .ShouldBe(@"Vantage 0.18.0 (35 MB) · Claude 2.1.302 (below 2.1.309, update Claude Code) · Repository roots C:\Users\me\source\repos; D:\work · Worktree root C:\Users\me\source\worktrees");
-    }
 
     [Fact]
     public void CountSessionsByStateNeedsInputFirst()
@@ -170,14 +181,6 @@ public sealed class WordingOfScreensShould
         Wording.WorktreeCounts([WorktreeIn(WorktreeHealthKind.Ok, 0)]).ShouldBe([new TextPart("1 ok", TextTone.Plain)]);
     }
 
-    [Fact]
-    public void TitleEachTabWithItsCountOnceLoaded()
-    {
-        Wording.TabTitleFor(ConsoleTab.Sessions, 6).ShouldBe("Sessions (6)");
-        Wording.TabTitleFor(ConsoleTab.Worktrees, 7).ShouldBe("Worktrees (7)");
-        Wording.TabTitleFor(ConsoleTab.Worktrees, null).ShouldBe("Worktrees");
-        Wording.TabTitleFor(ConsoleTab.Sessions, 0).ShouldBe("Sessions (0)");
-    }
 
     private static WorktreeRow WorktreeIn(WorktreeHealthKind health, int index, int dirty = 0, int unpushed = 0)
     {
