@@ -17,6 +17,7 @@ public sealed class SettingsFileShould
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees"));
         settings.Editor.ShouldBe(EditorChoice.VsCode);
         settings.DefaultBase.ShouldBe(WorktreeBase.RemoteDefault);
+        settings.DefaultPlace.ShouldBe(LaunchMode.NewWorktree);
     }
 
     [Fact]
@@ -45,6 +46,17 @@ public sealed class SettingsFileShould
         settings.DefaultBase.ShouldBe(WorktreeBase.Head);
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
         settings.Editor.ShouldBe(EditorChoice.VsCode);
+        settings.DefaultPlace.ShouldBe(LaunchMode.NewWorktree);
+    }
+
+    [Fact]
+    public void ReadAndWriteTheDefaultPlace()
+    {
+        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], DefaultBase: null, WorktreeRoot: null, Editor: null, DefaultPlace: LaunchMode.CurrentBranch), Home);
+
+        settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
+        SettingsFile.ToConfig(settings).DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
+        SettingsFile.ToConfig(SettingsFile.From(config: null, Home)).DefaultPlace.ShouldBe(LaunchMode.NewWorktree);
     }
 
     [Fact]
@@ -86,11 +98,11 @@ public sealed class SettingsFileShould
     [Fact]
     public void RoundTripThroughTheFileRecord()
     {
-        Settings settings = Settings.Resolve([FolderPath.From(@"C:\repos"), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(@"C:\repos"), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home, defaultPlace: LaunchMode.CurrentBranch);
 
         VantageConfig config = SettingsFile.ToConfig(settings);
 
-        config.ShouldBe(new VantageConfig([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"E:\trees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"]), CheckForUpdates: true));
+        config.ShouldBe(new VantageConfig([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"E:\trees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"]), CheckForUpdates: true, DefaultPlace: LaunchMode.CurrentBranch));
         SettingsFile.From(config, Home).ShouldBe(settings);
     }
 
