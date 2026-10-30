@@ -654,6 +654,7 @@ public sealed class WordingShould
             _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
             _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
             _ when type == typeof(SetupItem) => SetupItem.TerminalProfiles,
+            _ when type == typeof(ConfigRow) => new ConfigRow.CheckForUpdates(On: true),
             _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),
         };
     }

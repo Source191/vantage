@@ -95,7 +95,8 @@ public abstract record Footer
     public sealed record Failed(string Message) : Footer;
 
     /// <summary>The Config tab's standing footer.</summary>
-    public sealed record ConfigHint : Footer;
+    /// <summary>The Config tab's standing footer: what the selected row's setting does, or what its setup is for.</summary>
+    public sealed record SettingHint(ConfigRow Row) : Footer;
 
     /// <summary>Enter on a setup row: how that setup is changed, since the tab only reads it.</summary>
     public sealed record SetupAdvice(SetupItem Item) : Footer;

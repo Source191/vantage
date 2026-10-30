@@ -351,7 +351,7 @@ public static partial class Wording
         return footer switch
         {
             Footer.NoWorktreeSelected => "No worktree selected.",
-            Footer.ConfigHint => "Enter edits the selected setting; on a repository root, every root one per line.",
+            Footer.SettingHint hint => ConfigDescription(hint.Row),
             Footer.SetupAdvice advice => Describe(advice.Item),
             Footer.NoPathHere => "This row's value is not a path.",
             Footer.NoSettingSelected => "No setting selected.",

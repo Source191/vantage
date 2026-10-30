@@ -33,7 +33,12 @@ public sealed record ConfigViewState(
 
     public ConfigRow? Selected => List.Selected;
 
-    public Footer Shown => Footer is Footer.Blank ? new Footer.ConfigHint() : Footer;
+    /// <summary>The last message, else what the selected row is for.</summary>
+    public Footer Shown => (Footer, Selected) switch
+    {
+        (Footer.Blank, ConfigRow row) => new Footer.SettingHint(row),
+        _ => Footer,
+    };
 
     public TableTitle Title => List.Title("row", Wording.ConfigSetting);
 
@@ -74,7 +79,7 @@ public static class ConfigView
     {
         return key switch
         {
-            // Moving on clears the last message, so the footer goes back to the tab's hint.
+            // Moving on or filtering clears the last message, so the status line goes back to what the selected row is for.
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = Footer.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = Footer.None }),
             { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),
