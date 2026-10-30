@@ -2,7 +2,7 @@
 
 ## Why
 
-The Sessions table sometimes shows a second row for a session's worktree: no name, the hollow `▯` in TAB, `■ /` in STATE, an age of 0m and a couple of hundred megabytes (the owner's screenshot, 30 October 2026). It is not a session. It is a `claude` process started through the Agent SDK, here the security-guidance plugin's background review, which runs for about 20 seconds after a commit in that worktree and uses tokens. The CLI lists such a process as an interactive session with the worktree's folder and no status, so Vantage shows it as a session the user can neither attach to, adopt nor rename. A session committing after every TDD step makes these rows frequent. They should leave the table, but the memory they use should still be visible.
+The Sessions table sometimes shows a second row for a session's worktree: no name, the hollow `▯` in TAB, `■ /` in STATE, an age of 0m and a couple of hundred megabytes (the owner's screenshot, 30 October 2026). It is not a session. It is a `claude` process started through the Agent SDK, here the security-guidance plugin's background review, which runs for about 20 seconds after a commit or push in that worktree, or when a turn there ends, and uses tokens. The CLI lists such a process as an interactive session with the worktree's folder and no status, so Vantage shows it as a session the user can neither attach to, adopt nor rename. A session committing after every TDD step makes these rows frequent. They should leave the table, but the memory they use should still be visible.
 
 ## What Changes
 
