@@ -66,6 +66,9 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private const int LongColumnCap = 28;
     private const int ElasticFloor = 20;
 
+    /// <summary>The table's header: the overline, the names and the line under them.</summary>
+    private const int HeaderRows = 3;
+
     private readonly IScreenDefinition<TState, TRow> definition;
     private readonly DialogEffects dialogs;
     private readonly EffectDispatcher dispatcher;
@@ -83,6 +86,12 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly DetailRequests? requests;
     private readonly DetailPane? pane;
     private readonly CancellationTokenSource lifetime = new();
+
+    /// <summary>
+    /// What a column's tooltip hangs from: Terminal.Gui draws a tooltip under its target's frame, and under the whole table
+    /// that is the detail pane, so the target is this view over the header, as wide as nothing, moved to the pointer.
+    /// </summary>
+    private readonly View headerAnchor = new() { X = 0, Y = 0, Width = 0, Height = HeaderRows, CanFocus = false };
     private object? detailKey;
     private TRow? selected;
     private int? headerUnderMouse;
@@ -134,7 +143,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         waiting = new WaitingIndicator(definition.WaitingText) { Y = Pos.Func(_ => table.Frame.Y + (table.Frame.Height / 2), table) };
         footer = Text(3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
 
-        View.Add(table, busy, footer, waiting);
+        View.Add(table, busy, footer, waiting, headerAnchor);
         if (detail is not null)
         {
             requests = new DetailRequests();
@@ -466,7 +475,10 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         if (header is int column && column < definition.Columns.Count)
         {
             ColumnHelp help = definition.Columns[column];
-            app.ToolTips?.ShowFor(table, new ToolTipProvider(() => ToolTips.View($"{help.Name}: {help.Meaning}")));
+            headerAnchor.X = table.Frame.X + (mouse.Position?.X ?? 0);
+            headerAnchor.Y = table.Frame.Y;
+            View.Layout();
+            app.ToolTips?.ShowFor(headerAnchor, new ToolTipProvider(() => ToolTips.View($"{help.Name}: {help.Meaning}")));
         }
     }
 
