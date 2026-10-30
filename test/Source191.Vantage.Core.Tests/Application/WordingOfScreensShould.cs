@@ -65,8 +65,6 @@ public sealed class WordingOfScreensShould
     public void RoundMemoryToTheNearestMegabyte()
     {
         Wording.Memory(MemorySize.FromBytes(29 * MemorySize.BytesPerMegabyte + 600_000)).ShouldBe("30 MB");
-        Wording.MemoryCell(MemorySize.FromMegabytes(296)).ShouldBe("296 MB");
-        Wording.MemoryCell(null).ShouldBe("-");
     }
 
     [Fact]

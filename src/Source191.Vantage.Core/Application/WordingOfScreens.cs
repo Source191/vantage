@@ -36,7 +36,7 @@ public static partial class Wording
         DialogName.ProblemReport => ProblemReportDialogTitle,
     };
 
-    /// <summary>An amount of memory as the table and the breakdown write it: whole megabytes below 1,000 MB, gigabytes to one decimal from there.</summary>
+    /// <summary>An amount of memory as the settings row, the detail pane and the breakdown write it: whole megabytes below 1,000 MB, gigabytes to one decimal from there.</summary>
     public static string Memory(MemorySize size)
     {
         double megabytes = (double)size.Bytes / MemorySize.BytesPerMegabyte;
@@ -44,9 +44,6 @@ public static partial class Wording
 
         return whole < 1000 ? $"{whole} MB" : $"{(megabytes / 1024).ToString("F1", CultureInfo.InvariantCulture)} GB";
     }
-
-    /// <summary>The MEM cell: the figure, or a dash for a session with no process to measure.</summary>
-    public static string MemoryCell(MemorySize? size) => size is MemorySize measured ? Memory(measured) : "-";
 
     /// <summary>The settings line's Claude Code value: the version as the CLI printed it, and the minimum with a prompt to update when it is older.</summary>
     private static string ClaudeVersion(ClaudeCodeVersion claude) => claude switch
@@ -112,7 +109,7 @@ public static partial class Wording
         new("e", "Open folder", "open the folder in your editor", Tip: "Open the row's folder in the editor chosen on the Config tab."),
         new("v", "Solution", "open its solution", Tip: "Open the row's Visual Studio solution, asking when there are several."),
         new("p", "Open PR", "open its pull request in the browser", Tip: "Open the row's pull request in your browser."),
-        new("m", "Memory", "what its memory is made of", Tip: "Show what the session's memory is made of: Claude Code and each program it runs."),
+        new("m", "Memory", "what its memory is made of", Tip: "Show what the session's memory is made of; the detail pane shows the total."),
         new("U", "Update", UpdateLine, Tip: "Update Vantage to the newest release, in a tab of its own."),
         new("!", "Report", ReportLine, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
         .. TabKeyHelp,
@@ -176,7 +173,6 @@ public static partial class Wording
         new("WHERE", "repository › slug for a worktree, with the branch in brackets when it differs;\nrepository (branch) for a main checkout; the folder alone outside a repository"),
         new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
         new("AGE", "time since the session started"),
-        new("MEM", "private working set of the session's process and everything it started; - when it has no process"),
     ];
 
     public static IReadOnlyList<ColumnHelp> WorktreesColumns { get; } =

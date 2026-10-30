@@ -38,8 +38,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
             2 => $"{Wording.StateGlyph(row.Session.State.Kind)} {row.Session.State.Label}",
             WhereColumn => Where(row).Fit(width),
             4 => Wording.PullRequestCell(row.PullRequest),
-            5 => Durations.Age(now - row.Session.StartedAt),
-            _ => Wording.MemoryCell(row.Memory),
+            _ => Durations.Age(now - row.Session.StartedAt),
         };
     }
 
