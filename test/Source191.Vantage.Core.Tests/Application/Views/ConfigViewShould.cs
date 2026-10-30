@@ -127,6 +127,17 @@ public sealed class ConfigViewShould
         ConfigView.Reduce(Loaded, new KeyPressed(Key.Escape)).Effects.ShouldBe([new SelectTab(ConsoleTab.Sessions)]);
     }
 
+    [Theory]
+    [InlineData('w')]
+    [InlineData(',')]
+    public void IgnoreTheRetiredKeys(char key)
+    {
+        ConfigViewUpdate update = ConfigView.Reduce(Loaded, new KeyPressed(Key.Of(key)));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.ShouldBe(Loaded);
+    }
+
     [Fact]
     public void ClearAFilterOnEscapeBeforeLeaving()
     {
