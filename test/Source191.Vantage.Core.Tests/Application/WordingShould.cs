@@ -672,6 +672,7 @@ public sealed class WordingShould
             _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123", TabClosed: false),
             _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
             _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
+            _ when type == typeof(SetupItem) => SetupItem.TerminalProfiles,
             _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),
         };
     }

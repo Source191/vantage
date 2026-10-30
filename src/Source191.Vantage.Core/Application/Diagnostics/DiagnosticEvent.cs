@@ -37,6 +37,7 @@ public enum ViewKind
 {
     Sessions,
     Worktrees,
+    Config,
 }
 
 public enum FailureSite

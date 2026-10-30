@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
@@ -83,6 +84,7 @@ public sealed class ConsoleScreen(
         private readonly TableBody<WorktreesViewState, WorktreeRow> worktrees;
         private readonly List<object> timers = [];
         private ConsoleTab active;
+        private readonly ConfigViewState config;
         private ViewEffect? leaving;
         private bool binding;
         private KeyBar? shownBar;
@@ -94,6 +96,7 @@ public sealed class ConsoleScreen(
             this.screen = screen;
             this.app = app;
             active = initial.Active;
+            config = initial.Config;
             ScreenContext context = screen.context;
 
             // Terminal.Gui writes the top-level's Title to the terminal (OSC 0) on every run, so this is what the tab shows.
@@ -128,12 +131,13 @@ public sealed class ConsoleScreen(
 
         public Window Window { get; }
 
-        public ConsoleExit Exit => new(new ConsoleState(sessions.State, worktrees.State, active), leaving);
+        public ConsoleExit Exit => new(new ConsoleState(sessions.State, worktrees.State, config, active), leaving);
 
         private ITabBody Active => active switch
         {
             ConsoleTab.Sessions => sessions,
             ConsoleTab.Worktrees => worktrees,
+            ConsoleTab.Config => throw new UnreachableException("The Config tab has no body yet."),
         };
 
         public void Leave(ViewEffect effect)
@@ -144,7 +148,7 @@ public sealed class ConsoleScreen(
 
         public void Switch(ISwitchesTab effect)
         {
-            ConsoleState state = ConsoleView.Apply(new ConsoleState(sessions.State, worktrees.State, active), effect);
+            ConsoleState state = ConsoleView.Apply(new ConsoleState(sessions.State, worktrees.State, config, active), effect);
             if (state.Sessions != sessions.State)
             {
                 sessions.Reduce(new SelectSession(((JumpToSession)effect).SessionId));
@@ -201,6 +205,7 @@ public sealed class ConsoleScreen(
                 {
                     ConsoleTab.Sessions => ViewKind.Sessions,
                     ConsoleTab.Worktrees => ViewKind.Worktrees,
+                    ConsoleTab.Config => ViewKind.Config,
                 }));
             }
 

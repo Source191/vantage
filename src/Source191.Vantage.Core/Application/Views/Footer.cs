@@ -102,4 +102,21 @@ public abstract record Footer
 
     /// <summary>Background work threw; the message is the exception's.</summary>
     public sealed record Failed(string Message) : Footer;
+
+    /// <summary>The Config tab's standing footer.</summary>
+    public sealed record ConfigHint : Footer;
+
+    /// <summary>Enter on a setup row: how that setup is changed, since the tab only reads it.</summary>
+    public sealed record SetupAdvice(SetupItem Item) : Footer;
+
+    /// <summary>d on a row that is not a repository root.</summary>
+    public sealed record OnlyRootsRemoved : Footer;
+
+    /// <summary>d on the only repository root.</summary>
+    public sealed record OnlyRoot : Footer;
+
+    /// <summary>c or e on a Config row whose value is not a path.</summary>
+    public sealed record NoPathHere : Footer;
+
+    public sealed record NoSettingSelected : Footer;
 }

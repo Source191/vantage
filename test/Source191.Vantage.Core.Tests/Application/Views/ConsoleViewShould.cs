@@ -23,8 +23,8 @@ public sealed class ConsoleViewShould
     [Fact]
     public void SwitchToTheWorktreesTabAndBackWithoutTouchingEitherState()
     {
-        ConsoleState worktrees = ConsoleView.Apply(Loaded, new SwitchToWorktrees());
-        ConsoleState sessions = ConsoleView.Apply(worktrees, new SwitchToSessions());
+        ConsoleState worktrees = ConsoleView.Apply(Loaded, new SelectTab(ConsoleTab.Worktrees));
+        ConsoleState sessions = ConsoleView.Apply(worktrees, new SelectTab(ConsoleTab.Sessions));
 
         worktrees.Active.ShouldBe(ConsoleTab.Worktrees);
         worktrees.Sessions.ShouldBe(Loaded.Sessions);
@@ -34,9 +34,39 @@ public sealed class ConsoleViewShould
     }
 
     [Fact]
+    public void SelectTheConfigTab()
+    {
+        ConsoleView.Apply(Loaded, new SelectTab(ConsoleTab.Config)).Active.ShouldBe(ConsoleTab.Config);
+    }
+
+    [Fact]
+    public void MoveRightThroughTheTabsStoppingAtTheLast()
+    {
+        ConsoleState worktrees = ConsoleView.Apply(Loaded, new NextTab());
+        ConsoleState config = ConsoleView.Apply(worktrees, new NextTab());
+
+        worktrees.Active.ShouldBe(ConsoleTab.Worktrees);
+        config.Active.ShouldBe(ConsoleTab.Config);
+        ConsoleView.Apply(config, new NextTab()).Active.ShouldBe(ConsoleTab.Config);
+    }
+
+    [Fact]
+    public void MoveLeftThroughTheTabsStoppingAtTheFirst()
+    {
+        ConsoleState config = Loaded with { Active = ConsoleTab.Config };
+
+        ConsoleState worktrees = ConsoleView.Apply(config, new PreviousTab());
+        ConsoleState sessions = ConsoleView.Apply(worktrees, new PreviousTab());
+
+        worktrees.Active.ShouldBe(ConsoleTab.Worktrees);
+        sessions.Active.ShouldBe(ConsoleTab.Sessions);
+        ConsoleView.Apply(sessions, new PreviousTab()).Active.ShouldBe(ConsoleTab.Sessions);
+    }
+
+    [Fact]
     public void JumpToASessionOnTheSessionsTabById()
     {
-        ConsoleState onWorktrees = ConsoleView.Apply(Loaded, new SwitchToWorktrees());
+        ConsoleState onWorktrees = ConsoleView.Apply(Loaded, new SelectTab(ConsoleTab.Worktrees));
 
         ConsoleState jumped = ConsoleView.Apply(onWorktrees, new JumpToSession(SessionId.From("sess-2")));
 

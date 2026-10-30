@@ -355,6 +355,12 @@ public static partial class Wording
         return footer switch
         {
             Footer.NoWorktreeSelected => "No worktree selected.",
+            Footer.ConfigHint => "Enter edits the selected setting; a adds a repository root.",
+            Footer.SetupAdvice advice => Describe(advice.Item),
+            Footer.OnlyRootsRemoved => "Only a repository root can be removed.",
+            Footer.OnlyRoot => "Vantage needs at least one repository root, so the only one cannot be removed.",
+            Footer.NoPathHere => "This row's value is not a path.",
+            Footer.NoSettingSelected => "No setting selected.",
             Footer.NotRemoved { OfferForce: true } refused => $"Not removed: {Describe(refused.Reason)}. D forces after a typed confirmation.",
             Footer.NotRemoved refused => $"Not removed: {Describe(refused.Reason)}.",
             Footer.ForceCancelled => "Cancelled; nothing removed.",

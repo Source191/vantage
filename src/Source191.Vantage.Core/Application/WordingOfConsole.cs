@@ -63,6 +63,7 @@ public static partial class Wording
     {
         ConsoleTab.Sessions => "Sessions",
         ConsoleTab.Worktrees => "Worktrees",
+        ConsoleTab.Config => "Config",
     };
 
     private static TextPart Label(string text) => new(text, TextTone.Orange);
