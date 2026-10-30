@@ -6,8 +6,8 @@
 
 ## 2. Default place (Domain, Application, adapters)
 
-- [ ] 2.1 Red: `SettingsShould` asserts `Settings.Resolve` gives New worktree when the place is missing and keeps Current branch when given, and `ToText` and `Validate` carry it. Green: `Settings.DefaultPlace` and `SettingsText.Place`. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build`.
-- [ ] 2.2 Red: `SettingsFileShould` asserts `defaultPlace` round-trips by name and a file without it reads New worktree; `JsonFileStoreShould` asserts the property name in the written file. Green: `VantageConfig.DefaultPlace` and `SettingsFile`.
+- [x] 2.1 Red: `SettingsShould` asserts `Settings.Resolve` gives New worktree when the place is missing and keeps Current branch when given, and `ToText` and `Validate` carry it. Green: `Settings.DefaultPlace` and `SettingsText.Place`. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build`.
+- [x] 2.2 Red: `SettingsFileShould` asserts `defaultPlace` round-trips by name and a file without it reads New worktree; `JsonFileStoreShould` asserts the property name in the written file. Green: `VantageConfig.DefaultPlace` and `SettingsFile`.
 - [ ] 2.3 Red: `WizardViewShould` asserts the wizard opened with `n` starts on the setting, and a fixed folder starts on the current branch whatever it says. Green: `WizardState` reads `settings.DefaultPlace`.
 - [ ] 2.4 Red: `ConfigRowsShould` asserts a Default place row after Default base, `SettingsViewShould` asserts `SettingsScope.Place` opens on it and saves the choice, and `ConfigViewShould` asserts Enter raises `EditSetting(SettingsScope.Place)`. Green: `ConfigRow.DefaultPlace`, the scope, `SettingsInput.PlaceChanged` and the reducer case.
 
