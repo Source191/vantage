@@ -9,6 +9,12 @@ public static partial class Wording
 {
     private const string SetupTerminal = "run vantage setup-terminal";
 
+    /// <summary>The repository roots dialog's button that opens the folder picker.</summary>
+    public static string BrowseButton => "_Browse… (F3)";
+
+    /// <summary>The folder picker's own title, inside the dialog; Vantage's tab says <see cref="DialogName.FolderPicker"/>.</summary>
+    public static string FolderPickerTitle => "Add repository roots";
+
     /// <summary>The caption above the Default place dialog's choice.</summary>
     public static string PlaceCaption => "Where the wizard opened with n starts a session (↑↓ then Space)";
 

@@ -20,6 +20,9 @@ public abstract record SettingsInput
     /// <summary>The repository roots, one per line, as typed.</summary>
     public sealed record RootsChanged(string Text) : SettingsInput;
 
+    /// <summary>The folders chosen in the picker, in the order chosen; none when it was cancelled.</summary>
+    public sealed record FoldersChosen(IReadOnlyList<string> Folders) : SettingsInput;
+
     public sealed record WorktreeRootChanged(string Text) : SettingsInput;
 
     public sealed record PresetChanged(EditorPreset Preset) : SettingsInput;
