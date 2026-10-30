@@ -38,7 +38,7 @@ A primary constructor has no body, so `ArgumentNullException.ThrowIfNull` has no
 
 Alternatives considered: dropping the guards and relying on nullable reference types (rejected: `CurrentSettings` is public and built by `Program.cs` and tests, and a null would surface later as a `NullReferenceException` far from its cause); keeping the explicit constructors and suppressing IDE0290 for these two classes (rejected: a suppression is a standing exception for a style the rest of the code follows).
 
-CA1510 (which asks for `ThrowIfNull`, and fails the build here) is documented as firing on an `if` block that throws `ArgumentNullException`, not on a throw expression, so the two should not conflict; the first build of task 4.2 confirms it, and if CA1510 does fire, the explicit constructor stays for that class and the conflict is recorded here. Because no test covers the guards today, a test for each guard is written first and passes before the move; it then holds the behaviour through the refactor.
+CA1510 (which asks for `ThrowIfNull`, and fails the build here) is documented as firing on an `if` block that throws `ArgumentNullException`, not on a throw expression, so the two do not conflict: the build of task 4.2 (30 October 2026) raised no CA1510 on `CurrentSettings`'s initialisers. Because no test covers the guards today, a test for each guard is written first and passes before the move; it then holds the behaviour through the refactor.
 
 For `CurrentSettings`, `value` stays a mutable field (it is replaced on a save through `Volatile.Write`) initialised from `initial ?? throw ...`; `store` becomes a readonly field initialised the same way.
 

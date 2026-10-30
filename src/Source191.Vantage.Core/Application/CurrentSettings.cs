@@ -8,18 +8,10 @@ namespace Source191.Vantage.Application;
 /// wizard or a dialog, so a save from the settings dialog applies at once without a restart; a hand edit of
 /// config.json applies on the next start.
 /// </summary>
-public sealed class CurrentSettings
+public sealed class CurrentSettings(Settings initial, IVantageConfig store)
 {
-    private readonly IVantageConfig store;
-    private Settings value;
-
-    public CurrentSettings(Settings initial, IVantageConfig store)
-    {
-        ArgumentNullException.ThrowIfNull(initial);
-        ArgumentNullException.ThrowIfNull(store);
-        value = initial;
-        this.store = store;
-    }
+    private readonly IVantageConfig store = store ?? throw new ArgumentNullException(nameof(store));
+    private Settings value = initial ?? throw new ArgumentNullException(nameof(initial));
 
     /// <summary>The settings now: an immutable snapshot, replaced whole on a save.</summary>
     public Settings Value => Volatile.Read(ref value);
