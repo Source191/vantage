@@ -36,7 +36,7 @@ A worktree that git reports as locked SHALL show health locked, its row in amber
 - **THEN** its row is amber and the pane reads locked and the lock reason
 
 ### Requirement: The worktrees header and help match the sessions view
-The worktrees view SHALL be the Worktrees tab of the console, under the same settings line as the Sessions tab, with its own counts beside the tabs and its own key bar grouped Worktree, Folder and view; its help SHALL explain each of its columns and each line of its detail pane; each item of its key bar SHALL show the key's tooltip while the mouse pointer rests on it, and each of its column headers SHALL show what the column shows.
+The worktrees view SHALL be the Worktrees tab of the console, under the same settings line as the Sessions tab, with its own counts beside the tabs and its own key bar grouped Worktree, Folder and view; its status line SHALL show only messages, never a standing hint or the selected row's health, which the detail pane shows; its help SHALL explain each of its columns and each line of its detail pane; each item of its key bar SHALL show the key's tooltip while the mouse pointer rests on it, and each of its column headers SHALL show what the column shows.
 
 #### Scenario: Worktrees help
 - **WHEN** the user presses the help key on the Worktrees tab
@@ -45,6 +45,10 @@ The worktrees view SHALL be the Worktrees tab of the console, under the same set
 #### Scenario: Hover over a key hint
 - **WHEN** the mouse pointer rests on P Prune in the key bar of the Worktrees tab
 - **THEN** a tooltip says it prunes stale registrations in the row's repository
+
+#### Scenario: An unhealthy row selected
+- **WHEN** an elsewhere worktree is selected and no key has reported anything
+- **THEN** the pane's Health line gives the reason and there is no status line
 
 #### Scenario: Hover over a column header
 - **WHEN** the mouse pointer rests on the LAST COMMIT header

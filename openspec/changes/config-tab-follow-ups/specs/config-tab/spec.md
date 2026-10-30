@@ -31,18 +31,3 @@ The Config tab SHALL show a Default place row after Default base, reading New wo
 #### Scenario: Choose the current branch
 - **WHEN** the user presses Enter on Default place, chooses Current branch and presses F5
 - **THEN** the row reads Current branch and the next wizard opened with n starts on Current branch
-
-### Requirement: Each setting describes itself
-Every Config row SHALL have a description of what the setting does or what the setup is for. The footer SHALL show the selected row's description whenever no other message is shown, and resting the mouse on a row SHALL show the same description as a tooltip.
-
-#### Scenario: Footer for the selected row
-- **WHEN** the user selects Worktree root and no message is shown
-- **THEN** the footer says where new worktrees go and how their folders are named
-
-#### Scenario: Tooltip on hover
-- **WHEN** the mouse rests on the Claude bell row
-- **THEN** a tooltip says the bell rings when a session finishes or needs permission while you are away
-
-#### Scenario: A message wins
-- **WHEN** a setting has just been saved
-- **THEN** the footer says it was saved, and goes back to the description when the selection moves

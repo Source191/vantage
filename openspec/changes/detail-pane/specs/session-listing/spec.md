@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: The screen is a header, a table and a footer
-The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, at the right end of the tabs' row, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; the detail pane beneath the table; and beneath that a status line, above the key bar, that shows the last message and is blank when there is none. The status line SHALL NOT name the view or repeat the counts beside the tabs.
+The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, at the right end of the tabs' row, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; the detail pane beneath the table; and beneath that, above the key bar, a status line shown only while there is a message or an action is running, the table taking its row otherwise. A message SHALL clear when the selection moves or the filter changes. The status line SHALL NOT name the view or repeat the counts beside the tabs.
 
 #### Scenario: Table title
 - **WHEN** seven sessions are listed with no filter and fix-123 is selected
@@ -23,7 +23,26 @@ The sessions view SHALL be the Sessions tab of the console: under the settings r
 
 #### Scenario: Nothing to say
 - **WHEN** two sessions need input and no key has reported anything
-- **THEN** the counts beside the tabs read ◐ 2 need input and the status line is blank, with no crumb naming the view
+- **THEN** the counts beside the tabs read ◐ 2 need input, there is no status line, and the table has its row
+
+#### Scenario: A message
+- **WHEN** the user presses c on fix-123
+- **THEN** a status line under the pane says the folder was copied, and it goes when the user presses Down
+
+### Requirement: Column headers explain themselves on hover
+A table column header SHALL show what the column shows as a tooltip while the mouse pointer rests on it, using the same words as the help key and keeping the help's line breaks so the tooltip never runs off the screen, drawn just under the header over the table's rows and never over the detail pane, and SHALL show nothing while the pointer rests on a row.
+
+#### Scenario: Hover over a column header
+- **WHEN** the mouse pointer rests on the STATE header in the sessions view
+- **THEN** a tooltip names the column and lists the state words with their colours
+
+#### Scenario: Hover over the PR header
+- **WHEN** the mouse pointer rests on the PR header on a 120-column terminal
+- **THEN** the tooltip shows the column's meaning on two lines, each within the terminal's width, on the rows just under the header, and the pane is not covered
+
+#### Scenario: Hover over a row
+- **WHEN** the mouse pointer rests on a row of the table
+- **THEN** no column tooltip is shown
 
 ### Requirement: Rows show repository, branch and worktree
 For each session Vantage SHALL derive the repository, the checked-out branch and the folder it runs in. The table SHALL show the repository's name in a REPOSITORY column, or the folder-actions label of a folder outside any repository; the worktree's place (its slug, or the path inside the repository, or the main checkout), the branch and the full folder SHALL be shown in the detail pane. The filter SHALL still match the name, the repository and the branch.

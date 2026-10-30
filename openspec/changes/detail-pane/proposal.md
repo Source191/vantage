@@ -13,6 +13,7 @@ The first version also showed the bottom of the session's screen from `claude lo
 - **The MEM column goes;** memory shows only in the pane, with `m` for the breakdown.
 - **The Worktrees table keeps WORKTREE, LAST COMMIT and SESSION;** BRANCH, PR, DIRTY, UNPUSHED and HEALTH move to the pane, and rows keep their health colours. The pane shows the health with its reason, the branch and whether it is merged into origin's default branch, the pull request, the full folder, whether and when Vantage created it, the changed files and unpushed commits, then the unpushed commits (hash, age, subject) or, when none, the changed files, up to five and how many more.
 - **The footer crumb goes:** the status line under the pane no longer names the view (`<sessions>`, `<worktrees>`, `<config>`) and the Sessions tab's no longer repeats the need-input count beside the tabs; it is blank until there is a message (the owner's check, 30 October 2026).
+- **The status line shows only when it has something to say** (a message, or the spinner while an action runs), and a message clears when the selection moves; the Worktrees tab's standing hint and health sentence go, the pane saying the health; the Config tab's fixed hint gives way to the selected setting's description, also shown on hover (moved from config-tab-follow-ups); and a column header's tooltip is drawn under the header, never over the pane (the owner's check, 30 October 2026).
 - **The help explains the pane's lines,** health words included, as it explained the columns that moved.
 - **Detail never delays the listing:** it is read off the UI thread for the selected row only, when the selection moves and after each refresh, and a late answer for a row the user has left is dropped.
 - **The waiting spinner stays in the table** above the pane, whatever the pane's height.
@@ -29,6 +30,8 @@ Out of scope: the session's screen or output (the `claude logs` spike is recorde
 ### Modified Capabilities
 
 - `session-listing`: "The screen is a header, a table and a footer" (the pane, and a status line with no crumb or count), "Rows show repository, branch and worktree" (REPOSITORY in the table, the rest in the pane), "Long names never hide columns" (REPOSITORY is elastic), "Rows show the session's memory" (the pane only).
+- `config-tab`: ADDED "Each setting describes itself" (from config-tab-follow-ups).
+- `session-listing` also: "Column headers explain themselves on hover" (drawn under the header).
 - `worktree-management`: "One WORKTREE column names the worktree" (no BRANCH column), "Each row shows work at risk" and "Locked worktrees are marked" (in the pane), "The worktrees header and help match the sessions view" (the help explains the pane).
 
 ## Impact

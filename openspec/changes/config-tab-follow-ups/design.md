@@ -18,12 +18,11 @@ After config-tab the settings are rows of the Config tab (`ConfigView` over `Con
 - **The picker adds lines; F5 still decides.** `OpenDialog` answers folder paths and the binder appends them to the roots box, so validation, duplicates and saving stay in `SettingsView` and `Settings.Validate`. Alternative: save straight from the picker; rejected, it would bypass the one place roots are checked.
 - **A spike before the picker is built.** It answers how `OpenDialog` takes `Palette`'s schemes, whether it sets the tab title itself (`BorderSettings.TerminalTitle`, so `DialogTabTitle.Apply` is needed), whether it fits 120 x 36, and whether the headless terminal can drive it for the smoke run. Its findings go in CLAUDE.md's Terminal.Gui facts.
 - **The default place is a domain value.** `Settings.DefaultPlace` holds a `LaunchMode` (or a domain enum of the same two names if `LaunchMode` cannot move below Application, which the layering test decides), written by name as `defaultPlace`. `WizardState` opens on it when there is no fixed folder.
-- **Descriptions are words keyed by row.** `Wording.ConfigDescription(ConfigRow)` (a switch over the cases and `SetupItem`), a `Footer` standing case (`Footer.SettingHint`) that `ConfigViewState.Shown` returns for the selected row when the footer is blank, and a row tooltip in `TableBody` that asks the definition for an optional row tip (`IScreenDefinition.RowTip`, null for the sessions and worktrees tables), shown the way the column-header tooltip is.
+- **Descriptions** (moved to detail-pane at the owner's check, 30 October 2026, and delivered there): **descriptions are words keyed by row.** `Wording.ConfigDescription(ConfigRow)` (a switch over the cases and `SetupItem`), a `Footer` standing case (`Footer.SettingHint`) that `ConfigViewState.Shown` returns for the selected row when the footer is blank, and a row tooltip in `TableBody` that asks the definition for an optional row tip (`IScreenDefinition.RowTip`, null for the sessions and worktrees tables), shown the way the column-header tooltip is.
 
 ## Risks / Trade-offs
 
 - [`OpenDialog` may not suit the console's look or size] → the spike decides before any code; the fallback is to keep typing paths, and the change records why.
-- [Row tooltips need mouse position tracking on the table, which the header tooltip already turns on] → the same handler serves both, so no second tracking path.
 - [wizard-one-form reshapes the wizard] → whichever lands second rebases its `session-launch` delta on the other's text.
 
 ## Migration Plan

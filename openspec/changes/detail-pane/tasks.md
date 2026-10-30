@@ -31,11 +31,15 @@
 
 - [x] 4.6 Remove the footer crumb and the need-input count, which repeated the tab and the counts beside the tabs (asked for at the owner's check, 30 October 2026). Red: `SessionsViewShould.ShowNothingUntilThereIsAMessage`. Green: `Footer.NeedInput` and `SessionsViewState.NeedsInputCount` go, `IScreenDefinition.Crumb` goes, and the status line starts at the left with the busy spinner. Verify the build and every suite pass.
   - Done 30 October 2026: 1839 tests pass; the README's screen parts describe the status line.
+- [ ] 4.7 Messages clear when the selection moves or the filter changes, and the status line shows only while there is a message or an action runs, the table taking its row otherwise (the owner's check, 30 October 2026). Red: the three views' tests assert a message clears on Down and on a filter edit. Green: the reducers; `TableBody` hides the row and re-lays the pane and table. Verify headless: no row under the pane until `c`, and Down clears it.
+- [ ] 4.8 The Worktrees status line has no standing hint or health sentence: `Footer.RemoveHint` and `Footer.Unhealthy` go and `WorktreesViewState.Shown` is the footer. Verify the Core suite passes and an unhealthy row shows no status line headless.
+- [ ] 4.9 A column header's tooltip is drawn just under the header, over the table's rows, never over the pane. Spike anchoring `ShowFor` to a one-row view over the header; else a self-drawn label. Verify headless with SGR motion over the PR header. Record the finding here and in CLAUDE.md.
+- [ ] 4.10 Each Config row describes itself (moved from config-tab-follow-ups): `Wording.ConfigDescription`, `Footer.SettingHint` in place of `Footer.ConfigHint`, `IScreenDefinition.RowTip` and a row tooltip in `TableBody`. Red: `WordingOfConfigShould` (a distinct, non-empty description for every row), `ConfigViewShould` (the hint follows the selection, a message wins). Verify headless: Down changes the status line, and hovering a row shows its tooltip.
 
 ## 5. Version and checks
 
 - [x] 5.1 Raise `Version` one preview step above `main`'s: 0.18.0-preview.8 (main is 0.18.0-preview.7).
-- [x] 5.2 `dotnet build -c Debug` (no warnings), `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate detail-pane --strict`; the hand-off check and the smoke check against the packed tool. Verify all pass and both checks exit 0.
+- [ ] 5.2 `dotnet build -c Debug` (no warnings), `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate detail-pane --strict`; the hand-off check and the smoke check against the packed tool. Verify all pass and both checks exit 0.
   - Done 30 October 2026 after the rework: no warnings, 1842 tests pass (the seven Claude contract tests skip without `VANTAGE_CLAUDE_CONTRACT`), format and validate pass; the hand-off check exits 0 and the smoke check, against the nupkg packed as 0.18.0-preview.8-smoke with `Northwind.Smoke` seeded and removed, exits 0.
 - [ ] 5.3 The product owner installs the build with `tools\install-local.ps1`, reads a waiting session's reason and Prompted in the pane, reads a worktree's branch, changes and unpushed commits in the pane, and checks long repository and worktree names show whole at 120 columns. Record here.
 
