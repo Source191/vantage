@@ -54,7 +54,8 @@ public static class SmokeScript
             // The worktree holds two solutions, neither named after its repository, so v asks which one.
             new SmokeStep(closed, KeyFor(worktrees, "Solution"), Usual),
             new SmokeStep(Opened(DialogName.OpenSolution), escape, Usual),
-            new SmokeStep(closed, KeyFor(worktrees, "Sessions"), Usual),
+            // Esc would only clear the filter typed above, so the tab key goes back.
+            new SmokeStep(closed, TabKey(worktrees, ConsoleTab.Sessions), Usual),
             new SmokeStep(sessionsView, KeyFor(sessions, "Quit"), Usual),
         ];
     }
