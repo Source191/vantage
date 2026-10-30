@@ -29,9 +29,10 @@ internal static class LaunchWizardDialog
         bool binding = false;
         IReadOnlyList<string> listed = [];
         WizardControls controls = new(state);
-        // A fixed folder's form is the directory, the name, a two-line preview and the prompt, so its dialog is sized to them.
+        // One 76-cell column, as tall as the screen allows so the repository list gets the rows; a fixed folder's form is
+        // the directory, the name, a two-line preview and the prompt, so its dialog is sized to them.
         using Dialog dialog = state.ShowsChooser
-            ? new() { Title = Wording.WizardTitle(state), Width = Dim.Percent(90), Height = Dim.Percent(90) }
+            ? new() { Title = Wording.WizardTitle(state), Width = 80, Height = Dim.Percent(90) }
             : new() { Title = Wording.WizardTitle(state), Width = 84, Height = 23 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
         DialogTabTitle.Apply(app, log, dialog, DialogName.NewSession);
