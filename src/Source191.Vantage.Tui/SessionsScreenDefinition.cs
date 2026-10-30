@@ -9,6 +9,9 @@ namespace Source191.Vantage.Tui;
 internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, string claudeExecutable, FolderLabels folders)
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
+    private const int TabColumn = 1;
+    private const int WhereColumn = 3;
+
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(5);
 
     public string Crumb => " <sessions> ";
@@ -25,19 +28,30 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public IReadOnlyList<ColumnHelp> Columns => Wording.SessionsColumns;
 
-    public string Cell(SessionRow row, int column, DateTimeOffset now)
+    public int? ElasticColumn => WhereColumn;
+
+    public string Cell(SessionRow row, int column, DateTimeOffset now, int width)
     {
         return column switch
         {
             0 => row.Session.Name,
-            1 => row.Session.State.Label,
-            2 => row.Repository,
-            3 => folders.For(row.Session.WorkingDirectory),
-            4 => row.Branch?.Value ?? "-",
-            5 => Wording.PullRequestCell(row.PullRequest),
-            6 => Durations.Age(now - row.Session.StartedAt),
-            7 => Tab(row),
+            TabColumn => Swatch(row),
+            2 => $"{Wording.StateGlyph(row.Session.State.Kind)} {row.Session.State.Label}",
+            WhereColumn => Where(row).Fit(width),
+            4 => Wording.PullRequestCell(row.PullRequest),
+            5 => Durations.Age(now - row.Session.StartedAt),
             _ => Wording.MemoryCell(row.Memory),
+        };
+    }
+
+    /// <summary>The swatch takes its tab's colour, or grey for a plain claude in its own terminal; every other cell is the row's colour.</summary>
+    public Color? CellColour(SessionRow row, int column)
+    {
+        return (column, row) switch
+        {
+            (TabColumn, { Session: InteractiveSession }) => Palette.Grey,
+            (TabColumn, { TabColour: TabColour colour }) when Color.TryParse(colour.Hex, out Color? parsed) => parsed,
+            _ => null,
         };
     }
 
@@ -70,13 +84,15 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         }
     }
 
-    /// <summary>"terminal" marks a session started outside Vantage: it lives in its own tab and cannot be attached to.</summary>
-    private static string Tab(SessionRow row)
+    private WhereLabel Where(SessionRow row) => WhereLabel.For(row.Repository, folders.For(row.Session.WorkingDirectory), row.Branch?.Value, row.Checkout is not null);
+
+    /// <summary>A solid block while a Vantage tab shows the session, a hollow one for a session started outside Vantage in its own tab, nothing otherwise.</summary>
+    private static string Swatch(SessionRow row)
     {
         return row switch
         {
-            { Session: InteractiveSession } => "terminal",
-            { HasLiveTab: true } => "open",
+            { Session: InteractiveSession } => Wording.TerminalSwatch,
+            { HasLiveTab: true } => Wording.OpenTabSwatch,
             _ => string.Empty,
         };
     }

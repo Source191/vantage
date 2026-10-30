@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Views;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
@@ -35,8 +36,9 @@ public static class SmokeScript
             new SmokeStep(Opened(DialogName.ProblemReport), escape, Usual),
             new SmokeStep(closed, KeyFor(sessions, "Worktrees"), Usual),
             new SmokeStep(worktreesView, string.Empty, Usual),
-            // The scan has finished once the worktree is in the table; keys typed into the filter before then are lost.
-            new SmokeStep(new CaptureMarker.ScreenText(worktreeFolder), KeyFor(worktrees, "Help"), Slow),
+            // The scan has finished once the table's title names a selection; keys typed into the filter before then are lost.
+            // The WORKTREE cell reads "repository › slug", so the folder name itself is not on screen until the title or the filter shows it.
+            new SmokeStep(new CaptureMarker.ScreenText(SelectionMarker(worktreeFolder)), KeyFor(worktrees, "Help"), Slow),
             new SmokeStep(Opened(DialogName.Keys), escape, Usual),
             new SmokeStep(closed, KeyFor(worktrees, "Filter") + worktreeFolder, Usual),
             new SmokeStep(CaptureMarker.Nothing, Sequence("enter"), Usual),
@@ -71,6 +73,14 @@ public static class SmokeScript
     };
 
     private static CaptureMarker.Title Opened(DialogName dialog) => new(Wording.TabTitleDuring(dialog));
+
+    /// <summary>The words a table title puts before the selected row's name (", selected: "), taken from Wording so a reworded title moves the marker with it.</summary>
+    private static string SelectionMarker(string selected)
+    {
+        string title = Wording.Describe(new TableTitle("worktree", 1, 1, string.Empty, selected));
+
+        return title[title.IndexOf(',', StringComparison.Ordinal)..^selected.Length];
+    }
 
     private static string ColumnOnlyIn(IReadOnlyList<ColumnHelp> view, IReadOnlyList<ColumnHelp> other)
         => view.First(column => other.All(otherColumn => otherColumn.Name != column.Name)).Name;

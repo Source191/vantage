@@ -24,22 +24,26 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
 
     public IReadOnlyList<ColumnHelp> Columns => Wording.WorktreesColumns;
 
-    public string Cell(WorktreeRow row, int column, DateTimeOffset now)
+    public int? ElasticColumn => 0;
+
+    public string Cell(WorktreeRow row, int column, DateTimeOffset now, int width)
     {
         return column switch
         {
-            0 => row.RepositoryName,
-            1 => folders.For(row.Path),
-            2 => row.Branch?.Value ?? "-",
-            3 => Wording.PullRequestCell(row.PullRequest),
-            4 => Count(row.DirtyFiles),
-            5 => Count(row.UnpushedCommits),
-            6 => row.LastCommitAt is null ? "-" : Durations.Age(now - row.LastCommitAt.Value),
-            7 => row.SessionName ?? string.Empty,
+            // The branch has its own column here, so the WORKTREE cell names the repository and the folder's slug only.
+            0 => WhereLabel.For(row.RepositoryName, folders.For(row.Path), branch: null, inRepository: true).Fit(width),
+            1 => row.Branch?.Value ?? "-",
+            2 => Wording.PullRequestCell(row.PullRequest),
+            3 => Count(row.DirtyFiles),
+            4 => Count(row.UnpushedCommits),
+            5 => row.LastCommitAt is null ? "-" : Durations.Age(now - row.LastCommitAt.Value),
+            6 => row.SessionName ?? string.Empty,
             // The kind only: the reason goes in the footer for the selected row, so a long one is never cut off.
             _ => row.Health.Kind.ToString().ToLowerInvariant(),
         };
     }
+
+    public Color? CellColour(WorktreeRow row, int column) => null;
 
     public Color RowColour(WorktreeRow row)
     {

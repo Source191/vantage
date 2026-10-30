@@ -226,6 +226,23 @@ public sealed class SessionRowEnricherShould : IDisposable
         results.ShouldAllBe(rows => rows.Count == 20 && rows.All(row => row.Repository == "Northwind.Orders" && row.Branch == BranchName.From("main")));
     }
 
+    [Fact]
+    public async Task CarryTheCheckoutAndTheTabColour()
+    {
+        AnswerGit(@"C:\repos\Northwind.Orders-fix", root: "C:/repos/Northwind.Orders-fix", commonDir: "C:/repos/Northwind.Orders/.git", branch: "fix");
+        Session inWorktree = Session(@"C:\repos\Northwind.Orders-fix");
+        await store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(inWorktree.SessionId), TabPalette.Default[2], Noon.AddMinutes(-5)).ClaimedBy(7001, Noon.AddMinutes(-5)));
+        registry.Running(7001, Noon.AddMinutes(-5));
+        Session outside = Session(@"C:\Users\me\scratch\notes");
+
+        IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([inWorktree, outside], CancellationToken.None);
+
+        rows[0].Checkout.ShouldBe(FolderPath.From(@"C:\repos\Northwind.Orders"));
+        rows[0].TabColour.ShouldBe(TabPalette.Default[2]);
+        rows[1].Checkout.ShouldBeNull();
+        rows[1].TabColour.ShouldBeNull();
+    }
+
     private void AnswerGit(string directory, string root, string commonDir, string branch)
     {
         processes.Answer(request => request.WorkingDirectory == directory && request.Arguments.Contains("--show-toplevel"), new ProcessResult(0, root + "\n", string.Empty));

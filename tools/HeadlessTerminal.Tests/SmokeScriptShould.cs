@@ -39,7 +39,7 @@ public sealed class SmokeScriptShould
         texts[0].ShouldNotBeOneOf(worktrees);
         texts[1].ShouldBeOneOf(worktrees);
         texts[1].ShouldNotBeOneOf(sessions);
-        texts[2].ShouldBe(Worktree);
+        texts[2].ShouldBe(", selected: ", "the scan has finished once the table's title names a selection; the WORKTREE cell no longer shows the folder name");
         texts[3].ShouldBe($"New session in {Worktree}", "the fixed-folder wizard is recognised by its own title");
         texts[4].ShouldBe(texts[0]);
     }

@@ -139,16 +139,14 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | Column | Meaning |
 | --- | --- |
 | NAME | The session name given at launch (`-n`), or the folder name for an unnamed one |
-| STATE | needs input (amber), working (cyan), idle (white), completed (green), failed (red), stopped (grey) |
-| REPOSITORY | The repository the session runs in (a linked worktree shows its main checkout) |
-| FOLDER | The folder the session runs in, relative to the repository root or the worktree root that holds it (`Northwind.Orders-fix-123`), else relative to your home folder (`~\scratch\notes`), else in full. A worktree is recognisable because its folder name differs from its repository |
-| BRANCH | The branch checked out there |
+| TAB | A one-cell swatch: `▮` in the tab's colour while a Vantage tab shows the session (the tab closes when its attach ends, so the swatch clears with it), `▯` in grey for a session started as plain `claude` in a tab of its own, blank otherwise |
+| STATE | `◐ needs input` (amber), `● working` (cyan), `○ idle` (white), `✓ completed` (green), `✗ failed` (red), `■ stopped` (grey) |
+| WHERE | Where the session runs, in one value: `Northwind.Orders › fix-123` for a worktree whose folder is `Northwind.Orders-fix-123` on branch `fix-123` (a linked worktree names its main checkout); `Northwind.Orders › fix-123 (hotfix)` when the branch is not the slug; `Northwind.Orders (main)` for the main checkout; `Northwind.Orders › src\Api (main)` for a folder inside the repository; and for a folder outside any repository its label alone, relative to the repository root or worktree root that holds it, else to your home folder (`~\scratch\notes`), else in full |
 | PR | The branch's pull request: `#123 open` on GitHub (open, draft, merged, closed), `!123 active` on Azure DevOps (active, draft, completed, abandoned); an open one wins, else the most recent. Blank when there is none or it cannot be looked up; `p` says why. See [Pull requests](#pull-requests) |
-| AGE | Time since the session started |
-| TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session (the tab closes when its attach ends, so `open` clears with it) |
+| AGE | Time since the session started, right-aligned |
 | MEM | The memory the session's process and everything it started are using now: the private working set, the figure Task Manager's Memory column shows, so pages shared between the MCP servers' node processes count once and pages Windows has paged out do not count. `-` for a stopped session |
 
-NAME, REPOSITORY, FOLDER and BRANCH are cut at 28 characters with an ellipsis, so one long name cannot push the other columns off screen; Left and Right scroll the table to them, and the title, the filter and every key still use the full value.
+WHERE takes the width the other columns leave, so every column fits a 120-column terminal; a repository name too long for it loses its middle to an ellipsis (`Northwind.Integrat…ngeFeedMonitoring › fix-123`) and the slug and branch stay whole. NAME is cut at 28 characters with an ellipsis. Left and Right scroll the table on a narrower terminal, and the title, the filter and every key still use the full values.
 
 Keys (every key is dispatched by the tested reducer, so this table is the reference):
 
@@ -161,7 +159,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | n | New session wizard |
 | r | Rename the session from Vantage: type the new name, Enter. The session restarts under the new name with the same id and conversation, so it is refused while the session is working or before its first message. A Vantage tab showing it closes and a tab under the new name opens in the same colour |
 | x | Stop the session (it stays listed and can be resumed); a Vantage tab showing it closes |
-| d | Delete the session, after a confirmation, closing a Vantage tab showing it first, and the worktree Vantage created for it when nothing in it would be lost; asks before deleting that worktree's branch when it is not merged. A worktree whose `.git` has gone has its folder deleted and its registration pruned; one whose folder a tab or program still has open is reported as in use, by name, and a remove from the worktrees view finishes it once that is closed. On a `terminal` row that has never been sent a message, closes that tab instead |
+| d | Delete the session, after a confirmation, closing a Vantage tab showing it first, and the worktree Vantage created for it when nothing in it would be lost; asks before deleting that worktree's branch when it is not merged. A worktree whose `.git` has gone has its folder deleted and its registration pruned; one whose folder a tab or program still has open is reported as in use, by name, and a remove from the worktrees view finishes it once that is closed. On a row with the hollow `▯` swatch (a plain `claude` in its own terminal) that has never been sent a message, closes that tab instead |
 | C | Close every tab whose plain `claude` has never been sent a message, after a confirmation naming them |
 | b | Move a plain terminal session under Vantage's supervision; its old tab closes once the session has resumed (a failed resume leaves it at its prompt) |
 | R | Resume sessions that stopped with a reboot |
@@ -178,7 +176,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
 | q | Quit |
 
-Rows marked `terminal` are sessions started by hand with `claude` in some tab. Vantage can see them but cannot attach to or stop them; press `b` to bring one under supervision, or type `/bg` inside it. One that has never been sent a message has nothing to keep: `d` closes its tab, `C` closes all such tabs, and the footer says so. Vantage ends the claude process, then ends the tab's shell with a clean exit code, which is what makes Windows Terminal close the tab; a session not inside a Windows Terminal tab is just ended.
+Rows with the hollow `▯` swatch in TAB are sessions started by hand with `claude` in some tab. Vantage can see them but cannot attach to or stop them; press `b` to bring one under supervision, or type `/bg` inside it. One that has never been sent a message has nothing to keep: `d` closes its tab, `C` closes all such tabs, and the footer says so. Vantage ends the claude process, then ends the tab's shell with a clean exit code, which is what makes Windows Terminal close the tab; a session not inside a Windows Terminal tab is just ended.
 
 ## The new session wizard
 
@@ -201,7 +199,7 @@ Enter never starts a session here, so there is nothing to undo if you press it t
 
 **Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. A session that has never had a message opens at its own prompt, and Ctrl+Z returns from it in the same way. Vantage prints a one-line reminder before every attach and erases it when you come back, so the scrollback keeps no copies.
 
-**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows `open`. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the column clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
+**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows a solid `▮` in that tab's colour. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
 
 ## The worktrees view
 
@@ -213,16 +211,17 @@ Press `w`. Vantage lists every linked worktree of the repositories under your ro
                                                               <enter>   Go to session
   4 worktrees, selected: Northwind.Billing-invoice-pdf
  ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
- ││REPOSITORY          │FOLDER                        │BRANCH                   │DIRTY│UNPUSHED│LAST COMMIT│SESSION   │HEALTH │
- │ Northwind.Billing    Northwind.Billing-invoice-pdf   invoice-pdf                     12       3d4h       invoice-pdf ok    │
- │ Northwind.Billing    Northwind.Billing-study         study/reporting          5                9d16h                 ok    │
- │ Northwind.Orders     Northwind.Orders-fix-tests      fix-tests                        2        1d0h       fix-tests   ok    │
- │ Northwind.Sales      Northwind.Sales-republish       -                                         -                     broken│
+ ││WORKTREE                                          │BRANCH                   │DIRTY│UNPUSHED│LAST COMMIT│SESSION   │HEALTH │
+ │ Northwind.Billing › invoice-pdf                    invoice-pdf                     12       3d4h       invoice-pdf ok    │
+ │ Northwind.Billing › study                          study/reporting          5                9d16h                 ok    │
+ │ Northwind.Orders › fix-tests                       fix-tests                        2        1d0h       fix-tests   ok    │
+ │ Northwind.Sales › republish                        -                                         -                     broken│
 ```
 
 | Column | Meaning |
 | --- | --- |
-| REPOSITORY, FOLDER, BRANCH | The owning repository, the worktree folder (relative to its root, as in the sessions view) and its branch |
+| WORKTREE | The owning repository, then `›` and the worktree folder's slug (`Northwind.Billing › invoice-pdf` for the folder `Northwind.Billing-invoice-pdf`), or the folder's label when it is not named after the repository. The column takes the width the others leave and elides the middle of a long repository name, as WHERE does in the sessions view |
+| BRANCH | The branch checked out there |
 | DIRTY | Changed or untracked files in the worktree |
 | UNPUSHED | Commits on its branch that no remote has |
 | LAST COMMIT | Age of the last commit |
@@ -230,7 +229,7 @@ Press `w`. Vantage lists every linked worktree of the repositories under your ro
 | SESSION | The session running inside it, if any |
 | HEALTH | `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it), `elsewhere` (a live worktree of a repository that is not under the roots, so Vantage never scanned it; the row names that repository, and the footer says where it is) |
 
-When nothing else needs saying, the footer explains the selected row's health in full. Long repository, folder and branch names are cut with an ellipsis as in the sessions view, and Left and Right scroll the table.
+When nothing else needs saying, the footer explains the selected row's health in full. A long repository name is elided in the middle of the WORKTREE cell, BRANCH is cut at 28 characters, and Left and Right scroll the table on a narrow terminal.
 
 | Key | Action |
 | --- | --- |
@@ -315,15 +314,15 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 ## Common scenarios
 
-**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story (`New worktree` is already chosen), type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and its FOLDER cell shows the worktree.
+**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story (`New worktree` is already chosen), type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and its WHERE cell reads the repository › the worktree's slug.
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
-**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows `open`; `o` again switches to that tab until it is closed.
+**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows a solid `▮` in the tab's colour; `o` again switches to that tab until it is closed.
 
 **Start Claude from a repository folder you are already in.** `vh fix-tests -p "..."` instead of `claude`. It shows up in Vantage with a job id, so `o`, `x` and `d` work on it later.
 
-**A session you started with plain `claude` needs the same treatment.** Select its `terminal` row and press `b` while it is idle or waiting. Vantage ends the plain process and resumes the same conversation under the supervisor with the same name; the old tab becomes an ordinary shell. A session you have not sent anything to yet is refused, because Claude writes no transcript until the first message and there would be nothing to resume: `d` closes that tab instead.
+**A session you started with plain `claude` needs the same treatment.** Select its row (the hollow `▯` swatch) and press `b` while it is idle or waiting. Vantage ends the plain process and resumes the same conversation under the supervisor with the same name; the old tab becomes an ordinary shell. A session you have not sent anything to yet is refused, because Claude writes no transcript until the first message and there would be nothing to resume: `d` closes that tab instead.
 
 **After a reboot.** Sessions show as stopped or failed with no process. `R` resumes the failed ones and offers the stopped ones as a checklist.
 
@@ -470,7 +469,7 @@ Branch protection on `main` has "Require branches to be up to date before mergin
 The runner drives Vantage inside a pseudo-console, which is the same plumbing Windows Terminal uses for a tab, so rendering, keys and the attach hand-off are covered. Anything that goes out through `wt.exe` is not: a runner has no desktop for a tab to appear on. Before merging a pull request that changes how Vantage drives `wt.exe`, opens, titles or colours tabs, or attaches to a session, install its package (`tools\install-local.ps1`) and run these in a real Windows Terminal:
 
 1. `o` on a session opens a coloured tab titled with the session name, and `o` again switches to that tab while it is open.
-2. `n`, choose a repository, name the session and leave `New worktree` chosen, F6: a new tab opens attached to the new session, and its FOLDER cell shows the worktree.
+2. `n`, choose a repository, name the session and leave `New worktree` chosen, F6: a new tab opens attached to the new session, and its WHERE cell reads the repository › the worktree's slug.
 3. `d` on that session ends claude and the tab closes by itself.
 4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
 5. Ctrl+Z from an attached session returns to the table with the keys still working.

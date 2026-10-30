@@ -6,6 +6,7 @@ using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
+using Alignment = Terminal.Gui.ViewBase.Alignment;
 using GuiKey = Terminal.Gui.Input.Key;
 
 namespace Source191.Vantage.Tui;
@@ -269,7 +270,8 @@ internal sealed class TableScreen<TState, TRow>(
         {
             IReadOnlyList<TRow> rows = state.List.Visible;
             selected = state.List.Selected;
-            table.Table = new TableSource<TRow>(rows, columnNames, (row, column) => definition.Cell(row, column, now));
+            int elasticWidth = ElasticWidth(rows, now);
+            table.Table = new TableSource<TRow>(rows, columnNames, (row, column) => definition.Cell(row, column, now, column == definition.ElasticColumn ? elasticWidth : int.MaxValue));
             table.ColumnOffset = columnOffset;
             contextValues.Text = $"{context.HeaderValues()}\n{definition.ContextLines(state)}";
             string described = Wording.Describe(state.Title);
@@ -333,19 +335,88 @@ internal sealed class TableScreen<TState, TRow>(
             }
         }
 
-        /// <summary>Names, repositories, folders and branches are cut at 28 cells with an ellipsis, so one long value cannot push the other columns off screen; rows keep the full values.</summary>
+        private const int LongColumnCap = 28;
+        private const int ElasticFloor = 20;
+
+        /// <summary>
+        /// Names and branches are cut at 28 cells with an ellipsis, so one long value cannot push the other columns off
+        /// screen; rows keep the full values. Ages are right-aligned, and every column asks the definition for a cell's own colour.
+        /// </summary>
         private void CapLongColumns()
         {
-            string[] capped = ["NAME", "REPOSITORY", "FOLDER", "BRANCH"];
+            string[] capped = ["NAME", "BRANCH"];
             for (int column = 0; column < columnNames.Length; column++)
             {
+                ColumnStyle style = table.Style.GetOrCreateColumnStyle(column);
+                style.ColorGetter = CellColour;
                 if (capped.Contains(columnNames[column]))
                 {
-                    ColumnStyle style = table.Style.GetOrCreateColumnStyle(column);
-                    style.MaxWidth = 28;
+                    style.MaxWidth = LongColumnCap;
                     style.TruncationIndicator = "…";
                 }
+
+                if (columnNames[column] == "AGE")
+                {
+                    style.Alignment = Alignment.End;
+                }
             }
+        }
+
+        /// <summary>
+        /// The cells the elastic column may have: the table's content width minus the other columns' widest visible cells (capped as the
+        /// styles cap them), a separator per column and the frame, never below the floor. The elastic column's style is capped to it too.
+        /// </summary>
+        private int ElasticWidth(IReadOnlyList<TRow> rows, DateTimeOffset now)
+        {
+            if (definition.ElasticColumn is not int elastic)
+            {
+                return int.MaxValue;
+            }
+
+            int contentWidth = table.Viewport.Width > 0 ? table.Viewport.Width : Window.Viewport.Width - 3;
+            int others = 0;
+            for (int column = 0; column < columnNames.Length; column++)
+            {
+                if (column != elastic)
+                {
+                    others += WidestCell(rows, column, now);
+                }
+            }
+
+            // The table sizes a column to its content, so the minimum is what makes the elastic column take the spare width.
+            int width = Math.Max(contentWidth - others - columnNames.Length - 1, ElasticFloor);
+            ColumnStyle style = table.Style.GetOrCreateColumnStyle(elastic);
+            style.MaxWidth = width;
+            style.MinWidth = width;
+
+            return width;
+        }
+
+        private int WidestCell(IReadOnlyList<TRow> rows, int column, DateTimeOffset now)
+        {
+            int widest = Math.Max(columnNames[column].Length, rows.Count == 0 ? 0 : rows.Max(row => definition.Cell(row, column, now, int.MaxValue).Length));
+            ColumnStyle? style = table.Style.GetColumnStyleIfAny(column);
+
+            return style?.MaxWidth is int cap ? Math.Min(widest, cap) : widest;
+        }
+
+        /// <summary>A cell's own colour, from the definition; the selected row keeps its highlight and every other cell its row's colour.</summary>
+        private Scheme? CellColour(CellColorGetterArgs args)
+        {
+            if (args.Table is not TableSource<TRow> source)
+            {
+                return null;
+            }
+
+            TRow row = source.RowAt(args.RowIndex);
+            if (Equals(row, selected))
+            {
+                return null;
+            }
+
+            Color? colour = definition.CellColour(row, args.ColIdex);
+
+            return colour is Color own ? Palette.Plain(own) : null;
         }
 
         /// <summary>One key label and one hint label per row, in the columns the keys name, each column from its own first row.</summary>
