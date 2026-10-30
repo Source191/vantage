@@ -2,7 +2,7 @@
 
 ## 1. The contributing guide
 
-- [ ] 1.1 Write `CONTRIBUTING.md`: how to contribute (issue first, owner approval, Apache 2.0, no CLA, security), setting up, the build and test loop, local and CI installs, the projects, the code rules in summary with CLAUDE.md as authority, the OpenSpec stages and why the specs and archive are kept, the pull request checklist, manual checks, continuous integration, versions, and the "Releasing and maintaining" section. Verify every command in it matches CLAUDE.md and the workflows, and every relative link resolves to a file in the repository.
+- [x] 1.1 Write `CONTRIBUTING.md`: how to contribute (issue first, owner approval, Apache 2.0, no CLA, security), setting up, the build and test loop, local and CI installs, the projects, the code rules in summary with CLAUDE.md as authority, the OpenSpec stages and why the specs and archive are kept, the pull request checklist, manual checks, continuous integration, versions, and the "Releasing and maintaining" section. Verify every command in it matches CLAUDE.md and the workflows, and every relative link resolves to a file in the repository.
 
 ## 2. The README as a user guide
 
