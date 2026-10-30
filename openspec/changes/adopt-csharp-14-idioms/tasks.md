@@ -36,7 +36,8 @@ Every group ends green: `dotnet build -c Debug`, `dotnet test -c Debug --no-buil
 
 ## 6. C# 14 clean-ups
 
-- [ ] 6.1 Add `csharp_style_prefer_unbound_generic_type_in_nameof = true:warning`, `csharp_style_prefer_simple_property_accessors = true:warning` and IDE0340, IDE0360, IDE0370 and IDE0380 at `warning`; fix whatever the build lists (the measured expectation is none or a handful of `!` suppressions for IDE0370). Verify the build and every suite pass and list here any site that changed.
+- [x] 6.1 Add `csharp_style_prefer_unbound_generic_type_in_nameof = true:warning`, `csharp_style_prefer_simple_property_accessors = true:warning` and IDE0340, IDE0360, IDE0370 and IDE0380 at `warning`; fix whatever the build lists (the measured expectation is none or a handful of `!` suppressions for IDE0370). Verify the build and every suite pass and list here any site that changed.
+  - Recorded 30 October 2026: no site changed; the build passed with all four rules at `warning`, and a scratch file with `nameof(List<int>)` and `"a"!` failed with IDE0340 and IDE0370 before it was deleted.
 
 ## 7. Switch expressions
 

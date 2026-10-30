@@ -112,6 +112,14 @@ dotnet_diagnostic.IDE0083.severity = warning
 csharp_prefer_static_local_function = true:suggestion
 csharp_prefer_system_threading_lock = true:warning
 dotnet_diagnostic.IDE0330.severity = warning
+
+# C# 14 clean-ups: unbound generic types in nameof, the field keyword for simple accessors, needless ! and unsafe.
+csharp_style_prefer_unbound_generic_type_in_nameof = true:warning
+csharp_style_prefer_simple_property_accessors = true:warning
+dotnet_diagnostic.IDE0340.severity = warning
+dotnet_diagnostic.IDE0360.severity = warning
+dotnet_diagnostic.IDE0370.severity = warning
+dotnet_diagnostic.IDE0380.severity = warning
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:silent
 
 # Code-block preferences
