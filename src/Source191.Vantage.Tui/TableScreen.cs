@@ -160,7 +160,7 @@ internal sealed class TableScreen<TState, TRow>(
             {
                 switch (effect)
                 {
-                    case ILeavesScreen:
+                    case ILeavesScreen or ISwitchesTab:
                         Exit = effect;
                         app.RequestStop();
                         return;
