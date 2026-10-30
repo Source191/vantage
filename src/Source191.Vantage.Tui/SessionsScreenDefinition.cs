@@ -20,6 +20,8 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public IDetailSource<SessionRow>? Detail => detail;
 
+    public string? RowTip(SessionRow row) => null;
+
 
     public string WaitingText => "Listing sessions";
 

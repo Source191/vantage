@@ -88,13 +88,14 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly CancellationTokenSource lifetime = new();
 
     /// <summary>
-    /// What a column's tooltip hangs from: Terminal.Gui draws a tooltip under its target's frame, and under the whole table
-    /// that is the detail pane, so the target is this view over the header, as wide as nothing, moved to the pointer.
+    /// What a tooltip hangs from: Terminal.Gui draws a tooltip under its target's frame, and under the whole table that is
+    /// the detail pane, so the target is this view, as wide as nothing, laid over the header or the row under the pointer.
     /// </summary>
-    private readonly View headerAnchor = new() { X = 0, Y = 0, Width = 0, Height = HeaderRows, CanFocus = false };
+    private readonly View toolTipAnchor = new() { X = 0, Y = 0, Width = 0, Height = HeaderRows, CanFocus = false };
     private object? detailKey;
     private TRow? selected;
     private int? headerUnderMouse;
+    private int? rowUnderMouse;
     private int columnOffset;
     private bool isShown;
     private bool running;
@@ -143,7 +144,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         waiting = new WaitingIndicator(definition.WaitingText) { Y = Pos.Func(_ => table.Frame.Y + (table.Frame.Height / 2), table) };
         footer = Text(3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
 
-        View.Add(table, busy, footer, waiting, headerAnchor);
+        View.Add(table, busy, footer, waiting, toolTipAnchor);
         if (detail is not null)
         {
             requests = new DetailRequests();
@@ -449,37 +450,56 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     private void HideColumnToolTip()
     {
-        if (headerUnderMouse is not null)
+        if (headerUnderMouse is not null || rowUnderMouse is not null)
         {
             app.ToolTips?.Hide();
         }
 
         headerUnderMouse = null;
+        rowUnderMouse = null;
     }
 
+    /// <summary>A column's meaning while the pointer rests on its header; a row's tip, when the view gives one, while it rests on the row.</summary>
     private void ShowColumnToolTip(Terminal.Gui.Input.Mouse mouse)
     {
         int? header = null;
+        System.Drawing.Point? cell = null;
         if (mouse.Position is System.Drawing.Point position)
         {
-            table.ScreenToCell(position, out header);
+            cell = table.ScreenToCell(position, out header);
         }
 
-        if (header == headerUnderMouse)
+        int? row = header is null ? cell?.Y : null;
+        if (header == headerUnderMouse && row == rowUnderMouse)
         {
             return;
         }
 
         HideColumnToolTip();
         headerUnderMouse = header;
+        rowUnderMouse = row;
+        int x = table.Frame.X + (mouse.Position?.X ?? 0);
         if (header is int column && column < definition.Columns.Count)
         {
             ColumnHelp help = definition.Columns[column];
-            headerAnchor.X = table.Frame.X + (mouse.Position?.X ?? 0);
-            headerAnchor.Y = table.Frame.Y;
-            View.Layout();
-            app.ToolTips?.ShowFor(headerAnchor, new ToolTipProvider(() => ToolTips.View($"{help.Name}: {help.Meaning}")));
+            ShowToolTip(x, table.Frame.Y, HeaderRows, $"{help.Name}: {help.Meaning}");
+            return;
         }
+
+        if (row is int index && table.Table is TableSource<TRow> source && index < source.Rows && definition.RowTip(source.RowAt(index)) is string tip)
+        {
+            ShowToolTip(x, table.Frame.Y + (mouse.Position?.Y ?? 0), 1, tip);
+        }
+    }
+
+    /// <summary>Lays the anchor over the header or the row at the pointer and shows the tooltip on the row under it.</summary>
+    private void ShowToolTip(int x, int y, int height, string text)
+    {
+        toolTipAnchor.X = x;
+        toolTipAnchor.Y = y;
+        toolTipAnchor.Height = height;
+        View.Layout();
+        app.ToolTips?.ShowFor(toolTipAnchor, new ToolTipProvider(() => ToolTips.View(text)));
     }
 
     /// <summary>

@@ -56,6 +56,9 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>Sees every input before the state is replaced, for the notifier.</summary>
     void OnInput(TState before, ViewInput input);
 
+    /// <summary>What a row is, shown as a tooltip while the pointer rests on it, or null for a view whose rows need none.</summary>
+    string? RowTip(TRow row);
+
     /// <summary>How the pane under the table reads the selected row, or null for a view with no pane.</summary>
     IDetailSource<TRow>? Detail { get; }
 }
