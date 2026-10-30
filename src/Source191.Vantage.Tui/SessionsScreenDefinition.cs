@@ -12,6 +12,9 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
     private const int TabColumn = 1;
     private const int WhereColumn = 3;
 
+    /// <summary>The block a Vantage tab's colour is drawn with: two cells, leaving the column's third as space before the state.</summary>
+    private const string TabBlock = "██";
+
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(5);
 
     public string Crumb => " <sessions> ";
@@ -19,10 +22,6 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
     public string WaitingText => "Listing sessions";
 
     public string LoadFailurePrefix => "listing failed";
-
-    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nWorktree root:\nSessions:\nNeed input:";
-
-    public IReadOnlyList<KeyHelp> Keys => Wording.SessionsKeys;
 
     public string HelpText => Wording.SessionsHelp(claudeExecutable);
 
@@ -44,28 +43,24 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         };
     }
 
-    /// <summary>The swatch takes its tab's colour, or grey for a plain claude in its own terminal; every other cell is the row's colour.</summary>
-    public Color? CellColour(SessionRow row, int column)
+    /// <summary>The block keeps its tab's colour on every row, the selected one too; a plain claude in its own terminal shows a grey hollow block.</summary>
+    public CellPaint? CellPaint(SessionRow row, int column)
     {
         return (column, row) switch
         {
-            (TabColumn, { Session: InteractiveSession }) => Palette.Grey,
-            (TabColumn, { TabColour: TabColour colour }) when Color.TryParse(colour.Hex, out Color? parsed) => parsed,
+            (TabColumn, { Session: InteractiveSession }) => new CellPaint(Palette.Grey),
+            (TabColumn, { HasLiveTab: true, TabColour: TabColour colour }) when Color.TryParse(colour.Hex, out Color? parsed) => new CellPaint(parsed.Value, Always: true),
             _ => null,
         };
     }
 
     public Color RowColour(SessionRow row) => Palette.ForState(row.Session.State.Kind);
 
-    /// <summary>The sessions line (45 columns at most, so it never wraps into the "Need input" row) and the needs-input count.</summary>
-    public string ContextLines(SessionsViewState state)
-    {
-        const int width = 45;
-        string summary = Wording.SessionsSummary(state.Rows);
-        string fitted = summary.Length <= width ? summary : summary[..(width - 1)] + "…";
+    public string TabTitle(SessionsViewState state) => Wording.TabTitleFor(ConsoleTab.Sessions);
 
-        return $"{fitted}\n{state.NeedsInputCount}";
-    }
+    public IReadOnlyList<TextPart> Counts(SessionsViewState state) => Wording.SessionCounts(state.Rows);
+
+    public KeyBar Bar(SessionsViewState state, bool updateKnown) => Wording.SessionsBar(state, updateKnown);
 
     public SessionsViewState WithFooter(SessionsViewState state, Footer footer) => state with { Footer = footer };
 
@@ -86,13 +81,13 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     private WhereLabel Where(SessionRow row) => WhereLabel.For(row.Repository, folders.For(row.Session.WorkingDirectory), row.Branch?.Value, row.Checkout is not null);
 
-    /// <summary>A solid block while a Vantage tab shows the session, a hollow one for a session started outside Vantage in its own tab, nothing otherwise.</summary>
+    /// <summary>A filled cell while a Vantage tab shows the session, a hollow block for a session started outside Vantage in its own tab, nothing otherwise.</summary>
     private static string Swatch(SessionRow row)
     {
         return row switch
         {
             { Session: InteractiveSession } => Wording.TerminalSwatch,
-            { HasLiveTab: true } => Wording.OpenTabSwatch,
+            { HasLiveTab: true } => TabBlock,
             _ => string.Empty,
         };
     }

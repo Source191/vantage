@@ -126,11 +126,11 @@ public sealed class DiagnosticsPrivacyShould
         InMemoryState state = new();
         OwnTab ownTab = new(state, new FakeProcessRegistry().Running(100, Noon), clock);
         UpdateCheck updates = new(new ToolVersion("0.17.0"), () => false, state, new FakePackageVersions([]), clock);
-        ScriptedSessionsScreen sessions = new(
-            current => new ScreenExit(current, new AttachToSession(JobId.From(Job))),
-            current => new ScreenExit(current, new Quit()));
+        ScriptedConsoleScreen screen = new(
+            current => new ConsoleExit(current, new AttachToSession(JobId.From(Job))),
+            current => new ConsoleExit(current, new Quit()));
         FakeTerminalConsole console = new();
-        ScreenLoop loop = new(sessions, new ScriptedWorktreesScreen(), ownTab, console, new TerminalEffects(claude, console), updates, log);
+        ScreenLoop loop = new(screen, ownTab, console, new TerminalEffects(claude, console), updates, log);
 
         await loop.RunAsync(processId: 100, CancellationToken.None);
     }

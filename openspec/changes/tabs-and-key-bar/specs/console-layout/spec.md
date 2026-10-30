@@ -1,24 +1,28 @@
 # Spec Delta
 
 ## Purpose
-The frame the sessions and worktrees views share: one settings line, two tabs with their counts, a key bar that names the keys for the selected row, and one console that keeps each tab's state across switches and hand-offs.
+The frame the sessions and worktrees views share: two settings lines under the Vantage icon, two tabs with the active one marked, the counts and the table's title on their row, a key bar that names the keys for the selected row, and one console that keeps each tab's state across switches and hand-offs.
 
 ## ADDED Requirements
 
 ### Requirement: Sessions and worktrees are two tabs of one screen
-The console SHALL show the sessions view and the worktrees view as two tabs of one screen, titled Sessions and Worktrees with the number of rows each lists in brackets once loaded. The 1 and 2 keys SHALL select a tab, the w key SHALL toggle between them, Esc on the worktrees tab with no filter SHALL return to Sessions, and a click on a tab's title SHALL select it. Each tab SHALL keep its rows, selection, filter and footer while the other is shown.
+The console SHALL show the sessions view and the worktrees view as two tabs of one screen, titled Sessions and Worktrees. The 1 and 2 keys SHALL select a tab, the w key SHALL toggle between them, Esc on the worktrees tab with no filter SHALL return to Sessions, and a click on a tab's title SHALL select it. Each tab SHALL keep its rows, selection, filter and footer while the other is shown.
 
 #### Scenario: Switch and come back
 - **WHEN** the user selects templates-sync, types a filter of "temp", presses 2 and then 1
 - **THEN** the Sessions tab shows at once with templates-sync still selected and the filter "temp" still set
 
-#### Scenario: Tab titles carry the counts
-- **WHEN** six sessions are listed and seven worktrees have been scanned
-- **THEN** the tabs read Sessions (6) and Worktrees (7)
+#### Scenario: Tab titles stay put
+- **WHEN** the sessions are listed and the worktrees are scanned, and their counts change
+- **THEN** the tabs read Sessions and Worktrees throughout, side by side without overlapping
 
 #### Scenario: Worktrees not yet scanned
 - **WHEN** the console starts and the worktrees tab has never been opened
-- **THEN** its title reads Worktrees with no count, and the scan starts when it is first selected
+- **THEN** no worktree scan has run, and the scan starts, with its waiting indicator, when the tab is first selected
+
+#### Scenario: The arrows stay with the table
+- **WHEN** the Sessions tab is shown and the user presses Down twice
+- **THEN** the selection moves down two rows and the Sessions tab stays shown
 
 #### Scenario: Esc on the worktrees tab
 - **WHEN** the worktrees tab is shown with no filter and the user presses Esc
@@ -28,31 +32,69 @@ The console SHALL show the sessions view and the worktrees view as two tabs of o
 - **WHEN** the user presses Enter on a worktree row with a session inside it
 - **THEN** the Sessions tab is shown with that session selected, without leaving the console
 
-### Requirement: The settings line is one line
-The first row of the screen SHALL read Vantage, its version and memory in brackets, then Claude and its version, then Roots and the roots, then Worktree root and the root, separated by · and drawn in grey. The update notice and the below-minimum Claude warning SHALL keep their places inside the Vantage and Claude parts. When the line is wider than the terminal the roots SHALL be elided first, with an ellipsis, and the whole list SHALL stay in Settings.
+### Requirement: The active tab stands out
+The active tab's title SHALL be drawn in bold cyan and the other tab's title in grey; the tabs' frames and every join between them SHALL stay grey, and the table's header SHALL be a box closed on all four sides, its lines in the frames' grey and its column names white, so the tab shown is plain at a glance.
 
-#### Scenario: Line at 120 columns
+#### Scenario: Sessions active
+- **WHEN** the Sessions tab is shown
+- **THEN** its title is bold cyan, the Worktrees title grey, and the frames and the table's header box stay grey
+
+#### Scenario: Worktrees active
+- **WHEN** the user presses 2
+- **THEN** the Worktrees title turns bold cyan and the Sessions title grey, and no frame line or join changes colour
+
+### Requirement: The settings take two lines
+The first two rows SHALL show the settings, labels orange, values white, parts separated by a grey ·: first Vantage with its version and memory, then Claude and its version, with the update notice and the below-minimum warning in their places; second Repository roots with every root, then Worktree root. When the second row is too wide the roots SHALL be elided first, then the worktree root, each with an ellipsis.
+
+#### Scenario: Both rows fit
 - **WHEN** Vantage 0.18.0 uses 35 MB with Claude Code 2.1.310, the root C:\Users\me\source\repos and the worktree root C:\Users\me\source\worktrees on a 120-column terminal
-- **THEN** the line reads Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees, whole
+- **THEN** the first row reads Vantage 0.18.0 (35 MB) · Claude 2.1.310 and the second Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees, the labels orange and the values white
 
-#### Scenario: Line too wide
-- **WHEN** the same values carry an update notice, 0.19.0 available, U to update, on a 120-column terminal
-- **THEN** the notice is shown in full and the roots end in an ellipsis so the line fits
+#### Scenario: Several roots
+- **WHEN** the roots are C:\Users\me\source\repos and D:\work
+- **THEN** the second row reads Repository roots C:\Users\me\source\repos; D:\work · Worktree root C:\Users\me\source\worktrees
 
-#### Scenario: Wide terminal
-- **WHEN** the terminal is 160 columns wide
-- **THEN** the line with the notice is shown whole
+#### Scenario: Too many roots for the row
+- **WHEN** the roots are C:\Users\me\source\repos, D:\work\northwind and E:\archive\northwind-old and the row has 80 cells
+- **THEN** the second row reads Repository roots C:\Users\me\sourc… · Worktree root C:\Users\me\source\worktrees
 
-### Requirement: The counts sit beside the tabs
-On the tabs' row the console SHALL show, beside the tab titles, the sessions counts as a glyph, a count and a state word for each state present, each in that state's colour, separated by ·, and on the worktrees tab a count per health present followed by how many worktrees have changes and how many have unpushed commits. Needs input SHALL come first when present.
+#### Scenario: Room for neither
+- **WHEN** the second row has 50 cells
+- **THEN** it reads Repository roots … · Worktree root C:\Users\me\so…
+
+#### Scenario: An update is available
+- **WHEN** 0.19.0 is the newest release
+- **THEN** the first row reads Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310
+
+### Requirement: The Vantage icon heads the settings
+Where the terminal can draw images, the console SHALL draw the Vantage icon two rows high at the left of the two settings rows, which then start after it; where it cannot, the console SHALL draw no icon and the settings rows SHALL start at the left edge.
+
+#### Scenario: A terminal that draws images
+- **WHEN** Vantage runs in Windows Terminal, which draws Sixel images
+- **THEN** the icon spans the first two rows at the left and both settings rows start to its right
+
+#### Scenario: A terminal that cannot
+- **WHEN** the terminal does not report image support
+- **THEN** no icon is drawn and both settings rows start at the left edge
+
+### Requirement: The counts and the table's title sit beside the tabs
+On the row of the tab titles the console SHALL show, after them, the active tab's counts separated by ·: per state present a glyph, count and word in the state's colour, needs input first; or per health present a count, then how many worktrees have changes and unpushed commits. At the row's right end it SHALL show the table's title, or a failure banner, cut at its end when too long, a filter being typed before it.
 
 #### Scenario: Mixed session states
 - **WHEN** six sessions are listed, two needing input, one working, one idle, one completed and one stopped
-- **THEN** the row reads ◐ 2 need input · ● 1 working · ○ 1 idle · ✓ 1 completed · ■ 1 stopped, the first in amber
+- **THEN** the counts read ◐ 2 need input · ● 1 working · ○ 1 idle · ✓ 1 completed · ■ 1 stopped, the first in amber
 
 #### Scenario: Worktree counts
 - **WHEN** seven worktrees are listed, five ok, one locked and one broken, two with changes and two with unpushed commits
-- **THEN** the row reads 5 ok · 1 locked · 1 broken · 2 with changes · 2 with unpushed commits
+- **THEN** the counts read 5 ok · 1 locked · 1 broken · 2 with changes · 2 with unpushed commits
+
+#### Scenario: The title at the end of the row
+- **WHEN** six sessions are listed and fix-123 is selected
+- **THEN** 6 sessions, selected: fix-123 ends at the right edge of the tab titles' row, and the frame's line below is a plain border
+
+#### Scenario: A filter being typed
+- **WHEN** the user has typed /tem to filter the sessions
+- **THEN** the row's right end reads filter: tem_ before the title, so the typed text stays in view when the title is cut
 
 ### Requirement: The key bar names the keys for the selected row
 The last two rows of the screen SHALL be a key bar of items, each a key and a word: the first row the keys that act on the selected row, then New session and, when a release is known, Update; the second row the folder and view keys. The bar SHALL show only the keys that apply to the selected and listed rows, SHALL fit 120 columns for every kind of row, SHALL run a clicked item's key and show its tooltip on hover. The help SHALL list every key.

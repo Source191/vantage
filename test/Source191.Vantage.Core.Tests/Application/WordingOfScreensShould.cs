@@ -70,38 +70,61 @@ public sealed class WordingOfScreensShould
     }
 
     [Fact]
-    public void ShowVersionsAndRootsInTheHeader()
+    public void WriteTheVersionsOnTheFirstRowAndTheRootsOnTheSecond()
     {
-        Wording.HeaderValues(new ToolVersion("0.5.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate(), VantageMemory)
-            .ShouldBe("0.5.0 (29 MB)\n2.1.310\nC:\\Users\\me\\source\\repos; D:\\work\nC:\\Users\\me\\source\\worktrees");
+        IReadOnlyList<IReadOnlyList<TextPart>> rows = Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 114);
+
+        rows[0].ShouldBe([new TextPart("Vantage ", TextTone.Orange), new TextPart("0.18.0 (35 MB)", TextTone.Plain), new TextPart(" · ", TextTone.Grey), new TextPart("Claude ", TextTone.Orange), new TextPart("2.1.310", TextTone.Plain)]);
+        rows[1].ShouldBe([new TextPart("Repository roots ", TextTone.Orange), new TextPart(@"C:\Users\me\source\repos", TextTone.Plain), new TextPart(" · ", TextTone.Grey), new TextPart("Worktree root ", TextTone.Orange), new TextPart(@"C:\Users\me\source\worktrees", TextTone.Plain)]);
     }
 
     [Fact]
-    public void NameAnAvailableUpdateInTheHeader()
+    public void JoinSeveralRepositoryRoots()
     {
-        UpdateStatus available = new UpdateStatus.Available(ReleaseVersion.TryParse("0.9.0")!, ReleaseVersion.TryParse("0.10.0")!);
+        IReadOnlyList<IReadOnlyList<TextPart>> rows = Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 200);
 
-        Wording.HeaderValues(new ToolVersion("0.9.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), available, VantageMemory)
-            .ShouldStartWith("0.9.0 (29 MB; 0.10.0 available, U to update)\n2.1.310\n");
+        Text(rows[1]).ShouldBe(@"Repository roots C:\Users\me\source\repos; D:\work · Worktree root C:\Users\me\source\worktrees");
     }
 
     [Fact]
-    public void ShowAnUnreadableClaudeVersionAsUnknown()
+    public void CutTheRepositoryRootsFirstAndThenTheWorktreeRoot()
     {
-        Wording.HeaderValues(new ToolVersion("0.5.0-local"), new ClaudeCodeVersion.Unknown(), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.Off(), VantageMemory)
-            .ShouldBe("0.5.0-local (29 MB)\nunknown\nC:\\Users\\me\\source\\repos\nC:\\Users\\me\\source\\worktrees");
+        Settings three = Roots(@"C:\Users\me\source\repos", @"D:\work\northwind", @"E:\archive\northwind-old");
+
+        string eighty = Text(Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), three, new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 80)[1]);
+        string fifty = Text(Wording.SettingsRows(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), three, new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 50)[1]);
+
+        eighty.ShouldBe(@"Repository roots C:\Users\me\sourc… · Worktree root C:\Users\me\source\worktrees");
+        eighty.Length.ShouldBe(80);
+        fifty.ShouldBe(@"Repository roots … · Worktree root C:\Users\me\so…");
+        fifty.Length.ShouldBe(50);
+    }
+
+    [Theory]
+    [InlineData("0.18.0", "2.1.310", true, false, "Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310")]
+    [InlineData("0.5.0-local", null, false, false, "Vantage 0.5.0-local (35 MB) · Claude unknown")]
+    [InlineData("0.18.0", "2.1.302", false, true, "Vantage 0.18.0 (35 MB) · Claude 2.1.302 (below 2.1.309, update Claude Code)")]
+    public void KeepTheNoticeAndTheWarningOnTheFirstRow(string vantage, string? claude, bool updateAvailable, bool belowMinimum, string expected)
+    {
+        ClaudeCodeVersion version = (claude, belowMinimum) switch
+        {
+            (null, _) => new ClaudeCodeVersion.Unknown(),
+            (_, true) => new ClaudeCodeVersion.BelowMinimum(ReleaseVersion.TryParse(claude)!, ReleaseVersion.TryParse("2.1.309")!),
+            _ => new ClaudeCodeVersion.Reported(claude),
+        };
+        UpdateStatus update = updateAvailable ? new UpdateStatus.Available(ReleaseVersion.TryParse("0.18.0")!, ReleaseVersion.TryParse("0.19.0")!) : new UpdateStatus.UpToDate();
+
+        Text(Wording.SettingsRows(new ToolVersion(vantage), version, Roots(@"C:\Users\me\source\repos"), update, MemorySize.FromMegabytes(35), width: 114)[0]).ShouldBe(expected);
     }
 
     [Fact]
-    public void ShowAClaudeVersionBelowTheMinimumWithTheWarning()
+    public void TitleTheTabsWithoutCounts()
     {
-        ClaudeCodeVersion old = new ClaudeCodeVersion.BelowMinimum(ReleaseVersion.TryParse("2.1.302")!, ReleaseVersion.TryParse("2.1.309")!);
-
-        Wording.HeaderValues(new ToolVersion("0.13.0"), old, Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), VantageMemory)
-            .ShouldStartWith("0.13.0 (29 MB)\n2.1.302 (below 2.1.309, update Claude Code)\n");
+        Wording.TabTitleFor(ConsoleTab.Sessions).ShouldBe("Sessions");
+        Wording.TabTitleFor(ConsoleTab.Worktrees).ShouldBe("Worktrees");
     }
 
-    private static MemorySize VantageMemory => MemorySize.FromMegabytes(29);
+    private static string Text(IReadOnlyList<TextPart> row) => string.Concat(row.Select(part => part.Text));
 
     private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => FolderPath.From(root))], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me"));
 
@@ -122,15 +145,46 @@ public sealed class WordingOfScreensShould
         Wording.Describe(new TableTitle("session", Shown: 1, Total: 1, Filter: "fix", Selected: "fix-123")).ShouldBe("1 of 1 session matches \"fix\", selected: fix-123");
     }
 
-    [Fact]
-    public void SummariseSessionsByState()
-    {
-        SessionRow[] mixed = [.. Enumerable.Range(0, 9).Select(index => SessionIn(index < 4 ? DisplayState.Stopped : DisplayState.NeedsInput, index))];
-        SessionRow[] allWaiting = [.. Enumerable.Range(0, 6).Select(index => SessionIn(DisplayState.NeedsInput, index))];
 
-        Wording.SessionsSummary(mixed).ShouldBe("9 (4 stopped)");
-        Wording.SessionsSummary(allWaiting).ShouldBe("6");
-        Wording.SessionsSummary([]).ShouldBe("none");
+    [Fact]
+    public void CountSessionsByStateNeedsInputFirst()
+    {
+        SessionRow[] rows =
+        [
+            SessionIn(DisplayState.Working, 0), SessionIn(DisplayState.NeedsInput, 1), SessionIn(DisplayState.Idle, 2),
+            SessionIn(DisplayState.Completed, 3), SessionIn(DisplayState.NeedsInput, 4), SessionIn(DisplayState.Stopped, 5),
+        ];
+
+        Wording.SessionCounts(rows).ShouldBe(
+        [
+            new TextPart("◐ 2 need input", TextTone.Amber), new TextPart("● 1 working", TextTone.Cyan), new TextPart("○ 1 idle", TextTone.Plain),
+            new TextPart("✓ 1 completed", TextTone.Green), new TextPart("■ 1 stopped", TextTone.Grey),
+        ]);
+        Wording.SessionCounts([SessionIn(DisplayState.NeedsInput, 0)]).ShouldBe([new TextPart("◐ 1 needs input", TextTone.Amber)]);
+        Wording.SessionCounts([]).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void CountWorktreesByHealthThenTheWorkAtRisk()
+    {
+        WorktreeRow[] rows =
+        [
+            .. Enumerable.Range(0, 5).Select(index => WorktreeIn(WorktreeHealthKind.Ok, index, dirty: index < 2 ? 3 : 0, unpushed: index is 1 or 2 ? 4 : 0)),
+            WorktreeIn(WorktreeHealthKind.Locked, 5), WorktreeIn(WorktreeHealthKind.Broken, 6),
+        ];
+
+        Wording.WorktreeCounts(rows).ShouldBe(
+        [
+            new TextPart("5 ok", TextTone.Plain), new TextPart("1 locked", TextTone.Amber), new TextPart("1 broken", TextTone.Red),
+            new TextPart("2 with changes", TextTone.Amber), new TextPart("2 with unpushed commits", TextTone.Amber),
+        ]);
+        Wording.WorktreeCounts([WorktreeIn(WorktreeHealthKind.Ok, 0)]).ShouldBe([new TextPart("1 ok", TextTone.Plain)]);
+    }
+
+
+    private static WorktreeRow WorktreeIn(WorktreeHealthKind health, int index, int dirty = 0, int unpushed = 0)
+    {
+        return new WorktreeRow(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), FolderPath.From($@"C:\Users\me\source\worktrees\Northwind.Orders-fix-{index}"), BranchName.From($"fix-{index}"), new WorktreeHealth(health, new HealthReason.None()), dirty, unpushed, null, null, null, 0, OwnerExists: true, FolderExists: true);
     }
 
     private static SessionRow SessionIn(DisplayState state, int index)

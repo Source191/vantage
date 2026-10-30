@@ -234,6 +234,8 @@ public sealed class WorktreesViewShould
     {
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('w'))).Effects.ShouldBe([new SwitchToSessions()]);
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Escape)).Effects.ShouldBe([new SwitchToSessions()]);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('1'))).Effects.ShouldBe([new SwitchToSessions()]);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('2'))).Effects.ShouldBe([new SwitchToWorktrees()]);
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('q'))).Effects.ShouldBe([new Quit()]);
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('?'))).Effects.ShouldBe([new ShowHelp()]);
     }
@@ -309,8 +311,10 @@ public sealed class WorktreesViewShould
     [Fact]
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
-        new SwitchToSessions().ShouldBeAssignableTo<ILeavesScreen>();
-        new JumpToSession(SessionId.From("sess-1")).ShouldBeAssignableTo<ILeavesScreen>();
+        new SwitchToSessions().ShouldBeAssignableTo<ISwitchesTab>();
+        new SwitchToSessions().ShouldNotBeAssignableTo<ILeavesScreen>();
+        new JumpToSession(SessionId.From("sess-1")).ShouldBeAssignableTo<ISwitchesTab>();
+        new Quit().ShouldBeAssignableTo<ILeavesScreen>();
         new ConfirmForceRemove(Dirty, "x").ShouldBeAssignableTo<IDialogEffect>();
         new StartSessionIn(Clean).ShouldBeAssignableTo<IDialogEffect>();
         new RemoveWorktree(Clean, Forced: false).ShouldBeAssignableTo<IDialogEffect>("a removal can end in the branch question");
