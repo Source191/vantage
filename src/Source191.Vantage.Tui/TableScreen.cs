@@ -6,8 +6,8 @@ using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
 using Terminal.Gui.Views;
-using GuiKey = Terminal.Gui.Input.Key;
 using Alignment = Terminal.Gui.ViewBase.Alignment;
+using GuiKey = Terminal.Gui.Input.Key;
 
 namespace Source191.Vantage.Tui;
 
