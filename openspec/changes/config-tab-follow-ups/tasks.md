@@ -36,7 +36,7 @@ Moved to detail-pane at the owner's check (30 October 2026) and delivered there;
 
 ## 5. Version and checks
 
-- [ ] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate config-tab-follow-ups --strict` pass.
+- [x] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate config-tab-follow-ups --strict` pass.
 - [ ] 5.2 Run the hand-off check and the smoke check against the packed tool. Verify both exit 0.
 - [ ] 5.3 The product owner installs the build, adds a root with Browse, sets Default place to Current branch and opens the wizard. Record here.
 
