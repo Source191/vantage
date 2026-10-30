@@ -1,6 +1,7 @@
 using Source191.Vantage.Domain;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Source191.Vantage.Adapters.Processes;
@@ -10,7 +11,7 @@ namespace Source191.Vantage.Adapters.Processes;
 /// UTC so a value survives a JSON round trip unchanged), and ends processes either with their whole tree or cleanly
 /// with exit code 0.
 /// </summary>
-public sealed class ProcessRegistry : IProcessRegistry
+public sealed partial class ProcessRegistry : IProcessRegistry
 {
     private const uint SnapshotOfProcesses = 0x2;
     private const int ProcessBasicInformationClass = 0;
@@ -114,7 +115,7 @@ public sealed class ProcessRegistry : IProcessRegistry
         bool more = Process32FirstW(snapshot, ref entry);
         while (more)
         {
-            entries.Add(new ProcessFacts((int)entry.ProcessId, (int)entry.ParentProcessId, Path.GetFileNameWithoutExtension(entry.ExeFile)));
+            entries.Add(new ProcessFacts((int)entry.ProcessId, (int)entry.ParentProcessId, Path.GetFileNameWithoutExtension(entry.ExeFile.ToString())));
             more = Process32NextW(snapshot, ref entry);
         }
 
@@ -203,7 +204,7 @@ public sealed class ProcessRegistry : IProcessRegistry
         public IntPtr Buffer;
     }
 
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    [StructLayout(LayoutKind.Sequential)]
     private struct ProcessEntry
     {
         public uint Size;
@@ -215,8 +216,26 @@ public sealed class ProcessRegistry : IProcessRegistry
         public uint ParentProcessId;
         public int PriorityClassBase;
         public uint Flags;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-        public string ExeFile;
+        public ExecutableName ExeFile;
+    }
+
+    /// <summary>
+    /// PROCESSENTRY32W's szExeFile: 260 UTF-16 units ending at the first zero. The units are ushort rather than char so
+    /// the structure stays blittable, which the source-generated calls require. Internal rather than private because Sonar
+    /// reads an inline array's one declared field as unused (S1144) when the type is private.
+    /// </summary>
+    [InlineArray(260)]
+    internal struct ExecutableName
+    {
+        public ushort Unit;
+
+        public override readonly string ToString()
+        {
+            ReadOnlySpan<char> text = MemoryMarshal.Cast<ushort, char>(this);
+            int end = text.IndexOf('\0');
+
+            return new string(end < 0 ? text : text[..end]);
+        }
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -237,39 +256,39 @@ public sealed class ProcessRegistry : IProcessRegistry
         public ulong SharedCommitUsage;
     }
 
-    [DllImport("ntdll.dll")]
-    private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, out ProcessBasicInformation processInformation, int processInformationLength, out int returnLength);
+    [LibraryImport("ntdll.dll")]
+    private static partial int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, out ProcessBasicInformation processInformation, int processInformationLength, out int returnLength);
 
-    [DllImport("ntdll.dll")]
-    private static extern int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, IntPtr processInformation, int processInformationLength, out int returnLength);
+    [LibraryImport("ntdll.dll")]
+    private static partial int NtQueryInformationProcess(IntPtr processHandle, int processInformationClass, IntPtr processInformation, int processInformationLength, out int returnLength);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
+    [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool TerminateProcess(IntPtr processHandle, uint exitCode);
+    private static partial bool TerminateProcess(IntPtr processHandle, uint exitCode);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern IntPtr CreateToolhelp32Snapshot(uint flags, uint processId);
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    private static partial IntPtr CreateToolhelp32Snapshot(uint flags, uint processId);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern IntPtr OpenProcess(uint desiredAccess, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    private static partial IntPtr OpenProcess(uint desiredAccess, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
+    [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetProcessTimes(IntPtr processHandle, out long creationTime, out long exitTime, out long kernelTime, out long userTime);
+    private static partial bool GetProcessTimes(IntPtr processHandle, out long creationTime, out long exitTime, out long kernelTime, out long userTime);
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool Process32FirstW(IntPtr snapshot, ref ProcessEntry entry);
+    private static partial bool Process32FirstW(IntPtr snapshot, ref ProcessEntry entry);
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool Process32NextW(IntPtr snapshot, ref ProcessEntry entry);
+    private static partial bool Process32NextW(IntPtr snapshot, ref ProcessEntry entry);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
+    [LibraryImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool CloseHandle(IntPtr handle);
+    private static partial bool CloseHandle(IntPtr handle);
 
-    [DllImport("psapi.dll", SetLastError = true)]
+    [LibraryImport("psapi.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetProcessMemoryInfo(IntPtr processHandle, ref ProcessMemoryCountersEx2 counters, uint size);
+    private static partial bool GetProcessMemoryInfo(IntPtr processHandle, ref ProcessMemoryCountersEx2 counters, uint size);
 }
