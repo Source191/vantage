@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
@@ -22,6 +23,7 @@ public sealed class ConsoleScreen(
     Func<IReadOnlyList<ConfigRow>> settingRows,
     StateTransitionNotifier notifier,
     SessionActivity activity,
+    DetailLoader details,
     DialogEffects dialogs,
     EffectDispatcher dispatcher,
     TimeProvider clock,
@@ -36,6 +38,7 @@ public sealed class ConsoleScreen(
     private readonly Func<IReadOnlyList<ConfigRow>> settingRows = settingRows;
     private readonly StateTransitionNotifier notifier = notifier;
     private readonly SessionActivity activity = activity;
+    private readonly DetailLoader details = details;
     private readonly DialogEffects dialogs = dialogs;
     private readonly EffectDispatcher dispatcher = dispatcher;
     private readonly TimeProvider clock = clock;
@@ -44,6 +47,9 @@ public sealed class ConsoleScreen(
     private readonly FolderLabels folders = folders;
     private ConsoleTab? shown;
     private bool worktreesScanned;
+
+    /// <summary>The detail panes' height: nine rows until a divider is dragged, then the dragged height for as long as Vantage runs.</summary>
+    private int paneRows = 9;
 
     public ConsoleExit Run(ConsoleState initial)
     {
@@ -111,8 +117,8 @@ public sealed class ConsoleScreen(
             settings = [.. Enumerable.Range(0, SettingsRows).Select(row => new View { X = 0, Y = row, Width = Dim.Fill(), Height = 1 })];
             tabs = new Tabs { X = 0, Y = StripTop, Width = Dim.Fill(), Height = Dim.Fill(2) };
             tabs.SetScheme(Palette.Plain(Palette.Grey));
-            sessions = new TableBody<SessionsViewState, SessionRow>(new SessionsScreenDefinition(screen.notifier, screen.activity, screen.claudeExecutable, screen.folders), screen.dialogs, screen.dispatcher, screen.loadSessions, screen.clock, context, app, this, initial.Sessions);
-            worktrees = new TableBody<WorktreesViewState, WorktreeRow>(new WorktreesScreenDefinition(screen.folders), screen.dialogs, screen.dispatcher, screen.scanWorktrees, screen.clock, context, app, this, initial.Worktrees);
+            sessions = new TableBody<SessionsViewState, SessionRow>(new SessionsScreenDefinition(screen.notifier, screen.activity, screen.claudeExecutable, screen.folders, new SessionDetails(screen.details, screen.clock)), screen.dialogs, screen.dispatcher, screen.loadSessions, screen.clock, context, app, this, initial.Sessions);
+            worktrees = new TableBody<WorktreesViewState, WorktreeRow>(new WorktreesScreenDefinition(screen.folders, new WorktreeDetails(screen.details, screen.clock)), screen.dialogs, screen.dispatcher, screen.scanWorktrees, screen.clock, context, app, this, initial.Worktrees);
             config = new TableBody<ConfigViewState, ConfigRow>(new ConfigScreenDefinition(), screen.dialogs, screen.dispatcher, screen.readConfig, screen.clock, context, app, this, initial.Config);
             tabs.Add(sessions.View, worktrees.View, config.View);
             Array.ForEach([sessions.View, worktrees.View, config.View], view => view.SetScheme(Palette.TabFrame()));
@@ -163,6 +169,11 @@ public sealed class ConsoleScreen(
 
             Show(state.Active);
         }
+
+        public int PaneRows => screen.paneRows;
+
+        /// <summary>One tab's divider was dragged: every tab's pane takes the height, the hidden ones when they are next shown.</summary>
+        public void PaneResized(int rows) => screen.paneRows = rows;
 
         public void FrameChanged()
         {

@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
@@ -50,10 +51,17 @@ internal interface ITabHost
     void Switch(ISwitchesTab effect);
 
     void FrameChanged();
+
+    /// <summary>The detail panes' height, one for every tab while the console runs.</summary>
+    int PaneRows { get; }
+
+    /// <summary>A pane's divider was dragged to this height.</summary>
+    void PaneResized(int rows);
 }
 
 /// <summary>
-/// One tab of the console: a view's rows in a table with its crumb, footer and waiting indicator (its title goes on the frame), the reducer it
+/// One tab of the console: a view's rows in a table with its crumb, footer and waiting indicator (its title goes on the frame), the detail pane under
+/// the table when the view has one (read for the selected row off the UI thread, only while the tab is shown), the reducer it
 /// feeds keys to, and the effects it routes (a dialog to <see cref="DialogEffects"/>, a background effect to its handler
 /// through the <see cref="EffectDispatcher"/> with a busy spinner, a tab switch or an exit to the console). A definition
 /// supplies everything specific to the view.
@@ -77,6 +85,11 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly SpinnerView busy;
     private readonly WaitingIndicator waiting;
     private readonly string[] columnNames;
+    private readonly IDetailSource<TRow>? detail;
+    private readonly DetailRequests? requests;
+    private readonly DetailPane? pane;
+    private readonly CancellationTokenSource lifetime = new();
+    private object? detailKey;
     private TRow? selected;
     private int? headerUnderMouse;
     private int columnOffset;
@@ -95,6 +108,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         this.host = host;
         State = initial;
         columnNames = [.. definition.Columns.Select(column => column.Name)];
+        detail = definition.Detail;
 
         // The tab's title is the view's Title; it can take focus because Tabs shows whichever tab has it.
         View = new View { Title = definition.TabTitle(initial), Width = Dim.Fill(), Height = Dim.Fill(), CanFocus = true };
@@ -127,6 +141,16 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         footer = Text(crumbWidth + 3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
 
         View.Add(table, crumb, busy, footer, waiting);
+        if (detail is not null)
+        {
+            requests = new DetailRequests(detail.ReadsScreen);
+            DetailPane detailPane = new(host.PaneRows);
+            detailPane.Resized += host.PaneResized;
+            table.Height = Dim.Fill(Dim.Func(_ => detailPane.Rows + 1));
+            View.Add(detailPane);
+            pane = detailPane;
+        }
+
         ShowColumnToolTips();
     }
 
@@ -155,8 +179,13 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public KeyBar Bar(bool updateKnown) => definition.Bar(State, updateKnown);
 
-    /// <summary>Disposes the tab's view and everything in it; the console removes it from the window first, so nothing is disposed twice.</summary>
-    public void Dispose() => View.Dispose();
+    /// <summary>Drops the detail still being read, then disposes the tab's view and everything in it; the console removes it from the window first, so nothing is disposed twice.</summary>
+    public void Dispose()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
+        View.Dispose();
+    }
 
     public void TriggerLoad()
     {
@@ -164,8 +193,16 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         {
             ViewInput input = await Attempt.RunAsync(Diagnostics, FailureSite.Load, CodeName.For(typeof(TState)), () => load(CancellationToken.None), exception => new LoadFailed(exception.Message));
 
-            app.Invoke(() => Apply(input));
-        });
+            app.Invoke(() =>
+            {
+                object? before = detailKey;
+                Apply(input);
+                if (Equals(detailKey, before))
+                {
+                    AskForDetail(refreshed: true);
+                }
+            });
+        }, CancellationToken.None);
     }
 
     public void OnKey(GuiKey key)
@@ -225,13 +262,20 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
                 Redraw();
                 TriggerLoad();
             });
-        });
+        }, CancellationToken.None);
     }
 
+    /// <summary>A tab shown again takes the panes' height and reads its selected row's detail afresh.</summary>
     public void Shown(bool shown)
     {
         isShown = shown;
         busy.Show(shown && running);
+        if (shown)
+        {
+            pane?.Take(host.PaneRows);
+            detailKey = null;
+        }
+
         Redraw();
     }
 
@@ -252,6 +296,79 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
 
         waiting.Show(isShown && !State.Loaded && State.Banner is null);
+        AskForDetail(refreshed: false);
+        View.SetNeedsDraw();
+        host.FrameChanged();
+    }
+
+    /// <summary>
+    /// Asks for the selected row's detail while the tab is shown (a hidden tab draws nothing of its own, or it lands on top
+    /// of the shown one): when the selection moved, or for every refresh; an empty table empties the pane.
+    /// </summary>
+    private void AskForDetail(bool refreshed)
+    {
+        if (detail is null || requests is null || pane is null || !isShown)
+        {
+            return;
+        }
+
+        if (State.List.Selected is not TRow row)
+        {
+            requests.Cleared();
+            detailKey = null;
+            pane.Show(null);
+            return;
+        }
+
+        object key = detail.KeyOf(row);
+        if (!refreshed && Equals(key, detailKey))
+        {
+            return;
+        }
+
+        detailKey = key;
+        foreach (DetailRequest request in refreshed ? requests.Refreshed(key) : requests.Selected(key))
+        {
+            ReadDetail(row, request, pane.Lines);
+        }
+    }
+
+    /// <summary>Reads one request's detail off the UI thread and shows it there, unless a newer answer or another row came first.</summary>
+    private void ReadDetail(TRow row, DetailRequest request, int lines)
+    {
+        CancellationToken token = lifetime.Token;
+        Task.Run(async () =>
+        {
+            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(row, request, lines, token), _ => null);
+            if (content is null || token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            app.Invoke(() => ShowDetail(request, content));
+        }, token);
+    }
+
+    private async Task<DetailContent?> ReadAsync(TRow row, DetailRequest request, int lines, CancellationToken token)
+    {
+        try
+        {
+            return await detail!.ReadAsync(row, lines, request.ReadScreen, token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            return null;
+        }
+    }
+
+    private void ShowDetail(DetailRequest request, DetailContent content)
+    {
+        if (lifetime.IsCancellationRequested || requests?.Accept(request, content) is not DetailContent shown)
+        {
+            return;
+        }
+
+        pane!.Show(shown);
         View.SetNeedsDraw();
         host.FrameChanged();
     }

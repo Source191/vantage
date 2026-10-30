@@ -67,13 +67,20 @@ public static class DetailLayout
         return labels;
     }
 
-    /// <summary>Each column as wide as its widest one-column fact; the widest narrowed a cell at a time while the row is too wide, and the spare width given to the last.</summary>
+    /// <summary>Each column as wide as its widest one-column fact, and the columns a wider fact spans widened to hold it; the widest narrowed a cell at a time while the row is too wide, and the spare width given to the last.</summary>
     private static int[] ColumnWidths(IReadOnlyList<IReadOnlyList<DetailLine>> facts, int[] labels, int width)
     {
         int[] widths = [.. labels.Select(label => label + 1)];
         foreach ((DetailLine line, int column) in Placed(facts).Where(placed => placed.Line.Span == 1))
         {
             widths[column] = Math.Max(widths[column], labels[column] + line.Text.Length);
+        }
+
+        foreach ((DetailLine line, int column) in Placed(facts).Where(placed => placed.Line.Span > 1))
+        {
+            int last = Math.Min(column + line.Span, Columns) - 1;
+            int spanned = widths[column..(last + 1)].Sum() + (Gap * (last - column));
+            widths[last] += Math.Max(labels[column] + line.Text.Length - spanned, 0);
         }
 
         int available = width - (Gap * (Columns - 1));

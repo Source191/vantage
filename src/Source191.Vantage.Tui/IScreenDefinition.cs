@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
@@ -57,6 +58,9 @@ internal interface IScreenDefinition<TState, TRow>
 
     /// <summary>Sees every input before the state is replaced, for the notifier.</summary>
     void OnInput(TState before, ViewInput input);
+
+    /// <summary>How the pane under the table reads the selected row, or null for a view with no pane.</summary>
+    IDetailSource<TRow>? Detail { get; }
 }
 
 /// <summary>What a dialog flow may do on the UI thread of the screen that raised it.</summary>

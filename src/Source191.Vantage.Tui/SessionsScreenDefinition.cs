@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.Drawing;
@@ -6,7 +7,7 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The sessions view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, SessionActivity activity, string claudeExecutable, FolderLabels folders)
+internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, SessionActivity activity, string claudeExecutable, FolderLabels folders, IDetailSource<SessionRow> detail)
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
     private const int TabColumn = 1;
@@ -16,6 +17,8 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
     private const string TabBlock = "██";
 
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(5);
+
+    public IDetailSource<SessionRow>? Detail => detail;
 
     public string Crumb => " <sessions> ";
 

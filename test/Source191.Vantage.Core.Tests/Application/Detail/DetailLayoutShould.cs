@@ -26,6 +26,17 @@ public sealed class DetailLayoutShould
     }
 
     [Fact]
+    public void WidenTheColumnsAWideFactSpansBeforeGivingTheLastTheRest()
+    {
+        string folder = new('x', 40);
+        DetailContent content = new("fix-123", [Facts[0], [new("Folder", folder, Span: 2), new("Session", "s1")]], Below: null, KeepsLastLines: true);
+
+        string second = Text(DetailLayout.Rows(content, width: 80, height: 5))[1];
+
+        second.TrimEnd().ShouldBe($"Folder {folder}  Session  s1");
+    }
+
+    [Fact]
     public void ColourLabelsOrangeAndTextInItsTone()
     {
         DetailContent content = new("fix-123", Facts, Below: null, KeepsLastLines: true);

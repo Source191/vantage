@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.Drawing;
@@ -6,9 +7,11 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The worktrees view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenDefinition<WorktreesViewState, WorktreeRow>
+internal sealed class WorktreesScreenDefinition(FolderLabels folders, IDetailSource<WorktreeRow> detail) : IScreenDefinition<WorktreesViewState, WorktreeRow>
 {
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(15);
+
+    public IDetailSource<WorktreeRow>? Detail => detail;
 
     public string Crumb => " <worktrees> ";
 
