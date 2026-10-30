@@ -10,15 +10,15 @@ On the Sessions tab the pane SHALL show what the selected row does not, titled w
 
 #### Scenario: A session at a permission prompt
 - **WHEN** fix-123 is selected, listed as waiting for a permission prompt, started at 14:02 today in a Vantage tab coloured yellow, in the worktree Northwind.Orders-fix-123 on branch fix-123 with three changed files
-- **THEN** the pane is titled fix-123 and reads Waiting for permission prompt, Started 14:02 (5m ago), Worktree fix-123, Branch fix-123, Tab open, yellow, and Changes 3 changed files · 0 unpushed commits with the last commit's age
+- **THEN** the pane is titled fix-123 and reads Waiting permission prompt, Started 14:02 (5m ago), Worktree fix-123, Branch fix-123, Tab open, yellow, and Changes 3 changed files · 0 unpushed commits with the last commit's age
 
 #### Scenario: A session never sent a prompt
 - **WHEN** a session that needs input and has no transcript is selected
-- **THEN** the pane's Waiting for line reads a first prompt
+- **THEN** the pane's Waiting line reads a first prompt
 
 #### Scenario: A working session
 - **WHEN** a working session is selected
-- **THEN** the pane's Waiting for line reads nothing
+- **THEN** the pane's Waiting line reads nothing
 
 #### Scenario: The main checkout
 - **WHEN** a session running in C:\Users\me\source\repos\Northwind.Orders on branch main is selected

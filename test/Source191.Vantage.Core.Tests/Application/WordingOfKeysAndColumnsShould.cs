@@ -60,7 +60,7 @@ public sealed class WordingOfKeysAndColumnsShould
     [Fact]
     public void ExplainEveryLineOfEachPane()
     {
-        Wording.SessionsPane.Select(line => line.Name).ShouldBe(["Waiting for", "Started", "Prompted", "Folder", "Session", "Worktree", "Branch", "Tab", "Changes", "Memory"]);
+        Wording.SessionsPane.Select(line => line.Name).ShouldBe(["Waiting", "Started", "Prompted", "Folder", "Session", "Worktree", "Branch", "Tab", "Changes", "Memory"]);
         Wording.WorktreesPane.Select(line => line.Name).ShouldBe(["Health", "Branch", "PR", "Folder", "Created", "Changes", "Unpushed"]);
         Wording.SessionsPane.Concat(Wording.WorktreesPane).ShouldAllBe(line => line.Meaning.Length > 0);
     }
@@ -96,16 +96,16 @@ public sealed class WordingOfKeysAndColumnsShould
             AGE         time since the session started
 
             Pane
-            Waiting for  Claude Code's reason, a first prompt, or nothing
-            Started      when the session started
-            Prompted     when Vantage last saw it go from waiting or idle to working
-            Folder       the folder it runs in
-            Session      the session id
-            Worktree     the worktree's slug, the path inside the repository, or the main checkout
-            Branch       the branch checked out there
-            Tab          its Vantage tab and the tab's colour, or its own terminal
-            Changes      changed files, unpushed commits and the last commit there
-            Memory       what the session and everything it started use; m for the breakdown
+            Waiting   what it waits for: Claude Code's reason, a first prompt, or nothing
+            Started   when the session started
+            Prompted  when Vantage last saw it go from waiting or idle to working
+            Folder    the folder it runs in
+            Session   the session id
+            Worktree  the worktree's slug, the path inside the repository, or the main checkout
+            Branch    the branch checked out there
+            Tab       its Vantage tab and the tab's colour, or its own terminal
+            Changes   changed files, unpushed commits and the last commit there
+            Memory    what the session and everything it started use; m for the breakdown
 
             Claude Code: C:\Users\me\.local\bin\claude.exe
             """.ReplaceLineEndings("\n"));

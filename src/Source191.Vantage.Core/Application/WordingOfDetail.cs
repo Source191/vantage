@@ -34,7 +34,7 @@ public static partial class Wording
         IReadOnlyList<IReadOnlyList<DetailLine>> facts =
         [
             [
-                new("Waiting for", waitingFor ?? "nothing", waitingFor is null ? TextTone.Plain : TextTone.Amber),
+                new("Waiting", waitingFor ?? "nothing", waitingFor is null ? TextTone.Plain : TextTone.Amber),
                 new("Started", TimeAgo(session.StartedAt, now)),
                 new("Prompted", detail.LastPromptedAt is DateTimeOffset prompted ? TimeAgo(prompted, now) : "not seen since Vantage started"),
             ],

@@ -185,7 +185,7 @@ public static partial class Wording
     /// <summary>The sessions pane's lines, for the help.</summary>
     public static IReadOnlyList<ColumnHelp> SessionsPane { get; } =
     [
-        new("Waiting for", "Claude Code's reason, a first prompt, or nothing"),
+        new("Waiting", "what it waits for: Claude Code's reason, a first prompt, or nothing"),
         new("Started", "when the session started"),
         new("Prompted", "when Vantage last saw it go from waiting or idle to working"),
         new("Folder", "the folder it runs in"),
