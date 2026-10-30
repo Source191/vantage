@@ -34,6 +34,12 @@ internal interface ITabBody
     void TriggerLoad();
 
     void Redraw();
+
+    /// <summary>
+    /// Tells the tab whether it is the one shown. A hidden tab keeps its spinners still: a spinner redraws its own tab alone,
+    /// title and frame included, and a hidden tab drawn alone lands on top of the shown one and closes its edge.
+    /// </summary>
+    void Shown(bool shown);
 }
 
 /// <summary>Where a tab hands what is not its own: an effect that leaves the console, a tab switch, and a change the frame must redraw.</summary>
@@ -74,6 +80,8 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private TRow? selected;
     private int? headerUnderMouse;
     private int columnOffset;
+    private bool isShown;
+    private bool running;
 
     public TableBody(IScreenDefinition<TState, TRow> definition, DialogEffects dialogs, EffectDispatcher dispatcher, Func<CancellationToken, Task<ViewInput>> load, TimeProvider clock, ScreenContext context, IApplication app, ITabHost host, TState initial)
     {
@@ -191,7 +199,8 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     {
         State = definition.WithFooter(State, working);
         Redraw();
-        busy.Show(true);
+        running = true;
+        busy.Show(isShown);
         Task.Run(async () =>
         {
             // The continuation is built here but run on the UI thread, where onUiThread must run.
@@ -208,12 +217,20 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
             app.Invoke(() =>
             {
+                running = false;
                 busy.Show(false);
                 State = definition.WithFooter(State, settle());
                 Redraw();
                 TriggerLoad();
             });
         });
+    }
+
+    public void Shown(bool shown)
+    {
+        isShown = shown;
+        busy.Show(shown && running);
+        Redraw();
     }
 
     public void Redraw()
@@ -232,7 +249,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
             table.SetSelection(0, index, false, null);
         }
 
-        waiting.Show(!State.Loaded && State.Banner is null);
+        waiting.Show(isShown && !State.Loaded && State.Banner is null);
         View.SetNeedsDraw();
         host.FrameChanged();
     }

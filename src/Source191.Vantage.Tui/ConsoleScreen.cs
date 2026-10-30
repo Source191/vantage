@@ -185,20 +185,15 @@ public sealed class ConsoleScreen(
         private int ScreenWidth => Window.Viewport.Width > 0 ? Window.Viewport.Width : app.Screen.Width;
 
         /// <summary>
-        /// Shows a tab: selects it in the strip (ignoring the change event that raises), draws its title and frame in cyan
-        /// and the other's title in grey, records it, and starts the worktrees scan the first time it is shown.
+        /// Shows a tab: selects it in the strip (ignoring the change event that raises), records it, starts the worktrees scan
+        /// the first time it is shown, and tells both tabs which is shown so the hidden one keeps its spinners still.
         /// </summary>
         private void Show(ConsoleTab tab)
         {
             active = tab;
             binding = true;
-            View shown = tab == ConsoleTab.Sessions ? sessions.View : worktrees.View;
-            tabs.Value = shown;
+            tabs.Value = tab == ConsoleTab.Sessions ? sessions.View : worktrees.View;
             binding = false;
-
-            // The tab drawn last opens its edge under its title. Tabs puts the focused tab last only when Value changes, and
-            // the first Show comes before anything has focus, which left the other tab's line closing the shown one.
-            tabs.MoveSubViewToEnd(shown);
             if (tab != screen.shown)
             {
                 screen.shown = tab;
@@ -215,7 +210,8 @@ public sealed class ConsoleScreen(
                 worktrees.TriggerLoad();
             }
 
-            Active.Redraw();
+            sessions.Shown(tab == ConsoleTab.Sessions);
+            worktrees.Shown(tab == ConsoleTab.Worktrees);
         }
 
         /// <summary>
