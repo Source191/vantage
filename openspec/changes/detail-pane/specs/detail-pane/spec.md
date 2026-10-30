@@ -1,7 +1,7 @@
 # Spec Delta
 
 ## Purpose
-A pane under each table that shows the selected session or worktree in full, with its recent terminal output, so the user reads why a session waits and what a worktree holds without attaching or leaving the console.
+A pane under the Sessions and Worktrees tables that shows the selected session or worktree in full, with its recent terminal output, so the user reads why a session waits and what a worktree holds without attaching or leaving the console.
 
 ## ADDED Requirements
 
@@ -73,11 +73,11 @@ On the Worktrees tab the pane SHALL show, for the selected row: the health with 
 - **THEN** the pane's Health line gives the reason in full, and the git lines read unavailable
 
 ### Requirement: The pane is sized by the user
-The pane SHALL take nine rows under the table by default on a 36-row terminal, SHALL be resizable by dragging the divider between the table and the pane with the mouse, and SHALL keep its size while the console runs.
+The pane SHALL take nine rows under the table by default on a 36-row terminal, SHALL be resizable by dragging the divider between the table and the pane with the mouse, and SHALL keep its size on both tabs while the console runs. The Config tab SHALL have no pane.
 
 #### Scenario: Drag the divider
 - **WHEN** the user drags the divider up by four rows
-- **THEN** the pane shows four more lines of output and the table four fewer rows, on both tabs, until Vantage quits
+- **THEN** the pane shows four more lines of output and the table four fewer rows, on the Sessions and Worktrees tabs, until Vantage quits
 
 ### Requirement: Detail never delays the listing
 Reading a row's detail SHALL run off the UI thread, for the selected row only, when the selection changes and after each refresh, and SHALL NOT delay a refresh of the table; a detail that arrives after the selection has moved on SHALL be dropped.
