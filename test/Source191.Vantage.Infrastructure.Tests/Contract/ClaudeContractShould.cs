@@ -126,8 +126,8 @@ public sealed class ClaudeContractShould
     }
 
     /// <summary>
-    /// <c>claude -p</c> with no prompt waits on its standard input, listed as an Agent SDK run is (interactive, no status),
-    /// and exits 1 once the input closes without calling the model, so the fact spends no tokens.
+    /// <c>claude -p</c> with no prompt waits about 17 s for its standard input, listed as an Agent SDK run is (interactive, no status),
+    /// and then exits 1 without calling the model, so the fact spends no tokens.
     /// </summary>
     [Fact]
     public async Task ListAPromptlessPrintRunAsAnAutomatedRun()

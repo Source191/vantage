@@ -30,10 +30,13 @@ public sealed class WorktreeInspector(IGit git)
     }
 
     /// <summary>Merged into the remote default branch, or into HEAD when the repository has none.</summary>
-    public async Task<bool> IsMergedAsync(FolderPath repository, BranchName branch, CancellationToken cancellationToken)
+    public async Task<bool> IsMergedAsync(FolderPath repository, BranchName branch, CancellationToken cancellationToken) => (await MergeStateAsync(repository, branch, cancellationToken)).Merged;
+
+    /// <summary>What the branch is checked against (origin's default branch, or HEAD when the repository has none) and whether it is merged into it.</summary>
+    public async Task<Detail.MergeState> MergeStateAsync(FolderPath repository, BranchName branch, CancellationToken cancellationToken)
     {
         string into = await git.DefaultRemoteBranchAsync(repository.Value, cancellationToken) ?? "HEAD";
 
-        return await git.IsMergedAsync(repository.Value, branch.Value, into, cancellationToken);
+        return new Detail.MergeState(into, await git.IsMergedAsync(repository.Value, branch.Value, into, cancellationToken));
     }
 }

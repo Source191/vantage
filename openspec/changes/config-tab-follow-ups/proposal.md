@@ -8,7 +8,7 @@ The owner's review of the Config tab (30 October 2026, after #117) found three g
 
 - **Browse for a root:** the repository roots dialog gains `Browse… (F3)`, which opens Terminal.Gui's own folder picker (`OpenDialog` in folder mode, several folders at once) inside the terminal; each folder chosen is added as a new line in the roots box, and F5 checks the list as it does now. Esc in the picker adds nothing.
 - **Default place:** a new setting, New worktree or Current branch, kept in `config.json` as `defaultPlace` and shown on the Config tab after Default base; the wizard opened with `n` starts on it, as it starts on the default base. `s` on a worktree and `vantage here` stay on the current branch, and a file without the property reads as New worktree.
-- **Each setting describes itself:** one description per Config row (what the setting does, or what the setup is for) shown in the footer whenever the row is selected and nothing else needs saying, and as a tooltip while the mouse rests on the row.
+- **Each setting describes itself** (moved to detail-pane at the owner's check, 30 October 2026, and delivered there).
 - **Version:** one preview step above `main`'s when implemented; this documentation pull request changes no version.
 
 Out of scope: Windows' own folder picker (a separate window that can open behind Windows Terminal and that the headless checks cannot drive), a default for the opening prompt or the open-in-tab choice, editing a setup row, and multiple Claude accounts (a later change).
@@ -21,7 +21,7 @@ None: the Config tab's capability arrives with config-tab, and this change adds 
 
 ### Modified Capabilities
 
-- `config-tab` (added by config-tab, not yet archived): ADDED "The repository roots dialog browses for folders", "Default place is a setting row" and "Each setting describes itself".
+- `config-tab` (added by config-tab, not yet archived): ADDED "The repository roots dialog browses for folders" and "Default place is a setting row".
 - `settings`: "Settings live in one file with defaults" gains the default place and its default.
 - `session-launch`: "A new worktree is the default launch mode" opens the wizard on the default place.
 
@@ -29,8 +29,8 @@ None: the Config tab's capability arrives with config-tab, and this change adds 
 
 - **Domain:** `Settings` and `SettingsText` gain `DefaultPlace` (reusing `LaunchMode` or a domain twin of it), resolved to New worktree when missing.
 - **Ports and adapters:** `VantageConfig` gains `DefaultPlace`; `SettingsFile` reads and writes `defaultPlace` (enum by name, as `defaultBase` is).
-- **Application:** `ConfigRow.DefaultPlace`, `SettingsScope.Place`, `SettingsInput.PlaceChanged`, `WizardState` opening on the setting; `Wording.ConfigDescription(ConfigRow)`, a `Footer` standing case that carries the selected row's description, the dialog title and the Browse button's words.
-- **Tui:** a `Browse… (F3)` button and its flow in `SettingsDialog` over `OpenDialog`; the place selector in `SettingsControls`; a row tooltip in `TableBody` beside the column-header one (`ScreenToCell` with `MousePositionTracking`).
+- **Application:** `ConfigRow.DefaultPlace`, `SettingsScope.Place`, `SettingsInput.PlaceChanged`, `WizardState` opening on the setting; the dialog title and the Browse button's words.
+- **Tui:** a `Browse… (F3)` button and its flow in `SettingsDialog` over `OpenDialog`; the place selector in `SettingsControls`.
 - **Tests:** `SettingsShould`, `SettingsFileShould`, `ConfigRowsShould`, `ConfigViewShould`, `SettingsViewShould`, `WizardViewShould`, Wording facts for every description; the smoke run opens and cancels the picker.
 - **Docs:** README (the Config tab section, the wizard's Where), CLAUDE.md (the picker and row-tooltip facts), the specs.
 

@@ -24,7 +24,7 @@
 
 - [x] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate automated-runs --strict` pass.
 - [x] 5.2 Run the hand-off check and the smoke check against the packed tool. Verify both exit 0. Hand-off check: exit 0 against the packed 0.18.0-preview.8 (30 October 2026). Smoke check: left to the pull request's `check` job, which seeds `Northwind.Smoke`; seeding an idle linked worktree with two solutions into a developer's real repository root was not done.
-- [x] 5.3 Headless: with `claude -p` held open on standard input in a worktree that has a session, drive the packed tool and replay the screen. Verify one row for the session and the counts ending `◇ 1 automated` with a figure. Done 30 October 2026: three rows (v-dup-bug, v-ui, v-test-plan), title 3 sessions, counts `● 2 working · ■ 1 stopped · ◇ 1 automated 655 MB`.
+- [x] 5.3 Headless: with `claude -p` held open on standard input in a worktree that has a session, drive the packed tool and replay the screen. Verify one row for the session and the counts ending `◇ 1 automated` with a figure. Done 30 October 2026: three rows (v-dup-bug, v-ui, v-test-plan), title 3 sessions, counts `● 2 working · ■ 1 stopped · ◇ 1 automated 655 MB`. Again after merging main's detail pane (preview.9, Debug build), with the run started 6 s after Vantage because a prompt-less `claude -p` gives up after about 17 s: three rows and `◇ 1 automated 352 MB`.
 - [ ] 5.4 The product owner commits in a worktree with the security-guidance plugin on and watches the Sessions tab: no second row, the ◇ part appears for the review and goes when it ends. Record here.
 
 ## Workflow follow-up

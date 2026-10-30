@@ -13,21 +13,23 @@
 
 ## 3. Descriptions (Application, Wording)
 
-- [ ] 3.1 Red: `WordingOfConfigShould` asserts a distinct, non-empty description for every `ConfigRow` case and every `SetupItem`, and the three scenarios' words. Green: `Wording.ConfigDescription`.
-- [ ] 3.2 Red: `ConfigViewShould` asserts `Shown` is `Footer.SettingHint` for the selected row while the footer is blank, and that a message wins otherwise; `WordingShould` gives the hint's words. Green: the footer case and `ConfigViewState.Shown`.
+Moved to detail-pane at the owner's check (30 October 2026) and delivered there; nothing to do here.
+
+- 3.1 (moved) Red: `WordingOfConfigShould` asserts a distinct, non-empty description for every `ConfigRow` case and every `SetupItem`, and the three scenarios' words. Green: `Wording.ConfigDescription`.
+- 3.2 (moved) Red: `ConfigViewShould` asserts `Shown` is `Footer.SettingHint` for the selected row while the footer is blank, and that a message wins otherwise; `WordingShould` gives the hint's words. Green: the footer case and `ConfigViewState.Shown`.
 
 ## 4. The screen (Tui)
 
 - [ ] 4.1 The place selector in `SettingsControls` for `SettingsScope.Place`, with the dialog title and caption from `Wording`. Verify headless: Enter on Default place opens it, F5 saves Current branch, and `n` then opens the wizard on Current branch.
-- [ ] 4.2 The row tooltip: `IScreenDefinition.RowTip` (null for sessions and worktrees), shown by `TableBody` from the same mouse handler as the column-header tooltip. Verify headless with SGR motion over a Config row after 8000 ms.
+- 4.2 (moved to detail-pane) The row tooltip: `IScreenDefinition.RowTip` (null for sessions and worktrees), shown by `TableBody` from the same mouse handler as the column-header tooltip. Verify headless with SGR motion over a Config row after 8000 ms.
 - [ ] 4.3 `Browse… (F3)` in the roots dialog over `OpenDialog`, as the spike found it, appending each chosen folder as a line; the smoke run opens and cancels it when the spike says the headless terminal can. Verify headless, or record why the owner's check covers it.
-- [ ] 4.4 README (the Config tab section: the place row, the descriptions, Browse; the wizard's Where) and CLAUDE.md (the `OpenDialog` facts, the row tooltip). Verify the README's Config rows and keys match `Wording`.
+- [ ] 4.4 README (the Config tab section: the place row, Browse; the wizard's Where) and CLAUDE.md (the `OpenDialog` facts). Verify the README's Config rows and keys match `Wording`.
 
 ## 5. Version and checks
 
 - [ ] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate config-tab-follow-ups --strict` pass.
 - [ ] 5.2 Run the hand-off check and the smoke check against the packed tool. Verify both exit 0.
-- [ ] 5.3 The product owner installs the build, adds a root with Browse, sets Default place to Current branch and opens the wizard, and reads the footer and the tooltips on several rows. Record here.
+- [ ] 5.3 The product owner installs the build, adds a root with Browse, sets Default place to Current branch and opens the wizard. Record here.
 
 ## Workflow follow-up
 

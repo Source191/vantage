@@ -36,7 +36,7 @@ public static partial class Wording
         DialogName.ProblemReport => ProblemReportDialogTitle,
     };
 
-    /// <summary>An amount of memory as the table and the breakdown write it: whole megabytes below 1,000 MB, gigabytes to one decimal from there.</summary>
+    /// <summary>An amount of memory as the settings row, the detail pane and the breakdown write it: whole megabytes below 1,000 MB, gigabytes to one decimal from there.</summary>
     public static string Memory(MemorySize size)
     {
         double megabytes = (double)size.Bytes / MemorySize.BytesPerMegabyte;
@@ -44,9 +44,6 @@ public static partial class Wording
 
         return whole < 1000 ? $"{whole} MB" : $"{(megabytes / 1024).ToString("F1", CultureInfo.InvariantCulture)} GB";
     }
-
-    /// <summary>The MEM cell: the figure, or a dash for a session with no process to measure.</summary>
-    public static string MemoryCell(MemorySize? size) => size is MemorySize measured ? Memory(measured) : "-";
 
     /// <summary>The settings line's Claude Code value: the version as the CLI printed it, and the minimum with a prompt to update when it is older.</summary>
     private static string ClaudeVersion(ClaudeCodeVersion claude) => claude switch
@@ -112,7 +109,7 @@ public static partial class Wording
         new("e", "Open folder", "open the folder in your editor", Tip: "Open the row's folder in the editor chosen on the Config tab."),
         new("v", "Solution", "open its solution", Tip: "Open the row's Visual Studio solution, asking when there are several."),
         new("p", "Open PR", "open its pull request in the browser", Tip: "Open the row's pull request in your browser."),
-        new("m", "Memory", "what its memory is made of", Tip: "Show what the session's memory is made of: Claude Code and each program it runs."),
+        new("m", "Memory", "what its memory is made of", Tip: "Show what the session's memory is made of; the detail pane shows the total."),
         new("U", "Update", UpdateLine, Tip: "Update Vantage to the newest release, in a tab of its own."),
         new("!", "Report", ReportLine, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
         .. TabKeyHelp,
@@ -173,22 +170,43 @@ public static partial class Wording
         new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
         new("TAB", $"a block in the tab's colour while a Vantage tab shows the session,\n{TerminalSwatch} grey for a plain claude in its own terminal"),
         new("STATE", "◐ needs input (amber), ● working (cyan), ○ idle (white),\n✓ completed (green), ✗ failed (red), ■ stopped (grey)"),
-        new("WHERE", "repository › slug for a worktree, with the branch in brackets when it differs;\nrepository (branch) for a main checkout; the folder alone outside a repository"),
+        new("REPOSITORY", "the repository it runs in, or the folder's label outside a repository"),
         new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
         new("AGE", "time since the session started"),
-        new("MEM", "private working set of the session's process and everything it started; - when it has no process"),
     ];
 
     public static IReadOnlyList<ColumnHelp> WorktreesColumns { get; } =
     [
-        new("WORKTREE", "the owning repository › the folder's slug, or its label when not named after it"),
-        new("BRANCH", "the branch checked out there"),
-        new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
-        new("DIRTY", "changed or untracked files"),
-        new("UNPUSHED", "commits on its branch that no remote has"),
+        new("WORKTREE", "the owning repository › the folder's slug, or its label when not named after it;\nwhite ok, amber locked, red broken or orphan, grey empty"),
         new("LAST COMMIT", "time since the last commit"),
         new("SESSION", "the session running in it, if any"),
-        new("HEALTH", "ok; locked (by another tool); orphan (a folder git has forgotten);\nbroken (registration or owner gone); empty (a leftover folder);\nelsewhere (a worktree of a repository outside the roots)"),
+    ];
+
+    /// <summary>The sessions pane's lines, for the help.</summary>
+    public static IReadOnlyList<ColumnHelp> SessionsPane { get; } =
+    [
+        new("Waiting", "what it waits for: Claude Code's reason, a first prompt, or nothing"),
+        new("Started", "when the session started"),
+        new("Prompted", "when Vantage last saw it go from waiting or idle to working"),
+        new("Folder", "the folder it runs in"),
+        new("Session", "the session id"),
+        new("Worktree", "the worktree's slug, the path inside the repository, or the main checkout"),
+        new("Branch", "the branch checked out there"),
+        new("Tab", "its Vantage tab and the tab's colour, or its own terminal"),
+        new("Changes", "changed files, unpushed commits and the last commit there"),
+        new("Memory", "what the session and everything it started use; m for the breakdown"),
+    ];
+
+    /// <summary>The worktrees pane's lines, for the help.</summary>
+    public static IReadOnlyList<ColumnHelp> WorktreesPane { get; } =
+    [
+        new("Health", "ok; locked (by another tool); orphan (a folder git has forgotten);\nbroken (registration or owner gone); empty (a leftover folder);\nelsewhere (a worktree of a repository outside the roots); then the reason in full"),
+        new("Branch", "the branch checked out there, and whether it is merged into origin's default branch"),
+        new("PR", "its pull request, as the sessions table shows it, or none; p opens it"),
+        new("Folder", "the worktree's folder"),
+        new("Created", "when Vantage created it, or not by Vantage"),
+        new("Changes", "changed or untracked files, and commits on its branch that no remote has"),
+        new("Unpushed", "the newest five unpushed commits, or the changed files when none, and how many more"),
     ];
 
     public static IReadOnlyList<ColumnHelp> ConfigColumns { get; } =
@@ -198,11 +216,11 @@ public static partial class Wording
     ];
 
     /// <summary>The sessions view's help: its keys and columns, then the Claude Code executable Vantage drives.</summary>
-    public static string SessionsHelp(string claudeExecutable) => $"{Help(SessionsKeys, SessionsColumns)}\n\nClaude Code: {claudeExecutable}";
+    public static string SessionsHelp(string claudeExecutable) => $"{Help(SessionsKeys, SessionsColumns, SessionsPane)}\n\nClaude Code: {claudeExecutable}";
 
-    public static string WorktreesHelp => Help(WorktreesKeys, WorktreesColumns);
+    public static string WorktreesHelp => Help(WorktreesKeys, WorktreesColumns, WorktreesPane);
 
-    public static string ConfigHelp => Help(ConfigKeys, ConfigColumns);
+    public static string ConfigHelp => Help(ConfigKeys, ConfigColumns, pane: []);
 
     /// <summary>The keys two to a line, so the dialog stays short enough for a small terminal.</summary>
     private static string KeyColumns(IReadOnlyList<KeyHelp> keys)
@@ -214,12 +232,20 @@ public static partial class Wording
         return string.Join('\n', keys.Chunk(2).Select(pair => pair.Length == 1 ? Entry(pair[0]) : Entry(pair[0]).PadRight(width) + Entry(pair[1])));
     }
 
-    private static string Help(IReadOnlyList<KeyHelp> keys, IReadOnlyList<ColumnHelp> columns)
+    /// <summary>The keys, the columns, and the pane's lines when the view has a pane.</summary>
+    private static string Help(IReadOnlyList<KeyHelp> keys, IReadOnlyList<ColumnHelp> columns, IReadOnlyList<ColumnHelp> pane)
     {
-        int width = columns.Max(column => column.Name.Length) + 2;
-        string indent = new(' ', width);
-        IEnumerable<string> columnLines = columns.Select(column => $"{column.Name.PadRight(width)}{column.Meaning.Replace("\n", "\n" + indent, StringComparison.Ordinal)}");
+        IEnumerable<string> paneSection = pane.Count == 0 ? [] : [string.Empty, "Pane", .. Explained(pane)];
 
-        return string.Join('\n', ["Keys", KeyColumns(keys), string.Empty, "Columns", .. columnLines]);
+        return string.Join('\n', ["Keys", KeyColumns(keys), string.Empty, "Columns", .. Explained(columns), .. paneSection]);
+    }
+
+    /// <summary>Each name padded to the longest, its meaning beside it and its further lines indented to match.</summary>
+    private static IEnumerable<string> Explained(IReadOnlyList<ColumnHelp> entries)
+    {
+        int width = entries.Max(entry => entry.Name.Length) + 2;
+        string indent = new(' ', width);
+
+        return entries.Select(entry => $"{entry.Name.PadRight(width)}{entry.Meaning.Replace("\n", "\n" + indent, StringComparison.Ordinal)}");
     }
 }

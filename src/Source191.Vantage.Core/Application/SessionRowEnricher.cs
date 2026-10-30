@@ -47,7 +47,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         return rows;
     }
 
-    /// <summary>How many runs there are and their trees' memory together, measured as MEM is; a run whose process has gone adds nothing.</summary>
+    /// <summary>How many runs there are and their trees' memory together, measured as a session's memory is; a run whose process has gone adds nothing.</summary>
     public AutomatedRuns Measure(IReadOnlyList<AutomatedRun> runs)
     {
         IReadOnlyList<ProcessFacts> processTable = processes.Snapshot();

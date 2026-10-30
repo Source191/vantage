@@ -10,7 +10,7 @@ What was measured, 30 October 2026, CLI 2.1.314 (see proposal.md for why):
 |---|---|---|
 | security-guidance review (Agent SDK, Python) | yes | interactive, pid, folder, no name, no status, about 20 s |
 | `claude -p "…"` | yes | interactive, pid, derived name (`tmp-9d`), no status |
-| `claude -p` with no prompt, standard input held open | yes | the same; exits 1 without calling the model once input closes |
+| `claude -p` with no prompt, standard input redirected and never written | yes | the same for about 17 s, then exits 1 without calling the model |
 | `claude` in a terminal | yes | no status for its first 130 ms, then `idle` |
 | `claude logs <id>` | no | none |
 
@@ -20,7 +20,7 @@ The registration files also carry `entrypoint` (`cli`, `sdk-py`, `sdk-ts`, `sdk-
 
 **Goals:**
 - One rule, in the adapter that already reads the CLI's words, decides what is a run.
-- The runs' memory reaches the counts through the same process-tree measurement MEM uses.
+- The runs' memory reaches the counts through the same process-tree measurement as the detail pane's Memory line.
 - Every piece is testable without a real CLI, and one opt-in contract fact pins the rule against the real one without spending tokens.
 
 **Non-Goals:**
@@ -34,14 +34,14 @@ The registration files also carry `entrypoint` (`cli`, `sdk-py`, `sdk-ts`, `sdk-
 - **`AutomatedRun(SessionId, FolderPath, int ProcessId)` in `Domain`.** The folder and session id are kept although nothing shows them yet, because they cost nothing and a later "what is running" view would need them; no name, no state.
 - **Measured with the rows, carried with the rows.** `SessionRowEnricher` takes the listing and also returns an `AutomatedRuns(int Count, MemorySize Memory)` summary from the same process snapshot (`ProcessTree.Under(pid, ...)?.Total`, a gone process adding nothing); `RowsLoaded` gains it; `SessionsViewState.AutomatedRuns` holds it, replaced on each `RowsLoaded` and left as it was on `LoadFailed` (as the rows are). `AutomatedRuns.None` stands where a null would, as `Footer.Blank` does.
 - **Words in `Wording`.** `SessionCounts(rows, automated)` appends `◇ {count} automated {Memory(memory)}` in `TextTone.Grey` when the count is above zero; `◇` is unused elsewhere and reads as "not a session" beside the filled state glyphs. The Sessions screen definition passes the state's summary.
-- **The contract fact holds a prompt-less `claude -p` open.** Started with standard input redirected and never written, it registers and stays alive; the fact polls `ListSessionsAsync` until its pid is among `AutomatedRuns` and not among `Sessions`, then closes standard input and waits for exit 1. No prompt means no model call. It carries `Category=ClaudeContract` like the others, so it runs nightly and only when `VANTAGE_CLAUDE_CONTRACT=1`. The "real interactive session gains a status" half is a CLAUDE.md fact, not a contract fact: proving it needs a pseudo-console, and the headless terminal's `drive` measured it.
+- **The contract fact holds a prompt-less `claude -p` open.** Started with standard input redirected and never written, it registers and waits about 17 s for input before giving up; the fact polls `ListSessionsAsync` until its pid is among `AutomatedRuns` and not among `Sessions`, then closes standard input and waits for exit 1. No prompt means no model call. It carries `Category=ClaudeContract` like the others, so it runs nightly and only when `VANTAGE_CLAUDE_CONTRACT=1`. The "real interactive session gains a status" half is a CLAUDE.md fact, not a contract fact: proving it needs a pseudo-console, and the headless terminal's `drive` measured it.
 
 ## Risks / Trade-offs
 
 - [A real `claude` is listed in its first 130 ms] → it is counted as a run for one refresh and shows from the next (at most five seconds); a spec scenario records this.
 - [A future CLI gives interactive sessions no status, or gives SDK runs one] → the contract fact fails nightly and opens the `claude-cli` issue; the CLAUDE.md fact names the version measured.
 - [A worktree can be removed while a run uses it] → git refuses with "Permission denied", which Vantage already reads as `GitException.InUse`; the run is short-lived.
-- [The runs' memory is a moment's figure] → the same as MEM; runs last seconds, so the part may come and go between refreshes, which is the truth.
+- [The runs' memory is a moment's figure] → the same as a session's Memory line; runs last seconds, so the part may come and go between refreshes, which is the truth.
 
 ## Migration Plan
 

@@ -130,12 +130,6 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
-    public void CountSessionsNeedingInputForTheHeader()
-    {
-        Loaded.NeedsInputCount.ShouldBe(1);
-    }
-
-    [Fact]
     public void SelectASessionByIdWhenAskedTo()
     {
         Reduce(Loaded, new SelectSession(Stopped.Session.SessionId)).Selected.ShouldBe(Stopped);
@@ -432,10 +426,21 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
-    public void ShowHowManySessionsNeedInputUntilThereIsAMessage()
+    public void ShowNothingUntilThereIsAMessage()
     {
-        Loaded.Shown.ShouldBe(new Footer.NeedInput(1));
+        Loaded.Shown.ShouldBe(Footer.None);
         (Loaded with { Footer = new Footer.Kept() }).Shown.ShouldBe(new Footer.Kept());
+    }
+
+    [Fact]
+    public void ClearAMessageWhenTheSelectionMovesOrTheFilterChanges()
+    {
+        SessionsViewState said = Loaded with { Footer = new Footer.Kept() };
+
+        Press(said, Key.Down).Footer.ShouldBe(Footer.None);
+        Press(said, Key.Up).Footer.ShouldBe(Footer.None);
+        Press(said, Key.Of('/')).Footer.ShouldBe(Footer.None);
+        Press(Press(said, Key.Of('/')) with { Footer = new Footer.Kept() }, Key.Of('k')).Footer.ShouldBe(Footer.None);
     }
 
     [Fact]

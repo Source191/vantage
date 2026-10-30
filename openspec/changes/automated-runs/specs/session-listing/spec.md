@@ -26,7 +26,7 @@ An interactive entry in the CLI listing that has no status SHALL be treated as a
 - **THEN** it shows as a stopped row, as before
 
 ### Requirement: The counts show the automated runs
-While any automated run is listed, the counts beside the tabs SHALL end with a grey ◇, how many runs, the word automated and the memory of their process trees together, measured and written as the MEM column measures and writes a session's. With none listed nothing SHALL show for them.
+While any automated run is listed, the counts beside the tabs SHALL end with a grey ◇, how many runs, the word automated and the memory of their process trees together, measured and written as the detail pane's Memory line measures and writes a session's. With none listed nothing SHALL show for them.
 
 #### Scenario: One run beside two sessions
 - **WHEN** one session is working, one is stopped and one automated run's tree uses 216 MB

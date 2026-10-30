@@ -51,10 +51,18 @@ public sealed class WordingOfKeysAndColumnsShould
     [Fact]
     public void ExplainEveryColumnOfEachView()
     {
-        Wording.SessionsColumns.Select(column => column.Name).ShouldBe(["NAME", "TAB", "STATE", "WHERE", "PR", "AGE", "MEM"]);
-        Wording.WorktreesColumns.Select(column => column.Name).ShouldBe(["WORKTREE", "BRANCH", "PR", "DIRTY", "UNPUSHED", "LAST COMMIT", "SESSION", "HEALTH"]);
+        Wording.SessionsColumns.Select(column => column.Name).ShouldBe(["NAME", "TAB", "STATE", "REPOSITORY", "PR", "AGE"]);
+        Wording.WorktreesColumns.Select(column => column.Name).ShouldBe(["WORKTREE", "LAST COMMIT", "SESSION"]);
         Wording.ConfigColumns.Select(column => column.Name).ShouldBe(["SETTING", "VALUE"]);
         Wording.SessionsColumns.Concat(Wording.WorktreesColumns).ShouldAllBe(column => column.Meaning.Length > 0);
+    }
+
+    [Fact]
+    public void ExplainEveryLineOfEachPane()
+    {
+        Wording.SessionsPane.Select(line => line.Name).ShouldBe(["Waiting", "Started", "Prompted", "Folder", "Session", "Worktree", "Branch", "Tab", "Changes", "Memory"]);
+        Wording.WorktreesPane.Select(line => line.Name).ShouldBe(["Health", "Branch", "PR", "Folder", "Created", "Changes", "Unpushed"]);
+        Wording.SessionsPane.Concat(Wording.WorktreesPane).ShouldAllBe(line => line.Meaning.Length > 0);
     }
 
     [Fact]
@@ -77,17 +85,27 @@ public sealed class WordingOfKeysAndColumnsShould
             <      scroll the columns left                 >      scroll the columns right
 
             Columns
-            NAME   the session name given at launch, or the folder name for an unnamed one
-            TAB    a block in the tab's colour while a Vantage tab shows the session,
-                   ▯ grey for a plain claude in its own terminal
-            STATE  ◐ needs input (amber), ● working (cyan), ○ idle (white),
-                   ✓ completed (green), ✗ failed (red), ■ stopped (grey)
-            WHERE  repository › slug for a worktree, with the branch in brackets when it differs;
-                   repository (branch) for a main checkout; the folder alone outside a repository
-            PR     its pull request: #123 on GitHub (open, draft, merged, closed),
-                   !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
-            AGE    time since the session started
-            MEM    private working set of the session's process and everything it started; - when it has no process
+            NAME        the session name given at launch, or the folder name for an unnamed one
+            TAB         a block in the tab's colour while a Vantage tab shows the session,
+                        ▯ grey for a plain claude in its own terminal
+            STATE       ◐ needs input (amber), ● working (cyan), ○ idle (white),
+                        ✓ completed (green), ✗ failed (red), ■ stopped (grey)
+            REPOSITORY  the repository it runs in, or the folder's label outside a repository
+            PR          its pull request: #123 on GitHub (open, draft, merged, closed),
+                        !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
+            AGE         time since the session started
+
+            Pane
+            Waiting   what it waits for: Claude Code's reason, a first prompt, or nothing
+            Started   when the session started
+            Prompted  when Vantage last saw it go from waiting or idle to working
+            Folder    the folder it runs in
+            Session   the session id
+            Worktree  the worktree's slug, the path inside the repository, or the main checkout
+            Branch    the branch checked out there
+            Tab       its Vantage tab and the tab's colour, or its own terminal
+            Changes   changed files, unpushed commits and the last commit there
+            Memory    what the session and everything it started use; m for the breakdown
 
             Claude Code: C:\Users\me\.local\bin\claude.exe
             """.ReplaceLineEndings("\n"));
@@ -112,17 +130,21 @@ public sealed class WordingOfKeysAndColumnsShould
             >      scroll the columns right
 
             Columns
-            WORKTREE     the owning repository › the folder's slug, or its label when not named after it
-            BRANCH       the branch checked out there
-            PR           its pull request: #123 on GitHub (open, draft, merged, closed),
-                         !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
-            DIRTY        changed or untracked files
-            UNPUSHED     commits on its branch that no remote has
+            WORKTREE     the owning repository › the folder's slug, or its label when not named after it;
+                         white ok, amber locked, red broken or orphan, grey empty
             LAST COMMIT  time since the last commit
             SESSION      the session running in it, if any
-            HEALTH       ok; locked (by another tool); orphan (a folder git has forgotten);
-                         broken (registration or owner gone); empty (a leftover folder);
-                         elsewhere (a worktree of a repository outside the roots)
+
+            Pane
+            Health    ok; locked (by another tool); orphan (a folder git has forgotten);
+                      broken (registration or owner gone); empty (a leftover folder);
+                      elsewhere (a worktree of a repository outside the roots); then the reason in full
+            Branch    the branch checked out there, and whether it is merged into origin's default branch
+            PR        its pull request, as the sessions table shows it, or none; p opens it
+            Folder    the worktree's folder
+            Created   when Vantage created it, or not by Vantage
+            Changes   changed or untracked files, and commits on its branch that no remote has
+            Unpushed  the newest five unpushed commits, or the changed files when none, and how many more
             """.ReplaceLineEndings("\n"));
     }
 

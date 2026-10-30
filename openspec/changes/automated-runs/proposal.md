@@ -7,7 +7,7 @@ The Sessions table sometimes shows a second row for a session's worktree: no nam
 ## What Changes
 
 - **Automated runs leave the table:** an interactive row in `claude agents --json --all` that has no `status` is an automated run (the Agent SDK in any language, `claude -p`), not a session. It is not a row, is not counted in the table's title and takes no keys.
-- **The counts show them:** while any run, the Sessions counts end with `◇ 2 automated 431 MB` in grey: how many, and the memory of their process trees measured as MEM measures a session's. Nothing shows when none run.
+- **The counts show them:** while any run, the Sessions counts end with `◇ 2 automated 431 MB` in grey: how many, and the memory of their process trees measured as the detail pane's Memory line measures a session's. Nothing shows when none run.
 - **The rule stays on the documented listing:** the decision uses only the listing's `kind` and `status` fields, never the `~\.claude\sessions` folder, as `openspec\config.yaml` requires. The evidence (below and in the design) goes into CLAUDE.md's CLI facts, and an opt-in contract test pins it against the installed CLI without spending tokens.
 - **Version:** one preview step above `main`'s.
 
@@ -31,5 +31,5 @@ None.
 - **Domain:** an `AutomatedRun` record (session id, folder, process id).
 - **Adapters:** `ClaudeAgentsListing` sorts an interactive row without a status into the runs; `ClaudeStates` keeps its words.
 - **Application:** `SessionRowEnricher` (or a sibling) measures the runs into an `AutomatedRuns` summary; `RowsLoaded` carries it and `SessionsViewState` keeps it; `Wording.SessionCounts` adds the part.
-- **Tests:** listing facts from JSON fixtures, enricher and reducer facts with the fake process registry, a `WordingOfScreensShould` fact, and a `ClaudeContract` fact that holds a prompt-less `claude -p` open on standard input and finds it among the runs.
+- **Tests:** listing facts from JSON fixtures, enricher and reducer facts with the fake process registry, a `WordingOfScreensShould` fact, and a `ClaudeContract` fact that starts a prompt-less `claude -p` with its standard input redirected and finds it among the runs.
 - **Docs:** README's Sessions section and TAB column, the counts in the help where they are described, CLAUDE.md's CLI facts.

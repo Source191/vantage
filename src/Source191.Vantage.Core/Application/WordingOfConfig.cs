@@ -25,6 +25,18 @@ public static partial class Wording
         };
     }
 
+    /// <summary>What a Config row's setting does, or what its setup is for: the status line for the selected row and the row's tooltip.</summary>
+    public static string ConfigDescription(ConfigRow row) => row switch
+    {
+        ConfigRow.RepositoryRoot => "A folder Vantage searches for git repositories; Enter edits every root, one per line.",
+        ConfigRow.WorktreeRoot => "Where new worktrees go, each in a folder named <repository>-<slug> on a branch named <slug>.",
+        ConfigRow.OpenFolderWith => "The program e opens a row's folder with: one of the editors Vantage knows, or a program of your own.",
+        ConfigRow.DefaultBase => "What a new worktree's branch starts from: origin's default branch, or the commit checked out now.",
+        ConfigRow.CheckForUpdates => "Whether Vantage asks nuget.org once a day for a newer release, which U then installs.",
+        ConfigRow.Setup setup => SetupDescription(setup.Item),
+        _ => string.Empty,
+    };
+
     /// <summary>The VALUE cell; <paramref name="now"/> says whether the last update check was today.</summary>
     public static string ConfigValue(ConfigRow row, DateTimeOffset now)
     {
@@ -64,6 +76,18 @@ public static partial class Wording
             SetupItem.ClaudeBell => "Run vantage setup-terminal to make Claude ring the terminal bell when a session needs you.",
             SetupItem.DiagnosticLog => "Set the VANTAGE_LOG environment variable to a file path before starting Vantage to keep a diagnostic log.",
             SetupItem.LastUpdateCheck => "Vantage asks nuget.org at most once a day; turn the check on or off with Check for updates.",
+        };
+    }
+
+    private static string SetupDescription(SetupItem item)
+    {
+        return item switch
+        {
+            SetupItem.SettingsFile => "The file Vantage keeps the settings above in; e opens the folder holding it.",
+            SetupItem.TerminalProfiles => "Windows Terminal profiles that give Vantage tabs a bell and the Vantage icon.",
+            SetupItem.ClaudeBell => "Claude's terminal bell, which rings when a session finishes or needs permission while you are away.",
+            SetupItem.DiagnosticLog => "The file VANTAGE_LOG names, where Vantage writes its diagnostic log as it runs.",
+            SetupItem.LastUpdateCheck => "When Vantage last asked nuget.org for a newer release, and the newest it found.",
         };
     }
 

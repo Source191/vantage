@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
@@ -53,7 +54,8 @@ internal interface ITabHost
 }
 
 /// <summary>
-/// One tab of the console: a view's rows in a table with its crumb, footer and waiting indicator (its title goes on the frame), the reducer it
+/// One tab of the console: a view's rows in a table with its status line and waiting indicator (its title goes on the frame), the detail pane under
+/// the table when the view has one (read for the selected row off the UI thread, only while the tab is shown), the reducer it
 /// feeds keys to, and the effects it routes (a dialog to <see cref="DialogEffects"/>, a background effect to its handler
 /// through the <see cref="EffectDispatcher"/> with a busy spinner, a tab switch or an exit to the console). A definition
 /// supplies everything specific to the view.
@@ -63,6 +65,9 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 {
     private const int LongColumnCap = 28;
     private const int ElasticFloor = 20;
+
+    /// <summary>The table's header: the overline, the names and the line under them.</summary>
+    private const int HeaderRows = 3;
 
     private readonly IScreenDefinition<TState, TRow> definition;
     private readonly DialogEffects dialogs;
@@ -77,11 +82,24 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly SpinnerView busy;
     private readonly WaitingIndicator waiting;
     private readonly string[] columnNames;
+    private readonly IDetailSource<TRow>? detail;
+    private readonly DetailRequests? requests;
+    private readonly DetailPane? pane;
+    private readonly CancellationTokenSource lifetime = new();
+
+    /// <summary>
+    /// What a tooltip hangs from: Terminal.Gui draws a tooltip under its target's frame, and under the whole table that is
+    /// the detail pane, so the target is this view, as wide as nothing, laid over the header or the row under the pointer.
+    /// </summary>
+    private readonly View toolTipAnchor = new() { X = 0, Y = 0, Width = 0, Height = HeaderRows, CanFocus = false };
+    private object? detailKey;
     private TRow? selected;
     private int? headerUnderMouse;
+    private int? rowUnderMouse;
     private int columnOffset;
     private bool isShown;
     private bool running;
+    private int statusRows;
 
     public TableBody(IScreenDefinition<TState, TRow> definition, DialogEffects dialogs, EffectDispatcher dispatcher, Func<CancellationToken, Task<ViewInput>> load, TimeProvider clock, ScreenContext context, IApplication app, ITabHost host, TState initial)
     {
@@ -95,6 +113,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         this.host = host;
         State = initial;
         columnNames = [.. definition.Columns.Select(column => column.Name)];
+        detail = definition.Detail;
 
         // The tab's title is the view's Title; it can take focus because Tabs shows whichever tab has it.
         View = new View { Title = definition.TabTitle(initial), Width = Dim.Fill(), Height = Dim.Fill(), CanFocus = true };
@@ -119,14 +138,22 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         table.Style.RowColorGetter = RowColour;
         StyleColumns();
 
-        int crumbWidth = definition.Crumb.Length;
-        Label crumb = Text(0, Pos.AnchorEnd(1), crumbWidth, definition.Crumb, Palette.Background);
-        crumb.SetScheme(Palette.Pair(Palette.Background, Palette.Amber));
-        busy = Spinners.Create(crumbWidth + 1, Pos.AnchorEnd(1));
-        waiting = new WaitingIndicator(definition.WaitingText);
-        footer = Text(crumbWidth + 3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
+        // The status line: a spinner while an action runs, then the last message; it has a row only while it has something to say.
+        busy = Spinners.Create(1, Pos.AnchorEnd(1));
+        // In the middle of the table, whatever the pane under it takes, so the spinner never lands in the pane.
+        waiting = new WaitingIndicator(definition.WaitingText) { Y = Pos.Func(_ => table.Frame.Y + (table.Frame.Height / 2), table) };
+        footer = Text(3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
 
-        View.Add(table, crumb, busy, footer, waiting);
+        View.Add(table, busy, footer, waiting, toolTipAnchor);
+        if (detail is not null)
+        {
+            requests = new DetailRequests();
+            pane = new DetailPane(detail.Rows);
+            View.Add(pane);
+        }
+
+        LayOutStatus(StatusRowsNeeded);
+
         ShowColumnToolTips();
     }
 
@@ -155,8 +182,13 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public KeyBar Bar(bool updateKnown) => definition.Bar(State, updateKnown);
 
-    /// <summary>Disposes the tab's view and everything in it; the console removes it from the window first, so nothing is disposed twice.</summary>
-    public void Dispose() => View.Dispose();
+    /// <summary>Drops the detail still being read, then disposes the tab's view and everything in it; the console removes it from the window first, so nothing is disposed twice.</summary>
+    public void Dispose()
+    {
+        lifetime.Cancel();
+        lifetime.Dispose();
+        View.Dispose();
+    }
 
     public void TriggerLoad()
     {
@@ -164,8 +196,16 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         {
             ViewInput input = await Attempt.RunAsync(Diagnostics, FailureSite.Load, CodeName.For(typeof(TState)), () => load(CancellationToken.None), exception => new LoadFailed(exception.Message));
 
-            app.Invoke(() => Apply(input));
-        });
+            app.Invoke(() =>
+            {
+                object? before = detailKey;
+                Apply(input);
+                if (Equals(detailKey, before))
+                {
+                    AskForDetail(refreshed: true);
+                }
+            });
+        }, CancellationToken.None);
     }
 
     public void OnKey(GuiKey key)
@@ -225,13 +265,19 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
                 Redraw();
                 TriggerLoad();
             });
-        });
+        }, CancellationToken.None);
     }
 
+    /// <summary>A tab shown again reads its selected row's detail afresh.</summary>
     public void Shown(bool shown)
     {
         isShown = shown;
         busy.Show(shown && running);
+        if (shown)
+        {
+            detailKey = null;
+        }
+
         Redraw();
     }
 
@@ -245,6 +291,11 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         table.ColumnOffset = columnOffset;
         View.Title = definition.TabTitle(State);
         footer.Text = Wording.Describe(State.Shown);
+        if (StatusRowsNeeded != statusRows)
+        {
+            LayOutStatus(StatusRowsNeeded);
+        }
+
         if (rows.Count > 0)
         {
             int index = selected is null ? 0 : Math.Max(rows.ToList().IndexOf(selected), 0);
@@ -252,6 +303,94 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
 
         waiting.Show(isShown && !State.Loaded && State.Banner is null);
+        AskForDetail(refreshed: false);
+        View.SetNeedsDraw();
+        host.FrameChanged();
+    }
+
+    /// <summary>The status line takes a row only while there is a message or an action is running.</summary>
+    private int StatusRowsNeeded => running || Wording.Describe(State.Shown).Length > 0 ? 1 : 0;
+
+    /// <summary>Gives the status line its row, or the table the row back, with the pane above the status line.</summary>
+    private void LayOutStatus(int rows)
+    {
+        statusRows = rows;
+        int paneRows = pane?.Rows ?? 0;
+        footer.Visible = rows > 0;
+        table.Height = Dim.Fill(paneRows + rows);
+        if (pane is not null)
+        {
+            pane.Y = Pos.AnchorEnd(paneRows + rows);
+        }
+
+        View.SetNeedsLayout();
+    }
+
+    /// <summary>
+    /// Asks for the selected row's detail while the tab is shown (a hidden tab draws nothing of its own, or it lands on top
+    /// of the shown one): when the selection moved, or for every refresh; an empty table empties the pane.
+    /// </summary>
+    private void AskForDetail(bool refreshed)
+    {
+        if (detail is null || requests is null || pane is null || !isShown)
+        {
+            return;
+        }
+
+        if (State.List.Selected is not TRow row)
+        {
+            requests.Cleared();
+            detailKey = null;
+            pane.Show(null);
+            return;
+        }
+
+        object key = detail.KeyOf(row);
+        if (!refreshed && Equals(key, detailKey))
+        {
+            return;
+        }
+
+        detailKey = key;
+        ReadDetail(row, requests.Ask(key));
+    }
+
+    /// <summary>Reads one request's detail off the UI thread and shows it there, unless a newer answer or another row came first.</summary>
+    private void ReadDetail(TRow row, DetailRequest request)
+    {
+        CancellationToken token = lifetime.Token;
+        Task.Run(async () =>
+        {
+            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(row, token), _ => null);
+            if (content is null || token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            app.Invoke(() => ShowDetail(request, content));
+        }, token);
+    }
+
+    private async Task<DetailContent?> ReadAsync(TRow row, CancellationToken token)
+    {
+        try
+        {
+            return await detail!.ReadAsync(row, token);
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested)
+        {
+            return null;
+        }
+    }
+
+    private void ShowDetail(DetailRequest request, DetailContent content)
+    {
+        if (lifetime.IsCancellationRequested || requests?.Accept(request, content) is not DetailContent shown)
+        {
+            return;
+        }
+
+        pane!.Show(shown);
         View.SetNeedsDraw();
         host.FrameChanged();
     }
@@ -311,48 +450,69 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     private void HideColumnToolTip()
     {
-        if (headerUnderMouse is not null)
+        if (headerUnderMouse is not null || rowUnderMouse is not null)
         {
             app.ToolTips?.Hide();
         }
 
         headerUnderMouse = null;
+        rowUnderMouse = null;
     }
 
+    /// <summary>A column's meaning while the pointer rests on its header; a row's tip, when the view gives one, while it rests on the row.</summary>
     private void ShowColumnToolTip(Terminal.Gui.Input.Mouse mouse)
     {
         int? header = null;
+        System.Drawing.Point? cell = null;
         if (mouse.Position is System.Drawing.Point position)
         {
-            table.ScreenToCell(position, out header);
+            cell = table.ScreenToCell(position, out header);
         }
 
-        if (header == headerUnderMouse)
+        int? row = header is null ? cell?.Y : null;
+        if (header == headerUnderMouse && row == rowUnderMouse)
         {
             return;
         }
 
         HideColumnToolTip();
         headerUnderMouse = header;
+        rowUnderMouse = row;
+        int x = table.Frame.X + (mouse.Position?.X ?? 0);
         if (header is int column && column < definition.Columns.Count)
         {
             ColumnHelp help = definition.Columns[column];
-            app.ToolTips?.ShowFor(table, new ToolTipProvider(() => ToolTips.View($"{help.Name}: {help.Meaning}")));
+            ShowToolTip(x, table.Frame.Y, HeaderRows, $"{help.Name}: {help.Meaning}");
+            return;
+        }
+
+        if (row is int index && table.Table is TableSource<TRow> source && index < source.Rows && definition.RowTip(source.RowAt(index)) is string tip)
+        {
+            ShowToolTip(x, table.Frame.Y + (mouse.Position?.Y ?? 0), 1, tip);
         }
     }
 
+    /// <summary>Lays the anchor over the header or the row at the pointer and shows the tooltip on the row under it.</summary>
+    private void ShowToolTip(int x, int y, int height, string text)
+    {
+        toolTipAnchor.X = x;
+        toolTipAnchor.Y = y;
+        toolTipAnchor.Height = height;
+        View.Layout();
+        app.ToolTips?.ShowFor(toolTipAnchor, new ToolTipProvider(() => ToolTips.View(text)));
+    }
+
     /// <summary>
-    /// Names and branches are cut at 28 cells with an ellipsis, so one long value cannot push the other columns off
+    /// Names are cut at 28 cells with an ellipsis, so one long value cannot push the other columns off
     /// screen; rows keep the full values. Ages are right-aligned, and every column asks the definition for a cell's own paint.
     /// </summary>
     private void StyleColumns()
     {
-        string[] capped = ["NAME", "BRANCH"];
         for (int column = 0; column < columnNames.Length; column++)
         {
             ColumnStyle style = table.Style.GetOrCreateColumnStyle(column);
             style.ColorGetter = CellColour;
-            if (capped.Contains(columnNames[column]))
+            if (columnNames[column] == "NAME")
             {
                 style.MaxWidth = LongColumnCap;
                 style.TruncationIndicator = "…";
@@ -445,7 +605,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     }
 }
 
-/// <summary>Vantage's tooltips: drawn in the crumb's colours, so they read as tooltips and not as more screen text.</summary>
+/// <summary>Vantage's tooltips: black on amber, so they read as tooltips and not as more screen text.</summary>
 internal static class ToolTips
 {
     /// <summary>Each line keeps its breaks and a cell of margin either side, and the view is exactly as tall as its lines.</summary>
