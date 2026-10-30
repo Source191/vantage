@@ -139,16 +139,14 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | Column | Meaning |
 | --- | --- |
 | NAME | The session name given at launch (`-n`), or the folder name for an unnamed one |
-| STATE | needs input (amber), working (cyan), idle (white), completed (green), failed (red), stopped (grey) |
-| REPOSITORY | The repository the session runs in (a linked worktree shows its main checkout) |
-| FOLDER | The folder the session runs in, relative to the repository root or the worktree root that holds it (`Northwind.Orders-fix-123`), else relative to your home folder (`~\scratch\notes`), else in full. A worktree is recognisable because its folder name differs from its repository |
-| BRANCH | The branch checked out there |
+| TAB | A one-cell swatch: `▮` in the tab's colour while a Vantage tab shows the session (the tab closes when its attach ends, so the swatch clears with it), `▯` in grey for a session started as plain `claude` in a tab of its own, blank otherwise |
+| STATE | `◐ needs input` (amber), `● working` (cyan), `○ idle` (white), `✓ completed` (green), `✗ failed` (red), `■ stopped` (grey) |
+| WHERE | Where the session runs, in one value: `Northwind.Orders › fix-123` for a worktree whose folder is `Northwind.Orders-fix-123` on branch `fix-123` (a linked worktree names its main checkout); `Northwind.Orders › fix-123 (hotfix)` when the branch is not the slug; `Northwind.Orders (main)` for the main checkout; `Northwind.Orders › src\Api (main)` for a folder inside the repository; and for a folder outside any repository its label alone, relative to the repository root or worktree root that holds it, else to your home folder (`~\scratch\notes`), else in full |
 | PR | The branch's pull request: `#123 open` on GitHub (open, draft, merged, closed), `!123 active` on Azure DevOps (active, draft, completed, abandoned); an open one wins, else the most recent. Blank when there is none or it cannot be looked up; `p` says why. See [Pull requests](#pull-requests) |
-| AGE | Time since the session started |
-| TAB | `terminal` for a session started as plain `claude` in a tab, `open` while a Vantage tab shows the session (the tab closes when its attach ends, so `open` clears with it) |
+| AGE | Time since the session started, right-aligned |
 | MEM | The memory the session's process and everything it started are using now: the private working set, the figure Task Manager's Memory column shows, so pages shared between the MCP servers' node processes count once and pages Windows has paged out do not count. `-` for a stopped session |
 
-NAME, REPOSITORY, FOLDER and BRANCH are cut at 28 characters with an ellipsis, so one long name cannot push the other columns off screen; Left and Right scroll the table to them, and the title, the filter and every key still use the full value.
+WHERE takes the width the other columns leave, so every column fits a 120-column terminal; a repository name too long for it loses its middle to an ellipsis (`Northwind.Integrat…ngeFeedMonitoring › fix-123`) and the slug and branch stay whole. NAME is cut at 28 characters with an ellipsis. Left and Right scroll the table on a narrower terminal, and the title, the filter and every key still use the full values.
 
 Keys (every key is dispatched by the tested reducer, so this table is the reference):
 
@@ -213,16 +211,17 @@ Press `w`. Vantage lists every linked worktree of the repositories under your ro
                                                               <enter>   Go to session
   4 worktrees, selected: Northwind.Billing-invoice-pdf
  ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
- ││REPOSITORY          │FOLDER                        │BRANCH                   │DIRTY│UNPUSHED│LAST COMMIT│SESSION   │HEALTH │
- │ Northwind.Billing    Northwind.Billing-invoice-pdf   invoice-pdf                     12       3d4h       invoice-pdf ok    │
- │ Northwind.Billing    Northwind.Billing-study         study/reporting          5                9d16h                 ok    │
- │ Northwind.Orders     Northwind.Orders-fix-tests      fix-tests                        2        1d0h       fix-tests   ok    │
- │ Northwind.Sales      Northwind.Sales-republish       -                                         -                     broken│
+ ││WORKTREE                                          │BRANCH                   │DIRTY│UNPUSHED│LAST COMMIT│SESSION   │HEALTH │
+ │ Northwind.Billing › invoice-pdf                    invoice-pdf                     12       3d4h       invoice-pdf ok    │
+ │ Northwind.Billing › study                          study/reporting          5                9d16h                 ok    │
+ │ Northwind.Orders › fix-tests                       fix-tests                        2        1d0h       fix-tests   ok    │
+ │ Northwind.Sales › republish                        -                                         -                     broken│
 ```
 
 | Column | Meaning |
 | --- | --- |
-| REPOSITORY, FOLDER, BRANCH | The owning repository, the worktree folder (relative to its root, as in the sessions view) and its branch |
+| WORKTREE | The owning repository, then `›` and the worktree folder's slug (`Northwind.Billing › invoice-pdf` for the folder `Northwind.Billing-invoice-pdf`), or the folder's label when it is not named after the repository. The column takes the width the others leave and elides the middle of a long repository name, as WHERE does in the sessions view |
+| BRANCH | The branch checked out there |
 | DIRTY | Changed or untracked files in the worktree |
 | UNPUSHED | Commits on its branch that no remote has |
 | LAST COMMIT | Age of the last commit |
@@ -230,7 +229,7 @@ Press `w`. Vantage lists every linked worktree of the repositories under your ro
 | SESSION | The session running inside it, if any |
 | HEALTH | `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it), `elsewhere` (a live worktree of a repository that is not under the roots, so Vantage never scanned it; the row names that repository, and the footer says where it is) |
 
-When nothing else needs saying, the footer explains the selected row's health in full. Long repository, folder and branch names are cut with an ellipsis as in the sessions view, and Left and Right scroll the table.
+When nothing else needs saying, the footer explains the selected row's health in full. A long repository name is elided in the middle of the WORKTREE cell, BRANCH is cut at 28 characters, and Left and Right scroll the table on a narrow terminal.
 
 | Key | Action |
 | --- | --- |
@@ -315,7 +314,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 ## Common scenarios
 
-**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story (`New worktree` is already chosen), type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and its FOLDER cell shows the worktree.
+**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story (`New worktree` is already chosen), type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, and its WHERE cell reads the repository › the worktree's slug.
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
@@ -470,7 +469,7 @@ Branch protection on `main` has "Require branches to be up to date before mergin
 The runner drives Vantage inside a pseudo-console, which is the same plumbing Windows Terminal uses for a tab, so rendering, keys and the attach hand-off are covered. Anything that goes out through `wt.exe` is not: a runner has no desktop for a tab to appear on. Before merging a pull request that changes how Vantage drives `wt.exe`, opens, titles or colours tabs, or attaches to a session, install its package (`tools\install-local.ps1`) and run these in a real Windows Terminal:
 
 1. `o` on a session opens a coloured tab titled with the session name, and `o` again switches to that tab while it is open.
-2. `n`, choose a repository, name the session and leave `New worktree` chosen, F6: a new tab opens attached to the new session, and its FOLDER cell shows the worktree.
+2. `n`, choose a repository, name the session and leave `New worktree` chosen, F6: a new tab opens attached to the new session, and its WHERE cell reads the repository › the worktree's slug.
 3. `d` on that session ends claude and the tab closes by itself.
 4. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
 5. Ctrl+Z from an attached session returns to the table with the keys still working.
