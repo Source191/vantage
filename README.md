@@ -239,9 +239,9 @@ For a session:
 
 ```text
 ─┤ fix-123 ├──────────────────────────────────────────────────────────────────────────────────────────────────────────
- State    needs input (permission prompt)  Started 14:02 (5m ago)  Prompted 14:03 (4m ago)
- Folder   C:\Users\me\source\worktrees\Northwind.Orders-fix-123         Session  81cdb0f9-0000-4000-8000-000000000001
- Branch   fix-123                          PR      #412 open (p opens it)   Tab      open, yellow
+ State    needs input (permission prompt)  Started 14:02 (5m ago)          Prompted 14:03 (4m ago)
+ Folder   C:\Users\me\source\worktrees\Northwind.Orders-fix-123            Session  81cdb0f9-0000-4000-8000-00000000…
+ Branch   fix-123                          PR      #412 open (p opens it)  Tab      open, yellow
  Worktree 3 changed files · 0 unpushed commits · last commit 2h00m ago     Memory   903 MB (m for the breakdown)
  ● Edit(src/Northwind.Orders/Processor.cs)
    Allow edit to Processor.cs?
