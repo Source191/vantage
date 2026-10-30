@@ -17,6 +17,7 @@ public sealed class CapturedRun : IDisposable
     private readonly DriverOptions options;
     private readonly TerminalQueries queries;
     private readonly Stopwatch clock = Stopwatch.StartNew();
+    private readonly Lock gate = new();
     private readonly StringBuilder output = new();
     private readonly List<string> replies = [];
     private readonly Task reader;
@@ -38,7 +39,7 @@ public sealed class CapturedRun : IDisposable
 
     public string Captured()
     {
-        lock (output)
+        lock (gate)
         {
             return output.ToString();
         }
@@ -71,13 +72,21 @@ public sealed class CapturedRun : IDisposable
         await File.WriteAllTextAsync(captureFile, captured, new UTF8Encoding(false));
         string plain = EscapeSequences.Strip(captured);
         await Console.Out.WriteLineAsync($"exited: {exited} killed: {(alive ? "true" : "false")} chars: {captured.Length}");
-        await Console.Out.WriteLineAsync($"replies sent: {string.Join(' ', replies)}");
+        await Console.Out.WriteLineAsync($"replies sent: {RepliesSent()}");
         await Console.Out.WriteLineAsync($"last 300 plain chars: {JsonSerializer.Serialize(plain[Math.Max(0, plain.Length - 300)..])}");
 
         return !alive;
     }
 
     public void Dispose() => console.Dispose();
+
+    private string RepliesSent()
+    {
+        lock (gate)
+        {
+            return string.Join(' ', replies);
+        }
+    }
 
     private async Task ReadAsync()
     {
@@ -102,7 +111,7 @@ public sealed class CapturedRun : IDisposable
             }
 
             string chunk = new(chars, 0, decoder.GetChars(buffer, 0, read, chars, 0));
-            lock (output)
+            lock (gate)
             {
                 output.Append(chunk);
             }
@@ -122,7 +131,7 @@ public sealed class CapturedRun : IDisposable
             {
                 await Task.Delay(reply.DelayMs);
                 await console.WriteAsync(reply.Text);
-                lock (replies)
+                lock (gate)
                 {
                     replies.Add($"{JsonSerializer.Serialize(reply.Text)}@{clock.ElapsedMilliseconds}");
                 }

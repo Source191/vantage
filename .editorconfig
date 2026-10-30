@@ -110,6 +110,8 @@ dotnet_diagnostic.IDE0083.severity = warning
 
 # Modifier preferences
 csharp_prefer_static_local_function = true:suggestion
+csharp_prefer_system_threading_lock = true:warning
+dotnet_diagnostic.IDE0330.severity = warning
 csharp_preferred_modifier_order = public,private,protected,internal,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:silent
 
 # Code-block preferences

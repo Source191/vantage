@@ -30,8 +30,9 @@ Every group ends green: `dotnet build -c Debug`, `dotnet test -c Debug --no-buil
 
 ## 5. Locks
 
-- [ ] 5.1 Add `csharp_prefer_system_threading_lock = true:warning` and `dotnet_diagnostic.IDE0330.severity = warning`. Verify the build passes (every existing gate is already a `Lock`).
-- [ ] 5.2 In `tools\HeadlessTerminal\CapturedRun.cs`, replace `lock (output)` and `lock (replies)` with `lock (gate)` on one `private readonly Lock gate = new();`. Verify `tools\HeadlessTerminal.Tests` passes and `dotnet run --project tools\HeadlessTerminal -- check` exits 0.
+- [x] 5.1 Add `csharp_prefer_system_threading_lock = true:warning` and `dotnet_diagnostic.IDE0330.severity = warning`. Verify the build passes (every existing gate is already a `Lock`).
+- [x] 5.2 In `tools\HeadlessTerminal\CapturedRun.cs`, replace `lock (output)` and `lock (replies)` with `lock (gate)` on one `private readonly Lock gate = new();`. Verify `tools\HeadlessTerminal.Tests` passes and `dotnet run --project tools\HeadlessTerminal -- check` exits 0.
+  - Recorded 30 October 2026: IDE0330 found nothing (5.1). The summary line's read of `replies` (`FinishAsync`), which took no lock before, now reads under the same gate through `RepliesSent()`. `tools\HeadlessTerminal.Tests` passed (40); the hand-off check against a Release build exited 0 ("Claude's own screen is in the capture", replies listed).
 
 ## 6. C# 14 clean-ups
 
