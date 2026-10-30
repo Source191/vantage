@@ -41,7 +41,8 @@ Every group ends green: `dotnet build -c Debug`, `dotnet test -c Debug --no-buil
 
 ## 7. Switch expressions
 
-- [ ] 7.1 Read the nine `switch` statements (`Program.cs:188`, `TerminalEffects.cs:14`, `HereCommandRunner.cs:27`, `TerminalSetupRunner.cs:143`, `CommandArguments.cs:20`, `GitWorktreeListing.cs:33`, `TableBody.cs:264`, `ScreenReplay.cs:66` and `:134`) and convert to a switch expression only those whose every arm returns or assigns one value, naming each converted one and the test that covers it here (`HereCommandRunnerShould`, `TerminalSetupRunnerShould`, `CommandArgumentsShould`, `GitWorktreeListingShould`, `ScreenReplayShould` as they apply). A switch over a closed enum names every member with no discard arm, as the code rules require. Verify the named tests pass.
+- [x] 7.1 Read the nine `switch` statements (`Program.cs:188`, `TerminalEffects.cs:14`, `HereCommandRunner.cs:27`, `TerminalSetupRunner.cs:143`, `CommandArguments.cs:20`, `GitWorktreeListing.cs:33`, `TableBody.cs:264`, `ScreenReplay.cs:66` and `:134`) and convert to a switch expression only those whose every arm returns or assigns one value, naming each converted one and the test that covers it here (`HereCommandRunnerShould`, `TerminalSetupRunnerShould`, `CommandArgumentsShould`, `GitWorktreeListingShould`, `ScreenReplayShould` as they apply). A switch over a closed enum names every member with no discard arm, as the code rules require. Verify the named tests pass.
+  - Recorded 30 October 2026: none converted. `LocateClaudeAsync`, `HereCommandRunner.LaunchAsync` and `TerminalSetupRunner.OfferBellAsync` return a value but await a write in their arms; `TerminalEffects`, `TableBody` and `CommandArguments` run effects or change several locals; `GitWorktreeListing` assigns a different variable in each arm; both `ScreenReplay` switches move the cursor or write cells. No code changed, so the tests are as task 6.1 left them.
 
 ## 8. Source-generated interop
 
