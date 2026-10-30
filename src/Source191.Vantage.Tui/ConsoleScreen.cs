@@ -192,8 +192,13 @@ public sealed class ConsoleScreen(
         {
             active = tab;
             binding = true;
-            tabs.Value = tab == ConsoleTab.Sessions ? sessions.View : worktrees.View;
+            View shown = tab == ConsoleTab.Sessions ? sessions.View : worktrees.View;
+            tabs.Value = shown;
             binding = false;
+
+            // The tab drawn last opens its edge under its title. Tabs puts the focused tab last only when Value changes, and
+            // the first Show comes before anything has focus, which left the other tab's line closing the shown one.
+            tabs.MoveSubViewToEnd(shown);
             if (tab != screen.shown)
             {
                 screen.shown = tab;
