@@ -14,15 +14,13 @@ public sealed class SessionScreenShould
         "  2. No, and tell Claude what to do differently",
     ];
 
-    private static readonly string[] Chrome = ["────────────────────────────────", "❯", "────────────────────────────────", "  opus  effort:high  |  ctx:12%", "  ⏵⏵ auto mode on"];
-
     [Theory]
     [InlineData(48)]
     [InlineData(80)]
     [InlineData(201)]
     public void RebuildTheRowsAtTheSessionsOwnWidth(int width)
     {
-        string logs = Screen(width, [.. Output, .. Chrome]);
+        string logs = Screen(width, [.. Output, .. Chrome(width)]);
 
         SessionScreen.Bottom(logs, rows: 4).ShouldBe(Output[2..]);
     }
@@ -30,35 +28,40 @@ public sealed class SessionScreenShould
     [Fact]
     public void KeepAsManyRowsAsThereAre()
     {
-        SessionScreen.Bottom(Screen(80, [.. Output, .. Chrome]), rows: 20).ShouldBe(Output);
+        SessionScreen.Bottom(Screen(80, [.. Output, .. Chrome(80)]), rows: 20).ShouldBe(Output);
     }
 
     [Fact]
     public void DropBlankRowsAtTheEnd()
     {
-        SessionScreen.Bottom(Screen(80, [.. Output, "", "", .. Chrome]), rows: 2).ShouldBe(Output[4..]);
+        SessionScreen.Bottom(Screen(80, [.. Output, "", "", .. Chrome(80)]), rows: 2).ShouldBe(Output[4..]);
     }
 
     [Fact]
-    public void KeepTheRowsWhenThereIsNoInputBox()
+    public void FindTheWidthPastAnEarlierShorterRule()
     {
-        SessionScreen.Bottom(Screen(80, Output), rows: 2).ShouldBe(Output[4..]);
-    }
-
-    [Fact]
-    public void ReadThroughTheColourCodes()
-    {
-        string logs = "\u001b[H" + string.Concat(Output.Select(row => "\u001b[38;2;248;248;242m" + row.PadRight(60) + "\u001b[39m\u001b[K")) + "\u001b[49;3H";
+        string logs = Screen(80, ["  " + new string('─', 60), .. Output, .. Chrome(80)]);
 
         SessionScreen.Bottom(logs, rows: 1).ShouldBe([Output[^1]]);
     }
 
     [Fact]
-    public void AnswerNothingWhenNoWidthFits()
+    public void ReadThroughTheColourCodes()
     {
+        string logs = "\u001b[H" + string.Concat(((string[])[.. Output, .. Chrome(60)]).Select(row => "\u001b[38;2;248;248;242m" + row.PadRight(60) + "\u001b[39m\u001b[K")) + "\u001b[49;3H";
+
+        SessionScreen.Bottom(logs, rows: 1).ShouldBe([Output[^1]]);
+    }
+
+    [Fact]
+    public void AnswerNothingWithoutTheInputBoxRule()
+    {
+        SessionScreen.Bottom(Screen(80, Output), rows: 2).ShouldBeEmpty();
         SessionScreen.Bottom("Northwind", rows: 3).ShouldBeEmpty();
         SessionScreen.Bottom(string.Empty, rows: 3).ShouldBeEmpty();
     }
+
+    private static string[] Chrome(int width) => [new string('─', width - 10) + " fix-123 ─", "❯", new string('─', width), "  opus  effort:high  |  ctx:12%", "  ⏵⏵ auto mode on"];
 
     private static string Screen(int width, string[] rows) => string.Concat(rows.Select(row => row.PadRight(width)));
 }
