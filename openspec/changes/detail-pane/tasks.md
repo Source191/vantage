@@ -32,7 +32,8 @@
 ## 5. Version and checks
 
 - [x] 5.1 Raise `Version` one preview step above `main`'s: 0.18.0-preview.8 (main is 0.18.0-preview.7).
-- [ ] 5.2 `dotnet build -c Debug` (no warnings), `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate detail-pane --strict`; the hand-off check and the smoke check against the packed tool. Verify all pass and both checks exit 0.
+- [x] 5.2 `dotnet build -c Debug` (no warnings), `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate detail-pane --strict`; the hand-off check and the smoke check against the packed tool. Verify all pass and both checks exit 0.
+  - Done 30 October 2026 after the rework: no warnings, 1842 tests pass (the seven Claude contract tests skip without `VANTAGE_CLAUDE_CONTRACT`), format and validate pass; the hand-off check exits 0 and the smoke check, against the nupkg packed as 0.18.0-preview.8-smoke with `Northwind.Smoke` seeded and removed, exits 0.
 - [ ] 5.3 The product owner installs the build with `tools\install-local.ps1`, reads a waiting session's reason and Prompted in the pane, reads a worktree's branch, changes and unpushed commits in the pane, and checks long repository and worktree names show whole at 120 columns. Record here.
 
 ## Workflow follow-up
