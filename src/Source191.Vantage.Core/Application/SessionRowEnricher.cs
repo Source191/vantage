@@ -47,6 +47,17 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         return rows;
     }
 
+    /// <summary>How many runs there are and their trees' memory together, measured as a session's memory is; a run whose process has gone adds nothing.</summary>
+    public AutomatedRuns Measure(IReadOnlyList<AutomatedRun> runs)
+    {
+        IReadOnlyList<ProcessFacts> processTable = processes.Snapshot();
+        MemorySize memory = runs
+            .Select(run => ProcessTree.Under(run.ProcessId, processTable, processes.UsageOf)?.Total ?? MemorySize.Zero)
+            .Aggregate(MemorySize.Zero, (sum, size) => sum + size);
+
+        return new AutomatedRuns(runs.Count, memory);
+    }
+
     /// <summary>The private working set of the session's process tree; nothing for a session without a process or whose process has gone.</summary>
     private MemorySize? MemoryOf(Session session, IReadOnlyList<ProcessFacts> processTable)
     {
