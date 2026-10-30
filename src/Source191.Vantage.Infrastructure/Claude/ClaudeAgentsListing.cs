@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using System.Text.Json;
 
 namespace Source191.Vantage.Adapters.Claude;
@@ -11,12 +12,25 @@ public static class ClaudeAgentsListing
 {
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web);
 
-    public static IReadOnlyList<Session> Parse(string json)
+    public static SessionListing Parse(string json)
     {
         IReadOnlyList<Row> rows = JsonSerializer.Deserialize<IReadOnlyList<Row>>(json, Options) ?? [];
 
-        return [.. rows.Select(ToSession).OfType<Session>()];
+        return new SessionListing(
+            [.. rows.Where(row => !IsAutomated(row)).Select(ToSession).OfType<Session>()],
+            [.. rows.Where(IsAutomated).Select(ToAutomatedRun).OfType<AutomatedRun>()]);
     }
+
+    /// <summary>
+    /// A claude started through the Agent SDK or <c>claude -p</c> is listed as interactive with a process and never has a
+    /// status; a claude a person started has one from its first moments (2.1.314: within 130 ms of registering).
+    /// </summary>
+    private static bool IsAutomated(Row row) => row is { Kind: "interactive", Pid: not null, Status: null };
+
+    private static AutomatedRun? ToAutomatedRun(Row row) =>
+        FolderPath.TryParse(row.Cwd, out FolderPath? workingDirectory) && SessionId.TryParse(row.SessionId, out SessionId? sessionId) && row.Pid is int processId
+            ? new AutomatedRun(sessionId, workingDirectory, processId)
+            : null;
 
     /// <summary>
     /// A row without a session id or a full working directory is skipped: the CLI always gives both, and one odd row must

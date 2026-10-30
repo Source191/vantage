@@ -11,7 +11,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
     {
         ProcessResult result = await processes.RunAsync(Request(["agents", "--json", "--all"]), cancellationToken);
 
-        return ClaudeAgentsListing.Parse(result.StandardOutput);
+        return ClaudeAgentsListing.Parse(result.StandardOutput).Sessions;
     }
 
     public async Task<string?> VersionAsync(CancellationToken cancellationToken)
