@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Terminal.Gui.Drawing;
@@ -6,11 +7,14 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The worktrees view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenDefinition<WorktreesViewState, WorktreeRow>
+internal sealed class WorktreesScreenDefinition(FolderLabels folders, IDetailSource<WorktreeRow> detail) : IScreenDefinition<WorktreesViewState, WorktreeRow>
 {
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(15);
 
-    public string Crumb => " <worktrees> ";
+    public IDetailSource<WorktreeRow>? Detail => detail;
+
+    public string? RowTip(WorktreeRow row) => null;
+
 
     public string WaitingText => "Scanning worktrees";
 
@@ -26,16 +30,10 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
     {
         return column switch
         {
-            // The branch has its own column here, so the WORKTREE cell names the repository and the folder's slug only.
+            // The branch, changes and health are the pane's, so the WORKTREE cell names the repository and the folder's slug only.
             0 => WhereLabel.For(row.RepositoryName, folders.For(row.Path), branch: null, inRepository: true).Fit(width),
-            1 => row.Branch?.Value ?? "-",
-            2 => Wording.PullRequestCell(row.PullRequest),
-            3 => Count(row.DirtyFiles),
-            4 => Count(row.UnpushedCommits),
-            5 => row.LastCommitAt is null ? "-" : Durations.Age(now - row.LastCommitAt.Value),
-            6 => row.SessionName ?? string.Empty,
-            // The kind only: the reason goes in the footer for the selected row, so a long one is never cut off.
-            _ => row.Health.Kind.ToString().ToLowerInvariant(),
+            1 => row.LastCommitAt is null ? "-" : Durations.Age(now - row.LastCommitAt.Value),
+            _ => row.SessionName ?? string.Empty,
         };
     }
 
@@ -73,6 +71,4 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
     {
         // Nothing listens to the worktrees view's inputs.
     }
-
-    private static string Count(int number) => number == 0 ? string.Empty : number.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }

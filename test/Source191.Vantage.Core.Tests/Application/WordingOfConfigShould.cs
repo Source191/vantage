@@ -34,6 +34,33 @@ public sealed class WordingOfConfigShould
         { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Never()), "Last update check", "never" },
     };
 
+    [Fact]
+    public void DescribeEverySettingAndEveryPieceOfSetupDifferently()
+    {
+        ConfigRow[] rows =
+        [
+            new ConfigRow.RepositoryRoot(0, FolderPath.From(@"C:\Users\me\source\repos")),
+            new ConfigRow.WorktreeRoot(FolderPath.From(@"C:\Users\me\source\worktrees")),
+            new ConfigRow.OpenFolderWith(EditorChoice.VsCode),
+            new ConfigRow.DefaultBase(WorktreeBase.RemoteDefault),
+            new ConfigRow.CheckForUpdates(On: true),
+            .. Enum.GetValues<SetupItem>().Select(item => new ConfigRow.Setup(item, new SetupState.Reading())),
+        ];
+
+        string[] descriptions = [.. rows.Select(Wording.ConfigDescription)];
+
+        descriptions.ShouldAllBe(description => description.Length > 0 && description.Length <= 110);
+        descriptions.Distinct().Count().ShouldBe(rows.Length);
+    }
+
+    [Fact]
+    public void SayWhereWorktreesGoAndWhatTheBellIsFor()
+    {
+        Wording.ConfigDescription(new ConfigRow.WorktreeRoot(FolderPath.From(@"C:\Users\me\source\worktrees"))).ShouldBe("Where new worktrees go, each in a folder named <repository>-<slug> on a branch named <slug>.");
+        Wording.ConfigDescription(new ConfigRow.Setup(SetupItem.ClaudeBell, new SetupState.Enabled())).ShouldBe("Claude's terminal bell, which rings when a session finishes or needs permission while you are away.");
+        Wording.ConfigDescription(new ConfigRow.RepositoryRoot(1, FolderPath.From(@"D:\work"))).ShouldBe(Wording.ConfigDescription(new ConfigRow.RepositoryRoot(0, FolderPath.From(@"C:\Users\me\source\repos"))));
+    }
+
     [Theory]
     [MemberData(nameof(Rows))]
     public void NameEachRowAndSayItsValue(ConfigRow row, string setting, string value)
@@ -53,7 +80,7 @@ public sealed class WordingOfConfigShould
     [Fact]
     public void SayTheConfigFooters()
     {
-        Wording.Describe(new Footer.ConfigHint()).ShouldBe("Enter edits the selected setting; on a repository root, every root one per line.");
+        Wording.Describe(new Footer.SettingHint(new ConfigRow.CheckForUpdates(On: true))).ShouldBe(Wording.ConfigDescription(new ConfigRow.CheckForUpdates(On: true)));
         Wording.Describe(new Footer.NoPathHere()).ShouldBe("This row's value is not a path.");
     }
 

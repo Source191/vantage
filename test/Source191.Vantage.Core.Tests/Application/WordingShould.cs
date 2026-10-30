@@ -47,25 +47,6 @@ public sealed class WordingShould
         Wording.Describe(Footer.None).ShouldBe(string.Empty);
     }
 
-    [Fact]
-    public void CountTheSessionsThatNeedInput()
-    {
-        Wording.Describe(new Footer.NeedInput(2)).ShouldBe("2 need input");
-    }
-
-    [Fact]
-    public void HintThatRemovalIsSafe()
-    {
-        Wording.Describe(new Footer.RemoveHint()).ShouldBe("d removes only what is safe to remove");
-    }
-
-    [Fact]
-    public void ExplainWhyTheSelectedWorktreeIsNotHealthy()
-    {
-        Wording.Describe(new Footer.Unhealthy("Northwind.Orders-stale", WorktreeHealthKind.Broken, new HealthReason.FolderGone()))
-            .ShouldBe("Northwind.Orders-stale is broken: registered with git but the folder is gone.");
-    }
-
     // The sessions view.
 
     [Fact]
@@ -673,6 +654,7 @@ public sealed class WordingShould
             _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
             _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
             _ when type == typeof(SetupItem) => SetupItem.TerminalProfiles,
+            _ when type == typeof(ConfigRow) => new ConfigRow.CheckForUpdates(On: true),
             _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),
         };
     }

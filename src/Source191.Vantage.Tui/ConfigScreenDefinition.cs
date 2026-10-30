@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Views;
 using Terminal.Gui.Drawing;
 
@@ -12,7 +13,12 @@ internal sealed class ConfigScreenDefinition : IScreenDefinition<ConfigViewState
     /// <summary>Never used to refresh: the tab reads the setup when it is shown and after each save.</summary>
     public TimeSpan RefreshEvery => TimeSpan.FromMinutes(5);
 
-    public string Crumb => " <config> ";
+    /// <summary>The Config tab has no pane: a setting's row says all there is.</summary>
+    public IDetailSource<ConfigRow>? Detail => null;
+
+    /// <summary>What the setting does or the setup is for, the same words the status line gives the selected row.</summary>
+    public string? RowTip(ConfigRow row) => Wording.ConfigDescription(row);
+
 
     public string WaitingText => "Reading the settings";
 

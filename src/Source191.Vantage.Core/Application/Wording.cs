@@ -68,9 +68,6 @@ public static partial class Wording
         return footer switch
         {
             Footer.Blank => string.Empty,
-            Footer.NeedInput need => $"{need.Count} need input",
-            Footer.RemoveHint => "d removes only what is safe to remove",
-            Footer.Unhealthy unhealthy => $"{unhealthy.FolderName} is {unhealthy.Kind.ToString().ToLowerInvariant()}: {Describe(unhealthy.Reason)}.",
             Footer.NoSessionSelected => "No session selected.",
             Footer.RunsInOwnTerminal { HasTranscript: true } terminal =>
                 $"{terminal.Name} runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there.",
@@ -354,7 +351,7 @@ public static partial class Wording
         return footer switch
         {
             Footer.NoWorktreeSelected => "No worktree selected.",
-            Footer.ConfigHint => "Enter edits the selected setting; on a repository root, every root one per line.",
+            Footer.SettingHint hint => ConfigDescription(hint.Row),
             Footer.SetupAdvice advice => Describe(advice.Item),
             Footer.NoPathHere => "This row's value is not a path.",
             Footer.NoSettingSelected => "No setting selected.",

@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
@@ -21,6 +22,8 @@ public sealed class ConsoleScreen(
     Func<CancellationToken, Task<ViewInput>> readConfig,
     Func<IReadOnlyList<ConfigRow>> settingRows,
     StateTransitionNotifier notifier,
+    SessionActivity activity,
+    DetailLoader details,
     DialogEffects dialogs,
     EffectDispatcher dispatcher,
     TimeProvider clock,
@@ -34,6 +37,8 @@ public sealed class ConsoleScreen(
     private readonly Func<CancellationToken, Task<ViewInput>> readConfig = readConfig;
     private readonly Func<IReadOnlyList<ConfigRow>> settingRows = settingRows;
     private readonly StateTransitionNotifier notifier = notifier;
+    private readonly SessionActivity activity = activity;
+    private readonly DetailLoader details = details;
     private readonly DialogEffects dialogs = dialogs;
     private readonly EffectDispatcher dispatcher = dispatcher;
     private readonly TimeProvider clock = clock;
@@ -109,8 +114,8 @@ public sealed class ConsoleScreen(
             settings = [.. Enumerable.Range(0, SettingsRows).Select(row => new View { X = 0, Y = row, Width = Dim.Fill(), Height = 1 })];
             tabs = new Tabs { X = 0, Y = StripTop, Width = Dim.Fill(), Height = Dim.Fill(2) };
             tabs.SetScheme(Palette.Plain(Palette.Grey));
-            sessions = new TableBody<SessionsViewState, SessionRow>(new SessionsScreenDefinition(screen.notifier, screen.claudeExecutable, screen.folders), screen.dialogs, screen.dispatcher, screen.loadSessions, screen.clock, context, app, this, initial.Sessions);
-            worktrees = new TableBody<WorktreesViewState, WorktreeRow>(new WorktreesScreenDefinition(screen.folders), screen.dialogs, screen.dispatcher, screen.scanWorktrees, screen.clock, context, app, this, initial.Worktrees);
+            sessions = new TableBody<SessionsViewState, SessionRow>(new SessionsScreenDefinition(screen.notifier, screen.activity, screen.claudeExecutable, screen.folders, new SessionDetails(screen.details, screen.clock)), screen.dialogs, screen.dispatcher, screen.loadSessions, screen.clock, context, app, this, initial.Sessions);
+            worktrees = new TableBody<WorktreesViewState, WorktreeRow>(new WorktreesScreenDefinition(screen.folders, new WorktreeDetails(screen.details, screen.clock)), screen.dialogs, screen.dispatcher, screen.scanWorktrees, screen.clock, context, app, this, initial.Worktrees);
             config = new TableBody<ConfigViewState, ConfigRow>(new ConfigScreenDefinition(), screen.dialogs, screen.dispatcher, screen.readConfig, screen.clock, context, app, this, initial.Config);
             tabs.Add(sessions.View, worktrees.View, config.View);
             Array.ForEach([sessions.View, worktrees.View, config.View], view => view.SetScheme(Palette.TabFrame()));
@@ -181,9 +186,11 @@ public sealed class ConsoleScreen(
             timers.Clear();
         }
 
-        /// <summary>Takes the two tabs out of the strip and disposes them, then the window and the rest of its views.</summary>
+        /// <summary>Takes the tabs out of the strip and disposes them, then the window and the rest of its views.</summary>
         public void Dispose()
         {
+            // Removing a tab selects the next in the strip; under the guard that is not taken as a click, which would show it and read its detail.
+            binding = true;
             tabs.Remove(sessions.View);
             tabs.Remove(worktrees.View);
             tabs.Remove(config.View);

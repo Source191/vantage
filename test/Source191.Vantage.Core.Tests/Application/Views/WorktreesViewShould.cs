@@ -275,23 +275,14 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
-    public void ExplainTheSelectedRowsHealthInTheFooterWhenNothingElseNeedsSaying()
+    public void ShowOnlyMessagesTheHealthBeingThePanes()
     {
         WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path.Key };
         WorktreesViewState onClean = Loaded with { SelectedPath = Clean.Path.Key };
 
-        onLocked.Shown.ShouldBe(new Footer.Unhealthy("Northwind.Orders-locked", WorktreeHealthKind.Locked, new HealthReason.Locked("another tool is using it")));
-        onClean.Shown.ShouldBe(new Footer.RemoveHint());
+        onLocked.Shown.ShouldBe(Footer.None);
+        onClean.Shown.ShouldBe(Footer.None);
         (onLocked with { Footer = new Footer.Kept() }).Shown.ShouldBe(new Footer.Kept());
-    }
-
-    [Fact]
-    public void SayNothingAboutALockGitGaveNoReasonFor()
-    {
-        WorktreeRow lockedWithoutReason = Row(@"C:\repos\Northwind.Orders-locked-quietly", "maintenance", WorktreeHealthKind.Locked, new HealthReason.Locked(string.Empty));
-        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([lockedWithoutReason]));
-
-        state.Shown.ShouldBe(new Footer.RemoveHint());
     }
 
     [Fact]

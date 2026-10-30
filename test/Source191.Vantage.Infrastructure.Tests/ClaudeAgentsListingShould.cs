@@ -112,6 +112,15 @@ public sealed class ClaudeAgentsListingShould
     }
 
     [Fact]
+    public void KeepTheWaitingReason()
+    {
+        IReadOnlyList<Session> sessions = ClaudeAgentsListing.Parse(Capture);
+
+        sessions.Single(session => session.Name == "spike-permission-2").WaitingFor.ShouldBe("permission prompt");
+        sessions.Single(session => session.Name == "spike-commit-check").WaitingFor.ShouldBeNull();
+    }
+
+    [Fact]
     public void RejectTextThatIsNotJson()
     {
         Should.Throw<JsonException>(() => ClaudeAgentsListing.Parse("Workspace not trusted."));

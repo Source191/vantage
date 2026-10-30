@@ -24,7 +24,7 @@ public sealed class ConfigViewShould
     {
         Loaded.Loaded.ShouldBeTrue();
         Loaded.Selected.ShouldBe(new ConfigRow.RepositoryRoot(0, FolderPath.From(Repos)));
-        Loaded.Shown.ShouldBe(new Footer.ConfigHint());
+        Loaded.Shown.ShouldBe(new Footer.SettingHint(new ConfigRow.RepositoryRoot(0, FolderPath.From(Repos))));
     }
 
     [Theory]
@@ -163,6 +163,28 @@ public sealed class ConfigViewShould
 
         moved.Selected!.Key.ShouldBe("setup:DiagnosticLog");
         moved.Footer.ShouldBe(Footer.None);
+    }
+
+    [Fact]
+    public void DescribeTheSelectedRowUntilThereIsAMessage()
+    {
+        ConfigViewState onWorktreeRoot = Press(Loaded, Key.Down, Key.Down);
+        ConfigViewState advised = ConfigView.Reduce(At("setup:ClaudeBell"), new KeyPressed(Key.Enter)).State;
+
+        onWorktreeRoot.Shown.ShouldBe(new Footer.SettingHint(onWorktreeRoot.Selected!));
+        advised.Shown.ShouldBe(advised.Footer);
+        ConfigViewState moved = Press(advised, Key.Down);
+
+        moved.Shown.ShouldBe(new Footer.SettingHint(moved.Selected!));
+    }
+
+    [Fact]
+    public void ClearAMessageWhenTheFilterChanges()
+    {
+        ConfigViewState advised = ConfigView.Reduce(At("setup:ClaudeBell"), new KeyPressed(Key.Enter)).State;
+
+        Press(advised, Key.Of('/')).Footer.ShouldBe(Footer.None);
+        Press(Press(advised, Key.Of('/')) with { Footer = new Footer.Kept() }, Key.Of('w')).Footer.ShouldBe(Footer.None);
     }
 
     private static ConfigViewState At(string key) => Loaded.With(Loaded.List.Select(key));

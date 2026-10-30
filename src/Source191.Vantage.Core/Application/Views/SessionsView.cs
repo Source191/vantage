@@ -12,7 +12,7 @@ public sealed record SessionRow(Session Session, string Repository, BranchName? 
     /// <summary>What the session's process and everything it started use; null for a session with no process, or whose process has gone.</summary>
     public MemorySize? Memory { get; init; }
 
-    /// <summary>The main checkout the session's folder belongs to; null outside a repository, which is how WHERE knows to show the folder alone.</summary>
+    /// <summary>The main checkout the session's folder belongs to; null outside a repository, which is how REPOSITORY knows to show the folder's label.</summary>
     public FolderPath? Checkout { get; init; }
 
     /// <summary>The colour of the live Vantage tab showing the session; null when no tab does.</summary>
@@ -122,12 +122,11 @@ public sealed record SessionsViewState(
 
     public SessionRow? Selected => List.Selected;
 
-    public int NeedsInputCount => Rows.Count(row => row.Session.State.Kind == DisplayStateKind.NeedsInput);
 
     public TableTitle Title => List.Title("session", row => row.Session.Name);
 
     /// <summary>The footer to show: the last message, else how many sessions need input.</summary>
-    public Footer Shown => Footer is Footer.Blank ? new Footer.NeedInput(NeedsInputCount) : Footer;
+    public Footer Shown => Footer;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
     public SessionsViewState With(ListSelection<SessionRow> list) => this with { Rows = list.Rows, SelectedSessionId = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
@@ -153,7 +152,7 @@ public static class SessionsView
             RenameConfirmed confirmed => RenameWith(state, confirmed),
             UpdateTabOpened => Effect(state, new Quit()),
             SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId.Value))),
-            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key))),
+            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Footer = Footer.None }),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
         };
@@ -163,11 +162,12 @@ public static class SessionsView
     {
         return key switch
         {
-            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1))),
-            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1))),
+            // Moving on or filtering clears the last message, so the status line goes until there is something new to say.
+            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = Footer.None }),
+            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = Footer.None }),
             { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Enter } => SessionAction(state, (_, session) => new AttachToSession(session.JobId), Attachment.Here),
-            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter())),
+            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
             { Name: KeyName.Character, Character: 'o' } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
             { Name: KeyName.Character, Character: 'x' } => SessionAction(state, (_, session) => new StopSession(session), Attachment.None),

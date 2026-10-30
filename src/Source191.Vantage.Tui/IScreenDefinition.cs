@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
@@ -17,9 +18,6 @@ internal interface IScreenDefinition<TState, TRow>
 {
     TimeSpan RefreshEvery { get; }
 
-    /// <summary>The footer crumb, with its surrounding spaces, such as " &lt;sessions&gt; ".</summary>
-    string Crumb { get; }
-
     /// <summary>Shown with a spinner over the empty table until the first load arrives.</summary>
     string WaitingText { get; }
 
@@ -31,7 +29,7 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>The table's columns, in cell order: their names head the table and their meanings are the tooltips and the help.</summary>
     IReadOnlyList<ColumnHelp> Columns { get; }
 
-    /// <summary>The column that takes the width the others leave (WHERE, WORKTREE), or null when every column has its natural width.</summary>
+    /// <summary>The column that takes the width the others leave (REPOSITORY, WORKTREE), or null when every column has its natural width.</summary>
     int? ElasticColumn { get; }
 
     /// <summary>A cell's text; <paramref name="width"/> is the cells the elastic column has, and int.MaxValue for every other column.</summary>
@@ -57,6 +55,12 @@ internal interface IScreenDefinition<TState, TRow>
 
     /// <summary>Sees every input before the state is replaced, for the notifier.</summary>
     void OnInput(TState before, ViewInput input);
+
+    /// <summary>What a row is, shown as a tooltip while the pointer rests on it, or null for a view whose rows need none.</summary>
+    string? RowTip(TRow row);
+
+    /// <summary>How the pane under the table reads the selected row, or null for a view with no pane.</summary>
+    IDetailSource<TRow>? Detail { get; }
 }
 
 /// <summary>What a dialog flow may do on the UI thread of the screen that raised it.</summary>
