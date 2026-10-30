@@ -75,6 +75,7 @@ internal static class SettingsDialog
         controls.Executable.TextChanging += (_, changing) => Apply(new SettingsInput.ExecutableChanged(changing.Result ?? string.Empty));
         controls.Arguments.TextChanging += (_, changing) => Apply(new SettingsInput.ArgumentsChanged(changing.Result ?? string.Empty));
         controls.BaseRef.ValueChanged += (_, _) => Apply(new SettingsInput.BaseChanged(controls.BaseRef.Value == 1 ? WorktreeBase.Head : WorktreeBase.RemoteDefault));
+        controls.Place.ValueChanged += (_, _) => Apply(new SettingsInput.PlaceChanged((LaunchMode)(controls.Place.Value ?? 0)));
         // Enter in a one-line field does nothing by itself: only Save (F5) saves.
         controls.WorktreeRoot.Accepting += (_, accepting) => accepting.Handled = true;
         controls.Executable.Accepting += (_, accepting) => accepting.Handled = true;
