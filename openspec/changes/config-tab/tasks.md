@@ -33,7 +33,7 @@
 - [ ] 6.2 The per-setting dialog: `SettingsDialog` and `SettingsControls` narrowed to the field being edited (the editor dialog keeps the preset choice and the custom fields), routed from `DialogEffects` for `EditSetting` and `AddRepositoryRoot`. Verify headless: Enter on Worktree root opens it with the value, Esc closes it unchanged, a relative path is refused in the dialog.
 - [ ] 6.3 One settings row: `VantageIcon.Height` 1 with `Fit` sizing from the cell aspect (clamped 1 to 3), `StripTop` 1. Verify headless that the strip starts on row 1 and every table gains a row; the icon is checked in the owner's terminal.
 - [ ] 6.4 The smoke script's settings step opens the Config tab and an edit dialog and cancels it, taking its keys and markers from `Wording`. Verify the smoke check exits 0 against the Release build.
-- [ ] 6.5 README (the screen, the keys tables without w and , and with 3, Left, Right, Shift+Left and Shift+Right, the settings section rewritten for the Config tab) and CLAUDE.md (the console paragraph, the settings dialog references, the icon and `Tabs` facts). Verify the README's keys tables match `Wording`'s key lists.
+- [ ] 6.5 README (the screen, the keys tables without w and , and with 3, Left, Right, Shift+Left and Shift+Right, the settings section rewritten for the Config tab), CONTRIBUTING.md wherever it names the settings dialog or the smoke steps, and CLAUDE.md (the console paragraph, the settings dialog references, the smoke check's steps, the icon and `Tabs` facts). Verify the README's keys tables match `Wording`'s key lists.
 
 ## 7. Version and checks
 
@@ -43,4 +43,4 @@
 
 ## Workflow follow-up
 
-- Archive after tabs-and-key-bar, wizard-one-form and detail-pane have archived, rebasing the `console-layout` and `session-listing` deltas on the text they leave.
+- Archive after tabs-and-key-bar has archived (and the changes it waits for), rebasing the `console-layout` and `session-listing` deltas on the text it leaves; then rebase detail-pane's "Long names never hide columns" on this change's Shift+Left and Shift+Right.

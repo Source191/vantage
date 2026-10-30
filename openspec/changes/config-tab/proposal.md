@@ -25,7 +25,7 @@ Out of scope: running `vantage setup-terminal` or switching Claude's bell on fro
 
 - `settings`: "Settings can be edited from either view" becomes editing on the Config tab; "Settings are validated before they are saved" checks the one value being saved and refuses removing the last root; "Saved settings apply without a restart" shows the result on the Config tab rather than the header; "The editor is a preset or a custom command" names the row and the edit dialog rather than the settings dialog.
 - `console-layout` (added by tabs-and-key-bar, not yet archived): "Sessions and worktrees are two tabs of one screen" gains the Config tab, Left and Right, and loses `w`; "The settings take two lines" becomes one line; "The Vantage icon heads the settings" shrinks the icon to one row; "The key bar names the keys for the selected row" drops `w` and `,` from the second row and adds the Config tab's bar; "One console keeps its state across hand-offs" switches with Left and Right in its scenario.
-- `session-listing`: "Long names never hide columns" (as detail-pane leaves it) scrolls columns with Shift+Left and Shift+Right.
+- `session-listing`: "Long names never hide columns" (as tabs-and-key-bar leaves it) scrolls columns with Shift+Left and Shift+Right.
 
 ## Impact
 
@@ -38,4 +38,4 @@ Out of scope: running `vantage setup-terminal` or switching Claude's bell on fro
 
 ## Order
 
-After wizard-one-form and detail-pane (owner's decision, 30 October 2026), and after tabs-and-key-bar archives, since its deltas build on `console-layout` and on detail-pane's text of "Long names never hide columns".
+Applied first of the three remaining UI changes (owner's decision, 30 October 2026, revising the earlier order), before wizard-one-form and detail-pane; it archives after tabs-and-key-bar, since its deltas build on `console-layout` and on tabs-and-key-bar's text of "Long names never hide columns". Detail-pane's delta of that requirement then rebases on this change's text (Shift+Left and Shift+Right).

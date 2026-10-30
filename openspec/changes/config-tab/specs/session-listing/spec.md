@@ -3,11 +3,11 @@
 ## MODIFIED Requirements
 
 ### Requirement: Long names never hide columns
-The sessions table SHALL give WHERE the width its other columns leave, 64 cells on a 120-column terminal, and SHALL fit every column there; a WHERE value too long for its width SHALL lose the middle of its repository name, marked with an ellipsis, and keep its slug and branch whole. NAME SHALL keep its cap and ellipsis, the row SHALL keep the full values for every key that uses them, and Shift+Left and Shift+Right SHALL scroll the table on a narrower terminal, Left and Right being the tab keys. The key bar SHALL show every key that applies within 120 columns, with its words.
+The sessions table SHALL give WHERE the width its other columns leave and SHALL fit every column on a 120-column terminal; a WHERE value too long for its width SHALL lose the middle of its repository name, marked with an ellipsis, and keep its slug and branch whole. NAME SHALL keep its cap and ellipsis, the row SHALL keep the full values for every key that uses them, and Shift+Left and Shift+Right SHALL scroll the table on a narrower terminal, Left and Right being the tab keys. The key bar SHALL show every key that applies within 120 columns, with its words.
 
 #### Scenario: Long repository name in the sessions view
 - **WHEN** a session runs in the worktree Northwind.Integration.CosmosDb.ChangeFeedMonitoring-fix-123 and the terminal is 120 columns wide
-- **THEN** every column of the sessions table is on screen without scrolling, and the WHERE cell reads Northwind.Integration.CosmosDb.ChangeFeedMonitoring › fix-123 whole
+- **THEN** every column of the sessions table is on screen without scrolling, and the WHERE cell reads the repository name with its middle replaced by an ellipsis, then › fix-123 whole
 
 #### Scenario: Long folder in the worktrees view
 - **WHEN** a worktree's folder label is 60 characters long and the terminal is 120 columns wide
@@ -27,11 +27,8 @@ The sessions table SHALL give WHERE the width its other columns leave, 64 cells 
 
 #### Scenario: Wide terminal
 - **WHEN** the terminal is 127 columns or wider
-- **THEN** the WHERE cell for Northwind.Integration.CosmosDb.ChangeFeedMonitoring › fix-123 is shown whole, as it is at 120
+- **THEN** the WHERE cell for Northwind.Integration.CosmosDb.ChangeFeedMonitoring › fix-123 is shown whole
 
-#### Scenario: A longer name at 120 columns
-- **WHEN** a session runs in a worktree of a repository whose name is 70 characters long and the terminal is 120 columns wide
-- **THEN** the WHERE cell keeps › and the slug whole and the repository name's middle is replaced by an ellipsis
 
 #### Scenario: Scroll on a narrow terminal
 - **WHEN** the terminal is 100 columns wide and the user presses Shift+Right on the Sessions tab
