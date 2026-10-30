@@ -29,11 +29,11 @@ The console SHALL show the sessions view and the worktrees view as two tabs of o
 - **THEN** the Sessions tab is shown with that session selected, without leaving the console
 
 ### Requirement: The settings line is one line
-The first row of the screen SHALL read Vantage, its version and memory in brackets, then Claude and its version, then Roots and the roots, then Worktree root and the root, separated by · and drawn in grey. The update notice and the below-minimum Claude warning SHALL keep their places inside the Vantage and Claude parts. When the line is wider than the terminal the roots SHALL be elided first, with an ellipsis, and the whole list SHALL stay in Settings.
+The first row of the screen SHALL read Vantage, its version and memory in brackets, then Claude and its version, then Repository roots and the roots, then Worktree root and the root, separated by · and drawn in grey. The update notice and the below-minimum Claude warning SHALL keep their places inside the Vantage and Claude parts. When the line is wider than the terminal the roots SHALL be elided first, with an ellipsis, and the whole list SHALL stay in Settings.
 
 #### Scenario: Line at 120 columns
 - **WHEN** Vantage 0.18.0 uses 35 MB with Claude Code 2.1.310, the root C:\Users\me\source\repos and the worktree root C:\Users\me\source\worktrees on a 120-column terminal
-- **THEN** the line reads Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees, whole
+- **THEN** the line reads Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\me\source\re… · Worktree root C:\Users\me\source\worktrees, the root cut to fit
 
 #### Scenario: Line too wide
 - **WHEN** the same values carry an update notice, 0.19.0 available, U to update, on a 120-column terminal
@@ -41,7 +41,7 @@ The first row of the screen SHALL read Vantage, its version and memory in bracke
 
 #### Scenario: Wide terminal
 - **WHEN** the terminal is 160 columns wide
-- **THEN** the line with the notice is shown whole
+- **THEN** the line with the notice, Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310 · Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees, is shown whole
 
 ### Requirement: The counts sit beside the tabs
 On the tabs' row the console SHALL show, beside the tab titles, the sessions counts as a glyph, a count and a state word for each state present, each in that state's colour, separated by ·, and on the worktrees tab a count per health present followed by how many worktrees have changes and how many have unpushed commits. Needs input SHALL come first when present.

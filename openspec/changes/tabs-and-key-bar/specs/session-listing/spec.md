@@ -26,7 +26,7 @@ The settings line SHALL show the Vantage version followed by the memory Vantage'
 
 #### Scenario: Released versions
 - **WHEN** Vantage 0.5.0 runs using 29 MB with Claude Code 2.1.310 and the root C:\Users\me\source\repos
-- **THEN** the settings line reads Vantage 0.5.0 (29 MB) · Claude 2.1.310 · Roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees
+- **THEN** the settings line reads Vantage 0.5.0 (29 MB) · Claude 2.1.310 · Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees
 
 #### Scenario: Local build
 - **WHEN** the installed tool's version is 0.5.0-local.20261025T101500 and Vantage uses 29 MB
