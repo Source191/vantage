@@ -6,51 +6,67 @@ using System.Globalization;
 
 namespace Source191.Vantage.Application;
 
-/// <summary>One line of the detail pane: a label in the label column and its text, in a tone.</summary>
-public sealed record DetailLine(string Label, string Text, TextTone Tone = TextTone.Plain);
+/// <summary>One fact of the detail pane: a label in its column's label width and its text, in a tone, across one or more of the pane's three columns.</summary>
+public sealed record DetailLine(string Label, string Text, TextTone Tone = TextTone.Plain, int Span = 1);
+
+/// <summary>
+/// What the pane shows for one row: its title, its facts in rows of up to three columns, and the lines beneath them. A
+/// session's lines beneath are its screen, null when the screen was not read this time, and a short pane keeps their end.
+/// </summary>
+public sealed record DetailContent(string Title, IReadOnlyList<IReadOnlyList<DetailLine>> Facts, IReadOnlyList<DetailLine>? Below, bool KeepsLastLines);
 
 /// <summary>The detail pane's words: a selected session's or worktree's facts, and why a session has no output to show.</summary>
 public static partial class Wording
 {
     private const string Unavailable = "unavailable";
 
-    public static IReadOnlyList<DetailLine> DetailLines(SessionDetail detail, DateTimeOffset now)
+    /// <summary>The output area while the selected session's screen is first read, which takes a second or two.</summary>
+    public static IReadOnlyList<DetailLine> ScreenBeingRead { get; } = [new(string.Empty, "reading the session's screen…", TextTone.Grey)];
+
+    /// <summary>A session's facts in four rows, the folder and the worktree's counts two columns wide, and its screen beneath, or why it has none.</summary>
+    public static DetailContent Detail(SessionDetail detail, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(detail);
         SessionRow row = detail.Row;
         Session session = row.Session;
-
-        return
+        IReadOnlyList<IReadOnlyList<DetailLine>> facts =
         [
-            new("State", StateWithReason(row), ToneOf(session.State.Kind)),
-            new("Started", TimeAgo(session.StartedAt, now)),
-            new("Prompted", detail.LastPromptedAt is DateTimeOffset prompted ? TimeAgo(prompted, now) : "not seen since Vantage started"),
-            new("Session", session.SessionId.Value),
-            new("Folder", session.WorkingDirectory.Value),
-            new("Branch", row.Branch?.Value ?? "none"),
-            new("Pull request", PullRequestLine(row.PullRequest)),
-            new("Tab", TabLine(row)),
-            new("Worktree", CountsLine(detail.Counts, now)),
-            new("Memory", row.Memory is MemorySize memory ? $"{Memory(memory)} (m for the breakdown)" : "nothing to measure"),
+            [
+                new("State", StateWithReason(row), ToneOf(session.State.Kind)),
+                new("Started", TimeAgo(session.StartedAt, now)),
+                new("Prompted", detail.LastPromptedAt is DateTimeOffset prompted ? TimeAgo(prompted, now) : "not seen since Vantage started"),
+            ],
+            [new("Folder", session.WorkingDirectory.Value, Span: 2), new("Session", session.SessionId.Value)],
+            [new("Branch", row.Branch?.Value ?? "none"), new("PR", PullRequestLine(row.PullRequest)), new("Tab", TabLine(row))],
+            [
+                new("Worktree", CountsLine(detail.Counts, now), Span: 2),
+                new("Memory", row.Memory is MemorySize memory ? $"{Memory(memory)} (m for the breakdown)" : "nothing to measure"),
+            ],
         ];
+
+        return new DetailContent(session.Name, facts, ScreenLines(detail.Output), KeepsLastLines: true);
     }
 
-    public static IReadOnlyList<DetailLine> DetailLines(WorktreeDetail detail, DateTimeOffset now)
+    /// <summary>A worktree's facts in four rows, its health and folder the widest, and its unpushed commits or changed files beneath.</summary>
+    public static DetailContent Detail(WorktreeDetail detail, DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(detail);
         WorktreeRow row = detail.Row;
-        IReadOnlyList<DetailLine> facts =
+        IReadOnlyList<IReadOnlyList<DetailLine>> facts =
         [
-            new("Health", HealthLine(row.Health), ToneOf(row.Health.Kind)),
-            new("Created", detail.Created is CreatedWorktree created ? $"by Vantage, {DayAndTime(created.CreatedAt, now)}" : "not by Vantage"),
-            new("Folder", row.Path.Value),
-            new("Branch", BranchLine(row.Branch, detail.Merge)),
-            new("Pull request", PullRequestLine(row.PullRequest)),
-            new("Risk", $"{Count(row.DirtyFiles, "changed file")} · {Count(row.UnpushedCommits, "unpushed commit")}", row.DirtyFiles + row.UnpushedCommits > 0 ? TextTone.Amber : TextTone.Plain),
-            new("Session", row.SessionName is string name ? $"{name} (Enter goes to it)" : "none"),
+            [new("Health", HealthLine(row.Health), ToneOf(row.Health.Kind), Span: 3)],
+            [
+                new("Created", detail.Created is CreatedWorktree created ? $"by Vantage, {DayAndTime(created.CreatedAt, now)}" : "not by Vantage"),
+                new("Branch", BranchLine(row.Branch, detail.Merge), Span: 2),
+            ],
+            [new("Folder", row.Path.Value, Span: 2), new("Session", row.SessionName is string name ? $"{name} (Enter goes to it)" : "none")],
+            [
+                new("PR", PullRequestLine(row.PullRequest)),
+                new("Risk", $"{Count(row.DirtyFiles, "changed file")} · {Count(row.UnpushedCommits, "unpushed commit")}", row.DirtyFiles + row.UnpushedCommits > 0 ? TextTone.Amber : TextTone.Plain, Span: 2),
+            ],
         ];
 
-        return [.. facts, .. Listing(detail, now)];
+        return new DetailContent(row.FolderName, facts, Listing(detail, now), KeepsLastLines: false);
     }
 
     /// <summary>The output area when there is no screen to show, or the screen's rows; a screen not read this time has no lines of its own.</summary>
@@ -61,6 +77,14 @@ public static partial class Wording
         SessionOutput.NotSupervised => ["no output: a session outside the supervisor has none to show"],
         SessionOutput.Unavailable => ["output unavailable"],
         _ => [],
+    };
+
+    /// <summary>The screen's rows as they are; why there is no screen in grey; null when it was not read this time.</summary>
+    private static List<DetailLine>? ScreenLines(SessionOutput output) => output switch
+    {
+        SessionOutput.NotRead => null,
+        SessionOutput.Screen => [.. OutputLines(output).Select(line => new DetailLine(string.Empty, line))],
+        _ => [.. OutputLines(output).Select(line => new DetailLine(string.Empty, line, TextTone.Grey))],
     };
 
     private static string StateWithReason(SessionRow row)

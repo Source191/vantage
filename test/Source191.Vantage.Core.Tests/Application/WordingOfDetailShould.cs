@@ -19,19 +19,18 @@ public sealed class WordingOfDetailShould
         row = row with { Session = row.Session with { WaitingFor = "permission prompt" } };
         SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, Now.AddHours(-2))), new SessionOutput.NotRead());
 
-        Text(Wording.DetailLines(detail, Now)).ShouldBe(
+        DetailContent content = Wording.Detail(detail, Now);
+
+        content.Title.ShouldBe("fix-123");
+        Rows(content).ShouldBe(
         [
-            "State needs input (permission prompt)",
-            "Started 14:02 (5m ago)",
-            "Prompted not seen since Vantage started",
-            "Session 81cdb0f9-0000-4000-8000-000000000001",
-            @"Folder C:\Users\me\source\worktrees\Northwind.Orders-fix-123",
-            "Branch fix-123",
-            "Pull request none",
-            "Tab open, yellow",
-            "Worktree 3 changed files · 0 unpushed commits · last commit 2h00m ago",
-            "Memory 903 MB (m for the breakdown)",
+            ["State needs input (permission prompt)", "Started 14:02 (5m ago)", "Prompted not seen since Vantage started"],
+            [@"Folder C:\Users\me\source\worktrees\Northwind.Orders-fix-123", "Session 81cdb0f9-0000-4000-8000-000000000001"],
+            ["Branch fix-123", "PR none", "Tab open, yellow"],
+            ["Worktree 3 changed files · 0 unpushed commits · last commit 2h00m ago", "Memory 903 MB (m for the breakdown)"],
         ]);
+        content.Facts.SelectMany(line => line).Where(line => line.Span == 2).Select(line => line.Label).ShouldBe(["Folder", "Worktree"]);
+        content.Below.ShouldBeNull();
     }
 
     [Fact]
@@ -40,7 +39,7 @@ public sealed class WordingOfDetailShould
         SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { HasTranscript = false };
         SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.NotApplicable(), new SessionOutput.NotRead());
 
-        Text(Wording.DetailLines(detail, Now))[0].ShouldBe("State needs input (no prompt sent yet)");
+        Text(Wording.Detail(detail, Now))[0].ShouldBe("State needs input (no prompt sent yet)");
     }
 
     [Fact]
@@ -48,7 +47,7 @@ public sealed class WordingOfDetailShould
     {
         SessionDetail detail = new(Row(DisplayState.Stopped, processId: null), Now.AddMinutes(-4), new DetailFact<WorktreeCounts>.Unavailable(), new SessionOutput.NoProcess());
 
-        string[] lines = Text(Wording.DetailLines(detail, Now));
+        string[] lines = Text(Wording.Detail(detail, Now));
 
         lines.ShouldContain("Prompted 14:03 (4m ago)");
         lines.ShouldContain("Worktree unavailable");
@@ -61,8 +60,8 @@ public sealed class WordingOfDetailShould
         SessionRow row = Row(DisplayState.Idle, processId: null) with { Session = new InteractiveSession(SessionId.From("82db48ec-63de-49db-9831-b8147075dc3a"), "repos-93", Worktree, Now, DisplayState.Idle, ProcessId: 51432) };
         SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.NotApplicable(), new SessionOutput.NotSupervised());
 
-        Text(Wording.DetailLines(detail, Now)).ShouldContain("Tab its own terminal");
-        Text(Wording.DetailLines(detail, Now)).ShouldContain("Worktree not in a repository");
+        Text(Wording.Detail(detail, Now)).ShouldContain("Tab its own terminal");
+        Text(Wording.Detail(detail, Now)).ShouldContain("Worktree not in a repository");
     }
 
     [Fact]
@@ -73,6 +72,28 @@ public sealed class WordingOfDetailShould
         Wording.OutputLines(new SessionOutput.Unavailable()).ShouldBe(["output unavailable"]);
         Wording.OutputLines(new SessionOutput.Screen(["Do you want to make this edit?"])).ShouldBe(["Do you want to make this edit?"]);
     }
+
+    [Fact]
+    public void ShowTheScreenBelowTheFactsKeepingItsLastLines()
+    {
+        SessionDetail detail = new(Row(DisplayState.NeedsInput, processId: 4242), LastPromptedAt: null, new DetailFact<WorktreeCounts>.NotApplicable(), new SessionOutput.Screen(["● Edit(Processor.cs)", "Allow edit to Processor.cs?"]));
+
+        DetailContent content = Wording.Detail(detail, Now);
+
+        content.Below.ShouldNotBeNull().Select(line => line.Text).ShouldBe(["● Edit(Processor.cs)", "Allow edit to Processor.cs?"]);
+        content.KeepsLastLines.ShouldBeTrue();
+    }
+
+    [Fact]
+    public void SayWhyThereIsNoScreenInGrey()
+    {
+        SessionDetail detail = new(Row(DisplayState.Stopped, processId: null), LastPromptedAt: null, new DetailFact<WorktreeCounts>.NotApplicable(), new SessionOutput.NoProcess());
+
+        Wording.Detail(detail, Now).Below.ShouldBe([new DetailLine(string.Empty, "no output: the session has no process", TextTone.Grey)]);
+    }
+
+    [Fact]
+    public void SayTheScreenIsBeingRead() => Wording.ScreenBeingRead.ShouldBe([new DetailLine(string.Empty, "reading the session's screen…", TextTone.Grey)]);
 
     [Fact]
     public void DescribeAWorktreeWithUnpushedCommits()
@@ -86,15 +107,20 @@ public sealed class WordingOfDetailShould
             new DetailFact<IReadOnlyList<UnpushedCommit>>.Known(commits),
             new DetailFact<IReadOnlyList<string>>.NotApplicable());
 
-        Text(Wording.DetailLines(detail, Now)).ShouldBe(
+        DetailContent content = Wording.Detail(detail, Now);
+
+        content.Title.ShouldBe("Northwind.Orders-fix-123");
+        Rows(content).ShouldBe(
         [
-            "Health ok",
-            "Created by Vantage, 23 Oct 09:14",
-            @"Folder C:\Users\me\source\worktrees\Northwind.Orders-fix-123",
-            "Branch fix-123, not merged into origin/main",
-            "Pull request none",
-            "Risk 0 changed files · 12 unpushed commits",
-            "Session invoice-pdf (Enter goes to it)",
+            ["Health ok"],
+            ["Created by Vantage, 23 Oct 09:14", "Branch fix-123, not merged into origin/main"],
+            [@"Folder C:\Users\me\source\worktrees\Northwind.Orders-fix-123", "Session invoice-pdf (Enter goes to it)"],
+            ["PR none", "Risk 0 changed files · 12 unpushed commits"],
+        ]);
+        content.Facts.SelectMany(line => line).Select(line => line.Span).ShouldBe([3, 1, 2, 2, 1, 1, 2]);
+        content.KeepsLastLines.ShouldBeFalse();
+        content.Below.ShouldNotBeNull().Select(line => $"{line.Label} {line.Text}").ShouldBe(
+        [
             "Unpushed a1b2c31  1d0h  Invoice change 1",
             " a1b2c32  2d0h  Invoice change 2",
             " a1b2c33  3d0h  Invoice change 3",
@@ -114,7 +140,7 @@ public sealed class WordingOfDetailShould
             new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(),
             new DetailFact<IReadOnlyList<string>>.Known(["Invoice.cs", "Totals.cs"]));
 
-        string[] lines = Text(Wording.DetailLines(detail, Now));
+        string[] lines = Text(Wording.Detail(detail, Now));
 
         lines.ShouldContain("Created not by Vantage");
         lines.ShouldContain("Branch fix-123, merge state unavailable");
@@ -127,14 +153,16 @@ public sealed class WordingOfDetailShould
         WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Health = new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()), Branch = null, FolderExists = false };
         WorktreeDetail detail = new(row, Created: null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.Unavailable(), new DetailFact<IReadOnlyList<string>>.Unavailable());
 
-        string[] lines = Text(Wording.DetailLines(detail, Now));
+        string[] lines = Text(Wording.Detail(detail, Now));
 
         lines[0].ShouldBe($"Health broken: {Wording.Describe(new HealthReason.FolderGone())}");
         lines.ShouldContain("Branch none");
         lines[^1].ShouldBe("Git unavailable");
     }
 
-    private static string[] Text(IReadOnlyList<DetailLine> lines) => [.. lines.Select(line => $"{line.Label} {line.Text}")];
+    private static string[] Text(DetailContent content) => [.. content.Facts.SelectMany(line => line).Concat(content.Below ?? []).Select(line => $"{line.Label} {line.Text}")];
+
+    private static string[][] Rows(DetailContent content) => [.. content.Facts.Select(row => row.Select(line => $"{line.Label} {line.Text}").ToArray())];
 
     private static SessionRow Row(DisplayState state, int? processId)
     {
