@@ -120,11 +120,11 @@ New shells pick up `~\.dotnet\tools` on the PATH; a shell that was open before t
 
 ## Start Vantage
 
-Open a tab and run `vantage` (or `v`). The screen has four parts:
+Open a tab and run `vantage` (or `v`). The screen has four parts, top to bottom:
 
-- **Settings line:** one grey line, `Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\you\source\repos · Worktree root C:\Users\you\source\worktrees`. The Claude Code version reads `unknown` when `claude --version` cannot be read and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports; a local install shows its prerelease label without the build timestamp (`0.6.0-local`); a newer release adds `0.19.0 available, U to update`. When the line is wider than the terminal the repository roots are cut with an ellipsis first, then the worktree root; Settings always shows them in full.
-- **Tabs:** `Sessions (6)` and `Worktrees (7)`, each with its count once loaded; beside them the counts for the tab shown, such as `◐ 2 need input · ● 1 working · ■ 1 stopped` in the states' colours. `1` and `2` choose a tab, `w` switches, and a click on a title selects it. Each tab keeps its selection, filter and message while the other is shown, and switching is instant; the worktrees scan starts the first time its tab is shown and refreshes only while it is.
-- **Table:** in the tab, titled with what it counts and which row is selected: `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set. The selection bar is cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears below the table. Under it the tab's crumb and its last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside the message while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
+- **Settings:** two rows, labels in orange and values in white: `Vantage 0.18.0 (35 MB) · Claude 2.1.310` above `Repository roots C:\Users\you\source\repos · Worktree root C:\Users\you\source\worktrees`. In a terminal that draws images, such as Windows Terminal, the Vantage icon sits two rows high to their left; elsewhere they start at the left edge. The Claude Code version reads `unknown` when `claude --version` cannot be read and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports; a local install shows its prerelease label without the build timestamp (`0.6.0-local`); a newer release adds `0.19.0 available, U to update`. Several repository roots are joined with semicolons; when the second row is wider than the terminal the roots are cut with an ellipsis first, then the worktree root, and Settings always shows them in full.
+- **Tabs:** `Sessions` and `Worktrees`, the one shown in cyan with its frame and the other in grey; beside them the counts for the tab shown, such as `◐ 2 need input · ● 1 working · ■ 1 stopped` in the states' colours. `1` and `2` choose a tab, `w` switches, and a click on a title selects it. Each tab keeps its selection, filter and message while the other is shown, and switching is instant; the worktrees scan starts the first time its tab is shown and refreshes only while it is.
+- **Table:** in the tab's frame, its title written into the frame's line beside the tabs: what it counts and which row is selected, `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set (a failed listing shows there in red). The selection bar is bright cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears below the table. Under it the tab's crumb and its last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside the message while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
 - **Key bar:** the last two rows name the keys for the selected row: a background session's `Enter Attach  o Open tab  x Stop  d Delete  r Rename  m Memory`, a plain `claude` session's `b Adopt` (and `d Close tab` when it has never been sent a message), then `R Resume` while a stopped or failed session is listed, `C Close empty` while an empty terminal session is, `n New session`, and `U Update` when a newer release is known; the second row has the folder keys and the view's own. Click a key or its word to press it, and rest the mouse on it to see what it does; the tooltip is black on amber. The help lists every key whether the bar shows it or not.
 
 The sessions table refreshes every five seconds. `?` shows the keys and the columns of the current view (and, in the sessions view, the path of the Claude Code executable Vantage drives) and `q` quits. Quitting Vantage never stops a session.
@@ -140,7 +140,7 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | Column | Meaning |
 | --- | --- |
 | NAME | The session name given at launch (`-n`), or the folder name for an unnamed one |
-| TAB | A swatch: the cell is filled with the tab's colour while a Vantage tab shows the session, on the highlighted row too (the tab closes when its attach ends, so the swatch clears with it), `▯` in grey for a session started as plain `claude` in a tab of its own, blank otherwise |
+| TAB | A two-cell block in the tab's colour while a Vantage tab shows the session, on the highlighted row too (the tab closes when its attach ends, so the swatch clears with it), `▯` in grey for a session started as plain `claude` in a tab of its own, blank otherwise |
 | STATE | `◐ needs input` (amber), `● working` (cyan), `○ idle` (white), `✓ completed` (green), `✗ failed` (red), `■ stopped` (grey) |
 | WHERE | Where the session runs, in one value: `Northwind.Orders › fix-123` for a worktree whose folder is `Northwind.Orders-fix-123` on branch `fix-123` (a linked worktree names its main checkout); `Northwind.Orders › fix-123 (hotfix)` when the branch is not the slug; `Northwind.Orders (main)` for the main checkout; `Northwind.Orders › src\Api (main)` for a folder inside the repository; and for a folder outside any repository its label alone, relative to the repository root or worktree root that holds it, else to your home folder (`~\scratch\notes`), else in full |
 | PR | The branch's pull request: `#123 open` on GitHub (open, draft, merged, closed), `!123 active` on Azure DevOps (active, draft, completed, abandoned); an open one wins, else the most recent. Blank when there is none or it cannot be looked up; `p` says why. See [Pull requests](#pull-requests) |
@@ -200,18 +200,18 @@ Enter never starts a session here, so there is nothing to undo if you press it t
 
 **Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. A session that has never had a message opens at its own prompt, and Ctrl+Z returns from it in the same way. Vantage prints a one-line reminder before every attach and erases it when you come back, so the scrollback keeps no copies.
 
-**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB cell is filled with that tab's colour. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
+**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows a block in that tab's colour. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
 
 ## The worktrees view
 
 Press `2` or `w` (or click the Worktrees tab). Vantage lists every linked worktree of the repositories under your roots, wherever its folder is (under the worktree root, or beside the repository as versions before 0.8.0 placed them), plus the leftovers git has forgotten under the roots and the worktree root. The first scan of a large roots folder takes a while (around forty seconds for fifty repositories); it refreshes every fifteen seconds while the tab is shown.
 
 ```text
-Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\you\source\repos · Worktree root C:\Users\you\…
-╭────────────╮─────────────╮
-│Sessions (6)│Worktrees (4)│  3 ok · 1 broken · 1 with changes · 2 with unpushed commits
-├────────────╯             ╰───────────────────────────────────────────────────────────────────────────────────────╮
-│ 4 worktrees, selected: Northwind.Billing-invoice-pdf                                                             │
+Vantage 0.18.0 (35 MB) · Claude 2.1.310
+Repository roots C:\Users\you\source\repos · Worktree root C:\Users\you\source\worktrees
+╭────────╭─────────╮
+│Sessions│Worktrees│  3 ok · 1 broken · 1 with changes · 2 with unpushed commits
+├────────╯         ╰─ 4 worktrees, selected: Northwind.Billing-invoice-pdf ──────────────────────────────────────────╮
 ││WORKTREE                           │BRANCH                   │DIRTY│UNPUSHED│LAST COMMIT│SESSION    │HEALTH      ││
 │ Northwind.Billing › invoice-pdf     invoice-pdf                     12       3d4h       invoice-pdf ok           │
 │ Northwind.Billing › study           study/reporting          5                9d16h                  ok           │
@@ -319,7 +319,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
-**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB cell is filled with the tab's colour; `o` again switches to that tab until it is closed.
+**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows a block in the tab's colour; `o` again switches to that tab until it is closed.
 
 **Start Claude from a repository folder you are already in.** `vh fix-tests -p "..."` instead of `claude`. It shows up in Vantage with a job id, so `o`, `x` and `d` work on it later.
 
