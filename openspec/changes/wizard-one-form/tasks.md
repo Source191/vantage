@@ -13,7 +13,8 @@
   - Done 30 October 2026: 0.18.0-preview.9 (main is 0.18.0-preview.8); no warnings, 1839 tests pass (seven contract tests skip), format passes.
 - [x] 2.2 Run `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` and the smoke check against the packed tool. Verify both exit 0.
   - Done 30 October 2026: the hand-off check exits 0 and the smoke check (which opens and cancels the wizard and the compact form) exits 0 against the packed tool, Northwind.Smoke seeded and removed.
-- [ ] 2.3 The product owner installs the build with `tools\install-local.ps1` and, on the laptop screen, opens the wizard, filters, chooses a repository, tabs down the form, presses Enter in the prompt, presses F6, and opens the compact form from a worktree row. Record here.
+- [x] 2.3 The product owner installs the build with `tools\install-local.ps1` and, on the laptop screen, opens the wizard, filters, chooses a repository, tabs down the form, presses Enter in the prompt, presses F6, and opens the compact form from a worktree row. Record here.
+  - Recorded 30 October 2026: the owner installed 0.18.0-preview.9-local.20261030215628, checked the one-column wizard and the compact form on his terminal, and asked for the pull request.
 
 ## Workflow follow-up
 
