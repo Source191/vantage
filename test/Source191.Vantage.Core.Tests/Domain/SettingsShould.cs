@@ -160,6 +160,52 @@ public sealed class SettingsShould
     }
 
     [Fact]
+    public void RefuseARootListedTwice()
+    {
+        SettingsText typed = Typed with { Roots = $"{Root}\n" + @"C:\Users\ME\source\repos\" };
+
+        Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Refused>().Problem.ShouldBe(new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)));
+    }
+
+    [Fact]
+    public void RemoveTheRootAtAnIndex()
+    {
+        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
+
+        settings.WithRootRemoved(1).ShouldBeOfType<SettingsValidation.Valid>().Settings.RepositoryRoots.ShouldBe([FolderPath.From(Root)]);
+    }
+
+    [Fact]
+    public void KeepTheOtherSettingsWhenARootIsRemoved()
+    {
+        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.VsCode, WorktreeBase.Head, Home, checkForUpdates: false);
+
+        Settings removed = settings.WithRootRemoved(0).ShouldBeOfType<SettingsValidation.Valid>().Settings;
+
+        removed.RepositoryRoots.ShouldBe([FolderPath.From(@"D:\work")]);
+        removed.WorktreeRoot.ShouldBe(FolderPath.From(@"E:\trees"));
+        removed.DefaultBase.ShouldBe(WorktreeBase.Head);
+        removed.CheckForUpdates.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void RefuseRemovingTheOnlyRoot()
+    {
+        Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
+
+        settings.WithRootRemoved(0).ShouldBeOfType<SettingsValidation.Refused>().Problem.ShouldBe(new SettingsProblem.LastRoot());
+    }
+
+    [Fact]
+    public void TurnTheUpdateCheckOffAndOn()
+    {
+        Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
+
+        settings.WithUpdateCheckToggled().CheckForUpdates.ShouldBeFalse();
+        settings.WithUpdateCheckToggled().WithUpdateCheckToggled().ShouldBe(settings);
+    }
+
+    [Fact]
     public void GiveBackTheTextItWasTypedFrom()
     {
         Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home);

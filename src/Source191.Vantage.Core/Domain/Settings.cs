@@ -83,6 +83,12 @@ public sealed record Settings
             CheckForUpdates);
     }
 
+    /// <summary>These settings without the repository root at <paramref name="index"/>, refused when it is the only one.</summary>
+    public SettingsValidation WithRootRemoved(int index) => new SettingsValidation.Valid(this);
+
+    /// <summary>These settings with the update check turned the other way.</summary>
+    public Settings WithUpdateCheckToggled() => this;
+
     public bool Equals(Settings? other)
     {
         return other is not null
@@ -128,6 +134,11 @@ public abstract record SettingsProblem
     public sealed record RootNotFullPath(string Text) : SettingsProblem;
 
     public sealed record RootMissing(FolderPath Path) : SettingsProblem;
+
+    public sealed record RootAlreadyListed(FolderPath Path) : SettingsProblem;
+
+    /// <summary>Vantage scans the repository roots for everything it lists, so the last one cannot be removed.</summary>
+    public sealed record LastRoot : SettingsProblem;
 
     public sealed record WorktreeRootNotFullPath : SettingsProblem;
 
