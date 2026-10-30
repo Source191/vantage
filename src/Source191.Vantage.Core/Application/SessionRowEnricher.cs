@@ -18,7 +18,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
 
     public async Task<IReadOnlyList<SessionRow>> EnrichAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {
-        HashSet<SessionId> sessionsWithLiveTabs = await LiveTabSessionsAsync();
+        IReadOnlyDictionary<SessionId, TabColour> liveTabs = await LiveTabsAsync();
         IReadOnlyList<ProcessFacts> processTable = processes.Snapshot();
 
         List<SessionRow> rows = [];
@@ -30,10 +30,12 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
                 session,
                 location.Repository,
                 location.Branch,
-                sessionsWithLiveTabs.Contains(session.SessionId),
+                liveTabs.ContainsKey(session.SessionId),
                 transcripts.HasMessages(session.SessionId.Value))
             {
                 Memory = MemoryOf(session, processTable),
+                Checkout = location.Checkout,
+                TabColour = liveTabs.GetValueOrDefault(session.SessionId),
             };
             rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, location.Branch) });
             branches.AddRange(location is { Checkout: FolderPath checkout, Branch: BranchName branch } ? [(checkout, branch)] : []);
@@ -58,7 +60,8 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         return processId is int root ? ProcessTree.Under(root, processTable, processes.UsageOf)?.Total : null;
     }
 
-    private async Task<HashSet<SessionId>> LiveTabSessionsAsync()
+    /// <summary>Each session with a live Vantage tab and that tab's colour; stale registrations are removed on the way.</summary>
+    private async Task<IReadOnlyDictionary<SessionId, TabColour>> LiveTabsAsync()
     {
         IReadOnlyList<TabRegistration> all = await tabs.ReadTabsAsync();
         IReadOnlyList<TabRegistration> live = new TabRegistrations(all).Live(clock.GetUtcNow(), processes);
@@ -67,7 +70,16 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
             await tabs.RemoveTabAsync(stale.Id);
         }
 
-        return [.. live.Select(registration => registration.Owner).OfType<TabOwner.ForSession>().Select(owner => owner.Id)];
+        Dictionary<SessionId, TabColour> colours = [];
+        foreach (TabRegistration registration in live)
+        {
+            if (registration.Owner is TabOwner.ForSession owner)
+            {
+                colours.TryAdd(owner.Id, registration.Colour);
+            }
+        }
+
+        return colours;
     }
 
     private async Task<Location> LocateAsync(FolderPath directory, CancellationToken cancellationToken)

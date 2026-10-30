@@ -11,6 +11,12 @@ public sealed record SessionRow(Session Session, string Repository, BranchName? 
 
     /// <summary>What the session's process and everything it started use; null for a session with no process, or whose process has gone.</summary>
     public MemorySize? Memory { get; init; }
+
+    /// <summary>The main checkout the session's folder belongs to; null outside a repository, which is how WHERE knows to show the folder alone.</summary>
+    public FolderPath? Checkout { get; init; }
+
+    /// <summary>The colour of the live Vantage tab showing the session; null when no tab does.</summary>
+    public TabColour? TabColour { get; init; }
 }
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
