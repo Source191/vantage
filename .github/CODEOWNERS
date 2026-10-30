@@ -1,4 +1,4 @@
 # The owner reviews everything. The "Owner approves main" ruleset requires a code owner's approval,
 # so a pull request opened by anyone else, an app or Dependabot included, waits for this review
-# (see README, Continuous integration).
+# (see CONTRIBUTING.md, Reviews and merging).
 * @simonvane

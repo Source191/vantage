@@ -23,7 +23,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $csproj = 'src/Source191.Vantage/Source191.Vantage.csproj'
 
-# What ships in the package or changes how it is compiled or restored. Everything else (README, CLAUDE.md,
+# What ships in the package or changes how it is compiled or restored. Everything else (README, CONTRIBUTING.md, CLAUDE.md,
 # .github, openspec, test, tools, the solution file) merges without a bump. A new folder that ships must be
 # added here; a folder ending in / matches everything under it.
 $toolPaths = @('src/', 'Directory.Build.props', 'global.json', 'nuget.config')
@@ -85,5 +85,5 @@ if ($after -gt $before) {
 }
 
 $shown = ($changed | Select-Object -First 5) -join ', '
-Write-Host "::error::This change touches the packaged tool ($shown) but Version $after is not higher than $before on the base. Raise <Version> in $csproj; README.md, Version bumps, says whether it is a patch, minor or major bump."
+Write-Host "::error::This change touches the packaged tool ($shown) but Version $after is not higher than $before on the base. Raise <Version> in $csproj; CONTRIBUTING.md, Versions, says whether it is a patch, minor or major bump."
 exit 1
