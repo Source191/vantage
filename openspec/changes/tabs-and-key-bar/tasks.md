@@ -1,0 +1,36 @@
+# Tasks
+
+## 1. The controls exist as designed (spike, Tui)
+
+- [ ] 1.1 A throwaway window in `tools\HeadlessTerminal` (removed before the pull request) holds a `Tabs` with two SubViews and three `Shortcut`s placed at computed x positions in a two-row view, and is driven at 120 x 36: the capture (`grid`) shows the tab header with a label placed after `GetTotalHeaderSpan()`, the selected tab's body, and the bar's items at the cells asked for with no extra padding; a click on the second tab header and on a `Shortcut` each raise their event once. Verify by the capture and the event counts, and record here how `Tabs` and `Shortcut` behave and whether the hand-drawn tab strip fallback is needed.
+
+## 2. The console state and the tab switch (Application)
+
+- [ ] 2.1 Red: `ConsoleViewShould` asserts `Apply` on `SwitchToWorktrees` sets the active tab to Worktrees, `SwitchToSessions` to Sessions, `JumpToSession` to Sessions with that session selected (clearing a filter that hides it), and leaves both view states otherwise untouched. Green: `ConsoleState`, `ConsoleTab`, `ConsoleView.Apply`, and the three effects marked `ISwitchesTab` instead of `ILeavesScreen`. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build` passes.
+- [ ] 2.2 Red: `SessionsViewShould` and `WorktreesViewShould` assert `1` raises `SwitchToSessions`, `2` raises `SwitchToWorktrees`, and `w` and Esc keep their effects. Green: the key cases. Verify the Core suite passes.
+- [ ] 2.3 Red: `EffectRoutingShould` asserts every `ILeavesScreen` effect type is `Quit` or handled by `TerminalEffects`, and every `ISwitchesTab` type is handled by `ConsoleView.Apply`. Green: the reflection fact and the handling. Verify the Core suite passes.
+- [ ] 2.4 Red: `ScreenLoopShould` reshaped: a fake `IConsoleScreen` returns `Quit` (the tab is cleared, exit 0), then `AttachToSession` followed by `Quit` (the attach runs through `TerminalEffects`, the console is run again with the returned state, `HandingOver` and `ChildReturned` are recorded). Green: `IConsoleScreen`, `ConsoleExit`, the loop. Verify the Core suite passes.
+
+## 3. The words (Wording)
+
+- [ ] 3.1 Red: `WordingOfScreensShould.BuildTheSettingsLine` asserts the three console-layout scenarios (whole at 120, the roots elided with the notice at 120, whole at 160). Green: `Wording.SettingsLine`. Verify the Core suite passes.
+- [ ] 3.2 Red: `WordingOfScreensShould.CountSessionsAndWorktrees` asserts `SessionCounts` for the mixed, all-needs-input and empty cases and `WorktreeCounts` for the seven-worktree case, and `TabTitleFor` reads Sessions (6), Worktrees (7) and Worktrees before a scan. Green: the methods; `SessionsSummary` goes with its fact. Verify the Core suite passes.
+- [ ] 3.3 Red: `WordingShould.NameTheKeyBarForEveryRowKind` asserts the console-layout bar scenarios (background row, terminal row, stopped listed, update known, the worktrees bar) and `FitTheKeyBarAt120ForEveryRowKind` asserts every combination's two rows end within 118 cells by the items' computed offsets. Green: `KeyHelp.Row`, `Wording.KeyBar` and `KeyBarItem`, the shortened `Resume` and `Close empty` hints, `1` and `2` as help-only keys. Verify the Core suite passes and `WordingOfKeysAndColumnsShould`'s help output lists `1` and `2`.
+
+## 4. The console screen (Tui)
+
+- [ ] 4.1 `TableBody<TState, TRow>` out of `TableScreen.Live` (title, borderless table, spinner, waiting indicator, crumb and footer line, column tooltips), with `IScreenDefinition` gaining `RowKind SelectedKind(TState)`, `bool StoppedListed(TState)`, `bool EmptyTerminalListed(TState)`, `TabTitle(TState)` and `Counts(TState)`, and losing `HeaderNames` and `ContextLines`. Verify `dotnet build -c Debug` is clean.
+- [ ] 4.2 `ConsoleScreen : IConsoleScreen`: one application, the settings line, the `Tabs` holding both bodies, the counts label on the header row, the two-row bar of placed `Shortcut`s rebuilt from `Wording.KeyBar` on redraw with tooltips and click actions, key routing to the active body, `ISwitchesTab` through `ConsoleView.Apply` and `Tabs.Value`, the worktrees timer only while its tab is active and its first load on first selection, `ViewShown` recorded on a tab change; `Program.cs` builds it; `SessionsScreen`, `WorktreesScreen`, `KeyHintColumns` and `KeyHintColumnsShould` deleted. Verify with `dotnet run --project tools\HeadlessTerminal -- drive` at 120 x 36: the capture shows the settings line on row 0, Sessions (n) and Worktrees on the tab row with the counts beside them, the table from row 5, the crumb above a two-row bar whose rows end within 120 cells; `2` then shows the Worktrees tab with HEALTH on screen; `1` returns with the same selection. Then at 160 x 36 the settings line is whole. Record the captures here.
+- [ ] 4.3 The hand-off: `dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal` exits 0, and a drive that sets a filter, attaches, detaches with Ctrl+Z and quits shows the same filter text in the title after the return. Record here.
+- [ ] 4.4 README: the sessions section's header description, the screen text in the worktrees section, the keys tables (`1`, `2`), the sentences on tooltips, the logo and the bar; CLAUDE.md: the screen architecture paragraph (`ConsoleScreen`, `TableBody`, `ConsoleView`), the header facts, and the Terminal.Gui facts for `Tabs`, `StatusBar` and `Shortcut` from task 1.1. Verify by reading both against `Wording`.
+
+## 5. Version and checks
+
+- [ ] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` all pass.
+- [ ] 5.2 Run the smoke check against the packed tool (`dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>`). Verify exit 0.
+- [ ] 5.3 The product owner installs the build with `tools\install-local.ps1` and, on the laptop screen, reads the settings line, switches tabs with `1`, `2`, `w` and a click, selects a terminal row and a stopped row and reads the bar change, clicks `o Open tab`, hovers a bar item, attaches and returns with Ctrl+Z; on the monitor, reads the settings line whole. Record here.
+
+## Workflow follow-up
+
+- Archive after where-column, in its own pull request, syncing the three delta specs (the new console-layout spec included) into `openspec\specs`.
+- wizard-one-form and detail-pane follow; detail-pane bases its MODIFIED blocks for "Long names never hide columns" and "Rows show the session's memory" on this change's and where-column's text.

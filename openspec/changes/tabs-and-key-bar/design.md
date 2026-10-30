@@ -1,0 +1,47 @@
+# Design
+
+## Context
+
+`ScreenLoop` alternates two screens, each a `TableScreen<TState, TRow>` run that creates its own Terminal.Gui application, draws the header (six value rows from `HeaderNames` and `ContextLines`, the hint grid from `KeyHintColumns.Layout`, the logo), the table from row 8, and the crumb and footer at the bottom; `SwitchToWorktrees`, `SwitchToSessions` and `JumpToSession` are `ILeavesScreen` effects the loop answers by running the other screen. Dialog effects go to `DialogEffects` through an `IEffectContext` per run; background effects to the `EffectDispatcher`. Terminal.Gui 2.5.0 has `Tabs` (a container whose SubViews are the tabs, `Value` the selected index, `ValueChanged`, `TabSide`, `TabDepth`, `TabLineStyle`, `GetTotalHeaderSpan`), `StatusBar` (a `Bar` of `Shortcut`s with `Key`, `CommandView`, `HelpText`, `Action`, clickable) and `ViewArrangement`; it has no `TabView` or `TileView` under those names. Windows Terminal binds Ctrl+Tab to its own next-tab action, so that key never reaches Vantage. The settings line is 130 characters with the fixture paths and 161 with an update notice. The smoke script finds keys by hint and views by a column unique to each (MEM, HEALTH), and the hand-off check asserts Claude's screen appears between Vantage leaving and re-entering the alternate screen.
+
+## Goals / Non-Goals
+
+**Goals:**
+- Both views live in one Terminal.Gui application, each keeping its state; switching is a redraw, not a run.
+- Every key has words on screen for the row it applies to, within 120 columns, and the rules deciding that are pure and tested.
+- The header is two rows of facts (settings, tabs and counts) and the table gains the rest.
+
+**Non-Goals:**
+- Warming the worktrees scan before its tab is opened.
+- Changing what any key does, the dialogs, or the hand-off mechanics (attach still leaves and re-enters the application).
+- A detail pane (detail-pane).
+
+## Decisions
+
+- **`ConsoleState` and `ConsoleView` in `Application\Views`.** `ConsoleState(SessionsViewState Sessions, WorktreesViewState Worktrees, ConsoleTab Active)`; `ConsoleView.Apply(state, effect)` answers the state after a tab switch: `SwitchToWorktrees` and `SwitchToSessions` set `Active`, `JumpToSession` sets `Active` to Sessions and selects the session through `SessionsView.Reduce(SelectSession)`, as `ScreenLoop` does today. The three effects drop `ILeavesScreen` and take a new marker `ISwitchesTab`; `EffectRoutingShould` (reflection, in Core.Tests) asserts every `ISwitchesTab` effect is a case `ConsoleView.Apply` handles and every `ILeavesScreen` effect is `Quit` or one `TerminalEffects` runs, which is where `ScreenLoopShould`'s unhandled-effect fact moves.
+  - *Rejected: switching inside the reducers.* Each reducer knows its own view only; the console is the one place that holds both states.
+- **`ScreenLoop` runs one `IConsoleScreen`.** `IConsoleScreen.Run(ConsoleState)` returns `ConsoleExit(ConsoleState State, ViewEffect? Effect)`; the loop handles `null` or `Quit` (clear the tab, exit 0) and hands every other exit effect to `TerminalEffects` before running again with the returned state, so the tab, selection and filter survive an attach. `Screens.cs` loses `ISessionsScreen` and `IWorktreesScreen`; `ViewShown` is recorded by the console screen when the active tab changes.
+- **`ConsoleScreen` (Tui) hosts two `TableBody`s inside a `Tabs`.** `TableBody<TState, TRow>` is what `TableScreen.Live` becomes: a definition's title, table (borderless; the `Tabs` border frames it), busy spinner, waiting indicator and crumb-plus-footer line, with `Redraw(state, now)` and the column tooltips. `ConsoleScreen` owns the application, the settings line (row 0), the `Tabs` (from row 1, `TabSide` top, its header row carrying the counts label placed after `GetTotalHeaderSpan()`), the `StatusBar` (two rows at the bottom), one refresh timer per body (the worktrees timer runs only while its tab is active; its first load starts on first selection), and the key routing: a key goes to the active body's reducer through its own `Running` (the `IEffectContext`), and an `ISwitchesTab` effect becomes `ConsoleView.Apply` plus `Tabs.Value`. A click on a tab header raises `ValueChanged`, which is applied as the matching switch effect under a binding guard, as the wizard binds its controls.
+  - *Rejected: two `Tabs` SubViews that are the old `TableScreen`s.* Each creates and runs its own application.
+  - *Rejected: a hand-rolled tab strip.* `Tabs` gives the click and the header for free; its look at 120 x 36 is the first task's capture, and a hand-drawn strip is the fallback if its header cannot carry the counts label.
+- **The bar's words are `Wording`'s.** `KeyHelp` gains `Row` (First for the keys that act on the row plus `n` and `U`, Second for the folder and view keys) and `Wording.KeyBar(view, RowKind kind, bool stoppedListed, bool emptyTerminalListed, bool updateKnown)` answers the two rows as lists of `KeyBarItem(key, word, x)`, each item's cell offset computed with one cell between a key and its word and two between items, no row labels: `d` reads Close tab and `b` Adopt appear for `RowKind.Terminal`, `C` only while an empty terminal is listed, `R` only while a stopped or failed row is, `m` only for a row with a process, `U` only when a release is known; `1` and `2` are help-only (`Hint` null, lines "the Sessions tab" and "the Worktrees tab"), since `w Worktrees` and `w Sessions` are on the bar. The hints `R Resume stopped` and `C Close empty tabs` shorten to `Resume` and `Close empty` (their help lines keep the detail); `n` keeps `New session`, which the smoke script looks up. With those words the widest first row (a terminal row with a stopped row listed and an update known) is about 116 cells and the second row about 110, so `WordingShould.FitTheKeyBarAt120ForEveryRowKind` renders each combination and asserts both rows end within 118 cells. The definition answers the selected row's `RowKind` and the two listed flags from the state.
+  - *Rejected: one bar for every row.* Twenty-one keys with words need about 160 cells.
+  - *Rejected: row labels (Session, Folder) as the mockup drew them.* Eight cells each on rows that are already full; the row is the group.
+- **`Shortcut` views placed by Vantage render it.** Each item is a `Shortcut` at the x `Wording` computed, with `Key` (for the drawn key text, not bound to Terminal.Gui's key handling: the console's `KeyDown` already routes keys, and `BindKeyToApplication` stays false), `HelpText` the word, `Action` raising the same `KeyPressed` as the key, and `app.ToolTips.SetToolTip(shortcut, ...)` with the `Tip`. The items sit in a plain two-row view, not a `StatusBar`, so no separator or automatic spacing can widen what the fit fact measured. The bar is rebuilt on each redraw whose items differ from the last.
+  - *Rejected: `StatusBar`'s own layout.* It adds separators and its own padding, so the width would be its, not the fact's.
+  - *Rejected: `Label`s per key as the header had.* Not clickable without hand-written mouse handling.
+- **The settings line is `Wording.SettingsLine(values, width)`.** Built from the same facts as `HeaderValues` (version, memory, update, Claude version, roots, worktree root), joined with ` · `, drawn from column 0 so a 120-character line fits a 120-column terminal whole; when longer than the width the roots list is cut with an ellipsis until it fits, so the version, notice and Claude parts always show. `WordingOfScreensShould` asserts the 120-column cases in the console-layout spec. The logo goes; the one place its glyphs remain is the README banner.
+- **The counts are `Wording.SessionCounts(rows)` and `WorktreeCounts(rows)`,** lists of (glyph, text, colour kind) the screen draws as one line of coloured spans after the tab headers; `SessionsSummary` and `ContextLines` go. The tab titles are `Wording.TabTitleFor(view, count?)`.
+- **Smoke and hand-off.** The smoke script is unchanged: `w` keeps its hints `Worktrees` and `Sessions`, and its view markers are the first column each table has that the other lacks (NAME for sessions and, after where-column, WORKTREE for worktrees). Both tab titles and the words "Worktree root" are on screen on both tabs, but `CaptureMarker.ScreenText` matches ordinally, so the capital WORKTREE header matches neither "Worktrees" nor "Worktree root". The hand-off check runs unchanged and must pass, because `ConsoleScreen.Run` is the one place the application is created and the attach still leaves it.
+
+## Risks / Trade-offs
+
+- [`Tabs` draws a header the counts label cannot share] → the first task renders it headless; the fallback is a two-row hand-drawn strip of two labels with a mouse handler, which keeps the spec.
+- [`Shortcut` binds its key to the application and double-fires] → `BindKeyToApplication` false and the key text drawn only; the first task's capture includes a click and a key press.
+- [A long roots list disappears from the line] → the ellipsis is the spec'd behaviour and Settings holds the list.
+- [The worktrees rows go stale while the Sessions tab is shown] → the timer resumes on switch and the first redraw after it refreshes within fifteen seconds; the tab title keeps the last count.
+- [One application changes the deadlock surface] → nothing awaits on the UI thread; the hand-off check and `TerminalGuiBridge` logging are the guard.
+
+## Migration Plan
+
+One pull request; no state or settings change. CLAUDE.md's layout facts and the README's header description change with the code.
