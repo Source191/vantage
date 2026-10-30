@@ -57,15 +57,13 @@ public static partial class Wording
         return [new TextPart(Counted(settings, "setting"), TextTone.Plain), .. toSetUp > 0 ? [new TextPart($"{toSetUp} to set up", TextTone.Amber)] : Array.Empty<TextPart>()];
     }
 
-    /// <summary>The Config tab's key bar: edit, add a root and, on a root, remove it, then Update when a release is known; the folder and view keys below.</summary>
+    /// <summary>The Config tab's key bar: edit, then Update when a release is known; the folder and view keys below.</summary>
     public static KeyBar ConfigBar(ConfigViewState state, bool updateKnown)
     {
         ArgumentNullException.ThrowIfNull(state);
         IReadOnlyList<(string Key, string? Word)> first =
         [
             ("enter", null),
-            ("a", null),
-            .. state.Selected is ConfigRow.RepositoryRoot ? [("d", (string?)null)] : Array.Empty<(string, string?)>(),
             .. updateKnown ? [("U", (string?)null)] : Array.Empty<(string, string?)>(),
         ];
 

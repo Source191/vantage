@@ -16,37 +16,24 @@ public sealed class SettingsViewShould
 
     private static SettingsState Opened(SettingsScope scope) => SettingsState.Open(TestSettings.For(Root), scope, Exists);
 
-    public static TheoryData<SettingsScope, SettingsField, string> Scopes => new()
+    public static TheoryData<SettingsScope, SettingsField> Scopes => new()
     {
-        { new SettingsScope.Root(1), SettingsField.Roots, Work },
-        { new SettingsScope.NewRoot(), SettingsField.Roots, string.Empty },
-        { new SettingsScope.WorktreeRoot(), SettingsField.WorktreeRoot, Work },
-        { new SettingsScope.Editor(), SettingsField.Editor, Work },
-        { new SettingsScope.Base(), SettingsField.Base, Work },
+        { new SettingsScope.Roots(), SettingsField.Roots },
+        { new SettingsScope.WorktreeRoot(), SettingsField.WorktreeRoot },
+        { new SettingsScope.Editor(), SettingsField.Editor },
+        { new SettingsScope.Base(), SettingsField.Base },
     };
 
     [Theory]
     [MemberData(nameof(Scopes))]
-    public void OpenOnTheOneValueWithItsField(SettingsScope scope, SettingsField field, string rootText)
+    public void OpenOnTheOneValueWithItsField(SettingsScope scope, SettingsField field)
     {
         SettingsState opened = SettingsState.Open(TwoRoots, scope, Exists);
 
         opened.Scope.ShouldBe(scope);
         opened.Focus.ShouldBe(field);
         opened.Problem.ShouldBeNull();
-        if (scope is SettingsScope.Root or SettingsScope.NewRoot)
-        {
-            opened.RootText.ShouldBe(rootText);
-        }
-    }
-
-    [Fact]
-    public void EditTheRootAtItsIndexOnly()
-    {
-        SettingsState state = Reduce(SettingsState.Open(TwoRoots, new SettingsScope.Root(1), Exists), new SettingsInput.RootChanged(@"D:\work\northwind"));
-
-        state.RootText.ShouldBe(@"D:\work\northwind");
-        state.Text.Roots.ShouldBe($"{Root}\n" + @"D:\work\northwind");
+        opened.Text.Roots.ShouldBe($"{Root}\n{Work}");
     }
 
     [Fact]
@@ -67,11 +54,10 @@ public sealed class SettingsViewShould
 
     public static TheoryData<SettingsScope, SettingsInput[], SettingsProblem, SettingsField> Problems => new()
     {
-        { new SettingsScope.Root(0), [new SettingsInput.RootChanged(" ")], new SettingsProblem.NoRoots(), SettingsField.Roots },
-        { new SettingsScope.NewRoot(), [], new SettingsProblem.NoRoots(), SettingsField.Roots },
-        { new SettingsScope.Root(0), [new SettingsInput.RootChanged("repos")], new SettingsProblem.RootNotFullPath("repos"), SettingsField.Roots },
-        { new SettingsScope.NewRoot(), [new SettingsInput.RootChanged(@"D:\nowhere")], new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere")), SettingsField.Roots },
-        { new SettingsScope.NewRoot(), [new SettingsInput.RootChanged(Root)], new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)), SettingsField.Roots },
+        { new SettingsScope.Roots(), [new SettingsInput.RootsChanged(" ")], new SettingsProblem.NoRoots(), SettingsField.Roots },
+        { new SettingsScope.Roots(), [new SettingsInput.RootsChanged("repos")], new SettingsProblem.RootNotFullPath("repos"), SettingsField.Roots },
+        { new SettingsScope.Roots(), [new SettingsInput.RootsChanged($"{Root}\n" + @"D:\nowhere")], new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere")), SettingsField.Roots },
+        { new SettingsScope.Roots(), [new SettingsInput.RootsChanged($"{Root}\n{Root}")], new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)), SettingsField.Roots },
         { new SettingsScope.WorktreeRoot(), [new SettingsInput.WorktreeRootChanged("worktrees")], new SettingsProblem.WorktreeRootNotFullPath(), SettingsField.WorktreeRoot },
         { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.NoExecutable(), SettingsField.Executable },
         { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged("subl"), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.ExecutableNotFullPath(), SettingsField.Executable },
@@ -93,9 +79,9 @@ public sealed class SettingsViewShould
     }
 
     [Fact]
-    public void SaveANewRootAfterTheOthers()
+    public void SaveARootAddedOnANewLine()
     {
-        SettingsState state = Reduce(Opened(new SettingsScope.NewRoot()), new SettingsInput.RootChanged(Work));
+        SettingsState state = Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged($"{Root}\n{Work}"));
 
         SettingsView.Reduce(state, new SettingsInput.Save()).Effect.ShouldBe(new SettingsEffect.Save(TestSettings.For(Root, Work)));
     }
@@ -119,9 +105,9 @@ public sealed class SettingsViewShould
     [Fact]
     public void ClearTheProblemOnceTheValueIsValid()
     {
-        SettingsState refused = SettingsView.Reduce(Reduce(Opened(new SettingsScope.Root(0)), new SettingsInput.RootChanged("repos")), new SettingsInput.Save()).State;
+        SettingsState refused = SettingsView.Reduce(Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("repos")), new SettingsInput.Save()).State;
 
-        SettingsUpdate saved = SettingsView.Reduce(Reduce(refused, new SettingsInput.RootChanged(Root)), new SettingsInput.Save());
+        SettingsUpdate saved = SettingsView.Reduce(Reduce(refused, new SettingsInput.RootsChanged(Root)), new SettingsInput.Save());
 
         saved.State.Problem.ShouldBeNull();
         saved.Effect.ShouldBeOfType<SettingsEffect.Save>();
@@ -146,20 +132,20 @@ public sealed class SettingsViewShould
     [Fact]
     public void BeIdempotentForARepeatedInput()
     {
-        SettingsInput input = new SettingsInput.RootChanged(Work);
-        SettingsState once = Reduce(Opened(new SettingsScope.Root(0)), input);
+        SettingsInput input = new SettingsInput.RootsChanged($"{Root}\n{Work}");
+        SettingsState once = Reduce(Opened(new SettingsScope.Roots()), input);
 
         Reduce(once, input).ShouldBe(once);
     }
 
     [Theory]
-    [InlineData("root:1", 1)]
-    [InlineData("root:0", 0)]
-    public void ScopeARootRowToItsIndex(string key, int index)
+    [InlineData("root:1")]
+    [InlineData("root:0")]
+    public void ScopeEveryRootRowToAllTheRoots(string key)
     {
         ConfigRow row = ConfigRows.For(TwoRoots, facts: null).Single(candidate => candidate.Key == key);
 
-        SettingsScope.For(row).ShouldBe(new SettingsScope.Root(index));
+        SettingsScope.For(row).ShouldBe(new SettingsScope.Roots());
     }
 
     [Fact]

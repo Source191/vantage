@@ -78,20 +78,20 @@ public sealed class WordingOfKeyBarShould
     }
 
     [Fact]
-    public void NameTheConfigKeysOnARootRow()
+    public void NameTheConfigKeys()
     {
         KeyBar bar = Wording.ConfigBar(ConfigLoaded, updateKnown: false);
 
-        Texts(bar.First).ShouldBe(["Enter Edit", "a Add root", "d Remove root"]);
+        Texts(bar.First).ShouldBe(["Enter Edit"]);
         Texts(bar.Second).ShouldBe(["c Copy", "e Open folder", "/ Filter", "? Help", "! Report", "q Quit"]);
     }
 
     [Fact]
-    public void LeaveRemoveOffTheConfigBarElsewhere()
+    public void AddUpdateToTheConfigBarWhenAReleaseIsKnown()
     {
         KeyBar bar = Wording.ConfigBar(ConfigLoaded.With(ConfigLoaded.List.Select("worktree-root")), updateKnown: true);
 
-        Texts(bar.First).ShouldBe(["Enter Edit", "a Add root", "U Update"]);
+        Texts(bar.First).ShouldBe(["Enter Edit", "U Update"]);
     }
 
     private static readonly ConfigViewState ConfigLoaded = ConfigView.Reduce(

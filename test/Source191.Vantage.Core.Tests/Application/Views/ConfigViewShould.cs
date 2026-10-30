@@ -59,36 +59,20 @@ public sealed class ConfigViewShould
         update.State.Footer.ShouldBe(new Footer.SetupAdvice(item));
     }
 
-    [Fact]
-    public void AddARootOnA()
+    [Theory]
+    [InlineData("root:0")]
+    [InlineData("root:1")]
+    public void EditEveryRootTogetherFromAnyRootRow(string key)
     {
-        ConfigView.Reduce(At("default-base"), new KeyPressed(Key.Of('a'))).Effects.ShouldBe([new AddRepositoryRoot()]);
+        ConfigView.Reduce(At(key), new KeyPressed(Key.Enter)).Effects.ShouldBe([new EditSetting(new SettingsScope.Roots())]);
     }
 
-    [Fact]
-    public void RemoveTheSelectedRootOnD()
+    [Theory]
+    [InlineData('a')]
+    [InlineData('d')]
+    public void LeaveAddingAndRemovingRootsToTheDialog(char key)
     {
-        ConfigView.Reduce(At("root:1"), new KeyPressed(Key.Of('d'))).Effects.ShouldBe([new RemoveRepositoryRoot(1)]);
-    }
-
-    [Fact]
-    public void RefuseToRemoveTheOnlyRoot()
-    {
-        ConfigViewState one = ConfigView.Reduce(ConfigViewState.Empty, new ConfigRowsLoaded(ConfigRows.For(TestSettings.For(Repos), Facts))).State;
-
-        ConfigViewUpdate update = ConfigView.Reduce(one, new KeyPressed(Key.Of('d')));
-
-        update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new Footer.OnlyRoot());
-    }
-
-    [Fact]
-    public void RemoveNothingButARoot()
-    {
-        ConfigViewUpdate update = ConfigView.Reduce(At("setup:DiagnosticLog"), new KeyPressed(Key.Of('d')));
-
-        update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new Footer.OnlyRootsRemoved());
+        ConfigView.Reduce(At("root:1"), new KeyPressed(Key.Of(key))).Effects.ShouldBeEmpty();
     }
 
     [Fact]

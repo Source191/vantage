@@ -128,7 +128,7 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | AGE | Time since the session started, right-aligned |
 | MEM | The memory the session's process and everything it started are using now: the private working set, the figure Task Manager's Memory column shows, so pages shared between the MCP servers' node processes count once and pages Windows has paged out do not count. `-` for a stopped session |
 
-WHERE takes the width the other columns leave, so every column fits a 120-column terminal; a repository name too long for it loses its middle to an ellipsis (`Northwind.Integrat…ngeFeedMonitoring › fix-123`) and the slug and branch stay whole. NAME is cut at 28 characters with an ellipsis. Shift+Left and Shift+Right scroll the table on a narrower terminal, and the title, the filter and every key still use the full values.
+WHERE takes the width the other columns leave, so every column fits a 120-column terminal; a repository name too long for it loses its middle to an ellipsis (`Northwind.Integrat…ngeFeedMonitoring › fix-123`) and the slug and branch stay whole. NAME is cut at 28 characters with an ellipsis. `<` and `>` scroll the table on a narrower terminal, and the title, the filter and every key still use the full values.
 
 Keys (every key is dispatched by the tested reducer, so this table is the reference):
 
@@ -136,7 +136,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | --- | --- |
 | Up, Down | Move the selection bar |
 | Left, Right | Show the tab before or after this one |
-| Shift+Left, Shift+Right | Scroll the table sideways, one column at a time, when its columns do not all fit |
+| <, > | Scroll the table sideways, one column at a time, when its columns do not all fit |
 | Enter | Attach to the selected background session in this tab; Ctrl+Z returns |
 | o | Open the session in its own coloured Windows Terminal tab; when one is already open for it, switch to that tab |
 | n | New session wizard |
@@ -210,7 +210,7 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 | SESSION | The session running inside it, if any |
 | HEALTH | `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it), `elsewhere` (a live worktree of a repository that is not under the roots, so Vantage never scanned it; the row names that repository, and the footer says where it is) |
 
-When nothing else needs saying, the footer explains the selected row's health in full. A long repository name is elided in the middle of the WORKTREE cell, BRANCH is cut at 28 characters, and Shift+Left and Shift+Right scroll the table on a narrow terminal.
+When nothing else needs saying, the footer explains the selected row's health in full. A long repository name is elided in the middle of the WORKTREE cell, BRANCH is cut at 28 characters, and `<` and `>` scroll the table on a narrow terminal.
 
 | Key | Action |
 | --- | --- |
@@ -223,7 +223,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
 | 1, Esc | Back to the Sessions tab (Esc clears a filter first); `3` shows the Config tab |
 | Left, Right | The tab before or after, as in the sessions view |
-| Shift+Left, Shift+Right | Scroll the table sideways, as in the sessions view |
+| <, > | Scroll the table sideways, as in the sessions view |
 | / | Filter by repository, folder, branch or health |
 | c, e, v | Copy the folder path, open the folder, open its solution (choosing from a list when there are several), as in the sessions view; refused for a leftover whose folder is gone |
 | U | Update Vantage, as in the sessions view |
@@ -348,8 +348,8 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 │Sessions│Worktrees│Config│  6 settings · 1 to set up                         11 rows, selected: Repository root
 ├────────┴─────────╯      ╰───────────────────────────────────────────────────────────────────────────────────╮
 ││SETTING                  │VALUE                                                                             ││
-│ Repository root           C:\Users\you\source\repos                                                        │
-│ Repository root           D:\work                                                                          │
+│ Repository roots          C:\Users\you\source\repos                                                        │
+│                           D:\work                                                                          │
 │ Worktree root             C:\Users\you\source\worktrees                                                    │
 │ Open folder with          VS Code                                                                          │
 │ Default base              origin's default branch                                                          │
@@ -361,7 +361,7 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 │ Last update check         09:12 today, newest 0.18.0                                                       │
 ```
 
-- **Repository root:** one row per root; the wizard offers every repository directly under each, and the worktrees view scans them. Each must be a full path that exists, and each is listed once. `a` adds one; `d` removes the selected one, and Vantage always keeps at least one.
+- **Repository roots:** one row per root, the first labelled; the wizard offers every repository directly under each, and the worktrees view scans them. Enter on any of them opens one dialog with every root, one per line: add a line to add a root, delete one to remove it, and F5 saves. Each must be a full path that exists and be listed once, and at least one must stay.
 - **Worktree root:** where new worktrees go, as `<worktree root>\<repository>-<name>`. It must be a full path; it is created when the first worktree goes there. Worktrees made beside their repository by earlier versions stay where they are and are still listed, removed and opened as before.
 - **Open folder with:** VS Code, Cursor, Rider, Explorer, or Custom: the full path of an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A bare name or a relative path is refused, because Windows would look for it in the folder Vantage was started from before the PATH; a `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The `e` key opens the selected row's folder with it. Visual Studio is not offered, because `v` opens solutions in it; a `config.json` that still names `VisualStudio` reads as VS Code, the other settings kept.
 - **Default base:** where a new worktree's branch starts by default, origin's default branch or the current HEAD.
@@ -375,9 +375,7 @@ Enter on a setting opens a small dialog for that one value. F5 saves: the dialog
 | Key | Action |
 | --- | --- |
 | Up, Down | Move the selection bar |
-| Enter | Edit the selected setting; on Check for updates, turn it on or off; on a setup row, say how that setup is changed |
-| a | Add a repository root |
-| d | Remove the selected repository root (never the last) |
+| Enter | Edit the selected setting (on any repository root, every root together, one per line); on Check for updates, turn it on or off; on a setup row, say how that setup is changed |
 | c, e | Copy the selected path; open the selected folder, or the folder holding the selected file |
 | Left, Right, 1, 2, Esc | Other tabs, as in the sessions view (Esc clears a filter first) |
 | / | Filter by setting or path |

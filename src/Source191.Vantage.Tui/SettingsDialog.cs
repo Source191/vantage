@@ -61,11 +61,7 @@ internal static class SettingsDialog
         // The texts follow their change events; reading them again at Save means no missed event can save a stale value.
         void Save()
         {
-            if (state.EditsARoot)
-            {
-                Apply(new SettingsInput.RootChanged(controls.Root.Text));
-            }
-
+            Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
             Apply(new SettingsInput.WorktreeRootChanged(controls.WorktreeRoot.Text));
             Apply(new SettingsInput.ExecutableChanged(controls.Executable.Text));
             Apply(new SettingsInput.ArgumentsChanged(controls.Arguments.Text));
@@ -73,14 +69,13 @@ internal static class SettingsDialog
         }
 
         controls.WhenFocused(field => Apply(new SettingsInput.FieldFocused(field)));
-        controls.Root.TextChanging += (_, changing) => Apply(new SettingsInput.RootChanged(changing.Result ?? string.Empty));
+        controls.Roots.ContentsChanged += (_, _) => Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
         controls.WorktreeRoot.TextChanging += (_, changing) => Apply(new SettingsInput.WorktreeRootChanged(changing.Result ?? string.Empty));
         controls.Editor.ValueChanged += (_, _) => Apply(new SettingsInput.PresetChanged((EditorPreset)(controls.Editor.Value ?? 0)));
         controls.Executable.TextChanging += (_, changing) => Apply(new SettingsInput.ExecutableChanged(changing.Result ?? string.Empty));
         controls.Arguments.TextChanging += (_, changing) => Apply(new SettingsInput.ArgumentsChanged(changing.Result ?? string.Empty));
         controls.BaseRef.ValueChanged += (_, _) => Apply(new SettingsInput.BaseChanged(controls.BaseRef.Value == 1 ? WorktreeBase.Head : WorktreeBase.RemoteDefault));
         // Enter in a one-line field does nothing by itself: only Save (F5) saves.
-        controls.Root.Accepting += (_, accepting) => accepting.Handled = true;
         controls.WorktreeRoot.Accepting += (_, accepting) => accepting.Handled = true;
         controls.Executable.Accepting += (_, accepting) => accepting.Handled = true;
         controls.Arguments.Accepting += (_, accepting) => accepting.Handled = true;

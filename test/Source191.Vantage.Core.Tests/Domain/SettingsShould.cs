@@ -168,35 +168,6 @@ public sealed class SettingsShould
     }
 
     [Fact]
-    public void RemoveTheRootAtAnIndex()
-    {
-        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
-
-        settings.WithRootRemoved(1).ShouldBeOfType<SettingsValidation.Valid>().Settings.RepositoryRoots.ShouldBe([FolderPath.From(Root)]);
-    }
-
-    [Fact]
-    public void KeepTheOtherSettingsWhenARootIsRemoved()
-    {
-        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.VsCode, WorktreeBase.Head, Home, checkForUpdates: false);
-
-        Settings removed = settings.WithRootRemoved(0).ShouldBeOfType<SettingsValidation.Valid>().Settings;
-
-        removed.RepositoryRoots.ShouldBe([FolderPath.From(@"D:\work")]);
-        removed.WorktreeRoot.ShouldBe(FolderPath.From(@"E:\trees"));
-        removed.DefaultBase.ShouldBe(WorktreeBase.Head);
-        removed.CheckForUpdates.ShouldBeFalse();
-    }
-
-    [Fact]
-    public void RefuseRemovingTheOnlyRoot()
-    {
-        Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
-
-        settings.WithRootRemoved(0).ShouldBeOfType<SettingsValidation.Refused>().Problem.ShouldBe(new SettingsProblem.LastRoot());
-    }
-
-    [Fact]
     public void TurnTheUpdateCheckOffAndOn()
     {
         Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);

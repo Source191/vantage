@@ -101,7 +101,7 @@ The last two rows of the screen SHALL be a key bar of items, each a key and a wo
 
 #### Scenario: The help names the tab keys
 - **WHEN** the user presses ? on any tab
-- **THEN** the help lists 1, 2, 3, ← and → as choosing a tab and Shift+← and Shift+→ as scrolling the columns, and lists neither w nor ,
+- **THEN** the help lists 1, 2, 3, ← and → as choosing a tab and < and > as scrolling the columns, and lists neither w nor ,
 
 ### Requirement: One console keeps its state across hand-offs
 The console SHALL run as one terminal application for every tab. Only an attach SHALL leave it, and on return the console SHALL show the same tab with the same selection and filter. Quit SHALL clear Vantage's tab as before.

@@ -7,11 +7,6 @@ public sealed record ConfigRowsLoaded(IReadOnlyList<ConfigRow> Rows) : ViewInput
 /// <summary>Edit one setting in a dialog of its own; the dialog settles on <see cref="SaveSettings"/>.</summary>
 public sealed record EditSetting(SettingsScope Scope) : ViewEffect, IDialogEffect;
 
-/// <summary>Add a repository root in the root dialog, opened empty.</summary>
-public sealed record AddRepositoryRoot : ViewEffect, IDialogEffect;
-
-public sealed record RemoveRepositoryRoot(int Index) : ViewEffect;
-
 public sealed record ToggleUpdateCheck : ViewEffect;
 
 public sealed record ConfigViewUpdate(ConfigViewState State, IReadOnlyList<ViewEffect> Effects);
@@ -86,8 +81,6 @@ public static class ConfigView
             { Name: KeyName.Escape } => Effect(state, new SelectTab(ConsoleTab.Sessions)),
             { Name: KeyName.Enter } => RowAction(state, Enter),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
-            { Name: KeyName.Character, Character: 'a' } => Effect(state with { Footer = Footer.None }, new AddRepositoryRoot()),
-            { Name: KeyName.Character, Character: 'd' } => RowAction(state, row => Remove(row, state.Rows.OfType<ConfigRow.RepositoryRoot>().Count())),
             { Name: KeyName.Character, Character: 'c' } => RowAction(state, row => WithPath(row, path => new CopyFolderPath(FolderPath.From(path)))),
             { Name: KeyName.Character, Character: 'e' } => RowAction(state, row => WithPath(row, path => new OpenFolderInEditor(FolderOf(row, path)))),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
@@ -121,16 +114,6 @@ public static class ConfigView
             ConfigRow.CheckForUpdates => (new ToggleUpdateCheck(), Footer.None),
             ConfigRow.Setup setup => (null, new Footer.SetupAdvice(setup.Item)),
             _ => (new EditSetting(SettingsScope.For(row)), Footer.None),
-        };
-    }
-
-    private static (ViewEffect?, Footer) Remove(ConfigRow row, int roots)
-    {
-        return row switch
-        {
-            ConfigRow.RepositoryRoot when roots == 1 => (null, new Footer.OnlyRoot()),
-            ConfigRow.RepositoryRoot root => (new RemoveRepositoryRoot(root.Index), Footer.None),
-            _ => (null, new Footer.OnlyRootsRemoved()),
         };
     }
 

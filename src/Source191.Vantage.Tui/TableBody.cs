@@ -170,13 +170,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public void OnKey(GuiKey key)
     {
-        if (ScrollStep(key) is int step)
-        {
-            key.Handled = true;
-            Scroll(step);
-            return;
-        }
-
         Key? mapped = KeyMapping.From(key);
         if (mapped is null)
         {
@@ -184,6 +177,12 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
 
         key.Handled = true;
+        if (!State.List.FilterEditing && ScrollStep(mapped) is int step)
+        {
+            Scroll(step);
+            return;
+        }
+
         Press(mapped);
     }
 
@@ -286,16 +285,13 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     }
 
     /// <summary>Left and Right move the table one column sideways, within its columns; presentation only, so the reducer never sees a change.</summary>
-    /// <summary>Shift+Left and Shift+Right scroll a table too wide for the terminal; Left and Right alone are the tab keys.</summary>
-    private static int? ScrollStep(GuiKey key)
+    /// <summary>&lt; and &gt; scroll a table too wide for the terminal (Shift+arrows did not reach Vantage in Windows Terminal); Left and Right are the tab keys.</summary>
+    private static int? ScrollStep(Key key) => key switch
     {
-        if (key == GuiKey.CursorLeft.WithShift)
-        {
-            return -1;
-        }
-
-        return key == GuiKey.CursorRight.WithShift ? 1 : null;
-    }
+        { Name: KeyName.Character, Character: '<' } => -1,
+        { Name: KeyName.Character, Character: '>' } => 1,
+        _ => null,
+    };
 
     private void Scroll(int step)
     {

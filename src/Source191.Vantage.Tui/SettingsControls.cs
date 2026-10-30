@@ -20,7 +20,7 @@ internal sealed class SettingsControls
     public SettingsControls(SettingsState state)
     {
         SettingsText text = state.Text;
-        Root.Text = state.RootText;
+        Roots.Text = text.Roots;
         WorktreeRoot.Text = text.WorktreeRoot;
         Editor.Value = (int)text.Preset;
         Executable.Text = text.Executable;
@@ -29,10 +29,10 @@ internal sealed class SettingsControls
         Custom = [Caption(RightColumn, 1, "Executable (full path, not a .cmd or .bat)"), Executable, Caption(RightColumn, 4, $"Arguments ({EditorChoice.FolderPlaceholder} is the folder)"), Arguments];
         (IReadOnlyDictionary<SettingsField, View> Fields, View[] All, int Height) layout = state.Scope switch
         {
-            SettingsScope.Root or SettingsScope.NewRoot => (
-                new Dictionary<SettingsField, View> { [SettingsField.Roots] = Root },
-                [Caption(LeftColumn, 0, "Repository root (repositories are found directly under it)"), Root, Placed(Problem, 3)],
-                10),
+            SettingsScope.Roots => (
+                new Dictionary<SettingsField, View> { [SettingsField.Roots] = Roots },
+                [Caption(LeftColumn, 0, "Repository roots (one per line; repositories are found directly under each)"), Roots, Placed(Problem, 7)],
+                14),
             SettingsScope.WorktreeRoot => (
                 new Dictionary<SettingsField, View> { [SettingsField.WorktreeRoot] = WorktreeRoot },
                 [Caption(LeftColumn, 0, "Worktree root (new worktrees go here; the worktrees view lists every worktree wherever it is)"), WorktreeRoot, Placed(Problem, 3)],
@@ -50,7 +50,10 @@ internal sealed class SettingsControls
         (Fields, All, Height) = layout;
     }
 
-    public TextField Root { get; } = new() { X = LeftColumn, Y = 1, Width = Dim.Fill(2) };
+    // TextView is marked obsolete in favour of the separate tui-cs Editor package; a multi-line box does not justify another dependency.
+#pragma warning disable CS0618
+    public TextView Roots { get; } = new() { X = LeftColumn, Y = 1, Width = Dim.Fill(2), Height = 5, TabKeyAddsTab = false };
+#pragma warning restore CS0618
 
     public TextField WorktreeRoot { get; } = new() { X = LeftColumn, Y = 1, Width = Dim.Fill(2) };
 

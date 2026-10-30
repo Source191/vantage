@@ -26,7 +26,7 @@ The editor setting SHALL be one of the presets VS Code, Cursor, Rider and Explor
 - **THEN** the dialog's choice is captioned "Open folder with", lists VS Code, Cursor, Rider, Explorer and Custom, and the e key's bar item reads Open folder
 
 ### Requirement: Settings can be edited from either view
-The settings SHALL be shown and edited on the Config tab, a row at a time: each repository root, the worktree root, the editor and the default worktree base in a dialog for that one value, the update check by Enter on its row. Esc SHALL close a dialog without changing anything. No other key SHALL open a settings dialog.
+The settings SHALL be shown and edited on the Config tab, a row at a time: the repository roots together, one per line, and the worktree root, the editor and the default worktree base each in a dialog for that one value, the update check by Enter on its row. Esc SHALL close a dialog without changing anything. No other key SHALL open a settings dialog.
 
 #### Scenario: Open settings
 - **WHEN** the user presses 3, or Right from the Worktrees tab
@@ -41,7 +41,7 @@ The settings SHALL be shown and edited on the Config tab, a row at a time: each 
 - **THEN** nothing opens and nothing changes
 
 ### Requirement: Settings are validated before they are saved
-A setting's dialog SHALL refuse to save, name the problem and keep the dialog open when a repository root is not a full path, does not exist or is already a root, when the worktree root is not a full path, or when a custom editor has no executable, an executable that is not a full path, an executable ending `.cmd` or `.bat` (Windows runs batch files through cmd.exe, which would parse the folder path) or no `{folder}` in its arguments. A worktree root that does not exist yet SHALL be accepted. Removing the only repository root SHALL be refused.
+A setting's dialog SHALL refuse to save, name the problem and keep the dialog open when a repository root is not a full path, does not exist or is already a root, when the worktree root is not a full path, or when a custom editor has no executable, an executable that is not a full path, an executable ending `.cmd` or `.bat` (Windows runs batch files through cmd.exe, which would parse the folder path) or no `{folder}` in its arguments. A worktree root that does not exist yet SHALL be accepted. Saving the repository roots dialog with no root left SHALL be refused.
 
 #### Scenario: Batch file editor
 - **WHEN** the user enters `C:\Tools\edit.cmd` as a custom editor's executable
@@ -63,9 +63,9 @@ A setting's dialog SHALL refuse to save, name the problem and keep the dialog op
 - **WHEN** the user enters `D:\worktrees`, which does not exist yet
 - **THEN** the settings are saved
 
-#### Scenario: The only root
-- **WHEN** there is one repository root and the user removes it
-- **THEN** nothing is saved and the footer says Vantage needs at least one repository root
+#### Scenario: No root left
+- **WHEN** the user deletes every line of the repository roots dialog and presses F5
+- **THEN** nothing is saved and the dialog asks for a repository root
 
 ### Requirement: Saved settings apply without a restart
 Saving SHALL write `config.json` and SHALL make every later scan, wizard, worktree creation, editor launch and the Config tab use the saved values, without restarting Vantage. Saving SHALL keep the file readable by hand, with the property names `repositoryRoots`, `worktreeRoot`, `editor` and `defaultBase`.

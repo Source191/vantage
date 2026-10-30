@@ -161,7 +161,6 @@ public static partial class Wording
             SettingsProblem.RootNotFullPath relative => $@"The repository root {relative.Text} is not a full path, such as C:\Users\me\source\repos.",
             SettingsProblem.RootMissing missing => $"{missing.Path} does not exist.",
             SettingsProblem.RootAlreadyListed repeated => $"{repeated.Path} is already a repository root.",
-            SettingsProblem.LastRoot => "Vantage needs at least one repository root, so the only one cannot be removed.",
             SettingsProblem.WorktreeRootNotFullPath => @"The worktree root must be a full path, such as C:\Users\me\source\worktrees.",
             SettingsProblem.NoExecutable => "A custom editor needs an executable.",
             SettingsProblem.ExecutableNotFullPath => @"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Vantage was started from.",
@@ -355,10 +354,8 @@ public static partial class Wording
         return footer switch
         {
             Footer.NoWorktreeSelected => "No worktree selected.",
-            Footer.ConfigHint => "Enter edits the selected setting; a adds a repository root.",
+            Footer.ConfigHint => "Enter edits the selected setting; on a repository root, every root one per line.",
             Footer.SetupAdvice advice => Describe(advice.Item),
-            Footer.OnlyRootsRemoved => "Only a repository root can be removed.",
-            Footer.OnlyRoot => "Vantage needs at least one repository root, so the only one cannot be removed.",
             Footer.NoPathHere => "This row's value is not a path.",
             Footer.NoSettingSelected => "No setting selected.",
             Footer.NotRemoved { OfferForce: true } refused => $"Not removed: {Describe(refused.Reason)}. D forces after a typed confirmation.",

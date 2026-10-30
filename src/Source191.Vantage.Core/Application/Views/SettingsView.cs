@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>
-/// A setting's dialog as a pure function of state and input; the dialog only binds controls to it. The one value being
+/// A setting's dialog as a pure function of state and input; the dialog only binds controls to it. The value being
 /// edited is held as typed inside the saved settings, so Save checks the whole with <see cref="Settings.Validate"/> and
 /// either yields the settings to save or shows the problem with focus in the field it is about.
 /// </summary>
@@ -14,7 +14,7 @@ public static class SettingsView
     {
         return input switch
         {
-            SettingsInput.RootChanged changed => Changed(state.WithRoot(changed.Text)),
+            SettingsInput.RootsChanged changed => Changed(state with { Text = state.Text with { Roots = changed.Text } }),
             SettingsInput.WorktreeRootChanged changed => Changed(state with { Text = state.Text with { WorktreeRoot = changed.Text } }),
             SettingsInput.PresetChanged changed => Changed(state with { Text = state.Text with { Preset = changed.Preset } }),
             SettingsInput.ExecutableChanged changed => Changed(state with { Text = state.Text with { Executable = changed.Text } }),
@@ -27,14 +27,8 @@ public static class SettingsView
         };
     }
 
-    /// <summary>A root left blank would vanish from the saved list without a word, so it is refused as no root.</summary>
     private static SettingsUpdate Saved(SettingsState state)
     {
-        if (state.EditsARoot && string.IsNullOrWhiteSpace(state.RootText))
-        {
-            return Changed(state with { Problem = new SettingsProblem.NoRoots(), Focus = SettingsField.Roots });
-        }
-
         return Settings.Validate(state.Text, state.FolderExists) switch
         {
             SettingsValidation.Valid valid => new SettingsUpdate(state with { Problem = null }, new SettingsEffect.Save(valid.Settings)),
@@ -48,7 +42,7 @@ public static class SettingsView
     {
         return problem switch
         {
-            SettingsProblem.NoRoots or SettingsProblem.RootNotFullPath or SettingsProblem.RootMissing or SettingsProblem.RootAlreadyListed or SettingsProblem.LastRoot => SettingsField.Roots,
+            SettingsProblem.NoRoots or SettingsProblem.RootNotFullPath or SettingsProblem.RootMissing or SettingsProblem.RootAlreadyListed => SettingsField.Roots,
             SettingsProblem.WorktreeRootNotFullPath => SettingsField.WorktreeRoot,
             SettingsProblem.NoExecutable or SettingsProblem.ExecutableNotFullPath or SettingsProblem.BatchFileExecutable => SettingsField.Executable,
             SettingsProblem.NoFolderPlaceholder => SettingsField.Arguments,

@@ -729,7 +729,6 @@ public sealed class WordingShould
     {
         Wording.Describe(new SettingsProblem.NoRoots()).ShouldBe(@"Give a repository root: a full path, such as C:\Users\me\source\repos.");
         Wording.Describe(new SettingsProblem.RootAlreadyListed(FolderPath.From(@"D:\work"))).ShouldBe(@"D:\work is already a repository root.");
-        Wording.Describe(new SettingsProblem.LastRoot()).ShouldBe("Vantage needs at least one repository root, so the only one cannot be removed.");
         Wording.Describe(new SettingsProblem.RootNotFullPath("repos")).ShouldBe(@"The repository root repos is not a full path, such as C:\Users\me\source\repos.");
         Wording.Describe(new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere"))).ShouldBe(@"D:\nowhere does not exist.");
         Wording.Describe(new SettingsProblem.WorktreeRootNotFullPath()).ShouldBe(@"The worktree root must be a full path, such as C:\Users\me\source\worktrees.");
@@ -756,7 +755,7 @@ public sealed class WordingShould
     {
         foreach (string help in new[] { Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe"), Wording.WorktreesHelp, Wording.ConfigHelp })
         {
-            help.ShouldContain("3       the Config tab");
+            help.ShouldContain("the Config tab");
             help.ShouldNotContain("edit roots, worktree root and editor");
         }
     }

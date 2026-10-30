@@ -53,7 +53,6 @@ public static class Composition
             .Register(new OpenPullRequestHandler(ports.Desktop))
             .Register(new OpenInEditorHandler(ports.Editors, ports.Desktop, ports.Folders, settings))
             .Register(new SaveSettingsHandler(settings))
-            .Register(new RemoveRepositoryRootHandler(settings))
             .Register(new ToggleUpdateCheckHandler(settings))
             .Register(new StartUpdateHandler(ports.Terminal, scripts, vantage.ProcessId, vantage.Home));
     }

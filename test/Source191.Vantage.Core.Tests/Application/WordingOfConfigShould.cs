@@ -11,7 +11,8 @@ public sealed class WordingOfConfigShould
 
     public static TheoryData<ConfigRow, string, string> Rows => new()
     {
-        { new ConfigRow.RepositoryRoot(0, FolderPath.From(@"C:\Users\me\source\repos")), "Repository root", @"C:\Users\me\source\repos" },
+        { new ConfigRow.RepositoryRoot(0, FolderPath.From(@"C:\Users\me\source\repos")), "Repository roots", @"C:\Users\me\source\repos" },
+        { new ConfigRow.RepositoryRoot(1, FolderPath.From(@"D:\work")), string.Empty, @"D:\work" },
         { new ConfigRow.WorktreeRoot(FolderPath.From(@"C:\Users\me\source\worktrees")), "Worktree root", @"C:\Users\me\source\worktrees" },
         { new ConfigRow.OpenFolderWith(EditorChoice.VsCode), "Open folder with", "VS Code" },
         { new ConfigRow.OpenFolderWith(EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"])), "Open folder with", @"C:\Tools\subl.exe -n {folder}" },
@@ -52,17 +53,14 @@ public sealed class WordingOfConfigShould
     [Fact]
     public void SayTheConfigFooters()
     {
-        Wording.Describe(new Footer.ConfigHint()).ShouldBe("Enter edits the selected setting; a adds a repository root.");
-        Wording.Describe(new Footer.OnlyRootsRemoved()).ShouldBe("Only a repository root can be removed.");
-        Wording.Describe(new Footer.OnlyRoot()).ShouldBe("Vantage needs at least one repository root, so the only one cannot be removed.");
+        Wording.Describe(new Footer.ConfigHint()).ShouldBe("Enter edits the selected setting; on a repository root, every root one per line.");
         Wording.Describe(new Footer.NoPathHere()).ShouldBe("This row's value is not a path.");
     }
 
     [Fact]
     public void TitleEachSettingsDialog()
     {
-        Wording.SettingsDialogTitle(new SettingsScope.Root(0)).ShouldBe("Repository root");
-        Wording.SettingsDialogTitle(new SettingsScope.NewRoot()).ShouldBe("Add a repository root");
+        Wording.SettingsDialogTitle(new SettingsScope.Roots()).ShouldBe("Repository roots");
         Wording.SettingsDialogTitle(new SettingsScope.WorktreeRoot()).ShouldBe("Worktree root");
         Wording.SettingsDialogTitle(new SettingsScope.Editor()).ShouldBe("Open folder with");
         Wording.SettingsDialogTitle(new SettingsScope.Base()).ShouldBe("Worktree base");

@@ -90,8 +90,8 @@ public static partial class Wording
         new("3", Hint: null, "the Config tab", Tip: "Show the Config tab: the settings and how Vantage is set up."),
         new("←", Hint: null, "the tab to the left", Tip: "Show the tab to the left of this one."),
         new("→", Hint: null, "the tab to the right", Tip: "Show the tab to the right of this one."),
-        new("shift+←", Hint: null, "scroll the columns left", Tip: "Scroll a table too wide for the terminal to the left."),
-        new("shift+→", Hint: null, "scroll the columns right", Tip: "Scroll a table too wide for the terminal to the right."),
+        new("<", Hint: null, "scroll the columns left", Tip: "Scroll a table too wide for the terminal to the left."),
+        new(">", Hint: null, "scroll the columns right", Tip: "Scroll a table too wide for the terminal to the right."),
     ];
 
     public static IReadOnlyList<KeyHelp> SessionsKeys { get; } =
@@ -141,9 +141,7 @@ public static partial class Wording
 
     public static IReadOnlyList<KeyHelp> ConfigKeys { get; } =
     [
-        new("enter", "Edit", "edit the setting, or say how to set up", Tip: "Edit this setting; on a setup row, say how that setup is changed."),
-        new("a", "Add root", "add a repository root", Tip: "Add a repository root; repositories directly under it are listed."),
-        new("d", "Remove root", "remove this repository root", Tip: "Remove this repository root; Vantage keeps at least one."),
+        new("enter", "Edit", "edit the setting, or say how to set up", Tip: "Edit this setting; on a repository root, every root one per line; on a setup row, say how that setup is changed."),
         new("esc", "Sessions", "back to sessions (clears a filter first)", Tip: "Clear the filter, or go back to the sessions view when there is none."),
         new("/", "Filter", "filter", Tip: "Type to show only the rows that match; Esc clears the filter."),
         new("?", "Help", "help", Tip: "Show every key and what each column means."),

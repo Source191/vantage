@@ -109,12 +109,6 @@ public abstract record Footer
     /// <summary>Enter on a setup row: how that setup is changed, since the tab only reads it.</summary>
     public sealed record SetupAdvice(SetupItem Item) : Footer;
 
-    /// <summary>d on a row that is not a repository root.</summary>
-    public sealed record OnlyRootsRemoved : Footer;
-
-    /// <summary>d on the only repository root.</summary>
-    public sealed record OnlyRoot : Footer;
-
     /// <summary>c or e on a Config row whose value is not a path.</summary>
     public sealed record NoPathHere : Footer;
 

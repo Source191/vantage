@@ -4,7 +4,7 @@ namespace Source191.Vantage.Core.Tests.Application;
 
 public sealed class WordingOfKeysAndColumnsShould
 {
-    private static readonly string[] TabKeys = ["1 ", "2 ", "3 ", "← ", "→ ", "shift+← ", "shift+→ "];
+    private static readonly string[] TabKeys = ["1 ", "2 ", "3 ", "← ", "→ ", "< ", "> "];
 
     [Fact]
     public void ListEveryKeyOnceWithItsHintAndLine()
@@ -23,7 +23,7 @@ public sealed class WordingOfKeysAndColumnsShould
         ]);
         Wording.ConfigKeys.Select(key => $"{key.Key} {key.Hint}").ShouldBe(
         [
-            "enter Edit", "a Add root", "d Remove root", "esc Sessions", "/ Filter", "? Help", "q Quit",
+            "enter Edit", "esc Sessions", "/ Filter", "? Help", "q Quit",
             "c Copy", "e Open folder", "U Update", "! Report", .. TabKeys,
         ]);
     }
@@ -43,7 +43,7 @@ public sealed class WordingOfKeysAndColumnsShould
     {
         Wording.SessionsKeys[0].HelpKey.ShouldBe("Enter");
         Wording.SessionsKeys[6].HelpKey.ShouldBe("R");
-        Wording.SessionsKeys.Single(key => key.Key == "shift+←").HelpKey.ShouldBe("Shift+←");
+        Wording.SessionsKeys.Single(key => key.Key == "<").HelpKey.ShouldBe("<");
         Wording.SessionsKeys.Single(key => key.Key == "→").HelpKey.ShouldBe("→");
     }
 
@@ -61,19 +61,19 @@ public sealed class WordingOfKeysAndColumnsShould
     {
         Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe").ShouldBe("""
             Keys
-            Enter   attach (Ctrl+Z or Esc comes back)       o       open in its own tab, or switch to it
-            n       new session                             r       rename (restarts the session)
-            x       stop                                    d       delete, and its worktree if nothing is lost
-            R       resume after a reboot                   C       close tabs of unused terminal sessions
-            b       move a terminal session under Vantage   /       filter
-            ?       help                                    q       quit
-            c       copy the folder path                    e       open the folder in your editor
-            v       open its solution                       p       open its pull request in the browser
-            m       what its memory is made of              U       update Vantage in a new tab
-            !       report a problem on GitHub              1       the Sessions tab
-            2       the Worktrees tab                       3       the Config tab
-            ←       the tab to the left                     →       the tab to the right
-            Shift+← scroll the columns left                 Shift+→ scroll the columns right
+            Enter  attach (Ctrl+Z or Esc comes back)       o      open in its own tab, or switch to it
+            n      new session                             r      rename (restarts the session)
+            x      stop                                    d      delete, and its worktree if nothing is lost
+            R      resume after a reboot                   C      close tabs of unused terminal sessions
+            b      move a terminal session under Vantage   /      filter
+            ?      help                                    q      quit
+            c      copy the folder path                    e      open the folder in your editor
+            v      open its solution                       p      open its pull request in the browser
+            m      what its memory is made of              U      update Vantage in a new tab
+            !      report a problem on GitHub              1      the Sessions tab
+            2      the Worktrees tab                       3      the Config tab
+            ←      the tab to the left                     →      the tab to the right
+            <      scroll the columns left                 >      scroll the columns right
 
             Columns
             NAME   the session name given at launch, or the folder name for an unnamed one
@@ -97,18 +97,18 @@ public sealed class WordingOfKeysAndColumnsShould
     {
         Wording.WorktreesHelp.ShouldBe("""
             Keys
-            d       remove (refused when work would be lost)      D       force remove after typing its name
-            P       prune stale registrations in its repository   s       start a session in this worktree
-            o       open a PowerShell tab there                   Enter   go to the session running in it
-            Esc     back to sessions (clears a filter first)      /       filter
-            ?       help                                          q       quit
-            c       copy the folder path                          e       open the folder in your editor
-            v       open its solution                             p       open its pull request in the browser
-            U       update Vantage in a new tab                   !       report a problem on GitHub
-            1       the Sessions tab                              2       the Worktrees tab
-            3       the Config tab                                ←       the tab to the left
-            →       the tab to the right                          Shift+← scroll the columns left
-            Shift+→ scroll the columns right
+            d      remove (refused when work would be lost)      D      force remove after typing its name
+            P      prune stale registrations in its repository   s      start a session in this worktree
+            o      open a PowerShell tab there                   Enter  go to the session running in it
+            Esc    back to sessions (clears a filter first)      /      filter
+            ?      help                                          q      quit
+            c      copy the folder path                          e      open the folder in your editor
+            v      open its solution                             p      open its pull request in the browser
+            U      update Vantage in a new tab                   !      report a problem on GitHub
+            1      the Sessions tab                              2      the Worktrees tab
+            3      the Config tab                                ←      the tab to the left
+            →      the tab to the right                          <      scroll the columns left
+            >      scroll the columns right
 
             Columns
             WORKTREE     the owning repository › the folder's slug, or its label when not named after it
@@ -130,15 +130,14 @@ public sealed class WordingOfKeysAndColumnsShould
     {
         Wording.ConfigHelp.ShouldBe("""
             Keys
-            Enter   edit the setting, or say how to set up         a       add a repository root
-            d       remove this repository root                    Esc     back to sessions (clears a filter first)
-            /       filter                                         ?       help
-            q       quit                                           c       copy the path
-            e       open the folder, or the one holding the file   U       update Vantage in a new tab
-            !       report a problem on GitHub                     1       the Sessions tab
-            2       the Worktrees tab                              3       the Config tab
-            ←       the tab to the left                            →       the tab to the right
-            Shift+← scroll the columns left                        Shift+→ scroll the columns right
+            Enter  edit the setting, or say how to set up         Esc    back to sessions (clears a filter first)
+            /      filter                                         ?      help
+            q      quit                                           c      copy the path
+            e      open the folder, or the one holding the file   U      update Vantage in a new tab
+            !      report a problem on GitHub                     1      the Sessions tab
+            2      the Worktrees tab                              3      the Config tab
+            ←      the tab to the left                            →      the tab to the right
+            <      scroll the columns left                        >      scroll the columns right
 
             Columns
             SETTING  a setting Vantage keeps in config.json, or, in grey, setup it reads but does not change

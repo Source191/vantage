@@ -30,7 +30,6 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
         [typeof(FindSolution)] = (self, context, effect) => self.OpenSolutionOf(context, (FindSolution)effect),
         [typeof(EditSetting)] = (self, context, effect) => self.EditSettings(context, ((EditSetting)effect).Scope),
-        [typeof(AddRepositoryRoot)] = (self, context, _) => self.EditSettings(context, new SettingsScope.NewRoot()),
         [typeof(UpdateVantage)] = (self, context, _) => self.ConfirmUpdate(context),
         [typeof(ShowProblemReport)] = (self, context, effect) => self.ReportProblem(context, (ShowProblemReport)effect),
         [typeof(ShowMemory)] = (self, context, effect) => self.ShowMemoryOf(context, (ShowMemory)effect),

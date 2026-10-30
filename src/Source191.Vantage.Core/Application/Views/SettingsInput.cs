@@ -16,8 +16,8 @@ public enum SettingsField
 /// <summary>What happened in a setting's dialog: each case is one control event or button, raised by the dialog that binds them.</summary>
 public abstract record SettingsInput
 {
-    /// <summary>The repository root being edited, as typed.</summary>
-    public sealed record RootChanged(string Text) : SettingsInput;
+    /// <summary>The repository roots, one per line, as typed.</summary>
+    public sealed record RootsChanged(string Text) : SettingsInput;
 
     public sealed record WorktreeRootChanged(string Text) : SettingsInput;
 

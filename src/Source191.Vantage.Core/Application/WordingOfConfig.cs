@@ -14,7 +14,8 @@ public static partial class Wording
     {
         return row switch
         {
-            ConfigRow.RepositoryRoot => "Repository root",
+            ConfigRow.RepositoryRoot { Index: 0 } => "Repository roots",
+            ConfigRow.RepositoryRoot => string.Empty,
             ConfigRow.WorktreeRoot => "Worktree root",
             ConfigRow.OpenFolderWith => "Open folder with",
             ConfigRow.DefaultBase => "Default base",
@@ -45,8 +46,7 @@ public static partial class Wording
     {
         return scope switch
         {
-            SettingsScope.Root => "Repository root",
-            SettingsScope.NewRoot => "Add a repository root",
+            SettingsScope.Roots => "Repository roots",
             SettingsScope.WorktreeRoot => "Worktree root",
             SettingsScope.Editor => "Open folder with",
             SettingsScope.Base => "Worktree base",
