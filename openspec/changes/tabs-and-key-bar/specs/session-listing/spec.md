@@ -3,11 +3,11 @@
 ## MODIFIED Requirements
 
 ### Requirement: The TAB column is a swatch
-The sessions table's TAB column SHALL be filled across its whole width with the colour of the Vantage tab showing the session while that tab is alive, on the highlighted row as on every other, SHALL show a hollow grey block for a session running as plain claude in its own terminal, and nothing otherwise. The help and the column's tooltip SHALL say what each means.
+The sessions table's TAB column SHALL show a two-cell block in the colour of the Vantage tab showing the session while that tab is alive, with a cell of space before the next column, on the highlighted row as on every other; SHALL show a hollow grey block for a session running as plain claude in its own terminal; and nothing otherwise. The help and the column's tooltip SHALL say what each means.
 
 #### Scenario: A session open in a Vantage tab
 - **WHEN** fix-123 is shown in a Vantage tab coloured yellow
-- **THEN** its TAB cell is filled with yellow across the column's width
+- **THEN** its TAB cell shows a two-cell yellow block, then a space before the state
 
 #### Scenario: A terminal session
 - **WHEN** study was started as plain claude in a tab of its own
@@ -19,14 +19,14 @@ The sessions table's TAB column SHALL be filled across its whole width with the 
 
 #### Scenario: The help names the blocks
 - **WHEN** the help is shown on the sessions view
-- **THEN** TAB's line says the cell is filled with the tab's colour while a Vantage tab shows the session and a hollow block marks a plain claude in its own terminal
+- **THEN** TAB's line says a block in the tab's colour marks a session a Vantage tab shows and a hollow block a plain claude in its own terminal
 
 #### Scenario: The highlighted row keeps the colour
 - **WHEN** fix-123, shown in a Vantage tab coloured red, is the selected row
-- **THEN** its TAB cell is filled with exactly that red, not the highlight's colour or a dimmer shade
+- **THEN** its TAB block is exactly that red on the highlight, not the highlight's colour or a dimmer shade
 
 ### Requirement: The screen is a header, a table and a footer
-The sessions view SHALL be the Sessions tab of the console: under the settings line and the tabs' row, a bordered table whose title counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; and beneath the table a footer crumb naming the view with a status line beside it, above the key bar.
+The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, written into the frame beside the tabs, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; and beneath the table a footer crumb naming the view with a status line beside it, above the key bar.
 
 #### Scenario: Table title
 - **WHEN** seven sessions are listed with no filter and fix-123 is selected
@@ -45,50 +45,50 @@ The sessions view SHALL be the Sessions tab of the console: under the settings l
 - **THEN** the table title reads 0 sessions and names no selection
 
 ### Requirement: The header shows the versions and the roots
-The settings line SHALL show the Vantage version followed by the memory Vantage's own process uses in brackets, the Claude Code CLI version, the repository roots and the worktree root, and SHALL NOT show the machine name or the Claude executable's path. A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown. A Claude version older than the minimum Vantage supports SHALL show that minimum and ask for Claude Code to be updated; the view SHALL work as usual. The roots and the worktree root SHALL be the settings saved now, so a save from the settings dialog shows at once.
+The settings rows SHALL show the Vantage version followed by the memory Vantage's own process uses in brackets, the Claude Code CLI version, the repository roots and the worktree root, and SHALL NOT show the machine name or the Claude executable's path. A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown. A Claude version older than the minimum Vantage supports SHALL show that minimum and ask for Claude Code to be updated; the view SHALL work as usual. The roots and the worktree root SHALL be the settings saved now, so a save from the settings dialog shows at once.
 
 #### Scenario: Released versions
 - **WHEN** Vantage 0.5.0 runs using 29 MB with Claude Code 2.1.310 and the root C:\Users\me\source\repos
-- **THEN** the settings line reads Vantage 0.5.0 (29 MB) · Claude 2.1.310 · Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees
+- **THEN** the first settings row reads Vantage 0.5.0 (29 MB) · Claude 2.1.310 and the second Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees
 
 #### Scenario: Local build
 - **WHEN** the installed tool's version is 0.5.0-local.20261025T101500 and Vantage uses 29 MB
-- **THEN** the line starts Vantage 0.5.0-local (29 MB)
+- **THEN** the first settings row starts Vantage 0.5.0-local (29 MB)
 
 #### Scenario: An update is available
 - **WHEN** Vantage 0.5.0 uses 29 MB and 0.6.0 is the newest release
-- **THEN** the line starts Vantage 0.5.0 (29 MB; 0.6.0 available, U to update)
+- **THEN** the first settings row starts Vantage 0.5.0 (29 MB; 0.6.0 available, U to update)
 
 #### Scenario: Claude version unreadable
 - **WHEN** the Claude Code CLI's version command fails or prints something without a version
-- **THEN** the line reads Claude unknown and the view works as usual
+- **THEN** the first settings row reads Claude unknown and the view works as usual
 
 #### Scenario: Claude version below the minimum
 - **WHEN** the minimum is 2.1.309 and the Claude Code CLI reports 2.1.302
-- **THEN** the line reads Claude 2.1.302 (below 2.1.309, update Claude Code) and the view works as usual
+- **THEN** the first settings row reads Claude 2.1.302 (below 2.1.309, update Claude Code) and the view works as usual
 
 #### Scenario: Claude version at the minimum
 - **WHEN** the minimum is 2.1.309 and the Claude Code CLI reports 2.1.309
-- **THEN** the line reads Claude 2.1.309 with no warning
+- **THEN** the first settings row reads Claude 2.1.309 with no warning
 
 #### Scenario: Default worktree root
 - **WHEN** Vantage starts with no settings file
-- **THEN** the line ends Worktree root C:\Users\me\source\worktrees on both tabs
+- **THEN** the second settings row ends Worktree root C:\Users\me\source\worktrees on both tabs
 
 ### Requirement: The header summarises sessions by state
-The Sessions tab's title SHALL carry the number of sessions listed in brackets, and the counts beside the tabs SHALL show one glyph, count and state word per state present, needs input first; with no session listed the tab SHALL read Sessions (0) and the counts row SHALL be empty.
+The table's title on the frame SHALL count the sessions listed, and the counts beside the tabs SHALL show one glyph, count and state word per state present, needs input first; with no session listed the title SHALL read 0 sessions and no counts SHALL show.
 
 #### Scenario: Mixed states
 - **WHEN** nine sessions are listed, four of them stopped and the rest needing input
-- **THEN** the tab reads Sessions (9) and the counts read ◐ 5 need input · ■ 4 stopped
+- **THEN** the title starts 9 sessions and the counts read ◐ 5 need input · ■ 4 stopped
 
 #### Scenario: Every session needs input
 - **WHEN** six sessions are listed and every one needs input
-- **THEN** the tab reads Sessions (6) and the counts read ◐ 6 need input
+- **THEN** the title starts 6 sessions and the counts read ◐ 6 need input
 
 #### Scenario: No sessions
 - **WHEN** no session is listed
-- **THEN** the tab reads Sessions (0) and the counts row is empty
+- **THEN** the title reads 0 sessions and no counts show
 
 ### Requirement: The header counts sessions needing input
 The counts beside the tabs SHALL show how many sessions are in the needs-input state, first and in amber, whenever any is.
