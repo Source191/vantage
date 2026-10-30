@@ -2,7 +2,7 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application.Views;
 
-/// <summary>The settings dialog's fields, in the order Tab visits them.</summary>
+/// <summary>The fields a setting's dialog can show, in the order Tab visits them.</summary>
 public enum SettingsField
 {
     Roots,
@@ -11,13 +11,13 @@ public enum SettingsField
     Executable,
     Arguments,
     Base,
-    CheckForUpdates,
 }
 
-/// <summary>What happened in the settings dialog: each case is one control event or button, raised by the dialog that binds them.</summary>
+/// <summary>What happened in a setting's dialog: each case is one control event or button, raised by the dialog that binds them.</summary>
 public abstract record SettingsInput
 {
-    public sealed record RootsChanged(string Text) : SettingsInput;
+    /// <summary>The repository root being edited, as typed.</summary>
+    public sealed record RootChanged(string Text) : SettingsInput;
 
     public sealed record WorktreeRootChanged(string Text) : SettingsInput;
 
@@ -28,8 +28,6 @@ public abstract record SettingsInput
     public sealed record ArgumentsChanged(string Text) : SettingsInput;
 
     public sealed record BaseChanged(WorktreeBase Base) : SettingsInput;
-
-    public sealed record CheckForUpdatesChanged(bool Checked) : SettingsInput;
 
     /// <summary>A field took focus, by Tab, a click or the dialog itself.</summary>
     public sealed record FieldFocused(SettingsField Field) : SettingsInput;

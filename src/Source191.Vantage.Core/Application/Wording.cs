@@ -157,7 +157,7 @@ public static partial class Wording
     {
         return problem switch
         {
-            SettingsProblem.NoRoots => "Give at least one repository root, one per line.",
+            SettingsProblem.NoRoots => @"Give a repository root: a full path, such as C:\Users\me\source\repos.",
             SettingsProblem.RootNotFullPath relative => $@"The repository root {relative.Text} is not a full path, such as C:\Users\me\source\repos.",
             SettingsProblem.RootMissing missing => $"{missing.Path} does not exist.",
             SettingsProblem.RootAlreadyListed repeated => $"{repeated.Path} is already a repository root.",

@@ -29,8 +29,8 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(ConfirmForceRemove)] = (_, context, effect) => ConfirmForce(context, (ConfirmForceRemove)effect),
         [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
         [typeof(FindSolution)] = (self, context, effect) => self.OpenSolutionOf(context, (FindSolution)effect),
-        [typeof(EditSetting)] = (self, context, _) => self.EditSettings(context),
-        [typeof(AddRepositoryRoot)] = (self, context, _) => self.EditSettings(context),
+        [typeof(EditSetting)] = (self, context, effect) => self.EditSettings(context, ((EditSetting)effect).Scope),
+        [typeof(AddRepositoryRoot)] = (self, context, _) => self.EditSettings(context, new SettingsScope.NewRoot()),
         [typeof(UpdateVantage)] = (self, context, _) => self.ConfirmUpdate(context),
         [typeof(ShowProblemReport)] = (self, context, effect) => self.ReportProblem(context, (ShowProblemReport)effect),
         [typeof(ShowMemory)] = (self, context, effect) => self.ShowMemoryOf(context, (ShowMemory)effect),
@@ -149,10 +149,10 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         context.Dispatch(new StartSession(wizard.Plan, wizard.OpenInTab));
     }
 
-    /// <summary>The settings dialog over the settings saved now; a save is dispatched, so the footer confirms it and the refresh after it uses the new values.</summary>
-    private void EditSettings(IEffectContext context)
+    /// <summary>A setting's dialog over the settings saved now; a save is dispatched, so the footer confirms it and the refresh after it uses the new values.</summary>
+    private void EditSettings(IEffectContext context, SettingsScope scope)
     {
-        Settings? saved = SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, folders.DirectoryExists);
+        Settings? saved = SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, scope, folders.DirectoryExists);
         if (saved is null)
         {
             return;

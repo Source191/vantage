@@ -4,7 +4,7 @@ using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application.Views;
 
-/// <summary>The settings dialog's rules: what it shows, how it follows its controls, and when it saves.</summary>
+/// <summary>A setting's dialog: one value of the saved settings, what it shows, how it follows its controls, and when it saves.</summary>
 public sealed class SettingsViewShould
 {
     private const string Root = @"C:\Users\me\source\repos";
@@ -12,61 +12,78 @@ public sealed class SettingsViewShould
 
     private static readonly Func<string, bool> Exists = path => path is Root or Work;
 
-    private static SettingsState Opened => SettingsState.Open(TestSettings.For(Root), Exists);
+    private static readonly Settings TwoRoots = TestSettings.For([Root, Work], @"D:\worktrees", WorktreeBase.Head);
+
+    private static SettingsState Opened(SettingsScope scope) => SettingsState.Open(TestSettings.For(Root), scope, Exists);
+
+    public static TheoryData<SettingsScope, SettingsField, string> Scopes => new()
+    {
+        { new SettingsScope.Root(1), SettingsField.Roots, Work },
+        { new SettingsScope.NewRoot(), SettingsField.Roots, string.Empty },
+        { new SettingsScope.WorktreeRoot(), SettingsField.WorktreeRoot, Work },
+        { new SettingsScope.Editor(), SettingsField.Editor, Work },
+        { new SettingsScope.Base(), SettingsField.Base, Work },
+    };
+
+    [Theory]
+    [MemberData(nameof(Scopes))]
+    public void OpenOnTheOneValueWithItsField(SettingsScope scope, SettingsField field, string rootText)
+    {
+        SettingsState opened = SettingsState.Open(TwoRoots, scope, Exists);
+
+        opened.Scope.ShouldBe(scope);
+        opened.Focus.ShouldBe(field);
+        opened.Problem.ShouldBeNull();
+        if (scope is SettingsScope.Root or SettingsScope.NewRoot)
+        {
+            opened.RootText.ShouldBe(rootText);
+        }
+    }
 
     [Fact]
-    public void OpenWithTheCurrentSettings()
+    public void EditTheRootAtItsIndexOnly()
     {
-        SettingsState opened = SettingsState.Open(TestSettings.For([Root, Work], @"D:\worktrees", WorktreeBase.Head), Exists);
+        SettingsState state = Reduce(SettingsState.Open(TwoRoots, new SettingsScope.Root(1), Exists), new SettingsInput.RootChanged(@"D:\work\northwind"));
 
-        opened.Text.ShouldBe(new SettingsText($"{Root}\n{Work}", @"D:\worktrees", EditorPreset.VsCode, string.Empty, string.Empty, WorktreeBase.Head));
-        opened.Problem.ShouldBeNull();
-        opened.Focus.ShouldBe(SettingsField.Roots);
+        state.RootText.ShouldBe(@"D:\work\northwind");
+        state.Text.Roots.ShouldBe($"{Root}\n" + @"D:\work\northwind");
     }
 
     [Fact]
     public void FollowEachControlChange()
     {
-        SettingsState state = Opened;
+        SettingsState state = Opened(new SettingsScope.Editor());
 
-        state = Reduce(state, new SettingsInput.RootsChanged($"{Root}\n{Work}"));
-        state = Reduce(state, new SettingsInput.WorktreeRootChanged(@"D:\worktrees"));
         state = Reduce(state, new SettingsInput.PresetChanged(EditorPreset.Custom));
         state = Reduce(state, new SettingsInput.ExecutableChanged(@"C:\Tools\subl.exe"));
         state = Reduce(state, new SettingsInput.ArgumentsChanged("-n {folder}"));
-        state = Reduce(state, new SettingsInput.BaseChanged(WorktreeBase.Head));
-        state = Reduce(state, new SettingsInput.FieldFocused(SettingsField.Base));
+        state = Reduce(state, new SettingsInput.FieldFocused(SettingsField.Arguments));
 
-        state.Text.ShouldBe(new SettingsText($"{Root}\n{Work}", @"D:\worktrees", EditorPreset.Custom, @"C:\Tools\subl.exe", "-n {folder}", WorktreeBase.Head));
-        state.Focus.ShouldBe(SettingsField.Base);
+        state.Text.Preset.ShouldBe(EditorPreset.Custom);
+        state.Text.Executable.ShouldBe(@"C:\Tools\subl.exe");
+        state.Text.Arguments.ShouldBe("-n {folder}");
+        state.Focus.ShouldBe(SettingsField.Arguments);
     }
 
-    [Fact]
-    public void TurnTheUpdateCheckOffAndSaveIt()
+    public static TheoryData<SettingsScope, SettingsInput[], SettingsProblem, SettingsField> Problems => new()
     {
-        SettingsState state = Reduce(Opened, new SettingsInput.CheckForUpdatesChanged(false));
-
-        state.Text.CheckForUpdates.ShouldBeFalse();
-        SettingsUpdate saved = SettingsView.Reduce(state, new SettingsInput.Save());
-        saved.Effect.ShouldBeOfType<SettingsEffect.Save>().Settings.CheckForUpdates.ShouldBeFalse();
-    }
-
-    public static TheoryData<SettingsInput[], SettingsProblem, SettingsField> Problems => new()
-    {
-        { [new SettingsInput.RootsChanged(" ")], new SettingsProblem.NoRoots(), SettingsField.Roots },
-        { [new SettingsInput.RootsChanged("repos")], new SettingsProblem.RootNotFullPath("repos"), SettingsField.Roots },
-        { [new SettingsInput.RootsChanged(@"D:\nowhere")], new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere")), SettingsField.Roots },
-        { [new SettingsInput.WorktreeRootChanged("worktrees")], new SettingsProblem.WorktreeRootNotFullPath(), SettingsField.WorktreeRoot },
-        { [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.NoExecutable(), SettingsField.Executable },
-        { [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\edit.cmd"), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.BatchFileExecutable(), SettingsField.Executable },
-        { [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\subl.exe"), new SettingsInput.ArgumentsChanged("-n")], new SettingsProblem.NoFolderPlaceholder(), SettingsField.Arguments },
+        { new SettingsScope.Root(0), [new SettingsInput.RootChanged(" ")], new SettingsProblem.NoRoots(), SettingsField.Roots },
+        { new SettingsScope.NewRoot(), [], new SettingsProblem.NoRoots(), SettingsField.Roots },
+        { new SettingsScope.Root(0), [new SettingsInput.RootChanged("repos")], new SettingsProblem.RootNotFullPath("repos"), SettingsField.Roots },
+        { new SettingsScope.NewRoot(), [new SettingsInput.RootChanged(@"D:\nowhere")], new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere")), SettingsField.Roots },
+        { new SettingsScope.NewRoot(), [new SettingsInput.RootChanged(Root)], new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)), SettingsField.Roots },
+        { new SettingsScope.WorktreeRoot(), [new SettingsInput.WorktreeRootChanged("worktrees")], new SettingsProblem.WorktreeRootNotFullPath(), SettingsField.WorktreeRoot },
+        { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.NoExecutable(), SettingsField.Executable },
+        { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged("subl"), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.ExecutableNotFullPath(), SettingsField.Executable },
+        { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\edit.cmd"), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.BatchFileExecutable(), SettingsField.Executable },
+        { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\subl.exe"), new SettingsInput.ArgumentsChanged("-n")], new SettingsProblem.NoFolderPlaceholder(), SettingsField.Arguments },
     };
 
     [Theory]
     [MemberData(nameof(Problems))]
-    public void RefuseToSaveWithTheProblemAndItsField(SettingsInput[] inputs, SettingsProblem problem, SettingsField field)
+    public void RefuseToSaveWithTheProblemAndItsField(SettingsScope scope, SettingsInput[] inputs, SettingsProblem problem, SettingsField field)
     {
-        SettingsState state = inputs.Aggregate(Opened, Reduce);
+        SettingsState state = inputs.Aggregate(Opened(scope), Reduce);
 
         SettingsUpdate saved = SettingsView.Reduce(state, new SettingsInput.Save());
 
@@ -76,21 +93,35 @@ public sealed class SettingsViewShould
     }
 
     [Fact]
-    public void SaveYieldsSaveSettings()
+    public void SaveANewRootAfterTheOthers()
     {
-        SettingsState state = Reduce(Reduce(Opened, new SettingsInput.RootsChanged($"{Root}\n{Work}")), new SettingsInput.WorktreeRootChanged(@"D:\worktrees"));
+        SettingsState state = Reduce(Opened(new SettingsScope.NewRoot()), new SettingsInput.RootChanged(Work));
 
-        SettingsUpdate saved = SettingsView.Reduce(state, new SettingsInput.Save());
-
-        saved.Effect.ShouldBe(new SettingsEffect.Save(TestSettings.For([Root, Work], @"D:\worktrees")));
+        SettingsView.Reduce(state, new SettingsInput.Save()).Effect.ShouldBe(new SettingsEffect.Save(TestSettings.For(Root, Work)));
     }
 
     [Fact]
-    public void ClearTheProblemOnceTheSettingsAreValid()
+    public void SaveTheWorktreeRootKeepingEverythingElse()
     {
-        SettingsState refused = SettingsView.Reduce(Reduce(Opened, new SettingsInput.RootsChanged("repos")), new SettingsInput.Save()).State;
+        SettingsState state = Reduce(SettingsState.Open(TwoRoots, new SettingsScope.WorktreeRoot(), Exists), new SettingsInput.WorktreeRootChanged(@"E:\trees"));
 
-        SettingsUpdate saved = SettingsView.Reduce(Reduce(refused, new SettingsInput.RootsChanged(Root)), new SettingsInput.Save());
+        SettingsView.Reduce(state, new SettingsInput.Save()).Effect.ShouldBe(new SettingsEffect.Save(TestSettings.For([Root, Work], @"E:\trees", WorktreeBase.Head)));
+    }
+
+    [Fact]
+    public void SaveTheBase()
+    {
+        SettingsState state = Reduce(Opened(new SettingsScope.Base()), new SettingsInput.BaseChanged(WorktreeBase.Head));
+
+        SettingsView.Reduce(state, new SettingsInput.Save()).Effect.ShouldBeOfType<SettingsEffect.Save>().Settings.DefaultBase.ShouldBe(WorktreeBase.Head);
+    }
+
+    [Fact]
+    public void ClearTheProblemOnceTheValueIsValid()
+    {
+        SettingsState refused = SettingsView.Reduce(Reduce(Opened(new SettingsScope.Root(0)), new SettingsInput.RootChanged("repos")), new SettingsInput.Save()).State;
+
+        SettingsUpdate saved = SettingsView.Reduce(Reduce(refused, new SettingsInput.RootChanged(Root)), new SettingsInput.Save());
 
         saved.State.Problem.ShouldBeNull();
         saved.Effect.ShouldBeOfType<SettingsEffect.Save>();
@@ -99,24 +130,46 @@ public sealed class SettingsViewShould
     [Fact]
     public void CancelYieldsClose()
     {
-        SettingsView.Reduce(Reduce(Opened, new SettingsInput.WorktreeRootChanged(@"D:\worktrees")), new SettingsInput.Cancel()).Effect.ShouldBe(new SettingsEffect.Close());
+        SettingsView.Reduce(Reduce(Opened(new SettingsScope.WorktreeRoot()), new SettingsInput.WorktreeRootChanged(@"D:\worktrees")), new SettingsInput.Cancel()).Effect.ShouldBe(new SettingsEffect.Close());
     }
 
     [Fact]
     public void ShowTheCustomEditorFieldsOnlyForCustom()
     {
-        Opened.ShowsCustomEditor.ShouldBeFalse();
-        Reduce(Opened, new SettingsInput.PresetChanged(EditorPreset.Custom)).ShowsCustomEditor.ShouldBeTrue();
-        Reduce(Opened, new SettingsInput.PresetChanged(EditorPreset.Explorer)).ShowsCustomEditor.ShouldBeFalse();
+        SettingsState opened = Opened(new SettingsScope.Editor());
+
+        opened.ShowsCustomEditor.ShouldBeFalse();
+        Reduce(opened, new SettingsInput.PresetChanged(EditorPreset.Custom)).ShowsCustomEditor.ShouldBeTrue();
+        Reduce(opened, new SettingsInput.PresetChanged(EditorPreset.Explorer)).ShowsCustomEditor.ShouldBeFalse();
     }
 
     [Fact]
     public void BeIdempotentForARepeatedInput()
     {
-        SettingsInput input = new SettingsInput.RootsChanged($"{Root}\n{Work}");
-        SettingsState once = Reduce(Opened, input);
+        SettingsInput input = new SettingsInput.RootChanged(Work);
+        SettingsState once = Reduce(Opened(new SettingsScope.Root(0)), input);
 
         Reduce(once, input).ShouldBe(once);
+    }
+
+    [Theory]
+    [InlineData("root:1", 1)]
+    [InlineData("root:0", 0)]
+    public void ScopeARootRowToItsIndex(string key, int index)
+    {
+        ConfigRow row = ConfigRows.For(TwoRoots, facts: null).Single(candidate => candidate.Key == key);
+
+        SettingsScope.For(row).ShouldBe(new SettingsScope.Root(index));
+    }
+
+    [Fact]
+    public void ScopeEachSettingRow()
+    {
+        IReadOnlyList<ConfigRow> rows = ConfigRows.For(TwoRoots, facts: null);
+
+        SettingsScope.For(rows.OfType<ConfigRow.WorktreeRoot>().Single()).ShouldBe(new SettingsScope.WorktreeRoot());
+        SettingsScope.For(rows.OfType<ConfigRow.OpenFolderWith>().Single()).ShouldBe(new SettingsScope.Editor());
+        SettingsScope.For(rows.OfType<ConfigRow.DefaultBase>().Single()).ShouldBe(new SettingsScope.Base());
     }
 
     private static SettingsState Reduce(SettingsState state, SettingsInput input)

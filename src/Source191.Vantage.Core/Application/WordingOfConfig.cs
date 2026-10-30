@@ -40,6 +40,20 @@ public static partial class Wording
         };
     }
 
+    /// <summary>The title of a setting's dialog.</summary>
+    public static string SettingsDialogTitle(SettingsScope scope)
+    {
+        return scope switch
+        {
+            SettingsScope.Root => "Repository root",
+            SettingsScope.NewRoot => "Add a repository root",
+            SettingsScope.WorktreeRoot => "Worktree root",
+            SettingsScope.Editor => "Open folder with",
+            SettingsScope.Base => "Worktree base",
+            _ => scope.ToString(),
+        };
+    }
+
     /// <summary>Enter on a setup row: how that setup is changed, since the tab only reads it.</summary>
     public static string Describe(SetupItem item)
     {

@@ -5,7 +5,7 @@ namespace Source191.Vantage.Application.Views;
 public sealed record ConfigRowsLoaded(IReadOnlyList<ConfigRow> Rows) : ViewInput;
 
 /// <summary>Edit one setting in a dialog of its own; the dialog settles on <see cref="SaveSettings"/>.</summary>
-public sealed record EditSetting(ConfigRow Row) : ViewEffect, IDialogEffect;
+public sealed record EditSetting(SettingsScope Scope) : ViewEffect, IDialogEffect;
 
 /// <summary>Add a repository root in the root dialog, opened empty.</summary>
 public sealed record AddRepositoryRoot : ViewEffect, IDialogEffect;
@@ -120,7 +120,7 @@ public static class ConfigView
         {
             ConfigRow.CheckForUpdates => (new ToggleUpdateCheck(), Footer.None),
             ConfigRow.Setup setup => (null, new Footer.SetupAdvice(setup.Item)),
-            _ => (new EditSetting(row), Footer.None),
+            _ => (new EditSetting(SettingsScope.For(row)), Footer.None),
         };
     }
 

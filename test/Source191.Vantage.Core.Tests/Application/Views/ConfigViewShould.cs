@@ -36,7 +36,7 @@ public sealed class ConfigViewShould
     {
         ConfigViewState state = At(key);
 
-        ConfigView.Reduce(state, new KeyPressed(Key.Enter)).Effects.ShouldBe([new EditSetting(state.Selected!)]);
+        ConfigView.Reduce(state, new KeyPressed(Key.Enter)).Effects.ShouldBe([new EditSetting(SettingsScope.For(state.Selected!))]);
     }
 
     [Fact]
