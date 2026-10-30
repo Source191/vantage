@@ -33,7 +33,7 @@ None.
 - **Domain:** a new `WhereLabel` (the parts and the text) with its middle elision, beside `FolderLabel`.
 - **Application:** `SessionRow` gains the checkout (null outside a repository) and the live tab's colour, which `SessionRowEnricher` already reads from the registrations; `WordingOfScreens` (the column lists, meanings and the state glyphs).
 - **Tui:** `SessionsScreenDefinition` and `WorktreesScreenDefinition` (cells, the elastic column), `TableScreen` and `TableSource` (the elastic width, the swatch's colour through the column style, right alignment), `IScreenDefinition` (the elastic column and a width for its cell).
-- **Tests:** `WhereLabelShould` (new), `SessionRowEnricherShould`, `WordingOfKeysAndColumnsShould`, `WordingOfScreensShould`; headless captures at 120 x 36 and 127 x 36.
+- **Tests:** `WhereLabelShould` (new), `SessionRowEnricherShould`, `WordingOfKeysAndColumnsShould`, `WordingOfScreensShould`; headless captures at 120 x 36 and 127 x 36; the smoke script's scan-finished marker (the table title's selection words instead of the folder name).
 - **Docs:** README (both column tables, the sentences on caps and scrolling, the TAB column), CLAUDE.md (the FOLDER cell fact becomes the WHERE fact), the three specs.
 - **Release:** a preview raise; the owner's terminal check of the swatch colours.
 
