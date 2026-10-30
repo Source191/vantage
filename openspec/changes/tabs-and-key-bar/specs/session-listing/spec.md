@@ -26,7 +26,7 @@ The sessions table's TAB column SHALL show a two-cell block in the colour of the
 - **THEN** its TAB block is exactly that red on the highlight, not the highlight's colour or a dimmer shade
 
 ### Requirement: The screen is a header, a table and a footer
-The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, written into the frame beside the tabs, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; and beneath the table a footer crumb naming the view with a status line beside it, above the key bar.
+The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, at the right end of the tabs' row, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; and beneath the table a footer crumb naming the view with a status line beside it, above the key bar.
 
 #### Scenario: Table title
 - **WHEN** seven sessions are listed with no filter and fix-123 is selected
@@ -76,7 +76,7 @@ The settings rows SHALL show the Vantage version followed by the memory Vantage'
 - **THEN** the second settings row ends Worktree root C:\Users\me\source\worktrees on both tabs
 
 ### Requirement: The header summarises sessions by state
-The table's title on the frame SHALL count the sessions listed, and the counts beside the tabs SHALL show one glyph, count and state word per state present, needs input first; with no session listed the title SHALL read 0 sessions and no counts SHALL show.
+The table's title beside the tabs SHALL count the sessions listed, and the counts beside the tabs SHALL show one glyph, count and state word per state present, needs input first; with no session listed the title SHALL read 0 sessions and no counts SHALL show.
 
 #### Scenario: Mixed states
 - **WHEN** nine sessions are listed, four of them stopped and the rest needing input

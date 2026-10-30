@@ -1,7 +1,7 @@
 # Spec Delta
 
 ## Purpose
-The frame the sessions and worktrees views share: two settings lines under the Vantage icon, two tabs with the active one marked, the counts and the table's title beside them, a key bar that names the keys for the selected row, and one console that keeps each tab's state across switches and hand-offs.
+The frame the sessions and worktrees views share: two settings lines under the Vantage icon, two tabs with the active one marked, the counts and the table's title on their row, a key bar that names the keys for the selected row, and one console that keeps each tab's state across switches and hand-offs.
 
 ## ADDED Requirements
 
@@ -78,7 +78,7 @@ Where the terminal can draw images, the console SHALL draw the Vantage icon two 
 - **THEN** no icon is drawn and both settings rows start at the left edge
 
 ### Requirement: The counts and the table's title sit beside the tabs
-On the row of the tab titles the console SHALL show, after them, the active tab's counts: on the sessions tab a glyph, a count and a state word for each state present, each in that state's colour, needs input first; on the worktrees tab a count per health present, then how many worktrees have changes and how many have unpushed commits; parts separated by ·. On the frame's line below, after the tabs, it SHALL write the table's title, or a failure banner when the last load failed.
+On the row of the tab titles the console SHALL show, after them, the active tab's counts separated by ·: per state present a glyph, count and word in the state's colour, needs input first; or per health present a count, then how many worktrees have changes and unpushed commits. At the row's right end it SHALL show the table's title, or a failure banner, cut at its end when too long, a filter being typed before it.
 
 #### Scenario: Mixed session states
 - **WHEN** six sessions are listed, two needing input, one working, one idle, one completed and one stopped
@@ -88,9 +88,13 @@ On the row of the tab titles the console SHALL show, after them, the active tab'
 - **WHEN** seven worktrees are listed, five ok, one locked and one broken, two with changes and two with unpushed commits
 - **THEN** the counts read 5 ok · 1 locked · 1 broken · 2 with changes · 2 with unpushed commits
 
-#### Scenario: The title on the frame
+#### Scenario: The title at the end of the row
 - **WHEN** six sessions are listed and fix-123 is selected
-- **THEN** 6 sessions, selected: fix-123 is written into the frame's line to the right of the tabs, and the table's header starts on the next row
+- **THEN** 6 sessions, selected: fix-123 ends at the right edge of the tab titles' row, and the frame's line below is a plain border
+
+#### Scenario: A filter being typed
+- **WHEN** the user has typed /tem to filter the sessions
+- **THEN** the row's right end reads filter: tem_ before the title, so the typed text stays in view when the title is cut
 
 ### Requirement: The key bar names the keys for the selected row
 The last two rows of the screen SHALL be a key bar of items, each a key and a word: the first row the keys that act on the selected row, then New session and, when a release is known, Update; the second row the folder and view keys. The bar SHALL show only the keys that apply to the selected and listed rows, SHALL fit 120 columns for every kind of row, SHALL run a clicked item's key and show its tooltip on hover. The help SHALL list every key.
