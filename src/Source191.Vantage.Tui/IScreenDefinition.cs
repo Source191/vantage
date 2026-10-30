@@ -18,9 +18,6 @@ internal interface IScreenDefinition<TState, TRow>
 {
     TimeSpan RefreshEvery { get; }
 
-    /// <summary>The footer crumb, with its surrounding spaces, such as " &lt;sessions&gt; ".</summary>
-    string Crumb { get; }
-
     /// <summary>Shown with a spinner over the empty table until the first load arrives.</summary>
     string WaitingText { get; }
 

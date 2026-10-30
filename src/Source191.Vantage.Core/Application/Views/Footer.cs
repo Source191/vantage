@@ -14,9 +14,6 @@ public abstract record Footer
     /// <summary>No message: the view shows its standing footer instead.</summary>
     public sealed record Blank : Footer;
 
-    /// <summary>The sessions view's standing footer.</summary>
-    public sealed record NeedInput(int Count) : Footer;
-
     /// <summary>The worktrees view's standing footer when the selected row is healthy.</summary>
     public sealed record RemoveHint : Footer;
 

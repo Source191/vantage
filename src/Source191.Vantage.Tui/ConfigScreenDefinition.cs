@@ -16,7 +16,6 @@ internal sealed class ConfigScreenDefinition : IScreenDefinition<ConfigViewState
     /// <summary>The Config tab has no pane: a setting's row says all there is.</summary>
     public IDetailSource<ConfigRow>? Detail => null;
 
-    public string Crumb => " <config> ";
 
     public string WaitingText => "Reading the settings";
 

@@ -2,6 +2,29 @@
 
 ## MODIFIED Requirements
 
+### Requirement: The screen is a header, a table and a footer
+The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, at the right end of the tabs' row, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; the detail pane beneath the table; and beneath that a status line, above the key bar, that shows the last message and is blank when there is none. The status line SHALL NOT name the view or repeat the counts beside the tabs.
+
+#### Scenario: Table title
+- **WHEN** seven sessions are listed with no filter and fix-123 is selected
+- **THEN** the table title reads 7 sessions, selected: fix-123
+
+#### Scenario: Table title with a filter
+- **WHEN** a filter of "templates" matches two of seven rows and templates-sync is selected
+- **THEN** the table title reads 2 of 7 sessions match "templates", selected: templates-sync
+
+#### Scenario: One session
+- **WHEN** one session is listed with no filter and it is selected
+- **THEN** the table title reads 1 session, selected: and the session's name
+
+#### Scenario: Nothing selected
+- **WHEN** no sessions are listed
+- **THEN** the table title reads 0 sessions and names no selection
+
+#### Scenario: Nothing to say
+- **WHEN** two sessions need input and no key has reported anything
+- **THEN** the counts beside the tabs read ◐ 2 need input and the status line is blank, with no crumb naming the view
+
 ### Requirement: Rows show repository, branch and worktree
 For each session Vantage SHALL derive the repository, the checked-out branch and the folder it runs in. The table SHALL show the repository's name in a REPOSITORY column, or the folder-actions label of a folder outside any repository; the worktree's place (its slug, or the path inside the repository, or the main checkout), the branch and the full folder SHALL be shown in the detail pane. The filter SHALL still match the name, the repository and the branch.
 

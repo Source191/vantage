@@ -54,7 +54,7 @@ internal interface ITabHost
 }
 
 /// <summary>
-/// One tab of the console: a view's rows in a table with its crumb, footer and waiting indicator (its title goes on the frame), the detail pane under
+/// One tab of the console: a view's rows in a table with its status line and waiting indicator (its title goes on the frame), the detail pane under
 /// the table when the view has one (read for the selected row off the UI thread, only while the tab is shown), the reducer it
 /// feeds keys to, and the effects it routes (a dialog to <see cref="DialogEffects"/>, a background effect to its handler
 /// through the <see cref="EffectDispatcher"/> with a busy spinner, a tab switch or an exit to the console). A definition
@@ -127,15 +127,13 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         table.Style.RowColorGetter = RowColour;
         StyleColumns();
 
-        int crumbWidth = definition.Crumb.Length;
-        Label crumb = Text(0, Pos.AnchorEnd(1), crumbWidth, definition.Crumb, Palette.Background);
-        crumb.SetScheme(Palette.Pair(Palette.Background, Palette.Amber));
-        busy = Spinners.Create(crumbWidth + 1, Pos.AnchorEnd(1));
+        // The status line: a spinner while an action runs, then the last message; blank until there is one.
+        busy = Spinners.Create(1, Pos.AnchorEnd(1));
         // In the middle of the table, whatever the pane under it takes, so the spinner never lands in the pane.
         waiting = new WaitingIndicator(definition.WaitingText) { Y = Pos.Func(_ => table.Frame.Y + (table.Frame.Height / 2), table) };
-        footer = Text(crumbWidth + 3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
+        footer = Text(3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
 
-        View.Add(table, crumb, busy, footer, waiting);
+        View.Add(table, busy, footer, waiting);
         if (detail is not null)
         {
             requests = new DetailRequests();
@@ -550,7 +548,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     }
 }
 
-/// <summary>Vantage's tooltips: drawn in the crumb's colours, so they read as tooltips and not as more screen text.</summary>
+/// <summary>Vantage's tooltips: black on amber, so they read as tooltips and not as more screen text.</summary>
 internal static class ToolTips
 {
     /// <summary>Each line keeps its breaks and a cell of margin either side, and the view is exactly as tall as its lines.</summary>

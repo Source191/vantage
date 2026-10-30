@@ -122,12 +122,11 @@ public sealed record SessionsViewState(
 
     public SessionRow? Selected => List.Selected;
 
-    public int NeedsInputCount => Rows.Count(row => row.Session.State.Kind == DisplayStateKind.NeedsInput);
 
     public TableTitle Title => List.Title("session", row => row.Session.Name);
 
     /// <summary>The footer to show: the last message, else how many sessions need input.</summary>
-    public Footer Shown => Footer is Footer.Blank ? new Footer.NeedInput(NeedsInputCount) : Footer;
+    public Footer Shown => Footer;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
     public SessionsViewState With(ListSelection<SessionRow> list) => this with { Rows = list.Rows, SelectedSessionId = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };

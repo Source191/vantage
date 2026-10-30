@@ -68,7 +68,6 @@ public static partial class Wording
         return footer switch
         {
             Footer.Blank => string.Empty,
-            Footer.NeedInput need => $"{need.Count} need input",
             Footer.RemoveHint => "d removes only what is safe to remove",
             Footer.Unhealthy unhealthy => $"{unhealthy.FolderName} is {unhealthy.Kind.ToString().ToLowerInvariant()}: {Describe(unhealthy.Reason)}.",
             Footer.NoSessionSelected => "No session selected.",

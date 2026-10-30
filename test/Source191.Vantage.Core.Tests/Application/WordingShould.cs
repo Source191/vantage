@@ -48,12 +48,6 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void CountTheSessionsThatNeedInput()
-    {
-        Wording.Describe(new Footer.NeedInput(2)).ShouldBe("2 need input");
-    }
-
-    [Fact]
     public void HintThatRemovalIsSafe()
     {
         Wording.Describe(new Footer.RemoveHint()).ShouldBe("d removes only what is safe to remove");

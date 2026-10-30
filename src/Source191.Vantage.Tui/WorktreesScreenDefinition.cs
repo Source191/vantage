@@ -13,7 +13,6 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders, IDetailSou
 
     public IDetailSource<WorktreeRow>? Detail => detail;
 
-    public string Crumb => " <worktrees> ";
 
     public string WaitingText => "Scanning worktrees";
 

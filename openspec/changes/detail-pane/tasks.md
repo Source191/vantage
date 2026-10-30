@@ -29,6 +29,9 @@
 - [x] 4.5 README: "The detail pane" (each line, the heights, no pane on Config), both tables' columns and the worktrees mockup, "What Vantage records" unchanged by the pane; CLAUDE.md: the pane in the architecture paragraph. Verify by reading both against `Wording`.
   - Done 30 October 2026: the README has "The detail pane" with a session and a worktree example, REPOSITORY in place of WHERE and no MEM, the worktrees table with three columns and the health words moved under it, the memory key pointing at the pane; CLAUDE.md has the pane in the architecture paragraph, REPOSITORY beside WORKTREE, the Memory line in the process facts and the Tabs disposal fact; CONTRIBUTING names the Detail folder.
 
+- [x] 4.6 Remove the footer crumb and the need-input count, which repeated the tab and the counts beside the tabs (asked for at the owner's check, 30 October 2026). Red: `SessionsViewShould.ShowNothingUntilThereIsAMessage`. Green: `Footer.NeedInput` and `SessionsViewState.NeedsInputCount` go, `IScreenDefinition.Crumb` goes, and the status line starts at the left with the busy spinner. Verify the build and every suite pass.
+  - Done 30 October 2026: 1839 tests pass; the README's screen parts describe the status line.
+
 ## 5. Version and checks
 
 - [x] 5.1 Raise `Version` one preview step above `main`'s: 0.18.0-preview.8 (main is 0.18.0-preview.7).
