@@ -2,7 +2,14 @@
 
 ## 1. The folder picker spike (Tui)
 
-- [ ] 1.1 A throwaway window outside the repository opens `OpenDialog` with `OpenMode.Directory` and `AllowsMultipleSelection`, styled with `Palette.Focusable`, at 120 x 36 in Windows Terminal and under `tools\HeadlessTerminal`'s `drive`. Record in this task: how it takes the schemes, whether it writes its own tab title, whether it fits, what `FilePaths` answers for one and several folders, and whether the headless terminal can drive it. Verify by the recorded captures.
+- [x] 1.1 A throwaway window outside the repository opens `OpenDialog` with `OpenMode.Directory` and `AllowsMultipleSelection`, styled with `Palette.Focusable`, at 120 x 36 in Windows Terminal and under `tools\HeadlessTerminal`'s `drive`. Record in this task: how it takes the schemes, whether it writes its own tab title, whether it fits, what `FilePaths` answers for one and several folders, and whether the headless terminal can drive it. Verify by the recorded captures.
+  - Recorded 30 October 2026 (Terminal.Gui 2.5.0), a scratch app outside the repository driven by `tools\HeadlessTerminal`'s `drive` at 120 x 36 over a folder holding `alpha`, `beta` and `gamma`:
+  - **Type:** `OpenDialog` derives from `FileDialog` and `Dialog<IReadOnlyList<string>>`, not from the plain `Dialog`, so `DialogTabTitle.Apply` has to take a `Runnable`.
+  - **Tab title:** it has `BorderSettings.TerminalTitle` set and writes its own title (OSC 0 with the dialog's `Title`) when it becomes modal, so it needs `DialogTabTitle.Apply` like every other dialog.
+  - **Schemes:** `SetScheme(Palette.Focusable(...))` reaches most of it (white on the console's black, the cyan focus, the grey active row); some parts keep Terminal.Gui's own grey on black. The owner's check in Windows Terminal judges the look.
+  - **Fit:** it opens at 96 x 28 in a 120 x 36 terminal (32 rows once a row is selected), with the path box, the up button, the table of folders, the Find box, Tree, Cancel and `Select folder`.
+  - **Keys and `FilePaths`:** focus starts in the path box; Tab moves into the table, Down moves the selection (the path box follows it), Shift+Down extends it, and Enter in the table confirms (it does not open the folder). One folder: `FilePaths` is `[alpha]` and `Path` the same. Two folders by Shift+Down: `FilePaths` is `[alpha, beta]` in order and `Path` is empty. Space does not toggle a row. Esc: `Canceled` is true and `FilePaths` is empty.
+  - **Headless:** the headless terminal drives it, so the smoke run can open and cancel it. What Windows Terminal shows (colours, the Sixel icon behind it) is left to the owner's check, task 5.3.
 
 ## 2. Default place (Domain, Application, adapters)
 
