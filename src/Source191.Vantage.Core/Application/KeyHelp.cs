@@ -1,15 +1,12 @@
 namespace Source191.Vantage.Application;
 
 /// <summary>
-/// One key of a view: what the header shows (<paramref name="Hint"/>, null for a key only the help lists), the sentence
-/// the help shows (<paramref name="Line"/>), the header column its hint sits in, and the sentence its tooltip shows on the key and its words (<paramref name="Tip"/>).
+/// One key of a view: the word the key bar shows beside it (<paramref name="Hint"/>, null for a key only the help lists),
+/// the sentence the help shows (<paramref name="Line"/>), and the sentence its tooltip shows on the bar (<paramref name="Tip"/>).
 /// </summary>
-public sealed record KeyHelp(string Key, string? Hint, string Line, int Column, string Tip)
+public sealed record KeyHelp(string Key, string? Hint, string Line, string Tip)
 {
-    /// <summary>The key as the header draws it, such as "&lt;enter&gt;" or "&lt;R&gt;".</summary>
-    public string HeaderKey => $"<{Key}>";
-
-    /// <summary>The key as the help writes it: a named key is capitalised ("Enter"), a character is left as typed.</summary>
+    /// <summary>The key as the help and the key bar write it: a named key is capitalised ("Enter"), a character is left as typed.</summary>
     public string HelpKey => Key.Length > 1 ? char.ToUpperInvariant(Key[0]) + Key[1..] : Key;
 }
 

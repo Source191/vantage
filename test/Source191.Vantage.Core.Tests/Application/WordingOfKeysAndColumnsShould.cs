@@ -32,13 +32,9 @@ public sealed class WordingOfKeysAndColumnsShould
     }
 
     [Fact]
-    public void ShowTheKeyAsTheHeaderAndTheHelpDo()
+    public void ShowTheKeyAsTheHelpAndTheKeyBarDo()
     {
-        KeyHelp enter = Wording.SessionsKeys[0];
-
-        enter.HeaderKey.ShouldBe("<enter>");
-        enter.HelpKey.ShouldBe("Enter");
-        Wording.SessionsKeys[6].HeaderKey.ShouldBe("<R>");
+        Wording.SessionsKeys[0].HelpKey.ShouldBe("Enter");
         Wording.SessionsKeys[6].HelpKey.ShouldBe("R");
     }
 

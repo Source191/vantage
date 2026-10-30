@@ -70,35 +70,10 @@ public sealed class WordingOfScreensShould
     }
 
     [Fact]
-    public void ShowVersionsAndRootsInTheHeader()
+    public void ShowALocalBuildAndAnUnreadableClaudeVersionInTheSettingsLine()
     {
-        Wording.HeaderValues(new ToolVersion("0.5.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate(), VantageMemory)
-            .ShouldBe("0.5.0 (29 MB)\n2.1.310\nC:\\Users\\me\\source\\repos; D:\\work\nC:\\Users\\me\\source\\worktrees");
-    }
-
-    [Fact]
-    public void NameAnAvailableUpdateInTheHeader()
-    {
-        UpdateStatus available = new UpdateStatus.Available(ReleaseVersion.TryParse("0.9.0")!, ReleaseVersion.TryParse("0.10.0")!);
-
-        Wording.HeaderValues(new ToolVersion("0.9.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), available, VantageMemory)
-            .ShouldStartWith("0.9.0 (29 MB; 0.10.0 available, U to update)\n2.1.310\n");
-    }
-
-    [Fact]
-    public void ShowAnUnreadableClaudeVersionAsUnknown()
-    {
-        Wording.HeaderValues(new ToolVersion("0.5.0-local"), new ClaudeCodeVersion.Unknown(), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.Off(), VantageMemory)
-            .ShouldBe("0.5.0-local (29 MB)\nunknown\nC:\\Users\\me\\source\\repos\nC:\\Users\\me\\source\\worktrees");
-    }
-
-    [Fact]
-    public void ShowAClaudeVersionBelowTheMinimumWithTheWarning()
-    {
-        ClaudeCodeVersion old = new ClaudeCodeVersion.BelowMinimum(ReleaseVersion.TryParse("2.1.302")!, ReleaseVersion.TryParse("2.1.309")!);
-
-        Wording.HeaderValues(new ToolVersion("0.13.0"), old, Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), VantageMemory)
-            .ShouldStartWith("0.13.0 (29 MB)\n2.1.302 (below 2.1.309, update Claude Code)\n");
+        Wording.SettingsLine(new ToolVersion("0.5.0-local"), new ClaudeCodeVersion.Unknown(), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.Off(), VantageMemory, width: 200)
+            .ShouldBe(@"Vantage 0.5.0-local (29 MB) · Claude unknown · Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees");
     }
 
     private static MemorySize VantageMemory => MemorySize.FromMegabytes(29);
