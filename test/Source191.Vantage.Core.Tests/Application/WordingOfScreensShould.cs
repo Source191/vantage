@@ -105,8 +105,8 @@ public sealed class WordingOfScreensShould
     {
         SetupFacts facts = new(new SetupState.At(@"C:\Users\me\AppData\Local\Vantage\config.json"), new SetupState.NotSetUp(), new SetupState.Enabled(), new SetupState.Disabled(), new SetupState.Never());
 
-        Wording.ConfigCounts(ConfigRows.For(Roots(@"C:\Users\me\source\repos", @"D:\work"), facts)).ShouldBe([new TextPart("6 settings", TextTone.Plain), new TextPart("1 to set up", TextTone.Amber)]);
-        Wording.ConfigCounts(ConfigRows.For(Roots(@"C:\Users\me\source\repos"), facts with { TerminalProfiles = new SetupState.Enabled() })).ShouldBe([new TextPart("5 settings", TextTone.Plain)]);
+        Wording.ConfigCounts(ConfigRows.For(Roots(@"C:\Users\me\source\repos", @"D:\work"), facts)).ShouldBe([new TextPart("7 settings", TextTone.Plain), new TextPart("1 to set up", TextTone.Amber)]);
+        Wording.ConfigCounts(ConfigRows.For(Roots(@"C:\Users\me\source\repos"), facts with { TerminalProfiles = new SetupState.Enabled() })).ShouldBe([new TextPart("6 settings", TextTone.Plain)]);
     }
 
     private static string Text(IReadOnlyList<TextPart> row) => string.Concat(row.Select(part => part.Text));

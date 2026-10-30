@@ -20,6 +20,7 @@ public static class ConfigRows
             new ConfigRow.WorktreeRoot(settings.WorktreeRoot),
             new ConfigRow.OpenFolderWith(settings.Editor),
             new ConfigRow.DefaultBase(settings.DefaultBase),
+            new ConfigRow.DefaultPlace(settings.DefaultPlace),
             new ConfigRow.CheckForUpdates(settings.CheckForUpdates),
         ];
     }
