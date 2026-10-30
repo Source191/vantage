@@ -63,6 +63,7 @@ Every group ends green: `dotnet build -c Debug`, `dotnet test -c Debug --no-buil
 ## 10. Integration
 
 - [ ] 10.1 Run the whole loop from a clean tree: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes`, `dotnet run --project tools\HeadlessTerminal -- check`, then `tools\install-local.ps1` and the packed tool's smoke run (`dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>`). Verify every command exits 0 and record the results here.
+  - Recorded 30 October 2026 (smoke run outstanding): from a clean tree, Release and Debug builds passed with no warnings, the full suite passed (1,703 passed, 7 skipped), `dotnet format --verify-no-changes` exited 0 and the hand-off check exited 0. Instead of `tools\install-local.ps1`, which stops a running `vantage.exe` and replaces the global tool, the tool was packed as `0.18.0-preview.6.idioms` into a temporary `--tool-path`, where `vantage --version` answered that version. The smoke run is left to the pull request's `check` job: locally it needs an idle linked worktree under the real roots, and seeding `Northwind.Smoke` into `~\source\repos` (as CI does) or opening force remove on one of the owner's worktrees needs the owner's say-so. Tick this task once `check`'s smoke step passes or the owner runs it.
 
 ## Workflow follow-up
 
