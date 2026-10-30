@@ -56,7 +56,7 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
 
     public string TabTitle(WorktreesViewState state) => Wording.TabTitleFor(ConsoleTab.Worktrees, state.Loaded ? state.Rows.Count : null);
 
-    public IReadOnlyList<CountPart> Counts(WorktreesViewState state) => Wording.WorktreeCounts(state.Rows);
+    public IReadOnlyList<TextPart> Counts(WorktreesViewState state) => Wording.WorktreeCounts(state.Rows);
 
     public KeyBar Bar(WorktreesViewState state, bool updateKnown) => Wording.WorktreesBar(state, updateKnown);
 

@@ -3,8 +3,8 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application;
 
-/// <summary>How a count beside the tabs is coloured; the screen maps each tone to a colour of its palette.</summary>
-public enum CountTone
+/// <summary>How a piece of the frame's text is coloured; the screen maps each tone to a colour of its palette.</summary>
+public enum TextTone
 {
     Plain,
     Amber,
@@ -14,8 +14,8 @@ public enum CountTone
     Grey,
 }
 
-/// <summary>One count beside the tabs, such as "◐ 2 need input" in amber.</summary>
-public sealed record CountPart(string Text, CountTone Tone);
+/// <summary>A piece of the frame's text in its tone, such as "◐ 2 need input" in amber or "Vantage " in orange.</summary>
+public sealed record TextPart(string Text, TextTone Tone);
 
 /// <summary>One item of the key bar: the key as the help names it, its word, the cell it starts at and the tooltip it shows.</summary>
 public sealed record KeyBarItem(string Key, string Word, int X, string Tip)
@@ -81,7 +81,7 @@ public static partial class Wording
     }
 
     /// <summary>The sessions counts beside the tabs: a glyph, a count and a state word per state present, in attention order.</summary>
-    public static IReadOnlyList<CountPart> SessionCounts(IReadOnlyList<SessionRow> rows)
+    public static IReadOnlyList<TextPart> SessionCounts(IReadOnlyList<SessionRow> rows)
     {
         ArgumentNullException.ThrowIfNull(rows);
         DisplayStateKind[] order = [DisplayStateKind.NeedsInput, DisplayStateKind.Working, DisplayStateKind.Idle, DisplayStateKind.Completed, DisplayStateKind.Failed, DisplayStateKind.Stopped, DisplayStateKind.Unknown];
@@ -89,23 +89,23 @@ public static partial class Wording
         return [.. order
             .Select(kind => (Kind: kind, Rows: rows.Where(row => row.Session.State.Kind == kind).ToList()))
             .Where(group => group.Rows.Count > 0)
-            .Select(group => new CountPart($"{StateGlyph(group.Kind)} {group.Rows.Count} {CountedState(group.Kind, group.Rows)}", ToneOf(group.Kind)))];
+            .Select(group => new TextPart($"{StateGlyph(group.Kind)} {group.Rows.Count} {CountedState(group.Kind, group.Rows)}", ToneOf(group.Kind)))];
     }
 
     /// <summary>The worktrees counts beside the tabs: a count per health present, then how many have changes and unpushed commits.</summary>
-    public static IReadOnlyList<CountPart> WorktreeCounts(IReadOnlyList<WorktreeRow> rows)
+    public static IReadOnlyList<TextPart> WorktreeCounts(IReadOnlyList<WorktreeRow> rows)
     {
         ArgumentNullException.ThrowIfNull(rows);
-        IEnumerable<CountPart> byHealth = Enum.GetValues<WorktreeHealthKind>()
+        IEnumerable<TextPart> byHealth = Enum.GetValues<WorktreeHealthKind>()
             .Select(kind => (Kind: kind, Count: rows.Count(row => row.Health.Kind == kind)))
             .Where(group => group.Count > 0)
-            .Select(group => new CountPart($"{group.Count} {group.Kind.ToString().ToLowerInvariant()}", ToneOf(group.Kind)));
+            .Select(group => new TextPart($"{group.Count} {group.Kind.ToString().ToLowerInvariant()}", ToneOf(group.Kind)));
         int dirty = rows.Count(row => row.DirtyFiles > 0);
         int unpushed = rows.Count(row => row.UnpushedCommits > 0);
-        IEnumerable<CountPart> atRisk =
+        IEnumerable<TextPart> atRisk =
         [
-            .. dirty > 0 ? [new CountPart($"{dirty} with changes", CountTone.Amber)] : Array.Empty<CountPart>(),
-            .. unpushed > 0 ? [new CountPart($"{unpushed} with unpushed commits", CountTone.Amber)] : Array.Empty<CountPart>(),
+            .. dirty > 0 ? [new TextPart($"{dirty} with changes", TextTone.Amber)] : Array.Empty<TextPart>(),
+            .. unpushed > 0 ? [new TextPart($"{unpushed} with unpushed commits", TextTone.Amber)] : Array.Empty<TextPart>(),
         ];
 
         return [.. byHealth, .. atRisk];
@@ -161,25 +161,25 @@ public static partial class Wording
         DisplayStateKind.Unknown => rows[0].Session.State.Label,
     };
 
-    private static CountTone ToneOf(DisplayStateKind kind) => kind switch
+    private static TextTone ToneOf(DisplayStateKind kind) => kind switch
     {
-        DisplayStateKind.NeedsInput => CountTone.Amber,
-        DisplayStateKind.Working => CountTone.Cyan,
-        DisplayStateKind.Idle => CountTone.Plain,
-        DisplayStateKind.Completed => CountTone.Green,
-        DisplayStateKind.Failed => CountTone.Red,
-        DisplayStateKind.Stopped => CountTone.Grey,
-        DisplayStateKind.Unknown => CountTone.Grey,
+        DisplayStateKind.NeedsInput => TextTone.Amber,
+        DisplayStateKind.Working => TextTone.Cyan,
+        DisplayStateKind.Idle => TextTone.Plain,
+        DisplayStateKind.Completed => TextTone.Green,
+        DisplayStateKind.Failed => TextTone.Red,
+        DisplayStateKind.Stopped => TextTone.Grey,
+        DisplayStateKind.Unknown => TextTone.Grey,
     };
 
-    private static CountTone ToneOf(WorktreeHealthKind kind) => kind switch
+    private static TextTone ToneOf(WorktreeHealthKind kind) => kind switch
     {
-        WorktreeHealthKind.Ok => CountTone.Plain,
-        WorktreeHealthKind.Locked => CountTone.Amber,
-        WorktreeHealthKind.Orphan => CountTone.Red,
-        WorktreeHealthKind.Broken => CountTone.Red,
-        WorktreeHealthKind.Empty => CountTone.Grey,
-        WorktreeHealthKind.Elsewhere => CountTone.Amber,
+        WorktreeHealthKind.Ok => TextTone.Plain,
+        WorktreeHealthKind.Locked => TextTone.Amber,
+        WorktreeHealthKind.Orphan => TextTone.Red,
+        WorktreeHealthKind.Broken => TextTone.Red,
+        WorktreeHealthKind.Empty => TextTone.Grey,
+        WorktreeHealthKind.Elsewhere => TextTone.Amber,
     };
 
     /// <summary>The items of one bar row, each placed two cells after the last; a word given overrides the key's hint.</summary>

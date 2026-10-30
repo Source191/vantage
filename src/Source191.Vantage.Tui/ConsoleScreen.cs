@@ -82,7 +82,7 @@ public sealed class ConsoleScreen(
         private ViewEffect? leaving;
         private bool binding;
         private KeyBar? shownBar;
-        private IReadOnlyList<CountPart> shownCounts = [];
+        private IReadOnlyList<TextPart> shownCounts = [];
 
         public Frame(ConsoleScreen screen, IApplication app, ConsoleState initial)
         {
@@ -236,7 +236,7 @@ public sealed class ConsoleScreen(
         }
 
         /// <summary>The counts after the tab strip's titles, each in its tone and joined by a grey dot; rebuilt when they or the titles change.</summary>
-        private void ShowCounts(IReadOnlyList<CountPart> parts)
+        private void ShowCounts(IReadOnlyList<TextPart> parts)
         {
             int start = HeaderSpan() + 2;
             if (parts.SequenceEqual(shownCounts) && counts.X.Equals(Pos.Absolute(start)))

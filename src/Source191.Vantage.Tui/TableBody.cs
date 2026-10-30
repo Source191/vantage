@@ -20,7 +20,7 @@ internal interface ITabBody
 
     string Title { get; }
 
-    IReadOnlyList<CountPart> Counts { get; }
+    IReadOnlyList<TextPart> Counts { get; }
 
     KeyBar Bar(bool updateKnown);
 
@@ -129,7 +129,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public string Title => definition.TabTitle(State);
 
-    public IReadOnlyList<CountPart> Counts => definition.Counts(State);
+    public IReadOnlyList<TextPart> Counts => definition.Counts(State);
 
     public IApplication App => app;
 

@@ -46,7 +46,7 @@ internal interface IScreenDefinition<TState, TRow>
     string TabTitle(TState state);
 
     /// <summary>The counts beside the tab's title.</summary>
-    IReadOnlyList<CountPart> Counts(TState state);
+    IReadOnlyList<TextPart> Counts(TState state);
 
     /// <summary>The key bar for the selected row and the listed rows; Update shows when a release is known.</summary>
     KeyBar Bar(TState state, bool updateKnown);

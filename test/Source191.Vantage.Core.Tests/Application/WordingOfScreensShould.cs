@@ -146,10 +146,10 @@ public sealed class WordingOfScreensShould
 
         Wording.SessionCounts(rows).ShouldBe(
         [
-            new CountPart("◐ 2 need input", CountTone.Amber), new CountPart("● 1 working", CountTone.Cyan), new CountPart("○ 1 idle", CountTone.Plain),
-            new CountPart("✓ 1 completed", CountTone.Green), new CountPart("■ 1 stopped", CountTone.Grey),
+            new TextPart("◐ 2 need input", TextTone.Amber), new TextPart("● 1 working", TextTone.Cyan), new TextPart("○ 1 idle", TextTone.Plain),
+            new TextPart("✓ 1 completed", TextTone.Green), new TextPart("■ 1 stopped", TextTone.Grey),
         ]);
-        Wording.SessionCounts([SessionIn(DisplayState.NeedsInput, 0)]).ShouldBe([new CountPart("◐ 1 needs input", CountTone.Amber)]);
+        Wording.SessionCounts([SessionIn(DisplayState.NeedsInput, 0)]).ShouldBe([new TextPart("◐ 1 needs input", TextTone.Amber)]);
         Wording.SessionCounts([]).ShouldBeEmpty();
     }
 
@@ -164,10 +164,10 @@ public sealed class WordingOfScreensShould
 
         Wording.WorktreeCounts(rows).ShouldBe(
         [
-            new CountPart("5 ok", CountTone.Plain), new CountPart("1 locked", CountTone.Amber), new CountPart("1 broken", CountTone.Red),
-            new CountPart("2 with changes", CountTone.Amber), new CountPart("2 with unpushed commits", CountTone.Amber),
+            new TextPart("5 ok", TextTone.Plain), new TextPart("1 locked", TextTone.Amber), new TextPart("1 broken", TextTone.Red),
+            new TextPart("2 with changes", TextTone.Amber), new TextPart("2 with unpushed commits", TextTone.Amber),
         ]);
-        Wording.WorktreeCounts([WorktreeIn(WorktreeHealthKind.Ok, 0)]).ShouldBe([new CountPart("1 ok", CountTone.Plain)]);
+        Wording.WorktreeCounts([WorktreeIn(WorktreeHealthKind.Ok, 0)]).ShouldBe([new TextPart("1 ok", TextTone.Plain)]);
     }
 
     [Fact]

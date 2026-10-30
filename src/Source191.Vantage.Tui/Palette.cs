@@ -72,16 +72,16 @@ internal static class Palette
     }
 
     /// <summary>The colour of a count beside the tabs.</summary>
-    public static Color ForTone(CountTone tone)
+    public static Color ForTone(TextTone tone)
     {
         return tone switch
         {
-            CountTone.Plain => White,
-            CountTone.Amber => Amber,
-            CountTone.Cyan => Cyan,
-            CountTone.Green => Green,
-            CountTone.Red => Red,
-            CountTone.Grey => Grey,
+            TextTone.Plain => White,
+            TextTone.Amber => Amber,
+            TextTone.Cyan => Cyan,
+            TextTone.Green => Green,
+            TextTone.Red => Red,
+            TextTone.Grey => Grey,
         };
     }
 
