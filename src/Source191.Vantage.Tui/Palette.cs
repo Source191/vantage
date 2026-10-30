@@ -53,6 +53,18 @@ internal static class Palette
 
     public static Scheme Highlight() => Pair(new Color(0, 0, 0), Cyan);
 
+    /// <summary>
+    /// Both tabs' frames: grey lines, and the title of the tab shown (the focused one) in bold cyan. A frame drawn in each
+    /// tab's own colour broke at the joins `Tabs` shares between tabs, so only the title marks the active tab.
+    /// </summary>
+    public static Scheme TabFrame()
+    {
+        Attribute lines = new(Grey, Background);
+        Attribute active = new(Cyan, Background, TextStyle.Bold);
+
+        return new Scheme { Normal = lines, HotNormal = lines, Focus = active, HotFocus = active, Active = lines, HotActive = lines, Disabled = lines };
+    }
+
     /// <summary>The selected table row's background: the bright cyan Terminal.Gui derived from <see cref="Highlight"/> for a table that cannot take focus, now named.</summary>
     public static readonly Color SelectionBackground = new(41, 241, 255);
 

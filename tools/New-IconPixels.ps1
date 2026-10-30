@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
-Writes the console's icon as raw pixels: assets\icon\vantage-48.rgba, the Vantage icon with a light edge round its tile.
+Writes the console's icon as raw pixels: assets\icon\vantage-48.rgba, the Vantage icon with an edge round its tile in the console's frame grey.
 .DESCRIPTION
 The console draws the icon through Terminal.Gui's ImageView, which takes pixels and has no image decoder, so the
 pixels are committed beside the PNGs and embedded in the Tui assembly. The dark tile vanished against the console's
-black, so this copy has a light edge round it (the mark alone was tried too, and read worse); the tile's rounded
+black, so this copy has an edge round it in the grey of the console's frames (white was too stark, and the mark alone read worse); the tile's rounded
 corners stay transparent and the console blends them with its background. The file is the width and the height as
 one byte each, then four bytes (red, green, blue, alpha) per pixel, row by row. Run it after VantageMark.ps1 changes
 the drawing.
@@ -13,7 +13,7 @@ the drawing.
 param(
     [string]$IconFolder = (Join-Path $PSScriptRoot '..\assets\icon'),
     [int]$Size = 48,
-    [string]$Outline = '#E2E8F0'
+    [string]$Outline = '#7A7574'
 )
 
 $ErrorActionPreference = 'Stop'

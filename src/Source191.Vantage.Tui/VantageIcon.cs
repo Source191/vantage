@@ -10,19 +10,40 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 internal static class VantageIcon
 {
-    public const int Width = 5;
     public const int Height = 2;
 
-    /// <summary>The cells the settings rows start after when the icon shows: its width and a cell of space.</summary>
-    public const int Indent = Width + 1;
+    /// <summary>The cells a terminal that reports no cell size gets: Terminal.Gui's own default of 10 by 20 pixels makes two rows four cells wide.</summary>
+    private const int DefaultWidth = 4;
 
     private const string Resource = "Source191.Vantage.Tui.vantage-48.rgba";
 
     public static ImageView Create()
     {
-        ImageView view = new() { X = 0, Y = 0, Width = Width, Height = Height, Visible = false, CanFocus = false, UseRasterGraphics = true, Image = Pixels() };
+        ImageView view = new() { X = 0, Y = 0, Width = DefaultWidth, Height = Height, Visible = false, CanFocus = false, UseRasterGraphics = true, Image = Pixels() };
 
         return view;
+    }
+
+    /// <summary>
+    /// Shows the icon where the terminal draws images, as many cells wide as two rows are tall in pixels so the square
+    /// icon is not stretched (a fixed five cells widened it and left its right edge unlike its left), and answers the
+    /// cells the settings rows start after: the icon and a cell of space, or none when it is hidden.
+    /// </summary>
+    public static int Fit(ImageView icon, SixelSupportResult? support)
+    {
+        ArgumentNullException.ThrowIfNull(icon);
+        icon.Visible = support?.IsSupported == true;
+        if (!icon.Visible)
+        {
+            return 0;
+        }
+
+        System.Drawing.Size cell = support!.Resolution;
+        int width = cell.Width > 0 && cell.Height > 0 ? (int)Math.Round((double)Height * cell.Height / cell.Width) : DefaultWidth;
+        int cells = Math.Clamp(width, 2, 6);
+        icon.Width = cells;
+
+        return cells + 1;
     }
 
     /// <summary>Transparent pixels take the console's background, so the icon sits on it whatever the terminal does with transparency.</summary>

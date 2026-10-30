@@ -103,11 +103,10 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
             MultiSelect = false,
         };
         table.Style.ShowVerticalCellLines = false;
-        // The header is a closed box in the frame's cyan, its names white: lines take the table's scheme, the names the header's.
+        // The header is a closed box, drawn in the table's white.
         table.Style.ShowHorizontalHeaderOverline = true;
-        table.Style.HeaderScheme = Palette.Plain(Palette.White);
         table.Style.ExpandLastColumn = true;
-        table.SetScheme(Palette.Plain(Palette.Cyan));
+        table.SetScheme(Palette.Plain(Palette.White));
         table.Style.RowColorGetter = RowColour;
         StyleColumns();
 

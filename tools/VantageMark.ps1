@@ -47,8 +47,14 @@ function Add-VantageMark([System.Drawing.Graphics]$graphics, [float]$x, [float]$
         $background = [System.Drawing.Drawing2D.LinearGradientBrush]::new((PointOf 0 0), (PointOf 0 $layout), (ColourOf '#1E1B4B'), (ColourOf '#0F172A'))
         $graphics.FillRectangle($background, 0, 0, $layout, $layout)
         if ($Outline) {
-            # Drawn inside the clip, so half the pen's width shows: a light edge that sets the dark tile off a black background.
-            $graphics.DrawPath([System.Drawing.Pen]::new((ColourOf $Outline), 56), $tile)
+            # An edge that sets the dark tile off a black background, drawn on a path inset by half its width so the whole
+            # stroke lies inside the tile and the four sides come out alike (a stroke on the tile's own edge was clipped unevenly).
+            $width = 28
+            $inset = New-RoundedRectangle ($layout - $width) (96 - $width / 2)
+            $shift = [System.Drawing.Drawing2D.Matrix]::new()
+            $shift.Translate($width / 2, $width / 2)
+            $inset.Transform($shift)
+            $graphics.DrawPath([System.Drawing.Pen]::new((ColourOf $Outline), $width), $inset)
         }
     }
 

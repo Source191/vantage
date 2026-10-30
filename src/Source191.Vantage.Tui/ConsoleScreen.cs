@@ -78,7 +78,6 @@ public sealed class ConsoleScreen(
         private readonly Tabs tabs;
         private readonly View counts;
         private readonly Label frameTitle;
-        private readonly Label junction;
         private readonly View bar;
         private readonly TableBody<SessionsViewState, SessionRow> sessions;
         private readonly TableBody<WorktreesViewState, WorktreeRow> worktrees;
@@ -108,13 +107,13 @@ public sealed class ConsoleScreen(
             sessions = new TableBody<SessionsViewState, SessionRow>(new SessionsScreenDefinition(screen.notifier, screen.claudeExecutable, screen.folders), screen.dialogs, screen.dispatcher, screen.loadSessions, screen.clock, context, app, this, initial.Sessions);
             worktrees = new TableBody<WorktreesViewState, WorktreeRow>(new WorktreesScreenDefinition(screen.folders), screen.dialogs, screen.dispatcher, screen.scanWorktrees, screen.clock, context, app, this, initial.Worktrees);
             tabs.Add(sessions.View, worktrees.View);
+            sessions.View.SetScheme(Palette.TabFrame());
+            worktrees.View.SetScheme(Palette.TabFrame());
             ReleaseNavigationKeys(tabs, sessions.View, worktrees.View);
             counts = new View { X = HeaderSpan() + 2, Y = TitleRow, Width = Dim.Fill(), Height = 1 };
             frameTitle = new Label { X = 0, Y = TitleRow, Width = 0, Height = 1, HotKeySpecifier = new System.Text.Rune(0xFFFF), Text = string.Empty };
             bar = new View { X = 0, Y = Pos.AnchorEnd(2), Width = Dim.Fill(), Height = 2 };
-            junction = new Label { X = 0, Y = StripTop + 2, Width = 1, Height = 1, Text = "├" };
-            junction.SetScheme(Palette.Plain(Palette.Cyan));
-            View[] views = [icon, .. settings, tabs, counts, frameTitle, junction, bar];
+            View[] views = [icon, .. settings, tabs, counts, frameTitle, bar];
             Window.Add(views);
 
             Window.KeyDown += (_, key) => Active.OnKey(key);
@@ -195,9 +194,6 @@ public sealed class ConsoleScreen(
             binding = true;
             tabs.Value = tab == ConsoleTab.Sessions ? sessions.View : worktrees.View;
             binding = false;
-            sessions.View.SetScheme(Palette.Plain(tab == ConsoleTab.Sessions ? Palette.Cyan : Palette.Grey));
-            worktrees.View.SetScheme(Palette.Plain(tab == ConsoleTab.Worktrees ? Palette.Cyan : Palette.Grey));
-            CoverInactiveJunction(tab);
             if (tab != screen.shown)
             {
                 screen.shown = tab;
@@ -237,20 +233,6 @@ public sealed class ConsoleScreen(
             }
         }
 
-        /// <summary>
-        /// Where the inactive tab's side meets the frame's top line, `Tabs` draws the join in the inactive tab's grey, which
-        /// broke the active frame's cyan at one cell: the left edge's ├ when Worktrees is shown, the ┴ after the titles
-        /// when Sessions is. A cyan label draws that join again.
-        /// </summary>
-        private void CoverInactiveJunction(ConsoleTab tab)
-        {
-            (junction.X, junction.Text) = tab switch
-            {
-                ConsoleTab.Sessions => (Pos.Absolute(HeaderSpan() - 1), "┴"),
-                ConsoleTab.Worktrees => (Pos.Absolute(0), "├"),
-            };
-        }
-
         /// <summary>A click on a tab's title selects it in the strip; the console follows as if the tab's key had been pressed.</summary>
         private void OnTabClicked()
         {
@@ -269,8 +251,7 @@ public sealed class ConsoleScreen(
         /// <summary>The icon shows where the terminal draws images, and the two settings rows start after it; elsewhere they start at the left edge.</summary>
         private void ShowSettings()
         {
-            icon.Visible = app.Driver?.SixelSupport?.IsSupported == true;
-            int indent = icon.Visible ? VantageIcon.Indent : 0;
+            int indent = VantageIcon.Fit(icon, app.Driver?.SixelSupport);
             IReadOnlyList<IReadOnlyList<TextPart>> rows = screen.context.SettingsRows(ScreenWidth - indent);
             if (settings[0].X.Equals(Pos.Absolute(indent)) && rows.Count == shownSettings.Count && rows.Zip(shownSettings).All(pair => pair.First.SequenceEqual(pair.Second)))
             {
