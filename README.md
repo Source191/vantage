@@ -165,7 +165,7 @@ Rows with the hollow `▯` swatch in TAB are sessions started by hand with `clau
 Press `n`. The wizard is one column, read from the top: your repositories first (recent ones, then everything under the roots), taking the rows the form leaves; type to filter them and use the arrows to choose, then Enter confirms the repository and moves to the form beneath. For a folder that is not a repository, run `vantage here` there instead. Tab and Enter both move down the form in order: name, Where, worktree base, prompt (Enter on Where or the base only moves on; the arrows change them):
 
 - **Session name (required):** the label shown in the NAME column. It also names the worktree folder and branch when you choose a worktree.
-- **Where:** `New worktree`, the default, creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it on the [Config tab](#the-config-tab)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
+- **Where:** `New worktree`, the default unless you choose `Current branch` as the Default place on the [Config tab](#the-config-tab), creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it on the [Config tab](#the-config-tab)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
 - **Worktree base:** the branch the new worktree starts from, `origin` default branch or the current HEAD.
 - **Opening prompt:** sent to the session as soon as it starts. It wraps as you type. Leave it blank and the session waits at its prompt until you send it something.
 
@@ -351,7 +351,7 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 
 | File or folder | Contents |
 | --- | --- |
-| `config.json` | Your settings: `repositoryRoots` (default `~\source\repos`), `worktreeRoot` (default `worktrees` beside the first root, so `~\source\worktrees`), `editor` (default VS Code), `defaultBase` (`RemoteDefault` or `Head`) and `checkForUpdates` (default `true`); see [Settings](#the-config-tab) |
+| `config.json` | Your settings: `repositoryRoots` (default `~\source\repos`), `worktreeRoot` (default `worktrees` beside the first root, so `~\source\worktrees`), `editor` (default VS Code), `defaultBase` (`RemoteDefault` or `Head`), `checkForUpdates` (default `true`) and `defaultPlace` (`NewWorktree`, the default, or `CurrentBranch`); see [Settings](#the-config-tab) |
 | `update-check.json` | When Vantage last asked nuget.org for a newer release of itself and the newest release it found; see [Updates](#updates) |
 | `recent\` | One file per recently used repository, with when it was last used; the ten most recent are shown first in the wizard |
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
@@ -377,7 +377,7 @@ Press `3`, or Right until it shows (or click the Config tab). Each setting has a
 ```text
 Vantage 0.18.0 (35 MB) · Claude 2.1.310
 ╭────────╭─────────╭──────╮
-│Sessions│Worktrees│Config│  6 settings · 1 to set up                         11 rows, selected: Repository root
+│Sessions│Worktrees│Config│  7 settings · 1 to set up                         12 rows, selected: Repository root
 ├────────┴─────────╯      ╰───────────────────────────────────────────────────────────────────────────────────╮
 ││SETTING                  │VALUE                                                                             ││
 │ Repository roots          C:\Users\you\source\repos                                                        │
@@ -385,6 +385,7 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 │ Worktree root             C:\Users\you\source\worktrees                                                    │
 │ Open folder with          VS Code                                                                          │
 │ Default base              origin's default branch                                                          │
+│ Default place             New worktree                                                                     │
 │ Check for updates         on                                                                               │
 │ Settings file             C:\Users\you\AppData\Local\Vantage\config.json                                   │
 │ Windows Terminal profiles not set up, run vantage setup-terminal                                           │
@@ -393,10 +394,11 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 │ Last update check         09:12 today, newest 0.18.0                                                       │
 ```
 
-- **Repository roots:** one row per root, the first labelled; the wizard offers every repository directly under each, and the worktrees view scans them. Enter on any of them opens one dialog with every root, one per line: add a line to add a root, delete one to remove it, and F5 saves. Each must be a full path that exists and be listed once, and at least one must stay.
+- **Repository roots:** one row per root, the first labelled; the wizard offers every repository directly under each, and the worktrees view scans them. Enter on any of them opens one dialog with every root, one per line: add a line to add a root, delete one to remove it, and F5 saves. Browse (F3) opens a folder picker inside the terminal instead of typing: Tab into its list, choose a folder with the arrows (Shift+Down adds the next one too) and press Enter, and each folder chosen is added as a line after the roots already there, to be checked and saved with F5 like a typed one; Esc in the picker adds nothing. Each must be a full path that exists and be listed once, and at least one must stay.
 - **Worktree root:** where new worktrees go, as `<worktree root>\<repository>-<name>`. It must be a full path; it is created when the first worktree goes there. Worktrees made beside their repository by earlier versions stay where they are and are still listed, removed and opened as before.
 - **Open folder with:** VS Code, Cursor, Rider, Explorer, or Custom: the full path of an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A bare name or a relative path is refused, because Windows would look for it in the folder Vantage was started from before the PATH; a `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The `e` key opens the selected row's folder with it. Visual Studio is not offered, because `v` opens solutions in it; a `config.json` that still names `VisualStudio` reads as VS Code, the other settings kept.
 - **Default base:** where a new worktree's branch starts by default, origin's default branch or the current HEAD.
+- **Default place:** where the wizard opened with `n` starts a session, `New worktree` (the default) or `Current branch`; Where still offers the other. `s` on a worktree and `vantage here` always start on the folder's current branch.
 - **Check for updates:** whether Vantage asks nuget.org once a day for a newer release of itself (see [Updates](#updates)); on unless you turn it off. Enter turns it on or off and saves at once.
 - **Settings file, Windows Terminal profiles, Claude bell, Diagnostic log, Last update check:** where `config.json` is, whether `vantage setup-terminal` has added the profiles and set Claude's bell (each says to run it when it has not), the `VANTAGE_LOG` file if one is set, and when nuget.org was last asked. They are read each time the tab is shown and after each save; Enter on one says how it is changed. The counts beside the tabs name how many settings there are and how much setup is left to do.
 
@@ -421,7 +423,8 @@ Enter on a setting opens a small dialog for that one value. F5 saves: the dialog
   "defaultBase": "RemoteDefault",
   "worktreeRoot": "C:\\Users\\you\\source\\worktrees",
   "editor": { "preset": "Custom", "executable": "C:\\Tools\\subl.exe", "arguments": ["-n", "{folder}"] },
-  "checkForUpdates": true
+  "checkForUpdates": true,
+  "defaultPlace": "NewWorktree"
 }
 ```
 

@@ -32,7 +32,7 @@ Moved to detail-pane at the owner's check (30 October 2026) and delivered there;
 - 4.2 (moved to detail-pane) The row tooltip: `IScreenDefinition.RowTip` (null for sessions and worktrees), shown by `TableBody` from the same mouse handler as the column-header tooltip. Verify headless with SGR motion over a Config row after 8000 ms.
 - [x] 4.3 `Browse… (F3)` in the roots dialog over `OpenDialog`, as the spike found it, appending each chosen folder as a line; the smoke run opens and cancels it when the spike says the headless terminal can. Verify headless, or record why the owner's check covers it.
   - Recorded 30 October 2026, `drive` at 120 x 36 against the Debug build, nothing saved: Enter on a root, then F3, opened the picker in the folder holding the first root (`SettingsState.BrowseFrom`); Tab, Down, Down and Enter chose `repos`, and the roots box read the two roots with `C:\Users\SimonVane\source\repos` on a third line (already a root, so F5 would refuse it). The tab title went `Vantage (Settings)`, `Vantage (Browse)`, `Vantage (Settings)`, `Vantage`. The smoke script now opens the picker with F3 and cancels it (`SmokeScriptShould`), run in 5.2.
-- [ ] 4.4 README (the Config tab section: the place row, Browse; the wizard's Where) and CLAUDE.md (the `OpenDialog` facts). Verify the README's Config rows and keys match `Wording`.
+- [x] 4.4 README (the Config tab section: the place row, Browse; the wizard's Where) and CLAUDE.md (the `OpenDialog` facts). Verify the README's Config rows and keys match `Wording`.
 
 ## 5. Version and checks
 
