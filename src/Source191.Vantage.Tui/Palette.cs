@@ -1,3 +1,4 @@
+using Source191.Vantage.Application;
 using Source191.Vantage.Domain;
 using Terminal.Gui.Drawing;
 using Attribute = Terminal.Gui.Drawing.Attribute;
@@ -57,6 +58,20 @@ internal static class Palette
         Attribute attribute = new(foreground, background);
 
         return new Scheme { Normal = attribute, Focus = attribute, HotNormal = attribute, HotFocus = attribute, Disabled = attribute };
+    }
+
+    /// <summary>The colour of a count beside the tabs.</summary>
+    public static Color ForTone(CountTone tone)
+    {
+        return tone switch
+        {
+            CountTone.Plain => White,
+            CountTone.Amber => Amber,
+            CountTone.Cyan => Cyan,
+            CountTone.Green => Green,
+            CountTone.Red => Red,
+            CountTone.Grey => Grey,
+        };
     }
 
     public static Color ForState(DisplayStateKind kind)

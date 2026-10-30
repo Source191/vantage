@@ -45,10 +45,11 @@ internal sealed class TableScreen<TState, TRow>(
             app.Driver.Force16Colors = false;
         }
 
-        using Live live = new(definition, context);
-        live.ShowToolTips(app);
+        using Live live = new(definition, context, app);
+        live.ShowToolTips();
         Running running = new(this, app, live, initial);
         live.Window.KeyDown += (_, key) => running.OnKey(key);
+        live.Pressed = running.Press;
         running.Redraw();
 
         object? timer = app.AddTimeout(definition.RefreshEvery, () =>
@@ -108,8 +109,14 @@ internal sealed class TableScreen<TState, TRow>(
             }
 
             key.Handled = true;
-            live.Scroll(mapped);
-            Apply(new KeyPressed(mapped));
+            Press(mapped);
+        }
+
+        /// <summary>A key from the keyboard or a click on the key bar: Left and Right scroll the table, and every key goes to the reducer.</summary>
+        public void Press(Key key)
+        {
+            live.Scroll(key);
+            Apply(new KeyPressed(key));
         }
 
         public void Reduce(ViewInput input) => Apply(input);
@@ -180,42 +187,52 @@ internal sealed class TableScreen<TState, TRow>(
     /// <summary>The views alive during one run. Disposing it disposes the window and everything in it.</summary>
     private sealed class Live : IDisposable
     {
+        private const int LongColumnCap = 28;
+        private const int ElasticFloor = 20;
+        private const string CountSeparator = " · ";
+
         private readonly IScreenDefinition<TState, TRow> definition;
         private readonly ScreenContext context;
-        private readonly List<(Label Label, KeyHelp Key)> keyLabels = [];
+        private readonly IApplication app;
         private readonly TableView table;
-        private readonly Label contextValues;
+        private readonly Label settingsLine;
+        private readonly Label tabTitle;
+        private readonly View counts;
         private readonly Label title;
         private readonly Label banner;
         private readonly Label footer;
+        private readonly View bar;
         private readonly SpinnerView busy;
         private readonly WaitingIndicator waiting;
         private TRow? selected;
         private readonly string[] columnNames;
         private int? headerUnderMouse;
         private int columnOffset;
+        private KeyBar? shownBar;
+        private IReadOnlyList<CountPart> shownCounts = [];
 
-        public Live(IScreenDefinition<TState, TRow> definition, ScreenContext context)
+        public Live(IScreenDefinition<TState, TRow> definition, ScreenContext context, IApplication app)
         {
             this.definition = definition;
             this.context = context;
+            this.app = app;
             columnNames = [.. definition.Columns.Select(column => column.Name)];
 
             // Terminal.Gui writes the top-level's Title to the terminal (OSC 0) on every run, so this is what the tab shows.
             Window = new Window { BorderStyle = LineStyle.None, Title = context.Title };
             Window.SetScheme(Palette.Plain(Palette.White));
 
-            Label contextNames = Text(1, 0, 14, definition.HeaderNames, Palette.Orange);
-            contextValues = Text(16, 0, 45, context.HeaderValues(), Palette.White);
-            Label logo = Text(Pos.AnchorEnd(12), 0, 11, " VANTAGE\n ◢◤◢◤◢◤\n", Palette.Orange);
-
-            banner = Text(1, 6, Dim.Fill(), string.Empty, Palette.Red);
-            title = Text(2, 7, Dim.Fill(), string.Empty, Palette.Cyan);
+            settingsLine = Text(0, 0, Dim.Fill(), string.Empty, Palette.Grey);
+            tabTitle = Text(1, 1, Dim.Auto(), string.Empty, Palette.Background);
+            tabTitle.SetScheme(Palette.Pair(Palette.Background, Palette.Cyan));
+            counts = new View { X = Pos.Right(tabTitle) + 2, Y = 1, Width = Dim.Fill(), Height = 1 };
+            banner = Text(1, 2, Dim.Fill(), string.Empty, Palette.Red);
+            title = Text(2, 2, Dim.Fill(), string.Empty, Palette.Cyan);
 
             table = new TableView
             {
                 X = 1,
-                Y = 8,
+                Y = 3,
                 Width = Dim.Fill(),
                 Height = Dim.Fill(3),
                 CanFocus = false,
@@ -228,20 +245,23 @@ internal sealed class TableScreen<TState, TRow>(
             table.Style.ExpandLastColumn = true;
             table.SetScheme(Palette.Plain(Palette.White));
             table.Style.RowColorGetter = RowColour;
-            CapLongColumns();
+            StyleColumns();
 
             int crumbWidth = definition.Crumb.Length;
-            Label crumb = Text(1, Pos.AnchorEnd(2), crumbWidth, definition.Crumb, Palette.Background);
+            Label crumb = Text(1, Pos.AnchorEnd(3), crumbWidth, definition.Crumb, Palette.Background);
             crumb.SetScheme(Palette.Pair(Palette.Background, Palette.Amber));
-            busy = Spinners.Create(crumbWidth + 2, Pos.AnchorEnd(2));
+            busy = Spinners.Create(crumbWidth + 2, Pos.AnchorEnd(3));
             waiting = new WaitingIndicator(definition.WaitingText);
-            footer = Text(crumbWidth + 4, Pos.AnchorEnd(2), Dim.Fill(), string.Empty, Palette.Cyan);
+            footer = Text(crumbWidth + 4, Pos.AnchorEnd(3), Dim.Fill(), string.Empty, Palette.Cyan);
+            bar = new View { X = 0, Y = Pos.AnchorEnd(2), Width = Dim.Fill(), Height = 2 };
 
-            AddKeyHints();
-            Window.Add(contextNames, contextValues, logo, banner, title, table, crumb, busy, footer, waiting);
+            Window.Add(settingsLine, tabTitle, counts, banner, title, table, crumb, busy, footer, bar, waiting);
         }
 
         public Window Window { get; }
+
+        /// <summary>What a click on a key bar item does: the same as pressing its key.</summary>
+        public Action<Key> Pressed { get; set; } = _ => { };
 
         /// <summary>Left and Right move the table one column sideways, within its columns; presentation only, so the reducer never sees a change.</summary>
         public void Scroll(Key key)
@@ -273,11 +293,15 @@ internal sealed class TableScreen<TState, TRow>(
             int elasticWidth = ElasticWidth(rows, now);
             table.Table = new TableSource<TRow>(rows, columnNames, (row, column) => definition.Cell(row, column, now, column == definition.ElasticColumn ? elasticWidth : int.MaxValue));
             table.ColumnOffset = columnOffset;
-            contextValues.Text = $"{context.HeaderValues()}\n{definition.ContextLines(state)}";
+            settingsLine.Text = context.SettingsLine(ScreenWidth);
+            tabTitle.Text = $" {definition.TabTitle(state)} ";
+            ShowCounts(definition.Counts(state));
             string described = Wording.Describe(state.Title);
             title.Text = state.List.FilterEditing ? $"{described}  filter: {state.List.Filter.Text}_" : described;
             banner.Text = state.Banner is null ? string.Empty : $"  {definition.LoadFailurePrefix}: {state.Banner}";
+            title.Visible = state.Banner is null;
             footer.Text = Wording.Describe(state.Shown);
+            ShowBar(definition.Bar(state, context.UpdateKnown()));
             if (rows.Count > 0)
             {
                 int index = selected is null ? 0 : Math.Max(rows.ToList().IndexOf(selected), 0);
@@ -288,22 +312,19 @@ internal sealed class TableScreen<TState, TRow>(
             Window.SetNeedsDraw();
         }
 
-        /// <summary>Shows each key's tip as a tooltip while the mouse rests on its key or its words, and a column's meaning while it rests on the column's header.</summary>
-        public void ShowToolTips(IApplication app)
+        /// <summary>Shows a column's meaning as a tooltip while the mouse rests on the column's header; the key bar's items carry their own.</summary>
+        public void ShowToolTips()
         {
-            foreach ((Label label, KeyHelp key) in keyLabels)
-            {
-                app.ToolTips?.SetToolTip(label, () => ToolTipView(key.Tip));
-            }
-
             table.MousePositionTracking = true;
-            table.MouseEvent += (_, mouse) => ShowColumnToolTip(app, mouse);
-            table.MouseLeave += (_, _) => HideColumnToolTip(app);
+            table.MouseEvent += (_, mouse) => ShowColumnToolTip(mouse);
+            table.MouseLeave += (_, _) => HideColumnToolTip();
         }
 
         public void Dispose() => Window.Dispose();
 
-        private void HideColumnToolTip(IApplication app)
+        private int ScreenWidth => Window.Viewport.Width > 0 ? Window.Viewport.Width : app.Screen.Width;
+
+        private void HideColumnToolTip()
         {
             if (headerUnderMouse is not null)
             {
@@ -313,7 +334,7 @@ internal sealed class TableScreen<TState, TRow>(
             headerUnderMouse = null;
         }
 
-        private void ShowColumnToolTip(IApplication app, Terminal.Gui.Input.Mouse mouse)
+        private void ShowColumnToolTip(Terminal.Gui.Input.Mouse mouse)
         {
             int? header = null;
             if (mouse.Position is System.Drawing.Point position)
@@ -326,7 +347,7 @@ internal sealed class TableScreen<TState, TRow>(
                 return;
             }
 
-            HideColumnToolTip(app);
+            HideColumnToolTip();
             headerUnderMouse = header;
             if (header is int column && column < definition.Columns.Count)
             {
@@ -335,14 +356,82 @@ internal sealed class TableScreen<TState, TRow>(
             }
         }
 
-        private const int LongColumnCap = 28;
-        private const int ElasticFloor = 20;
+        /// <summary>The counts beside the tab's title, each in its tone, joined by a grey dot; rebuilt only when they change.</summary>
+        private void ShowCounts(IReadOnlyList<CountPart> parts)
+        {
+            if (parts.SequenceEqual(shownCounts))
+            {
+                return;
+            }
+
+            shownCounts = parts;
+            counts.RemoveAll();
+            int x = 0;
+            for (int index = 0; index < parts.Count; index++)
+            {
+                if (index > 0)
+                {
+                    counts.Add(Text(x, 0, CountSeparator.Length, CountSeparator, Palette.Grey));
+                    x += CountSeparator.Length;
+                }
+
+                counts.Add(Text(x, 0, parts[index].Text.Length, parts[index].Text, Palette.ForTone(parts[index].Tone)));
+                x += parts[index].Text.Length;
+            }
+        }
+
+        /// <summary>The two rows of the key bar: each item a blue key and a white word, both answering a click with the key and a hover with its tip; rebuilt only when the items change.</summary>
+        private void ShowBar(KeyBar keys)
+        {
+            if (keys == shownBar || (shownBar is not null && keys.First.SequenceEqual(shownBar.First) && keys.Second.SequenceEqual(shownBar.Second)))
+            {
+                return;
+            }
+
+            shownBar = keys;
+            bar.RemoveAll();
+            AddBarRow(keys.First, 0);
+            AddBarRow(keys.Second, 1);
+        }
+
+        private void AddBarRow(IReadOnlyList<KeyBarItem> items, int row)
+        {
+            foreach (KeyBarItem item in items)
+            {
+                Label key = Text(item.X, row, item.Key.Length, item.Key, Palette.Blue);
+                Label word = Text(item.X + item.Key.Length + 1, row, item.Word.Length, item.Word, Palette.White);
+                foreach (Label label in new[] { key, word })
+                {
+                    label.HotKeySpecifier = new System.Text.Rune(0xFFFF);
+                    label.MouseEvent += (_, mouse) => Click(mouse, item);
+                    app.ToolTips?.SetToolTip(label, () => ToolTipView(item.Tip));
+                }
+
+                bar.Add(key, word);
+            }
+        }
+
+        private void Click(Terminal.Gui.Input.Mouse mouse, KeyBarItem item)
+        {
+            if (!mouse.Flags.HasFlag(Terminal.Gui.Input.MouseFlags.LeftButtonClicked))
+            {
+                return;
+            }
+
+            mouse.Handled = true;
+            Pressed(item.Key switch
+            {
+                "Enter" => Key.Enter,
+                "Esc" => Key.Escape,
+                _ => Key.Of(item.Key[0]),
+            });
+        }
 
         /// <summary>
         /// Names and branches are cut at 28 cells with an ellipsis, so one long value cannot push the other columns off
-        /// screen; rows keep the full values. Ages are right-aligned, and every column asks the definition for a cell's own colour.
+        /// screen; rows keep the full values. Ages are right-aligned, and every column asks the definition for a cell's own paint.
         /// </summary>
-        private void CapLongColumns()
+        private void StyleColumns()
         {
             string[] capped = ["NAME", "BRANCH"];
             for (int column = 0; column < columnNames.Length; column++)
@@ -373,7 +462,7 @@ internal sealed class TableScreen<TState, TRow>(
                 return int.MaxValue;
             }
 
-            int contentWidth = table.Viewport.Width > 0 ? table.Viewport.Width : Window.Viewport.Width - 3;
+            int contentWidth = table.Viewport.Width > 0 ? table.Viewport.Width : ScreenWidth - 3;
             int others = 0;
             for (int column = 0; column < columnNames.Length; column++)
             {
@@ -400,7 +489,7 @@ internal sealed class TableScreen<TState, TRow>(
             return style?.MaxWidth is int cap ? Math.Min(widest, cap) : widest;
         }
 
-        /// <summary>A cell's own colour, from the definition; the selected row keeps its highlight and every other cell its row's colour.</summary>
+        /// <summary>A cell's own paint, from the definition: a fill (the TAB swatch) shows on every row, the selected one included; a foreground colour only off the selected row, which keeps its highlight.</summary>
         private Scheme? CellColour(CellColorGetterArgs args)
         {
             if (args.Table is not TableSource<TRow> source)
@@ -409,37 +498,18 @@ internal sealed class TableScreen<TState, TRow>(
             }
 
             TRow row = source.RowAt(args.RowIndex);
-            if (Equals(row, selected))
+            CellPaint? paint = definition.CellPaint(row, args.ColIdex);
+
+            return paint switch
             {
-                return null;
-            }
-
-            Color? colour = definition.CellColour(row, args.ColIdex);
-
-            return colour is Color own ? Palette.Plain(own) : null;
-        }
-
-        /// <summary>One key label and one hint label per row, in the columns the keys name, each column from its own first row.</summary>
-        private void AddKeyHints()
-        {
-            foreach (IGrouping<int, KeyHelp> column in definition.Keys.Where(key => key.Hint is not null).GroupBy(key => key.Column))
-            {
-                (int keyX, int keyWidth, int hintX, int hintWidth, int firstRow) = KeyHintColumns.Layout[column.Key];
-                int row = firstRow;
-                foreach (KeyHelp key in column)
-                {
-                    Label keyLabel = Text(keyX, row, keyWidth, key.HeaderKey, Palette.Blue);
-                    Label hintLabel = Text(hintX, row, hintWidth, key.Hint!, Palette.White);
-                    keyLabels.Add((keyLabel, key));
-                    keyLabels.Add((hintLabel, key));
-                    Window.Add(keyLabel, hintLabel);
-                    row++;
-                }
-            }
+                { Fill: Color fill } => Palette.Pair(paint.Foreground, fill),
+                not null when !Equals(row, selected) => Palette.Plain(paint.Foreground),
+                _ => null,
+            };
         }
 
         /// <summary>
-        /// A tooltip drawn in the crumb's colours, so it reads as a tooltip and not as more header text: each line keeps
+        /// A tooltip drawn in the crumb's colours, so it reads as a tooltip and not as more screen text: each line keeps
         /// its breaks and a cell of margin either side, and the view is exactly as tall as its lines.
         /// </summary>
         private static Label ToolTipView(string text)

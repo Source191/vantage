@@ -16,10 +16,6 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
 
     public string LoadFailurePrefix => "scan failed";
 
-    public string HeaderNames => "Vantage:\nClaude:\nRoots:\nWorktree root:\nWorktrees:\nAt risk:";
-
-    public IReadOnlyList<KeyHelp> Keys => Wording.WorktreesKeys;
-
     public string HelpText => Wording.WorktreesHelp;
 
     public IReadOnlyList<ColumnHelp> Columns => Wording.WorktreesColumns;
@@ -43,7 +39,7 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
         };
     }
 
-    public Color? CellColour(WorktreeRow row, int column) => null;
+    public CellPaint? CellPaint(WorktreeRow row, int column) => null;
 
     public Color RowColour(WorktreeRow row)
     {
@@ -58,18 +54,11 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders) : IScreenD
         };
     }
 
-    public string ContextLines(WorktreesViewState state)
-    {
-        IEnumerable<string> byHealth = state.Rows
-            .GroupBy(row => row.Health.Kind)
-            .OrderByDescending(group => group.Count())
-            .Select(group => $"{group.Count()} {group.Key.ToString().ToLowerInvariant()}");
-        string summary = state.Rows.Count == 0 ? "none" : $"{state.Rows.Count} ({string.Join(", ", byHealth)})";
-        int dirty = state.Rows.Count(row => row.DirtyFiles > 0);
-        int unpushed = state.Rows.Count(row => row.UnpushedCommits > 0);
+    public string TabTitle(WorktreesViewState state) => Wording.TabTitleFor(ConsoleTab.Worktrees, state.Loaded ? state.Rows.Count : null);
 
-        return $"{summary}\n{dirty} with changes, {unpushed} with unpushed commits";
-    }
+    public IReadOnlyList<CountPart> Counts(WorktreesViewState state) => Wording.WorktreeCounts(state.Rows);
+
+    public KeyBar Bar(WorktreesViewState state, bool updateKnown) => Wording.WorktreesBar(state, updateKnown);
 
     public WorktreesViewState WithFooter(WorktreesViewState state, Footer footer) => state with { Footer = footer };
 
