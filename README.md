@@ -139,7 +139,7 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | Column | Meaning |
 | --- | --- |
 | NAME | The session name given at launch (`-n`), or the folder name for an unnamed one |
-| TAB | A one-cell swatch: `▮` in the tab's colour while a Vantage tab shows the session (the tab closes when its attach ends, so the swatch clears with it), `▯` in grey for a session started as plain `claude` in a tab of its own, blank otherwise |
+| TAB | A swatch: the cell is filled with the tab's colour while a Vantage tab shows the session, on the highlighted row too (the tab closes when its attach ends, so the swatch clears with it), `▯` in grey for a session started as plain `claude` in a tab of its own, blank otherwise |
 | STATE | `◐ needs input` (amber), `● working` (cyan), `○ idle` (white), `✓ completed` (green), `✗ failed` (red), `■ stopped` (grey) |
 | WHERE | Where the session runs, in one value: `Northwind.Orders › fix-123` for a worktree whose folder is `Northwind.Orders-fix-123` on branch `fix-123` (a linked worktree names its main checkout); `Northwind.Orders › fix-123 (hotfix)` when the branch is not the slug; `Northwind.Orders (main)` for the main checkout; `Northwind.Orders › src\Api (main)` for a folder inside the repository; and for a folder outside any repository its label alone, relative to the repository root or worktree root that holds it, else to your home folder (`~\scratch\notes`), else in full |
 | PR | The branch's pull request: `#123 open` on GitHub (open, draft, merged, closed), `!123 active` on Azure DevOps (active, draft, completed, abandoned); an open one wins, else the most recent. Blank when there is none or it cannot be looked up; `p` says why. See [Pull requests](#pull-requests) |
@@ -199,7 +199,7 @@ Enter never starts a session here, so there is nothing to undo if you press it t
 
 **Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. A session that has never had a message opens at its own prompt, and Ctrl+Z returns from it in the same way. Vantage prints a one-line reminder before every attach and erases it when you come back, so the scrollback keeps no copies.
 
-**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows a solid `▮` in that tab's colour. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
+**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB cell is filled with that tab's colour. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
 
 ## The worktrees view
 
@@ -318,7 +318,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 **Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
 
-**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows a solid `▮` in the tab's colour; `o` again switches to that tab until it is closed.
+**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB cell is filled with the tab's colour; `o` again switches to that tab until it is closed.
 
 **Start Claude from a repository folder you are already in.** `vh fix-tests -p "..."` instead of `claude`. It shows up in Vantage with a job id, so `o`, `x` and `d` work on it later.
 

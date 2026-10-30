@@ -156,9 +156,7 @@ public static partial class Wording
         new("2", Hint: null, "the Worktrees tab", Column: 1, Tip: "Show the Worktrees tab: every worktree under your roots."),
     ];
 
-    /// <summary>The TAB cell: a solid block while a Vantage tab shows the session, a hollow one for a plain claude in its own terminal.</summary>
-    public const string OpenTabSwatch = "▮";
-
+    /// <summary>The TAB cell of a plain claude in its own terminal; a session a Vantage tab shows has its cell filled with that tab's colour instead.</summary>
     public const string TerminalSwatch = "▯";
 
     /// <summary>The glyph before a state's word: a closed enum, so a new kind fails the build here.</summary>
@@ -176,7 +174,7 @@ public static partial class Wording
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =
     [
         new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
-        new("TAB", $"{OpenTabSwatch} in its colour while a Vantage tab shows the session,\n{TerminalSwatch} grey for a plain claude in its own terminal"),
+        new("TAB", $"filled with the tab's colour while a Vantage tab shows the session,\n{TerminalSwatch} grey for a plain claude in its own terminal"),
         new("STATE", "◐ needs input (amber), ● working (cyan), ○ idle (white),\n✓ completed (green), ✗ failed (red), ■ stopped (grey)"),
         new("WHERE", "repository › slug for a worktree, with the branch in brackets when it differs;\nrepository (branch) for a main checkout; the folder alone outside a repository"),
         new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
