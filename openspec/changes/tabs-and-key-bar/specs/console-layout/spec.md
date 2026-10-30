@@ -33,11 +33,11 @@ The console SHALL show the sessions view and the worktrees view as two tabs of o
 - **THEN** the Sessions tab is shown with that session selected, without leaving the console
 
 ### Requirement: The active tab stands out
-The active tab's title SHALL be drawn in bold cyan and the other tab's title in grey; the tabs' frames and every join between them SHALL stay grey, and the table's header SHALL be a box closed on all four sides, so the tab shown is plain at a glance.
+The active tab's title SHALL be drawn in bold cyan and the other tab's title in grey; the tabs' frames and every join between them SHALL stay grey, and the table's header SHALL be a box closed on all four sides, its lines in the frames' grey and its column names white, so the tab shown is plain at a glance.
 
 #### Scenario: Sessions active
 - **WHEN** the Sessions tab is shown
-- **THEN** its title is bold cyan, the Worktrees title grey, and the frames and the table's header box keep their colours
+- **THEN** its title is bold cyan, the Worktrees title grey, and the frames and the table's header box stay grey
 
 #### Scenario: Worktrees active
 - **WHEN** the user presses 2
