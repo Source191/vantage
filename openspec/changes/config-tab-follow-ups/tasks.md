@@ -37,7 +37,8 @@ Moved to detail-pane at the owner's check (30 October 2026) and delivered there;
 ## 5. Version and checks
 
 - [x] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate config-tab-follow-ups --strict` pass.
-- [ ] 5.2 Run the hand-off check and the smoke check against the packed tool. Verify both exit 0.
+- [x] 5.2 Run the hand-off check and the smoke check against the packed tool. Verify both exit 0.
+  - Done 30 October 2026: the hand-off check exits 0 (throwaway session stopped and removed), and the smoke check exits 0 against 0.18.0-preview.11 packed and installed into a temporary tool path, opening and cancelling the folder picker from the roots dialog among its 26 steps; Northwind.Smoke and its worktree were seeded as CI seeds them and removed after.
 - [ ] 5.3 The product owner installs the build, adds a root with Browse, sets Default place to Current branch and opens the wizard. Record here.
 
 ## Workflow follow-up
