@@ -159,7 +159,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
 
     async Task<ViewInput> LoadAsync(CancellationToken loadCancellation)
     {
-        IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(loadCancellation);
+        IReadOnlyList<Session> sessions = (await claude.ListSessionsAsync(loadCancellation)).Sessions;
         IReadOnlyList<SessionRow> rows = await enricher.EnrichAsync(sessions, loadCancellation);
 
         return new RowsLoaded(rows);
@@ -167,7 +167,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
 
     async Task<ViewInput> ScanAsync(CancellationToken scanCancellation)
     {
-        IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(scanCancellation);
+        IReadOnlyList<Session> sessions = (await claude.ListSessionsAsync(scanCancellation)).Sessions;
 
         return new WorktreeRowsLoaded(await inventory.ScanAsync(sessions, scanCancellation));
     }

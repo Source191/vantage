@@ -114,7 +114,7 @@ public sealed class ClaudeContractShould
 
             await EndAsync(cli, jobId);
 
-            IReadOnlyList<Session> sessions = await cli.ListSessionsAsync(Cancellation);
+            IReadOnlyList<Session> sessions = (await cli.ListSessionsAsync(Cancellation)).Sessions;
             sessions.ShouldNotContain(session => session.Name == name.Value);
         }
         finally
@@ -145,7 +145,7 @@ public sealed class ClaudeContractShould
         DateTimeOffset deadline = TimeProvider.System.GetUtcNow() + ListingDeadline;
         while (TimeProvider.System.GetUtcNow() < deadline)
         {
-            IReadOnlyList<Session> sessions = await cli.ListSessionsAsync(Cancellation);
+            IReadOnlyList<Session> sessions = (await cli.ListSessionsAsync(Cancellation)).Sessions;
             Session? listed = sessions.FirstOrDefault(session => session.Name == name.Value);
             if (listed is not null)
             {

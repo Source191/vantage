@@ -62,8 +62,8 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
     /// <summary>The new session as the supervisor lists it, which is where its full session id comes from.</summary>
     private async Task<BackgroundSession?> ListedSessionAsync(JobId jobId, CancellationToken cancellationToken)
     {
-        IReadOnlyList<Session> sessions = await claude.ListSessionsAsync(cancellationToken);
+        SessionListing listing = await claude.ListSessionsAsync(cancellationToken);
 
-        return sessions.OfType<BackgroundSession>().FirstOrDefault(session => session.JobId == jobId);
+        return listing.Sessions.OfType<BackgroundSession>().FirstOrDefault(session => session.JobId == jobId);
     }
 }
