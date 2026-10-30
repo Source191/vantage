@@ -3,8 +3,11 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application.Views;
 
-/// <summary>An effect that stops the screen: it needs the terminal (attach), another screen, or the exit.</summary>
+/// <summary>An effect that stops the screen: it needs the terminal (attach) or is the exit.</summary>
 public interface ILeavesScreen;
+
+/// <summary>An effect that shows the other tab of the console, or a row on it; the console applies it without leaving the screen.</summary>
+public interface ISwitchesTab;
 
 /// <summary>An effect whose flow includes a dialog, before it runs or about what it left behind; the answer comes back as an input or another effect.</summary>
 public interface IDialogEffect;

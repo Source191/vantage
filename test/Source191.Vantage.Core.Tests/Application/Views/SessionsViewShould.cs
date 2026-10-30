@@ -309,6 +309,8 @@ public sealed class SessionsViewShould
     [InlineData('n', typeof(OpenLaunchWizard))]
     [InlineData('R', typeof(ResumeStoppedSessions))]
     [InlineData('w', typeof(SwitchToWorktrees))]
+    [InlineData('2', typeof(SwitchToWorktrees))]
+    [InlineData('1', typeof(SwitchToSessions))]
     [InlineData('q', typeof(Quit))]
     [InlineData('?', typeof(ShowHelp))]
     [InlineData(',', typeof(OpenSettings))]
@@ -502,7 +504,8 @@ public sealed class SessionsViewShould
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
         new AttachToSession(JobId.From("81cdb0f9")).ShouldBeAssignableTo<ILeavesScreen>();
-        new SwitchToWorktrees().ShouldBeAssignableTo<ILeavesScreen>();
+        new SwitchToWorktrees().ShouldBeAssignableTo<ISwitchesTab>();
+        new SwitchToWorktrees().ShouldNotBeAssignableTo<ILeavesScreen>();
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
         new AskForNewName(WaitingJob).ShouldBeAssignableTo<IDialogEffect>();
         new DeleteSession(WaitingJob).ShouldBeAssignableTo<IDialogEffect>();

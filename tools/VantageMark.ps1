@@ -2,7 +2,8 @@
 .SYNOPSIS
 The Vantage mark (two worktree branches merging into one node, shaped as a V on a rounded tile), drawn once for every script that needs it.
 .DESCRIPTION
-Dot-source it: New-Icon.ps1 draws the icon with it and New-Header.ps1 draws the mark on the header images. The mark is laid out on a
+Dot-source it: New-Icon.ps1 draws the icon with it, New-Header.ps1 draws the mark on the header images, and New-IconPixels.ps1
+draws it without its tile (-NoTile) for the console's black background, where the dark tile disappeared. The mark is laid out on a
 512 px square and scaled to the size asked for, so every image carries the same drawing.
 #>
 
@@ -29,26 +30,40 @@ function New-Pen([string]$hex, [float]$width) {
     $pen
 }
 
-function Add-Node([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [float]$radius, [string]$ring) {
-    $graphics.FillEllipse([System.Drawing.SolidBrush]::new((ColourOf '#0F172A')), $x - $radius, $y - $radius, 2 * $radius, 2 * $radius)
+function Add-Node([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [float]$radius, [string]$ring, [string]$centre = '#0F172A') {
+    $graphics.FillEllipse([System.Drawing.SolidBrush]::new((ColourOf $centre)), $x - $radius, $y - $radius, 2 * $radius, 2 * $radius)
     $inner = $radius * 0.78
     $graphics.DrawEllipse((New-Pen $ring ($radius * 0.55)), $x - $inner, $y - $inner, 2 * $inner, 2 * $inner)
 }
 
-function Add-VantageMark([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [float]$size) {
+function Add-VantageMark([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [float]$size, [switch]$NoTile, [string]$NodeCentre = '#0F172A', [string]$Outline) {
     $layout = 512
     $state = $graphics.Save()
     $graphics.TranslateTransform($x, $y)
     $graphics.ScaleTransform($size / $layout, $size / $layout)
-    $graphics.SetClip((New-RoundedRectangle $layout 96))
-    $background = [System.Drawing.Drawing2D.LinearGradientBrush]::new((PointOf 0 0), (PointOf 0 $layout), (ColourOf '#1E1B4B'), (ColourOf '#0F172A'))
-    $graphics.FillRectangle($background, 0, 0, $layout, $layout)
+    if (-not $NoTile) {
+        $tile = New-RoundedRectangle $layout 96
+        $graphics.SetClip($tile)
+        $background = [System.Drawing.Drawing2D.LinearGradientBrush]::new((PointOf 0 0), (PointOf 0 $layout), (ColourOf '#1E1B4B'), (ColourOf '#0F172A'))
+        $graphics.FillRectangle($background, 0, 0, $layout, $layout)
+        if ($Outline) {
+            # An edge that sets the dark tile off a black background, drawn on a path inset by half its width so the whole
+            # stroke lies inside the tile and the four sides come out alike (a stroke on the tile's own edge was clipped unevenly).
+            $width = 28
+            $inset = New-RoundedRectangle ($layout - $width) (96 - $width / 2)
+            $shift = [System.Drawing.Drawing2D.Matrix]::new()
+            $shift.Translate($width / 2, $width / 2)
+            $inset.Transform($shift)
+            $graphics.DrawPath([System.Drawing.Pen]::new((ColourOf $Outline), $width), $inset)
+        }
+    }
+
     # The stem is drawn first so the branches' round ends cover its top and the join is clean.
     $graphics.DrawLine((New-Pen '#FFFFFF' 40), 256, 330, 256, 408)
     $graphics.DrawLine((New-Pen '#2DD4BF' 40), 124, 112, 256, 330)
     $graphics.DrawLine((New-Pen '#A78BFA' 40), 388, 112, 256, 330)
-    Add-Node $graphics 124 104 46 '#2DD4BF'
-    Add-Node $graphics 388 104 46 '#A78BFA'
-    Add-Node $graphics 256 408 46 '#FFFFFF'
+    Add-Node $graphics 124 104 46 '#2DD4BF' $NodeCentre
+    Add-Node $graphics 388 104 46 '#A78BFA' $NodeCentre
+    Add-Node $graphics 256 408 46 '#FFFFFF' $NodeCentre
     $graphics.Restore($state)
 }

@@ -1,0 +1,79 @@
+using Terminal.Gui.Drawing;
+using Terminal.Gui.Views;
+
+namespace Source191.Vantage.Tui;
+
+/// <summary>
+/// The Vantage icon for the console's top left corner: the pixels of assets\icon\vantage-48.rgba (written by
+/// tools\New-IconPixels.ps1), drawn by an ImageView fitted to two rows. It shows only where the terminal draws images
+/// (Sixel or Kitty); cell-based drawing would turn each pixel into a cell, so without image support it stays hidden.
+/// </summary>
+internal static class VantageIcon
+{
+    public const int Height = 2;
+
+    /// <summary>The cells a terminal that reports no cell size gets: Terminal.Gui's own default of 10 by 20 pixels makes two rows four cells wide.</summary>
+    private const int DefaultWidth = 4;
+
+    private const string Resource = "Source191.Vantage.Tui.vantage-48.rgba";
+
+    public static ImageView Create()
+    {
+        ImageView view = new() { X = 0, Y = 0, Width = DefaultWidth, Height = Height, Visible = false, CanFocus = false, UseRasterGraphics = true, Image = Pixels() };
+
+        return view;
+    }
+
+    /// <summary>
+    /// Shows the icon where the terminal draws images, as many cells wide as two rows are tall in pixels so the square
+    /// icon is not stretched (a fixed five cells widened it and left its right edge unlike its left), and answers the
+    /// cells the settings rows start after: the icon and a cell of space, or none when it is hidden.
+    /// </summary>
+    public static int Fit(ImageView icon, SixelSupportResult? support)
+    {
+        ArgumentNullException.ThrowIfNull(icon);
+        icon.Visible = support?.IsSupported == true;
+        if (!icon.Visible)
+        {
+            return 0;
+        }
+
+        System.Drawing.Size cell = support!.Resolution;
+        int width = cell.Width > 0 && cell.Height > 0 ? (int)Math.Round((double)Height * cell.Height / cell.Width) : DefaultWidth;
+        int cells = Math.Clamp(width, 2, 6);
+        icon.Width = cells;
+
+        return cells + 1;
+    }
+
+    /// <summary>Transparent pixels take the console's background, so the icon sits on it whatever the terminal does with transparency.</summary>
+    private static Color[,] Pixels()
+    {
+        using Stream stream = typeof(VantageIcon).Assembly.GetManifestResourceStream(Resource)
+            ?? throw new InvalidOperationException($"The icon resource {Resource} is missing from the Tui assembly.");
+        int width = stream.ReadByte();
+        int height = stream.ReadByte();
+        byte[] rgba = new byte[width * height * 4];
+        stream.ReadExactly(rgba);
+        Color[,] pixels = new Color[width, height];
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int at = ((y * width) + x) * 4;
+                pixels[x, y] = Blend(rgba[at], rgba[at + 1], rgba[at + 2], rgba[at + 3]);
+            }
+        }
+
+        return pixels;
+    }
+
+    private static Color Blend(byte red, byte green, byte blue, byte alpha)
+    {
+        Color background = Palette.Background;
+
+        int Mix(int over, int under) => ((over * alpha) + (under * (255 - alpha))) / 255;
+
+        return new Color(Mix(red, background.R), Mix(green, background.G), Mix(blue, background.B));
+    }
+}

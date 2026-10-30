@@ -12,7 +12,7 @@ public sealed class LayeringShould
 {
     private const string Root = "Source191.Vantage";
 
-    private static Types Vantage => Types.InAssemblies([typeof(Session).Assembly, typeof(Source191.Vantage.Adapters.Files.Folders).Assembly, typeof(Source191.Vantage.Tui.SessionsScreen).Assembly]);
+    private static Types Vantage => Types.InAssemblies([typeof(Session).Assembly, typeof(Source191.Vantage.Adapters.Files.Folders).Assembly, typeof(Source191.Vantage.Tui.ConsoleScreen).Assembly]);
 
     [Fact]
     public void KeepDomainFreeOfEverythingElse()
