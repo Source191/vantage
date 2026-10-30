@@ -2,41 +2,45 @@
 
 ## Why
 
-With six sessions the table has rows to spare and the one thing the native agent view showed that Vantage does not is why a session waits: the listing's waitingFor field is read and dropped, and since the `a` key went (#95) nothing in Vantage shows it. A footer has one line for a worktree's health reason or a refusal, and the memory figure sits in a column that costs WHERE seven cells on the laptop. The UI review's option 4, confirmed on 30 October 2026, spends the recovered rows on a pane under the table that shows the selected row in full, including its recent output from `claude logs`, and takes the memory figure from the MEM column.
+The tables carry more than a row can hold: on the Sessions tab WHERE packs the repository, the worktree and the branch into one cell, and on the Worktrees tab eight columns leave the WORKTREE cell eliding names such as `MK.Sales…mmission`. Several facts are never shown at all: why a session waits (the listing's waitingFor is read and dropped), when it was last prompted, its session id, a worktree's merge state and what its unpushed commits and changes are. The UI review's option 4, confirmed on 30 October 2026, puts a pane under the table that shows the selected row in full, so the table can keep only what is worth scanning down.
+
+The first version also showed the bottom of the session's screen from `claude logs`. The owner's terminal check on 30 October 2026 found that four lines of screen were too few to read a question and that the facts repeated the table, and decided: facts only, no `claude logs`, and fewer columns in both tables.
 
 ## What Changes
 
-- **A detail pane under the Sessions and Worktrees tables** (the Config tab, which arrived after this proposal, has none), under a divider that can be dragged, nine rows by default at 36 rows, titled with the selected row's name.
-- **For a session:** its state with the reason it waits (the listing's waitingFor, or that no prompt has been sent), when it started, when it was last prompted (the last time Vantage saw it leave needs input or idle for working, while Vantage was running; otherwise that it was not seen), its session id, the full folder, the branch, the pull request with the key that opens it, its tab (open and the tab's colour, or its own terminal), the worktree's changed files, unpushed commits and last commit from git, its memory with the key for the breakdown, and the last lines of its terminal output from `claude logs`, refreshed with the rows for the selected row only.
-- **For a worktree:** its health with the reason in full, whether and when Vantage created it, the full folder, the branch and whether it is merged into origin's default branch, the pull request, the risk line, the session inside it with its state and the key that goes to it, and its unpushed commits (hash, age, subject, as many as fit, then how many more) or, when none, its changed files.
-- **`claude logs` joins the CLI surface Vantage depends on:** in config.yaml, the Claude port, the nightly contract test and CLAUDE.md's facts, after a spike that measures its cost and shape. Its output is drawn and discarded: never recorded in the diagnostic log, never part of a problem report.
-- **The MEM column goes;** WHERE takes its cells (64 at 120 columns, so the 61-character fixture name shows whole on the laptop); `m` and the pane carry the figure.
-- **Detail never delays the listing:** the pane is loaded off the UI thread for the selected row when the selection changes and after each refresh, and the rows never wait for it.
+- **A facts pane under the Sessions and Worktrees tables** (the Config tab has none), under a grey divider titled with the selected row's name, exactly as tall as its tab's facts can be, so the table never jumps between rows.
+- **The Sessions table drops WHERE for REPOSITORY:** the repository's name, or the folder's short label outside a repository; NAME, TAB, STATE, REPOSITORY, PR, AGE. The pane shows what the row does not: what the session is waiting for (the listing's reason, a first prompt, or nothing), when it started, when Vantage last saw it prompted, the full folder, the session id, the worktree (its slug or path inside the repository, the main checkout, or not in a repository), the branch, its tab, the folder's changed files, unpushed commits and last commit, and its memory.
+- **The MEM column goes;** memory shows only in the pane, with `m` for the breakdown.
+- **The Worktrees table keeps WORKTREE, LAST COMMIT and SESSION;** BRANCH, PR, DIRTY, UNPUSHED and HEALTH move to the pane, and rows keep their health colours. The pane shows the health with its reason, the branch and whether it is merged into origin's default branch, the pull request, the full folder, whether and when Vantage created it, the changed files and unpushed commits, then the unpushed commits (hash, age, subject) or, when none, the changed files, up to five and how many more.
+- **The help explains the pane's lines,** health words included, as it explained the columns that moved.
+- **Detail never delays the listing:** it is read off the UI thread for the selected row only, when the selection moves and after each refresh, and a late answer for a row the user has left is dropped.
+- **The waiting spinner stays in the table** above the pane, whatever the pane's height.
 - **Version:** one preview step above `main`'s.
 
-Out of scope: a live cockpit or wall of panes (options 11 and 13), reading the transcript's write time as a fallback for the last prompt (config.yaml allows only an existence check; the owner can widen that rule in a change of its own), the worktrees footer's health sentence (it stays), warming details for unselected rows, and multiple Claude accounts (a later change).
+Out of scope: the session's screen or output (the `claude logs` spike is recorded in the tasks and design and nothing of it ships), a draggable divider, reading the transcript for the last prompt (config.yaml allows only an existence check), the worktrees footer's health sentence (it stays), and multiple Claude accounts.
 
 ## Capabilities
 
 ### New Capabilities
 
-- `detail-pane`: what the pane under each table shows for the selected session or worktree, how its recent output is obtained and kept off the record, how it is sized, and that it never delays the listing.
+- `detail-pane`: what the pane under the Sessions and Worktrees tables shows for the selected row, how tall it is, and that it never delays the listing.
 
 ### Modified Capabilities
 
-- `session-listing`: "Rows show the session's memory" moves the figure to the pane and drops the column; "Long names never hide columns" (as config-tab leaves it) gives WHERE 64 cells at 120.
+- `session-listing`: "Rows show repository, branch and worktree" (REPOSITORY in the table, the rest in the pane), "Long names never hide columns" (REPOSITORY is elastic), "Rows show the session's memory" (the pane only).
+- `worktree-management`: "One WORKTREE column names the worktree" (no BRANCH column), "Each row shows work at risk" and "Locked worktrees are marked" (in the pane), "The worktrees header and help match the sessions view" (the help explains the pane).
 
 ## Impact
 
-- **Domain:** `Session` gains the listing's waiting reason; a new `AnsiText.Strip` for terminal captures (the headless harness's `EscapeSequences` rule, which the harness can then take from Core).
-- **Ports:** `IClaudeCli.LogsAsync(jobId)`; `IGit.UnpushedCommitsAsync(worktree, limit)` (hash, age, subject) and `ChangedFilesAsync(worktree, limit)`.
-- **Application:** `Detail\SessionDetail` and `WorktreeDetail` records, `DetailLoader` (git, logs, the created-worktree records, the merge check, for one row), `SessionActivity` (the last prompted time, observed beside `StateTransitionNotifier`), `Wording` (the pane's lines, in `WordingOfDetail`), `WordingOfScreens` (the columns without MEM), `Diagnostics\ChildCommandWords` ("logs").
-- **Adapters:** `ClaudeCli` (logs), `ClaudeAgentsListing` (waitingFor), `GitCli` (the two listings).
-- **Tui:** `DetailPane` (a resizable frame under each `TableBody`), `ConsoleScreen` (loading the selected row's detail with a sequence so a stale answer is dropped), `SessionsScreenDefinition` (MEM gone).
-- **Tests:** `AnsiTextShould`, `SessionActivityShould`, `DetailLoaderShould`, `WordingOfDetailShould`, `ClaudeAgentsListingShould` (waitingFor), `ClaudeCliShould` (logs), `GitCliShould` (the listings, against real git), the contract test (`claude logs` on the started session), `DiagnosticsPrivacyShould` (a logs fixture never reaches the output), `ChildCommandShould`; headless captures at 120 x 36.
-- **Docs:** README (a pane section, the sessions columns without MEM, the memory key's words), CLAUDE.md (the `claude logs` fact, the pane in the architecture paragraph, the diagnostics rule naming logs), config.yaml (the CLI surface), the two specs.
-- **Release:** a preview raise; the contract tests run locally with `VANTAGE_CLAUDE_CONTRACT=1`; the owner's terminal check of the pane against a session at a permission prompt.
+- **Domain:** `Session` gains the listing's waiting reason.
+- **Ports:** `IGit.UnpushedCommitsAsync(worktree, limit)` (hash, age, subject) and `ChangedFilesAsync(worktree, limit)`.
+- **Application:** `Detail\SessionDetail` and `WorktreeDetail`, `DetailLoader`, `DetailRequests` (the order of requests and which answer shows), `DetailLayout` (the facts in three columns at the pane's width), `IDetailSource` with `SessionDetails` and `WorktreeDetails`, `SessionActivity` (the last prompted time, in memory), `Wording` (the pane's lines and help, the new columns).
+- **Adapters:** `ClaudeAgentsListing` (waitingFor), `GitCli` (the two listings).
+- **Tui:** `DetailPane` under each `TableBody` that has a detail source, the definitions' new columns, the waiting spinner centred on the table, the tabs disposed under the binding guard.
+- **Tests:** `SessionActivityShould`, `DetailLoaderShould`, `DetailRequestsShould`, `DetailLayoutShould`, `DetailSourcesShould`, `WordingOfDetailShould`, `WordingOfKeysAndColumnsShould`, `ClaudeAgentsListingShould`, `GitCliIntegrationShould`; headless captures at 120 x 36.
+- **Docs:** README (the pane, the new columns of both tables), CLAUDE.md (the pane in the architecture paragraph).
+- **Release:** a preview raise; the owner's terminal check.
 
 ## Order
 
-The third of the UI review's changes to be applied, after where-column, tabs-and-key-bar and config-tab (the owner chose it before wizard-one-form, 30 October 2026). Its MODIFIED block for "Long names never hide columns" is based on config-tab's text (`<` and `>` scroll); "Rows show the session's memory" on the main spec's. The smoke script's sessions marker is the first column unique to the sessions table, NAME, before and after MEM goes, so the script is unchanged.
+The third of the UI review's changes to be applied, after where-column, tabs-and-key-bar and config-tab (the owner chose it before wizard-one-form, 30 October 2026). Its MODIFIED blocks are based on those changes' text where they changed a requirement (where-column's WHERE and WORKTREE requirements, config-tab's "Long names never hide columns", tabs-and-key-bar's worktrees help), so it archives after them. The smoke script finds each view by the first column only it has (NAME, WORKTREE), so it is unchanged.

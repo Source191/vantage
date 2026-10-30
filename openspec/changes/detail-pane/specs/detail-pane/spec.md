@@ -1,20 +1,28 @@
 # Spec Delta
 
 ## Purpose
-A pane under the Sessions and Worktrees tables that shows the selected session or worktree in full, with its recent terminal output, so the user reads why a session waits and what a worktree holds without attaching or leaving the console.
+A pane under the Sessions and Worktrees tables that shows the selected session or worktree in full, so the tables keep only what is worth scanning down and the user reads why a session waits and what a worktree holds without leaving the console.
 
 ## ADDED Requirements
 
 ### Requirement: The pane shows the selected session
-On the Sessions tab the pane SHALL show, for the selected row: the state with the reason it waits, when it started, when it was last prompted, the session id, the full folder, the branch, the pull request with the key that opens it, its tab, the worktree's changed files, unpushed commits and last commit, and its memory with the key for the breakdown. A fact that cannot be read SHALL show as unavailable without hiding the rest.
+On the Sessions tab the pane SHALL show what the selected row does not, titled with its name: what it waits for, when it started and was last prompted, the full folder, the session id, the worktree, the branch, its tab, the folder's changes and its memory. A fact that cannot be read SHALL show as unavailable without hiding the rest.
 
 #### Scenario: A session at a permission prompt
-- **WHEN** fix-123 is selected, listed as waiting for a permission prompt, started at 14:02 today in a Vantage tab coloured yellow, in a worktree with three changed files
-- **THEN** the pane is titled fix-123 and reads State needs input (permission prompt), Started 14:02 (5m ago), Tab open, yellow, and Worktree 3 changed files · 0 unpushed commits with the last commit's age
+- **WHEN** fix-123 is selected, listed as waiting for a permission prompt, started at 14:02 today in a Vantage tab coloured yellow, in the worktree Northwind.Orders-fix-123 on branch fix-123 with three changed files
+- **THEN** the pane is titled fix-123 and reads Waiting for permission prompt, Started 14:02 (5m ago), Worktree fix-123, Branch fix-123, Tab open, yellow, and Changes 3 changed files · 0 unpushed commits with the last commit's age
 
 #### Scenario: A session never sent a prompt
-- **WHEN** an idle, blocked session with no transcript is selected
-- **THEN** the pane's State line reads needs input (no prompt sent yet)
+- **WHEN** a session that needs input and has no transcript is selected
+- **THEN** the pane's Waiting for line reads a first prompt
+
+#### Scenario: A working session
+- **WHEN** a working session is selected
+- **THEN** the pane's Waiting for line reads nothing
+
+#### Scenario: The main checkout
+- **WHEN** a session running in C:\Users\me\source\repos\Northwind.Orders on branch main is selected
+- **THEN** the pane reads Worktree main checkout and Branch main
 
 #### Scenario: Memory in the pane
 - **WHEN** a running session whose tree uses 903 MB is selected
@@ -22,11 +30,11 @@ On the Sessions tab the pane SHALL show, for the selected row: the state with th
 
 #### Scenario: A stopped session
 - **WHEN** a stopped session is selected
-- **THEN** the pane shows its state, folder, branch and pull request, and reads nothing to measure for its memory and no output for a session without a process
+- **THEN** the pane shows its folder and branch and reads nothing to measure for its memory
 
 #### Scenario: A terminal session
 - **WHEN** a plain claude session in its own terminal is selected
-- **THEN** the pane shows its facts, its Tab line reads its own terminal, and the output area says a session outside the supervisor has no output to show
+- **THEN** the pane shows its facts and its Tab line reads its own terminal
 
 ### Requirement: The last prompt is the transition Vantage saw
 The pane's Prompted line SHALL show the most recent time, while this Vantage ran, that the session left needs input or idle for working, which is when a prompt or an answer reached it. When Vantage has not seen such a transition for the session, the line SHALL say so rather than guess, and the transcript SHALL NOT be read for it.
@@ -39,48 +47,38 @@ The pane's Prompted line SHALL show the most recent time, while this Vantage ran
 - **WHEN** a session has been idle since Vantage started
 - **THEN** its Prompted line reads not seen since Vantage started
 
-### Requirement: The pane shows the session's recent output
-The pane SHALL show the bottom of the selected background session's screen, rebuilt from the Claude Code CLI's logs command (the session's screen history with terminal codes removed, cut into rows of the session's own width), without Claude's own input box and status line, as many rows as the pane has room for, refreshed for the selected row only while it has a process.
-
-#### Scenario: A question is on screen
-- **WHEN** fix-123 has paused on "Allow edit to Processor.cs?" and is selected
-- **THEN** the output area shows that question and its options as the session's screen shows them, without colour codes
-
-#### Scenario: Logs fail
-- **WHEN** the logs command fails or cannot be run
-- **THEN** the output area says the output is unavailable and the rest of the pane is unaffected
-
-### Requirement: The session's output stays off the record
-The output SHALL be drawn and discarded: never written to the diagnostic log, never part of a problem report, never kept after the selection moves.
-
-#### Scenario: The output stays off the record
-- **WHEN** the pane has shown a session's output and the user opens the problem report
-- **THEN** no line of that output is in the report or the diagnostic log; the log records only that the logs command ran, how long it took and its exit code
-
 ### Requirement: The pane shows the selected worktree
-On the Worktrees tab the pane SHALL show, for the selected row: the health with its reason in full, whether and when Vantage created it, the full folder, the branch and its merge state against origin's default branch, the pull request, the risk line, the session inside it with the key that goes to it, and its unpushed commits as far as they fit, or its changed files when none are unpushed.
+On the Worktrees tab the pane SHALL show, for the selected row and titled with its folder's name: the health with its reason in full, the branch and its merge state against origin's default branch, the pull request, the full folder, whether and when Vantage created it, its changed files and unpushed commits, and beneath them its unpushed commits as far as five, or its changed files when none are unpushed, then how many more.
 
 #### Scenario: A worktree with unpushed commits
 - **WHEN** Northwind.Billing-invoice-pdf, created by Vantage on 23 October, with twelve unpushed commits on invoice-pdf, is selected
-- **THEN** the pane reads Health ok, Created by Vantage, 23 Oct 09:14, Branch invoice-pdf, not merged into origin/main, Risk 0 changed files · 12 unpushed commits, lists the newest commits with hash, age and subject, and ends with how many more
+- **THEN** the pane reads Health ok, Branch invoice-pdf, not merged into origin/main, Created by Vantage, 23 Oct 09:14, Changes 0 changed files · 12 unpushed commits, lists the five newest commits with hash, age and subject, and ends with 7 more
 
 #### Scenario: A worktree with changes and nothing unpushed
-- **WHEN** a worktree with five changed files and no unpushed commits is selected
-- **THEN** the pane lists the five changed files in place of commits
+- **WHEN** a worktree with two changed files and no unpushed commits is selected
+- **THEN** the pane lists the two changed files in place of commits
 
 #### Scenario: A broken leftover
 - **WHEN** a broken leftover folder is selected
 - **THEN** the pane's Health line gives the reason in full, and the git lines read unavailable
 
-### Requirement: The pane is sized by the user
-The pane SHALL take nine rows under the table by default on a 36-row terminal, SHALL be resizable by dragging the divider between the table and the pane with the mouse, and SHALL keep its size on both tabs while the console runs. The Config tab SHALL have no pane.
+#### Scenario: A locked worktree
+- **WHEN** a worktree git reports as locked with a reason is selected
+- **THEN** the pane's Health line reads locked and the reason
 
-#### Scenario: Drag the divider
-- **WHEN** the user drags the divider up by four rows
-- **THEN** the pane shows four more lines of output and the table four fewer rows, on the Sessions and Worktrees tabs, until Vantage quits
+### Requirement: The pane fits its facts
+The pane SHALL sit under the table, behind a divider titled with the selected row's name, and SHALL be exactly as tall as its tab's facts can be: five rows on the Sessions tab and eleven on the Worktrees tab, whatever row is selected, so the table's height never changes with the selection. The Config tab SHALL have no pane. The spinner shown while a table waits for its first rows SHALL sit in the table, above the pane.
+
+#### Scenario: Moving between rows
+- **WHEN** the user moves from a worktree with twelve unpushed commits to one with none
+- **THEN** the table keeps the same number of rows on screen
+
+#### Scenario: The first worktrees scan
+- **WHEN** the Worktrees tab is first shown and its scan has not finished
+- **THEN** the waiting spinner and its words are drawn in the middle of the table's area, not in the pane
 
 ### Requirement: Detail never delays the listing
-Reading a row's detail SHALL run off the UI thread, for the selected row only, when the selection changes and after each refresh, and SHALL NOT delay a refresh of the table; a detail that arrives after the selection has moved on SHALL be dropped.
+Reading a row's detail SHALL run off the UI thread, for the selected row only and only while its tab is shown, when the selection changes and after each refresh, and SHALL NOT delay a refresh of the table; a detail that arrives after the selection has moved on, or after a newer detail has been shown, SHALL be dropped.
 
 #### Scenario: Slow git
 - **WHEN** the merge check for the selected worktree takes four seconds
