@@ -502,7 +502,7 @@ internal sealed class TableScreen<TState, TRow>(
 
             return paint switch
             {
-                { Fill: Color fill } => Palette.Pair(paint.Foreground, fill),
+                { Fill: Color fill } => Palette.Fill(paint.Foreground, fill),
                 not null when !Equals(row, selected) => Palette.Plain(paint.Foreground),
                 _ => null,
             };

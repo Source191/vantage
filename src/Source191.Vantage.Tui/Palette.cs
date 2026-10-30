@@ -53,6 +53,17 @@ internal static class Palette
 
     public static Scheme Highlight() => Pair(new Color(0, 0, 0), Cyan);
 
+    /// <summary>
+    /// A cell filled with an exact colour on every row: the selected row of a table that cannot take focus is drawn with
+    /// the Active role, which Terminal.Gui otherwise derives as a dimmer shade, so it is set here too.
+    /// </summary>
+    public static Scheme Fill(Color foreground, Color background)
+    {
+        Attribute attribute = new(foreground, background);
+
+        return new Scheme { Normal = attribute, Focus = attribute, HotNormal = attribute, HotFocus = attribute, Active = attribute, HotActive = attribute, Disabled = attribute };
+    }
+
     public static Scheme Pair(Color foreground, Color background)
     {
         Attribute attribute = new(foreground, background);
