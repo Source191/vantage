@@ -10,7 +10,7 @@ public interface IDetailSource<in TRow>
     object KeyOf(TRow row);
 
     /// <param name="row"></param>
-    /// <param name="rows">How many lines the pane has room for beneath the facts, at most.</param>
+    /// <param name="rows">How many lines the pane has under its divider, the facts' rows included.</param>
     /// <param name="readScreen">Whether to read the session's screen this time.</param>
     /// <param name="cancellationToken"></param>
     Task<DetailContent> ReadAsync(TRow row, int rows, bool readScreen, CancellationToken cancellationToken);
@@ -27,7 +27,7 @@ public sealed class SessionDetails(DetailLoader loader, TimeProvider clock) : ID
     public object KeyOf(SessionRow row) => row?.Session.SessionId ?? throw new ArgumentNullException(nameof(row));
 
     public async Task<DetailContent> ReadAsync(SessionRow row, int rows, bool readScreen, CancellationToken cancellationToken) =>
-        Wording.Detail(await loader.SessionAsync(row, rows, readScreen, cancellationToken), clock.GetUtcNow());
+        Wording.Detail(await loader.SessionAsync(row, Math.Max(rows - Wording.DetailFactRows, 0), readScreen, cancellationToken), clock.GetUtcNow());
 }
 
 /// <summary>The Worktrees tab's pane: a worktree's facts and its unpushed commits or changed files, keyed by its folder.</summary>
@@ -40,6 +40,7 @@ public sealed class WorktreeDetails(DetailLoader loader, TimeProvider clock) : I
 
     public object KeyOf(WorktreeRow row) => row?.Path ?? throw new ArgumentNullException(nameof(row));
 
+    /// <summary>Lists one item fewer than the rows under the facts, so the line saying how many more always fits.</summary>
     public async Task<DetailContent> ReadAsync(WorktreeRow row, int rows, bool readScreen, CancellationToken cancellationToken) =>
-        Wording.Detail(await loader.WorktreeAsync(row, rows, cancellationToken), clock.GetUtcNow());
+        Wording.Detail(await loader.WorktreeAsync(row, Math.Max(rows - Wording.DetailFactRows - 1, 0), cancellationToken), clock.GetUtcNow());
 }

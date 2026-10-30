@@ -20,6 +20,9 @@ public static partial class Wording
 {
     private const string Unavailable = "unavailable";
 
+    /// <summary>The rows every session's and worktree's facts take; the lines beneath have the rest of the pane.</summary>
+    public const int DetailFactRows = 4;
+
     /// <summary>The output area while the selected session's screen is first read, which takes a second or two.</summary>
     public static IReadOnlyList<DetailLine> ScreenBeingRead { get; } = [new(string.Empty, "reading the session's screen…", TextTone.Grey)];
 

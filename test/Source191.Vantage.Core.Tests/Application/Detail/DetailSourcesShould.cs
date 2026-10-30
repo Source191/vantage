@@ -49,5 +49,29 @@ public sealed class DetailSourcesShould
         content.Facts[0][0].Text.ShouldBe("ok");
     }
 
+    [Fact]
+    public async Task ListOnlyWhatFitsUnderTheFactsWithARowForHowManyMore()
+    {
+        WorktreeDetails source = new(Loader(), clock);
+        WorktreeRow row = new(Repository, Worktree, BranchName.From("invoice-pdf"), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 12, Noon, SessionId: null, SessionName: null, LeftoverFileCount: 0, OwnerExists: false, FolderExists: true);
+
+        await source.ReadAsync(row, rows: 9, readScreen: false, CancellationToken.None);
+
+        int limit = Wording.DetailFactRows + 1;
+        processes.CapturedRequests.ShouldContain(request => request.Arguments.Count > 2 && request.Arguments[0] == "log" && request.Arguments[2] == $"{9 - limit}");
+    }
+
+    [Fact]
+    public void KeepEveryDetailToItsFactRows()
+    {
+        BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon, DisplayState.Idle, ProcessId: null);
+        SessionDetail sessionDetail = new(new SessionRow(session, "Northwind.Billing", null, HasLiveTab: false, HasTranscript: true), null, new DetailFact<WorktreeCounts>.NotApplicable(), new SessionOutput.NoProcess());
+        WorktreeRow row = new(Repository, Worktree, null, new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 0, Noon, SessionId: null, SessionName: null, LeftoverFileCount: 0, OwnerExists: false, FolderExists: true);
+        WorktreeDetail worktreeDetail = new(row, null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
+
+        Wording.Detail(sessionDetail, Noon).Facts.Count.ShouldBe(Wording.DetailFactRows);
+        Wording.Detail(worktreeDetail, Noon).Facts.Count.ShouldBe(Wording.DetailFactRows);
+    }
+
     private DetailLoader Loader() => new(new ClaudeCli(processes, @"C:\Users\me\.local\bin\claude.exe"), new GitCli(processes, "git"), new InMemoryState(), new SessionActivity(clock));
 }
