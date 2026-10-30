@@ -5,15 +5,15 @@ namespace Source191.Vantage.Tui;
 
 /// <summary>
 /// The Vantage icon for the console's top left corner: the pixels of assets\icon\vantage-48.rgba (written by
-/// tools\New-IconPixels.ps1), drawn by an ImageView fitted to two rows. It shows only where the terminal draws images
+/// tools\New-IconPixels.ps1), drawn by an ImageView fitted to one row. It shows only where the terminal draws images
 /// (Sixel or Kitty); cell-based drawing would turn each pixel into a cell, so without image support it stays hidden.
 /// </summary>
 internal static class VantageIcon
 {
-    public const int Height = 2;
+    public const int Height = 1;
 
-    /// <summary>The cells a terminal that reports no cell size gets: Terminal.Gui's own default of 10 by 20 pixels makes two rows four cells wide.</summary>
-    private const int DefaultWidth = 4;
+    /// <summary>The cells a terminal that reports no cell size gets: Terminal.Gui's own default of 10 by 20 pixels makes a row two cells wide.</summary>
+    private const int DefaultWidth = 2;
 
     private const string Resource = "Source191.Vantage.Tui.vantage-48.rgba";
 
@@ -25,9 +25,9 @@ internal static class VantageIcon
     }
 
     /// <summary>
-    /// Shows the icon where the terminal draws images, as many cells wide as two rows are tall in pixels so the square
+    /// Shows the icon where the terminal draws images, as many cells wide as its row is tall in pixels so the square
     /// icon is not stretched (a fixed five cells widened it and left its right edge unlike its left), and answers the
-    /// cells the settings rows start after: the icon and a cell of space, or none when it is hidden.
+    /// cells the settings row starts after: the icon and a cell of space, or none when it is hidden.
     /// </summary>
     public static int Fit(ImageView icon, SixelSupportResult? support)
     {
@@ -40,7 +40,7 @@ internal static class VantageIcon
 
         System.Drawing.Size cell = support!.Resolution;
         int width = cell.Width > 0 && cell.Height > 0 ? (int)Math.Round((double)Height * cell.Height / cell.Width) : DefaultWidth;
-        int cells = Math.Clamp(width, 2, 6);
+        int cells = Math.Clamp(width, 1, 3);
         icon.Width = cells;
 
         return cells + 1;

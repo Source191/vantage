@@ -170,6 +170,13 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public void OnKey(GuiKey key)
     {
+        if (ScrollStep(key) is int step)
+        {
+            key.Handled = true;
+            Scroll(step);
+            return;
+        }
+
         Key? mapped = KeyMapping.From(key);
         if (mapped is null)
         {
@@ -180,12 +187,8 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         Press(mapped);
     }
 
-    /// <summary>A key from the keyboard or a click on the key bar: Left and Right scroll the table, and every key goes to the reducer.</summary>
-    public void Press(Key key)
-    {
-        Scroll(key);
-        Apply(new KeyPressed(key));
-    }
+    /// <summary>A key from the keyboard or a click on the key bar, for the reducer; Left and Right move between tabs there.</summary>
+    public void Press(Key key) => Apply(new KeyPressed(key));
 
     public void Reduce(ViewInput input) => Apply(input);
 
@@ -283,19 +286,19 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     }
 
     /// <summary>Left and Right move the table one column sideways, within its columns; presentation only, so the reducer never sees a change.</summary>
-    private void Scroll(Key key)
+    /// <summary>Shift+Left and Shift+Right scroll a table too wide for the terminal; Left and Right alone are the tab keys.</summary>
+    private static int? ScrollStep(GuiKey key)
     {
-        int step = key.Name switch
+        if (key == GuiKey.CursorLeft.WithShift)
         {
-            KeyName.Left => -1,
-            KeyName.Right => 1,
-            _ => 0,
-        };
-        if (step == 0)
-        {
-            return;
+            return -1;
         }
 
+        return key == GuiKey.CursorRight.WithShift ? 1 : null;
+    }
+
+    private void Scroll(int step)
+    {
         // Kept here as well as on the table, because every redraw replaces the table's source, which resets its offset.
         columnOffset = Math.Clamp(columnOffset + step, 0, columnNames.Length - 1);
         table.ColumnOffset = columnOffset;

@@ -40,7 +40,7 @@ public sealed record ConfigViewState(
 
     public Footer Shown => Footer is Footer.Blank ? new Footer.ConfigHint() : Footer;
 
-    public TableTitle Title => List.Title("setting", Wording.ConfigSetting);
+    public TableTitle Title => List.Title("row", Wording.ConfigSetting);
 
     public ConfigViewState With(ListSelection<ConfigRow> list) => this with { Rows = list.Rows, SelectedKey = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 }
