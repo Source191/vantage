@@ -22,7 +22,7 @@
 
 ## 5. Version and checks
 
-- [ ] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate automated-runs --strict` pass.
+- [x] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate automated-runs --strict` pass.
 - [ ] 5.2 Run the hand-off check and the smoke check against the packed tool. Verify both exit 0.
 - [ ] 5.3 Headless: with `claude -p` held open on standard input in a worktree that has a session, drive the packed tool and replay the screen. Verify one row for the session and the counts ending `◇ 1 automated` with a figure.
 - [ ] 5.4 The product owner commits in a worktree with the security-guidance plugin on and watches the Sessions tab: no second row, the ◇ part appears for the review and goes when it ends. Record here.
