@@ -120,13 +120,14 @@ New shells pick up `~\.dotnet\tools` on the PATH; a shell that was open before t
 
 ## Start Vantage
 
-Open a tab and run `vantage` (or `v`). The screen has three parts:
+Open a tab and run `vantage` (or `v`). The screen has four parts:
 
-- **Header:** Vantage's version, the Claude Code version (`unknown` when `claude --version` cannot be read, and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports), the repository roots being scanned, counts of sessions by state, and the key hints. A local install shows its prerelease label without the build timestamp (`0.6.0-local`). Rest the mouse on a key hint, or on its words, to see what the key does and when to use it; the tooltip is black on amber.
-- **Table:** one row per session, titled with what it counts and which row is selected: `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set. The selection bar is cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears below the table.
-- **Footer:** the current view as a crumb, then the last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside it while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
+- **Settings line:** one grey line, `Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\you\source\repos · Worktree root C:\Users\you\source\worktrees`. The Claude Code version reads `unknown` when `claude --version` cannot be read and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports; a local install shows its prerelease label without the build timestamp (`0.6.0-local`); a newer release adds `0.19.0 available, U to update`. When the line is wider than the terminal the repository roots are cut with an ellipsis first, then the worktree root; Settings always shows them in full.
+- **Tabs:** `Sessions (6)` and `Worktrees (7)`, each with its count once loaded; beside them the counts for the tab shown, such as `◐ 2 need input · ● 1 working · ■ 1 stopped` in the states' colours. `1` and `2` choose a tab, `w` switches, and a click on a title selects it. Each tab keeps its selection, filter and message while the other is shown, and switching is instant; the worktrees scan starts the first time its tab is shown and refreshes only while it is.
+- **Table:** in the tab, titled with what it counts and which row is selected: `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set. The selection bar is cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears below the table. Under it the tab's crumb and its last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside the message while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
+- **Key bar:** the last two rows name the keys for the selected row: a background session's `Enter Attach  o Open tab  x Stop  d Delete  r Rename  m Memory`, a plain `claude` session's `b Adopt` (and `d Close tab` when it has never been sent a message), then `R Resume` while a stopped or failed session is listed, `C Close empty` while an empty terminal session is, `n New session`, and `U Update` when a newer release is known; the second row has the folder keys and the view's own. Click a key or its word to press it, and rest the mouse on it to see what it does; the tooltip is black on amber. The help lists every key whether the bar shows it or not.
 
-The table refreshes every five seconds. `?` shows the keys and the columns of the current view (and, in the sessions view, the path of the Claude Code executable Vantage drives) and `q` quits. Quitting Vantage never stops a session.
+The sessions table refreshes every five seconds. `?` shows the keys and the columns of the current view (and, in the sessions view, the path of the Claude Code executable Vantage drives) and `q` quits. Quitting Vantage never stops a session.
 
 Vantage names its own tab `Vantage` (the version is in the header) and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab. While a dialog is open the tab says which, such as `Vantage (Keys)` for the help or `Vantage (Settings)`, and goes back to `Vantage` when it closes.
 
@@ -171,7 +172,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | , | Settings: the repository roots, the worktree root, what opens folders, the default worktree base and the update check (see [Settings](#settings)) |
 | U | Update Vantage when the header names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | ! | Report a problem: shows the diagnostics a GitHub issue would carry, then opens the issue form in your browser or copies the text (see [Reporting a problem](#reporting-a-problem)) |
-| w | Switch to the worktrees view |
+| w, 2 | Show the Worktrees tab (`1` shows the Sessions tab from either) |
 | / | Filter by name, repository or branch; Enter keeps the filter, Esc clears it |
 | ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
 | q | Quit |
@@ -203,19 +204,19 @@ Enter never starts a session here, so there is nothing to undo if you press it t
 
 ## The worktrees view
 
-Press `w`. Vantage lists every linked worktree of the repositories under your roots, wherever its folder is (under the worktree root, or beside the repository as versions before 0.8.0 placed them), plus the leftovers git has forgotten under the roots and the worktree root. The first scan of a large roots folder takes a while (around forty seconds for fifty repositories); it refreshes every fifteen seconds after that.
+Press `2` or `w` (or click the Worktrees tab). Vantage lists every linked worktree of the repositories under your roots, wherever its folder is (under the worktree root, or beside the repository as versions before 0.8.0 placed them), plus the leftovers git has forgotten under the roots and the worktree root. The first scan of a large roots folder takes a while (around forty seconds for fifty repositories); it refreshes every fifteen seconds while the tab is shown.
 
 ```text
- Worktrees:  4 (3 ok, 1 broken)                               <s>       Start session     <?>     Help
- At risk:    1 with changes, 2 with unpushed commits          <o>       Open shell        <q>     Quit
-                                                              <enter>   Go to session
-  4 worktrees, selected: Northwind.Billing-invoice-pdf
- ╭──────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
- ││WORKTREE                                          │BRANCH                   │DIRTY│UNPUSHED│LAST COMMIT│SESSION   │HEALTH │
- │ Northwind.Billing › invoice-pdf                    invoice-pdf                     12       3d4h       invoice-pdf ok    │
- │ Northwind.Billing › study                          study/reporting          5                9d16h                 ok    │
- │ Northwind.Orders › fix-tests                       fix-tests                        2        1d0h       fix-tests   ok    │
- │ Northwind.Sales › republish                        -                                         -                     broken│
+Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\you\source\repos · Worktree root C:\Users\you\…
+╭────────────╮─────────────╮
+│Sessions (6)│Worktrees (4)│  3 ok · 1 broken · 1 with changes · 2 with unpushed commits
+├────────────╯             ╰───────────────────────────────────────────────────────────────────────────────────────╮
+│ 4 worktrees, selected: Northwind.Billing-invoice-pdf                                                             │
+││WORKTREE                           │BRANCH                   │DIRTY│UNPUSHED│LAST COMMIT│SESSION    │HEALTH      ││
+│ Northwind.Billing › invoice-pdf     invoice-pdf                     12       3d4h       invoice-pdf ok           │
+│ Northwind.Billing › study           study/reporting          5                9d16h                  ok           │
+│ Northwind.Orders › fix-tests        fix-tests                        2        1d0h       fix-tests   ok           │
+│ Northwind.Sales › republish         -                                         -                      broken       │
 ```
 
 | Column | Meaning |
@@ -240,7 +241,7 @@ When nothing else needs saying, the footer explains the selected row's health in
 | s | Start a session in this worktree: a compact wizard with only the name and the prompt; type a name and Enter starts the session and opens it in its own tab (F5 starts it without a tab) |
 | o | Open a plain PowerShell tab in the worktree |
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
-| w, Esc | Back to the sessions view (Esc clears a filter first) |
+| w, 1, Esc | Back to the Sessions tab (Esc clears a filter first) |
 | Left, Right | Scroll the table sideways, as in the sessions view |
 | / | Filter by repository, folder, branch or health |
 | c, e, v | Copy the folder path, open the folder, open its solution (choosing from a list when there are several), as in the sessions view; refused for a leftover whose folder is gone |
