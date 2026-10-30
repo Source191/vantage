@@ -81,7 +81,7 @@ Enter on a setup row SHALL change nothing and the footer SHALL say how that setu
 - **THEN** nothing changes and the footer says only a repository root can be removed
 
 ### Requirement: The Config tab's counts and keys
-Beside the tab titles the Config tab SHALL count its settings and, when any is missing, the setup to do, the latter in amber. Its key bar SHALL read Enter Edit, a Add root and, on a root row, d Remove root, then c Copy, e Open folder, / Filter, ? Help, ! Report and q Quit. c SHALL copy the selected value whole; e SHALL open a folder value in the editor, and the folder holding a file value.
+Beside the tab titles the Config tab SHALL count its settings and, when any is missing, the setup to do, the latter in amber. Its key bar SHALL read Enter Edit, a Add root and, on a root row, d Remove root, then c Copy, e Open folder, / Filter, ? Help, ! Report and q Quit. c SHALL copy a path value whole; e SHALL open a folder value in the editor, and the folder holding a file value; on a value that is not a path both SHALL say so.
 
 #### Scenario: Counts
 - **WHEN** there are two roots and the Windows Terminal profiles are not set up
