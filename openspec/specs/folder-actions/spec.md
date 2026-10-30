@@ -6,27 +6,27 @@ Lets the user take a row's folder, in the sessions view or the worktrees view, s
 ## Requirements
 
 ### Requirement: The folder is shown relative to its root
-Both table views SHALL show a FOLDER column holding the row's folder relative to the deepest configured root that contains it (a repository root or the worktree root); a folder under no root but under the user's home folder SHALL be shown as `~\` followed by its path relative to home; any other folder, and a folder that is itself a root, SHALL be shown in full or relative to home by the same rules.
+Both table views SHALL show the row's folder inside their WHERE or WORKTREE column rather than in a FOLDER column of its own. The folder's label SHALL be its path relative to the deepest configured root that contains it (a repository root or the worktree root); a folder under no root but under the user's home folder SHALL be labelled `~\` followed by its path relative to home; any other folder, and a folder that is itself a root, SHALL be labelled in full or relative to home by the same rules. Inside a repository the label's part after the repository is shown after ›; outside one the label stands alone.
 
 #### Scenario: Worktree under the worktree root
-- **WHEN** a session runs in C:\Users\me\source\worktrees\Northwind.Orders-fix-123 and the worktree root is C:\Users\me\source\worktrees
-- **THEN** its FOLDER cell reads Northwind.Orders-fix-123
+- **WHEN** a session runs in C:\Users\me\source\worktrees\Northwind.Orders-fix-123 on branch fix-123 and the worktree root is C:\Users\me\source\worktrees
+- **THEN** its WHERE cell reads Northwind.Orders › fix-123
 
 #### Scenario: Repository under a repository root
 - **WHEN** a session runs in C:\Users\me\source\repos\Northwind.Orders\src\Api and the repository root is C:\Users\me\source\repos
-- **THEN** its FOLDER cell reads Northwind.Orders\src\Api
+- **THEN** its WHERE cell reads Northwind.Orders › src\Api followed by the branch in brackets
 
 #### Scenario: Folder outside every root
-- **WHEN** a session runs in C:\Users\me\scratch\notes
-- **THEN** its FOLDER cell reads ~\scratch\notes
+- **WHEN** a session runs in C:\Users\me\scratch\notes, which is not a repository
+- **THEN** its WHERE cell reads ~\scratch\notes
 
 #### Scenario: Folder outside home
-- **WHEN** a session runs in D:\work\Northwind.Tools and no root contains it
-- **THEN** its FOLDER cell reads D:\work\Northwind.Tools
+- **WHEN** a session runs in D:\work\Northwind.Tools, which is not a repository, and no root contains it
+- **THEN** its WHERE cell reads D:\work\Northwind.Tools
 
 #### Scenario: Session in a root itself
-- **WHEN** a "no repository" session runs in the repository root C:\Users\me\source\repos
-- **THEN** its FOLDER cell reads ~\source\repos
+- **WHEN** a session started with vantage here runs in the repository root C:\Users\me\source\repos
+- **THEN** its WHERE cell reads ~\source\repos
 
 ### Requirement: The copy key puts the full folder path on the clipboard
 In both table views the copy key SHALL place the selected row's full folder path on the Windows clipboard as plain text and SHALL say in the footer what it copied.
@@ -59,7 +59,7 @@ In both table views the editor key SHALL open the selected row's folder in the e
 - **THEN** nothing is started and the footer says the folder no longer exists
 
 ### Requirement: The solution key opens the folder's solution
-In both table views the solution key SHALL look for files ending `.sln` or `.slnx` directly in the selected row's folder and, when none are there, directly in its `src` folder, and SHALL open the solution with Windows' default application for its file type, without waiting for it to close, without passing Vantage's Claude Code session markers to it (the same environment the editor key gives its editor), and without any part of the solution's path being read by a command shell. One solution found SHALL be opened; several SHALL open the one whose name matches the row's repository name, else ask the user which to open; none SHALL be reported in the footer.
+In both table views the solution key SHALL look for files ending `.sln` or `.slnx` directly in the selected row's folder and, when none are there, directly in its `src` folder, and SHALL open the solution with Windows' default application for its file type, without waiting for it to close, without passing Vantage's Claude Code session markers to it (the same environment the editor key gives its editor), and without any part of the solution's path being read by a command shell. One solution found SHALL be opened; several SHALL open the one whose name matches the row's repository name, else ask the user which to open from a list of their paths relative to the folder, in a dialog whose tab title names it; none SHALL be reported in the footer.
 
 #### Scenario: One solution
 - **WHEN** the folder holds Northwind.Orders.slnx and no other solution
@@ -75,7 +75,11 @@ In both table views the solution key SHALL look for files ending `.sln` or `.sln
 
 #### Scenario: Several solutions, none named after the repository
 - **WHEN** the folder holds Api.sln and Worker.sln and the repository is Northwind.Orders
-- **THEN** a dialog lists both, the chosen one opens, and Esc opens nothing
+- **THEN** a dialog lists Api.sln and Worker.sln one per line, the arrow keys move between them, Enter opens the chosen one, Esc opens nothing, and the tab reads Vantage (Open solution) while the dialog is open
+
+#### Scenario: Long solution names
+- **WHEN** the folder's src folder holds Northwind.Orders.PackageConfiguration - Copy.slnx and Northwind.Orders.PackageConfiguration - temp.slnx
+- **THEN** the dialog lists src\Northwind.Orders.PackageConfiguration - Copy.slnx and src\Northwind.Orders.PackageConfiguration - temp.slnx in full, each on its own line
 
 #### Scenario: No solution
 - **WHEN** neither the folder nor its src folder holds a solution

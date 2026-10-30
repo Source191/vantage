@@ -30,7 +30,7 @@ The console SHALL show the sessions view, the worktrees view and the Config tab 
 - **WHEN** the console starts and the worktrees tab has never been opened
 - **THEN** no worktree scan has run, and the scan starts, with its waiting indicator, when the tab is first selected
 
-#### Scenario: The up and down arrows stay with the table
+#### Scenario: The arrows stay with the table
 - **WHEN** the Sessions tab is shown and the user presses Down twice
 - **THEN** the selection moves down two rows and the Sessions tab stays shown
 
@@ -60,6 +60,10 @@ The active tab's title SHALL be drawn in bold cyan and the other tabs' titles in
 #### Scenario: Config active
 - **WHEN** the user presses 3
 - **THEN** the Config title turns bold cyan and the others grey, and no frame line or join changes colour
+
+#### Scenario: Worktrees active
+- **WHEN** the user presses 2
+- **THEN** the Worktrees title turns bold cyan and the Sessions title grey, and no frame line or join changes colour
 
 ### Requirement: The Vantage icon heads the settings
 Where the terminal can draw images, the console SHALL draw the Vantage icon one row high at the left of the settings row, which then starts after it; where it cannot, the console SHALL draw no icon and the settings row SHALL start at the left edge. The tabs SHALL start on the row below.

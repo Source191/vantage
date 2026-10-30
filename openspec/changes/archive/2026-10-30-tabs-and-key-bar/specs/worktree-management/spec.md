@@ -9,6 +9,10 @@ The worktrees view SHALL be the Worktrees tab of the console, under the same set
 - **WHEN** the user presses the help key on the Worktrees tab
 - **THEN** the help names every column of the worktrees table with its meaning, including what each health word means
 
+#### Scenario: Worktrees help on a short terminal
+- **WHEN** the user presses the help key in the worktrees view on a 120 x 36 terminal
+- **THEN** every line of the help is reachable with the arrow keys and PageDown
+
 #### Scenario: Hover over a key hint
 - **WHEN** the mouse pointer rests on P Prune in the key bar of the Worktrees tab
 - **THEN** a tooltip says it prunes stale registrations in the row's repository
