@@ -46,7 +46,8 @@
 - [x] 5.2 `dotnet build -c Debug` (no warnings), `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes`, `openspec validate detail-pane --strict`; the hand-off check and the smoke check against the packed tool. Verify all pass and both checks exit 0.
   - Done again 30 October 2026 after tasks 4.7 to 4.10: no warnings, 1839 tests pass (seven contract tests skip), format and validate pass for detail-pane and config-tab-follow-ups; the hand-off check and the smoke check exit 0.
   - Done 30 October 2026 after the rework: no warnings, 1842 tests pass (the seven Claude contract tests skip without `VANTAGE_CLAUDE_CONTRACT`), format and validate pass; the hand-off check exits 0 and the smoke check, against the nupkg packed as 0.18.0-preview.8-smoke with `Northwind.Smoke` seeded and removed, exits 0.
-- [ ] 5.3 The product owner installs the build with `tools\install-local.ps1`, reads a waiting session's reason and Prompted in the pane, reads a worktree's branch, changes and unpushed commits in the pane, and checks long repository and worktree names show whole at 120 columns. Record here.
+- [x] 5.3 The product owner installs the build with `tools\install-local.ps1`, reads a waiting session's reason and Prompted in the pane, reads a worktree's branch, changes and unpushed commits in the pane, and checks long repository and worktree names show whole at 120 columns. Record here.
+  - Recorded 30 October 2026: the owner checked the builds on his own terminal through three rounds. The first, with the screen from claude logs, led to the facts-only pane and slimmer tables; the second to removing the footer crumb and need-input count; the third to the status line shown only with a message, no Worktrees standing footer, tooltips under the header and the Config descriptions. The owner approved 0.18.0-preview.8-local and asked for the pull request.
 
 ## Workflow follow-up
 
