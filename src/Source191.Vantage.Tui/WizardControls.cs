@@ -22,7 +22,7 @@ internal sealed class WizardControls
     private const int ColumnWidth = 76;
 
     /// <summary>The rows the one-column form takes under the repository list, counted up from the dialog's bottom.</summary>
-    private const int FormRows = 16;
+    private const int FormRows = 17;
 
     public WizardControls(WizardState state)
     {
@@ -83,10 +83,11 @@ internal sealed class WizardControls
     /// </summary>
     private View[] OneColumn()
     {
-        Name.Y = Pos.AnchorEnd(15);
-        Mode.Y = Pos.AnchorEnd(13);
-        BaseRef.Y = Pos.AnchorEnd(10);
-        Preview.Y = Pos.AnchorEnd(8);
+        Name.Y = Pos.AnchorEnd(16);
+        Mode.Y = Pos.AnchorEnd(14);
+        BaseRef.Y = Pos.AnchorEnd(11);
+        Preview.Y = Pos.AnchorEnd(9);
+        Preview.Height = 2;
         Prompt.Y = Pos.AnchorEnd(6);
         Prompt.Height = 3;
 
@@ -97,9 +98,9 @@ internal sealed class WizardControls
             Repositories,
             Caption(LeftColumn, Pos.AnchorEnd(FormRows), "Session name (required)"),
             Name,
-            Caption(LeftColumn, Pos.AnchorEnd(14), "Where (↑↓ to change)"),
+            Caption(LeftColumn, Pos.AnchorEnd(15), "Where (↑↓ to change)"),
             Mode,
-            Caption(LeftColumn, Pos.AnchorEnd(11), "Worktree base (↑↓ to change)"),
+            Caption(LeftColumn, Pos.AnchorEnd(12), "Worktree base (↑↓ to change)"),
             BaseRef,
             Preview,
             Caption(LeftColumn, Pos.AnchorEnd(7), PromptCaption),
