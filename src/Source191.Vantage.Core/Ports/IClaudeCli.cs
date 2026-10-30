@@ -33,4 +33,7 @@ public interface IClaudeCli
 
     /// <summary>The Claude Code version, such as "2.1.310"; null when the CLI cannot be run, is cancelled or prints none.</summary>
     Task<string?> VersionAsync(CancellationToken cancellationToken);
+
+    /// <summary>A background job's whole screen history as <c>claude logs</c> prints it (see <see cref="SessionScreen"/>); null when the command fails or cannot be run. Never recorded.</summary>
+    Task<string?> LogsAsync(string jobId, CancellationToken cancellationToken);
 }
