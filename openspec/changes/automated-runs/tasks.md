@@ -2,7 +2,7 @@
 
 ## 1. The run (Domain and Ports)
 
-- [ ] 1.1 Red: `SessionListingShould` (Core.Tests) asserts a `SessionListing` built from two sessions and one `AutomatedRun` gives them back apart, and `SessionListing.Empty` holds neither. Green: `Domain\AutomatedRun(SessionId, FolderPath, int ProcessId)` and `Ports\SessionListing`. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build`.
+- [x] 1.1 Red: `SessionListingShould` (Core.Tests) asserts a `SessionListing` built from two sessions and one `AutomatedRun` gives them back apart, and `SessionListing.Empty` holds neither. Green: `Domain\AutomatedRun(SessionId, FolderPath, int ProcessId)` and `Ports\SessionListing`. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build`.
 
 ## 2. The rule (Adapters)
 
