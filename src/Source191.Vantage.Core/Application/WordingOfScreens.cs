@@ -152,23 +152,37 @@ public static partial class Wording
         new("!", "Report", ReportLine, Column: 2, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
     ];
 
+    /// <summary>The TAB cell: a solid block while a Vantage tab shows the session, a hollow one for a plain claude in its own terminal.</summary>
+    public const string OpenTabSwatch = "▮";
+
+    public const string TerminalSwatch = "▯";
+
+    /// <summary>The glyph before a state's word: a closed enum, so a new kind fails the build here.</summary>
+    public static string StateGlyph(DisplayStateKind kind) => kind switch
+    {
+        DisplayStateKind.NeedsInput => "◐",
+        DisplayStateKind.Working => "●",
+        DisplayStateKind.Idle => "○",
+        DisplayStateKind.Completed => "✓",
+        DisplayStateKind.Failed => "✗",
+        DisplayStateKind.Stopped => "■",
+        DisplayStateKind.Unknown => "■",
+    };
+
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =
     [
         new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
-        new("STATE", "needs input (amber), working (cyan), idle (white),\ncompleted (green), failed (red), stopped (grey)"),
-        new("REPOSITORY", "the repository the session runs in"),
-        new("FOLDER", "where it runs, relative to the repository or worktree root that holds it,\nelse ~\\ from your home folder, else in full"),
-        new("BRANCH", "the branch checked out there"),
+        new("TAB", $"{OpenTabSwatch} in its colour while a Vantage tab shows the session,\n{TerminalSwatch} grey for a plain claude in its own terminal"),
+        new("STATE", "◐ needs input (amber), ● working (cyan), ○ idle (white),\n✓ completed (green), ✗ failed (red), ■ stopped (grey)"),
+        new("WHERE", "repository › slug for a worktree, with the branch in brackets when it differs;\nrepository (branch) for a main checkout; the folder alone outside a repository"),
         new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
         new("AGE", "time since the session started"),
-        new("TAB", "terminal for a plain claude started in its own tab, open while a Vantage tab shows it"),
         new("MEM", "private working set of the session's process and everything it started; - when it has no process"),
     ];
 
     public static IReadOnlyList<ColumnHelp> WorktreesColumns { get; } =
     [
-        new("REPOSITORY", "the repository that owns the worktree"),
-        new("FOLDER", "the worktree's folder, relative to the root that holds it"),
+        new("WORKTREE", "the owning repository › the folder's slug, or its label when not named after it"),
         new("BRANCH", "the branch checked out there"),
         new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
         new("DIRTY", "changed or untracked files"),
