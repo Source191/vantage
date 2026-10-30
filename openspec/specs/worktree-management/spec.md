@@ -6,15 +6,15 @@ Shows every git worktree across the repository roots with its health and lets th
 ## Requirements
 
 ### Requirement: Worktrees are listed across all roots
-The worktrees view SHALL list every linked worktree of every git repository found directly under the configured roots, wherever the worktree's folder is (under the worktree root, beside the repository or elsewhere), using git's machine-readable worktree listing.
+The worktrees view SHALL list every linked worktree of every git repository found directly under the configured roots, wherever the worktree's folder is (under the worktree root, beside the repository or elsewhere), using git's machine-readable worktree listing, each as a row whose WORKTREE cell names the repository and the folder and whose BRANCH cell names the branch.
 
 #### Scenario: Two repositories with worktrees
 - **WHEN** two repositories under the roots each have one linked worktree
-- **THEN** the view shows two rows, each naming its repository, path and branch
+- **THEN** the view shows two rows, each with a WORKTREE cell reading its repository › its folder's slug, and its branch in BRANCH
 
 #### Scenario: Old and new placements together
 - **WHEN** Northwind.Orders has one worktree beside it from an earlier version and one under C:\Users\me\source\worktrees
-- **THEN** the view shows both rows
+- **THEN** the view shows both rows, each reading Northwind.Orders › and its slug
 
 ### Requirement: Leftover folders are detected
 The view SHALL also show folders that git no longer recognises: a folder under a repository's .claude\worktrees that the listing omits is an orphan; a folder directly under a root or under the worktree root whose .git file points at a worktree registration that no longer exists is broken; an empty folder named with a .worktrees suffix directly under a root is empty. A folder directly under a root or under the worktree root whose .git file points at a registration that still exists, in a repository that still has its .git folder but is not under the roots, is elsewhere, and its row SHALL name that repository.
@@ -40,21 +40,21 @@ The view SHALL also show folders that git no longer recognises: a folder under a
 - **THEN** the view shows it with health elsewhere, its repository as Northwind.Ledger, and the footer says its repository D:\other\Northwind.Ledger is not under the roots
 
 ### Requirement: Locked worktrees are marked
-A worktree that git reports as locked SHALL show health locked and SHALL show the lock reason when git provides one.
+A worktree that git reports as locked SHALL show health locked, its row in amber, and the detail pane's Health line SHALL show the lock reason when git provides one.
 
 #### Scenario: Locked by another tool
-- **WHEN** git reports a worktree as locked
-- **THEN** the row shows locked and the lock reason
+- **WHEN** git reports a worktree as locked and it is selected
+- **THEN** its row is amber and the pane reads locked and the lock reason
 
 ### Requirement: Each row shows work at risk
-For every registered worktree the view SHALL show the count of changed or untracked files, the count of commits not on any remote branch, the age of the last commit, and the name of any session whose working directory is that worktree.
+For every registered worktree the view SHALL show the age of the last commit and the name of any session whose working directory is that worktree in its row, and the count of changed or untracked files and the count of commits not on any remote branch in the detail pane's Changes line when the row is selected.
 
 #### Scenario: Dirty worktree
-- **WHEN** a worktree has five changed files and two unpushed commits
-- **THEN** its row shows dirty 5 and unpushed 2
+- **WHEN** a worktree has five changed files and two unpushed commits and is selected
+- **THEN** the pane's Changes line reads 5 changed files · 2 unpushed commits, in amber
 
 ### Requirement: Removal refuses to destroy work
-Removal SHALL be refused when the worktree has changed or untracked files, unpushed commits, a lock, or a live session inside it, and the refusal SHALL name the reason.
+Removal SHALL be refused when the worktree has changed or untracked files, unpushed commits, a lock, or a live session inside it, and the refusal SHALL name the reason. When git cannot delete the folder because a tab or program still has it as its working directory, the removal SHALL report the folder as in use, naming it, and SHALL leave the registration for a later remove or prune.
 
 #### Scenario: Unpushed commits
 - **WHEN** the user presses remove on a worktree with unpushed commits
@@ -63,6 +63,10 @@ Removal SHALL be refused when the worktree has changed or untracked files, unpus
 #### Scenario: Clean worktree
 - **WHEN** the user presses remove on a worktree with no changes, no unpushed commits, no lock and no session
 - **THEN** the worktree is removed from git and from disc
+
+#### Scenario: Folder in use by a shell tab
+- **WHEN** the user presses remove on a clean worktree while a PowerShell tab opened from the worktrees view sits in it
+- **THEN** the footer says the folder is still in use by a tab or program and names it, and after that tab is closed a second remove deletes what is left and prunes the registration
 
 ### Requirement: Forced removal needs a typed confirmation
 The force-remove key SHALL remove a worktree despite changes or unpushed commits only after the user enters the worktree's folder name to confirm (shown selected in the dialog so it can be copied and pasted; a wrong or empty answer keeps the dialog open and says what was typed), and SHALL never force-remove a locked worktree or one with a live session. A refusal that cannot be forced SHALL NOT suggest force-remove in the footer.
@@ -175,19 +179,31 @@ The worktrees view's table title SHALL count the rows shown, name the filter whe
 - **THEN** the table title reads 1 of 12 worktrees match "orp", selected: Northwind.Orders-orphaned
 
 ### Requirement: The worktrees header and help match the sessions view
-The worktrees view's header SHALL show the Vantage version, the Claude Code CLI version and the repository roots as the sessions view's does; its help SHALL explain each of its columns; each of its key hints SHALL show the key's help line as a tooltip while the mouse pointer rests on it, and each of its column headers SHALL show what the column shows.
+The worktrees view SHALL be the Worktrees tab of the console, under the same settings line as the Sessions tab, with its own counts beside the tabs and its own key bar grouped Worktree, Folder and view; its status line SHALL show only messages, never a standing hint or the selected row's health, which the detail pane shows; its help SHALL explain each of its columns and each line of its detail pane; each item of its key bar SHALL show the key's tooltip while the mouse pointer rests on it, and each of its column headers SHALL show what the column shows.
 
 #### Scenario: Worktrees help
-- **WHEN** the user presses the help key in the worktrees view
-- **THEN** the help names every column of the worktrees table with its meaning, including what each health word means
+- **WHEN** the user presses the help key on the Worktrees tab
+- **THEN** the help names every column of the worktrees table with its meaning, and its Pane section names every line of the pane, including what each health word means
+
+#### Scenario: Worktrees help on a short terminal
+- **WHEN** the user presses the help key in the worktrees view on a 120 x 36 terminal
+- **THEN** every line of the help is reachable with the arrow keys and PageDown
 
 #### Scenario: Hover over a key hint
-- **WHEN** the mouse pointer rests on the hint for p in the worktrees view
-- **THEN** a tooltip shows the help line for p, saying it prunes stale registrations in the row's repository
+- **WHEN** the mouse pointer rests on P Prune in the key bar of the Worktrees tab
+- **THEN** a tooltip says it prunes stale registrations in the row's repository
+
+#### Scenario: An unhealthy row selected
+- **WHEN** an elsewhere worktree is selected and no key has reported anything
+- **THEN** the pane's Health line gives the reason and there is no status line
 
 #### Scenario: Hover over a column header
-- **WHEN** the mouse pointer rests on the HEALTH header
-- **THEN** a tooltip names the column and explains what each health word means
+- **WHEN** the mouse pointer rests on the LAST COMMIT header
+- **THEN** a tooltip names the column and explains it
+
+#### Scenario: The worktree bar
+- **WHEN** an ok worktree with a session inside it is selected
+- **THEN** the first bar row reads d Remove, D Force remove, P Prune, s Start session, o Open shell and Enter Go to session, and the second c Copy path, e Open folder, v Solution, p Open PR, / Filter, ? Help, ! Report and q Quit
 
 ### Requirement: Deleting a leftover folder never deletes a root
 When Vantage deletes a leftover folder from disc, it SHALL refuse a path that is not fully qualified, or that is a drive root or a network share root, before changing anything. The footer SHALL report the refusal as a failure naming the path.
@@ -210,3 +226,26 @@ For a row with health elsewhere, the remove and force-remove keys SHALL refuse, 
 #### Scenario: Remove an elsewhere row
 - **WHEN** the user presses remove or force-remove on an elsewhere row
 - **THEN** nothing is deleted and the footer says the repository is not under the roots, without offering force-remove
+
+### Requirement: One WORKTREE column names the worktree
+The worktrees table SHALL show the repository and the folder in one WORKTREE column, as the repository, › and the folder's part after the repository (the slug of a folder named `<repository>-<slug>`, else the folder's label), elastic in width and elided in the middle of the repository name when too long, followed by LAST COMMIT and SESSION; the branch, the pull request, the changed files, the unpushed commits and the health SHALL be shown in the detail pane, and each row SHALL keep its health's colour. The filter SHALL still match the repository, the folder, the branch and the health.
+
+#### Scenario: A worktree Vantage made
+- **WHEN** Northwind.Billing has the worktree C:\Users\me\source\worktrees\Northwind.Billing-invoice-pdf on branch invoice-pdf
+- **THEN** its WORKTREE cell reads Northwind.Billing › invoice-pdf, and the pane reads Branch invoice-pdf
+
+#### Scenario: A leftover folder
+- **WHEN** a broken leftover C:\Users\me\source\worktrees\Northwind.Sales-republish once belonged to Northwind.Sales
+- **THEN** its WORKTREE cell reads Northwind.Sales › republish and its row is red
+
+#### Scenario: A folder that does not follow the naming
+- **WHEN** Northwind.Orders has a hand-made worktree at C:\Users\me\source\worktrees\spike on branch spike
+- **THEN** its WORKTREE cell reads Northwind.Orders › spike
+
+#### Scenario: Filter by health
+- **WHEN** the user filters by broken
+- **THEN** the broken rows stay in the table though no cell shows the health
+
+#### Scenario: The help names the column
+- **WHEN** the help is shown on the worktrees view
+- **THEN** it lists WORKTREE with its meaning, and the header shows the same words on hover

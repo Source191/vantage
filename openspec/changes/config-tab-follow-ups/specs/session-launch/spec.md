@@ -24,3 +24,11 @@ The wizard opened from the overview SHALL start on the default place setting, a 
 #### Scenario: Wizard on a fixed folder
 - **WHEN** the default place is New worktree and the user starts a session with `s` on a worktree row
 - **THEN** the session starts in that worktree on its current branch and no new worktree is created
+
+#### Scenario: Fixed folder without a tab
+- **WHEN** the user starts a session with `s` on a worktree row, types a name and presses F5
+- **THEN** the session starts in that worktree and no tab is opened
+
+#### Scenario: Fixed folder dialog is compact
+- **WHEN** the wizard opens from a worktree row
+- **THEN** the dialog shows the directory, the name, the preview and the prompt from its left edge, with no empty repository column, and its hint line says Enter starts and opens in a tab

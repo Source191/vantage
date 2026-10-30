@@ -67,6 +67,14 @@ For each session Vantage SHALL derive the repository, the checked-out branch and
 - **WHEN** the user filters by hotfix and a session runs on the branch hotfix/orders
 - **THEN** that session's row stays in the table though no cell shows its branch
 
+#### Scenario: Branch differs from the slug
+- **WHEN** a session runs in the worktree Northwind.Orders-fix-123 on branch hotfix/orders
+- **THEN** its REPOSITORY cell reads Northwind.Orders, and the pane reads Worktree fix-123 and Branch hotfix/orders
+
+#### Scenario: Main checkout
+- **WHEN** a session runs in C:\Users\me\source\repos\Northwind.Orders on branch main
+- **THEN** its REPOSITORY cell reads Northwind.Orders, and the pane reads Worktree main checkout and Branch main
+
 ### Requirement: Long names never hide columns
 The sessions table SHALL give REPOSITORY the width its other columns leave and SHALL fit every column on a 120-column terminal; a REPOSITORY value too long for its width SHALL lose its middle, marked with an ellipsis. NAME SHALL keep its cap and ellipsis, the row SHALL keep the full values for every key that uses them, and < and > SHALL scroll the table on a narrower terminal, Left and Right being the tab keys. The key bar SHALL show every key that applies within 120 columns, with its words.
 
@@ -89,6 +97,14 @@ The sessions table SHALL give REPOSITORY the width its other columns leave and S
 #### Scenario: Scroll on a narrow terminal
 - **WHEN** the terminal is 100 columns wide and the user presses > on the Sessions tab
 - **THEN** the table scrolls one column to the right and the Sessions tab stays shown
+
+#### Scenario: Third column of key hints
+- **WHEN** the terminal is 126 columns wide
+- **THEN** the c, e, v and p keys and their words are in the Folder group of the key bar on both tabs
+
+#### Scenario: Wide terminal
+- **WHEN** the terminal is 127 columns or wider
+- **THEN** the REPOSITORY cell for Northwind.Integration.CosmosDb.ChangeFeedMonitoring is shown whole
 
 ### Requirement: Rows show the session's memory
 The memory used by a running session's process tree, the session's process and every process it started, SHALL be shown in the detail pane's Memory line for the selected row, in whole megabytes below 1,000 MB and in gigabytes to one decimal place from there, refreshed with the rows. A session without a process SHALL read nothing to measure. The sessions table SHALL have no MEM column, and the help SHALL say the pane and the m key show memory.

@@ -44,22 +44,38 @@ Vantage SHALL map each session's process presence, status, waitingFor and state 
 - **THEN** its row shows the raw value rather than guessing a display state
 
 ### Requirement: Rows show repository, branch and worktree
-For each session Vantage SHALL derive the repository, the checked-out branch and the folder it runs in, and SHALL show the folder relative to its root as the folder-actions spec describes; a session in a linked git worktree is recognisable because its folder differs from its repository's, so the row carries no separate worktree marker.
+For each session Vantage SHALL derive the repository, the checked-out branch and the folder it runs in. The table SHALL show the repository's name in a REPOSITORY column, or the folder-actions label of a folder outside any repository; the worktree's place (its slug, or the path inside the repository, or the main checkout), the branch and the full folder SHALL be shown in the detail pane. The filter SHALL still match the name, the repository and the branch.
 
 #### Scenario: Session in a sibling worktree
-- **WHEN** a session's working directory is the linked worktree C:\Users\me\source\worktrees\Northwind.Orders-fix-123 of Northwind.Orders
-- **THEN** the row shows Northwind.Orders as the repository, the worktree's branch, and Northwind.Orders-fix-123 as the folder
+- **WHEN** a session's working directory is the linked worktree C:\Users\me\source\worktrees\Northwind.Orders-fix-123 of Northwind.Orders, on branch fix-123
+- **THEN** its REPOSITORY cell reads Northwind.Orders, and the pane reads Worktree fix-123 and Branch fix-123
 
 #### Scenario: Session outside any repository
 - **WHEN** a session's working directory is not inside a git repository
-- **THEN** the row shows the folder name as the repository, leaves the branch blank, and shows the folder relative to its root
+- **THEN** its REPOSITORY cell reads the folder's label, such as ~\scratch\notes, and the pane reads Worktree not in a repository
 
 #### Scenario: Session whose folder no longer exists
 - **WHEN** a session's working directory has been deleted
-- **THEN** the listing still succeeds, and the row shows the folder name as the repository and leaves the branch blank
+- **THEN** the listing still succeeds, and its REPOSITORY cell reads the folder's label
+
+#### Scenario: Folder inside the repository
+- **WHEN** a session runs in C:\Users\me\source\repos\Northwind.Orders\src\Api on branch main
+- **THEN** its REPOSITORY cell reads Northwind.Orders, and the pane reads Worktree src\Api and Branch main
+
+#### Scenario: Filter by branch
+- **WHEN** the user filters by hotfix and a session runs on the branch hotfix/orders
+- **THEN** that session's row stays in the table though no cell shows its branch
+
+#### Scenario: Branch differs from the slug
+- **WHEN** a session runs in the worktree Northwind.Orders-fix-123 on branch hotfix/orders
+- **THEN** its REPOSITORY cell reads Northwind.Orders, and the pane reads Worktree fix-123 and Branch hotfix/orders
+
+#### Scenario: Main checkout
+- **WHEN** a session runs in C:\Users\me\source\repos\Northwind.Orders on branch main
+- **THEN** its REPOSITORY cell reads Northwind.Orders, and the pane reads Worktree main checkout and Branch main
 
 ### Requirement: Interactive sessions are shown with limited actions
-Sessions whose kind is interactive SHALL appear in the list with their kind marked, and SHALL NOT accept attach, open-in-tab, stop or rename actions; the adopt key moves them under the supervisor and, for one never sent a message, the delete key closes its tab (session-attach spec).
+Sessions whose kind is interactive SHALL appear in the list with their kind marked by the hollow block in the TAB column, and SHALL NOT accept attach, open-in-tab, stop or rename actions; the adopt key moves them under the supervisor and, for one never sent a message, the delete key closes its tab (session-attach spec).
 
 #### Scenario: Action on an interactive row
 - **WHEN** the user presses attach on an interactive session's row
@@ -95,7 +111,7 @@ The view SHALL filter rows by a text typed after the filter key, matching case-i
 - **THEN** only rows whose name, repository or branch contains "templates" remain visible
 
 ### Requirement: The screen is a header, a table and a footer
-The sessions view SHALL show a header with context on the left, key hints in the middle with each key coloured differently from its description, and the Vantage name on the right; a bordered table whose title counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; and a footer crumb naming the view with a status line beneath it.
+The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, at the right end of the tabs' row, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; the detail pane beneath the table; and beneath that, above the key bar, a status line shown only while there is a message or an action is running, the table taking its row otherwise. A message SHALL clear when the selection moves or the filter changes. The status line SHALL NOT name the view or repeat the counts beside the tabs.
 
 #### Scenario: Table title
 - **WHEN** seven sessions are listed with no filter and fix-123 is selected
@@ -113,19 +129,27 @@ The sessions view SHALL show a header with context on the left, key hints in the
 - **WHEN** no sessions are listed
 - **THEN** the table title reads 0 sessions and names no selection
 
+#### Scenario: Nothing to say
+- **WHEN** two sessions need input and no key has reported anything
+- **THEN** the counts beside the tabs read ◐ 2 need input, there is no status line, and the table has its row
+
+#### Scenario: A message
+- **WHEN** the user presses c on fix-123
+- **THEN** a status line under the pane says the folder was copied, and it goes when the user presses Down
+
 ### Requirement: States are colour coded
-Each state word SHALL be shown in its own colour: needs input amber, working cyan, idle white, completed green, failed red, stopped and unknown grey; and rows that are completed, failed or stopped SHALL be dimmed.
+Each state SHALL be shown as a glyph and its word in its own colour: ◐ needs input amber, ● working cyan, ○ idle white, ✓ completed green, ✗ failed red, ■ stopped and unknown grey; and rows that are completed, failed or stopped SHALL be dimmed.
 
 #### Scenario: State colours
 - **WHEN** the table shows a working row, a needs-input row and a stopped row
-- **THEN** the working state reads in cyan, the needs-input state in amber, and the stopped row is dimmed grey
+- **THEN** the working state reads ● working in cyan, the needs-input state ◐ needs input in amber, and the stopped row is dimmed grey
 
 ### Requirement: The header counts sessions needing input
-The header SHALL show how many sessions are in the needs-input state.
+The counts beside the tabs SHALL show how many sessions are in the needs-input state, first and in amber, whenever any is.
 
 #### Scenario: Two sessions need input
 - **WHEN** two sessions are in the needs-input state
-- **THEN** the header shows a count of two
+- **THEN** the counts row starts ◐ 2 need input in amber
 
 ### Requirement: Waiting is visible
 The sessions view SHALL show a spinner with the words "Listing sessions" in the middle of the table until the first listing arrives, and SHALL show a spinner beside the footer's working text while an action started from the view runs; neither spinner SHALL appear for the timed refreshes.
@@ -143,83 +167,99 @@ The sessions view SHALL show a spinner with the words "Listing sessions" in the 
 - **THEN** the spinner is replaced by the failure banner
 
 ### Requirement: The header shows the versions and the roots
-The header's context SHALL show the Vantage version followed by the memory Vantage's own process uses in brackets, the Claude Code CLI version, the repository roots and the worktree root, and SHALL NOT show the machine name or the Claude executable's path. A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown. A Claude version older than the minimum Vantage supports SHALL show that minimum and ask for Claude Code to be updated; the view SHALL work as usual. The roots and the worktree root SHALL be the settings saved now, so a save from the settings dialog shows at once.
+The settings rows SHALL show the Vantage version followed by the memory Vantage's own process uses in brackets, the Claude Code CLI version, the repository roots and the worktree root, and SHALL NOT show the machine name or the Claude executable's path. A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown. A Claude version older than the minimum Vantage supports SHALL show that minimum and ask for Claude Code to be updated; the view SHALL work as usual. The roots and the worktree root SHALL be the settings saved now, so a save from the settings dialog shows at once.
 
 #### Scenario: Released versions
 - **WHEN** Vantage 0.5.0 runs using 29 MB with Claude Code 2.1.310 and the root C:\Users\me\source\repos
-- **THEN** the header reads Vantage: 0.5.0 (29 MB), Claude: 2.1.310, Roots: C:\Users\me\source\repos and Worktree root: C:\Users\me\source\worktrees above the session counts
+- **THEN** the first settings row reads Vantage 0.5.0 (29 MB) · Claude 2.1.310 and the second Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees
 
 #### Scenario: Local build
 - **WHEN** the installed tool's version is 0.5.0-local.20261025T101500 and Vantage uses 29 MB
-- **THEN** the header reads Vantage: 0.5.0-local (29 MB)
+- **THEN** the first settings row starts Vantage 0.5.0-local (29 MB)
 
 #### Scenario: An update is available
 - **WHEN** Vantage 0.5.0 uses 29 MB and 0.6.0 is the newest release
-- **THEN** the header reads Vantage: 0.5.0 (29 MB; 0.6.0 available, U to update)
+- **THEN** the first settings row starts Vantage 0.5.0 (29 MB; 0.6.0 available, U to update)
 
 #### Scenario: Claude version unreadable
 - **WHEN** the Claude Code CLI's version command fails or prints something without a version
-- **THEN** the header reads Claude: unknown and the view works as usual
+- **THEN** the first settings row reads Claude unknown and the view works as usual
 
 #### Scenario: Claude version below the minimum
 - **WHEN** the minimum is 2.1.309 and the Claude Code CLI reports 2.1.302
-- **THEN** the header reads Claude: 2.1.302 (below 2.1.309, update Claude Code) and the view works as usual
+- **THEN** the first settings row reads Claude 2.1.302 (below 2.1.309, update Claude Code) and the view works as usual
 
 #### Scenario: Claude version at the minimum
 - **WHEN** the minimum is 2.1.309 and the Claude Code CLI reports 2.1.309
-- **THEN** the header reads Claude: 2.1.309 with no warning
+- **THEN** the first settings row reads Claude 2.1.309 with no warning
 
 #### Scenario: Default worktree root
 - **WHEN** Vantage starts with no settings file
-- **THEN** the header shows C:\Users\me\source\worktrees as the worktree root on both views
+- **THEN** the second settings row ends Worktree root C:\Users\me\source\worktrees on both tabs
 
 ### Requirement: Help explains the columns
-The help key SHALL show, beneath the keys, one line for each column of the current view saying what it shows, and the path of the Claude Code executable Vantage drives.
+The help key SHALL show, beneath the keys, one line for each column of the current view saying what it shows, and the path of the Claude Code executable Vantage drives. Every line of the help SHALL be visible or reachable by scrolling on a terminal of 36 rows or more, and the whole text SHALL be visible without scrolling on a terminal of 40 rows.
 
 #### Scenario: Sessions help
 - **WHEN** the user presses the help key in the sessions view
 - **THEN** the help names every column of the sessions table with its meaning, and the Claude executable's path
 
+#### Scenario: Help on a short terminal
+- **WHEN** the user presses the help key on a 120 x 36 terminal
+- **THEN** the help shows its first lines, the arrow keys and PageDown scroll it, and its last line, the Claude Code executable's path, is reached
+
+#### Scenario: Help on a 40-row terminal
+- **WHEN** the user presses the help key on a 120 x 40 terminal
+- **THEN** the TAB column's line and the Claude Code executable's path are visible without scrolling
+
 ### Requirement: Key hints explain themselves on hover
-Each key hint in the header SHALL show the key's help line as a tooltip while the mouse pointer rests on it, using the same words as the help key.
+Each item of the key bar SHALL show a tooltip while the mouse pointer rests on it, saying in one sentence what the key does and when to use it, drawn in its own colours apart from the bar's text.
 
 #### Scenario: Hover over a key hint
-- **WHEN** the mouse pointer rests on the hint for x in the sessions view
-- **THEN** a tooltip shows the help line for x, saying it stops the session
+- **WHEN** the mouse pointer rests on x Stop in the key bar of the Sessions tab
+- **THEN** a tooltip in colours distinct from the bar says that x stops the session, which stays listed as stopped and can be resumed
+
+#### Scenario: Every key has a tip
+- **WHEN** the help lists a key of either view
+- **THEN** that key has a tooltip sentence of at most 80 characters
 
 ### Requirement: Column headers explain themselves on hover
-A table column header SHALL show what the column shows as a tooltip while the mouse pointer rests on it, using the same words as the help key, and SHALL show nothing while the pointer rests on a row.
+A table column header SHALL show what the column shows as a tooltip while the mouse pointer rests on it, using the same words as the help key and keeping the help's line breaks so the tooltip never runs off the screen, drawn just under the header over the table's rows and never over the detail pane, and SHALL show nothing while the pointer rests on a row.
 
 #### Scenario: Hover over a column header
 - **WHEN** the mouse pointer rests on the STATE header in the sessions view
 - **THEN** a tooltip names the column and lists the state words with their colours
+
+#### Scenario: Hover over the PR header
+- **WHEN** the mouse pointer rests on the PR header on a 120-column terminal
+- **THEN** the tooltip shows the column's meaning on two lines, each within the terminal's width, on the rows just under the header, and the pane is not covered
 
 #### Scenario: Hover over a row
 - **WHEN** the mouse pointer rests on a row of the table
 - **THEN** no column tooltip is shown
 
 ### Requirement: Rows show the session's memory
-The sessions table SHALL have a MEM column showing the memory used by a running session's process tree, the session's process and every process it started, in whole megabytes below 1,000 MB and in gigabytes to one decimal place from there, refreshed with the rows. A session without a process SHALL show a dash. The help and the column's tooltip SHALL say what the column shows.
+The memory used by a running session's process tree, the session's process and every process it started, SHALL be shown in the detail pane's Memory line for the selected row, in whole megabytes below 1,000 MB and in gigabytes to one decimal place from there, refreshed with the rows. A session without a process SHALL read nothing to measure. The sessions table SHALL have no MEM column, and the help SHALL say the pane and the m key show memory.
 
 #### Scenario: A running session
-- **WHEN** the session fix-123 runs with its process using 296 MB and the MCP servers it started using 607 MB between them
-- **THEN** its MEM cell reads 903 MB
+- **WHEN** the session fix-123 is selected with its process using 296 MB and the MCP servers it started using 607 MB between them
+- **THEN** the pane's Memory line reads 903 MB
 
 #### Scenario: A large session
-- **WHEN** a session's tree uses 1,234 MB
-- **THEN** its MEM cell reads 1.2 GB
+- **WHEN** a selected session's tree uses 1,234 MB
+- **THEN** the pane's Memory line reads 1.2 GB
 
 #### Scenario: A stopped session
-- **WHEN** a background session is listed as stopped, so it has no process
-- **THEN** its MEM cell reads -
+- **WHEN** a background session listed as stopped, so with no process, is selected
+- **THEN** the pane's Memory line reads nothing to measure
 
 #### Scenario: The process has gone between the listing and the measurement
-- **WHEN** a listed session's process ends before its tree is measured
-- **THEN** its MEM cell reads - and the row is otherwise unchanged
+- **WHEN** a selected session's process ends before its tree is measured
+- **THEN** the pane's Memory line reads nothing to measure and the row is otherwise unchanged
 
 #### Scenario: The help names the column
 - **WHEN** the help is shown on the sessions view
-- **THEN** it lists MEM beneath TAB with its meaning, and the MEM header shows the same words on hover
+- **THEN** it lists no MEM column, its Pane section explains the Memory line, and the m key's line says what m shows
 
 ### Requirement: A key shows what the memory is made of
 The `m` key SHALL open a dialog titled with the session's name that lists Claude Code itself and then one line per program the session's process started directly, each with the memory of that program's own tree, largest first, and a total with the number of processes in the tree. The dialog is a snapshot taken when it opens, closes with Close or Esc, and SHALL show a program's label only, never its command line. On a session with no process the footer SHALL say there is nothing to measure.
@@ -241,8 +281,8 @@ The `m` key SHALL open a dialog titled with the session's name that lists Claude
 - **THEN** no dialog opens and the footer says there is nothing to measure for a session with no process
 
 #### Scenario: The key is listed
-- **WHEN** the sessions view's help is shown
-- **THEN** `m` is listed as the memory breakdown key; it has no hint in the header, which is full until the key bar replaces it
+- **WHEN** a running session is selected on the Sessions tab
+- **THEN** m Memory is in the key bar's first row, and the help lists `m` as the memory breakdown key
 
 ### Requirement: Memory is measured honestly
 A process's memory SHALL be its private working set, the figure Task Manager's Memory column shows, so pages shared between processes are counted once. A process SHALL count towards a tree only when it started after its parent, so a reused process identifier never attaches an unrelated program to a session. A process that refuses to be measured SHALL count as zero and the rest of the tree SHALL still be measured.
@@ -258,3 +298,72 @@ A process's memory SHALL be its private working set, the figure Task Manager's M
 #### Scenario: A protected process in the tree
 - **WHEN** one process in a session's tree refuses the memory query
 - **THEN** the session's figure is the sum of the others
+
+### Requirement: The header summarises sessions by state
+The table's title beside the tabs SHALL count the sessions listed, and the counts beside the tabs SHALL show one glyph, count and state word per state present, needs input first; with no session listed the title SHALL read 0 sessions and no counts SHALL show.
+
+#### Scenario: Mixed states
+- **WHEN** nine sessions are listed, four of them stopped and the rest needing input
+- **THEN** the title starts 9 sessions and the counts read ◐ 5 need input · ■ 4 stopped
+
+#### Scenario: Every session needs input
+- **WHEN** six sessions are listed and every one needs input
+- **THEN** the title starts 6 sessions and the counts read ◐ 6 need input
+
+#### Scenario: No sessions
+- **WHEN** no session is listed
+- **THEN** the title reads 0 sessions and no counts show
+
+### Requirement: Long names never hide columns
+The sessions table SHALL give REPOSITORY the width its other columns leave and SHALL fit every column on a 120-column terminal; a REPOSITORY value too long for its width SHALL lose its middle, marked with an ellipsis. NAME SHALL keep its cap and ellipsis, the row SHALL keep the full values for every key that uses them, and < and > SHALL scroll the table on a narrower terminal, Left and Right being the tab keys. The key bar SHALL show every key that applies within 120 columns, with its words.
+
+#### Scenario: Long repository name in the sessions view
+- **WHEN** a session runs in a worktree of Northwind.Integration.CosmosDb.ChangeFeedMonitoring and the terminal is 120 columns wide
+- **THEN** every column of the sessions table is on screen without scrolling, and the REPOSITORY cell reads Northwind.Integration.CosmosDb.ChangeFeedMonitoring whole
+
+#### Scenario: Long folder in the worktrees view
+- **WHEN** a worktree's folder label is 60 characters long and the terminal is 120 columns wide
+- **THEN** every column of the worktrees table is on screen without scrolling, and the WORKTREE cell shows it whole
+
+#### Scenario: Copy a capped folder
+- **WHEN** the user presses the copy key on a row whose REPOSITORY cell holds an ellipsis
+- **THEN** the clipboard holds the full folder path
+
+#### Scenario: Third column at 120 columns
+- **WHEN** the terminal is 120 columns wide
+- **THEN** the c, e, v and p keys and their words are in the Folder group of the key bar, and their tooltips still explain them
+
+#### Scenario: Scroll on a narrow terminal
+- **WHEN** the terminal is 100 columns wide and the user presses > on the Sessions tab
+- **THEN** the table scrolls one column to the right and the Sessions tab stays shown
+
+#### Scenario: Third column of key hints
+- **WHEN** the terminal is 126 columns wide
+- **THEN** the c, e, v and p keys and their words are in the Folder group of the key bar on both tabs
+
+#### Scenario: Wide terminal
+- **WHEN** the terminal is 127 columns or wider
+- **THEN** the REPOSITORY cell for Northwind.Integration.CosmosDb.ChangeFeedMonitoring is shown whole
+
+### Requirement: The TAB column is a swatch
+The sessions table's TAB column SHALL show a two-cell block in the colour of the Vantage tab showing the session while that tab is alive, with a cell of space before the next column, on the highlighted row as on every other; SHALL show a hollow grey block for a session running as plain claude in its own terminal; and nothing otherwise. The help and the column's tooltip SHALL say what each means.
+
+#### Scenario: A session open in a Vantage tab
+- **WHEN** fix-123 is shown in a Vantage tab coloured yellow
+- **THEN** its TAB cell shows a two-cell yellow block, then a space before the state
+
+#### Scenario: A terminal session
+- **WHEN** study was started as plain claude in a tab of its own
+- **THEN** its TAB cell is a hollow block drawn in grey
+
+#### Scenario: No tab
+- **WHEN** a background session has no live Vantage tab
+- **THEN** its TAB cell is blank
+
+#### Scenario: The help names the blocks
+- **WHEN** the help is shown on the sessions view
+- **THEN** TAB's line says a block in the tab's colour marks a session a Vantage tab shows and a hollow block a plain claude in its own terminal
+
+#### Scenario: The highlighted row keeps the colour
+- **WHEN** fix-123, shown in a Vantage tab coloured red, is the selected row
+- **THEN** its TAB block is exactly that red on the highlight, not the highlight's colour or a dimmer shade

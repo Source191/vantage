@@ -6,7 +6,7 @@ Lets the user work inside a session from the console, in the same tab or in a ne
 ## Requirements
 
 ### Requirement: Drill into a session in the same tab
-Pressing Enter on a background session SHALL suspend the console screen and run the Claude Code attach command for that session in the same terminal, and SHALL redraw the console when the attach command exits.
+Pressing Enter on a background session SHALL suspend the console screen and run the Claude Code attach command for that session in the same terminal, and SHALL redraw the console when the attach command exits. Before handing over, the console SHALL print one line saying that Ctrl+Z returns to Vantage, and SHALL erase that line when the attach command exits, so the scrollback is left as it was.
 
 #### Scenario: Attach and return
 - **WHEN** the user presses Enter on a background session and later presses Ctrl+Z inside it
@@ -18,10 +18,18 @@ Pressing Enter on a background session SHALL suspend the console screen and run 
 
 #### Scenario: Footer teaches the return key
 - **WHEN** the console starts an attach
-- **THEN** the last line printed before handing over says that Ctrl+Z returns to Vantage
+- **THEN** the last line printed before handing over is exactly "Ctrl+Z returns to Vantage.", on one line
+
+#### Scenario: The hint leaves no trace
+- **WHEN** the user attaches three times, returning with Ctrl+Z each time, and then quits Vantage
+- **THEN** the terminal's scrollback holds no copy of the hint
+
+#### Scenario: Empty session
+- **WHEN** the user presses Enter on a background session that has never been sent a message
+- **THEN** Claude Code shows that session's own prompt, not an agent list, and Ctrl+Z returns to Vantage as for any session
 
 ### Requirement: Open a session in its own Windows Terminal tab
-The open-in-tab key SHALL open a new tab in the current Windows Terminal window that runs the attach command for the session, titled with the session name, with application title changes suppressed, starting in the session's working directory, coloured from the palette, and in the "Vantage session" profile when Vantage's Windows Terminal fragment is installed, otherwise in the default profile. When a Vantage-opened tab for the session is still alive, the key SHALL instead switch to that tab.
+The open-in-tab key SHALL open a new tab in the current Windows Terminal window that runs the attach command for the session, titled with the session name, with application title changes suppressed, starting in the session's working directory, coloured from the palette, and in the "Vantage session" profile when Vantage's Windows Terminal fragment is installed, otherwise in the default profile. When a Vantage-opened tab for the session is alive at the moment the key is pressed, the key SHALL instead switch to that tab; a record whose shell has gone SHALL be dropped and a new tab opened. Opening a tab SHALL drop any earlier record for the same session.
 
 #### Scenario: Tab opened
 - **WHEN** the user presses the open-in-tab key on a background session
@@ -43,6 +51,14 @@ The open-in-tab key SHALL open a new tab in the current Windows Terminal window 
 - **WHEN** a Vantage-opened tab for that session is recorded as alive but no tab item with the session's name can be found in its Windows Terminal window
 - **THEN** no tab is opened and the footer says the tab is open but could not be found
 
+#### Scenario: Tab closed by hand
+- **WHEN** the user closes the session's tab with the terminal's close button and, once the tab's shell has gone, presses the open-in-tab key before the next refresh
+- **THEN** the stale record is dropped, a new tab opens, and the footer says a tab was opened, not switched to
+
+#### Scenario: Earlier record dropped
+- **WHEN** a record for the session remains from a tab that has gone and the user presses the open-in-tab key
+- **THEN** the new tab's record is the only one for the session and the old record's colour is free again
+
 ### Requirement: Tab colours avoid colours in use
 Vantage SHALL choose the first palette colour not used by any live Vantage-opened tab, and when every colour is in use SHALL reuse the least used colour and warn.
 
@@ -55,7 +71,7 @@ Vantage SHALL choose the first palette colour not used by any live Vantage-opene
 - **THEN** the least used colour is reused and the footer shows a warning
 
 ### Requirement: Live tabs are tracked by process
-Vantage SHALL record each tab it opens with the tab shell's process ID and start time, SHALL treat a record as live only while that process exists with the same start time, and SHALL remove stale records whenever it reads them.
+Vantage SHALL record each tab it opens with the tab shell's process ID and start time, SHALL treat a record as live only while that process exists with the same start time, and SHALL remove stale records whenever it reads them. A tab opened for an attach SHALL close itself when the attach ends because the user detached or the session was stopped or removed, and SHALL stay open, showing the output, when the attach fails.
 
 #### Scenario: Tab closed
 - **WHEN** the user closes a Vantage-opened tab
@@ -65,8 +81,16 @@ Vantage SHALL record each tab it opens with the tab shell's process ID and start
 - **WHEN** a record's process ID now belongs to a process with a different start time
 - **THEN** the record is treated as stale and removed
 
+#### Scenario: Detach closes the tab
+- **WHEN** the user presses Ctrl+Z inside a tab Vantage opened for a session
+- **THEN** the tab closes, the TAB column clears within one refresh, and Enter on the row attaches in the console
+
+#### Scenario: Attach fails
+- **WHEN** the attach command in a Vantage-opened tab exits with a failure, for example because the session was removed before it started
+- **THEN** the tab stays open with the attach command's output
+
 ### Requirement: Stop and delete resolve the session ID
-Stop and delete SHALL act on the session's ID taken from the listing, never on its name, and SHALL act on the row that was selected when the key was pressed even if the listing refreshed before the command ran.
+Stop and delete SHALL act on the session's ID taken from the listing, never on its name, SHALL act on the row that was selected when the key was pressed even if the listing refreshed before the command ran, and SHALL close the session's Vantage-opened tab when it has one.
 
 #### Scenario: Stop
 - **WHEN** the user presses the stop key on a background session
@@ -76,8 +100,12 @@ Stop and delete SHALL act on the session's ID taken from the listing, never on i
 - **WHEN** the user presses the stop key and a refresh replaces the rows before the stop command runs
 - **THEN** the stop command still runs with the ID of the session that was selected, and nothing fails
 
+#### Scenario: Stop closes the tab
+- **WHEN** the user presses the stop key on a session shown in a Vantage-opened tab
+- **THEN** the session is stopped, the tab closes, and the footer says both
+
 ### Requirement: Delete offers to remove the session's worktree
-Deleting a session whose working directory is a worktree Vantage created SHALL offer to remove that worktree under the worktree-management safety rules.
+Deleting a session SHALL first end its Vantage-opened tab and wait for the tab's shell to exit. When the session's working directory is a worktree Vantage created, delete SHALL then offer to remove that worktree under the worktree-management safety rules; a worktree whose `.git` has gone SHALL have its folder deleted and its stale registration pruned; and a folder git cannot delete because a tab or program still uses it SHALL be reported as in use, with the session deleted and the folder left for a later remove.
 
 #### Scenario: Clean worktree
 - **WHEN** the user deletes a session in a Vantage-created worktree that has no changes and no unpushed commits
@@ -86,6 +114,18 @@ Deleting a session whose working directory is a worktree Vantage created SHALL o
 #### Scenario: Worktree with changes
 - **WHEN** the worktree has uncommitted changes
 - **THEN** the session is deleted but the worktree is kept and the row explains why
+
+#### Scenario: Tab closed before the worktree goes
+- **WHEN** the user deletes a session that was started and opened in its own tab
+- **THEN** the tab closes before the worktree is removed, the worktree is removed, and the footer says the session was deleted and its tab closed
+
+#### Scenario: Worktree without its .git
+- **WHEN** the user deletes a session whose Vantage-created worktree no longer has a `.git` file
+- **THEN** the session is deleted, the folder is deleted, the stale registration is pruned from the repository, and the footer says so
+
+#### Scenario: Folder still in use
+- **WHEN** the user deletes a session while a PowerShell tab opened from the worktrees view sits in its worktree
+- **THEN** the session is deleted, the footer says the worktree folder is still in use by a tab or program and names it, and pressing remove on it in the worktrees view after closing that tab deletes what is left
 
 ### Requirement: Resume sessions after a reboot without reviving deliberate stops
 The resume-all key SHALL run the CLI's background resume for every session in the failed state, SHALL present sessions in the stopped state as a checklist with none preselected because a deliberate stop also shows as stopped, and SHALL show on each row whether the CLI continued the session or started a copy.
@@ -99,11 +139,15 @@ The resume-all key SHALL run the CLI's background resume for every session in th
 - **THEN** they are listed with unticked boxes and only the ones the user ticks are resumed
 
 ### Requirement: Rename without attaching
-The rename key SHALL ask for a new name in a dialog and then, because the CLI has no rename verb and resuming a listed background job with new flags starts a copy, SHALL remove the job and resume it by session ID under the new name, which keeps the session ID and its conversation. Renaming SHALL be refused while the session is working or when it has never been sent a message, and SHALL resume the job under its old name when the resume under the new name fails. A new name the launch rules would refuse SHALL be refused before anything runs, with the same sentence `vantage here` gives for that name.
+The rename key SHALL ask for a new name in a dialog and then, because the CLI has no rename verb and resuming a listed background job with new flags starts a copy, SHALL remove the job and resume it by session ID under the new name, which keeps the session ID and its conversation. A session shown in a Vantage-opened tab SHALL have that tab closed after the job is removed and a tab opened under the new name, in the same colour, once the session is resumed. Renaming SHALL be refused while the session is working or when it has never been sent a message, and SHALL resume the job under its old name when the resume under the new name fails. A new name the launch rules would refuse SHALL be refused before anything runs, with the same sentence `vantage here` gives for that name.
 
 #### Scenario: Rename an idle session
 - **WHEN** the user presses the rename key on an idle background session and types a new name
 - **THEN** the job is removed and resumed by session ID with the new name, and the row shows the new name with the same session ID on the next refresh
+
+#### Scenario: Rename a session with an open tab
+- **WHEN** the user renames an idle session whose Vantage-opened tab is alive
+- **THEN** that tab closes, one tab titled with the new name opens in the same colour, and the footer says the session was renamed and its tab moved
 
 #### Scenario: Session is working
 - **WHEN** the user presses the rename key on a working session
@@ -154,15 +198,8 @@ Attach, open-in-tab, rename and resume SHALL be refused for a session that has n
 - **WHEN** the user presses Enter on a failed session whose transcript does not exist
 - **THEN** nothing happens and the footer says it was never sent a message and that delete removes it
 
-### Requirement: The native agent view is one key away
-The agent-view key SHALL suspend the console and run the native Claude Code agent view in the same tab, returning to the console when it exits.
-
-#### Scenario: Open native view
-- **WHEN** the user presses the agent-view key
-- **THEN** the native agent view opens in the same tab and the console redraws when it closes
-
 ### Requirement: Vantage's own tab is recognisable
-When the console starts in a Windows Terminal tab, Vantage SHALL title that tab "Vantage" and colour it green when no live Vantage-opened tab is green, otherwise with the first free palette colour; SHALL count its own tab's colour as in use when colouring session tabs; and SHALL clear the title and reset the colour when it quits. While a dialog is open the tab SHALL read "Vantage" followed by the dialog's short name in brackets, and closing the dialog SHALL put "Vantage" back; no dialog's own title SHALL reach the tab. Outside a dialog, every title Vantage writes for its own tab SHALL be the same text.
+When the console starts in a Windows Terminal tab, Vantage SHALL title that tab "Vantage" and colour it green when no live Vantage-opened tab is green, otherwise with the first free palette colour; SHALL count its own tab's colour as in use when colouring session tabs; and SHALL clear the title and reset the colour when it quits, so the tab shows its profile's own colour again. While a dialog is open the tab SHALL read "Vantage" followed by the dialog's short name in brackets, and closing the dialog SHALL put "Vantage" back; no dialog's own title SHALL reach the tab. Outside a dialog, every title Vantage writes for its own tab SHALL be the same text.
 
 #### Scenario: Green is free
 - **WHEN** Vantage starts and no live Vantage-opened tab is green
@@ -173,7 +210,7 @@ When the console starts in a Windows Terminal tab, Vantage SHALL title that tab 
 - **THEN** the tab is titled Vantage, and coloured with the first palette colour no live tab uses
 
 #### Scenario: Title restored after a hand-off
-- **WHEN** the user returns from an attached session or the agent view, which set the tab title themselves
+- **WHEN** the user returns from an attached session, which set the tab title itself
 - **THEN** the tab is titled Vantage, exactly as before, and coloured as before again
 
 #### Scenario: Local build
@@ -190,7 +227,7 @@ When the console starts in a Windows Terminal tab, Vantage SHALL title that tab 
 
 #### Scenario: Quit
 - **WHEN** the user quits Vantage
-- **THEN** the tab's title is cleared and its colour reset, and its registration goes stale with the process
+- **THEN** the tab's title is cleared, the tab shows its profile's colour again because the palette entry Vantage coloured is reset rather than only re-pointed, and its registration goes stale with the process
 
 ### Requirement: A tab runs its values as literal text
 Every value Vantage places in the script of a tab it opens (an executable path, a session's job id, a registration id, a folder or repository name) SHALL reach the program as the same text, whatever characters it holds. No value, including one containing a straight or curly single quote, SHALL end the literal it sits in or be run as a command.
