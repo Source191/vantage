@@ -54,13 +54,8 @@ public sealed record WorktreesViewState(
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
     public WorktreesViewState With(ListSelection<WorktreeRow> list) => this with { Rows = list.Rows, SelectedPath = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 
-    /// <summary>The footer to show: the last message, else why the selected row is not healthy, else the standing hint.</summary>
-    public Footer Shown => (Footer, Selected) switch
-    {
-        (not Footer.Blank, _) => Footer,
-        (_, { Health.Reason: not (HealthReason.None or HealthReason.Locked { LockReason: "" }) } selected) => new Footer.Unhealthy(selected.FolderName, selected.Health.Kind, selected.Health.Reason),
-        _ => new Footer.RemoveHint(),
-    };
+    /// <summary>The last message only: the selected row's health is the detail pane's.</summary>
+    public Footer Shown => Footer;
 
     public TableTitle Title => List.Title("worktree", row => row.FolderName);
 }
@@ -86,7 +81,7 @@ public static class WorktreesView
     {
         return key switch
         {
-            // Moving on clears the last message, so the footer can explain the row now under the bar.
+            // Moving on or filtering clears the last message, so the status line goes until there is something new to say.
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = Footer.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = Footer.None }),
             { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),

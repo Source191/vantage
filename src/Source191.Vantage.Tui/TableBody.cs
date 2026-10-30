@@ -89,6 +89,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private int columnOffset;
     private bool isShown;
     private bool running;
+    private int statusRows;
 
     public TableBody(IScreenDefinition<TState, TRow> definition, DialogEffects dialogs, EffectDispatcher dispatcher, Func<CancellationToken, Task<ViewInput>> load, TimeProvider clock, ScreenContext context, IApplication app, ITabHost host, TState initial)
     {
@@ -127,7 +128,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         table.Style.RowColorGetter = RowColour;
         StyleColumns();
 
-        // The status line: a spinner while an action runs, then the last message; blank until there is one.
+        // The status line: a spinner while an action runs, then the last message; it has a row only while it has something to say.
         busy = Spinners.Create(1, Pos.AnchorEnd(1));
         // In the middle of the table, whatever the pane under it takes, so the spinner never lands in the pane.
         waiting = new WaitingIndicator(definition.WaitingText) { Y = Pos.Func(_ => table.Frame.Y + (table.Frame.Height / 2), table) };
@@ -138,9 +139,10 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         {
             requests = new DetailRequests();
             pane = new DetailPane(detail.Rows);
-            table.Height = Dim.Fill(pane.Rows + 1);
             View.Add(pane);
         }
+
+        LayOutStatus(StatusRowsNeeded);
 
         ShowColumnToolTips();
     }
@@ -279,6 +281,11 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         table.ColumnOffset = columnOffset;
         View.Title = definition.TabTitle(State);
         footer.Text = Wording.Describe(State.Shown);
+        if (StatusRowsNeeded != statusRows)
+        {
+            LayOutStatus(StatusRowsNeeded);
+        }
+
         if (rows.Count > 0)
         {
             int index = selected is null ? 0 : Math.Max(rows.ToList().IndexOf(selected), 0);
@@ -289,6 +296,24 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         AskForDetail(refreshed: false);
         View.SetNeedsDraw();
         host.FrameChanged();
+    }
+
+    /// <summary>The status line takes a row only while there is a message or an action is running.</summary>
+    private int StatusRowsNeeded => running || Wording.Describe(State.Shown).Length > 0 ? 1 : 0;
+
+    /// <summary>Gives the status line its row, or the table the row back, with the pane above the status line.</summary>
+    private void LayOutStatus(int rows)
+    {
+        statusRows = rows;
+        int paneRows = pane?.Rows ?? 0;
+        footer.Visible = rows > 0;
+        table.Height = Dim.Fill(paneRows + rows);
+        if (pane is not null)
+        {
+            pane.Y = Pos.AnchorEnd(paneRows + rows);
+        }
+
+        View.SetNeedsLayout();
     }
 
     /// <summary>

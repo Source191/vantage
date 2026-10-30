@@ -47,19 +47,6 @@ public sealed class WordingShould
         Wording.Describe(Footer.None).ShouldBe(string.Empty);
     }
 
-    [Fact]
-    public void HintThatRemovalIsSafe()
-    {
-        Wording.Describe(new Footer.RemoveHint()).ShouldBe("d removes only what is safe to remove");
-    }
-
-    [Fact]
-    public void ExplainWhyTheSelectedWorktreeIsNotHealthy()
-    {
-        Wording.Describe(new Footer.Unhealthy("Northwind.Orders-stale", WorktreeHealthKind.Broken, new HealthReason.FolderGone()))
-            .ShouldBe("Northwind.Orders-stale is broken: registered with git but the folder is gone.");
-    }
-
     // The sessions view.
 
     [Fact]

@@ -68,8 +68,6 @@ public static partial class Wording
         return footer switch
         {
             Footer.Blank => string.Empty,
-            Footer.RemoveHint => "d removes only what is safe to remove",
-            Footer.Unhealthy unhealthy => $"{unhealthy.FolderName} is {unhealthy.Kind.ToString().ToLowerInvariant()}: {Describe(unhealthy.Reason)}.",
             Footer.NoSessionSelected => "No session selected.",
             Footer.RunsInOwnTerminal { HasTranscript: true } terminal =>
                 $"{terminal.Name} runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there.",

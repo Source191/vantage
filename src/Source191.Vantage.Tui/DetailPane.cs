@@ -8,13 +8,11 @@ namespace Source191.Vantage.Tui;
 
 /// <summary>
 /// The pane under a tab's table: a grey divider titled with the selected row's name and the row's detail beneath it,
-/// laid out by <see cref="DetailLayout"/> at the pane's width. It is as tall as the tab's detail can be, above the footer,
-/// so the table's height never changes with the selection.
+/// laid out by <see cref="DetailLayout"/> at the pane's width. It is as tall as the tab's detail can be, so the table's
+/// height never changes with the selection; the tab places it above the status line.
 /// </summary>
 internal sealed class DetailPane : View
 {
-    private const int FooterRows = 1;
-
     private DetailContent? content;
 
     /// <param name="lines">The most lines the tab's detail takes under the divider.</param>
@@ -26,7 +24,6 @@ internal sealed class DetailPane : View
         Border.Thickness = new Thickness(0, 1, 0, 0);
         SetScheme(Palette.TabFrame());
         X = 0;
-        Y = Pos.AnchorEnd(Rows + FooterRows);
         Width = Dim.Fill();
         Height = Rows;
     }

@@ -14,12 +14,6 @@ public abstract record Footer
     /// <summary>No message: the view shows its standing footer instead.</summary>
     public sealed record Blank : Footer;
 
-    /// <summary>The worktrees view's standing footer when the selected row is healthy.</summary>
-    public sealed record RemoveHint : Footer;
-
-    /// <summary>The worktrees view's standing footer when the selected row is not healthy; the reason comes from the domain.</summary>
-    public sealed record Unhealthy(string FolderName, WorktreeHealthKind Kind, HealthReason Reason) : Footer;
-
     public sealed record NoSessionSelected : Footer;
 
     /// <summary>A plain claude session in some tab: Vantage cannot attach to it, stop it or delete it from outside.</summary>
