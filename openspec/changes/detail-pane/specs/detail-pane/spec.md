@@ -40,19 +40,22 @@ The pane's Prompted line SHALL show the most recent time, while this Vantage ran
 - **THEN** its Prompted line reads not seen since Vantage started
 
 ### Requirement: The pane shows the session's recent output
-The pane SHALL show the last lines of the selected background session's terminal output, obtained from the Claude Code CLI's logs command, with terminal escape sequences removed, as many lines as the pane has room for, refreshed with the rows for the selected row only. The output SHALL be drawn and discarded: never written to the diagnostic log, never part of a problem report, never kept after the selection moves.
+The pane SHALL show the bottom of the selected background session's screen, rebuilt from the Claude Code CLI's logs command (the session's screen history with terminal codes removed, cut into rows of the session's own width), without Claude's own input box and status line, as many rows as the pane has room for, refreshed for the selected row only while it has a process.
 
 #### Scenario: A question is on screen
 - **WHEN** fix-123 has paused on "Allow edit to Processor.cs?" and is selected
 - **THEN** the output area shows that question and its options as the session's screen shows them, without colour codes
 
-#### Scenario: The output stays off the record
-- **WHEN** the pane has shown a session's output and the user opens the problem report
-- **THEN** no line of that output is in the report or the diagnostic log; the log records only that the logs command ran, how long it took and its exit code
-
 #### Scenario: Logs fail
 - **WHEN** the logs command fails or cannot be run
 - **THEN** the output area says the output is unavailable and the rest of the pane is unaffected
+
+### Requirement: The session's output stays off the record
+The output SHALL be drawn and discarded: never written to the diagnostic log, never part of a problem report, never kept after the selection moves.
+
+#### Scenario: The output stays off the record
+- **WHEN** the pane has shown a session's output and the user opens the problem report
+- **THEN** no line of that output is in the report or the diagnostic log; the log records only that the logs command ran, how long it took and its exit code
 
 ### Requirement: The pane shows the selected worktree
 On the Worktrees tab the pane SHALL show, for the selected row: the health with its reason in full, whether and when Vantage created it, the full folder, the branch and its merge state against origin's default branch, the pull request, the risk line, the session inside it with the key that goes to it, and its unpushed commits as far as they fit, or its changed files when none are unpushed.
