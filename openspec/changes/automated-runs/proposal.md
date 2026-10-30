@@ -27,7 +27,7 @@ None.
 
 ## Impact
 
-- **Ports:** `IClaudeCli.ListSessionsAsync` answers a `SessionListing` (the sessions and the automated runs) instead of a bare list; `LaunchService` and the worktree scan read its sessions.
+- **Ports:** `IClaudeCli.ListSessionsAsync` answers a `SessionListing` (the sessions and the automated runs) instead of a bare list; `LaunchService` and the worktree scan read its sessions alone.
 - **Domain:** an `AutomatedRun` record (session id, folder, process id).
 - **Adapters:** `ClaudeAgentsListing` sorts an interactive row without a status into the runs; `ClaudeStates` keeps its words.
 - **Application:** `SessionRowEnricher` (or a sibling) measures the runs into an `AutomatedRuns` summary; `RowsLoaded` carries it and `SessionsViewState` keeps it; `Wording.SessionCounts` adds the part.
