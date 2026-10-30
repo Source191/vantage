@@ -160,6 +160,8 @@ public static partial class Wording
             SettingsProblem.NoRoots => "Give at least one repository root, one per line.",
             SettingsProblem.RootNotFullPath relative => $@"The repository root {relative.Text} is not a full path, such as C:\Users\me\source\repos.",
             SettingsProblem.RootMissing missing => $"{missing.Path} does not exist.",
+            SettingsProblem.RootAlreadyListed repeated => $"{repeated.Path} is already a repository root.",
+            SettingsProblem.LastRoot => "Vantage needs at least one repository root, so the only one cannot be removed.",
             SettingsProblem.WorktreeRootNotFullPath => @"The worktree root must be a full path, such as C:\Users\me\source\worktrees.",
             SettingsProblem.NoExecutable => "A custom editor needs an executable.",
             SettingsProblem.ExecutableNotFullPath => @"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Vantage was started from.",

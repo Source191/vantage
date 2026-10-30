@@ -64,6 +64,7 @@ public sealed record Settings
         {
             [] => new SettingsProblem.NoRoots(),
             _ when roots.FirstOrDefault(root => !folderExists(root.Value)) is FolderPath missing => new SettingsProblem.RootMissing(missing),
+            _ when roots.Where((root, index) => roots.Take(index).Contains(root)).FirstOrDefault() is FolderPath repeated => new SettingsProblem.RootAlreadyListed(repeated),
             _ => null,
         };
 
@@ -84,10 +85,18 @@ public sealed record Settings
     }
 
     /// <summary>These settings without the repository root at <paramref name="index"/>, refused when it is the only one.</summary>
-    public SettingsValidation WithRootRemoved(int index) => new SettingsValidation.Valid(this);
+    public SettingsValidation WithRootRemoved(int index)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(index);
+        ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(index, RepositoryRoots.Count);
+
+        return RepositoryRoots.Count == 1
+            ? Refused(new SettingsProblem.LastRoot())
+            : new SettingsValidation.Valid(new Settings([.. RepositoryRoots.Where((_, at) => at != index)], WorktreeRoot, Editor, DefaultBase, CheckForUpdates));
+    }
 
     /// <summary>These settings with the update check turned the other way.</summary>
-    public Settings WithUpdateCheckToggled() => this;
+    public Settings WithUpdateCheckToggled() => new(RepositoryRoots, WorktreeRoot, Editor, DefaultBase, !CheckForUpdates);
 
     public bool Equals(Settings? other)
     {
