@@ -194,9 +194,11 @@ public sealed class ConsoleScreen(
             timers.Clear();
         }
 
-        /// <summary>Takes the two tabs out of the strip and disposes them, then the window and the rest of its views.</summary>
+        /// <summary>Takes the tabs out of the strip and disposes them, then the window and the rest of its views.</summary>
         public void Dispose()
         {
+            // Removing a tab selects the next in the strip; under the guard that is not taken as a click, which would show it and read its detail.
+            binding = true;
             tabs.Remove(sessions.View);
             tabs.Remove(worktrees.View);
             tabs.Remove(config.View);
