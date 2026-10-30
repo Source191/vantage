@@ -133,6 +133,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     using PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes, programs.Locate("gh")), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
     SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
     StateTransitionNotifier notifier = new(Console.Out);
+    SessionActivity activity = new(TimeProvider.System);
     OwnTab ownTab = new(store, processRegistry, TimeProvider.System);
     ScreenClipboard clipboard = new();
     using NuGetPackageVersions packageVersions = new(version, new HttpClientHandler());
@@ -150,7 +151,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     ScreenContext context = new(tabTitle, _ => [Wording.SettingsRow(version, claudeCode, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero)], () => updates.Status is UpdateStatus.Available, clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SetupFactsReader setup = new(terminalFragment, ClaudeSettings.ForCurrentUser(), store, store.ConfigFile, logPath);
-    ConsoleScreen consoleScreen = new(LoadAsync, ScanAsync, ReadConfigAsync, () => ConfigRows.For(settings.Value, facts: null), notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
+    ConsoleScreen consoleScreen = new(LoadAsync, ScanAsync, ReadConfigAsync, () => ConfigRows.For(settings.Value, facts: null), notifier, activity, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
     ScreenLoop loop = new(consoleScreen, ownTab, console, terminalEffects, updates, log);
 
     return await loop.RunAsync(Environment.ProcessId, cancellationToken);

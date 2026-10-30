@@ -6,7 +6,7 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The sessions view as the shared table screen shows it: its layout, columns, colours and the effects its keys raise.</summary>
-internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, string claudeExecutable, FolderLabels folders)
+internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier, SessionActivity activity, string claudeExecutable, FolderLabels folders)
     : IScreenDefinition<SessionsViewState, SessionRow>
 {
     private const int TabColumn = 1;
@@ -76,6 +76,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         if (input is RowsLoaded loaded)
         {
             notifier.Observe(before.Rows, loaded.Rows);
+            activity.Observe(before.Rows, loaded.Rows);
         }
     }
 
