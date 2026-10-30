@@ -149,9 +149,8 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionText);
     ScreenContext context = new(tabTitle, () => Wording.HeaderValues(version, claudeCode, settings.Value, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero), clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
-    SessionsScreen sessionsScreen = new(LoadAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
-    WorktreesScreen worktreesScreen = new(ScanAsync, dialogs, dispatcher, TimeProvider.System, context, folderLabels);
-    ScreenLoop loop = new(sessionsScreen, worktreesScreen, ownTab, console, terminalEffects, updates, log);
+    ConsoleScreen consoleScreen = new(LoadAsync, ScanAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
+    ScreenLoop loop = new(consoleScreen, ownTab, console, terminalEffects, updates, log);
 
     return await loop.RunAsync(Environment.ProcessId, cancellationToken);
 

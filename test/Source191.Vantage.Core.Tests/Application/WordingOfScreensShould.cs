@@ -123,14 +123,90 @@ public sealed class WordingOfScreensShould
     }
 
     [Fact]
-    public void SummariseSessionsByState()
+    public void BuildTheSettingsLineWholeWhenItFits()
     {
-        SessionRow[] mixed = [.. Enumerable.Range(0, 9).Select(index => SessionIn(index < 4 ? DisplayState.Stopped : DisplayState.NeedsInput, index))];
-        SessionRow[] allWaiting = [.. Enumerable.Range(0, 6).Select(index => SessionIn(DisplayState.NeedsInput, index))];
+        Wording.SettingsLine(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 128)
+            .ShouldBe(@"Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees");
+    }
 
-        Wording.SessionsSummary(mixed).ShouldBe("9 (4 stopped)");
-        Wording.SessionsSummary(allWaiting).ShouldBe("6");
-        Wording.SessionsSummary([]).ShouldBe("none");
+    [Fact]
+    public void CutTheRepositoryRootsFirstToFitTheLine()
+    {
+        string line = Wording.SettingsLine(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 120);
+
+        line.ShouldBe(@"Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\me\sou… · Worktree root C:\Users\me\source\worktrees");
+        line.Length.ShouldBe(120);
+    }
+
+    [Fact]
+    public void CutTheWorktreeRootNextAndKeepTheNoticeWhole()
+    {
+        UpdateStatus available = new UpdateStatus.Available(ReleaseVersion.TryParse("0.18.0")!, ReleaseVersion.TryParse("0.19.0")!);
+
+        string narrow = Wording.SettingsLine(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), available, MemorySize.FromMegabytes(35), width: 120);
+        string wide = Wording.SettingsLine(new ToolVersion("0.18.0"), new ClaudeCodeVersion.Reported("2.1.310"), Roots(@"C:\Users\me\source\repos"), available, MemorySize.FromMegabytes(35), width: 160);
+
+        narrow.ShouldBe(@"Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310 · Repository roots … · Worktree root C:\Users\me…");
+        narrow.Length.ShouldBe(120);
+        wide.ShouldBe(@"Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310 · Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees");
+    }
+
+    [Fact]
+    public void JoinSeveralRepositoryRootsAndShowAClaudeWarning()
+    {
+        ClaudeCodeVersion old = new ClaudeCodeVersion.BelowMinimum(ReleaseVersion.TryParse("2.1.302")!, ReleaseVersion.TryParse("2.1.309")!);
+
+        Wording.SettingsLine(new ToolVersion("0.18.0"), old, Roots(@"C:\Users\me\source\repos", @"D:\work"), new UpdateStatus.UpToDate(), MemorySize.FromMegabytes(35), width: 200)
+            .ShouldBe(@"Vantage 0.18.0 (35 MB) · Claude 2.1.302 (below 2.1.309, update Claude Code) · Repository roots C:\Users\me\source\repos; D:\work · Worktree root C:\Users\me\source\worktrees");
+    }
+
+    [Fact]
+    public void CountSessionsByStateNeedsInputFirst()
+    {
+        SessionRow[] rows =
+        [
+            SessionIn(DisplayState.Working, 0), SessionIn(DisplayState.NeedsInput, 1), SessionIn(DisplayState.Idle, 2),
+            SessionIn(DisplayState.Completed, 3), SessionIn(DisplayState.NeedsInput, 4), SessionIn(DisplayState.Stopped, 5),
+        ];
+
+        Wording.SessionCounts(rows).ShouldBe(
+        [
+            new CountPart("◐ 2 need input", CountTone.Amber), new CountPart("● 1 working", CountTone.Cyan), new CountPart("○ 1 idle", CountTone.Plain),
+            new CountPart("✓ 1 completed", CountTone.Green), new CountPart("■ 1 stopped", CountTone.Grey),
+        ]);
+        Wording.SessionCounts([SessionIn(DisplayState.NeedsInput, 0)]).ShouldBe([new CountPart("◐ 1 needs input", CountTone.Amber)]);
+        Wording.SessionCounts([]).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void CountWorktreesByHealthThenTheWorkAtRisk()
+    {
+        WorktreeRow[] rows =
+        [
+            .. Enumerable.Range(0, 5).Select(index => WorktreeIn(WorktreeHealthKind.Ok, index, dirty: index < 2 ? 3 : 0, unpushed: index is 1 or 2 ? 4 : 0)),
+            WorktreeIn(WorktreeHealthKind.Locked, 5), WorktreeIn(WorktreeHealthKind.Broken, 6),
+        ];
+
+        Wording.WorktreeCounts(rows).ShouldBe(
+        [
+            new CountPart("5 ok", CountTone.Plain), new CountPart("1 locked", CountTone.Amber), new CountPart("1 broken", CountTone.Red),
+            new CountPart("2 with changes", CountTone.Amber), new CountPart("2 with unpushed commits", CountTone.Amber),
+        ]);
+        Wording.WorktreeCounts([WorktreeIn(WorktreeHealthKind.Ok, 0)]).ShouldBe([new CountPart("1 ok", CountTone.Plain)]);
+    }
+
+    [Fact]
+    public void TitleEachTabWithItsCountOnceLoaded()
+    {
+        Wording.TabTitleFor(ConsoleTab.Sessions, 6).ShouldBe("Sessions (6)");
+        Wording.TabTitleFor(ConsoleTab.Worktrees, 7).ShouldBe("Worktrees (7)");
+        Wording.TabTitleFor(ConsoleTab.Worktrees, null).ShouldBe("Worktrees");
+        Wording.TabTitleFor(ConsoleTab.Sessions, 0).ShouldBe("Sessions (0)");
+    }
+
+    private static WorktreeRow WorktreeIn(WorktreeHealthKind health, int index, int dirty = 0, int unpushed = 0)
+    {
+        return new WorktreeRow(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), FolderPath.From($@"C:\Users\me\source\worktrees\Northwind.Orders-fix-{index}"), BranchName.From($"fix-{index}"), new WorktreeHealth(health, new HealthReason.None()), dirty, unpushed, null, null, null, 0, OwnerExists: true, FolderExists: true);
     }
 
     private static SessionRow SessionIn(DisplayState state, int index)

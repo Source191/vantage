@@ -29,15 +29,15 @@ The console SHALL show the sessions view and the worktrees view as two tabs of o
 - **THEN** the Sessions tab is shown with that session selected, without leaving the console
 
 ### Requirement: The settings line is one line
-The first row of the screen SHALL read Vantage, its version and memory in brackets, then Claude and its version, then Repository roots and the roots, then Worktree root and the root, separated by · and drawn in grey. The update notice and the below-minimum Claude warning SHALL keep their places inside the Vantage and Claude parts. When the line is wider than the terminal the roots SHALL be elided first, with an ellipsis, and the whole list SHALL stay in Settings.
+The first row of the screen SHALL read Vantage, its version and memory in brackets, then Claude and its version, then Repository roots and the roots, then Worktree root and the root, separated by · and drawn in grey. The update notice and the below-minimum Claude warning SHALL keep their places inside the Vantage and Claude parts. When the line is wider than the terminal the roots SHALL be elided first, then the worktree root, each with an ellipsis, and the whole list SHALL stay in Settings.
 
 #### Scenario: Line at 120 columns
 - **WHEN** Vantage 0.18.0 uses 35 MB with Claude Code 2.1.310, the root C:\Users\me\source\repos and the worktree root C:\Users\me\source\worktrees on a 120-column terminal
-- **THEN** the line reads Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\me\source\re… · Worktree root C:\Users\me\source\worktrees, the root cut to fit
+- **THEN** the line reads Vantage 0.18.0 (35 MB) · Claude 2.1.310 · Repository roots C:\Users\me\sou… · Worktree root C:\Users\me\source\worktrees, the roots cut to the cells the rest leaves
 
 #### Scenario: Line too wide
 - **WHEN** the same values carry an update notice, 0.19.0 available, U to update, on a 120-column terminal
-- **THEN** the notice is shown in full and the roots end in an ellipsis so the line fits
+- **THEN** the line reads Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310 · Repository roots … · Worktree root C:\Users\me…, the notice whole
 
 #### Scenario: Wide terminal
 - **WHEN** the terminal is 160 columns wide

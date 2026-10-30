@@ -7,17 +7,17 @@ public sealed class WordingOfKeysAndColumnsShould
     [Fact]
     public void ListEveryKeyOnceWithItsHintAndLine()
     {
-        Wording.SessionsKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
+        Wording.SessionsKeys.Select(key => $"{key.Key} {key.Hint}").ShouldBe(
         [
-            "0 enter Attach", "0 o Open in tab", "0 n New session", "0 r Rename", "0 x Stop", "0 d Delete",
-            "1 R Resume stopped", "1 C Close empty tabs", "1 b ", "1 w Worktrees", "1 / Filter", "1 ? Help", "1 q Quit", "0 , Settings",
-            "2 c Copy path", "2 e Open folder", "2 v Solution", "2 p Open PR", "1 m ", "1 U ", "2 ! Report",
+            "enter Attach", "o Open tab", "n New session", "r Rename", "x Stop", "d Delete",
+            "R Resume", "C Close empty", "b Adopt", "w Worktrees", "/ Filter", "? Help", "q Quit", ", Settings",
+            "c Copy path", "e Open folder", "v Solution", "p Open PR", "m Memory", "U Update", "! Report", "1 ", "2 ",
         ]);
-        Wording.WorktreesKeys.Select(key => $"{key.Column} {key.Key} {key.Hint}").ShouldBe(
+        Wording.WorktreesKeys.Select(key => $"{key.Key} {key.Hint}").ShouldBe(
         [
-            "0 d Remove", "0 D Force remove", "0 P Prune", "0 s Start session", "0 o Open shell", "0 enter Go to session",
-            "1 w Sessions", "1 esc Sessions", "1 / Filter", "1 ? Help", "1 q Quit", "1 , Settings",
-            "2 c Copy path", "2 e Open folder", "2 v Solution", "2 p Open PR", "1 U ", "2 ! Report",
+            "d Remove", "D Force remove", "P Prune", "s Start session", "o Open shell", "enter Go to session",
+            "w Sessions", "esc Sessions", "/ Filter", "? Help", "q Quit", ", Settings",
+            "c Copy path", "e Open folder", "v Solution", "p Open PR", "U Update", "! Report", "1 ", "2 ",
         ]);
     }
 
@@ -65,7 +65,8 @@ public sealed class WordingOfKeysAndColumnsShould
             c      copy the folder path                    e      open the folder in your editor
             v      open its solution                       p      open its pull request in the browser
             m      what its memory is made of              U      update Vantage in a new tab
-            !      report a problem on GitHub
+            !      report a problem on GitHub              1      the Sessions tab
+            2      the Worktrees tab
 
             Columns
             NAME   the session name given at launch, or the folder name for an unnamed one
@@ -98,6 +99,7 @@ public sealed class WordingOfKeysAndColumnsShould
             c      copy the folder path                          e      open the folder in your editor
             v      open its solution                             p      open its pull request in the browser
             U      update Vantage in a new tab                   !      report a problem on GitHub
+            1      the Sessions tab                              2      the Worktrees tab
 
             Columns
             WORKTREE     the owning repository › the folder's slug, or its label when not named after it
