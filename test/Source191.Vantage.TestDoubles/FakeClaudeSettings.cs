@@ -19,7 +19,18 @@ public sealed class FakeClaudeSettings(NotificationChannelState state) : IClaude
     /// <summary>When set, enabling the bell throws it.</summary>
     public IOException? FailTheWriteWith { get; set; }
 
-    public Task<NotificationChannelState> ReadNotificationChannelAsync(CancellationToken cancellationToken) => Task.FromResult(State);
+    /// <summary>When set, reading the channel throws it.</summary>
+    public IOException? FailTheReadWith { get; set; }
+
+    public Task<NotificationChannelState> ReadNotificationChannelAsync(CancellationToken cancellationToken)
+    {
+        if (FailTheReadWith is not null)
+        {
+            throw FailTheReadWith;
+        }
+
+        return Task.FromResult(State);
+    }
 
     public Task EnableTerminalBellAsync(CancellationToken cancellationToken)
     {

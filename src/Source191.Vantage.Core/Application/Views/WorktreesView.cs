@@ -22,7 +22,6 @@ public sealed record OpenShellTab(WorktreeRow Row) : ViewEffect;
 /// <summary>Go to the sessions view with this session selected; by id, because names are not unique.</summary>
 public sealed record JumpToSession(SessionId SessionId) : ViewEffect, ISwitchesTab;
 
-public sealed record SwitchToSessions : ViewEffect, ISwitchesTab;
 
 public sealed record WorktreesViewUpdate(WorktreesViewState State, IReadOnlyList<ViewEffect> Effects);
 
@@ -91,7 +90,7 @@ public static class WorktreesView
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = Footer.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = Footer.None }),
             { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),
-            { Name: KeyName.Escape } => Effect(state, new SwitchToSessions()),
+            { Name: KeyName.Escape } => Effect(state, new SelectTab(ConsoleTab.Sessions)),
             { Name: KeyName.Enter } => RowAction(state, JumpToSession),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
             { Name: KeyName.Character, Character: 'd' } => RowAction(state, row => Remove(row, forced: false)),
@@ -103,14 +102,11 @@ public static class WorktreesView
             { Name: KeyName.Character, Character: 'c' } => RowAction(state, row => WithFolder(row, new CopyFolderPath(row.Path))),
             { Name: KeyName.Character, Character: 'e' } => RowAction(state, row => WithFolder(row, new OpenFolderInEditor(row.Path))),
             { Name: KeyName.Character, Character: 'v' } => RowAction(state, row => WithFolder(row, new FindSolution(row.Path, row.RepositoryName))),
-            { Name: KeyName.Character, Character: 'w' } => Effect(state, new SwitchToSessions()),
-            { Name: KeyName.Character, Character: '1' } => Effect(state, new SwitchToSessions()),
-            { Name: KeyName.Character, Character: '2' } => Effect(state, new SwitchToWorktrees()),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
-            { Name: KeyName.Character, Character: ',' } => Effect(state, new OpenSettings()),
             { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
             { Name: KeyName.Character, Character: '!' } => Effect(state, new ShowProblemReport()),
+            _ when TabKeys.For(key) is ViewEffect tab => Effect(state, tab),
             _ => Unchanged(state),
         };
     }

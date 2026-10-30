@@ -64,6 +64,7 @@ public sealed record Settings
         {
             [] => new SettingsProblem.NoRoots(),
             _ when roots.FirstOrDefault(root => !folderExists(root.Value)) is FolderPath missing => new SettingsProblem.RootMissing(missing),
+            _ when roots.Where((root, index) => roots.Take(index).Contains(root)).FirstOrDefault() is FolderPath repeated => new SettingsProblem.RootAlreadyListed(repeated),
             _ => null,
         };
 
@@ -82,6 +83,9 @@ public sealed record Settings
             DefaultBase,
             CheckForUpdates);
     }
+
+    /// <summary>These settings with the update check turned the other way.</summary>
+    public Settings WithUpdateCheckToggled() => new(RepositoryRoots, WorktreeRoot, Editor, DefaultBase, !CheckForUpdates);
 
     public bool Equals(Settings? other)
     {
@@ -128,6 +132,8 @@ public abstract record SettingsProblem
     public sealed record RootNotFullPath(string Text) : SettingsProblem;
 
     public sealed record RootMissing(FolderPath Path) : SettingsProblem;
+
+    public sealed record RootAlreadyListed(FolderPath Path) : SettingsProblem;
 
     public sealed record WorktreeRootNotFullPath : SettingsProblem;
 

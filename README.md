@@ -33,7 +33,7 @@ I built Vantage because I wanted a tool that worked the way I work. Before start
 - [Common scenarios](#common-scenarios)
 - [Where Vantage keeps things](#where-vantage-keeps-things)
 - [What Vantage trusts](#what-vantage-trusts)
-- [Settings](#settings)
+- [The Config tab](#the-config-tab)
 - [Updates](#updates)
 - [What Vantage records](#what-vantage-records)
 - [Reporting a problem](#reporting-a-problem)
@@ -103,14 +103,14 @@ New shells pick up `~\.dotnet\tools` on the PATH; a shell that was open before t
 
 Open a tab and run `vantage` (or `v`). The screen has four parts, top to bottom:
 
-- **Settings:** two rows, labels in orange and values in white: `Vantage 0.18.0 (35 MB) · Claude 2.1.310` above `Repository roots C:\Users\you\source\repos · Worktree root C:\Users\you\source\worktrees`. In a terminal that draws images, such as Windows Terminal, the Vantage icon sits two rows high to their left; elsewhere they start at the left edge. The Claude Code version reads `unknown` when `claude --version` cannot be read and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports; a local install shows its prerelease label without the build timestamp (`0.6.0-local`); a newer release adds `0.19.0 available, U to update`. Several repository roots are joined with semicolons; when the second row is wider than the terminal the roots are cut with an ellipsis first, then the worktree root, and Settings always shows them in full.
-- **Tabs:** `Sessions` and `Worktrees`, the title of the one shown in bold cyan and the other in grey, their frames grey; beside them the counts for the tab shown, such as `◐ 2 need input · ● 1 working · ■ 1 stopped` in the states' colours. `1` and `2` choose a tab, `w` switches, and a click on a title selects it. Each tab keeps its selection, filter and message while the other is shown, and switching is instant; the worktrees scan starts the first time its tab is shown and refreshes only while it is.
+- **Settings:** one row, labels in orange and values in white: `Vantage 0.18.0 (35 MB) · Claude 2.1.310`. In a terminal that draws images, such as Windows Terminal, the Vantage icon sits to its left; elsewhere the row starts at the left edge. The Claude Code version reads `unknown` when `claude --version` cannot be read and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports; a local install shows its prerelease label without the build timestamp (`0.6.0-local`); a newer release adds `0.19.0 available, U to update`. The repository roots and the worktree root are on the [Config tab](#the-config-tab).
+- **Tabs:** `Sessions`, `Worktrees` and `Config`, the title of the one shown in bold cyan and the others in grey, their frames grey; beside them the counts for the tab shown, such as `◐ 2 need input · ● 1 working · ■ 1 stopped` in the states' colours. Left and Right move to the tab before or after (stopping at the ends), `1`, `2` and `3` choose one, and a click on a title selects it. Each tab keeps its selection, filter and message while another is shown, and switching is instant; the worktrees scan starts the first time its tab is shown and refreshes only while it is.
 - **Table:** in the tab's frame under a header box in the same grey with white column names, its title at the right end of the tabs' row: what it counts and which row is selected, `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set, with the filter being typed shown first (a failed listing shows there in red; a title too long for the row is cut at its end). The selection bar is bright cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears below the table. Under it the tab's crumb and its last message: what a key did, why it was refused, or what the selected row needs. A spinner sits beside the message while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
 - **Key bar:** the last two rows name the keys for the selected row: a background session's `Enter Attach  o Open tab  x Stop  d Delete  r Rename  m Memory`, a plain `claude` session's `b Adopt` (and `d Close tab` when it has never been sent a message), then `R Resume` while a stopped or failed session is listed, `C Close empty` while an empty terminal session is, `n New session`, and `U Update` when a newer release is known; the second row has the folder keys and the view's own. Click a key or its word to press it, and rest the mouse on it to see what it does; the tooltip is black on amber. The help lists every key whether the bar shows it or not.
 
 The sessions table refreshes every five seconds. `?` shows the keys and the columns of the current view (and, in the sessions view, the path of the Claude Code executable Vantage drives) and `q` quits. Quitting Vantage never stops a session.
 
-Vantage names its own tab `Vantage` (the version is in the settings rows) and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab. While a dialog is open the tab says which, such as `Vantage (Keys)` for the help or `Vantage (Settings)`, and goes back to `Vantage` when it closes.
+Vantage names its own tab `Vantage` (the version is in the settings row) and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab. While a dialog is open the tab says which, such as `Vantage (Keys)` for the help or `Vantage (Settings)` while a setting is edited, and goes back to `Vantage` when it closes.
 
 **Help and version.** `vantage --help` (also `-h`, `/h`, `-?` or `/?`) lists the commands and options, and the same option after a command, anywhere on the line, shows that command's own (`vantage here --help`, `vantage setup-terminal -h`). `vantage --version` prints the installed version. Both exit 0 and neither needs Claude Code. Anything Vantage cannot parse is refused with exit code 1: the message names what was not recognised, suggests close matches (`vantage hre` suggests `here`) and shows the help. Options take their value after a space, `=` or `:` (`--prompt="Fix the tests"`), and `--` ends the options. Only `vantage` on its own opens the console.
 
@@ -128,14 +128,15 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | AGE | Time since the session started, right-aligned |
 | MEM | The memory the session's process and everything it started are using now: the private working set, the figure Task Manager's Memory column shows, so pages shared between the MCP servers' node processes count once and pages Windows has paged out do not count. `-` for a stopped session |
 
-WHERE takes the width the other columns leave, so every column fits a 120-column terminal; a repository name too long for it loses its middle to an ellipsis (`Northwind.Integrat…ngeFeedMonitoring › fix-123`) and the slug and branch stay whole. NAME is cut at 28 characters with an ellipsis. Left and Right scroll the table on a narrower terminal, and the title, the filter and every key still use the full values.
+WHERE takes the width the other columns leave, so every column fits a 120-column terminal; a repository name too long for it loses its middle to an ellipsis (`Northwind.Integrat…ngeFeedMonitoring › fix-123`) and the slug and branch stay whole. NAME is cut at 28 characters with an ellipsis. `<` and `>` scroll the table on a narrower terminal, and the title, the filter and every key still use the full values.
 
 Keys (every key is dispatched by the tested reducer, so this table is the reference):
 
 | Key | Action |
 | --- | --- |
 | Up, Down | Move the selection bar |
-| Left, Right | Scroll the table sideways, one column at a time, when its columns do not all fit |
+| Left, Right | Show the tab before or after this one |
+| <, > | Scroll the table sideways, one column at a time, when its columns do not all fit |
 | Enter | Attach to the selected background session in this tab; Ctrl+Z returns |
 | o | Open the session in its own coloured Windows Terminal tab; when one is already open for it, switch to that tab |
 | n | New session wizard |
@@ -146,14 +147,13 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | b | Move a plain terminal session under Vantage's supervision; its old tab closes once the session has resumed (a failed resume leaves it at its prompt) |
 | R | Resume sessions that stopped with a reboot |
 | c | Copy the selected row's full folder path to the clipboard |
-| e | Open folder: open the row's folder with the program chosen under "Open folder with" in [Settings](#settings) (VS Code unless you chose another); works on terminal and stopped sessions too |
+| e | Open folder: open the row's folder with the program chosen under "Open folder with" on the [Config tab](#the-config-tab) (VS Code unless you chose another on the [Config tab](#the-config-tab)); works on terminal and stopped sessions too |
 | v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which from a list of their paths; none says so in the footer |
 | p | Open the row's pull request in your default browser; with none, the footer says why (no origin remote, a host Vantage does not know, `gh` or `az` missing or signed out, no pull request for the branch, or the lookup still running) |
 | m | Show what the session's memory is made of: Claude Code itself, then one line per program it started (an MCP server named from the package or executable that launched it, a shell running a command, anything else) with that program's whole tree, largest first, and the total with the process count. A snapshot, taken when the dialog opens; Esc or Close closes it. A stopped session has nothing to measure. Programs are named from their command lines, which are never shown or written anywhere |
-| , | Settings: the repository roots, the worktree root, what opens folders, the default worktree base and the update check (see [Settings](#settings)) |
-| U | Update Vantage when the settings rows name a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
+| U | Update Vantage when the settings row names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | ! | Report a problem: shows the diagnostics a GitHub issue would carry, then opens the issue form in your browser or copies the text (see [Reporting a problem](#reporting-a-problem)) |
-| w, 2 | Show the Worktrees tab (`1` shows the Sessions tab from either) |
+| 1, 2, 3 | Show the Sessions, Worktrees or Config tab, from any tab |
 | / | Filter by name, repository or branch; Enter keeps the filter, Esc clears it |
 | ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
 | q | Quit |
@@ -165,7 +165,7 @@ Rows with the hollow `▯` swatch in TAB are sessions started by hand with `clau
 Press `n`. The left column lists your repositories (recent ones first, then everything under the roots); type to filter it and use the arrows to choose, then Enter confirms the repository and moves to the form. For a folder that is not a repository, run `vantage here` there instead. The right column is the form, and Tab and Enter both move down it in order: name, Where, worktree base, prompt (Enter on Where or the base only moves on; the arrows change them):
 
 - **Session name (required):** the label shown in the NAME column. It also names the worktree folder and branch when you choose a worktree.
-- **Where:** `New worktree`, the default, creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it in [Settings](#settings)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
+- **Where:** `New worktree`, the default, creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it on the [Config tab](#the-config-tab)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
 - **Worktree base:** the branch the new worktree starts from, `origin` default branch or the current HEAD.
 - **Opening prompt:** sent to the session as soon as it starts. It wraps as you type. Leave it blank and the session waits at its prompt until you send it something.
 
@@ -185,14 +185,13 @@ Enter never starts a session here, so there is nothing to undo if you press it t
 
 ## The worktrees view
 
-Press `2` or `w` (or click the Worktrees tab). Vantage lists every linked worktree of the repositories under your roots, wherever its folder is (under the worktree root, or beside the repository as versions before 0.8.0 placed them), plus the leftovers git has forgotten under the roots and the worktree root. The first scan of a large roots folder takes a while (around forty seconds for fifty repositories); it refreshes every fifteen seconds while the tab is shown.
+Press `2` or Right (or click the Worktrees tab). Vantage lists every linked worktree of the repositories under your roots, wherever its folder is (under the worktree root, or beside the repository as versions before 0.8.0 placed them), plus the leftovers git has forgotten under the roots and the worktree root. The first scan of a large roots folder takes a while (around forty seconds for fifty repositories); it refreshes every fifteen seconds while the tab is shown.
 
 ```text
 Vantage 0.18.0 (35 MB) · Claude 2.1.310
-Repository roots C:\Users\you\source\repos · Worktree root C:\Users\you\source\worktrees
-╭────────╭─────────╮
-│Sessions│Worktrees│  3 ok · 1 broken · 1 with changes · 2 with unpushed commits     4 worktrees, selected: Northwind.Bi…
-├────────╯         ╰───────────────────────────────────────────────────────────────────────────────────────────╮
+╭────────╭─────────╮──────╮
+│Sessions│Worktrees│Config│  3 ok · 1 broken · 1 with changes · 2 with unpushed commits  4 worktrees, selected: Northwind.Bi…
+├────────╯         ╰──────┴───────────────────────────────────────────────────────────────────────────────────╮
 ││WORKTREE                           │BRANCH                   │DIRTY│UNPUSHED│LAST COMMIT│SESSION    │HEALTH      ││
 │ Northwind.Billing › invoice-pdf     invoice-pdf                     12       3d4h       invoice-pdf ok           │
 │ Northwind.Billing › study           study/reporting          5                9d16h                  ok           │
@@ -211,22 +210,22 @@ Repository roots C:\Users\you\source\repos · Worktree root C:\Users\you\source\
 | SESSION | The session running inside it, if any |
 | HEALTH | `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it), `elsewhere` (a live worktree of a repository that is not under the roots, so Vantage never scanned it; the row names that repository, and the footer says where it is) |
 
-When nothing else needs saying, the footer explains the selected row's health in full. A long repository name is elided in the middle of the WORKTREE cell, BRANCH is cut at 28 characters, and Left and Right scroll the table on a narrow terminal.
+When nothing else needs saying, the footer explains the selected row's health in full. A long repository name is elided in the middle of the WORKTREE cell, BRANCH is cut at 28 characters, and `<` and `>` scroll the table on a narrow terminal.
 
 | Key | Action |
 | --- | --- |
-| d | Remove the worktree, or delete a leftover folder. Refused, with the reason, when it has changed files, unpushed commits, a lock or a live session, and always for an `elsewhere` worktree, which is not a leftover: add its repository's root in Settings, or remove it with git there. A broken leftover also has its stale registration pruned from the repository. A folder a tab or program still has open is reported as in use, by name; what git could delete is gone, and a second `d` once it is closed finishes the job. Junctions and links inside a leftover (pnpm's `node_modules`, for one) are removed as links and never followed, so nothing outside the folder is touched. A leftover's files are counted up to 1,000, so a large one is refused as "at least 1000 files" |
+| d | Remove the worktree, or delete a leftover folder. Refused, with the reason, when it has changed files, unpushed commits, a lock or a live session, and always for an `elsewhere` worktree, which is not a leftover: add its repository's root on the Config tab, or remove it with git there. A broken leftover also has its stale registration pruned from the repository. A folder a tab or program still has open is reported as in use, by name; what git could delete is gone, and a second `d` once it is closed finishes the job. Junctions and links inside a leftover (pnpm's `node_modules`, for one) are removed as links and never followed, so nothing outside the folder is touched. A leftover's files are counted up to 1,000, so a large one is refused as "at least 1000 files" |
 | D | Force removal: the folder name opens selected in a read-only box, so Ctrl+C copies it (F2 also copies, from anywhere in the dialog); Tab or Enter moves to the answer box, Ctrl+V pastes, Enter confirms. There is no Remove button; a wrong or empty answer keeps the dialog open and says what was typed, and Esc cancels. Never forces a locked worktree, one with a live session, or an `elsewhere` one |
 | P | Prune stale registrations in the row's repository (`p` before 0.11.0) |
 | p | Open the row's pull request in your default browser, as in the sessions view |
 | s | Start a session in this worktree: a compact wizard with only the name and the prompt; type a name and Enter starts the session and opens it in its own tab (F5 starts it without a tab) |
 | o | Open a plain PowerShell tab in the worktree |
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
-| w, 1, Esc | Back to the Sessions tab (Esc clears a filter first) |
-| Left, Right | Scroll the table sideways, as in the sessions view |
+| 1, Esc | Back to the Sessions tab (Esc clears a filter first); `3` shows the Config tab |
+| Left, Right | The tab before or after, as in the sessions view |
+| <, > | Scroll the table sideways, as in the sessions view |
 | / | Filter by repository, folder, branch or health |
 | c, e, v | Copy the folder path, open the folder, open its solution (choosing from a list when there are several), as in the sessions view; refused for a leftover whose folder is gone |
-| , | Settings, as in the sessions view |
 | U | Update Vantage, as in the sessions view |
 | ! | Report a problem, as in the sessions view |
 
@@ -310,7 +309,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 **Finish a story and clean up.** `d` on the session deletes it and, if Vantage created the worktree and it is clean and pushed, offers to remove the worktree and its merged branch. Anything with uncommitted or unpushed work is refused with the reason.
 
-**Find out what is cluttering the repositories folder.** `w` lists every worktree with dirty and unpushed counts and health. Empty leftover folders go with `d`; a worktree with uncommitted work needs `D` and the copied folder name, which is deliberate.
+**Find out what is cluttering the repositories folder.** `2` lists every worktree with dirty and unpushed counts and health. Empty leftover folders go with `d`; a worktree with uncommitted work needs `D` and the copied folder name, which is deliberate.
 
 **Something needs Claude Code's own screen.** Run `claude agents` in any shell for the native agent view; Esc returns.
 
@@ -320,7 +319,7 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 
 | File or folder | Contents |
 | --- | --- |
-| `config.json` | Your settings: `repositoryRoots` (default `~\source\repos`), `worktreeRoot` (default `worktrees` beside the first root, so `~\source\worktrees`), `editor` (default VS Code), `defaultBase` (`RemoteDefault` or `Head`) and `checkForUpdates` (default `true`); see [Settings](#settings) |
+| `config.json` | Your settings: `repositoryRoots` (default `~\source\repos`), `worktreeRoot` (default `worktrees` beside the first root, so `~\source\worktrees`), `editor` (default VS Code), `defaultBase` (`RemoteDefault` or `Head`) and `checkForUpdates` (default `true`); see [Settings](#the-config-tab) |
 | `update-check.json` | When Vantage last asked nuget.org for a newer release of itself and the newest release it found; see [Updates](#updates) |
 | `recent\` | One file per recently used repository, with when it was last used; the ten most recent are shown first in the wizard |
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
@@ -339,19 +338,48 @@ It runs the Claude Code it finds at `~\.local\bin\claude.exe` or as `claude.exe`
 
 Its own state lives in `%LOCALAPPDATA%\Vantage`; it never edits Claude Code's trust records and stores no credential. Once a day it asks nuget.org for its newest version, which the setting or `VANTAGE_NO_UPDATE_CHECK` turns off, and the update tab installs from nuget.org alone. The diagnostic log and a problem report hold only what [What Vantage records](#what-vantage-records) lists: never a path, a name, a prompt or anything typed.
 
-## Settings
+## The Config tab
 
-Press `,` in either view. The dialog shows:
+Press `3`, or Right until it shows (or click the Config tab). Each setting has a row, and below them, in grey, the setup Vantage reads but does not change:
 
-- **Repository roots:** one folder per line; the wizard offers every repository directly under each, and the worktrees view scans them. Each must be a full path that exists.
+```text
+Vantage 0.18.0 (35 MB) · Claude 2.1.310
+╭────────╭─────────╭──────╮
+│Sessions│Worktrees│Config│  6 settings · 1 to set up                         11 rows, selected: Repository root
+├────────┴─────────╯      ╰───────────────────────────────────────────────────────────────────────────────────╮
+││SETTING                  │VALUE                                                                             ││
+│ Repository roots          C:\Users\you\source\repos                                                        │
+│                           D:\work                                                                          │
+│ Worktree root             C:\Users\you\source\worktrees                                                    │
+│ Open folder with          VS Code                                                                          │
+│ Default base              origin's default branch                                                          │
+│ Check for updates         on                                                                               │
+│ Settings file             C:\Users\you\AppData\Local\Vantage\config.json                                   │
+│ Windows Terminal profiles not set up, run vantage setup-terminal                                           │
+│ Claude bell               on                                                                               │
+│ Diagnostic log            off                                                                              │
+│ Last update check         09:12 today, newest 0.18.0                                                       │
+```
+
+- **Repository roots:** one row per root, the first labelled; the wizard offers every repository directly under each, and the worktrees view scans them. Enter on any of them opens one dialog with every root, one per line: add a line to add a root, delete one to remove it, and F5 saves. Each must be a full path that exists and be listed once, and at least one must stay.
 - **Worktree root:** where new worktrees go, as `<worktree root>\<repository>-<name>`. It must be a full path; it is created when the first worktree goes there. Worktrees made beside their repository by earlier versions stay where they are and are still listed, removed and opened as before.
 - **Open folder with:** VS Code, Cursor, Rider, Explorer, or Custom: the full path of an executable and its arguments, with `{folder}` where the folder goes (double quotes keep an argument with spaces together). A bare name or a relative path is refused, because Windows would look for it in the folder Vantage was started from before the PATH; a `.cmd` or `.bat` file is refused, because Windows runs it through `cmd.exe`, which would read the folder path as commands. The `e` key opens the selected row's folder with it. Visual Studio is not offered, because `v` opens solutions in it; a `config.json` that still names `VisualStudio` reads as VS Code, the other settings kept.
-- **Worktree base:** where a new worktree's branch starts by default, origin's default branch or the current HEAD.
-- **Check for updates daily:** whether Vantage asks nuget.org once a day for a newer release of itself (see [Updates](#updates)); on unless you turn it off.
+- **Default base:** where a new worktree's branch starts by default, origin's default branch or the current HEAD.
+- **Check for updates:** whether Vantage asks nuget.org once a day for a newer release of itself (see [Updates](#updates)); on unless you turn it off. Enter turns it on or off and saves at once.
+- **Settings file, Windows Terminal profiles, Claude bell, Diagnostic log, Last update check:** where `config.json` is, whether `vantage setup-terminal` has added the profiles and set Claude's bell (each says to run it when it has not), the `VANTAGE_LOG` file if one is set, and when nuget.org was last asked. They are read each time the tab is shown and after each save; Enter on one says how it is changed. The counts beside the tabs name how many settings there are and how much setup is left to do.
 
-F5 saves: the dialog checks everything first, names any problem and keeps the dialog open; once saved, `config.json` is written and the next scan, wizard and settings rows use the new values at once, without a restart. Esc closes the dialog without changing anything.
+Enter on a setting opens a small dialog for that one value. F5 saves: the dialog checks the value first, names any problem and stays open; once saved, `config.json` is written and the next scan, wizard and editor launch use the new value at once, without a restart. Esc closes the dialog without changing anything. `c` copies the selected path and `e` opens the selected folder, or the folder holding the selected file.
 
-`config.json` can also be edited by hand while Vantage is closed (a hand edit made while it runs is overwritten by the next save from the dialog, and otherwise applies on the next start). A file from an earlier version keeps working: every property it leaves out reads as its default, and a custom editor without `{folder}`, or whose executable is not a full path to something other than a batch file, reads as VS Code.
+`config.json` can also be edited by hand while Vantage is closed (a hand edit made while it runs is overwritten by the next save from the tab, and otherwise applies on the next start). A file from an earlier version keeps working: every property it leaves out reads as its default, and a custom editor without `{folder}`, or whose executable is not a full path to something other than a batch file, reads as VS Code.
+
+| Key | Action |
+| --- | --- |
+| Up, Down | Move the selection bar |
+| Enter | Edit the selected setting (on any repository root, every root together, one per line); on Check for updates, turn it on or off; on a setup row, say how that setup is changed |
+| c, e | Copy the selected path; open the selected folder, or the folder holding the selected file |
+| Left, Right, 1, 2, Esc | Other tabs, as in the sessions view (Esc clears a filter first) |
+| / | Filter by setting or path |
+| U, !, ?, q | Update, report a problem, help and quit, as in the sessions view |
 
 ```json
 {
@@ -369,7 +397,7 @@ A dotnet global tool never updates itself, so Vantage looks for you. Once a day 
 
 `U` in either view asks "Quit Vantage and update to 0.10.0?". On yes Vantage opens a tab titled "Update Vantage" and quits; the tab waits for that Vantage to exit (a running `vantage.exe` locks its own files), runs `dotnet tool update -g Source191.Vantage --source https://api.nuget.org/v3/index.json` (so the package comes from the feed the check consulted, whatever other sources the machine has configured), and starts Vantage again when the update succeeds. When it fails, typically because another Vantage is still open in some tab, the tab stays open with dotnet's message: quit every Vantage and press `U` again, or run the command yourself. Background sessions run under Claude's supervisor and keep running throughout. With no newer release known, `U` says Vantage is up to date, or that the check is off.
 
-**What the check sends:** one anonymous HTTPS request to `https://api.nuget.org/v3-flatcontainer/source191.vantage/index.json`, the public list of the package's versions, with a `Vantage/<version>` user agent and nothing else that identifies you or your machine. Turn it off with **Check for updates daily** in [Settings](#settings) or `"checkForUpdates": false` in `config.json`. Setting the environment variable `VANTAGE_NO_UPDATE_CHECK` to any non-empty value (for a script or test harness) turns it off without touching `config.json`: no request is made and no `update-check.json` is written. The hand-off check in `tools\HeadlessTerminal` sets it.
+**What the check sends:** one anonymous HTTPS request to `https://api.nuget.org/v3-flatcontainer/source191.vantage/index.json`, the public list of the package's versions, with a `Vantage/<version>` user agent and nothing else that identifies you or your machine. Turn it off with **Check for updates** on the [Config tab](#the-config-tab) or `"checkForUpdates": false` in `config.json`. Setting the environment variable `VANTAGE_NO_UPDATE_CHECK` to any non-empty value (for a script or test harness) turns it off without touching `config.json`: no request is made and no `update-check.json` is written. The hand-off check in `tools\HeadlessTerminal` sets it.
 
 ## What Vantage records
 
@@ -421,5 +449,5 @@ Vantage is built in the gaps between rate limits. Help close the gaps: [buy me a
 - A take-over key (stop the supervised session and resume it as a normal foreground `claude`, at the cost of supervision) is undecided; `b` covers the other direction.
 - Multiple Claude accounts: Claude Code's `CLAUDE_CONFIG_DIR` selects a configuration directory with its own login, settings, sessions and supervisor; Vantage would gain a profile column and set the variable when starting a session.
 - Installing with `winget install`, as a self-contained `vantage.exe` that needs no .NET SDK ([#93](https://github.com/Source191/vantage/issues/93)).
-- A per-path cache for the worktree scan, so the first press of `w` is quick on a large roots folder.
+- A per-path cache for the worktree scan, so the first look at the Worktrees tab is quick on a large roots folder.
 - Pinning sessions, once the CLI exposes it outside the native agent view; configurable palette and Windows Terminal profile for the tabs Vantage opens.

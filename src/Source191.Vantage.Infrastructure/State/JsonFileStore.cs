@@ -34,7 +34,8 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
     private string CreatedFile => Path.Combine(folder, "created.json");
 
-    private string ConfigFile => Path.Combine(folder, "config.json");
+    /// <summary>The settings file, which the Config tab names.</summary>
+    public string ConfigFile => Path.Combine(folder, "config.json");
 
     private string UpdateCheckFile => Path.Combine(folder, "update-check.json");
 

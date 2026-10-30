@@ -40,6 +40,13 @@ public sealed class WordingOfOutcomesShould
         Wording.Describe(new SaveSettingsOutcome()).ShouldBe("Settings saved.");
     }
 
+    [Fact]
+    public void SayWhetherTheUpdateCheckIsOn()
+    {
+        Wording.Describe(new ToggleUpdateCheckOutcome(On: true)).ShouldBe("The update check is on: Vantage asks nuget.org at most once a day.");
+        Wording.Describe(new ToggleUpdateCheckOutcome(On: false)).ShouldBe("The update check is off.");
+    }
+
     // Sessions.
 
     [Fact]

@@ -13,7 +13,7 @@ public sealed class WordingOfKeyBarShould
     private static readonly SessionRow EmptyTerminal = Terminal("sess-3", "repos-93", hasTranscript: false);
     private static readonly SessionRow BusyTerminal = Terminal("sess-4", "repos-94", hasTranscript: true);
 
-    private static readonly string[] SecondSessionsRow = ["c Copy path", "e Open folder", "v Solution", "p Open PR", "w Worktrees", "/ Filter", ", Settings", "? Help", "! Report", "q Quit"];
+    private static readonly string[] SecondSessionsRow = ["c Copy path", "e Open folder", "v Solution", "p Open PR", "/ Filter", "? Help", "! Report", "q Quit"];
 
     [Fact]
     public void NameTheKeysForARunningBackgroundSession()
@@ -74,8 +74,29 @@ public sealed class WordingOfKeyBarShould
         KeyBar bar = Wording.WorktreesBar(Loaded(WorktreesViewState.Empty), updateKnown: false);
 
         Texts(bar.First).ShouldBe(["d Remove", "D Force remove", "P Prune", "s Start session", "o Open shell", "Enter Go to session"]);
-        Texts(bar.Second).ShouldBe(["c Copy path", "e Open folder", "v Solution", "p Open PR", "w Sessions", "/ Filter", ", Settings", "? Help", "! Report", "q Quit"]);
+        Texts(bar.Second).ShouldBe(["c Copy path", "e Open folder", "v Solution", "p Open PR", "/ Filter", "? Help", "! Report", "q Quit"]);
     }
+
+    [Fact]
+    public void NameTheConfigKeys()
+    {
+        KeyBar bar = Wording.ConfigBar(ConfigLoaded, updateKnown: false);
+
+        Texts(bar.First).ShouldBe(["Enter Edit"]);
+        Texts(bar.Second).ShouldBe(["c Copy", "e Open folder", "/ Filter", "? Help", "! Report", "q Quit"]);
+    }
+
+    [Fact]
+    public void AddUpdateToTheConfigBarWhenAReleaseIsKnown()
+    {
+        KeyBar bar = Wording.ConfigBar(ConfigLoaded.With(ConfigLoaded.List.Select("worktree-root")), updateKnown: true);
+
+        Texts(bar.First).ShouldBe(["Enter Edit", "U Update"]);
+    }
+
+    private static readonly ConfigViewState ConfigLoaded = ConfigView.Reduce(
+        ConfigViewState.Empty,
+        new ConfigRowsLoaded(ConfigRows.For(Settings.Resolve([FolderPath.From(@"C:\Users\me\source\repos"), FolderPath.From(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me")), facts: null))).State;
 
     [Fact]
     public void PlaceEachItemOneCellFromTheEdgeAndTwoCellsAfterTheLast()
@@ -101,6 +122,10 @@ public sealed class WordingOfKeyBarShould
             }
 
             Wording.WorktreesBar(Loaded(WorktreesViewState.Empty), updateKnown).Width.ShouldBeLessThanOrEqualTo(MostCells);
+            foreach (ConfigRow selected in ConfigLoaded.Rows)
+            {
+                Wording.ConfigBar(ConfigLoaded.With(ConfigLoaded.List.Select(selected.Key)), updateKnown).Width.ShouldBeLessThanOrEqualTo(MostCells);
+            }
         }
     }
 

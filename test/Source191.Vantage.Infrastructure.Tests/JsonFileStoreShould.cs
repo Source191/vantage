@@ -337,6 +337,15 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
+    public async Task NameTheSettingsFileItWrites()
+    {
+        await Store.WriteConfigAsync(new VantageConfig([@"C:\repos"], WorktreeBase.RemoteDefault, @"C:\worktrees", new EditorSetting("VsCode", Executable: null, Arguments: null)));
+
+        Store.ConfigFile.ShouldBe(Path.Combine(folder, "config.json"));
+        File.Exists(Store.ConfigFile).ShouldBeTrue();
+    }
+
+    [Fact]
     public async Task WriteTheEditorAsAPresetObject()
     {
         await Store.WriteConfigAsync(new VantageConfig([@"C:\repos"], WorktreeBase.RemoteDefault, @"C:\worktrees", new EditorSetting("VsCode", Executable: null, Arguments: null)));

@@ -309,12 +309,8 @@ public sealed class SessionsViewShould
     [InlineData('r', typeof(AskForNewName))]
     [InlineData('n', typeof(OpenLaunchWizard))]
     [InlineData('R', typeof(ResumeStoppedSessions))]
-    [InlineData('w', typeof(SwitchToWorktrees))]
-    [InlineData('2', typeof(SwitchToWorktrees))]
-    [InlineData('1', typeof(SwitchToSessions))]
     [InlineData('q', typeof(Quit))]
     [InlineData('?', typeof(ShowHelp))]
-    [InlineData(',', typeof(OpenSettings))]
     [InlineData('U', typeof(UpdateVantage))]
     [InlineData('!', typeof(ShowProblemReport))]
     public void EmitTheEffectForTheKey(char key, Type effect)
@@ -324,17 +320,26 @@ public sealed class SessionsViewShould
         update.Effects.Single().ShouldBeOfType(effect);
     }
 
-    [Theory]
-    [MemberData(nameof(SidewaysKeys))]
-    public void LeaveSidewaysScrollingToTheScreen(Key key)
+    [Fact]
+    public void ChooseATabWithTheTabKeys()
     {
-        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(key));
+        SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('1'))).Effects.ShouldBe([new SelectTab(ConsoleTab.Sessions)]);
+        SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('2'))).Effects.ShouldBe([new SelectTab(ConsoleTab.Worktrees)]);
+        SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('3'))).Effects.ShouldBe([new SelectTab(ConsoleTab.Config)]);
+        SessionsView.Reduce(Loaded, new KeyPressed(Key.Left)).Effects.ShouldBe([new PreviousTab()]);
+        SessionsView.Reduce(Loaded, new KeyPressed(Key.Right)).Effects.ShouldBe([new NextTab()]);
+    }
+
+    [Theory]
+    [InlineData('w')]
+    [InlineData(',')]
+    public void IgnoreTheRetiredKeys(char key)
+    {
+        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of(key)));
 
         update.Effects.ShouldBeEmpty();
         update.State.ShouldBe(Loaded);
     }
-
-    public static TheoryData<Key> SidewaysKeys => new(Key.Left, Key.Right);
 
     [Fact]
     public void ShowTheMemoryOfARunningSessionOnM()
@@ -505,8 +510,8 @@ public sealed class SessionsViewShould
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
         new AttachToSession(JobId.From("81cdb0f9")).ShouldBeAssignableTo<ILeavesScreen>();
-        new SwitchToWorktrees().ShouldBeAssignableTo<ISwitchesTab>();
-        new SwitchToWorktrees().ShouldNotBeAssignableTo<ILeavesScreen>();
+        new NextTab().ShouldBeAssignableTo<ISwitchesTab>();
+        new NextTab().ShouldNotBeAssignableTo<ILeavesScreen>();
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
         new AskForNewName(WaitingJob).ShouldBeAssignableTo<IDialogEffect>();
         new DeleteSession(WaitingJob).ShouldBeAssignableTo<IDialogEffect>();

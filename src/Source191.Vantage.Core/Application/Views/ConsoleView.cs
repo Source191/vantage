@@ -2,17 +2,27 @@ using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
-/// <summary>The two tabs of the console.</summary>
+/// <summary>The tabs of the console, in the order they sit in the strip.</summary>
 public enum ConsoleTab
 {
     Sessions,
     Worktrees,
+    Config,
 }
 
-/// <summary>The whole console: both views' states and which tab shows, kept across tab switches and hand-offs alike.</summary>
-public sealed record ConsoleState(SessionsViewState Sessions, WorktreesViewState Worktrees, ConsoleTab Active)
+/// <summary>Show this tab: 1, 2 and 3, a click on its title, and Esc back to Sessions.</summary>
+public sealed record SelectTab(ConsoleTab Tab) : ViewEffect, ISwitchesTab;
+
+/// <summary>Right: the tab after the one shown, stopping at the last.</summary>
+public sealed record NextTab : ViewEffect, ISwitchesTab;
+
+/// <summary>Left: the tab before the one shown, stopping at the first.</summary>
+public sealed record PreviousTab : ViewEffect, ISwitchesTab;
+
+/// <summary>The whole console: every tab's state and which tab shows, kept across tab switches and hand-offs alike.</summary>
+public sealed record ConsoleState(SessionsViewState Sessions, WorktreesViewState Worktrees, ConfigViewState Config, ConsoleTab Active)
 {
-    public static readonly ConsoleState Empty = new(SessionsViewState.Empty, WorktreesViewState.Empty, ConsoleTab.Sessions);
+    public static readonly ConsoleState Empty = new(SessionsViewState.Empty, WorktreesViewState.Empty, ConfigViewState.Empty, ConsoleTab.Sessions);
 }
 
 /// <summary>
@@ -21,7 +31,7 @@ public sealed record ConsoleState(SessionsViewState Sessions, WorktreesViewState
 /// </summary>
 public static class ConsoleView
 {
-    private static readonly HashSet<Type> Handled = [typeof(SwitchToSessions), typeof(SwitchToWorktrees), typeof(JumpToSession)];
+    private static readonly HashSet<Type> Handled = [typeof(SelectTab), typeof(NextTab), typeof(PreviousTab), typeof(JumpToSession)];
 
     public static ConsoleState Apply(ConsoleState state, ISwitchesTab effect)
     {
@@ -29,8 +39,9 @@ public static class ConsoleView
 
         return effect switch
         {
-            SwitchToWorktrees => state with { Active = ConsoleTab.Worktrees },
-            SwitchToSessions => state with { Active = ConsoleTab.Sessions },
+            SelectTab select => state with { Active = select.Tab },
+            NextTab => state with { Active = state.Active == ConsoleTab.Config ? ConsoleTab.Config : state.Active + 1 },
+            PreviousTab => state with { Active = state.Active == ConsoleTab.Sessions ? ConsoleTab.Sessions : state.Active - 1 },
             JumpToSession jump => state with { Active = ConsoleTab.Sessions, Sessions = SessionsView.Reduce(state.Sessions, new SelectSession(jump.SessionId)).State },
             _ => throw new UnreachableException($"{effect.GetType().Name} switches tab but ConsoleView.Apply has no case for it; EffectRoutingShould guards this."),
         };
@@ -38,4 +49,22 @@ public static class ConsoleView
 
     /// <summary>Whether <see cref="Apply"/> has a case for the effect type; the reflection fact asks this for every tab-switching effect.</summary>
     public static bool Handles(Type effectType) => Handled.Contains(effectType);
+}
+/// <summary>The keys every tab shares for moving between tabs: 1, 2 and 3 choose one, Left and Right step through them.</summary>
+public static class TabKeys
+{
+    public static ViewEffect? For(Key key)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+
+        return key switch
+        {
+            { Name: KeyName.Left } => new PreviousTab(),
+            { Name: KeyName.Right } => new NextTab(),
+            { Name: KeyName.Character, Character: '1' } => new SelectTab(ConsoleTab.Sessions),
+            { Name: KeyName.Character, Character: '2' } => new SelectTab(ConsoleTab.Worktrees),
+            { Name: KeyName.Character, Character: '3' } => new SelectTab(ConsoleTab.Config),
+            _ => null,
+        };
+    }
 }

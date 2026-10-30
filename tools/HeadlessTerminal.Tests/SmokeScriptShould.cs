@@ -17,9 +17,9 @@ public sealed class SmokeScriptShould
         titles.ShouldBe(
         [
             Wording.TabTitleDuring(DialogName.Keys), Wording.TabTitle,
-            Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.NewSession), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.ProblemReport), Wording.TabTitle,
+            Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.Keys), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.ForceRemove), Wording.TabTitle,
             Wording.TabTitle,
@@ -34,14 +34,15 @@ public sealed class SmokeScriptShould
         string[] worktrees = [.. Wording.WorktreesColumns.Select(column => column.Name)];
         string[] texts = [.. Steps.Select(step => step.Marker).OfType<CaptureMarker.ScreenText>().Select(text => text.Text)];
 
-        texts.Length.ShouldBe(5);
+        texts.Length.ShouldBe(6);
         texts[0].ShouldBeOneOf(sessions);
         texts[0].ShouldNotBeOneOf(worktrees);
-        texts[1].ShouldBeOneOf(worktrees);
-        texts[1].ShouldNotBeOneOf(sessions);
-        texts[2].ShouldBe(", selected: ", "the scan has finished once the table's title names a selection; the WORKTREE cell no longer shows the folder name");
-        texts[3].ShouldBe($"New session in {Worktree}", "the fixed-folder wizard is recognised by its own title");
-        texts[4].ShouldBe(texts[0]);
+        texts[1].ShouldBe("SETTING", "the Config tab is recognised by a column neither other view has");
+        texts[2].ShouldBeOneOf(worktrees);
+        texts[2].ShouldNotBeOneOf(sessions);
+        texts[3].ShouldBe(", selected: ", "the scan has finished once the table's title names a selection; the WORKTREE cell no longer shows the folder name");
+        texts[4].ShouldBe($"New session in {Worktree}", "the fixed-folder wizard is recognised by its own title");
+        texts[5].ShouldBe(texts[0]);
     }
 
     [Fact]
@@ -52,16 +53,16 @@ public sealed class SmokeScriptShould
         keys.ShouldBe(
         [
             Key(Wording.SessionsKeys, "Help"), Escape,
-            Key(Wording.SessionsKeys, "Settings"), Escape,
             Key(Wording.SessionsKeys, "New session"), Escape,
             Key(Wording.SessionsKeys, "Report"), Escape,
-            Key(Wording.SessionsKeys, "Worktrees"), string.Empty,
+            "3", Key(Wording.ConfigKeys, "Edit"), Escape,
+            "2", string.Empty,
             Key(Wording.WorktreesKeys, "Help"), Escape,
             Key(Wording.WorktreesKeys, "Filter") + Worktree, "\r",
             Key(Wording.WorktreesKeys, "Force remove"), Escape,
             Key(Wording.WorktreesKeys, "Start session"), Escape,
             Key(Wording.WorktreesKeys, "Solution"), Escape,
-            Key(Wording.WorktreesKeys, "Sessions"),
+            "1",
             Key(Wording.SessionsKeys, "Quit"),
         ]);
     }
@@ -69,8 +70,8 @@ public sealed class SmokeScriptShould
     [Fact]
     public void SendEnterAndDForceRemoveWithoutAMarkerOfTheirOwn()
     {
-        Steps[13].Marker.ShouldBe(CaptureMarker.Nothing);
         Steps[14].Marker.ShouldBe(CaptureMarker.Nothing);
+        Steps[15].Marker.ShouldBe(CaptureMarker.Nothing);
     }
 
     [Fact]
@@ -79,8 +80,8 @@ public sealed class SmokeScriptShould
         TimeSpan[] timeouts = [.. Steps.Select(step => step.Timeout)];
 
         timeouts[0].ShouldBe(TimeSpan.FromSeconds(60));
-        timeouts[10].ShouldBe(TimeSpan.FromSeconds(60));
-        timeouts.Where((_, index) => index is not 0 and not 10).ShouldAllBe(timeout => timeout == TimeSpan.FromSeconds(20));
+        timeouts[11].ShouldBe(TimeSpan.FromSeconds(60));
+        timeouts.Where((_, index) => index is not 0 and not 11).ShouldAllBe(timeout => timeout == TimeSpan.FromSeconds(20));
     }
 
     [Fact]
@@ -89,6 +90,13 @@ public sealed class SmokeScriptShould
         SmokeScript.KeyFor([new KeyHelp("esc", "Back", "back", Tip: "Go back.")], "Back").ShouldBe(Escape);
         SmokeScript.KeyFor([new KeyHelp("enter", "Go", "go", Tip: "Go there.")], "Go").ShouldBe("\r");
         SmokeScript.KeyFor([new KeyHelp(",", "Settings", "settings", Tip: "Edit the settings.")], "Settings").ShouldBe(",");
+    }
+
+    [Fact]
+    public void ChooseATabByTheKeyTheHelpGivesIt()
+    {
+        SmokeScript.TabKey(Wording.SessionsKeys, Source191.Vantage.Application.Views.ConsoleTab.Config).ShouldBe("3");
+        SmokeScript.TabKey(Wording.ConfigKeys, Source191.Vantage.Application.Views.ConsoleTab.Worktrees).ShouldBe("2");
     }
 
     [Fact]

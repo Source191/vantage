@@ -177,15 +177,17 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
 
         key.Handled = true;
+        if (!State.List.FilterEditing && ScrollStep(mapped) is int step)
+        {
+            Scroll(step);
+            return;
+        }
+
         Press(mapped);
     }
 
-    /// <summary>A key from the keyboard or a click on the key bar: Left and Right scroll the table, and every key goes to the reducer.</summary>
-    public void Press(Key key)
-    {
-        Scroll(key);
-        Apply(new KeyPressed(key));
-    }
+    /// <summary>A key from the keyboard or a click on the key bar, for the reducer; Left and Right move between tabs there.</summary>
+    public void Press(Key key) => Apply(new KeyPressed(key));
 
     public void Reduce(ViewInput input) => Apply(input);
 
@@ -283,19 +285,16 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     }
 
     /// <summary>Left and Right move the table one column sideways, within its columns; presentation only, so the reducer never sees a change.</summary>
-    private void Scroll(Key key)
+    /// <summary>&lt; and &gt; scroll a table too wide for the terminal (Shift+arrows did not reach Vantage in Windows Terminal); Left and Right are the tab keys.</summary>
+    private static int? ScrollStep(Key key) => key switch
     {
-        int step = key.Name switch
-        {
-            KeyName.Left => -1,
-            KeyName.Right => 1,
-            _ => 0,
-        };
-        if (step == 0)
-        {
-            return;
-        }
+        { Name: KeyName.Character, Character: '<' } => -1,
+        { Name: KeyName.Character, Character: '>' } => 1,
+        _ => null,
+    };
 
+    private void Scroll(int step)
+    {
         // Kept here as well as on the table, because every redraw replaces the table's source, which resets its offset.
         columnOffset = Math.Clamp(columnOffset + step, 0, columnNames.Length - 1);
         table.ColumnOffset = columnOffset;

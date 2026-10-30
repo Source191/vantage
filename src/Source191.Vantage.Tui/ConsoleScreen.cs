@@ -10,14 +10,16 @@ using Terminal.Gui.Views;
 namespace Source191.Vantage.Tui;
 
 /// <summary>
-/// The console: one Terminal.Gui application holding both tabs. Row 0 is the settings line; the Sessions and Worktrees
-/// tabs follow, the counts beside their titles; the key bar takes the last two rows. Keys go to the active tab; a tab
-/// switch is applied by <see cref="ConsoleView"/> without leaving the application, and only the exit or an effect that
-/// needs the terminal (attach) ends a run, with both tabs' state handed back.
+/// The console: one Terminal.Gui application holding every tab. Row 0 is the settings line beside the icon; the Sessions,
+/// Worktrees and Config tabs follow, the counts beside their titles; the key bar takes the last two rows. Keys go to the
+/// active tab; a tab switch is applied by <see cref="ConsoleView"/> without leaving the application, and only the exit or
+/// an effect that needs the terminal (attach) ends a run, with every tab's state handed back.
 /// </summary>
 public sealed class ConsoleScreen(
     Func<CancellationToken, Task<ViewInput>> loadSessions,
     Func<CancellationToken, Task<ViewInput>> scanWorktrees,
+    Func<CancellationToken, Task<ViewInput>> readConfig,
+    Func<IReadOnlyList<ConfigRow>> settingRows,
     StateTransitionNotifier notifier,
     DialogEffects dialogs,
     EffectDispatcher dispatcher,
@@ -29,6 +31,8 @@ public sealed class ConsoleScreen(
 {
     private readonly Func<CancellationToken, Task<ViewInput>> loadSessions = loadSessions;
     private readonly Func<CancellationToken, Task<ViewInput>> scanWorktrees = scanWorktrees;
+    private readonly Func<CancellationToken, Task<ViewInput>> readConfig = readConfig;
+    private readonly Func<IReadOnlyList<ConfigRow>> settingRows = settingRows;
     private readonly StateTransitionNotifier notifier = notifier;
     private readonly DialogEffects dialogs = dialogs;
     private readonly EffectDispatcher dispatcher = dispatcher;
@@ -67,7 +71,7 @@ public sealed class ConsoleScreen(
     private sealed class Frame : ITabHost, IDisposable
     {
         private const string Separator = " · ";
-        private const int SettingsRows = 2;
+        private const int SettingsRows = 1;
         private const int StripTop = SettingsRows;
         private const int TitleRow = StripTop + 1;
 
@@ -81,6 +85,7 @@ public sealed class ConsoleScreen(
         private readonly View bar;
         private readonly TableBody<SessionsViewState, SessionRow> sessions;
         private readonly TableBody<WorktreesViewState, WorktreeRow> worktrees;
+        private readonly TableBody<ConfigViewState, ConfigRow> config;
         private readonly List<object> timers = [];
         private ConsoleTab active;
         private ViewEffect? leaving;
@@ -106,10 +111,10 @@ public sealed class ConsoleScreen(
             tabs.SetScheme(Palette.Plain(Palette.Grey));
             sessions = new TableBody<SessionsViewState, SessionRow>(new SessionsScreenDefinition(screen.notifier, screen.claudeExecutable, screen.folders), screen.dialogs, screen.dispatcher, screen.loadSessions, screen.clock, context, app, this, initial.Sessions);
             worktrees = new TableBody<WorktreesViewState, WorktreeRow>(new WorktreesScreenDefinition(screen.folders), screen.dialogs, screen.dispatcher, screen.scanWorktrees, screen.clock, context, app, this, initial.Worktrees);
-            tabs.Add(sessions.View, worktrees.View);
-            sessions.View.SetScheme(Palette.TabFrame());
-            worktrees.View.SetScheme(Palette.TabFrame());
-            ReleaseNavigationKeys(tabs, sessions.View, worktrees.View);
+            config = new TableBody<ConfigViewState, ConfigRow>(new ConfigScreenDefinition(), screen.dialogs, screen.dispatcher, screen.readConfig, screen.clock, context, app, this, initial.Config);
+            tabs.Add(sessions.View, worktrees.View, config.View);
+            Array.ForEach([sessions.View, worktrees.View, config.View], view => view.SetScheme(Palette.TabFrame()));
+            ReleaseNavigationKeys(tabs, sessions.View, worktrees.View, config.View);
             counts = new View { X = HeaderSpan() + 2, Y = TitleRow, Width = Dim.Fill(), Height = 1 };
             frameTitle = new Label { X = 0, Y = TitleRow, Width = 0, Height = 1, HotKeySpecifier = new System.Text.Rune(0xFFFF), Text = string.Empty };
             bar = new View { X = 0, Y = Pos.AnchorEnd(2), Width = Dim.Fill(), Height = 2 };
@@ -124,16 +129,20 @@ public sealed class ConsoleScreen(
             Start(worktrees, always: false);
             sessions.Redraw();
             worktrees.Redraw();
+            config.Redraw();
         }
 
         public Window Window { get; }
 
-        public ConsoleExit Exit => new(new ConsoleState(sessions.State, worktrees.State, active), leaving);
+        public ConsoleExit Exit => new(new ConsoleState(sessions.State, worktrees.State, config.State, active), leaving);
 
-        private ITabBody Active => active switch
+        private ITabBody Active => BodyOf(active);
+
+        private ITabBody BodyOf(ConsoleTab tab) => tab switch
         {
             ConsoleTab.Sessions => sessions,
             ConsoleTab.Worktrees => worktrees,
+            ConsoleTab.Config => config,
         };
 
         public void Leave(ViewEffect effect)
@@ -144,7 +153,7 @@ public sealed class ConsoleScreen(
 
         public void Switch(ISwitchesTab effect)
         {
-            ConsoleState state = ConsoleView.Apply(new ConsoleState(sessions.State, worktrees.State, active), effect);
+            ConsoleState state = ConsoleView.Apply(new ConsoleState(sessions.State, worktrees.State, config.State, active), effect);
             if (state.Sessions != sessions.State)
             {
                 sessions.Reduce(new SelectSession(((JumpToSession)effect).SessionId));
@@ -177,8 +186,10 @@ public sealed class ConsoleScreen(
         {
             tabs.Remove(sessions.View);
             tabs.Remove(worktrees.View);
+            tabs.Remove(config.View);
             sessions.Dispose();
             worktrees.Dispose();
+            config.Dispose();
             Window.Dispose();
         }
 
@@ -192,7 +203,7 @@ public sealed class ConsoleScreen(
         {
             active = tab;
             binding = true;
-            tabs.Value = tab == ConsoleTab.Sessions ? sessions.View : worktrees.View;
+            tabs.Value = BodyOf(tab).View;
             binding = false;
             if (tab != screen.shown)
             {
@@ -201,6 +212,7 @@ public sealed class ConsoleScreen(
                 {
                     ConsoleTab.Sessions => ViewKind.Sessions,
                     ConsoleTab.Worktrees => ViewKind.Worktrees,
+                    ConsoleTab.Config => ViewKind.Config,
                 }));
             }
 
@@ -210,8 +222,25 @@ public sealed class ConsoleScreen(
                 worktrees.TriggerLoad();
             }
 
+            if (tab == ConsoleTab.Config)
+            {
+                ReadConfig();
+            }
+
             sessions.Shown(tab == ConsoleTab.Sessions);
             worktrees.Shown(tab == ConsoleTab.Worktrees);
+            config.Shown(tab == ConsoleTab.Config);
+        }
+
+        /// <summary>The setting rows at once the first time, so they never wait for the setup, which is read off the UI thread each time the tab is shown.</summary>
+        private void ReadConfig()
+        {
+            if (!config.State.Loaded)
+            {
+                config.Reduce(new ConfigRowsLoaded(screen.settingRows()));
+            }
+
+            config.TriggerLoad();
         }
 
         /// <summary>
@@ -242,7 +271,7 @@ public sealed class ConsoleScreen(
                 return;
             }
 
-            ConsoleTab clicked = tabs.Value == worktrees.View ? ConsoleTab.Worktrees : ConsoleTab.Sessions;
+            ConsoleTab clicked = Enum.GetValues<ConsoleTab>().First(tab => BodyOf(tab).View == tabs.Value);
             if (clicked != active)
             {
                 Show(clicked);
@@ -310,7 +339,7 @@ public sealed class ConsoleScreen(
         }
 
         /// <summary>The strip's width: each title with a border cell either side, adjacent tabs sharing one (measured with the spike of 30 October 2026); the titles never change, so neither does this.</summary>
-        private int HeaderSpan() => sessions.View.Title.Length + worktrees.View.Title.Length + 3;
+        private int HeaderSpan() => sessions.View.Title.Length + worktrees.View.Title.Length + config.View.Title.Length + 4;
 
         /// <summary>The sessions tab refreshes always; the worktrees tab only while it is shown, once its first scan has been asked for.</summary>
         private void Start(ITabBody body, bool always)

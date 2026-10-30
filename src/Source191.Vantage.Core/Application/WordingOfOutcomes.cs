@@ -31,6 +31,7 @@ public static partial class Wording
             OpenTabOutcome tab => Describe(tab),
             StartSessionOutcome start => Describe(start),
             SaveSettingsOutcome => "Settings saved.",
+            ToggleUpdateCheckOutcome toggled => toggled.On ? "The update check is on: Vantage asks nuget.org at most once a day." : "The update check is off.",
             ProblemReportOutcome.Opened => "Opened a problem report in your browser; describe the problem there and submit it.",
             ProblemReportOutcome.NotOpened notOpened => $"Could not open the browser: {notOpened.Reason} Press ! and choose Copy text instead.",
             ProblemReportOutcome.Copied => "Copied the problem report to the clipboard.",

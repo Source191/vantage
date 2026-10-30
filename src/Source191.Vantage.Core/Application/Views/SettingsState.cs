@@ -3,17 +3,19 @@ using Source191.Vantage.Domain;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>
-/// Everything the settings dialog shows: the fields as typed, the problem that stopped the last save (null when there
-/// is none), the focused field, and the folder check the roots are validated with.
+/// Everything a setting's dialog shows: the saved settings as text with the value being edited as typed, the problem
+/// that stopped the last save (null when there is none), the focused field, the folder check the roots are validated
+/// with, and which setting the dialog edits.
 /// </summary>
-public sealed record SettingsState(SettingsText Text, SettingsProblem? Problem, SettingsField Focus, Func<string, bool> FolderExists)
+public sealed record SettingsState(SettingsText Text, SettingsProblem? Problem, SettingsField Focus, Func<string, bool> FolderExists, SettingsScope Scope)
 {
-    /// <summary>The dialog as it opens, showing the settings saved now, with focus in the roots.</summary>
-    public static SettingsState Open(Settings settings, Func<string, bool> folderExists)
+    /// <summary>The dialog as it opens on one setting, showing it as saved.</summary>
+    public static SettingsState Open(Settings settings, SettingsScope scope, Func<string, bool> folderExists)
     {
         ArgumentNullException.ThrowIfNull(settings);
+        ArgumentNullException.ThrowIfNull(scope);
 
-        return new SettingsState(settings.ToText(), Problem: null, SettingsField.Roots, folderExists);
+        return new SettingsState(settings.ToText(), Problem: null, scope.Field, folderExists, scope);
     }
 
     /// <summary>The executable and arguments fields show only for a custom editor.</summary>

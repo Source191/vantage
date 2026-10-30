@@ -86,7 +86,6 @@ public sealed record OpenLaunchWizard : ViewEffect, IDialogEffect;
 
 public sealed record ResumeStoppedSessions(IReadOnlyList<SessionRow> Rows) : ViewEffect, IDialogEffect;
 
-public sealed record SwitchToWorktrees : ViewEffect, ISwitchesTab;
 
 public sealed record Quit : ViewEffect, ILeavesScreen;
 
@@ -184,14 +183,11 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'm' } => MeasureMemory(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
             { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
-            { Name: KeyName.Character, Character: 'w' } => Effect(state, new SwitchToWorktrees()),
-            { Name: KeyName.Character, Character: '2' } => Effect(state, new SwitchToWorktrees()),
-            { Name: KeyName.Character, Character: '1' } => Effect(state, new SwitchToSessions()),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
-            { Name: KeyName.Character, Character: ',' } => Effect(state, new OpenSettings()),
             { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
             { Name: KeyName.Character, Character: '!' } => Effect(state, new ShowProblemReport()),
+            _ when TabKeys.For(key) is ViewEffect tab => Effect(state, tab),
             _ => Unchanged(state),
         };
     }

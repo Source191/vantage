@@ -10,8 +10,6 @@ public static partial class Wording
 {
     private const string UnknownVersion = "unknown";
 
-    private const string SettingsHelpLine = "edit roots, worktree root and editor";
-
     private const string UpdateLine = "update Vantage in a new tab";
     private const string ReportLine = "report a problem on GitHub";
 
@@ -84,6 +82,18 @@ public static partial class Wording
 
     private static string Counted(int count, string noun) => count == 1 ? $"{count} {noun}" : $"{count} {noun}s";
 
+    /// <summary>The keys every tab shares for moving between tabs and scrolling a table too wide for the terminal; only the help lists them.</summary>
+    private static readonly KeyHelp[] TabKeyHelp =
+    [
+        new("1", Hint: null, "the Sessions tab", Tip: "Show the Sessions tab: every Claude Code session on this machine."),
+        new("2", Hint: null, "the Worktrees tab", Tip: "Show the Worktrees tab: every worktree under your roots."),
+        new("3", Hint: null, "the Config tab", Tip: "Show the Config tab: the settings and how Vantage is set up."),
+        new("←", Hint: null, "the tab to the left", Tip: "Show the tab to the left of this one."),
+        new("→", Hint: null, "the tab to the right", Tip: "Show the tab to the right of this one."),
+        new("<", Hint: null, "scroll the columns left", Tip: "Scroll a table too wide for the terminal to the left."),
+        new(">", Hint: null, "scroll the columns right", Tip: "Scroll a table too wide for the terminal to the right."),
+    ];
+
     public static IReadOnlyList<KeyHelp> SessionsKeys { get; } =
     [
         new("enter", "Attach", "attach (Ctrl+Z or Esc comes back)", Tip: "Attach to this session here; Ctrl+Z brings you back to Vantage."),
@@ -95,20 +105,17 @@ public static partial class Wording
         new("R", "Resume", "resume after a reboot", Tip: "Resume the stopped sessions you choose, for example after a reboot."),
         new("C", "Close empty", "close tabs of unused terminal sessions", Tip: "Close the tabs of terminal sessions that were never sent a message."),
         new("b", "Adopt", "move a terminal session under Vantage", Tip: "Move a plain claude session from its own tab under Vantage's supervision."),
-        new("w", "Worktrees", "worktrees view", Tip: "Switch to the worktrees view: every worktree under your roots."),
         new("/", "Filter", "filter", Tip: "Type to show only the rows that match; Esc clears the filter."),
         new("?", "Help", "help", Tip: "Show every key and what each column means."),
         new("q", "Quit", "quit", Tip: "Quit Vantage; your sessions keep running in the background."),
-        new(",", "Settings", SettingsHelpLine, Tip: "Edit the repository roots, the worktree root, the editor and the base."),
         new("c", "Copy path", "copy the folder path", Tip: "Copy the row's folder path to the clipboard."),
-        new("e", "Open folder", "open the folder in your editor", Tip: "Open the row's folder in the editor chosen in Settings."),
+        new("e", "Open folder", "open the folder in your editor", Tip: "Open the row's folder in the editor chosen on the Config tab."),
         new("v", "Solution", "open its solution", Tip: "Open the row's Visual Studio solution, asking when there are several."),
         new("p", "Open PR", "open its pull request in the browser", Tip: "Open the row's pull request in your browser."),
         new("m", "Memory", "what its memory is made of", Tip: "Show what the session's memory is made of: Claude Code and each program it runs."),
         new("U", "Update", UpdateLine, Tip: "Update Vantage to the newest release, in a tab of its own."),
         new("!", "Report", ReportLine, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
-        new("1", Hint: null, "the Sessions tab", Tip: "Show the Sessions tab: every Claude Code session on this machine."),
-        new("2", Hint: null, "the Worktrees tab", Tip: "Show the Worktrees tab: every worktree under your roots."),
+        .. TabKeyHelp,
     ];
 
     public static IReadOnlyList<KeyHelp> WorktreesKeys { get; } =
@@ -119,20 +126,31 @@ public static partial class Wording
         new("s", "Start session", "start a session in this worktree", Tip: "Start a new session in this worktree, on the branch checked out there."),
         new("o", "Open shell", "open a PowerShell tab there", Tip: "Open a PowerShell tab in this worktree's folder."),
         new("enter", "Go to session", "go to the session running in it", Tip: "Go to the session running in this worktree, in the sessions view."),
-        new("w", "Sessions", "back to sessions", Tip: "Go back to the sessions view."),
         new("esc", "Sessions", "back to sessions (clears a filter first)", Tip: "Clear the filter, or go back to the sessions view when there is none."),
         new("/", "Filter", "filter", Tip: "Type to show only the rows that match; Esc clears the filter."),
         new("?", "Help", "help", Tip: "Show every key and what each column means."),
         new("q", "Quit", "quit", Tip: "Quit Vantage; your sessions keep running in the background."),
-        new(",", "Settings", SettingsHelpLine, Tip: "Edit the repository roots, the worktree root, the editor and the base."),
         new("c", "Copy path", "copy the folder path", Tip: "Copy the row's folder path to the clipboard."),
-        new("e", "Open folder", "open the folder in your editor", Tip: "Open the row's folder in the editor chosen in Settings."),
+        new("e", "Open folder", "open the folder in your editor", Tip: "Open the row's folder in the editor chosen on the Config tab."),
         new("v", "Solution", "open its solution", Tip: "Open the row's Visual Studio solution, asking when there are several."),
         new("p", "Open PR", "open its pull request in the browser", Tip: "Open the row's pull request in your browser."),
         new("U", "Update", UpdateLine, Tip: "Update Vantage to the newest release, in a tab of its own."),
         new("!", "Report", ReportLine, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
-        new("1", Hint: null, "the Sessions tab", Tip: "Show the Sessions tab: every Claude Code session on this machine."),
-        new("2", Hint: null, "the Worktrees tab", Tip: "Show the Worktrees tab: every worktree under your roots."),
+        .. TabKeyHelp,
+    ];
+
+    public static IReadOnlyList<KeyHelp> ConfigKeys { get; } =
+    [
+        new("enter", "Edit", "edit the setting, or say how to set up", Tip: "Edit this setting; on a repository root, every root one per line; on a setup row, say how that setup is changed."),
+        new("esc", "Sessions", "back to sessions (clears a filter first)", Tip: "Clear the filter, or go back to the sessions view when there is none."),
+        new("/", "Filter", "filter", Tip: "Type to show only the rows that match; Esc clears the filter."),
+        new("?", "Help", "help", Tip: "Show every key and what each column means."),
+        new("q", "Quit", "quit", Tip: "Quit Vantage; your sessions keep running in the background."),
+        new("c", "Copy", "copy the path", Tip: "Copy the row's path to the clipboard."),
+        new("e", "Open folder", "open the folder, or the one holding the file", Tip: "Open the row's folder, or the folder holding its file, in the editor chosen above."),
+        new("U", "Update", UpdateLine, Tip: "Update Vantage to the newest release, in a tab of its own."),
+        new("!", "Report", ReportLine, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
+        .. TabKeyHelp,
     ];
 
     /// <summary>The TAB cell of a plain claude in its own terminal; a session a Vantage tab shows has its cell filled with that tab's colour instead.</summary>
@@ -173,20 +191,28 @@ public static partial class Wording
         new("HEALTH", "ok; locked (by another tool); orphan (a folder git has forgotten);\nbroken (registration or owner gone); empty (a leftover folder);\nelsewhere (a worktree of a repository outside the roots)"),
     ];
 
+    public static IReadOnlyList<ColumnHelp> ConfigColumns { get; } =
+    [
+        new("SETTING", "a setting Vantage keeps in config.json, or, in grey, setup it reads but does not change"),
+        new("VALUE", "its value; a setup row that needs attention says what to run"),
+    ];
+
     /// <summary>The sessions view's help: its keys and columns, then the Claude Code executable Vantage drives.</summary>
     public static string SessionsHelp(string claudeExecutable) => $"{Help(SessionsKeys, SessionsColumns)}\n\nClaude Code: {claudeExecutable}";
 
     public static string WorktreesHelp => Help(WorktreesKeys, WorktreesColumns);
 
+    public static string ConfigHelp => Help(ConfigKeys, ConfigColumns);
+
     /// <summary>The keys two to a line, so the dialog stays short enough for a small terminal.</summary>
     private static string KeyColumns(IReadOnlyList<KeyHelp> keys)
     {
+        int keyWidth = Math.Max(keys.Max(key => key.HelpKey.Length) + 1, 7);
+        string Entry(KeyHelp key) => $"{key.HelpKey.PadRight(keyWidth)}{key.Line}";
         int width = keys.Where((_, index) => index % 2 == 0).Max(key => Entry(key).Length) + 3;
 
         return string.Join('\n', keys.Chunk(2).Select(pair => pair.Length == 1 ? Entry(pair[0]) : Entry(pair[0]).PadRight(width) + Entry(pair[1])));
     }
-
-    private static string Entry(KeyHelp key) => $"{key.HelpKey,-7}{key.Line}";
 
     private static string Help(IReadOnlyList<KeyHelp> keys, IReadOnlyList<ColumnHelp> columns)
     {

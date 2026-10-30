@@ -19,17 +19,15 @@ public sealed class WorktreesViewShould
 
     private static readonly WorktreesViewState Loaded = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Gone, Busy, Empty, Orphan, Locked, Dirty, Clean]));
 
-    [Theory]
-    [MemberData(nameof(SidewaysKeys))]
-    public void LeaveSidewaysScrollingToTheScreen(Key key)
+    [Fact]
+    public void ChooseATabWithTheTabKeys()
     {
-        WorktreesViewUpdate update = WorktreesView.Reduce(Loaded, new KeyPressed(key));
-
-        update.Effects.ShouldBeEmpty();
-        update.State.ShouldBe(Loaded);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('1'))).Effects.ShouldBe([new SelectTab(ConsoleTab.Sessions)]);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('2'))).Effects.ShouldBe([new SelectTab(ConsoleTab.Worktrees)]);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('3'))).Effects.ShouldBe([new SelectTab(ConsoleTab.Config)]);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Left)).Effects.ShouldBe([new PreviousTab()]);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Right)).Effects.ShouldBe([new NextTab()]);
     }
-
-    public static TheoryData<Key> SidewaysKeys => new(Key.Left, Key.Right);
 
     [Fact]
     public void OrderRowsByRepositoryThenPathAndSelectTheFirst()
@@ -224,18 +222,16 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
-    public void OpenSettingsOnComma()
+    public void IgnoreTheRetiredKeys()
     {
-        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of(','))).Effects.ShouldBe([new OpenSettings()]);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of(','))).Effects.ShouldBeEmpty();
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('w'))).Effects.ShouldBeEmpty();
     }
 
     [Fact]
     public void GoBackToTheSessionsViewOnWOrEscapeAndQuitHelpAsUsual()
     {
-        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('w'))).Effects.ShouldBe([new SwitchToSessions()]);
-        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Escape)).Effects.ShouldBe([new SwitchToSessions()]);
-        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('1'))).Effects.ShouldBe([new SwitchToSessions()]);
-        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('2'))).Effects.ShouldBe([new SwitchToWorktrees()]);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Escape)).Effects.ShouldBe([new SelectTab(ConsoleTab.Sessions)]);
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('q'))).Effects.ShouldBe([new Quit()]);
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('?'))).Effects.ShouldBe([new ShowHelp()]);
     }
@@ -311,8 +307,8 @@ public sealed class WorktreesViewShould
     [Fact]
     public void MarkEffectsThatLeaveTheScreenAndThoseThatAskFirst()
     {
-        new SwitchToSessions().ShouldBeAssignableTo<ISwitchesTab>();
-        new SwitchToSessions().ShouldNotBeAssignableTo<ILeavesScreen>();
+        new SelectTab(ConsoleTab.Sessions).ShouldBeAssignableTo<ISwitchesTab>();
+        new PreviousTab().ShouldNotBeAssignableTo<ILeavesScreen>();
         new JumpToSession(SessionId.From("sess-1")).ShouldBeAssignableTo<ISwitchesTab>();
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
         new ConfirmForceRemove(Dirty, "x").ShouldBeAssignableTo<IDialogEffect>();

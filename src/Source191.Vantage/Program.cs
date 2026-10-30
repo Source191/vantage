@@ -147,12 +147,15 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders), reports, processRegistry);
 
     ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionText);
-    ScreenContext context = new(tabTitle, width => Wording.SettingsRows(version, claudeCode, settings.Value, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero, width), () => updates.Status is UpdateStatus.Available, clipboard, log);
+    ScreenContext context = new(tabTitle, _ => [Wording.SettingsRow(version, claudeCode, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero)], () => updates.Status is UpdateStatus.Available, clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
-    ConsoleScreen consoleScreen = new(LoadAsync, ScanAsync, notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
+    SetupFactsReader setup = new(terminalFragment, ClaudeSettings.ForCurrentUser(), store, store.ConfigFile, logPath);
+    ConsoleScreen consoleScreen = new(LoadAsync, ScanAsync, ReadConfigAsync, () => ConfigRows.For(settings.Value, facts: null), notifier, dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
     ScreenLoop loop = new(consoleScreen, ownTab, console, terminalEffects, updates, log);
 
     return await loop.RunAsync(Environment.ProcessId, cancellationToken);
+
+    async Task<ViewInput> ReadConfigAsync(CancellationToken readCancellation) => new ConfigRowsLoaded(ConfigRows.For(settings.Value, await setup.ReadAsync(readCancellation)));
 
     async Task<ViewInput> LoadAsync(CancellationToken loadCancellation)
     {

@@ -160,6 +160,23 @@ public sealed class SettingsShould
     }
 
     [Fact]
+    public void RefuseARootListedTwice()
+    {
+        SettingsText typed = Typed with { Roots = $"{Root}\n" + @"C:\Users\ME\source\repos\" };
+
+        Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Refused>().Problem.ShouldBe(new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)));
+    }
+
+    [Fact]
+    public void TurnTheUpdateCheckOffAndOn()
+    {
+        Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
+
+        settings.WithUpdateCheckToggled().CheckForUpdates.ShouldBeFalse();
+        settings.WithUpdateCheckToggled().WithUpdateCheckToggled().ShouldBe(settings);
+    }
+
+    [Fact]
     public void GiveBackTheTextItWasTypedFrom()
     {
         Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home);
