@@ -10,7 +10,7 @@ namespace Source191.Vantage.Tui;
 /// <summary>
 /// What one table view adds to the shared screen: its layout text, its columns and colours, and its reducer.
 /// Everything else (lifetime, refresh, keys, routing effects, background work, spinners, redraw) is
-/// <see cref="TableScreen{TState, TRow}"/>'s and written once.
+/// <see cref="TableBody{TState, TRow}"/>'s and written once.
 /// </summary>
 internal interface IScreenDefinition<TState, TRow>
     where TState : IListViewState<TRow>
