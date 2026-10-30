@@ -31,6 +31,19 @@ public sealed class WordingOfScreensShould
         Wording.TabTitleDuring(dialog).ShouldBe(title);
     }
 
+    [Theory]
+    [InlineData(DisplayStateKind.NeedsInput, "◐")]
+    [InlineData(DisplayStateKind.Working, "●")]
+    [InlineData(DisplayStateKind.Idle, "○")]
+    [InlineData(DisplayStateKind.Completed, "✓")]
+    [InlineData(DisplayStateKind.Failed, "✗")]
+    [InlineData(DisplayStateKind.Stopped, "■")]
+    [InlineData(DisplayStateKind.Unknown, "■")]
+    public void GiveEveryStateAGlyph(DisplayStateKind kind, string glyph)
+    {
+        Wording.StateGlyph(kind).ShouldBe(glyph);
+    }
+
     [Fact]
     public void HaveATabTitleForEveryDialog()
     {

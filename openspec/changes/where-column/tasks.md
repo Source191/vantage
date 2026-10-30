@@ -7,7 +7,7 @@
 
 ## 2. The rows carry what WHERE and the swatch need (Application)
 
-- [ ] 2.1 Red: `SessionRowEnricherShould.CarryTheCheckoutAndTheTabColour` asserts a session in a worktree gets `Checkout` set to the main checkout and `TabColour` set to the registration's colour when a live tab shows it, and null for both when outside a repository with no tab. Green: `SessionRow.Checkout` and `TabColour`, filled by the enricher from `Location` and the registrations it already reads. Verify the Core suite passes.
+- [x] 2.1 Red: `SessionRowEnricherShould.CarryTheCheckoutAndTheTabColour` asserts a session in a worktree gets `Checkout` set to the main checkout and `TabColour` set to the registration's colour when a live tab shows it, and null for both when outside a repository with no tab. Green: `SessionRow.Checkout` and `TabColour`, filled by the enricher from `Location` and the registrations it already reads. Verify the Core suite passes.
 - [ ] 2.2 Red: `WordingOfScreensShould.GiveEveryStateAGlyph` asserts `Wording.StateGlyph` answers ◐, ●, ○, ✓, ✗ and ■ for the six kinds and ■ for unknown. Green: the switch over `DisplayStateKind`. Verify the Core suite passes.
 - [ ] 2.3 Red: `WordingOfKeysAndColumnsShould` asserts `SessionsColumns` reads NAME, TAB, STATE, WHERE, PR, AGE, MEM in that order and `WorktreesColumns` reads WORKTREE, BRANCH, PR, DIRTY, UNPUSHED, LAST COMMIT, SESSION, HEALTH, each meaning within 100 characters a line, TAB's naming the two blocks and WHERE's the › rule. Green: the lists and meanings. Verify the Core suite passes and the smoke markers (`SmokeScript.ColumnOnlyIn`) resolve to NAME for sessions and WORKTREE for worktrees.
 

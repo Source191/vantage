@@ -45,8 +45,8 @@ public sealed class WordingOfKeysAndColumnsShould
     [Fact]
     public void ExplainEveryColumnOfEachView()
     {
-        Wording.SessionsColumns.Select(column => column.Name).ShouldBe(["NAME", "STATE", "REPOSITORY", "FOLDER", "BRANCH", "PR", "AGE", "TAB", "MEM"]);
-        Wording.WorktreesColumns.Select(column => column.Name).ShouldBe(["REPOSITORY", "FOLDER", "BRANCH", "PR", "DIRTY", "UNPUSHED", "LAST COMMIT", "SESSION", "HEALTH"]);
+        Wording.SessionsColumns.Select(column => column.Name).ShouldBe(["NAME", "TAB", "STATE", "WHERE", "PR", "AGE", "MEM"]);
+        Wording.WorktreesColumns.Select(column => column.Name).ShouldBe(["WORKTREE", "BRANCH", "PR", "DIRTY", "UNPUSHED", "LAST COMMIT", "SESSION", "HEALTH"]);
         Wording.SessionsColumns.Concat(Wording.WorktreesColumns).ShouldAllBe(column => column.Meaning.Length > 0);
     }
 
@@ -68,18 +68,17 @@ public sealed class WordingOfKeysAndColumnsShould
             !      report a problem on GitHub
 
             Columns
-            NAME        the session name given at launch, or the folder name for an unnamed one
-            STATE       needs input (amber), working (cyan), idle (white),
-                        completed (green), failed (red), stopped (grey)
-            REPOSITORY  the repository the session runs in
-            FOLDER      where it runs, relative to the repository or worktree root that holds it,
-                        else ~\ from your home folder, else in full
-            BRANCH      the branch checked out there
-            PR          its pull request: #123 on GitHub (open, draft, merged, closed),
-                        !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
-            AGE         time since the session started
-            TAB         terminal for a plain claude started in its own tab, open while a Vantage tab shows it
-            MEM         private working set of the session's process and everything it started; - when it has no process
+            NAME   the session name given at launch, or the folder name for an unnamed one
+            TAB    ▮ in its colour while a Vantage tab shows the session,
+                   ▯ grey for a plain claude in its own terminal
+            STATE  ◐ needs input (amber), ● working (cyan), ○ idle (white),
+                   ✓ completed (green), ✗ failed (red), ■ stopped (grey)
+            WHERE  repository › slug for a worktree, with the branch in brackets when it differs;
+                   repository (branch) for a main checkout; the folder alone outside a repository
+            PR     its pull request: #123 on GitHub (open, draft, merged, closed),
+                   !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
+            AGE    time since the session started
+            MEM    private working set of the session's process and everything it started; - when it has no process
 
             Claude Code: C:\Users\me\.local\bin\claude.exe
             """.ReplaceLineEndings("\n"));
@@ -101,8 +100,7 @@ public sealed class WordingOfKeysAndColumnsShould
             U      update Vantage in a new tab                   !      report a problem on GitHub
 
             Columns
-            REPOSITORY   the repository that owns the worktree
-            FOLDER       the worktree's folder, relative to the root that holds it
+            WORKTREE     the owning repository › the folder's slug, or its label when not named after it
             BRANCH       the branch checked out there
             PR           its pull request: #123 on GitHub (open, draft, merged, closed),
                          !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
