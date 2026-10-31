@@ -16,7 +16,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 3. Tui: the clipboard without null
 
-- [ ] 3.1 `ScreenClipboard` holds a `SharedSnapshot<IClipboard>` starting at a private `NoClipboard`; `Attach` replaces it with a private `ApplicationClipboard(IApplication)`, whose `TrySetText` checks Terminal.Gui's nullable `Clipboard` on each copy (`app.Clipboard is { } clipboard && clipboard.TrySetClipboardData(text)`), and `Detach` with the `NoClipboard` instance (refactor step: `Tui` has no test project). Verify the build, `CopyFolderPathHandlerShould` and `CopyProblemReportHandlerShould` pass, `ScreenClipboard.cs` has no `Volatile` and no nullable declaration, and the smoke check passes: `dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>` against a locally packed tool.
+- [x] 3.1 `ScreenClipboard` holds a `SharedSnapshot<IClipboard>` starting at a private `NoClipboard`; `Attach` replaces it with a private `ApplicationClipboard(IApplication)`, whose `TrySetText` checks Terminal.Gui's nullable `Clipboard` on each copy (`app.Clipboard is { } clipboard && clipboard.TrySetClipboardData(text)`), and `Detach` with the `NoClipboard` instance (refactor step: `Tui` has no test project). Verify the build, `CopyFolderPathHandlerShould` and `CopyProblemReportHandlerShould` pass, `ScreenClipboard.cs` has no `Volatile` and no nullable declaration, and the smoke check passes: `dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>` against a locally packed tool. The smoke check was left to CI's `check` job: run locally it force-removes an idle linked worktree under the owner's real repository roots.
 
 ## 4. Docs, version and the whole build
 
