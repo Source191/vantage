@@ -101,7 +101,8 @@ public sealed class WordingOfConfigShould
     public void NameTheBrowseButtonAndThePicker()
     {
         Wording.BrowseButton.ShouldBe("_Browse… (F3)");
-        Wording.FolderPickerTitle.ShouldBe("Add repository roots");
+        Wording.FolderPickerTitle(new SettingsScope.Roots()).ShouldBe("Add repository roots");
+        Wording.FolderPickerTitle(new SettingsScope.WorktreeRoot()).ShouldBe("Choose the worktree root");
     }
 
     [Fact]
