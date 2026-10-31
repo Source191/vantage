@@ -18,7 +18,7 @@ The console SHALL show the sessions view, the worktrees view and the Config tab 
 
 #### Scenario: Worktrees not yet scanned
 - **WHEN** the console starts and the worktrees tab has never been opened
-- **THEN** no worktree scan has run, and the scan starts, with its waiting indicator, when the tab is first selected
+- **THEN** one worktree scan starts once the first sessions listing has returned, and selecting the tab after it has finished lists the worktrees at once, with no waiting indicator
 
 #### Scenario: The arrows stay with the table
 - **WHEN** the Sessions tab is shown and the user presses Down twice
