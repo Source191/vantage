@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
@@ -8,16 +9,27 @@ namespace Source191.Vantage.Application.Views;
 /// </summary>
 public sealed record UpdateVantage : ViewEffect, IDialogEffect
 {
-    /// <summary>The status message when there is nothing to update to; null when an update is available and the question should be asked.</summary>
-    public static StatusMessage? Refusal(UpdateStatus status)
+    /// <summary>Ask about the newest release when an update is available; otherwise refuse with the status message that says why there is nothing to update to.</summary>
+    public static UpdateDecision Decide(UpdateStatus status)
     {
         return status switch
         {
-            UpdateStatus.Available => null,
-            UpdateStatus.UpToDate => new StatusMessage.UpToDate(),
-            _ => new StatusMessage.UpdateCheckOff(),
+            UpdateStatus.Available available => new UpdateDecision.Ask(available.Newest),
+            UpdateStatus.UpToDate => new UpdateDecision.Refuse(new StatusMessage.UpToDate()),
+            UpdateStatus.Off => new UpdateDecision.Refuse(new StatusMessage.UpdateCheckOff()),
+            _ => throw new UnreachableException(),
         };
     }
+}
+
+/// <summary>What the update key does with what the update check knows.</summary>
+public abstract record UpdateDecision
+{
+    /// <summary>Ask whether to update to this release.</summary>
+    public sealed record Ask(ReleaseVersion Newest) : UpdateDecision;
+
+    /// <summary>Nothing to update to: show the message instead.</summary>
+    public sealed record Refuse(StatusMessage Message) : UpdateDecision;
 }
 
 /// <summary>Open the tab that waits for this Vantage to exit, updates the tool and starts it again; raised once the question is answered yes.</summary>
