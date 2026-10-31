@@ -7,17 +7,17 @@ namespace Source191.Vantage.Application.Views;
 /// except the two facts only the state store and git can add (whether Vantage created the branch, and whether it is merged).
 /// Repository is the owning main checkout (for a leftover whose owner is gone, where it used to be; for an empty
 /// leftover, the root). OwnerExists says whether that repository still has a .git folder, so a stale registration can be pruned.
+/// A leftover's head is Unknown: git no longer lists it, so nothing names its branch.
 /// </summary>
 public sealed record WorktreeRow(
     FolderPath Repository,
     FolderPath Path,
-    BranchName? Branch,
+    Head Head,
     WorktreeHealth Health,
     int DirtyFiles,
     int UnpushedCommits,
     DateTimeOffset? LastCommitAt,
-    SessionId? SessionId,
-    string? SessionName,
+    WorktreeSession Session,
     int LeftoverFileCount,
     bool OwnerExists,
     bool FolderExists)
@@ -29,6 +29,12 @@ public sealed record WorktreeRow(
 
     public string FolderName => Path.Name;
 
-    /// <summary>The removal facts as far as the scan knows them; the branch flags are settled by the action.</summary>
-    public WorktreeRemovalFacts Facts(bool branchCreatedByVantage = false, bool branchMerged = false) => new(Health.Kind, Branch?.Value ?? FolderName, DirtyFiles, UnpushedCommits, SessionId is SessionId id && SessionName is string name ? new WorktreeSession.Running(id, name) : new WorktreeSession.None(), branchCreatedByVantage, branchMerged, LeftoverFileCount);
+    /// <summary>The branch while the callers still read one; goes once each matches the head.</summary>
+    public BranchName? Branch => Head is Head.OnBranch on ? on.Branch : null;
+
+    /// <summary>The live session's id while the jump still reads one; goes once it matches the session.</summary>
+    public SessionId? SessionId => Session is WorktreeSession.Running running ? running.Id : null;
+
+    /// <summary>The removal facts as far as the scan knows them; the branch flags are settled by the action. The folder name stands in for a branch the head does not name.</summary>
+    public WorktreeRemovalFacts Facts(bool branchCreatedByVantage = false, bool branchMerged = false) => new(Health.Kind, Head is Head.OnBranch on ? on.Branch.Value : FolderName, DirtyFiles, UnpushedCommits, Session, branchCreatedByVantage, branchMerged, LeftoverFileCount);
 }

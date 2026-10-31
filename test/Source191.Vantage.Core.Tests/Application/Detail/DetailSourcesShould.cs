@@ -37,7 +37,7 @@ public sealed class DetailSourcesShould
     public async Task WordAWorktreesDetailKeyedByItsFolderWithRoomForItsListing()
     {
         WorktreeDetails source = new(Loader(), clock);
-        WorktreeRow row = new(Repository, Worktree, BranchName.From("invoice-pdf"), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 12, Noon, SessionId: null, SessionName: null, LeftoverFileCount: 0, OwnerExists: false, FolderExists: true);
+        WorktreeRow row = new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 12, Noon, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: false, FolderExists: true);
 
         DetailContent content = await source.ReadAsync(row, CancellationToken.None);
 

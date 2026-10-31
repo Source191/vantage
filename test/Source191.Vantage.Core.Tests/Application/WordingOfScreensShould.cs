@@ -183,7 +183,7 @@ public sealed class WordingOfScreensShould
 
     private static WorktreeRow WorktreeIn(WorktreeHealthKind health, int index, int dirty = 0, int unpushed = 0)
     {
-        return new WorktreeRow(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), FolderPath.From($@"C:\Users\me\source\worktrees\Northwind.Orders-fix-{index}"), BranchName.From($"fix-{index}"), new WorktreeHealth(health, new HealthReason.None()), dirty, unpushed, null, null, null, 0, OwnerExists: true, FolderExists: true);
+        return new WorktreeRow(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), FolderPath.From($@"C:\Users\me\source\worktrees\Northwind.Orders-fix-{index}"), new Head.OnBranch(BranchName.From($"fix-{index}")), new WorktreeHealth(health, new HealthReason.None()), dirty, unpushed, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: true);
     }
 
     private static SessionRow SessionIn(DisplayState state, int index)

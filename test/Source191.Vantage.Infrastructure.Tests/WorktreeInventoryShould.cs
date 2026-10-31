@@ -236,7 +236,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         WorktreeRow row = (await Inventory.ScanAsync([elsewhere, dead, live], TestContext.Current.CancellationToken)).Single();
 
-        row.SessionName.ShouldBe("fix-the-tests");
+        row.Session.ShouldBe(new WorktreeSession.Running(live.SessionId, "fix-the-tests"));
     }
 
     [Fact]
@@ -249,8 +249,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         WorktreeRow row = (await Inventory.ScanAsync([sameName, live], TestContext.Current.CancellationToken)).Single();
 
-        row.SessionId.ShouldBe(live.SessionId);
-        row.SessionName.ShouldBe("fix-tests");
+        row.Session.ShouldBe(new WorktreeSession.Running(live.SessionId, "fix-tests"));
     }
 
     [Fact]
