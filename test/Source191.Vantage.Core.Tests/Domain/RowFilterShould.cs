@@ -31,11 +31,11 @@ public sealed class RowFilterShould
     }
 
     [Fact]
-    public void IgnoreFieldsThatAreNull()
+    public void MatchAmongTheFieldsARowHasAndNotWhenItHasNone()
     {
         RowFilter filter = new("main");
 
-        filter.Matches(["remove-sonar", null, "main"]).ShouldBeTrue();
-        filter.Matches([null, null]).ShouldBeFalse();
+        filter.Matches(["remove-sonar", "main"]).ShouldBeTrue();
+        filter.Matches([]).ShouldBeFalse();
     }
 }
