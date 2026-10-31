@@ -13,8 +13,8 @@ namespace Source191.Vantage.Tui;
 /// <summary>
 /// The console: one Terminal.Gui application holding every tab. Row 0 is the settings line beside the icon; the Sessions,
 /// Worktrees and Config tabs follow, the counts beside their titles; the key bar takes the last two rows. Keys go to the
-/// active tab; a tab switch is applied by <see cref="ConsoleView"/> without leaving the application, and only the exit or
-/// an effect that needs the terminal (attach) ends a run, with every tab's state handed back.
+/// active tab; a tab switch is applied by <see cref="ConsoleView"/> without leaving the application, and only the exit
+/// ends the run (a session opens in a tab of its own, so nothing hands the terminal over), with every tab's state handed back.
 /// </summary>
 public sealed class ConsoleScreen(
     Func<CancellationToken, Task<ViewInput>> loadSessions,

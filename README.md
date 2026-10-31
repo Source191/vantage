@@ -8,7 +8,7 @@ Vantage is mission control for Claude Code on Windows: one Windows Terminal tab 
 
 - **See every session at once:** each one is listed with its state, repository, branch and pull request.
 - **Start in a fresh worktree:** a new session gets its own git worktree, so sessions never trip over each other's changes.
-- **Open a session in its own tab:** Enter on any session in the list opens it in a tab of its own, named after the session and coloured so you can tell it apart at a glance, or switches to that tab when it is already open.
+- **Open a session in its own tab:** Enter on any background session in the list opens it in a tab of its own, named after the session and coloured so you can tell it apart at a glance, or switches to that tab when it is already open.
 - **Hear when one needs you:** the terminal bell rings when a session finishes or pauses for you.
 - **Keep working when the terminal closes:** sessions run under Claude Code's own background supervisor, so they carry on when no terminal shows them and are still listed after a reboot, ready to resume with one key.
 - **Tidy up with one key:** when the work is done, delete a session and its worktree together, unless that would lose uncommitted or unpushed work.
