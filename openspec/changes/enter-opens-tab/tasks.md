@@ -41,7 +41,7 @@
 
 ## 8. Version and checks
 
-- [ ] 8.1 Raise `Version` a minor step above `main`'s when the pull request is opened (0.19.0-preview.1 if `main` is still on 0.18.0). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate enter-opens-tab --strict` pass.
+- [x] 8.1 Raise `Version` a minor step above `main`'s when the pull request is opened (0.19.0-preview.1 if `main` is still on 0.18.0). Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate enter-opens-tab --strict` pass.
 - [ ] 8.2 `CONTRIBUTING.md`'s manual checks: F5 in the wizard opens the tab, Enter opens or switches, Ctrl+Z in the tab closes it, and the Vantage tab keeps its title; the checks that attach in the console and return go. Run the smoke check against the packed tool. Verify it exits 0.
 - [ ] 8.3 The product owner installs the build with `tools\install-local.ps1` and checks Enter on a session with no tab (opens one), Enter again (switches to it), `o` (nothing), F5 in the wizard (starts and opens), F6 (nothing) and `vantage here` (the new hint, Ctrl+Z back to the shell). Record here.
 
