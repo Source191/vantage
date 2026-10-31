@@ -94,8 +94,7 @@ public static partial class Wording
 
     public static IReadOnlyList<KeyHelp> SessionsKeys { get; } =
     [
-        new("enter", "Attach", "attach (Ctrl+Z or Esc comes back)", Tip: "Attach to this session here; Ctrl+Z brings you back to Vantage."),
-        new("o", "Open tab", "open in its own tab, or switch to it", Tip: "Open this session in its own tab, or switch to that tab if it is open."),
+        new("enter", "Open", "open in its own tab, or switch to it", Tip: "Open this session in its own tab, or switch to that tab if it is open."),
         new("n", "New session", "new session", Tip: "Start a new session, in a new worktree or on a current branch."),
         new("r", "Rename", "rename (restarts the session)", Tip: "Give the session a new name; it restarts under it, conversation kept."),
         new("x", "Stop", "stop", Tip: "Stop the session; it stays listed as stopped and can be resumed later."),

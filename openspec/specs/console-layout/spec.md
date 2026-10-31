@@ -1,7 +1,7 @@
 # console-layout Specification
 
 ## Purpose
-The frame the sessions and worktrees views share: two settings lines under the Vantage icon, two tabs with the active one marked, the counts and the table's title on their row, a key bar that names the keys for the selected row, and one console that keeps each tab's state across switches and hand-offs.
+The frame the sessions and worktrees views share: two settings lines under the Vantage icon, two tabs with the active one marked, the counts and the table's title on their row, a key bar that names the keys for the selected row, and one console that keeps each tab's state across switches until it quits.
 
 ## Requirements
 
@@ -90,7 +90,7 @@ The last two rows of the screen SHALL be a key bar of items, each a key and a wo
 
 #### Scenario: A background session is selected
 - **WHEN** a running background session is selected and no stopped session or empty terminal session is listed
-- **THEN** the first row reads Enter Attach, o Open tab, x Stop, d Delete, r Rename, m Memory and n New session, and the second row c Copy path, e Open folder, v Solution, p Open PR, / Filter, ? Help, ! Report and q Quit
+- **THEN** the first row reads Enter Open, x Stop, d Delete, r Rename, m Memory and n New session, and the second row c Copy path, e Open folder, v Solution, p Open PR, / Filter, ? Help, ! Report and q Quit
 
 #### Scenario: A terminal session is selected
 - **WHEN** a plain claude session that has never been sent a message is selected
@@ -105,8 +105,8 @@ The last two rows of the screen SHALL be a key bar of items, each a key and a wo
 - **THEN** U Update ends the first row, and otherwise the key is listed only in the help
 
 #### Scenario: Click an item
-- **WHEN** the user clicks o Open tab
-- **THEN** the selected session is opened in its own tab, as pressing o does
+- **WHEN** the user clicks Enter Open
+- **THEN** the selected session is opened in its own tab, as pressing Enter does
 
 #### Scenario: The bar fits
 - **WHEN** the terminal is 120 columns wide and any kind of row is selected on any tab
@@ -116,16 +116,9 @@ The last two rows of the screen SHALL be a key bar of items, each a key and a wo
 - **WHEN** the user presses ? on any tab
 - **THEN** the help lists 1, 2, 3, ← and → as choosing a tab and < and > as scrolling the columns, and lists neither w nor ,
 
-### Requirement: One console keeps its state across hand-offs
-The console SHALL run as one terminal application for every tab. Only an attach SHALL leave it, and on return the console SHALL show the same tab with the same selection and filter. Quit SHALL clear Vantage's tab as before.
-
-#### Scenario: Attach and return
-- **WHEN** the user attaches to fix-123 from the Sessions tab with a filter of "fix" set and presses Ctrl+Z
-- **THEN** the console returns to the Sessions tab with fix-123 selected and the filter "fix" still set
-
-#### Scenario: Switching never leaves
-- **WHEN** the user presses Right and Left ten times each
-- **THEN** the tabs change at once and no hand-off is recorded in the diagnostics
+#### Scenario: The help names Enter as Open
+- **WHEN** the user presses ? on the Sessions tab
+- **THEN** the help lists Enter as opening the session in its own tab or switching to it, and lists no o key and no attach in this tab
 
 ### Requirement: The settings take one line
 The first row SHALL show the versions, labels orange, values white, parts separated by a grey ·: Vantage with its version and memory, then Claude and its version, with the update notice and the below-minimum warning in their places. The repository roots and the worktree root SHALL be shown on the Config tab, not here.
@@ -137,3 +130,14 @@ The first row SHALL show the versions, labels orange, values white, parts separa
 #### Scenario: An update is available
 - **WHEN** 0.19.0 is the newest release
 - **THEN** the first row reads Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310
+
+### Requirement: Only quit leaves the console
+The console SHALL run as one terminal application for every tab from start to quit, and no key SHALL leave it for another program in its own tab. Quit SHALL clear Vantage's tab as before.
+
+#### Scenario: Opening a session stays in the console
+- **WHEN** the user presses Enter on fix-123 on the Sessions tab with a filter of "fix" set
+- **THEN** fix-123 opens in its own tab, and the console stays on screen with fix-123 selected and the filter "fix" still set
+
+#### Scenario: Switching never leaves
+- **WHEN** the user presses Right and Left ten times each
+- **THEN** the tabs change at once and the console never leaves its screen

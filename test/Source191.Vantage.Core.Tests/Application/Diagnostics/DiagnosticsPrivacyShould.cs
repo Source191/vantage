@@ -69,8 +69,8 @@ public sealed class DiagnosticsPrivacyShould
         await RunTheDailyFlowsAsync();
 
         IReadOnlyList<string> lines = sink.Lines;
-        lines.ShouldContain(line => line.Contains("hand-off AttachToSession", StringComparison.Ordinal));
-        lines.ShouldContain(line => line.Contains("effect StartSession -> StartSessionOutcome.Started", StringComparison.Ordinal));
+        lines.ShouldContain(line => line.Contains("effect OpenTabForSession -> OpenTabOutcome.Opened", StringComparison.Ordinal));
+        lines.ShouldContain(line => line.Contains("effect StartSession -> StartSessionOutcome.StartedAndOpened", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Effect RemoveWorktree: GitException", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Load SessionsViewState: InvalidOperationException", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Crash: InvalidOperationException", StringComparison.Ordinal));
@@ -106,47 +106,50 @@ public sealed class DiagnosticsPrivacyShould
         GitCli git = new(processes, "git");
         CrashRecorder crashes = new(log, counts, crashFile);
 
-        await LoadTheSessionsAsync(claude);
-        await AttachAsync(claude);
+        SessionListing listing = await LoadTheSessionsAsync(claude);
+        await OpenATabAsync(claude, git, listing);
         await StartASessionWithAPromptAsync(claude, git);
         await RemoveADirtyWorktreeAsync(git);
         await FailALoadAsync();
         await Should.ThrowAsync<InvalidOperationException>(() => crashes.GuardAsync(() => throw new InvalidOperationException($"{Name} in {Worktree} stopped: {Prompt}")));
     }
 
-    private async Task LoadTheSessionsAsync(ClaudeCli claude)
+    private async Task<SessionListing> LoadTheSessionsAsync(ClaudeCli claude)
     {
         SessionListing listing = await Attempt.RunAsync(log, FailureSite.Load, CodeName.For(typeof(SessionsViewState)), () => claude.ListSessionsAsync(CancellationToken.None), _ => SessionListing.Empty);
 
         listing.Sessions.Single().Name.ShouldBe(Name);
+
+        return listing;
     }
 
-    private async Task AttachAsync(ClaudeCli claude)
+    private async Task OpenATabAsync(ClaudeCli claude, GitCli git, SessionListing listing)
     {
-        InMemoryState state = new();
-        OwnTab ownTab = new(state, new FakeProcessRegistry().Running(100, Noon), clock);
-        UpdateCheck updates = new(new ToolVersion("0.17.0"), () => false, state, new FakePackageVersions([]), clock);
-        ScriptedConsoleScreen screen = new(
-            current => new ConsoleExit(current, new AttachToSession(JobId.From(Job))),
-            current => new ConsoleExit(current, new Quit()));
-        FakeTerminalConsole console = new();
-        ScreenLoop loop = new(screen, ownTab, console, new TerminalEffects(claude, console), updates, log);
+        BackgroundSession session = listing.Sessions.OfType<BackgroundSession>().Single();
 
-        await loop.RunAsync(processId: 100, CancellationToken.None);
+        Outcome outcome = await Dispatcher(claude, git).DispatchAsync(new OpenTabForSession(session, HasLiveTab: false), CancellationToken.None);
+
+        outcome.ShouldBeOfType<OpenTabOutcome.Opened>();
     }
 
-    private async Task StartASessionWithAPromptAsync(ClaudeCli claude, GitCli git)
+    private EffectDispatcher Dispatcher(ClaudeCli claude, GitCli git)
     {
         InMemoryState store = new();
         LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);
         EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders(), new FakeCrashFile());
-        EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, Vantage), TestSettings.Current(), new VantageProcess(4242, FolderPath.From(@"C:\Users\me")), log);
+
+        return Composition.Handlers(ports, launches, new TabScripts(Claude, Vantage), TestSettings.Current(), new VantageProcess(4242, FolderPath.From(@"C:\Users\me")), log);
+    }
+
+    private async Task StartASessionWithAPromptAsync(ClaudeCli claude, GitCli git)
+    {
+        EffectDispatcher dispatcher = Dispatcher(claude, git);
         PlannedWorktree worktree = PlannedWorktree.For(FolderPath.From(WorktreeRoot), FolderPath.From(Repository), WorktreeSlug.From(Branch));
         LaunchPlan plan = new(FolderPath.From(Repository), SessionName.From(Name), worktree, ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, Prompt, new RepositoryChoice("Northwind.Orders", FolderPath.From(Repository), IsRepository: true));
 
-        Outcome outcome = await dispatcher.DispatchAsync(new StartSession(plan, OpenInTab: false), CancellationToken.None);
+        Outcome outcome = await dispatcher.DispatchAsync(new StartSession(plan), CancellationToken.None);
 
-        outcome.ShouldBeOfType<StartSessionOutcome.Started>();
+        outcome.ShouldBeOfType<StartSessionOutcome.StartedAndOpened>();
     }
 
     private async Task RemoveADirtyWorktreeAsync(GitCli git)

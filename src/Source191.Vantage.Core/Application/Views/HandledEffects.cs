@@ -3,7 +3,7 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application.Views;
 
-/// <summary>An effect that stops the screen: it needs the terminal (attach) or is the exit.</summary>
+/// <summary>An effect that stops the screen: the exit, or the attach only <c>vantage here</c> runs, which <c>ScreenLoop</c> refuses from the console.</summary>
 public interface ILeavesScreen;
 
 /// <summary>An effect that shows the other tab of the console, or a row on it; the console applies it without leaving the screen.</summary>
@@ -19,4 +19,4 @@ public sealed record ResumeSessions(IReadOnlyList<BackgroundSession> Sessions) :
 public sealed record DeleteBranch(BranchToConfirm Branch) : ViewEffect;
 
 /// <summary>Start the session the launch wizard planned, from either view, and open its tab when asked.</summary>
-public sealed record StartSession(LaunchPlan Plan, bool OpenInTab) : ViewEffect;
+public sealed record StartSession(LaunchPlan Plan) : ViewEffect;

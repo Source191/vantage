@@ -186,14 +186,14 @@ public sealed class WizardViewShould
     public void StartRefusesNoRepositoryBlankNameAndPlanProblemsWithTheRightFocus()
     {
         WizardState nothingChosen = Reduce(Opened, new WizardInput.FilterChanged("nothing matches"));
-        WizardUpdate noRepository = WizardView.Reduce(nothingChosen, new WizardInput.Start(OpenInTab: false));
+        WizardUpdate noRepository = WizardView.Reduce(nothingChosen, new WizardInput.Start());
         noRepository.ShouldSatisfyAllConditions(
             update => update.Effect.ShouldBe(new WizardEffect.None()),
             update => update.State.Problem.ShouldBe(new WizardProblem.NoRepository()),
             update => update.State.Focus.ShouldBe(WizardField.RepositoryFilter));
 
         WizardState blank = Reduce(Reduce(InAgents, new WizardInput.FieldFocused(WizardField.Prompt)), new WizardInput.NameChanged("   "));
-        WizardUpdate noName = WizardView.Reduce(blank, new WizardInput.Start(OpenInTab: false));
+        WizardUpdate noName = WizardView.Reduce(blank, new WizardInput.Start());
         noName.ShouldSatisfyAllConditions(
             update => update.Effect.ShouldBe(new WizardEffect.None()),
             update => update.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.InvalidName(NameProblem.Missing))),
@@ -205,10 +205,10 @@ public sealed class WizardViewShould
     {
         WizardState filled = Fill(InAgents);
 
-        WizardUpdate started = WizardView.Reduce(filled, new WizardInput.Start(OpenInTab: false));
+        WizardUpdate started = WizardView.Reduce(filled, new WizardInput.Start());
 
         WizardEffect.Launch launch = started.Effect.ShouldBeOfType<WizardEffect.Launch>();
-        launch.OpenInTab.ShouldBeFalse();
+        launch.ShouldBe(new WizardEffect.Launch(launch.Plan), "starting always opens the session's tab, so the effect carries only the plan");
         launch.Plan.ShouldSatisfyAllConditions(
             plan => plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Agents-fix-123"),
             plan => plan.Name.Value.ShouldBe("Fix 123"),
@@ -223,7 +223,7 @@ public sealed class WizardViewShould
     {
         WizardState named = Reduce(InAgents, new WizardInput.NameChanged("Fix 123"));
 
-        WizardUpdate started = WizardView.Reduce(named, new WizardInput.Start(OpenInTab: false));
+        WizardUpdate started = WizardView.Reduce(named, new WizardInput.Start());
 
         LaunchPlan plan = started.Effect.ShouldBeOfType<WizardEffect.Launch>().Plan;
         plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Agents-fix-123");
@@ -236,18 +236,11 @@ public sealed class WizardViewShould
     {
         folders.WithDirectory(@"C:\Users\me\source\worktrees\Northwind.Agents-fix-123");
 
-        WizardUpdate started = WizardView.Reduce(Fill(InAgents), new WizardInput.Start(OpenInTab: false));
+        WizardUpdate started = WizardView.Reduce(Fill(InAgents), new WizardInput.Start());
 
         started.Effect.ShouldBeOfType<WizardEffect.Launch>().Plan.ReuseExistingWorktree.ShouldBeTrue();
     }
 
-    [Fact]
-    public void StartAndOpenInTabYieldsALaunchEffectWithOpenInTab()
-    {
-        WizardUpdate started = WizardView.Reduce(Fill(InAgents), new WizardInput.Start(OpenInTab: true));
-
-        started.Effect.ShouldBeOfType<WizardEffect.Launch>().OpenInTab.ShouldBeTrue();
-    }
 
     [Fact]
     public void CancelYieldsClose()
@@ -280,7 +273,7 @@ public sealed class WizardViewShould
         WizardUpdate blank = WizardView.Reduce(FixedInBilling, new WizardInput.NextField());
 
         WizardEffect.Launch launch = started.Effect.ShouldBeOfType<WizardEffect.Launch>();
-        launch.OpenInTab.ShouldBeTrue();
+        launch.ShouldBe(WizardView.Reduce(named, new WizardInput.Start()).Effect, "Enter in the name starts as F5 does");
         launch.Plan.Directory.Value.ShouldBe(Billing);
         blank.Effect.ShouldBeOfType<WizardEffect.None>();
         blank.State.Problem.ShouldBe(new WizardProblem.Refused(new LaunchProblem.InvalidName(NameProblem.Missing)));
@@ -291,7 +284,7 @@ public sealed class WizardViewShould
     {
         WizardState named = Reduce(FixedInBilling, new WizardInput.NameChanged("Refund retry policy"));
 
-        WizardUpdate started = WizardView.Reduce(named, new WizardInput.Start(OpenInTab: false));
+        WizardUpdate started = WizardView.Reduce(named, new WizardInput.Start());
 
         LaunchPlan plan = started.Effect.ShouldBeOfType<WizardEffect.Launch>().Plan;
         plan.Directory.Value.ShouldBe(Billing);

@@ -20,7 +20,7 @@ public sealed class WordingOfKeyBarShould
     {
         KeyBar bar = Wording.SessionsBar(Selecting([Running], Running), updateKnown: false);
 
-        Texts(bar.First).ShouldBe(["Enter Attach", "o Open tab", "x Stop", "d Delete", "r Rename", "m Memory", "n New session"]);
+        Texts(bar.First).ShouldBe(["Enter Open", "x Stop", "d Delete", "r Rename", "m Memory", "n New session"]);
         Texts(bar.Second).ShouldBe(SecondSessionsRow);
     }
 
@@ -46,8 +46,8 @@ public sealed class WordingOfKeyBarShould
         KeyBar onRunning = Wording.SessionsBar(Selecting([Running, Stopped], Running), updateKnown: false);
         KeyBar onStopped = Wording.SessionsBar(Selecting([Running, Stopped], Stopped), updateKnown: false);
 
-        Texts(onRunning.First).ShouldBe(["Enter Attach", "o Open tab", "x Stop", "d Delete", "r Rename", "m Memory", "R Resume", "n New session"]);
-        Texts(onStopped.First).ShouldBe(["Enter Attach", "o Open tab", "d Delete", "r Rename", "R Resume", "n New session"]);
+        Texts(onRunning.First).ShouldBe(["Enter Open", "x Stop", "d Delete", "r Rename", "m Memory", "R Resume", "n New session"]);
+        Texts(onStopped.First).ShouldBe(["Enter Open", "d Delete", "r Rename", "R Resume", "n New session"]);
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class WordingOfKeyBarShould
         KeyBar bar = Wording.SessionsBar(Selecting([Running], Running), updateKnown: false);
 
         bar.First[0].X.ShouldBe(1);
-        bar.First[1].X.ShouldBe(1 + "Enter Attach".Length + 2);
+        bar.First[1].X.ShouldBe(1 + "Enter Open".Length + 2);
         bar.First.ShouldAllBe(item => item.Tip.Length > 0);
     }
 

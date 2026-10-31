@@ -21,7 +21,7 @@ public sealed class TerminalEffectsShould
 
         await Effects.RunAsync(new AttachToSession(JobId.From("81cdb0f9")), CancellationToken.None);
 
-        console.Events.ShouldBe(["return hint shown: Ctrl+Z returns to Vantage.", "attach 81cdb0f9", "return hint removed"]);
+        console.Events.ShouldBe(["return hint shown: Ctrl+Z detaches; the session keeps running.", "attach 81cdb0f9", "return hint removed"]);
     }
 
     [Fact]

@@ -173,9 +173,8 @@ public static class SessionsView
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = Footer.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = Footer.None }),
             { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
-            { Name: KeyName.Enter } => SessionAction(state, (_, session) => new AttachToSession(session.JobId), Attachment.Here),
+            { Name: KeyName.Enter } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
-            { Name: KeyName.Character, Character: 'o' } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
             { Name: KeyName.Character, Character: 'x' } => SessionAction(state, (_, session) => new StopSession(session), Attachment.None),
             { Name: KeyName.Character, Character: 'd' } when state.Selected is { Session: InteractiveSession terminal, HasTranscript: false } =>
@@ -199,12 +198,11 @@ public static class SessionsView
         };
     }
 
-    /// <summary>Whether a key attaches to the session: here (so not while a tab already shows it), in its own tab, or not at all.</summary>
+    /// <summary>Whether a key attaches to the session, in its own tab, or not at all.</summary>
     private enum Attachment
     {
         None,
         InOwnTab,
-        Here,
     }
 
     /// <summary>A key that acts on a supervised job; a terminal session gets the footer that says why it cannot.</summary>
@@ -219,12 +217,6 @@ public static class SessionsView
         if (row.Session is not BackgroundSession session)
         {
             return Unchanged(state with { Footer = new Footer.RunsInOwnTerminal(row.Session.Name, row.HasTranscript) });
-        }
-
-        // The open-in-tab key switches to the tab that already shows the session; attaching here as well would be a second attach.
-        if (attachment == Attachment.Here && row.HasLiveTab)
-        {
-            return Unchanged(state with { Footer = new Footer.OpenInAnotherTab(row.Session.Name) });
         }
 
         // Attaching to a session with no process resumes it from its transcript; a session never sent a message has none.

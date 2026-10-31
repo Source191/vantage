@@ -25,7 +25,7 @@ public sealed class DiagnosticEventsShould
     [Fact]
     public void FindEveryEvent()
     {
-        Events.Count().ShouldBeGreaterThanOrEqualTo(10);
+        Events.Count().ShouldBeGreaterThanOrEqualTo(8);
     }
 
     [Theory]

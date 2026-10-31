@@ -155,11 +155,11 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
-    public void AttachToTheSelectedBackgroundSessionOnEnter()
+    public void OpenTheSelectedBackgroundSessionInItsOwnTabOnEnter()
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Enter));
 
-        update.Effects.ShouldBe([new AttachToSession(JobId.From("bbbb2222"))]);
+        update.Effects.ShouldBe([new OpenTabForSession(WaitingJob, HasLiveTab: false)]);
     }
 
     [Fact]
@@ -212,7 +212,7 @@ public sealed class SessionsViewShould
         SessionRow stub = Row(stubJob) with { HasTranscript = false };
         SessionsViewState withStub = Reduce(Loaded, new RowsLoaded([stub]));
 
-        Key[] keys = [Key.Enter, Key.Of('o'), Key.Of('r')];
+        Key[] keys = [Key.Enter, Key.Of('r')];
         foreach (Key key in keys)
         {
             ViewUpdate update = SessionsView.Reduce(withStub, new KeyPressed(key));
@@ -269,23 +269,25 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
-    public void RefuseEnterWhenALiveTabAlreadyShowsTheSessionAndNameTheWayThere()
+    public void SwitchToTheLiveTabThatShowsTheSessionOnEnter()
     {
         SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([Waiting with { HasLiveTab = true }]));
 
         ViewUpdate update = SessionsView.Reduce(withTab, new KeyPressed(Key.Enter));
 
-        update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new Footer.OpenInAnotherTab("change-feed"));
+        update.Effects.ShouldBe([new OpenTabForSession(WaitingJob, HasLiveTab: true)]);
+        update.State.Footer.ShouldBe(Footer.None);
     }
 
     [Fact]
-    public void LetOSwitchToTheLiveTabThatShowsTheSession()
+    public void DoNothingOnOBecauseEnterOpensTheTab()
     {
-        SessionRow shown = Waiting with { HasLiveTab = true };
-        SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([shown]));
+        SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([Waiting with { HasLiveTab = true }]));
 
-        SessionsView.Reduce(withTab, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenTabForSession(WaitingJob, shown.HasLiveTab)]);
+        ViewUpdate update = SessionsView.Reduce(withTab, new KeyPressed(Key.Of('o')));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.ShouldBe(withTab);
     }
 
     [Fact]
@@ -319,7 +321,6 @@ public sealed class SessionsViewShould
     }
 
     [Theory]
-    [InlineData('o', typeof(OpenTabForSession))]
     [InlineData('x', typeof(StopSession))]
     [InlineData('d', typeof(DeleteSession))]
     [InlineData('r', typeof(AskForNewName))]

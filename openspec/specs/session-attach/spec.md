@@ -1,50 +1,27 @@
 # session-attach Specification
 
 ## Purpose
-Lets the user work inside a session from the console, in the same tab or in a new Windows Terminal tab, and stop, delete or bring back sessions, including after a reboot.
+Lets the user work inside a session from the console, in a Windows Terminal tab of its own that Enter opens or switches to, and stop, delete or bring back sessions, including after a reboot.
 
 ## Requirements
 
-### Requirement: Drill into a session in the same tab
-Pressing Enter on a background session SHALL suspend the console screen and run the Claude Code attach command for that session in the same terminal, and SHALL redraw the console when the attach command exits. Before handing over, the console SHALL print one line saying that Ctrl+Z returns to Vantage, and SHALL erase that line when the attach command exits, so the scrollback is left as it was.
-
-#### Scenario: Attach and return
-- **WHEN** the user presses Enter on a background session and later presses Ctrl+Z inside it
-- **THEN** the attach command exits, the console redraws with a fresh listing, and the session keeps running
-
-#### Scenario: Live tab already attached
-- **WHEN** a Vantage-opened tab for the session is still alive
-- **THEN** Enter does not attach and the footer says the session is open in another tab
-
-#### Scenario: Footer teaches the return key
-- **WHEN** the console starts an attach
-- **THEN** the last line printed before handing over is exactly "Ctrl+Z returns to Vantage.", on one line
-
-#### Scenario: The hint leaves no trace
-- **WHEN** the user attaches three times, returning with Ctrl+Z each time, and then quits Vantage
-- **THEN** the terminal's scrollback holds no copy of the hint
-
-#### Scenario: Empty session
-- **WHEN** the user presses Enter on a background session that has never been sent a message
-- **THEN** Claude Code shows that session's own prompt, not an agent list, and Ctrl+Z returns to Vantage as for any session
-
 ### Requirement: Open a session in its own Windows Terminal tab
-The open-in-tab key SHALL open a new tab in the current Windows Terminal window that runs the attach command for the session, titled with the session name, with application title changes suppressed, starting in the session's working directory, coloured from the palette, and in the "Vantage session" profile when Vantage's Windows Terminal fragment is installed, otherwise in the default profile.
+Enter on a background session is the open-in-tab key. It SHALL open a new tab in the current Windows Terminal window that runs the attach command for the session, titled with the session name, with application title changes suppressed, starting in the session's working directory, coloured from the palette, and in the "Vantage session" profile when Vantage's Windows Terminal fragment is installed, otherwise in the default profile.
 
 #### Scenario: Tab opened
-- **WHEN** the user presses the open-in-tab key on a background session
-- **THEN** a new tab appears with the session's name as its title and the attach command running inside it
+- **WHEN** the user presses Enter on a background session
+- **THEN** a new tab appears with the session's name as its title and the attach command running inside it, and the console stays on screen
 
 #### Scenario: Tab opened with the setup profile
-- **WHEN** `vantage setup-terminal` has installed the fragment and the user presses the open-in-tab key on a background session
+- **WHEN** `vantage setup-terminal` has installed the fragment and the user presses Enter on a background session
 - **THEN** the new tab uses the "Vantage session" profile, so a bell in it plays that profile's sound
 
 #### Scenario: Tab opened without the setup profile
-- **WHEN** the fragment is not installed and the user presses the open-in-tab key on a background session
+- **WHEN** the fragment is not installed and the user presses Enter on a background session
 - **THEN** the new tab uses Windows Terminal's default profile, as before
 
 #### Scenario: Tab already live
-- **WHEN** a Vantage-opened tab for that session is still alive
+- **WHEN** a Vantage-opened tab for that session is still alive and the user presses Enter on it
 - **THEN** no second tab is opened, the Windows Terminal tab titled with the session name is selected in the window that owns it, and the footer says Vantage switched to it
 
 #### Scenario: Live tab cannot be found
@@ -52,12 +29,27 @@ The open-in-tab key SHALL open a new tab in the current Windows Terminal window 
 - **THEN** no tab is opened and the footer says the tab is open but could not be found
 
 #### Scenario: Tab closed by hand
-- **WHEN** the user closes the session's tab with the terminal's close button and, once the tab's shell has gone, presses the open-in-tab key before the next refresh
+- **WHEN** the user closes the session's tab with the terminal's close button and, once the tab's shell has gone, presses Enter on the session before the next refresh
 - **THEN** the stale record is dropped, a new tab opens, and the footer says a tab was opened, not switched to
 
 #### Scenario: Earlier record dropped
-- **WHEN** a record for the session remains from a tab that has gone and the user presses the open-in-tab key
+- **WHEN** a record for the session remains from a tab that has gone and the user presses Enter on the session
 - **THEN** the new tab's record is the only one for the session and the old record's colour is free again
+
+#### Scenario: Empty session
+- **WHEN** the user presses Enter on a running background session that has never been sent a message
+- **THEN** its tab shows that session's own prompt, not an agent list, and Ctrl+Z in it closes the tab as for any session
+
+#### Scenario: o is not a key
+- **WHEN** the user presses o on a background session
+- **THEN** nothing happens and no tab is opened
+
+### Requirement: The console never attaches in its own tab
+The console SHALL never run the attach command in Vantage's own tab; a session is worked in through its own tab, and only `vantage here` attaches in the tab it was run from.
+
+#### Scenario: Enter leaves the console on screen
+- **WHEN** the user presses Enter on a background session
+- **THEN** Vantage's own tab keeps showing the console, and the attach command runs only in the session's tab
 
 ### Requirement: Tab colours avoid colours in use
 Vantage SHALL choose the first palette colour not used by any live Vantage-opened tab, and when every colour is in use SHALL reuse the least used colour and warn.
@@ -83,7 +75,7 @@ Vantage SHALL record each tab it opens with the tab shell's process ID and start
 
 #### Scenario: Detach closes the tab
 - **WHEN** the user presses Ctrl+Z inside a tab Vantage opened for a session
-- **THEN** the tab closes, the TAB column clears within one refresh, and Enter on the row attaches in the console
+- **THEN** the tab closes, the TAB column clears within one refresh, and Enter on the row opens a new tab
 
 #### Scenario: Attach fails
 - **WHEN** the attach command in a Vantage-opened tab exits with a failure, for example because the session was removed before it started
@@ -192,11 +184,11 @@ For an interactive session that has never been sent a message, the delete key SH
 - **THEN** that process and its tab are left alone, the other sessions are closed, and the footer names the one left alone
 
 ### Requirement: Sessions with nothing to resume are refused
-Attach, open-in-tab, rename and resume SHALL be refused for a session that has no process and no transcript, because Claude writes a session's transcript only on its first message, and the footer SHALL say that delete removes it.
+Open-in-tab, rename and resume SHALL be refused for a session that has no process and no transcript, because Claude writes a session's transcript only on its first message, and the footer SHALL say that delete removes it.
 
 #### Scenario: Stub session
 - **WHEN** the user presses Enter on a failed session whose transcript does not exist
-- **THEN** nothing happens and the footer says it was never sent a message and that delete removes it
+- **THEN** nothing happens, no tab opens, and the footer says it was never sent a message and that delete removes it
 
 ### Requirement: Vantage's own tab is recognisable
 When the console starts in a Windows Terminal tab, Vantage SHALL title that tab "Vantage" and colour it green when no live Vantage-opened tab is green, otherwise with the first free palette colour; SHALL count its own tab's colour as in use when colouring session tabs; and SHALL clear the title and reset the colour when it quits, so the tab shows its profile's own colour again.
@@ -209,10 +201,6 @@ When the console starts in a Windows Terminal tab, Vantage SHALL title that tab 
 - **WHEN** Vantage starts while a live Vantage-opened tab is green
 - **THEN** the tab is titled Vantage, and coloured with the first palette colour no live tab uses
 
-#### Scenario: Title restored after a hand-off
-- **WHEN** the user returns from an attached session, which set the tab title itself
-- **THEN** the tab is titled Vantage, exactly as before, and coloured as before again
-
 #### Scenario: Local build
 - **WHEN** the installed tool's version is 0.12.0-local.20261026T101500
 - **THEN** the tab is titled Vantage, and the version, with its prerelease label, is shown only in the header
@@ -224,6 +212,10 @@ When the console starts in a Windows Terminal tab, Vantage SHALL title that tab 
 #### Scenario: Each dialog has its own word
 - **WHEN** the new-session wizard, rename, resume, settings, delete session, delete branch, close empty, force remove, open solution or update dialog is open
 - **THEN** the tab reads Vantage (New session), Vantage (Rename), Vantage (Resume), Vantage (Settings), Vantage (Delete session), Vantage (Delete branch), Vantage (Close empty), Vantage (Force remove), Vantage (Open solution) or Vantage (Update) respectively
+
+#### Scenario: Title restored after a hand-off
+- **WHEN** the user opens a session's tab with Enter, works in it while Claude sets that tab's title, and selects the Vantage tab again
+- **THEN** the Vantage tab is still titled Vantage and coloured as before, because the attach ran in the other tab
 
 #### Scenario: Quit
 - **WHEN** the user quits Vantage
@@ -313,6 +305,6 @@ While a dialog is open Vantage's tab SHALL read "Vantage" followed by the dialog
 ### Requirement: Vantage's tab title is always the same outside dialogs
 Outside a dialog, every title Vantage writes for its own tab SHALL be the same text.
 
-#### Scenario: Start, hand-off and dialog
-- **WHEN** Vantage writes its tab title as it starts, after a hand-off and after a dialog closes
+#### Scenario: Start and dialog
+- **WHEN** Vantage writes its tab title as it starts and after a dialog closes
 - **THEN** the title is Vantage each time

@@ -27,10 +27,10 @@ public sealed class TerminalConsoleShould : IDisposable
     {
         TerminalConsole console = new(writer, "Vantage");
 
-        console.ShowReturnHint("Ctrl+Z returns to Vantage.");
+        console.ShowReturnHint("Ctrl+Z detaches; the session keeps running.");
         console.RemoveReturnHint();
 
-        writer.ToString().ShouldBe("Ctrl+Z returns to Vantage." + Environment.NewLine + "\u001b[1A\u001b[2K");
+        writer.ToString().ShouldBe("Ctrl+Z detaches; the session keeps running." + Environment.NewLine + "\u001b[1A\u001b[2K");
         ConsoleRecovery.EraseLineAbove.ShouldBe("\u001b[1A\u001b[2K");
     }
 

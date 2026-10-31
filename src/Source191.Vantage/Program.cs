@@ -126,7 +126,6 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     Folders folders = new();
     TerminalConsole console = new(Console.Out, tabTitle);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
-    TerminalEffects terminalEffects = new(claude, console);
 
     // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
     using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
@@ -153,7 +152,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SetupFactsReader setup = new(terminalFragment, ClaudeSettings.ForCurrentUser(), store, store.ConfigFile, logPath);
     ConsoleScreen consoleScreen = new(LoadAsync, ScanAsync, ReadConfigAsync, () => ConfigRows.For(settings.Value, facts: null), notifier, activity, new DetailLoader(git, store, activity), dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
-    ScreenLoop loop = new(consoleScreen, ownTab, console, terminalEffects, updates, log);
+    ScreenLoop loop = new(consoleScreen, ownTab, console, updates, log);
 
     return await loop.RunAsync(Environment.ProcessId, cancellationToken);
 

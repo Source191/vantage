@@ -7,9 +7,9 @@ namespace Source191.Vantage.Application.Views;
 /// The new-session wizard's rules as a pure function of state and input; the dialog only binds controls to it.
 /// Keyboard model: focus starts in the repository filter; typing narrows the list, the arrow keys move into the list,
 /// and Enter confirms the repository and moves to the name. Enter in the other one-line fields moves on; only Start
-/// (F5, or F6 to open a tab too) launches, so a stray Enter never starts a half-filled session in a new worktree. A
-/// fixed folder (s on a worktree row) is the exception: its form is the name and the prompt, so Enter in the name
-/// starts the session and opens its tab, as F6 does.
+/// (F5) launches, starting the session and opening its tab, so a stray Enter never starts a half-filled session in a
+/// new worktree. A fixed folder (s on a worktree row) is the exception: its form is the name and the prompt, so Enter
+/// in the name starts the session and opens its tab, as F5 does.
 /// </summary>
 public static class WizardView
 {
@@ -26,9 +26,9 @@ public static class WizardView
             WizardInput.PromptChanged changed => Changed(state with { Prompt = changed.Text }),
             WizardInput.FieldFocused focused => Changed(state with { Focus = focused.Field }),
             WizardInput.ConfirmRepository => Changed(Confirmed(state)),
-            WizardInput.NextField when state is { Focus: WizardField.Name, ShowsChooser: false } => Started(state, openInTab: true),
+            WizardInput.NextField when state is { Focus: WizardField.Name, ShowsChooser: false } => Started(state),
             WizardInput.NextField => Changed(state with { Focus = Next(state) }),
-            WizardInput.Start start => Started(state, start.OpenInTab),
+            WizardInput.Start => Started(state),
             WizardInput.Cancel => new WizardUpdate(state, new WizardEffect.Close()),
             _ => Changed(state),
         };
@@ -79,7 +79,7 @@ public static class WizardView
         };
     }
 
-    private static WizardUpdate Started(WizardState state, bool openInTab)
+    private static WizardUpdate Started(WizardState state)
     {
         if (state.Chosen is not RepositoryChoice repository)
         {
@@ -90,7 +90,7 @@ public static class WizardView
 
         return LaunchPlanBuilder.Build(request, state.WorktreeRoot, state.Folders.DirectoryExists) switch
         {
-            LaunchPlanResult.Planned planned => new WizardUpdate(state, new WizardEffect.Launch(planned.Plan, openInTab)),
+            LaunchPlanResult.Planned planned => new WizardUpdate(state, new WizardEffect.Launch(planned.Plan)),
             LaunchPlanResult.Refused refused => Changed(state with { Problem = new WizardProblem.Refused(refused.Problem), Focus = WizardField.Name }),
             _ => throw new UnreachableException(),
         };

@@ -7,8 +7,8 @@ using Source191.Vantage.Ports;
 namespace Source191.Vantage.Application.Actions;
 
 /// <summary>
-/// Starts the session the launch wizard planned, from either view. When asked it opens the new session's tab; when the
-/// workspace is not trusted it opens a plain Claude tab there so the trust prompt can be accepted.
+/// Starts the session the launch wizard planned, from either view, and opens the new session's tab; when the workspace
+/// is not trusted it opens a plain Claude tab there so the trust prompt can be accepted.
 /// </summary>
 public sealed class StartSessionHandler(LaunchService service, OpenTabHandler tabs, IWindowsTerminal terminal, TabScripts scripts)
     : IEffectHandler<StartSession>
@@ -19,21 +19,18 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
 
         return outcome switch
         {
-            { Kind: LaunchOutcomeKind.Started, JobId: JobId jobId } => await StartedAsync(effect, jobId, outcome.Session, cancellationToken),
+            { Kind: LaunchOutcomeKind.Started, JobId: JobId jobId } => await OpenAsync(effect.Plan.Name.Value, jobId, outcome.Session, cancellationToken),
             { Kind: LaunchOutcomeKind.WorkspaceNotTrusted } => await OpenTrustTabAsync(effect.Plan.Directory, cancellationToken),
             _ => new StartSessionOutcome.Failed(outcome.Message),
         };
     }
 
-    private async Task<StartSessionOutcome> StartedAsync(StartSession effect, JobId jobId, BackgroundSession? listed, CancellationToken cancellationToken)
+    private async Task<StartSessionOutcome> OpenAsync(string name, JobId jobId, BackgroundSession? listed, CancellationToken cancellationToken)
     {
-        string name = effect.Plan.Name.Value;
-
-        return (effect.OpenInTab, listed) switch
+        return listed switch
         {
-            (false, _) => new StartSessionOutcome.Started(name, jobId),
-            (true, null) => new StartSessionOutcome.NotListedYet(name, jobId),
-            (true, BackgroundSession session) => new StartSessionOutcome.StartedAndOpened(name, jobId, await tabs.OpenAsync(session, cancellationToken)),
+            null => new StartSessionOutcome.NotListedYet(name, jobId),
+            BackgroundSession session => new StartSessionOutcome.StartedAndOpened(name, jobId, await tabs.OpenAsync(session, cancellationToken)),
         };
     }
 
@@ -45,11 +42,9 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
     }
 }
 
-/// <summary>What starting the wizard's session did, including the tab when one was asked for.</summary>
+/// <summary>What starting the wizard's session did, including its tab.</summary>
 public abstract record StartSessionOutcome : Outcome
 {
-    public sealed record Started(string Name, JobId JobId) : StartSessionOutcome;
-
     public sealed record StartedAndOpened(string Name, JobId JobId, OpenTabOutcome Tab) : StartSessionOutcome;
 
     public sealed record NotListedYet(string Name, JobId JobId) : StartSessionOutcome;

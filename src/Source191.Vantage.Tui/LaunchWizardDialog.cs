@@ -49,7 +49,7 @@ internal static class LaunchWizardDialog
             state = update.State;
             if (update.Effect is WizardEffect.Launch launch)
             {
-                result = new WizardResult(launch.Plan, launch.OpenInTab);
+                result = new WizardResult(launch.Plan);
             }
 
             if (update.Effect is not WizardEffect.None)
@@ -80,11 +80,11 @@ internal static class LaunchWizardDialog
         }
 
         // The texts follow their change events; reading them again at Start, as the dialog always did, means no missed event can launch a stale name.
-        void Start(bool openInTab)
+        void Start()
         {
             Apply(new WizardInput.NameChanged(controls.Name.Text));
             Apply(new WizardInput.PromptChanged(controls.Prompt.Text));
-            Apply(new WizardInput.Start(openInTab));
+            Apply(new WizardInput.Start());
         }
 
         controls.WhenFocused(field => Apply(new WizardInput.FieldFocused(field)));
@@ -111,10 +111,9 @@ internal static class LaunchWizardDialog
         controls.WhenEnterInSelectors(() => Apply(new WizardInput.NextField()));
         // An Enter no control took would otherwise close the dialog with nothing started.
         dialog.Accepting += (_, accepting) => accepting.Handled = true;
-        dialog.KeyDown += (_, key) => key.Handled = (key == GuiKey.F5 || key == GuiKey.F6) && WizardControls.Handled(() => Start(openInTab: key == GuiKey.F6));
-        // No default button: Enter never starts anything by itself. The function keys and the buttons do.
-        dialog.AddButton(WizardControls.Button("_Start (F5)", () => Start(openInTab: false)));
-        dialog.AddButton(WizardControls.Button("Start and open in _tab (F6)", () => Start(openInTab: true)));
+        dialog.KeyDown += (_, key) => key.Handled = key == GuiKey.F5 && WizardControls.Handled(Start);
+        // No default button: Enter never starts anything by itself. F5 and the Start button do, and both open the session's tab.
+        dialog.AddButton(WizardControls.Button("_Start (F5)", Start));
         dialog.AddButton(WizardControls.Button("_Cancel (Esc)", () => Apply(new WizardInput.Cancel())));
         dialog.Initialized += (_, _) => Push();
 

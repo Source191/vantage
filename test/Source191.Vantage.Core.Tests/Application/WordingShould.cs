@@ -70,12 +70,6 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void PointToTheTabThatAlreadyShowsTheSession()
-    {
-        Wording.Describe(new Footer.OpenInAnotherTab("fix-123")).ShouldBe("fix-123 is open in another tab; press o to switch to it.");
-    }
-
-    [Fact]
     public void SayASessionNeverSentAMessageHasNothingToResume()
     {
         Wording.Describe(new Footer.NeverSentAMessage("fix-123")).ShouldBe("fix-123 has nothing to resume: it was never sent a message. d deletes it.");
@@ -410,8 +404,8 @@ public sealed class WordingShould
     [Fact]
     public void ReturnHintIsOneShortLine()
     {
-        Wording.ReturnHint.ShouldBe("Ctrl+Z returns to Vantage.");
-        Wording.ReturnHint.Length.ShouldBeLessThanOrEqualTo(40);
+        Wording.ReturnHint.ShouldBe("Ctrl+Z detaches; the session keeps running.");
+        Wording.ReturnHint.Length.ShouldBeLessThanOrEqualTo(60);
     }
 
     [Fact]
@@ -473,7 +467,7 @@ public sealed class WordingShould
             FolderPath.From(Sessions.Repository), SessionName.From("Fix flaky tests"), Worktree: null,
             ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", FolderPath.From(Sessions.Repository), IsRepository: true));
 
-        Wording.Working(new StartSession(plan, OpenInTab: true)).ShouldBe("Starting Fix flaky tests...");
+        Wording.Working(new StartSession(plan)).ShouldBe("Starting Fix flaky tests...");
     }
 
     [Fact]
@@ -843,8 +837,8 @@ public sealed class WordingShould
     [Fact]
     public void HintTheWizardsKeys()
     {
-        Wording.WizardHint(Wizard()).ShouldBe("Type to filter, ↑↓ to choose, Enter confirms the repository   Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel");
-        Wording.WizardHint(Wizard(FixedFolder)).ShouldBe("Enter starts and opens in tab   F5 start without a tab   Esc cancel");
+        Wording.WizardHint(Wizard()).ShouldBe("Type to filter, ↑↓ to choose, Enter confirms the repository   Enter or Tab next field   F5 start and open in tab   Esc cancel");
+        Wording.WizardHint(Wizard(FixedFolder)).ShouldBe("Enter or F5 starts and opens in tab   Esc cancel");
     }
 
     /// <summary>A wizard with no repositories to offer, or fixed in one folder.</summary>

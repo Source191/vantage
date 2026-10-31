@@ -122,8 +122,8 @@ public static partial class Wording
         IReadOnlyList<(string Key, string? Word)> forRow = state.Selected switch
         {
             null => [],
-            { Session: BackgroundSession { ProcessId: not null } } => [("enter", null), ("o", null), ("x", null), ("d", null), ("r", null), ("m", null)],
-            { Session: BackgroundSession } => [("enter", null), ("o", null), ("d", null), ("r", null)],
+            { Session: BackgroundSession { ProcessId: not null } } => [("enter", null), ("x", null), ("d", null), ("r", null), ("m", null)],
+            { Session: BackgroundSession } => [("enter", null), ("d", null), ("r", null)],
             { Session: InteractiveSession, HasTranscript: false } => [("b", null), ("d", "Close tab"), ("m", null)],
             _ => [("b", null), ("m", null)],
         };

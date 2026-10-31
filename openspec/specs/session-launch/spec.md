@@ -72,11 +72,11 @@ The wizard opened from the overview SHALL start on the default place setting, a 
 
 #### Scenario: Fixed folder without a tab
 - **WHEN** the user starts a session with `s` on a worktree row, types a name and presses F5
-- **THEN** the session starts in that worktree and no tab is opened
+- **THEN** the session starts in that worktree and opens in its own tab, as on Enter, because the wizard has no way to start without one
 
 #### Scenario: Fixed folder dialog is compact
 - **WHEN** the wizard opens from a worktree row
-- **THEN** the dialog shows the directory, the name, the preview and the prompt from its left edge, with no empty repository column, and its hint line says Enter starts and opens in a tab
+- **THEN** the dialog shows the directory, the name, the preview and the prompt from its left edge, with no empty repository column, and its hint line says Enter or F5 starts and opens in a tab
 
 ### Requirement: A new worktree goes under the worktree root
 When the user chooses a worktree, Vantage SHALL create it at `<worktree root>\<repository>-<slug>` on a new branch named `<slug>`, creating the worktree root when it does not exist, where the slug is the name lower-cased with every run of characters other than a-z and 0-9 replaced by one hyphen and leading and trailing hyphens removed.
@@ -138,6 +138,13 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 - **WHEN** the user runs vantage here fix-tests -p "-fix the tests" in a trusted repository
 - **THEN** it exits 2 with the sentence that an opening prompt cannot start with a dash, and starts nothing
 
+### Requirement: vantage here says how to detach
+Before attaching, `vantage here` SHALL print one line saying that Ctrl+Z detaches and the session keeps running, and SHALL erase that line when the attach exits.
+
+#### Scenario: The line before attaching
+- **WHEN** vantage here starts a session and attaches
+- **THEN** the last line printed before handing over is exactly "Ctrl+Z detaches; the session keeps running.", and it is gone from the terminal once the attach exits
+
 ### Requirement: Untrusted workspaces are handled
 When starting the session fails because the directory's workspace is not trusted, the wizard SHALL say so and offer to open a plain Claude Code tab in that directory so the trust dialog can be accepted, then retry.
 
@@ -168,20 +175,12 @@ Vantage SHALL record each worktree and branch it created and each launched repos
 - **WHEN** the state folder holds a `descriptions` folder or a `sessions.json` written by an earlier version
 - **THEN** Vantage neither reads nor deletes them
 
-### Requirement: The session starts under the supervisor and opens where the user chose
-Vantage SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was, and SHALL then open the session in its own Windows Terminal tab or return to the list as the user chose. An opening prompt that starts with a dash SHALL be refused before anything starts, in the wizard and by `vantage here`, with a sentence saying the CLI would read it as options and to start it with a word.
+### Requirement: The session starts under the supervisor
+Vantage SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was. An opening prompt that starts with a dash SHALL be refused before anything starts, in the wizard and by `vantage here`, with a sentence saying the CLI would read it as options and to start it with a word.
 
 #### Scenario: No opening prompt
 - **WHEN** the user leaves the opening prompt blank
 - **THEN** the session starts idle and waits for input under the given name
-
-#### Scenario: Start and open in a tab
-- **WHEN** the user chooses "start and open in tab"
-- **THEN** Vantage starts the session, opens it in a new Windows Terminal tab titled with the session name as the open-in-tab key does, and the sessions view stays on screen with the footer naming the tab's colour
-
-#### Scenario: Started session not listed yet
-- **WHEN** the user chooses "start and open in tab" and the supervisor has not yet listed the new session when the start returns
-- **THEN** the footer reports the session as started and says to open it with the open-in-tab key once it appears, and no tab is opened
 
 #### Scenario: Prompt that starts with a dash
 - **WHEN** the user types the opening prompt "- fix the tests" or "--dangerously-skip-permissions" and starts
@@ -190,6 +189,21 @@ Vantage SHALL start the session as a named background session in the chosen dire
 #### Scenario: Prompt with a dash inside it
 - **WHEN** the user types the opening prompt "Fix the tests - all of them"
 - **THEN** the session starts with that prompt
+
+### Requirement: A session started from the wizard opens in its own tab
+A session started from the wizard SHALL be opened in its own Windows Terminal tab as soon as the supervisor lists it, and the wizard SHALL have no way to start one without a tab; `vantage here` attaches in its own tab instead.
+
+#### Scenario: Start and open in a tab
+- **WHEN** the user starts a session from the wizard
+- **THEN** Vantage starts the session, opens it in a new Windows Terminal tab titled with the session name as the open-in-tab key does, and the sessions view stays on screen with the footer naming the tab's colour
+
+#### Scenario: No start without a tab
+- **WHEN** the user presses F6 in the wizard
+- **THEN** nothing starts and the wizard stays open
+
+#### Scenario: Started session not listed yet
+- **WHEN** the user starts a session from the wizard and the supervisor has not yet listed the new session when the start returns
+- **THEN** the footer reports the session as started and says to press Enter on it once it appears, and no tab is opened
 
 ### Requirement: Copied local files stay inside the new worktree
 The `.worktreeinclude` copy SHALL only read files inside the repository and only write files inside the new worktree; a listed path that is parent-relative, rooted or a network path SHALL be skipped, and nothing SHALL be written outside the worktree.
@@ -203,7 +217,7 @@ The `.worktreeinclude` copy SHALL only read files inside the repository and only
 - **THEN** neither is copied, and only the in-repository matches reach the worktree
 
 ### Requirement: The wizard's keys move through the form in order
-Tab and Enter SHALL move focus through the wizard in its reading order: from the repository list to the name, from the name to Where when it is shown and otherwise to the prompt, from Where to the base, and from the base to the prompt. Enter SHALL never close the wizard or start a session, except in a fixed folder's name field, and only F5, F6 and the buttons SHALL start one.
+Tab and Enter SHALL move focus through the wizard in its reading order: from the repository list to the name, from the name to Where when it is shown and otherwise to the prompt, from Where to the base, and from the base to the prompt. Enter SHALL never close the wizard or start a session, except in a fixed folder's name field, and only F5 and the Start button SHALL start one.
 
 #### Scenario: Tab from the list
 - **WHEN** the user presses Tab on the repository list
@@ -221,8 +235,12 @@ Tab and Enter SHALL move focus through the wizard in its reading order: from the
 - **WHEN** the user presses Enter in the opening prompt
 - **THEN** the prompt gains a new line and the wizard stays open
 
+#### Scenario: The hint names F5
+- **WHEN** the user opens the wizard with n
+- **THEN** the hint line names F5 as starting the session and opening it in a tab, and does not name F6
+
 ### Requirement: The wizard reads as one form
-The wizard opened from the overview SHALL lay its controls out in one column in reading order: the repository filter with its list beneath, the session name, Where, the worktree base, the preview, the opening prompt, the problem line, the hint, and the buttons Start, Start and open in tab, and Cancel. The dialog SHALL fit a 120 by 36 terminal with at least four repository rows visible, and Enter SHALL never start a session in it.
+The wizard opened from the overview SHALL lay its controls out in one column in reading order: the repository filter with its list beneath, the session name, Where, the worktree base, the preview, the opening prompt, the problem line, the hint, and the buttons Start (F5) and Cancel. The dialog SHALL fit a 120 by 36 terminal with at least four repository rows visible, and Enter SHALL never start a session in it.
 
 #### Scenario: Reading order
 - **WHEN** the user opens the wizard with n
@@ -231,6 +249,10 @@ The wizard opened from the overview SHALL lay its controls out in one column in 
 #### Scenario: Fits the laptop screen
 - **WHEN** the wizard opens on a 120 by 36 terminal with twelve repositories under the roots
 - **THEN** every control and the buttons are on screen and at least four repositories are listed
+
+#### Scenario: One start button
+- **WHEN** the user opens the wizard with n
+- **THEN** the buttons are Start (F5) and Cancel, and no button starts a session without opening its tab
 
 #### Scenario: Enter in the prompt
 - **WHEN** the user presses Enter in the opening prompt

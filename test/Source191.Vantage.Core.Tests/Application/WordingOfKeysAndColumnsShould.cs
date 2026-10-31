@@ -11,7 +11,7 @@ public sealed class WordingOfKeysAndColumnsShould
     {
         Wording.SessionsKeys.Select(key => $"{key.Key} {key.Hint}").ShouldBe(
         [
-            "enter Attach", "o Open tab", "n New session", "r Rename", "x Stop", "d Delete",
+            "enter Open", "n New session", "r Rename", "x Stop", "d Delete",
             "R Resume", "C Close empty", "b Adopt", "/ Filter", "? Help", "q Quit",
             "c Copy path", "e Open folder", "v Solution", "p Open PR", "m Memory", "U Update", "! Report", .. TabKeys,
         ]);
@@ -43,9 +43,19 @@ public sealed class WordingOfKeysAndColumnsShould
     public void ShowTheKeyAsTheHelpAndTheKeyBarDo()
     {
         Wording.SessionsKeys[0].HelpKey.ShouldBe("Enter");
-        Wording.SessionsKeys[6].HelpKey.ShouldBe("R");
+        Wording.SessionsKeys[5].HelpKey.ShouldBe("R");
         Wording.SessionsKeys.Single(key => key.Key == "<").HelpKey.ShouldBe("<");
         Wording.SessionsKeys.Single(key => key.Key == "→").HelpKey.ShouldBe("→");
+    }
+
+    [Fact]
+    public void SayEnterOpensTheSessionInItsOwnTab()
+    {
+        KeyHelp enter = Wording.SessionsKeys.Single(key => key.Key == "enter");
+
+        enter.Line.ShouldBe("open in its own tab, or switch to it");
+        enter.Tip.ShouldBe("Open this session in its own tab, or switch to that tab if it is open.");
+        Wording.SessionsKeys.ShouldNotContain(key => key.Key == "o");
     }
 
     [Fact]
@@ -77,19 +87,19 @@ public sealed class WordingOfKeysAndColumnsShould
     {
         Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe").ShouldBe("""
             Keys
-            Enter  attach (Ctrl+Z or Esc comes back)       o      open in its own tab, or switch to it
-            n      new session                             r      rename (restarts the session)
-            x      stop                                    d      delete, and its worktree if nothing is lost
-            R      resume after a reboot                   C      close tabs of unused terminal sessions
-            b      move a terminal session under Vantage   /      filter
-            ?      help                                    q      quit
-            c      copy the folder path                    e      open the folder in your editor
-            v      open its solution                       p      open its pull request in the browser
-            m      what its memory is made of              U      update Vantage in a new tab
-            !      report a problem on GitHub              1      the Sessions tab
-            2      the Worktrees tab                       3      the Config tab
-            ←      the tab to the left                     →      the tab to the right
-            <      scroll the columns left                 >      scroll the columns right
+            Enter  open in its own tab, or switch to it          n      new session
+            r      rename (restarts the session)                 x      stop
+            d      delete, and its worktree if nothing is lost   R      resume after a reboot
+            C      close tabs of unused terminal sessions        b      move a terminal session under Vantage
+            /      filter                                        ?      help
+            q      quit                                          c      copy the folder path
+            e      open the folder in your editor                v      open its solution
+            p      open its pull request in the browser          m      what its memory is made of
+            U      update Vantage in a new tab                   !      report a problem on GitHub
+            1      the Sessions tab                              2      the Worktrees tab
+            3      the Config tab                                ←      the tab to the left
+            →      the tab to the right                          <      scroll the columns left
+            >      scroll the columns right
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one

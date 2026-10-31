@@ -14,7 +14,7 @@ namespace Source191.Vantage.Application;
 public static partial class Wording
 {
     /// <summary>Printed on one line before an attach and erased after it, so it must never wrap.</summary>
-    public static string ReturnHint => "Ctrl+Z returns to Vantage.";
+    public static string ReturnHint => "Ctrl+Z detaches; the session keeps running.";
 
     /// <summary>vantage here refuses a dash-led name that did not follow --, since it is most likely a mistyped option.</summary>
     public static string NameLooksLikeAnOption(string token) => $"{token} looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- {token}";
@@ -73,7 +73,6 @@ public static partial class Wording
                 $"{terminal.Name} runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there.",
             Footer.RunsInOwnTerminal terminal =>
                 $"{terminal.Name} runs in its own terminal and has no messages yet. d closes its tab, C closes every such tab, or send it something there and press b.",
-            Footer.OpenInAnotherTab open => $"{open.Name} is open in another tab; press o to switch to it.",
             Footer.NeverSentAMessage never => $"{never.Name} has nothing to resume: it was never sent a message. d deletes it.",
             Footer.NoEmptyTerminals => "No terminal sessions without messages.",
             Footer.NoMessagesToRename rename => $"{rename.Name} has no messages yet, so it cannot be renamed; send it something first.",
@@ -238,9 +237,9 @@ public static partial class Wording
 
     public static string WizardHint(WizardState wizard)
     {
-        const string Fields = "Enter or Tab next field   F5 start   F6 start and open in tab   Esc cancel";
+        const string Fields = "Enter or Tab next field   F5 start and open in tab   Esc cancel";
 
-        return wizard.ShowsChooser ? $"Type to filter, ↑↓ to choose, Enter confirms the repository   {Fields}" : "Enter starts and opens in tab   F5 start without a tab   Esc cancel";
+        return wizard.ShowsChooser ? $"Type to filter, ↑↓ to choose, Enter confirms the repository   {Fields}" : "Enter or F5 starts and opens in tab   Esc cancel";
     }
 
     public static string MemoryDialogTitle(string sessionName) => $"Memory: {sessionName}";
