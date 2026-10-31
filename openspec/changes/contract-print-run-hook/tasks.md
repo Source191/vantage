@@ -9,7 +9,7 @@
 
 ## 2. Prove it on the runner
 
-- [ ] 2.1 Run `gh workflow run claude-contract.yml --ref v-contract-print-run` and verify that the contract job passes with all eight facts.
+- [x] 2.1 Run `gh workflow run claude-contract.yml --ref v-contract-print-run` and verify that the contract job passes with all eight facts. (Run on `v-contract-hook`, run 41245249825, CLI 2.1.316: attempt 1 passed the print-run fact but failed `GiveTheStartedRowEveryFieldVantageReads` once, the started row listed without pid or status, which passed in the nightly run before; attempt 2 of the failed job passed all eight facts and the hand-off check.)
 
 ## Workflow follow-up
 
