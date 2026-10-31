@@ -1,0 +1,42 @@
+# Tasks
+
+## 1. Tones in the application layer
+
+- [x] 1.1 Test first: `StatusTonesShould.MarkEachToneWithItsGlyph` asserts that `Wording.StatusMark` answers ✓ green for `Success`, ! orange for `Notice`, ✗ red for `Failure`, and an empty part for `Working` and `Hint`, and that `Wording.StatusWordsTone` answers green, orange, red, cyan and plain. Then add the `StatusTone` enum (all five members named in each switch, no discard arm) and the two methods. Verify by running the Core suite.
+- [x] 1.2 Test first: `StatusTonesShould.ChooseAToneForEveryOutcomeCase` is a reflection fact that fails for a concrete `Outcome` type missing from the test's tone table, and `GiveEachOutcomeItsTone` is a theory over the table, using `WordingOfOutcomesShould`'s placeholder construction. Then add `Wording.ToneOf(Outcome)` in `WordingOfOutcomes.cs`, with the cases as design.md sets them out and a `Notice` fallback arm. Verify that both pass, and that removing an arm makes the theory fail.
+- [x] 1.3 Test first: give the data-dependent outcomes their own facts. `OpenTabOutcome.Opened` with `ColourReused` is a notice; `StartedAndOpened` takes its tab's tone; `DeleteSessionOutcome.RemovedWorktree` takes its worktree's tone; `CloseEmptyTerminalsOutcome` with a skipped or gone session is a notice, otherwise a success; `ResumeSessionsOutcome` that resumed fewer than were chosen, or has notes, is a notice. Then make them pass. Verify by running the Core suite.
+- [x] 1.4 Test first: `StatusTonesShould.ChooseAToneForEveryFooterCase` and `GiveEachFooterItsTone` do the same for every concrete `Footer` type. That includes `Reported` taking its outcome's tone, `BranchKept` its removal's, `Followed` its `Then`'s, `NoPullRequest` with gap `Failed` being a failure and its other gaps notices, and `SettingHint` and `SetupAdvice` being hints. Then add `Wording.ToneOf(Footer)` beside `Describe(Footer)`. Verify by running the Core suite, `dotnet build -c Debug` with no warnings, and `dotnet format --verify-no-changes`.
+
+## 2. The status row in the console
+
+- [x] 2.1 Add the tab's status to `ITabBody` (its current `Footer` and whether an action it started is running) and set it from `TableBody`. Remove `footer`, `busy`, `statusRows`, `StatusRowsNeeded` and `LayOutStatus`; put the detail pane at `Pos.AnchorEnd(pane.Rows)` with the table filling the rest; and stop `Shown` from touching a busy spinner. Verify by building and running the solution's tests (the Tui has no unit tests; its layout is checked in 2.3).
+- [x] 2.2 In `ConsoleScreen.Frame`, add the status row at `Pos.AnchorEnd(3)`: a spinner and the `StatusMark` glyph in column 1, and the words from column 3 in `StatusWordsTone`'s colour through `Palette.ForTone`. `FrameChanged` fills it from `Active` and sets the tabs to `Dim.Fill(3)` while it shows and `Dim.Fill(2)` when it goes, laying out again only when that changes. Verify by building with no warnings.
+- [x] 2.3 Check the layout headless at 120 x 36 with `dotnet run --project tools\HeadlessTerminal -- drive`, then `grid`. With no message, the frame's bottom edge is on row 34. After c on a session, row 34 holds ✓ and the copied path in green, the frame's edge is on row 33, the pane's last line is directly above it, and the key bar is unchanged. Down removes the row. On the Config tab the selected row's description shows with no glyph. During a remove on the Worktrees tab, the spinner turns on row 34 and the frame's edge and the tab titles stay intact. Record the observed rows in the pull request.
+- [ ] 2.4 Run the hand-off check (`dotnet run --project tools\HeadlessTerminal -- check` from `tools\HeadlessTerminal`) and the smoke check of the packed tool. Verify both exit 0.
+
+## 3. Documentation and release
+
+- [x] 3.1 Update the README's description of the screen (the Table bullet and any mention of the status line) and `CLAUDE.md`'s sentence on the status line under the pane, so both place it above the key bar outside the tab's frame and name the tones. Verify with a search for "under the pane" and "status line" in both files that every hit is consistent.
+- [x] 3.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview, and verify `.github\scripts\Assert-VersionBumped.ps1` passes against `main`.
+- [x] 3.3 Run `openspec validate status-line-above-key-bar --strict`, and verify it passes.
+
+## 4. The status line under the settings row (after the owner's first try)
+
+- [x] 4.1 Test first: `StatusLayoutShould` asserts that `StatusLayout.Lines` answers no rows for no words, one row for words that fit, rows broken at spaces for longer words (no row wider than the width, no leading space), a word wider than a row broken at the width and carried on the next row, and three rows with the third ending in `…` when more was left. Then add `StatusLayout` in `Application\Views`. Verify by running the Core suite.
+- [x] 4.2 In `ConsoleScreen.Frame`, move the status line to the rows under the settings row: one label per row from `StatusLayout.Lines` at the screen's width less three, the spinner and glyph on the first row, the tab strip, counts and frame title moved down by the number of rows, and the tabs kept at `Dim.Fill(2)`. Lay out again only when the number of rows changes. Verify by building with no warnings and running the solution's tests.
+- [x] 4.3 Check the layout headless at 120 x 36. With no message, the tab strip starts on row 2 and the frame's bottom edge is on row 34. After c on a session, row 2 holds ✓ and the copied path in green, the tab strip, counts and title start on row 3, and the frame's edge is still on row 34. Down moves everything back up. A refusal shows !, Config's description shows with no glyph, the spinner turns on row 2 during m, and a message longer than 117 characters takes two rows. Record the observed rows in the pull request.
+- [x] 4.4 Run the hand-off check again, and verify it exits 0.
+- [x] 4.5 Update the README's screen description and `CLAUDE.md`'s status line sentence to place the line under the settings row, moving the tabs down while it shows and wrapping onto at most three rows. Verify with a search for "key bar" near "status line" in both files.
+- [x] 4.6 Run `openspec validate status-line-under-settings --strict`, and verify it passes.
+
+## 5. Lined up, closed by a click, and successes clearing themselves (after the owner's second try)
+
+- [x] 5.1 Test first: `StatusLayoutShould` asserts that `ClearsAfter` answers ten seconds for `Success` and nothing for the other four tones, and that `Closes` is false while running and for `Footer.Blank` and `Footer.SettingHint` and true for any other footer. Then add both to `StatusLayout`, and `Wording.StatusClose` (✕) and `Wording.StatusCloseTip` with facts in `StatusTonesShould`. Verify by running the Core suite.
+- [x] 5.2 Test first: `SessionsViewShould`, `WorktreesViewShould` and `ConfigViewShould` each assert that `MessageDismissed` clears the footer it names, and leaves a different footer instance, even one equal in value, in place. Then add `MessageDismissed` and its arm in the three reducers. Verify by running the Core suite.
+- [x] 5.3 In `ConsoleScreen.Frame`, start the status rows at the settings row's indent, with the mark there and the words two cells on, and wrap two cells narrower. Draw the ✕ in blue after the last word when `Closes` says so, reducing `MessageDismissed` in the active tab on a left click, with its tooltip. Start a one-shot timeout from `ClearsAfter` when a new success first shows, reducing `MessageDismissed` in the tab that showed it. Compare the shown footer by reference. Verify by building with no warnings and running the solution's tests.
+- [x] 5.4 Check headless at 120 x 36: the ✕ follows a refusal's last word, a click on it (SGR mouse) clears the line and moves the tabs back up, a ✓ message clears by itself within twelve seconds, a ! message is still there after fifteen, and there is no ✕ beside the spinner or on Config's description. Then run the hand-off check, and verify it exits 0.
+- [x] 5.5 Update the README's screen description and `CLAUDE.md`'s status line sentence with the ✕ and the ten-second success, and run `openspec validate status-line-under-settings --strict`, `dotnet format --verify-no-changes` and the whole test suite. Verify each passes.
+
+## Workflow follow-up
+
+- Archive the change in the same pull request once the owner has reviewed it, so `openspec\specs` describes the code on `main`.
