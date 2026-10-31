@@ -6,7 +6,7 @@ Lets the user take a row's folder, in the sessions view or the worktrees view, s
 ## Requirements
 
 ### Requirement: The folder is shown relative to its root
-Both table views SHALL show the row's folder inside their WHERE or WORKTREE column rather than in a FOLDER column of its own. The folder's label SHALL be its path relative to the deepest configured root that contains it (a repository root or the worktree root); a folder under no root but under the user's home folder SHALL be labelled `~\` followed by its path relative to home; any other folder, and a folder that is itself a root, SHALL be labelled in full or relative to home by the same rules. Inside a repository the label's part after the repository is shown after ›; outside one the label stands alone.
+Both table views SHALL show the row's folder inside their WHERE or WORKTREE column rather than in a FOLDER column of its own. The folder's label SHALL be its path relative to the deepest configured root that contains it (a repository root or the worktree root).
 
 #### Scenario: Worktree under the worktree root
 - **WHEN** a session runs in C:\Users\me\source\worktrees\Northwind.Orders-fix-123 on branch fix-123 and the worktree root is C:\Users\me\source\worktrees
@@ -59,7 +59,7 @@ In both table views the editor key SHALL open the selected row's folder in the e
 - **THEN** nothing is started and the footer says the folder no longer exists
 
 ### Requirement: The solution key opens the folder's solution
-In both table views the solution key SHALL look for files ending `.sln` or `.slnx` directly in the selected row's folder and, when none are there, directly in its `src` folder, and SHALL open the solution with Windows' default application for its file type, without waiting for it to close, without passing Vantage's Claude Code session markers to it (the same environment the editor key gives its editor), and without any part of the solution's path being read by a command shell. One solution found SHALL be opened; several SHALL open the one whose name matches the row's repository name, else ask the user which to open from a list of their paths relative to the folder, in a dialog whose tab title names it; none SHALL be reported in the footer.
+In both table views the solution key SHALL look for files ending `.sln` or `.slnx` directly in the selected row's folder and, when none are there, directly in its `src` folder. One solution found SHALL be opened; several SHALL open the one whose name matches the row's repository name, else ask the user which to open from a list of their paths relative to the folder, in a dialog whose tab title names it; none SHALL be reported in the footer.
 
 #### Scenario: One solution
 - **WHEN** the folder holds Northwind.Orders.slnx and no other solution
@@ -111,3 +111,28 @@ The copy, editor and solution keys SHALL act on every row that has a folder, inc
 #### Scenario: Leftover folder gone
 - **WHEN** the user presses the solution key on a worktrees row whose folder no longer exists
 - **THEN** nothing happens and the footer names the folder as a leftover
+
+### Requirement: A folder outside the roots is labelled from home
+A folder under no configured root but under the user's home folder SHALL be labelled `~\` followed by its path relative to home, and any other folder SHALL be labelled in full. A folder that is itself a root SHALL be labelled by the same two rules.
+
+#### Scenario: The worktree root itself
+- **WHEN** a session started with vantage here runs in the worktree root C:\Users\me\source\worktrees, which is not a repository
+- **THEN** its WHERE cell reads ~\source\worktrees
+
+### Requirement: The part after the repository follows ›
+Inside a repository the folder label's part after the repository SHALL be shown after ›; a folder outside every repository SHALL have its label stand alone.
+
+#### Scenario: A worktree's slug after the repository
+- **WHEN** a session runs in C:\Users\me\source\worktrees\Northwind.Billing-invoice-pdf, a worktree of Northwind.Billing
+- **THEN** its WHERE cell starts Northwind.Billing › invoice-pdf
+
+#### Scenario: Not a repository
+- **WHEN** a session runs in C:\Users\me\scratch\notes, which is not a repository
+- **THEN** its WHERE cell holds no ›
+
+### Requirement: A solution opens in its own application, safely
+The solution key SHALL open the solution with Windows' default application for its file type, without waiting for it to close, without passing Vantage's Claude Code session markers to it (the same environment the editor key gives its editor), and without any part of the solution's path being read by a command shell.
+
+#### Scenario: Vantage does not wait
+- **WHEN** the user opens Northwind.Orders.slnx with the solution key and its application stays open
+- **THEN** Vantage's keys work at once, without waiting for that application to close
