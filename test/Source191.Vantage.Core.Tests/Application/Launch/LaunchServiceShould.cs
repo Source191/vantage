@@ -49,8 +49,7 @@ public sealed class LaunchServiceShould
     {
         LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
-        outcome.Kind.ShouldBe(LaunchOutcomeKind.Started);
-        outcome.JobId.ShouldBe(JobId.From("81cdb0f9"));
+        outcome.ShouldBeAssignableTo<LaunchOutcome.Started>().ShouldNotBeNull().JobId.ShouldBe(JobId.From("81cdb0f9"));
         ProcessRequest start = processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg"));
         start.WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
@@ -111,8 +110,9 @@ public sealed class LaunchServiceShould
     {
         LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
-        outcome.Session.ShouldNotBeNull();
-        outcome.Session.SessionId.Value.ShouldBe("sess-1");
+        LaunchOutcome.Listed listed = outcome.ShouldBeOfType<LaunchOutcome.Listed>();
+        listed.JobId.ShouldBe(JobId.From("81cdb0f9"));
+        listed.Session.SessionId.Value.ShouldBe("sess-1");
     }
 
     [Fact]
@@ -122,9 +122,7 @@ public sealed class LaunchServiceShould
 
         LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
-        outcome.Kind.ShouldBe(LaunchOutcomeKind.Started);
-        outcome.JobId.ShouldBe(JobId.From("81cdb0f9"));
-        outcome.Session.ShouldBeNull();
+        outcome.ShouldBe(new LaunchOutcome.NotListedYet(JobId.From("81cdb0f9")));
     }
 
     [Fact]
@@ -134,8 +132,17 @@ public sealed class LaunchServiceShould
 
         LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
 
-        outcome.Kind.ShouldBe(LaunchOutcomeKind.WorkspaceNotTrusted);
-        outcome.Message.ShouldContain("trust");
+        outcome.ShouldBeOfType<LaunchOutcome.WorkspaceNotTrusted>();
+    }
+
+    [Fact]
+    public async Task ReportAStartTheCliRefusedAsAFailureWithItsMessage()
+    {
+        processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "Couldn't start the background service"));
+
+        LaunchOutcome outcome = await Service.LaunchAsync(CurrentBranch, CancellationToken.None);
+
+        outcome.ShouldBe(new LaunchOutcome.Failed("Couldn't start the background service"));
     }
 
     [Fact]
@@ -145,8 +152,7 @@ public sealed class LaunchServiceShould
 
         LaunchOutcome outcome = await Service.LaunchAsync(NewWorktree, CancellationToken.None);
 
-        outcome.Kind.ShouldBe(LaunchOutcomeKind.Failed);
-        outcome.Message.ShouldContain("already checked out");
+        outcome.ShouldBeOfType<LaunchOutcome.Failed>().Message.ShouldContain("already checked out");
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("--bg"));
     }
 }
