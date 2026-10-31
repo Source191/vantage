@@ -16,8 +16,8 @@ public sealed class WordingOfConfigShould
         { new ConfigRow.WorktreeRoot(FolderPath.From(@"C:\Users\me\source\worktrees")), "Worktree root", @"C:\Users\me\source\worktrees" },
         { new ConfigRow.OpenFolderWith(EditorChoice.VsCode), "Open folder with", "VS Code" },
         { new ConfigRow.OpenFolderWith(EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"])), "Open folder with", @"C:\Tools\subl.exe -n {folder}" },
-        { new ConfigRow.DefaultBase(WorktreeBase.RemoteDefault), "Default base", "origin's default branch" },
-        { new ConfigRow.DefaultBase(WorktreeBase.Head), "Default base", "current HEAD" },
+        { new ConfigRow.DefaultBase(WorktreeBase.RemoteDefault), "Default base", "origin's default branch, as last fetched" },
+        { new ConfigRow.DefaultBase(WorktreeBase.Head), "Default base", "the commit checked out now (HEAD)" },
         { new ConfigRow.DefaultPlace(LaunchMode.NewWorktree), "Default place", "New worktree" },
         { new ConfigRow.DefaultPlace(LaunchMode.CurrentBranch), "Default place", "Current branch" },
         { new ConfigRow.CheckForUpdates(On: true), "Check for updates", "on" },
@@ -95,6 +95,13 @@ public sealed class WordingOfConfigShould
         Wording.SettingsDialogTitle(new SettingsScope.Editor()).ShouldBe("Open folder with");
         Wording.SettingsDialogTitle(new SettingsScope.Base()).ShouldBe("Worktree base");
         Wording.SettingsDialogTitle(new SettingsScope.Place()).ShouldBe("Default place");
+    }
+
+    [Fact]
+    public void SayTheDefaultBaseIsOriginAsLastFetchedWithNoFetch()
+    {
+        Wording.ConfigDescription(new ConfigRow.DefaultBase(WorktreeBase.RemoteDefault)).ShouldBe("New worktrees branch from origin's default branch as of your last git fetch (no fetch is made), or from HEAD.");
+        Enum.GetValues<WorktreeBase>().Select(Wording.Describe).ShouldBe(["origin's default branch, as last fetched", "the commit checked out now (HEAD)"]);
     }
 
     [Fact]
