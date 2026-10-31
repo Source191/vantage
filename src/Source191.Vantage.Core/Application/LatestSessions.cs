@@ -14,11 +14,18 @@ public sealed class LatestSessions(IClaudeCli claude)
 
     public async Task<SessionListing> ListAsync(CancellationToken cancellationToken)
     {
-        SessionListing listing = await claude.ListSessionsAsync(cancellationToken);
-        sessions.Replace(listing.Sessions);
-        firstListing.TrySetResult();
+        try
+        {
+            SessionListing listing = await claude.ListSessionsAsync(cancellationToken);
+            sessions.Replace(listing.Sessions);
 
-        return listing;
+            return listing;
+        }
+        finally
+        {
+            // A failed listing also releases a scan waiting for the first, which then reads the sessions kept so far.
+            firstListing.TrySetResult();
+        }
     }
 
     public async Task<IReadOnlyList<Session>> SessionsAsync(CancellationToken cancellationToken)
