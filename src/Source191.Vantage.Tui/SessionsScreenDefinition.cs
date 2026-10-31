@@ -46,13 +46,13 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         };
     }
 
-    /// <summary>The block keeps its tab's colour on every row, the selected one too; a plain claude in its own terminal shows a grey hollow block.</summary>
+    /// <summary>The block keeps its tab's colour, in the shade the tab shows while Vantage's own tab is selected, on every row, the selected one too; a plain claude in its own terminal shows a grey hollow block.</summary>
     public CellPaint? CellPaint(SessionRow row, int column)
     {
         return (column, row) switch
         {
             (TabColumn, { Session: InteractiveSession }) => new CellPaint(Palette.Grey),
-            (TabColumn, { HasLiveTab: true, TabColour: TabColour colour }) when Color.TryParse(colour.Hex, out Color? parsed) => new CellPaint(parsed.Value, Always: true),
+            (TabColumn, { HasLiveTab: true, TabColour: TabColour colour }) when Color.TryParse(TabShade.Unselected(colour), out Color? parsed) => new CellPaint(parsed.Value, Always: true),
             _ => null,
         };
     }
