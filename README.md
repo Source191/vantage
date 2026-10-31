@@ -164,7 +164,7 @@ An automated run is a `claude` started by a program rather than by you: a plugin
 
 ## The new session wizard
 
-Press `n`. The left column lists your repositories (recent ones first, then everything under the roots); type to filter it and use the arrows to choose, then Enter confirms the repository and moves to the form. For a folder that is not a repository, run `vantage here` there instead. The right column is the form, and Tab and Enter both move down it in order: name, Where, worktree base, prompt (Enter on Where or the base only moves on; the arrows change them):
+Press `n`. The wizard is one column, read from the top: your repositories first (recent ones, then everything under the roots), taking the rows the form leaves; type to filter them and use the arrows to choose, then Enter confirms the repository and moves to the form beneath. For a folder that is not a repository, run `vantage here` there instead. Tab and Enter both move down the form in order: name, Where, worktree base, prompt (Enter on Where or the base only moves on; the arrows change them):
 
 - **Session name (required):** the label shown in the NAME column. It also names the worktree folder and branch when you choose a worktree.
 - **Where:** `New worktree`, the default, creates `<repository>-<name>` under the worktree root (`~\source\worktrees` unless you change it on the [Config tab](#the-config-tab)) on branch `<name>`, creating the worktree root the first time, copying the git-ignored files named in the repository's `.worktreeinclude` so builds work there too; `Current branch` runs the session in the repository as it is. Use the arrows to change the choice. A folder that is not a repository needs `Current branch`: Start refuses a worktree there.
