@@ -190,9 +190,9 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
 
     private static FolderPath? OwnerOf(string? gitDir)
     {
-        int at = gitDir?.IndexOf(WorktreesSegment, StringComparison.OrdinalIgnoreCase) ?? -1;
-
-        return at >= 0 && FolderPath.TryParse(gitDir![..at], out FolderPath? owner) ? owner : null;
+        return gitDir is string gitFolder
+            && gitFolder.IndexOf(WorktreesSegment, StringComparison.OrdinalIgnoreCase) is int at and >= 0
+            && FolderPath.TryParse(gitFolder[..at], out FolderPath? owner) ? owner : null;
     }
 
     private bool IsEmptyLeftover(FolderPath folder)
