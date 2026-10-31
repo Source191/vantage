@@ -367,12 +367,12 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     private void ShowDetail(DetailRequests requested, DetailRequest request, DetailContent content, DetailPane detailPane)
     {
-        if (lifetime.IsCancellationRequested || requested.Accept(request, content) is not DetailContent shown)
+        if (lifetime.IsCancellationRequested || requested.Accept(request, content) is not DetailAnswer.Show shown)
         {
             return;
         }
 
-        detailPane.Show(shown);
+        detailPane.Show(shown.Content);
         View.SetNeedsDraw();
         host.FrameChanged();
     }
