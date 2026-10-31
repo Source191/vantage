@@ -4,11 +4,11 @@ namespace Source191.Vantage.Application.Views;
 
 /// <summary>
 /// The update key, from either view. Its flow asks the update check what is known: with a newer release it asks
-/// before raising <see cref="StartUpdate"/>, otherwise the footer says why there is nothing to do.
+/// before raising <see cref="StartUpdate"/>, otherwise the status line says why there is nothing to do.
 /// </summary>
 public sealed record UpdateVantage : ViewEffect, IDialogEffect
 {
-    /// <summary>The footer when there is nothing to update to; null when an update is available and the question should be asked.</summary>
+    /// <summary>The status message when there is nothing to update to; null when an update is available and the question should be asked.</summary>
     public static StatusMessage? Refusal(UpdateStatus status)
     {
         return status switch

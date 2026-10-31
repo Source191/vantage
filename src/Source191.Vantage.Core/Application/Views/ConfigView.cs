@@ -99,7 +99,7 @@ public static class ConfigView
         };
     }
 
-    /// <summary>Either an effect to run or a footer explaining why nothing happens.</summary>
+    /// <summary>Either an effect to run or a status message explaining why nothing happens.</summary>
     private static ConfigViewUpdate RowAction(ConfigViewState state, Func<ConfigRow, (ViewEffect? Effect, StatusMessage Message)> decide)
     {
         if (state.Selected is not ConfigRow row)

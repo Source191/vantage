@@ -79,10 +79,10 @@ internal interface IEffectContext
     /// <summary>Feeds a follow-up input (a dialog's answer) back through the reducer.</summary>
     void Reduce(ViewInput input);
 
-    /// <summary>Runs the effect's handler off the UI thread with a busy spinner; its answer becomes the footer.</summary>
+    /// <summary>Runs the effect's handler off the UI thread with a busy spinner; its answer becomes the status message.</summary>
     void Dispatch(ViewEffect effect);
 
-    /// <summary>As above, with a continuation on the UI thread that turns the handler's answer into the footer.</summary>
+    /// <summary>As above, with a continuation on the UI thread that turns the handler's answer into the status message.</summary>
     void Dispatch(ViewEffect effect, Func<Outcome, StatusMessage> onUiThread);
 
     /// <summary>Runs work that is not a dispatched effect (its outcome needs a question) with a continuation on the UI thread.</summary>

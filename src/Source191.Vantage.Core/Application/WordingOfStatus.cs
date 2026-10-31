@@ -24,7 +24,7 @@ public static partial class Wording
     /// <summary>The colour of a message's words.</summary>
     public static TextTone StatusWordsTone(StatusTone tone) => StatusMark(tone).Tone;
 
-    /// <summary>How the status line marks a footer; a case with no arm here is a notice.</summary>
+    /// <summary>How the status line marks a status message; a case with no arm here is a notice.</summary>
     public static StatusTone ToneOf(StatusMessage message)
     {
         return message switch

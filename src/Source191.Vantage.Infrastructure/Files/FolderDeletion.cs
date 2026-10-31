@@ -26,7 +26,7 @@ public static class FolderDeletion
     }
 
     // Checked before anything on disc, so even a root that does not exist is refused rather than quietly ignored. The
-    // message is shown in the footer, so it is written for the user rather than built by a throw helper.
+    // message is shown in the status line, so it is written for the user rather than built by a throw helper.
     private static void RefuseRootsAndRelativePaths(string folder)
     {
         if (!Path.IsPathFullyQualified(folder) || IsRoot(folder))

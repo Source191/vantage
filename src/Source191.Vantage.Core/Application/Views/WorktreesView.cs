@@ -108,7 +108,7 @@ public static class WorktreesView
         };
     }
 
-    /// <summary>Either an effect to run or a footer explaining why nothing happens.</summary>
+    /// <summary>Either an effect to run or a status message explaining why nothing happens.</summary>
     private static WorktreesViewUpdate RowAction(WorktreesViewState state, Func<WorktreeRow, (ViewEffect? Effect, StatusMessage Message)> decide)
     {
         WorktreeRow? row = state.Selected;

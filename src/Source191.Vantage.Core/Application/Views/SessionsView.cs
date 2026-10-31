@@ -135,7 +135,7 @@ public sealed record SessionsViewState(
 
     public TableTitle Title => List.Title("session", row => row.Session.Name);
 
-    /// <summary>The footer to show: the last message, else how many sessions need input.</summary>
+    /// <summary>The status message to show: the last message, else how many sessions need input.</summary>
     public StatusMessage Shown => Message;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
@@ -210,7 +210,7 @@ public static class SessionsView
         InOwnTab,
     }
 
-    /// <summary>A key that acts on a supervised job; a terminal session gets the footer that says why it cannot.</summary>
+    /// <summary>A key that acts on a supervised job; a terminal session gets the status message that says why it cannot.</summary>
     private static ViewUpdate SessionAction(SessionsViewState state, Func<SessionRow, BackgroundSession, ViewEffect> effect, Attachment attachment)
     {
         SessionRow? row = state.Selected;
@@ -242,7 +242,7 @@ public static class SessionsView
             SessionRow row => Effect(state with { Message = StatusMessage.None }, effect(row.Session.WorkingDirectory, row.Repository)),
         };
     }
-    /// <summary>The row's pull request in the browser, or a footer saying why it has none.</summary>
+    /// <summary>The row's pull request in the browser, or a status message saying why it has none.</summary>
     private static ViewUpdate OpenPullRequest(SessionsViewState state)
     {
         return state.Selected switch

@@ -4,14 +4,14 @@ using Source191.Vantage.Domain;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>
-/// What the footer says, as a fact rather than a sentence; <see cref="Wording"/> turns each case into the words shown.
+/// What the status line says, as a fact rather than a sentence; <see cref="Wording"/> turns each case into the words shown.
 /// Reducers return these, dialogs set them, and the screen renders them at the last moment.
 /// </summary>
 public abstract record StatusMessage
 {
     public static readonly StatusMessage None = new Blank();
 
-    /// <summary>No message: the view shows its standing footer instead.</summary>
+    /// <summary>No message: the view shows its standing message instead.</summary>
     public sealed record Blank : StatusMessage;
 
     public sealed record NoSessionSelected : StatusMessage;
@@ -92,8 +92,7 @@ public abstract record StatusMessage
     /// <summary>Background work threw; the message is the exception's.</summary>
     public sealed record Failed(string Message) : StatusMessage;
 
-    /// <summary>The Config tab's standing footer.</summary>
-    /// <summary>The Config tab's standing footer: what the selected row's setting does, or what its setup is for.</summary>
+    /// <summary>The Config tab's standing message: what the selected row's setting does, or what its setup is for.</summary>
     public sealed record SettingHint(ConfigRow Row) : StatusMessage;
 
     /// <summary>Enter on a setup row: how that setup is changed, since the tab only reads it.</summary>

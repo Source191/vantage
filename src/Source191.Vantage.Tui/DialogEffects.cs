@@ -148,7 +148,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         context.Dispatch(new StartSession(wizard.Plan));
     }
 
-    /// <summary>A setting's dialog over the settings saved now; a save is dispatched, so the footer confirms it and the refresh after it uses the new values.</summary>
+    /// <summary>A setting's dialog over the settings saved now; a save is dispatched, so the status line confirms it and the refresh after it uses the new values.</summary>
     private void EditSettings(IEffectContext context, SettingsScope scope)
     {
         Settings? saved = SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, scope, folders.DirectoryExists);

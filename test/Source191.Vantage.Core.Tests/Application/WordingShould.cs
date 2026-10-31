@@ -15,8 +15,8 @@ using Worktrees = Source191.Vantage.Core.Tests.Application.Actions.WorktreeTestD
 namespace Source191.Vantage.Core.Tests.Application;
 
 /// <summary>
-/// Every sentence Vantage shows, verbatim, with the facts that produce it: one fact per footer case, dialog question,
-/// working text and help text. A new footer case needs a fact here; nothing else checks that its words exist.
+/// Every sentence Vantage shows, verbatim, with the facts that produce it: one fact per status message case, dialog question,
+/// working text and help text. A new status message case needs a fact here; nothing else checks that its words exist.
 /// </summary>
 public sealed class WordingShould
 {
@@ -26,11 +26,11 @@ public sealed class WordingShould
     private static readonly InteractiveSession Terminal = Sessions.Terminal("fix-123", 4242);
     private static readonly WorktreeRow Worktree = Worktrees.Row(WorktreeHealthKind.Ok);
 
-    public static TheoryData<Type> FooterCases => [.. typeof(StatusMessage).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(StatusMessage)))];
+    public static TheoryData<Type> StatusMessageCases => [.. typeof(StatusMessage).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(StatusMessage)))];
 
     [Theory]
-    [MemberData(nameof(FooterCases))]
-    public void HaveWordsForEveryFooterCase(Type type)
+    [MemberData(nameof(StatusMessageCases))]
+    public void HaveWordsForEveryStatusMessageCase(Type type)
     {
         System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
         object[] arguments = [.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))];
@@ -39,10 +39,10 @@ public sealed class WordingShould
         Wording.Describe(message).ShouldNotBe(message.ToString(), $"{type.Name} has no arm in Wording.Describe");
     }
 
-    // Standing footers.
+    // Standing messages.
 
     [Fact]
-    public void SayNothingForNoFooter()
+    public void SayNothingForNoStatusMessage()
     {
         Wording.Describe(StatusMessage.None).ShouldBe(string.Empty);
     }
@@ -420,7 +420,7 @@ public sealed class WordingShould
         Wording.ForceRemoveWarning.ShouldBe("This deletes the folder below and everything in it that is not committed and pushed.\nTo confirm, give its name:");
     }
 
-    // What the footer says while an effect runs.
+    // What the status line says while an effect runs.
 
     [Fact]
     public void SayWhatEachSessionEffectIsDoingWhileItRuns()
@@ -649,7 +649,7 @@ public sealed class WordingShould
             _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
             _ when type == typeof(SetupItem) => SetupItem.TerminalProfiles,
             _ when type == typeof(ConfigRow) => new ConfigRow.CheckForUpdates(On: true),
-            _ => throw new InvalidOperationException($"A footer field of type {type.Name} needs a placeholder."),
+            _ => throw new InvalidOperationException($"A status message field of type {type.Name} needs a placeholder."),
         };
     }
 

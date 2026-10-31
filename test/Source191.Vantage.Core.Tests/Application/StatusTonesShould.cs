@@ -8,7 +8,7 @@ using Source191.Vantage.Domain;
 namespace Source191.Vantage.Core.Tests.Application;
 
 /// <summary>
-/// The tone each status line message starts with: its glyph and colour, and the tone chosen for every footer and
+/// The tone each status line message starts with: its glyph and colour, and the tone chosen for every status message and
 /// outcome case. A new case needs a line in the tables here.
 /// </summary>
 public sealed class StatusTonesShould
@@ -150,9 +150,9 @@ public sealed class StatusTonesShould
         Wording.ToneOf(new ResumeSessionsOutcome(2, 2, [new ResumeNote("fix-123", null)])).ShouldBe(StatusTone.Notice);
     }
 
-    // Footers, each built with the placeholders below; the placeholder outcome is a success.
+    // Status messages, each built with the placeholders below; the placeholder outcome is a success.
 
-    private static readonly Dictionary<Type, StatusTone> FooterTones = new()
+    private static readonly Dictionary<Type, StatusTone> StatusMessageTones = new()
     {
         [typeof(StatusMessage.Blank)] = StatusTone.Hint,
         [typeof(StatusMessage.NoSessionSelected)] = StatusTone.Notice,
@@ -192,20 +192,20 @@ public sealed class StatusTonesShould
         [typeof(StatusMessage.NoSettingSelected)] = StatusTone.Notice,
     };
 
-    public static TheoryData<Type> FooterCases => [.. typeof(StatusMessage).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(StatusMessage)))];
+    public static TheoryData<Type> StatusMessageCases => [.. typeof(StatusMessage).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(StatusMessage)))];
 
-    public static TheoryData<Type, StatusTone> FooterTable => [.. FooterTones.Select(entry => (entry.Key, entry.Value))];
+    public static TheoryData<Type, StatusTone> StatusMessageTable => [.. StatusMessageTones.Select(entry => (entry.Key, entry.Value))];
 
     [Theory]
-    [MemberData(nameof(FooterCases))]
-    public void ChooseAToneForEveryFooterCase(Type type)
+    [MemberData(nameof(StatusMessageCases))]
+    public void ChooseAToneForEveryStatusMessageCase(Type type)
     {
-        FooterTones.ShouldContainKey(type, $"{type.Name} has no tone in this test's table: choose one, and an arm in Wording.ToneOf");
+        StatusMessageTones.ShouldContainKey(type, $"{type.Name} has no tone in this test's table: choose one, and an arm in Wording.ToneOf");
     }
 
     [Theory]
-    [MemberData(nameof(FooterTable))]
-    public void GiveEachFooterItsTone(Type type, StatusTone tone)
+    [MemberData(nameof(StatusMessageTable))]
+    public void GiveEachStatusMessageItsTone(Type type, StatusTone tone)
     {
         Wording.ToneOf((StatusMessage)Built(type)).ShouldBe(tone);
     }

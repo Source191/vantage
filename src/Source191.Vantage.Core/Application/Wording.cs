@@ -7,7 +7,7 @@ using Source191.Vantage.Ports;
 namespace Source191.Vantage.Application;
 
 /// <summary>
-/// Every sentence Vantage shows, in one place: footers, dialog questions, the text beside the busy spinner and the
+/// Every sentence Vantage shows, in one place: status messages, dialog questions, the text beside the busy spinner and the
 /// key help. Reducers, dialogs and the screen hand over facts; this class chooses the words. <c>WordingShould</c>
 /// holds each sentence verbatim.
 /// </summary>
@@ -92,7 +92,7 @@ public static partial class Wording
         ReportTitleProblem.TooLong => $"A title can have at most {ReportTitle.MostCharacters} characters.",
     };
 
-    /// <summary>Why a typed session name is refused, in the rename footer, the wizard and vantage here alike.</summary>
+    /// <summary>Why a typed session name is refused, in the rename status message, the wizard and vantage here alike.</summary>
     public static string Describe(NameProblem problem)
     {
         return problem switch
@@ -101,7 +101,7 @@ public static partial class Wording
         };
     }
 
-    /// <summary>Why the removal rules said no, or what they did instead; the footer and the outcomes wrap it in their own sentence.</summary>
+    /// <summary>Why the removal rules said no, or what they did instead; the status messages and the outcomes wrap it in their own sentence.</summary>
     public static string Describe(RemovalReason reason)
     {
         return reason switch
@@ -191,7 +191,7 @@ public static partial class Wording
         };
     }
 
-    /// <summary>What the footer says, beside the busy spinner, while an effect runs off the UI thread.</summary>
+    /// <summary>What the status line says, beside the busy spinner, while an effect runs off the UI thread.</summary>
     public static string Working(ViewEffect effect)
     {
         return effect switch

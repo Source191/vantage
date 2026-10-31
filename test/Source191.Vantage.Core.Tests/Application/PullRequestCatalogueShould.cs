@@ -136,7 +136,7 @@ public sealed class PullRequestCatalogueShould : IDisposable
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
         hosts.Calls.Count.ShouldBe(1);
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, PullRequestHost.GitHub), "the footer names the host's CLI");
+        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, PullRequestHost.GitHub), "the status line names the host's CLI");
     }
 
     [Theory]

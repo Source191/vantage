@@ -21,9 +21,9 @@ public sealed class AttemptShould
     [Fact]
     public async Task AnswerTheFailureAndRecordItOnce()
     {
-        string result = await Attempt.RunAsync<string>(log, FailureSite.Load, CodeName.For(typeof(SessionsViewState)), () => throw new GitException(@"C:\Users\me\source\repos"), exception => $"footer: {exception.Message}");
+        string result = await Attempt.RunAsync<string>(log, FailureSite.Load, CodeName.For(typeof(SessionsViewState)), () => throw new GitException(@"C:\Users\me\source\repos"), exception => $"message: {exception.Message}");
 
-        result.ShouldBe(@"footer: C:\Users\me\source\repos");
+        result.ShouldBe(@"message: C:\Users\me\source\repos");
         Failed failed = log.Snapshot().Single().Event.ShouldBeOfType<Failed>();
         failed.Site.ShouldBe(FailureSite.Load);
         failed.What.ShouldBe(CodeName.For(typeof(SessionsViewState)));
@@ -32,7 +32,7 @@ public sealed class AttemptShould
     }
 
     [Fact]
-    public async Task NameTheEffectAWorkingFooterWaitsFor()
+    public async Task NameTheEffectAWorkingStatusMessageWaitsFor()
     {
         StatusMessage working = new StatusMessage.Working(new Quit());
 
@@ -42,7 +42,7 @@ public sealed class AttemptShould
     }
 
     [Fact]
-    public void NameAnyOtherFooterByItsKind()
+    public void NameAnyOtherStatusMessageByItsKind()
     {
         Attempt.What(new StatusMessage.WorkingSoRenameWaits("Fix flaky tests")).ShouldBe(CodeName.For(typeof(StatusMessage.WorkingSoRenameWaits)));
     }
