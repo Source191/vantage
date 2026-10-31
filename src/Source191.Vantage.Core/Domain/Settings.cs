@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Source191.Vantage.Domain;
 
 /// <summary>
@@ -119,9 +121,12 @@ public sealed record Settings
 
         IReadOnlyList<string> arguments = CommandArguments.Split(text.Arguments);
 
-        return EditorChoice.Problem(text.Executable, arguments) is SettingsProblem problem
-            ? Refused(problem)
-            : new SettingsValidation.Valid(new Settings(roots, worktreeRoot, EditorChoice.Custom(text.Executable, arguments), text.Base, text.CheckForUpdates, text.Place));
+        return EditorChoice.Validate(text.Executable, arguments) switch
+        {
+            EditorChoiceValidation.Valid valid => new SettingsValidation.Valid(new Settings(roots, worktreeRoot, valid.Editor, text.Base, text.CheckForUpdates, text.Place)),
+            EditorChoiceValidation.Refused refused => Refused(refused.Problem),
+            _ => throw new UnreachableException(),
+        };
     }
 
     private static SettingsValidation.Refused Refused(SettingsProblem problem) => new(problem);
