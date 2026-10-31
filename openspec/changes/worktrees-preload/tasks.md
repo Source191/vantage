@@ -24,7 +24,7 @@
 
 - [x] 4.1 Update the README: the Tabs bullet ("the worktrees scan starts the first time its tab is shown") and the Worktrees section's first paragraph say the scan starts as the console opens, rescans quietly each time the tab is shown and every fifteen seconds while it is, and runs one at a time; reword the roadmap's per-path cache item so it speeds each scan rather than the first look. Verify with a search for "first time its tab" and "first look" that no stale wording is left.
 - [x] 4.2 `CLAUDE.md` has no sentence on when the worktrees scan starts (its "asks only while its tab is shown" is about the detail pane's requests). Add one to the console paragraph, after the sentence on `ScreenLoop`, naming the start-up scan, the held sessions listing (`LatestSessions`) the scan reads, and the one-scan-at-a-time gate (`RunningLoads`). Then reword the Terminal.Gui fact's "the unscanned Worktrees tab's waiting spinner did this from the first frame" so it stays true. Verify by reading both against design.md.
-- [ ] 4.3 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview above `main`'s, and verify `.github\scripts\Assert-VersionBumped.ps1` passes against `main`.
+- [x] 4.3 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview above `main`'s, and verify `.github\scripts\Assert-VersionBumped.ps1` passes against `main`. Raised to 0.19.0-preview.5, one above the stacked base `v-shared-snapshot` (0.19.0-preview.4), and checked against that base.
 - [ ] 4.4 Run `openspec validate worktrees-preload --strict`, and verify it passes.
 
 ## Workflow follow-up
