@@ -40,14 +40,14 @@ public sealed class UpdateCheckRuleShould
     [Fact]
     public void TakeTheNewestRelease()
     {
-        UpdateCheckRule.Newest(["0.7.2", "0.10.0", "0.9.0", "0.11.0-rc.1", "not a version"])!.ToString().ShouldBe("0.10.0");
+        UpdateCheckRule.Newest(["0.7.2", "0.10.0", "0.9.0", "0.11.0-rc.1", "not a version"]).ShouldBe(new NewestRelease.Found(new ReleaseVersion(0, 10, 0, null)));
     }
 
     [Fact]
     public void FindNoNewestReleaseAmongPrereleasesAndNoise()
     {
-        UpdateCheckRule.Newest(["0.11.0-rc.1", "rubbish"]).ShouldBeNull();
-        UpdateCheckRule.Newest([]).ShouldBeNull();
+        UpdateCheckRule.Newest(["0.11.0-rc.1", "rubbish"]).ShouldBe(new NewestRelease.None());
+        UpdateCheckRule.Newest([]).ShouldBe(new NewestRelease.None());
     }
 
     [Fact]
