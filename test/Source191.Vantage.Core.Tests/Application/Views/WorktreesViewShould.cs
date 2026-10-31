@@ -261,7 +261,7 @@ public sealed class WorktreesViewShould
     {
         WorktreesViewState onDirty = Loaded with { SelectedPath = Dirty.Path.Key };
 
-        WorktreesViewUpdate cancelled = WorktreesView.Reduce(onDirty, new ForceConfirmed(Dirty, "fix-2", Typed: null));
+        WorktreesViewUpdate cancelled = WorktreesView.Reduce(onDirty, new ForceCancelled(Dirty));
         WorktreesViewUpdate blank = WorktreesView.Reduce(onDirty, new ForceConfirmed(Dirty, "fix-2", Typed: string.Empty));
         WorktreesViewUpdate wrong = WorktreesView.Reduce(onDirty, new ForceConfirmed(Dirty, "fix-2", Typed: "fix-9"));
         WorktreesViewUpdate right = WorktreesView.Reduce(onDirty, new ForceConfirmed(Dirty, "fix-2", Typed: "fix-2"));
