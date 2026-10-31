@@ -364,6 +364,24 @@ public sealed class WorktreesViewShould
         return keys.Aggregate(state, (current, key) => WorktreesView.Reduce(current, new KeyPressed(key)).State);
     }
 
+    [Fact]
+    public void ClearTheMessageItWasAskedToClear()
+    {
+        Footer message = new Footer.NoPathHere();
+        WorktreesViewState shown = Loaded with { Footer = message };
+
+        Reduce(shown, new MessageDismissed(message)).Footer.ShouldBe(Footer.None);
+    }
+
+    [Fact]
+    public void KeepANewerMessageWithTheSameWords()
+    {
+        Footer older = new Footer.NoPathHere();
+        Footer newer = new Footer.NoPathHere();
+        WorktreesViewState shown = Loaded with { Footer = newer };
+
+        Reduce(shown, new MessageDismissed(older)).Footer.ShouldBeSameAs(newer);
+    }
     private static WorktreesViewState Reduce(WorktreesViewState state, ViewInput input)
     {
         return WorktreesView.Reduce(state, input).State;

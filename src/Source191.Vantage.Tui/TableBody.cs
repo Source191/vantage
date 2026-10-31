@@ -28,9 +28,18 @@ internal interface ITabBody
 
     KeyBar Bar(bool updateKnown);
 
+    /// <summary>What the console's status line says while this tab is shown: its last message, or its standing hint.</summary>
+    Footer Status { get; }
+
+    /// <summary>Whether an action this tab started is still running, which the status line shows with its spinner.</summary>
+    bool Running { get; }
+
     void OnKey(GuiKey key);
 
     void Press(Key key);
+
+    /// <summary>An input for the tab's reducer that is not a key, such as the status line's close mark or a success's time running out.</summary>
+    void Reduce(ViewInput input);
 
     void TriggerLoad();
 
@@ -54,11 +63,11 @@ internal interface ITabHost
 }
 
 /// <summary>
-/// One tab of the console: a view's rows in a table with its status line and waiting indicator (its title goes on the frame), the detail pane under
+/// One tab of the console: a view's rows in a table with its waiting indicator (its title goes on the frame), the detail pane under
 /// the table when the view has one (read for the selected row off the UI thread, only while the tab is shown), the reducer it
 /// feeds keys to, and the effects it routes (a dialog to <see cref="DialogEffects"/>, a background effect to its handler
-/// through the <see cref="EffectDispatcher"/> with a busy spinner, a tab switch or an exit to the console). A definition
-/// supplies everything specific to the view.
+/// through the <see cref="EffectDispatcher"/>, a tab switch or an exit to the console). Its message and whether an action
+/// is running go to the console's status line, outside the tab. A definition supplies everything specific to the view.
 /// </summary>
 internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDisposable
     where TState : IListViewState<TRow>
@@ -78,8 +87,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly IApplication app;
     private readonly ITabHost host;
     private readonly TableView table;
-    private readonly Label footer;
-    private readonly SpinnerView busy;
     private readonly WaitingIndicator waiting;
     private readonly string[] columnNames;
     private readonly IDetailSource<TRow>? detail;
@@ -99,7 +106,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private int columnOffset;
     private bool isShown;
     private bool running;
-    private int statusRows;
 
     public TableBody(IScreenDefinition<TState, TRow> definition, DialogEffects dialogs, EffectDispatcher dispatcher, Func<CancellationToken, Task<ViewInput>> load, TimeProvider clock, ScreenContext context, IApplication app, ITabHost host, TState initial)
     {
@@ -124,7 +130,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
             X = 0,
             Y = 0,
             Width = Dim.Fill(),
-            Height = Dim.Fill(1),
+            Height = Dim.Fill(),
             CanFocus = false,
             FullRowSelect = true,
             MultiSelect = false,
@@ -138,21 +144,19 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         table.Style.RowColorGetter = RowColour;
         StyleColumns();
 
-        // The status line: a spinner while an action runs, then the last message; it has a row only while it has something to say.
-        busy = Spinners.Create(1, Pos.AnchorEnd(1));
         // In the middle of the table, whatever the pane under it takes, so the spinner never lands in the pane.
         waiting = new WaitingIndicator(definition.WaitingText) { Y = Pos.Func(_ => table.Frame.Y + (table.Frame.Height / 2), table) };
-        footer = Text(3, Pos.AnchorEnd(1), Dim.Fill(), string.Empty, Palette.Cyan);
 
-        View.Add(table, busy, footer, waiting, toolTipAnchor);
+        View.Add(table, waiting, toolTipAnchor);
         if (detail is not null)
         {
             requests = new DetailRequests();
+            // The pane closes the tab: nothing is drawn under it inside the frame, since the status line is the console's.
             pane = new DetailPane(detail.Rows);
+            pane.Y = Pos.AnchorEnd(pane.Rows);
+            table.Height = Dim.Fill(pane.Rows);
             View.Add(pane);
         }
-
-        LayOutStatus(StatusRowsNeeded);
 
         ShowColumnToolTips();
     }
@@ -181,6 +185,10 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     public string HelpText => definition.HelpText;
 
     public KeyBar Bar(bool updateKnown) => definition.Bar(State, updateKnown);
+
+    public Footer Status => State.Shown;
+
+    public bool Running => running;
 
     /// <summary>Drops the detail still being read, then disposes the tab's view and everything in it; the console removes it from the window first, so nothing is disposed twice.</summary>
     public void Dispose()
@@ -240,9 +248,8 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     public void RunInBackground<T>(Footer working, Func<CancellationToken, Task<T>> action, Func<T, Footer> onUiThread)
     {
         State = definition.WithFooter(State, working);
-        Redraw();
         running = true;
-        busy.Show(isShown);
+        Redraw();
         Task.Run(async () =>
         {
             // The continuation is built here but run on the UI thread, where onUiThread must run.
@@ -260,7 +267,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
             app.Invoke(() =>
             {
                 running = false;
-                busy.Show(false);
                 State = definition.WithFooter(State, settle());
                 Redraw();
                 TriggerLoad();
@@ -272,7 +278,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     public void Shown(bool shown)
     {
         isShown = shown;
-        busy.Show(shown && running);
         if (shown)
         {
             detailKey = null;
@@ -290,12 +295,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         table.Table = new TableSource<TRow>(rows, columnNames, (row, column) => definition.Cell(row, column, now, column == definition.ElasticColumn ? elasticWidth : int.MaxValue));
         table.ColumnOffset = columnOffset;
         View.Title = definition.TabTitle(State);
-        footer.Text = Wording.Describe(State.Shown);
-        if (StatusRowsNeeded != statusRows)
-        {
-            LayOutStatus(StatusRowsNeeded);
-        }
-
         if (rows.Count > 0)
         {
             int index = selected is null ? 0 : Math.Max(rows.ToList().IndexOf(selected), 0);
@@ -308,23 +307,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         host.FrameChanged();
     }
 
-    /// <summary>The status line takes a row only while there is a message or an action is running.</summary>
-    private int StatusRowsNeeded => running || Wording.Describe(State.Shown).Length > 0 ? 1 : 0;
-
-    /// <summary>Gives the status line its row, or the table the row back, with the pane above the status line.</summary>
-    private void LayOutStatus(int rows)
-    {
-        statusRows = rows;
-        int paneRows = pane?.Rows ?? 0;
-        footer.Visible = rows > 0;
-        table.Height = Dim.Fill(paneRows + rows);
-        if (pane is not null)
-        {
-            pane.Y = Pos.AnchorEnd(paneRows + rows);
-        }
-
-        View.SetNeedsLayout();
-    }
 
     /// <summary>
     /// Asks for the selected row's detail while the tab is shown (a hidden tab draws nothing of its own, or it lands on top
@@ -594,14 +576,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         return Equals(row, selected)
             ? Palette.SelectedRow()
             : Palette.Plain(definition.RowColour(row));
-    }
-
-    private static Label Text(Pos x, Pos y, Dim width, string text, Color colour)
-    {
-        Label label = new() { X = x, Y = y, Width = width, Height = Dim.Auto(), Text = text };
-        label.SetScheme(Palette.Plain(colour));
-
-        return label;
     }
 }
 

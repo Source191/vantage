@@ -191,4 +191,23 @@ public sealed class ConfigViewShould
     private static ConfigViewState At(string key) => Loaded.With(Loaded.List.Select(key));
 
     private static ConfigViewState Press(ConfigViewState state, params Key[] keys) => keys.Aggregate(state, (current, key) => ConfigView.Reduce(current, new KeyPressed(key)).State);
+
+    [Fact]
+    public void ClearTheMessageItWasAskedToClear()
+    {
+        Footer message = new Footer.NoPathHere();
+        ConfigViewState shown = Loaded with { Footer = message };
+
+        ConfigView.Reduce(shown, new MessageDismissed(message)).State.Footer.ShouldBe(Footer.None);
+    }
+
+    [Fact]
+    public void KeepANewerMessageWithTheSameWords()
+    {
+        Footer older = new Footer.NoPathHere();
+        Footer newer = new Footer.NoPathHere();
+        ConfigViewState shown = Loaded with { Footer = newer };
+
+        ConfigView.Reduce(shown, new MessageDismissed(older)).State.Footer.ShouldBeSameAs(newer);
+    }
 }
