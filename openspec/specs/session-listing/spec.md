@@ -111,7 +111,7 @@ The view SHALL filter rows by a text typed after the filter key, matching case-i
 - **THEN** only rows whose name, repository or branch contains "templates" remain visible
 
 ### Requirement: The screen is a header, a table and a footer
-The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, at the right end of the tabs' row, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; the detail pane beneath the table; and beneath that, above the key bar, a status line shown only while there is a message or an action is running, the table taking its row otherwise. A message SHALL clear when the selection moves or the filter changes. The status line SHALL NOT name the view or repeat the counts beside the tabs.
+The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, at the right end of the tabs' row, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; and the detail pane beneath the table.
 
 #### Scenario: Table title
 - **WHEN** seven sessions are listed with no filter and fix-123 is selected
@@ -167,7 +167,7 @@ The sessions view SHALL show a spinner with the words "Listing sessions" in the 
 - **THEN** the spinner is replaced by the failure banner
 
 ### Requirement: The header shows the versions and the roots
-The settings rows SHALL show the Vantage version followed by the memory Vantage's own process uses in brackets, the Claude Code CLI version, the repository roots and the worktree root, and SHALL NOT show the machine name or the Claude executable's path. A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown. A Claude version older than the minimum Vantage supports SHALL show that minimum and ask for Claude Code to be updated; the view SHALL work as usual. The roots and the worktree root SHALL be the settings saved now, so a save from the settings dialog shows at once.
+The settings rows SHALL show the Vantage version followed by the memory Vantage's own process uses in brackets, the Claude Code CLI version, the repository roots and the worktree root, and SHALL NOT show the machine name or the Claude executable's path. The roots and the worktree root SHALL be the settings saved now, so a save from the settings dialog shows at once.
 
 #### Scenario: Released versions
 - **WHEN** Vantage 0.5.0 runs using 29 MB with Claude Code 2.1.310 and the root C:\Users\me\source\repos
@@ -428,3 +428,24 @@ While any automated run is listed, the counts beside the tabs SHALL end with a g
 #### Scenario: The listing fails
 - **WHEN** a refresh fails after a listing that held one automated run
 - **THEN** the counts keep ◇ 1 automated with its memory, as the rows keep what they last showed
+
+### Requirement: The status line speaks only when there is something to say
+Beneath the detail pane, above the key bar, the sessions view SHALL show a status line only while there is a message or an action is running, the table taking its row otherwise. A message SHALL clear when the selection moves or the filter changes. The status line SHALL NOT name the view or repeat the counts beside the tabs.
+
+#### Scenario: A message cleared by the filter
+- **WHEN** the status line says a folder was copied and the user starts a filter with / and types t
+- **THEN** the status line goes and the table takes its row
+
+### Requirement: Versions are shown without noise
+A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown.
+
+#### Scenario: A local preview build
+- **WHEN** the installed tool's version is 0.18.0-preview.12-local.20261031083825 and Vantage uses 35 MB
+- **THEN** the first settings row starts Vantage 0.18.0-preview.12-local (35 MB)
+
+### Requirement: An old Claude Code is flagged but still works
+A Claude version older than the minimum Vantage supports SHALL show that minimum and ask for Claude Code to be updated, and the view SHALL work as usual.
+
+#### Scenario: An older minor version
+- **WHEN** the minimum is 2.1.309 and the Claude Code CLI reports 2.0.99
+- **THEN** the first settings row reads Claude 2.0.99 (below 2.1.309, update Claude Code) and the sessions are listed as usual

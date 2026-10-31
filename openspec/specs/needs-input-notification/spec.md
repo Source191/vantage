@@ -21,7 +21,7 @@ Because the agent_needs_input and agent_completed hook types fire only while the
 - **THEN** Vantage stays silent, because Claude Code rings the bell in that session's own tab
 
 ### Requirement: Claude Code's own bell covers attached tabs
-The README SHALL have one Windows Terminal setup section that tells the user to set Claude Code's `preferredNotifChannel` to `terminal_bell`, which makes Claude ring the bell in the tab a session is attached in when it finishes a task or pauses for a permission prompt while the user appears away; SHALL suggest a Windows Terminal bell style that flags the window and taskbar; SHALL explain that the bell sound is a per-profile setting and list suggested sound files shipped in `C:\Windows\Media`; and SHALL give both the setup command and the equivalent manual steps in the Windows Terminal settings.
+The README SHALL have one Windows Terminal setup section that tells the user to set Claude Code's `preferredNotifChannel` to `terminal_bell`, which makes Claude ring the bell in the tab a session is attached in when it finishes a task or pauses for a permission prompt while the user appears away.
 
 #### Scenario: Attached session needs permission
 - **WHEN** a session attached in a Vantage-opened tab pauses for a permission prompt while the user is in another tab
@@ -43,7 +43,7 @@ Vantage SHALL NOT raise Windows toast notifications and SHALL NOT install Claude
 - **THEN** nothing is written to the user's Claude Code hooks
 
 ### Requirement: The setup command adds Vantage's Windows Terminal profiles
-`vantage setup-terminal` SHALL write a Windows Terminal JSON fragment for the current user that adds a "Vantage" profile, which runs the installed Vantage, and a "Vantage session" profile, which runs PowerShell, each with a bell style that sounds, flashes the window and flashes the taskbar, and each with the Vantage icon as its tab icon. The icon file SHALL be copied into Vantage's fragment folder so that removing the folder removes it; when the tool carries no icon file the profiles SHALL be written without an icon and setup SHALL still succeed. It SHALL NOT change the user's Windows Terminal settings file, SHALL NOT give the "Vantage" profile a tab colour, and SHALL tell the user to restart Windows Terminal.
+`vantage setup-terminal` SHALL write a Windows Terminal JSON fragment for the current user that adds a "Vantage" profile, which runs the installed Vantage, and a "Vantage session" profile, which runs PowerShell, each with a bell style that sounds, flashes the window and flashes the taskbar, and each with the Vantage icon as its tab icon.
 
 #### Scenario: First run
 - **WHEN** the user runs `vantage setup-terminal --yes` and no fragment exists
@@ -123,3 +123,24 @@ The setup command SHALL offer to set `preferredNotifChannel` to `terminal_bell` 
 #### Scenario: Nothing installed
 - **WHEN** no fragment exists and the user runs `vantage setup-terminal --remove`
 - **THEN** nothing changes, the output says there was nothing to remove, and the command exits 0
+
+### Requirement: The README's setup section explains the bell's style and sound
+The README's Windows Terminal setup section SHALL suggest a bell style that flags the window and taskbar, SHALL explain that the bell sound is a per-profile setting and list suggested sound files shipped in `C:\Windows\Media`, and SHALL give both the setup command and the equivalent manual steps in the Windows Terminal settings.
+
+#### Scenario: Reading the setup section
+- **WHEN** the user reads the README's Windows Terminal setup section
+- **THEN** it names `vantage setup-terminal`, gives the manual steps through a profile's Advanced settings (bell notification style and bell sound), and names at least one sound file in `C:\Windows\Media`
+
+### Requirement: The profiles' icon lives in Vantage's fragment folder
+The setup command SHALL copy the icon file into Vantage's fragment folder, so that removing the folder removes it; when the tool carries no icon file the profiles SHALL be written without an icon and setup SHALL still succeed.
+
+#### Scenario: The icon beside the fragment
+- **WHEN** the user runs `vantage setup-terminal --yes` and the tool carries its icon file
+- **THEN** a copy of the icon sits in the fragment's own folder and both profiles name that copy
+
+### Requirement: Setup leaves Windows Terminal's own settings alone
+The setup command SHALL NOT change the user's Windows Terminal settings file, SHALL NOT give the "Vantage" profile a tab colour, and SHALL tell the user to restart Windows Terminal.
+
+#### Scenario: Settings file and tab colour untouched
+- **WHEN** the user runs `vantage setup-terminal --yes`
+- **THEN** Windows Terminal's settings file is unchanged, the "Vantage" profile in the fragment has no tab colour, and the output says to restart Windows Terminal
