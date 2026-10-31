@@ -346,7 +346,7 @@ The sessions table SHALL give REPOSITORY the width its other columns leave and S
 - **THEN** the REPOSITORY cell for Northwind.Integration.CosmosDb.ChangeFeedMonitoring is shown whole
 
 ### Requirement: The TAB column is a swatch
-The sessions table's TAB column SHALL show a two-cell block in the colour of the Vantage tab showing the session while that tab is alive, with a cell of space before the next column, on the highlighted row as on every other; SHALL show a hollow grey block for a session running as plain claude in its own terminal; and nothing otherwise. The help and the column's tooltip SHALL say what each means.
+The sessions table's TAB column SHALL show a two-cell block in the colour of the Vantage tab showing the session while that tab is alive, in the shade that tab shows from Vantage's own tab, with a cell of space before the next column, on the highlighted row as on every other; SHALL show a hollow grey block for a session running as plain claude in its own terminal; and nothing otherwise. The help and the column's tooltip SHALL say what each means.
 
 #### Scenario: A session open in a Vantage tab
 - **WHEN** fix-123 is shown in a Vantage tab coloured yellow
@@ -366,7 +366,22 @@ The sessions table's TAB column SHALL show a two-cell block in the colour of the
 
 #### Scenario: The highlighted row keeps the colour
 - **WHEN** fix-123, shown in a Vantage tab coloured red, is the selected row
-- **THEN** its TAB block is exactly that red on the highlight, not the highlight's colour or a dimmer shade
+- **THEN** its TAB block is the same shade of red as on any other row, not the highlight's colour
+
+### Requirement: The TAB block matches the tab as it looks from Vantage
+The TAB column's block SHALL be drawn in the shade Windows Terminal shows for that session's tab while another tab is selected, because Vantage's own tab is the selected one whenever the table is read. The shade SHALL be the same on the selected row as on any other, and SHALL come from one rule applied to the tab's colour.
+
+#### Scenario: A red tab
+- **WHEN** a session's Vantage tab is red and the Vantage tab is selected
+- **THEN** the session's TAB block is the faded red its tab shows in the tab strip, not the bright red the tab shows when selected
+
+#### Scenario: The selected row
+- **WHEN** the row of a session with a blue tab is selected
+- **THEN** its TAB block is the same faded blue on the selection bar
+
+#### Scenario: Every palette colour
+- **WHEN** each colour of the tab palette is turned into its shade
+- **THEN** each matches the colour measured from Windows Terminal's tab strip for that colour, within one step in each channel
 
 ### Requirement: Automated runs are not sessions
 An interactive entry in the CLI listing that has no status SHALL be treated as an automated run (a `claude` started through the Agent SDK or `claude -p`), not a session: it SHALL NOT be a row, SHALL NOT be counted in the table's title and SHALL take no keys. The decision SHALL use only the listing's fields. Every other entry SHALL be listed as before.
