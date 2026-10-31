@@ -173,7 +173,7 @@ public static class SessionsView
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = Footer.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = Footer.None }),
             { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
-            { Name: KeyName.Enter } => SessionAction(state, (_, session) => new AttachToSession(session.JobId), Attachment.Here),
+            { Name: KeyName.Enter } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
             { Name: KeyName.Character, Character: 'o' } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
