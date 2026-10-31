@@ -68,7 +68,7 @@ internal sealed class SettingsControls
 
     public TextField Arguments { get; } = new() { X = RightColumn, Y = 5, Width = 40 };
 
-    public OptionSelector BaseRef { get; } = new() { X = LeftColumn, Y = 1, Labels = ["origin default branch", "current HEAD"], Value = 0 };
+    public OptionSelector BaseRef { get; } = new() { X = LeftColumn, Y = 1, Labels = [.. Enum.GetValues<WorktreeBase>().Select(Wording.Describe)], Value = 0 };
 
     public OptionSelector Place { get; } = new() { X = LeftColumn, Y = 1, Labels = [.. Enum.GetValues<LaunchMode>().Select(Wording.Describe)], Value = 0 };
 

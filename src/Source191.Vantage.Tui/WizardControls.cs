@@ -55,7 +55,7 @@ internal sealed class WizardControls
 
     public OptionSelector Mode { get; } = new() { X = LeftColumn, Labels = ["Current branch", "New worktree"] };
 
-    public OptionSelector BaseRef { get; } = new() { X = LeftColumn, Labels = ["origin default branch", "current HEAD"], Value = 0 };
+    public OptionSelector BaseRef { get; } = new() { X = LeftColumn, Labels = [.. Enum.GetValues<WorktreeBase>().Select(Wording.Describe)], Value = 0 };
 
     public Label Preview { get; } = Text(LeftColumn, 6, Palette.Cyan, Dim.Fill(1));
 

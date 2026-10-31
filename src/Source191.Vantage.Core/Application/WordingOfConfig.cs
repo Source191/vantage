@@ -41,7 +41,7 @@ public static partial class Wording
         ConfigRow.RepositoryRoot => "A folder Vantage searches for git repositories; Enter edits every root, one per line.",
         ConfigRow.WorktreeRoot => "Where new worktrees go, each in a folder named <repository>-<slug> on a branch named <slug>.",
         ConfigRow.OpenFolderWith => "The program e opens a row's folder with: one of the editors Vantage knows, or a program of your own.",
-        ConfigRow.DefaultBase => "What a new worktree's branch starts from: origin's default branch, or the commit checked out now.",
+        ConfigRow.DefaultBase => "New worktrees branch from origin's default branch as of your last git fetch (no fetch is made), or from HEAD.",
         ConfigRow.DefaultPlace => "Where the wizard opened with n starts a session: a new worktree, or the repository's current branch.",
         ConfigRow.CheckForUpdates => "Whether Vantage asks nuget.org once a day for a newer release, which U then installs.",
         ConfigRow.Setup setup => SetupDescription(setup.Item),
@@ -56,8 +56,7 @@ public static partial class Wording
             ConfigRow.RepositoryRoot root => root.Path.Value,
             ConfigRow.WorktreeRoot worktreeRoot => worktreeRoot.Path.Value,
             ConfigRow.OpenFolderWith open => open.Editor.Preset == EditorPreset.Custom ? $"{open.Editor.Executable} {CommandArguments.Join(open.Editor.Arguments)}" : Describe(open.Editor.Preset),
-            ConfigRow.DefaultBase { Base: WorktreeBase.Head } => "current HEAD",
-            ConfigRow.DefaultBase => "origin's default branch",
+            ConfigRow.DefaultBase defaultBase => Describe(defaultBase.Base),
             ConfigRow.DefaultPlace place => Describe(place.Place),
             ConfigRow.CheckForUpdates check => check.On ? "on" : "off",
             ConfigRow.Setup setup => SetupValue(setup.Item, setup.State, now),
@@ -76,6 +75,16 @@ public static partial class Wording
             SettingsScope.Base => "Worktree base",
             SettingsScope.Place => "Default place",
             _ => scope.ToString(),
+        };
+    }
+
+    /// <summary>Where a new worktree's branch starts, as the Default base row, its dialog and the wizard name it: origin's remote-tracking branch as it stood at the last fetch (Vantage never fetches), or HEAD.</summary>
+    public static string Describe(WorktreeBase worktreeBase)
+    {
+        return worktreeBase switch
+        {
+            WorktreeBase.RemoteDefault => "origin's default branch, as last fetched",
+            WorktreeBase.Head => "the commit checked out now (HEAD)",
         };
     }
 
