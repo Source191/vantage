@@ -9,20 +9,21 @@ public sealed class UpdateVantageShould
     [Fact]
     public void AskToUpdateWhenAnUpdateIsKnown()
     {
-        UpdateStatus available = new UpdateStatus.Available(ReleaseVersions.Version("0.9.0"), ReleaseVersions.Version("0.10.0"));
+        ReleaseVersion newest = ReleaseVersions.Version("0.10.0");
+        UpdateStatus available = new UpdateStatus.Available(ReleaseVersions.Version("0.9.0"), newest);
 
-        UpdateVantage.Refusal(available).ShouldBeNull();
+        UpdateVantage.Decide(available).ShouldBe(new UpdateDecision.Ask(newest));
     }
 
     [Fact]
     public void SayUpToDateOtherwise()
     {
-        UpdateVantage.Refusal(new UpdateStatus.UpToDate()).ShouldBe(new StatusMessage.UpToDate());
+        UpdateVantage.Decide(new UpdateStatus.UpToDate()).ShouldBe(new UpdateDecision.Refuse(new StatusMessage.UpToDate()));
     }
 
     [Fact]
     public void SayTheCheckIsOff()
     {
-        UpdateVantage.Refusal(new UpdateStatus.Off()).ShouldBe(new StatusMessage.UpdateCheckOff());
+        UpdateVantage.Decide(new UpdateStatus.Off()).ShouldBe(new UpdateDecision.Refuse(new StatusMessage.UpdateCheckOff()));
     }
 }
