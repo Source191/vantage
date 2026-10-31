@@ -8,14 +8,14 @@ public sealed class WorktreesViewShould
 {
     private const string Repository = @"C:\repos\Northwind.Orders";
 
-    private static readonly WorktreeRow Clean = Row(@"C:\repos\Northwind.Orders-fix-1", "fix-1", WorktreeHealthKind.Ok);
-    private static readonly WorktreeRow Dirty = Row(@"C:\repos\Northwind.Orders-fix-2", "fix-2", WorktreeHealthKind.Ok) with { DirtyFiles = 5, UnpushedCommits = 2 };
-    private static readonly WorktreeRow Locked = Row(@"C:\repos\Northwind.Orders-locked", "maintenance", WorktreeHealthKind.Locked, new HealthReason.Locked("another tool is using it"));
-    private static readonly WorktreeRow Orphan = Row(@"C:\repos\Northwind.Orders\.claude\worktrees\fix-service-tests", null, WorktreeHealthKind.Orphan) with { LeftoverFileCount = 12 };
-    private static readonly WorktreeRow Empty = Row(@"C:\repos\Northwind.Orders.worktrees", null, WorktreeHealthKind.Empty) with { Repository = FolderPath.From(@"C:\repos") };
-    private static readonly WorktreeRow Gone = Row(@"C:\repos\Northwind.Retired-republish", null, WorktreeHealthKind.Broken) with { Repository = FolderPath.From(@"C:\repos\Northwind.Retired"), OwnerExists = false };
-    private static readonly WorktreeRow Busy = Row(@"C:\repos\Northwind.Orders-fix-3", "fix-3", WorktreeHealthKind.Ok) with { SessionId = SessionId.From("sess-fix-3"), SessionName = "fix-the-tests" };
-    private static readonly WorktreeRow Elsewhere = Row(@"C:\Users\me\source\worktrees\Northwind.Ledger-fix", "fix", WorktreeHealthKind.Elsewhere, new HealthReason.RepositoryOutsideRoots(FolderPath.From(@"D:\other\Northwind.Ledger"))) with { Repository = FolderPath.From(@"D:\other\Northwind.Ledger"), DirtyFiles = 3 };
+    private static readonly WorktreeRow Clean = Row(@"C:\repos\Northwind.Orders-fix-1", On("fix-1"), WorktreeHealthKind.Ok);
+    private static readonly WorktreeRow Dirty = Row(@"C:\repos\Northwind.Orders-fix-2", On("fix-2"), WorktreeHealthKind.Ok) with { DirtyFiles = 5, UnpushedCommits = 2 };
+    private static readonly WorktreeRow Locked = Row(@"C:\repos\Northwind.Orders-locked", On("maintenance"), WorktreeHealthKind.Locked, new HealthReason.Locked("another tool is using it"));
+    private static readonly WorktreeRow Orphan = Row(@"C:\repos\Northwind.Orders\.claude\worktrees\fix-service-tests", new Head.Unknown(), WorktreeHealthKind.Orphan) with { LeftoverFileCount = 12 };
+    private static readonly WorktreeRow Empty = Row(@"C:\repos\Northwind.Orders.worktrees", new Head.Unknown(), WorktreeHealthKind.Empty) with { Repository = FolderPath.From(@"C:\repos") };
+    private static readonly WorktreeRow Gone = Row(@"C:\repos\Northwind.Retired-republish", new Head.Unknown(), WorktreeHealthKind.Broken) with { Repository = FolderPath.From(@"C:\repos\Northwind.Retired"), OwnerExists = false };
+    private static readonly WorktreeRow Busy = Row(@"C:\repos\Northwind.Orders-fix-3", On("fix-3"), WorktreeHealthKind.Ok) with { Session = new WorktreeSession.Running(SessionId.From("sess-fix-3"), "fix-the-tests") };
+    private static readonly WorktreeRow Elsewhere = Row(@"C:\Users\me\source\worktrees\Northwind.Ledger-fix", On("fix"), WorktreeHealthKind.Elsewhere, new HealthReason.RepositoryOutsideRoots(FolderPath.From(@"D:\other\Northwind.Ledger"))) with { Repository = FolderPath.From(@"D:\other\Northwind.Ledger"), DirtyFiles = 3 };
 
     private static readonly WorktreesViewState Loaded = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Gone, Busy, Empty, Orphan, Locked, Dirty, Clean]));
 
@@ -387,8 +387,10 @@ public sealed class WorktreesViewShould
         return WorktreesView.Reduce(state, input).State;
     }
 
-    private static WorktreeRow Row(string path, string? branch, WorktreeHealthKind health, HealthReason? reason = null)
+    private static Head.OnBranch On(string branch) => new(BranchName.From(branch));
+
+    private static WorktreeRow Row(string path, Head head, WorktreeHealthKind health, HealthReason? reason = null)
     {
-        return new WorktreeRow(FolderPath.From(Repository), FolderPath.From(path), branch is null ? null : BranchName.From(branch), new WorktreeHealth(health, reason ?? new HealthReason.None()), 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: true);
+        return new WorktreeRow(FolderPath.From(Repository), FolderPath.From(path), head, new WorktreeHealth(health, reason ?? new HealthReason.None()), 0, 0, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: true);
     }
 }

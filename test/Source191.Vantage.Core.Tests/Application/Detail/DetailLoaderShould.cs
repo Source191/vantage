@@ -109,7 +109,7 @@ public sealed class DetailLoaderShould
     [Fact]
     public async Task MarkTheGitLinesOfALeftoverUnavailable()
     {
-        WorktreeRow leftover = WorktreeRowOf(unpushed: 0, dirty: 0) with { FolderExists = false, OwnerExists = false, Branch = null };
+        WorktreeRow leftover = WorktreeRowOf(unpushed: 0, dirty: 0) with { FolderExists = false, OwnerExists = false, Head = new Head.Unknown() };
 
         WorktreeDetail detail = await Loader().WorktreeAsync(leftover, listRows: 4, CancellationToken.None);
 
@@ -126,7 +126,7 @@ public sealed class DetailLoaderShould
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
-        new(Repository, Worktree, BranchName.From("invoice-pdf"), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Noon, SessionId: null, SessionName: null, LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+        new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Noon, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
 
     /// <summary>Records compare lists by reference, so a known list is compared by its items.</summary>
     private sealed class ListOfStringsComparer : IEqualityComparer<DetailFact<IReadOnlyList<string>>>

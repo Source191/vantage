@@ -147,7 +147,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void GiveABrokenLeftoversReasonAndUnavailableGitLines()
     {
-        WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Health = new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()), Branch = null, FolderExists = false };
+        WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Health = new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()), Head = new Head.Unknown(), FolderExists = false };
         WorktreeDetail detail = new(row, Created: null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.Unavailable(), new DetailFact<IReadOnlyList<string>>.Unavailable());
 
         DetailContent content = Wording.Detail(detail, Now);
@@ -182,5 +182,5 @@ public sealed class WordingOfDetailShould
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
-        new(Repository, Worktree, BranchName.From("fix-123"), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Now, SessionId: null, SessionName: null, LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+        new(Repository, Worktree, new Head.OnBranch(BranchName.From("fix-123")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Now, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
 }
