@@ -35,7 +35,7 @@ public static class UpdateCheckRule
     }
 
     /// <summary>An update is offered only to a release build with the check on, and only when the newest known release is higher.</summary>
-    public static UpdateStatus Offer(ToolVersion running, bool enabled, string? newest)
+    public static UpdateStatus Offer(ToolVersion running, bool enabled, NewestRelease newest)
     {
         ReleaseVersion? current = ReleaseOf(running);
         if (!enabled || current is null)
@@ -43,10 +43,8 @@ public static class UpdateCheckRule
             return new UpdateStatus.Off();
         }
 
-        ReleaseVersion? candidate = ReleaseVersion.TryParse(newest);
-
-        return candidate is not null && candidate.IsHigherThan(current)
-            ? new UpdateStatus.Available(current, candidate)
+        return newest is NewestRelease.Found found && found.Version.IsHigherThan(current)
+            ? new UpdateStatus.Available(current, found.Version)
             : new UpdateStatus.UpToDate();
     }
 

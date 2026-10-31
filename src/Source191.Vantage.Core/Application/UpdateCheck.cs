@@ -18,7 +18,7 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
     private string? newest;
 
     /// <summary>What the update key and the header offer now, read on every use so turning the setting off applies at once.</summary>
-    public UpdateStatus Status => UpdateCheckRule.Offer(running, enabled(), Volatile.Read(ref newest));
+    public UpdateStatus Status => UpdateCheckRule.Offer(running, enabled(), Volatile.Read(ref newest) is string text ? NewestRelease.Recorded(text) : new NewestRelease.None());
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
