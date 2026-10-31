@@ -118,6 +118,16 @@ public sealed class DetailLoaderShould
         detail.ChangedFiles.ShouldBeOfType<DetailFact<IReadOnlyList<string>>.Unavailable>();
     }
 
+    [Fact]
+    public async Task AskForNoMergeStateOfAWorktreeOnADetachedHead()
+    {
+        WorktreeRow detached = WorktreeRowOf(unpushed: 0, dirty: 0) with { Head = new Head.Detached() };
+
+        WorktreeDetail detail = await Loader().WorktreeAsync(detached, listRows: 4, CancellationToken.None);
+
+        detail.Merge.ShouldBeOfType<DetailFact<MergeState>.NotApplicable>();
+    }
+
     private static SessionRow Row(int? processId)
     {
         BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon, DisplayState.Working, processId);
