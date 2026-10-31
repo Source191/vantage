@@ -23,7 +23,7 @@
 
 ## 5. The console only quits (ScreenLoop)
 
-- [ ] 5.1 Red: `ScreenLoopShould` asserts the screen is run once and the tab is cleared and 0 returned on `Quit` or no effect, and that any other exit effect throws `UnreachableException`, with no `TerminalEffects` in the loop; the facts that attached twice and returned are removed. Green: `ScreenLoop` without the loop or `TerminalEffects`; `Program.cs` builds `TerminalEffects` only for `here`. Verify the Core tests pass.
+- [x] 5.1 Red: `ScreenLoopShould` asserts the screen is run once and the tab is cleared and 0 returned on `Quit` or no effect, and that any other exit effect throws `UnreachableException`, with no `TerminalEffects` in the loop; the facts that attached twice and returned are removed. Green: `ScreenLoop` without the loop or `TerminalEffects`; `Program.cs` builds `TerminalEffects` only for `here`. Verify the Core tests pass.
 - [ ] 5.2 Red: `DiagnosticsPrivacyShould` runs its daily flow with an open-in-tab effect instead of an attach and still finds no fixture value. Green: remove the `HandingOver` and `ChildReturned` events, their lines and their facts in `DiagnosticLineShould` and `DiagnosticLogShould`. Verify the solution's tests pass, including `DiagnosticEventsShould`, `EffectRoutingShould` and `LayeringShould`.
 - [ ] 5.3 CLAUDE.md: the effect routing (`ILeavesScreen` is `Quit`, and `AttachToSession` only through `vantage here`), the Terminal.Gui UI-thread fact (why the harness existed), the Windows Terminal facts that name `o` and the title written again after every hand-off, and the open item on attaching from two tabs. Verify no line of CLAUDE.md describes an attach from the console.
 

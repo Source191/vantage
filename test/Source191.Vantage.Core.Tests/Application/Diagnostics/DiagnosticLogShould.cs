@@ -32,9 +32,9 @@ public sealed class DiagnosticLogShould
     {
         DiagnosticLog log = new(clock, []);
 
-        log.Record(new ChildReturned());
+        log.Record(new ViewShown(ViewKind.Sessions));
 
-        log.Snapshot().ShouldBe([new TimedEvent(Noon, new ChildReturned())]);
+        log.Snapshot().ShouldBe([new TimedEvent(Noon, new ViewShown(ViewKind.Sessions))]);
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public sealed class DiagnosticLogShould
         {
             foreach (int index in Enumerable.Range(0, 50))
             {
-                log.Record(new ChildReturned());
+                log.Record(new ViewShown(ViewKind.Sessions));
             }
         })));
 

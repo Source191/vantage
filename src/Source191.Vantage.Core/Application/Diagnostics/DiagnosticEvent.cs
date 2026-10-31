@@ -17,9 +17,6 @@ public sealed record DialogShown(DialogName Dialog) : DiagnosticEvent;
 
 public sealed record EffectRan(CodeName Effect, CodeName Outcome, TimeSpan Duration) : DiagnosticEvent;
 
-public sealed record HandingOver(CodeName Effect) : DiagnosticEvent;
-
-public sealed record ChildReturned : DiagnosticEvent;
 
 public sealed record ProcessSlow(ChildCommand Command, int ExitCode, TimeSpan Duration) : DiagnosticEvent;
 

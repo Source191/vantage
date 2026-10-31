@@ -16,7 +16,7 @@ public sealed class DiagnosticLineShould
     {
         DateTimeOffset local = new(2026, 10, 29, 15, 3, 12, 345, TimeSpan.FromHours(1));
 
-        DiagnosticLine.Render(new TimedEvent(local, new ChildReturned())).ShouldBe("2026-10-29T14:03:12.345Z hand-off returned");
+        DiagnosticLine.Render(new TimedEvent(local, new ViewShown(ViewKind.Sessions))).ShouldBe("2026-10-29T14:03:12.345Z view Sessions");
     }
 
     [Fact]
@@ -55,11 +55,6 @@ public sealed class DiagnosticLineShould
         Body(ran).ShouldBe("effect StopSession -> StopSessionOutcome in 412 ms");
     }
 
-    [Fact]
-    public void RenderAHandOff()
-    {
-        Body(new HandingOver(CodeName.For(typeof(AttachToSession)))).ShouldBe("hand-off AttachToSession");
-    }
 
     [Fact]
     public void RenderAFailureWithWhatFailed()

@@ -440,7 +440,7 @@ A dotnet global tool never updates itself, so Vantage looks for you. Once a day 
 Vantage keeps a diagnostic log in memory while it runs (the latest 500 events) so a problem can be diagnosed; it never leaves your machine by itself. It holds only facts Vantage defines in its own code:
 
 - **Start:** the Vantage, Claude Code, Windows and .NET versions and the terminal's size.
-- **What you did, as kinds:** the view and each dialog opened, each key's effect with the kind of its outcome and how long it took, each hand-off to `claude attach` or the agent view and the return.
+- **What you did, as kinds:** the view and each dialog opened, and each key's effect with the kind of its outcome and how long it took.
 - **Failures:** where they happened and an exception summary: the exception's type and Vantage's stack frames (method, source file name and line), never the exception's message.
 - **Child programs:** counts by program (git, claude, gh, az, pwsh, wt, vswhere, dotnet or another program), subcommand from a fixed list of words and exit code, with the longest run; a line for one that takes longer than 5 seconds or cannot be started.
 - **Terminal.Gui:** its warnings and errors by level, without its message text, which can quote input it could not read.

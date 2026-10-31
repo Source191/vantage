@@ -37,8 +37,7 @@ public static class DiagnosticLine
         ViewShown view => $"view {view.View}",
         DialogShown dialog => $"dialog {dialog.Dialog}",
         EffectRan ran => $"effect {ran.Effect} -> {ran.Outcome} in {Milliseconds(ran.Duration)}",
-        HandingOver handing => $"hand-off {handing.Effect}",
-        ChildReturned => "hand-off returned",
+
         ProcessSlow slow => $"slow {slow.Command} exit {slow.ExitCode} in {Milliseconds(slow.Duration)}",
         ProcessFailedToStart failed => $"not started {failed.Command}: {failed.Failure}",
         Failed failed => failed.What is null ? $"failed {failed.Site}: {failed.Failure}" : $"failed {failed.Site} {failed.What}: {failed.Failure}",
