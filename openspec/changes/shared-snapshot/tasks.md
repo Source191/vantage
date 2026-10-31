@@ -21,7 +21,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 ## 4. Docs, version and the whole build
 
 - [x] 4.1 `CLAUDE.md`'s code rules gain one sentence: a value one thread replaces and another reads is held in a `SharedSnapshot<T>` (never null, immutable value), never by a bare `Volatile` access or `volatile` field. Verify `Get-ChildItem src -Recurse -Filter *.cs | Select-String -Pattern 'Volatile\.|\bvolatile\b'` finds only `SharedSnapshot.cs`.
-- [ ] 4.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to `0.19.0-preview.3` (one step above main's `0.19.0-preview.2`; raise again if another tool change merges first). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
+- [x] 4.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to `0.19.0-preview.3` (one step above main's `0.19.0-preview.2`; raise again if another tool change merges first). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`. Raised to `0.19.0-preview.4` instead, one step above the base branch `v-status-message-rename` (#137), and checked against it.
 - [ ] 4.3 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` all pass; `openspec validate shared-snapshot` passes.
 
 ## Workflow follow-up
