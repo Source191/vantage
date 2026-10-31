@@ -19,4 +19,4 @@ public sealed record ResumeSessions(IReadOnlyList<BackgroundSession> Sessions) :
 public sealed record DeleteBranch(BranchToConfirm Branch) : ViewEffect;
 
 /// <summary>Start the session the launch wizard planned, from either view, and open its tab when asked.</summary>
-public sealed record StartSession(LaunchPlan Plan, bool OpenInTab) : ViewEffect;
+public sealed record StartSession(LaunchPlan Plan) : ViewEffect;

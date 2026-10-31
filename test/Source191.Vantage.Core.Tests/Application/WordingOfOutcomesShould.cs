@@ -373,11 +373,6 @@ public sealed class WordingOfOutcomesShould
             .ShouldBe("Refund retry policy is open in another tab, but Vantage could not find it. Is it in another window?");
     }
 
-    [Fact]
-    public void SayASessionStarted()
-    {
-        Wording.Describe(new StartSessionOutcome.Started("Fix flaky tests", JobId.From("81cdb0f9"))).ShouldBe("Started Fix flaky tests (81cdb0f9).");
-    }
 
     [Fact]
     public void SayASessionStartedAndWhereItsTabOpened()

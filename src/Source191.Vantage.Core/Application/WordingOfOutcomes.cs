@@ -177,7 +177,6 @@ public static partial class Wording
     {
         return outcome switch
         {
-            StartSessionOutcome.Started started => Started(started.Name, started.JobId.Value),
             StartSessionOutcome.StartedAndOpened opened => $"{Started(opened.Name, opened.JobId.Value)} {Describe(opened.Tab)}",
             StartSessionOutcome.NotListedYet unlisted => $"{Started(unlisted.Name, unlisted.JobId.Value)} It is not listed yet: press o on it to open a tab.",
             StartSessionOutcome.NotTrusted untrusted =>
