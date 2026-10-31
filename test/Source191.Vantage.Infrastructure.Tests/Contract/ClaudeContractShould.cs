@@ -5,6 +5,7 @@ using Source191.Vantage.Ports;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Source191.Vantage.Infrastructure.Tests.Contract;
 
@@ -17,6 +18,8 @@ namespace Source191.Vantage.Infrastructure.Tests.Contract;
 public sealed class ClaudeContractShould
 {
     private static readonly TimeSpan ListingDeadline = TimeSpan.FromSeconds(30);
+
+    private static readonly TimeSpan ExitDeadline = TimeSpan.FromSeconds(60);
 
     /// <summary>The fields an idle background row carries and the listing's parser reads.</summary>
     private static readonly string[] FieldsVantageReads = ["pid", "id", "cwd", "kind", "startedAt", "sessionId", "name", "status"];
@@ -141,14 +144,14 @@ public sealed class ClaudeContractShould
 
             listing.Sessions.OfType<InteractiveSession>().Select(session => session.ProcessId).ShouldNotContain(print.Id, "the run is listed as a session too");
             print.StandardInput.Close();
-            await print.WaitForExitAsync(Cancellation).WaitAsync(ListingDeadline, Cancellation);
+            await print.WaitForExitAsync(Cancellation).WaitAsync(ExitDeadline, Cancellation);
             print.ExitCode.ShouldBe(1, "claude -p with no prompt and no input should fail before calling the model");
         }
         finally
         {
             if (!print.HasExited)
             {
-                print.Kill();
+                print.Kill(entireProcessTree: true);
             }
         }
     }
@@ -164,12 +167,33 @@ public sealed class ClaudeContractShould
             UseShellExecute = false,
         };
         start.ArgumentList.Add("-p");
+        start.ArgumentList.Add("--settings");
+        start.ArgumentList.Add(HoldOpenSettings());
         foreach (string name in start.Environment.Keys.Where(InheritedEnvironment.ShouldDrop).ToList())
         {
             start.Environment.Remove(name);
         }
 
         return Process.Start(start) ?? throw new ShouldAssertException("claude -p did not start.");
+    }
+
+    private static string HoldOpenSettings()
+    {
+        JsonObject hook = new()
+        {
+            ["type"] = "command",
+            ["command"] = "pwsh -NoProfile -Command Start-Sleep -Seconds 20",
+            ["timeout"] = 40,
+        };
+        JsonObject settings = new()
+        {
+            ["hooks"] = new JsonObject
+            {
+                ["SessionEnd"] = new JsonArray(new JsonObject { ["hooks"] = new JsonArray(hook) }),
+            },
+        };
+
+        return settings.ToJsonString();
     }
 
     /// <summary>The listing once it holds the run; a new process takes a few seconds to register.</summary>
