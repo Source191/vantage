@@ -33,7 +33,7 @@ A worktrees scan SHALL take the sessions inside each worktree from the latest se
 ## MODIFIED Requirements
 
 ### Requirement: Scanning is visible
-The worktrees view SHALL show a spinner with the words "Scanning worktrees" in the middle of the table while it is shown and no scan has yet returned, and SHALL show a spinner before the working text of the status line under the versions while an action started from the view runs; neither spinner SHALL appear for the rescan when the tab is shown again or for the timed rescans.
+The worktrees view SHALL show a spinner with the words "Scanning worktrees" in the middle of the table while it is shown and no scan has yet returned, and SHALL show a spinner beside the status line's working text while an action started from the view runs; neither spinner SHALL appear for the rescan when the tab is shown again or for the timed rescans.
 
 #### Scenario: First scan pending
 - **WHEN** the user opens the worktrees view and the scan of the repository roots has not yet returned
@@ -45,4 +45,4 @@ The worktrees view SHALL show a spinner with the words "Scanning worktrees" in t
 
 #### Scenario: Action running
 - **WHEN** the user removes a worktree
-- **THEN** the status line under the versions shows a spinner before "Removing name" until the removal reports its outcome
+- **THEN** the status line shows a spinner before "Removing name" until the removal reports its outcome

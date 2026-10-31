@@ -29,4 +29,4 @@
 
 ## Workflow follow-up
 
-- Archive status-line-under-settings first if it is still unarchived, then archive this change in the pull request that completes it.
+- Archive this change in the pull request that completes it; if rename-footer-to-status-message archives first, check both requirement blocks still carry its wording before archiving.

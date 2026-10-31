@@ -28,7 +28,7 @@
 `Application\LatestSessions` (name settled in the first task) wraps `IClaudeCli`:
 - `ListAsync(token)` asks `claude.ListSessionsAsync`, keeps the listing's `Sessions`, marks the first listing as returned and returns the `SessionListing`. A failure also marks the first listing as returned, keeps the previous sessions, and rethrows, so the Sessions tab's banner is unchanged.
 - `SessionsAsync(token)` waits for the first listing to return (a `TaskCompletionSource`, its wait cancellable through `WaitAsync(token)`), then answers the kept sessions, or none when no listing has succeeded.
-- State behind a `System.Threading.Lock`; the listing is replaced whole, never mutated.
+- The kept sessions are one immutable list replaced whole by the Sessions tab's load and read by scans. When shared-snapshot has merged, they are a `SharedSnapshot<IReadOnlyList<Session>>` (its `CLAUDE.md` rule for a value one thread replaces and another reads); until then, they sit behind a `System.Threading.Lock`. The first-listing signal is the `TaskCompletionSource`, whose `TrySetResult` is safe from any thread. Neither holds null: before a listing succeeds, the sessions are an empty list.
 
 `Program.cs`'s `LoadAsync` lists through `ListAsync`; `ScanAsync` reads `SessionsAsync` and no longer calls `claude.ListSessionsAsync`.
 
@@ -40,7 +40,7 @@ A failed first listing leaves the scan with no sessions rather than failing the 
 
 ### One running scan at a time, counted in Application
 
-`Application\RunningLoads` (name settled in its task) keeps two counts behind a `Lock`, reserved and running:
+`Application\RunningLoads` (name settled in its task) keeps two counts behind a `Lock`, reserved and running (a lock rather than a `SharedSnapshot`, because the two are read and changed together):
 - `TryReserve()` is called by the Frame on the UI thread before a start-up, show- or timer-triggered `TriggerLoad`: when nothing is reserved or running it reserves one and answers true; otherwise it answers false and the Frame triggers nothing.
 - `Track(load)` wraps the scan function: as a call starts it counts one running and takes one reservation if any is held; as it completes or throws it stops counting it. `IsRunning` is reserved plus running above zero.
 

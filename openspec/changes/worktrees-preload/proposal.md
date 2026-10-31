@@ -24,19 +24,20 @@ None.
 ### Modified Capabilities
 
 - `console-layout`: "Sessions and worktrees are two tabs of one screen" replaces its "Worktrees not yet scanned" scenario with the start-up scan and the rescan on show.
-- `worktree-management`: ADDED "The worktrees are scanned as the console opens" and "A worktrees scan reuses the sessions listing"; "Scanning is visible" shows the spinner only while the tab is shown before the first scan lands, keeps it off the rescan on show as well as the timed rescans, and names the status line under the versions (where status-line-under-settings put the working text) in place of the footer.
+- `worktree-management`: ADDED "The worktrees are scanned as the console opens" and "A worktrees scan reuses the sessions listing"; "Scanning is visible" shows the spinner only while the tab is shown before the first scan lands, keeps it off the rescan on show as well as the timed rescans, and says the status line in place of the footer, as rename-footer-to-status-message does.
 
 `detail-pane`'s "The first worktrees scan" scenario ("first shown and its scan has not finished") stays true of the start-up scan and needs no delta.
 
 ## Impact
 
-- **Application:** a new holder of the latest sessions listing, written by the Sessions tab's load and read by the worktrees scan, which waits for its first listing.
-- **Tui:** `ConsoleScreen` starts the worktrees load once as the frame opens, triggers it on every show of the Worktrees tab, drops `worktreesScanned`, and its timer refreshes the worktrees only while their tab is active.
+- **Application:** a new holder of the latest sessions listing (`LatestSessions`), written by the Sessions tab's load and read by the worktrees scan, which waits for its first listing; and a count of running scans (`RunningLoads`) that the console asks before it starts one.
+- **Tui:** `ConsoleScreen` starts the worktrees load once as the frame opens, triggers it on every show of the Worktrees tab, drops `worktreesScanned`, and its timer refreshes the worktrees only while their tab is active; each of these only when no scan is running.
 - **Program.cs:** `LoadAsync` lists through the holder; `ScanAsync` reads from it instead of calling `claude.ListSessionsAsync`.
 - **Start-up cost:** the start-up scan runs git in every repository and worktree under the roots, and asks `gh` or `az` for stale pull requests, even when the Worktrees tab is never opened.
-- **Tests:** the holder's facts in Core.Tests; the smoke run and `DiagnosticsPrivacyShould` re-checked.
-- **Docs:** README (the Worktrees tab), CLAUDE.md (the console paragraph that says a tab asks only while shown), the specs.
+- **Tests:** the holder's and the count's facts in Core.Tests; the smoke run and `DiagnosticsPrivacyShould` re-checked.
+- **Docs:** README (the Worktrees tab and the roadmap's scan cache), CLAUDE.md (a sentence on when the worktrees scan starts), the specs.
 
 ## Order
 
-Archived after status-line-under-settings (merged in #129, not yet archived), which adds requirements to `console-layout` beside the one this change modifies and moved the working text this change's "Scanning is visible" now names.
+- **rename-footer-to-status-message** modifies the same two requirements ("Sessions and worktrees are two tabs of one screen" and "Scanning is visible"). This change's blocks already carry its wording (status message, the status line), so either may archive first; the one that archives second must still carry the other's text.
+- **The null programme** (shared-snapshot to null-guard-rule) touches `ConsoleScreen` and `TableBody` elsewhere; whichever is implemented second rebases. This change adds no null of Vantage's own: the holder answers an empty list, never null, before a listing succeeds.
