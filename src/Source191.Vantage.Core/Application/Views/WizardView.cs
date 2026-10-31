@@ -7,9 +7,9 @@ namespace Source191.Vantage.Application.Views;
 /// The new-session wizard's rules as a pure function of state and input; the dialog only binds controls to it.
 /// Keyboard model: focus starts in the repository filter; typing narrows the list, the arrow keys move into the list,
 /// and Enter confirms the repository and moves to the name. Enter in the other one-line fields moves on; only Start
-/// (F5, or F6 to open a tab too) launches, so a stray Enter never starts a half-filled session in a new worktree. A
-/// fixed folder (s on a worktree row) is the exception: its form is the name and the prompt, so Enter in the name
-/// starts the session and opens its tab, as F6 does.
+/// (F5) launches, starting the session and opening its tab, so a stray Enter never starts a half-filled session in a
+/// new worktree. A fixed folder (s on a worktree row) is the exception: its form is the name and the prompt, so Enter
+/// in the name starts the session and opens its tab, as F5 does.
 /// </summary>
 public static class WizardView
 {
