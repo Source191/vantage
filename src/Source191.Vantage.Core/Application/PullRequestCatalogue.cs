@@ -50,9 +50,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
     }
 
     private static PullRequestLookup ForBranch(PullRequestListing.Listed listed, BranchName branch) =>
-        PullRequests.ForBranch([.. listed.PullRequests.Where(row => row.Branch == branch).Select(row => row.PullRequest)]) is PullRequest found
-            ? new PullRequestLookup.Found(found)
-            : new PullRequestLookup.Missing(PullRequestGap.NoPullRequest);
+        PullRequests.ForBranch([.. listed.PullRequests.Where(row => row.Branch == branch).Select(row => row.PullRequest)]);
 
     public void Dispose() => slots.Dispose();
 

@@ -8,7 +8,7 @@ Each task is one red-green-refactor cycle with a commit per step, the test named
 - [x] 1.2 Refactor `Settings.Validate`'s roots check to return from each switch arm (no new fact). Verify `SettingsShould`'s `Refuse...` facts pass unchanged and `Settings.cs` has no `SettingsProblem?`.
 - [x] 1.3 Refactor `SessionName.ProblemWith` to `IsName` and `ReportTitle.ProblemWith` to `HasProblem(text, out ReportTitleProblem)` (no new fact). Verify `SessionNameShould` and `ReportTitleShould` pass unchanged and neither file declares a nullable problem.
 - [x] 1.4 `ProcessTreeShould`'s facts expect `ProcessTreeLookup.Found` with the same tree, and `NotMeasurable` for a root not in the table and for a root that cannot be measured (the two `ShouldBeNull` go): red, then `ProcessTree.Under` answering a `ProcessTreeLookup` green. Verify `ProcessTreeShould` passes.
-- [ ] 1.5 `PullRequestsShould` expects `PullRequestLookup.Found(older)`, `Found(merged)` and, for an empty list, `Missing(PullRequestGap.NoPullRequest)`: red, then `PullRequests.ForBranch` answering a `PullRequestLookup` green. Verify `PullRequestsShould` and `PullRequestCatalogueShould` pass, the catalogue's private `ForBranch` no longer tests for null.
+- [x] 1.5 `PullRequestsShould` expects `PullRequestLookup.Found(older)`, `Found(merged)` and, for an empty list, `Missing(PullRequestGap.NoPullRequest)`: red, then `PullRequests.ForBranch` answering a `PullRequestLookup` green. Verify `PullRequestsShould` and `PullRequestCatalogueShould` pass, the catalogue's private `ForBranch` no longer tests for null.
 
 ## 2. Port and adapter: starting a session
 
