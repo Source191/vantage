@@ -118,20 +118,28 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// </summary>
     private void ConfirmUpdate(IEffectContext context)
     {
-        UpdateStatus status = updates.Status;
-        if (status is not UpdateStatus.Available available)
+        switch (UpdateVantage.Decide(updates.Status))
         {
-            context.ShowMessage(UpdateVantage.Refusal(status) ?? new StatusMessage.UpToDate());
-            return;
+            case UpdateDecision.Ask ask:
+                AskToUpdate(context, ask.Newest);
+                break;
+            case UpdateDecision.Refuse refuse:
+                context.ShowMessage(refuse.Message);
+                break;
+            default:
+                throw new UnreachableException();
         }
+    }
 
-        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.Update, "Update Vantage", Wording.UpdateQuestion(available.Newest), "Update", "Cancel");
+    private static void AskToUpdate(IEffectContext context, ReleaseVersion newest)
+    {
+        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.Update, "Update Vantage", Wording.UpdateQuestion(newest), "Update", "Cancel");
         if (answer != 0)
         {
             return;
         }
 
-        context.Dispatch(new StartUpdate(available.Newest), outcome =>
+        context.Dispatch(new StartUpdate(newest), outcome =>
         {
             context.Reduce(new UpdateTabOpened());
             return new StatusMessage.Reported(outcome);
