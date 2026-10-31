@@ -337,6 +337,29 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
+    public async Task ReadAndWriteTheDefaultPlaceByName()
+    {
+        Directory.CreateDirectory(folder);
+        string configFile = Path.Combine(folder, "config.json");
+        await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["C:\\repos"], "defaultPlace": "CurrentBranch" }""", TestContext.Current.CancellationToken);
+
+        VantageConfig read = (await Store.ReadConfigAsync())!;
+        await Store.WriteConfigAsync(read);
+
+        read.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
+        (await File.ReadAllTextAsync(configFile, TestContext.Current.CancellationToken)).ShouldContain("\"defaultPlace\": \"CurrentBranch\"");
+    }
+
+    [Fact]
+    public async Task ReadAConfigWithoutAPlaceAsHavingNone()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), """{ "repositoryRoots": ["D:\\work"] }""", TestContext.Current.CancellationToken);
+
+        (await Store.ReadConfigAsync())!.DefaultPlace.ShouldBeNull();
+    }
+
+    [Fact]
     public async Task NameTheSettingsFileItWrites()
     {
         await Store.WriteConfigAsync(new VantageConfig([@"C:\repos"], WorktreeBase.RemoteDefault, @"C:\worktrees", new EditorSetting("VsCode", Executable: null, Arguments: null)));

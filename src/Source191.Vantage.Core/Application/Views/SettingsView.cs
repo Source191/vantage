@@ -15,11 +15,15 @@ public static class SettingsView
         return input switch
         {
             SettingsInput.RootsChanged changed => Changed(state with { Text = state.Text with { Roots = changed.Text } }),
+            SettingsInput.FoldersChosen { Folders.Count: 0 } => Changed(state),
+            SettingsInput.FoldersChosen chosen when state.Browses == SettingsBrowse.OneFolder => Changed(state with { Text = state.Text with { WorktreeRoot = chosen.Folders[0] } }),
+            SettingsInput.FoldersChosen chosen => Changed(state with { Text = state.Text with { Roots = WithLines(state.Text.Roots, chosen.Folders) } }),
             SettingsInput.WorktreeRootChanged changed => Changed(state with { Text = state.Text with { WorktreeRoot = changed.Text } }),
             SettingsInput.PresetChanged changed => Changed(state with { Text = state.Text with { Preset = changed.Preset } }),
             SettingsInput.ExecutableChanged changed => Changed(state with { Text = state.Text with { Executable = changed.Text } }),
             SettingsInput.ArgumentsChanged changed => Changed(state with { Text = state.Text with { Arguments = changed.Text } }),
             SettingsInput.BaseChanged changed => Changed(state with { Text = state.Text with { Base = changed.Base } }),
+            SettingsInput.PlaceChanged changed => Changed(state with { Text = state.Text with { Place = changed.Place } }),
             SettingsInput.FieldFocused focused => Changed(state with { Focus = focused.Field }),
             SettingsInput.Save => Saved(state),
             SettingsInput.Cancel => new SettingsUpdate(state, new SettingsEffect.Close()),
@@ -49,6 +53,9 @@ public static class SettingsView
             _ => throw new UnreachableException(),
         };
     }
+
+    /// <summary>The roots as typed with each folder on a line of its own after them; trailing blank lines are dropped first, so no blank line sits between.</summary>
+    private static string WithLines(string roots, IReadOnlyList<string> folders) => string.Join('\n', [.. roots.TrimEnd() is { Length: > 0 } typed ? [typed] : Array.Empty<string>(), .. folders]);
 
     private static SettingsUpdate Changed(SettingsState state) => new(state, new SettingsEffect.None());
 }

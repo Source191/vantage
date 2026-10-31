@@ -112,6 +112,26 @@ public sealed class WizardViewShould
             .Preview.ShouldBe(@"Worktree Northwind.Agents-fix-123 under D:\worktrees, on branch fix-123.");
     }
 
+    [Theory]
+    [InlineData(LaunchMode.CurrentBranch)]
+    [InlineData(LaunchMode.NewWorktree)]
+    public void OpenOnTheDefaultPlace(LaunchMode place)
+    {
+        Settings settings = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, TestSettings.Home, defaultPlace: place);
+
+        WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, settings).Mode.ShouldBe(place);
+    }
+
+    [Theory]
+    [InlineData(LaunchMode.CurrentBranch)]
+    [InlineData(LaunchMode.NewWorktree)]
+    public void OpenAFixedFolderOnItsCurrentBranchWhateverTheDefaultPlace(LaunchMode place)
+    {
+        Settings settings = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, TestSettings.Home, defaultPlace: place);
+
+        WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, settings, FolderPath.From(Billing)).Mode.ShouldBe(LaunchMode.CurrentBranch);
+    }
+
     [Fact]
     public void PreviewFollowsNameModeAndSelection()
     {

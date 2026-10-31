@@ -5,7 +5,7 @@ namespace Source191.Vantage.HeadlessTerminal;
 
 /// <summary>
 /// The smoke run's steps, built from Wording so a renamed title or a rebound key needs no change here: open and cancel
-/// the Keys help, the new-session wizard and the problem report on the sessions view, a setting's dialog on the Config tab, then on the worktrees view its help,
+/// the Keys help, the new-session wizard and the problem report on the sessions view, the repository roots dialog and its folder picker on the Config tab, then on the worktrees view its help,
 /// the force-remove confirmation, the fixed-folder wizard and the solution chooser for the named worktree, and quit. Dialogs are recognised by the tab title each one sets,
 /// views by a column only that view has; a key is looked up by its hint, and a lost hint fails with its name.
 /// </summary>
@@ -13,6 +13,9 @@ public static class SmokeScript
 {
     private static readonly TimeSpan Slow = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan Usual = TimeSpan.FromSeconds(20);
+
+    /// <summary>F3, which opens the folder picker from the repository roots dialog (its button reads <see cref="Wording.BrowseButton"/>).</summary>
+    private const string Browse = "\u001bOR";
 
     /// <param name="worktreeFolder">The folder name of an idle linked worktree under a repository root, holding two solutions: force remove is refused with no dialog while a session uses it, and v asks only when there is more than one.</param>
     public static IReadOnlyList<SmokeStep> Build(string worktreeFolder)
@@ -35,8 +38,10 @@ public static class SmokeScript
             new SmokeStep(closed, KeyFor(sessions, "Report"), Usual),
             new SmokeStep(Opened(DialogName.ProblemReport), escape, Usual),
             new SmokeStep(closed, TabKey(sessions, ConsoleTab.Config), Usual),
-            // The Config tab opens on the first repository root, and Enter edits it in a setting's dialog.
+            // The Config tab opens on the first repository root, and Enter edits the roots in a setting's dialog, where F3 opens the folder picker.
             new SmokeStep(configView, KeyFor(config, "Edit"), Usual),
+            new SmokeStep(Opened(DialogName.Settings), Browse, Usual),
+            new SmokeStep(Opened(DialogName.FolderPicker), escape, Usual),
             new SmokeStep(Opened(DialogName.Settings), escape, Usual),
             new SmokeStep(closed, TabKey(config, ConsoleTab.Worktrees), Usual),
             new SmokeStep(worktreesView, string.Empty, Usual),

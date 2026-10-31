@@ -17,6 +17,8 @@ public abstract record ConfigRow(string Key)
 
     public sealed record DefaultBase(WorktreeBase Base) : ConfigRow("default-base");
 
+    public sealed record DefaultPlace(LaunchMode Place) : ConfigRow("default-place");
+
     public sealed record CheckForUpdates(bool On) : ConfigRow("check-for-updates");
 
     /// <summary>A piece of setup: what it is and what was read about it.</summary>

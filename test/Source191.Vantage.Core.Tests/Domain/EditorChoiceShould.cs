@@ -5,9 +5,9 @@ namespace Source191.Vantage.Core.Tests.Domain;
 public sealed class EditorChoiceShould
 {
     [Fact]
-    public void OfferNoVisualStudioPreset()
+    public void OfferVisualStudioInPlaceOfCursor()
     {
-        Enum.GetValues<EditorPreset>().ShouldBe([EditorPreset.VsCode, EditorPreset.Cursor, EditorPreset.Rider, EditorPreset.Explorer, EditorPreset.Custom], "v opens solutions in Visual Studio; e opens folders");
+        Enum.GetValues<EditorPreset>().ShouldBe([EditorPreset.VsCode, EditorPreset.VisualStudio, EditorPreset.Rider, EditorPreset.Explorer, EditorPreset.Custom], "the owner's choice of 31 October 2026");
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public sealed class EditorChoiceShould
 
     [Theory]
     [InlineData(EditorPreset.VsCode)]
-    [InlineData(EditorPreset.Cursor)]
+    [InlineData(EditorPreset.VisualStudio)]
     [InlineData(EditorPreset.Rider)]
     [InlineData(EditorPreset.Explorer)]
     public void KeepAPresetWithoutAnyCommand(EditorPreset preset)

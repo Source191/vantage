@@ -22,6 +22,7 @@ public sealed class SettingsViewShould
         { new SettingsScope.WorktreeRoot(), SettingsField.WorktreeRoot },
         { new SettingsScope.Editor(), SettingsField.Editor },
         { new SettingsScope.Base(), SettingsField.Base },
+        { new SettingsScope.Place(), SettingsField.Place },
     };
 
     [Theory]
@@ -103,6 +104,94 @@ public sealed class SettingsViewShould
     }
 
     [Fact]
+    public void SaveThePlace()
+    {
+        SettingsState state = Reduce(Opened(new SettingsScope.Place()), new SettingsInput.PlaceChanged(LaunchMode.CurrentBranch));
+
+        state.Text.Place.ShouldBe(LaunchMode.CurrentBranch);
+        SettingsView.Reduce(state, new SettingsInput.Save()).Effect.ShouldBeOfType<SettingsEffect.Save>().Settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
+    }
+
+    [Fact]
+    public void AddEachFolderChosenAsALineAfterTheRootsInTheOrderChosen()
+    {
+        SettingsState state = Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.FoldersChosen([Work, @"E:\personal"]));
+
+        state.Text.Roots.ShouldBe($"{Root}\n{Work}\nE:\\personal");
+        state.Problem.ShouldBeNull();
+        state.Focus.ShouldBe(SettingsField.Roots);
+    }
+
+    [Fact]
+    public void AddAChosenFolderAfterATrailingNewLineWithoutABlankLine()
+    {
+        SettingsState typed = Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged($"{Root}\r\n\r\n"));
+
+        Reduce(typed, new SettingsInput.FoldersChosen([Work])).Text.Roots.ShouldBe($"{Root}\n{Work}");
+        Reduce(Reduce(typed, new SettingsInput.RootsChanged(" ")), new SettingsInput.FoldersChosen([Work])).Text.Roots.ShouldBe(Work, "an empty box takes the folder as its first line");
+    }
+
+    [Fact]
+    public void ChangeNothingWhenThePickerChoosesNothing()
+    {
+        SettingsState opened = Opened(new SettingsScope.Roots());
+
+        Reduce(opened, new SettingsInput.FoldersChosen([])).ShouldBe(opened);
+    }
+
+    [Fact]
+    public void RefuseABrowsedFolderThatIsAlreadyARootOnlyAtSave()
+    {
+        SettingsState chosen = Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.FoldersChosen([Root]));
+
+        SettingsState refused = Reduce(chosen, new SettingsInput.Save());
+
+        refused.Problem.ShouldBe(new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)));
+        refused.Focus.ShouldBe(SettingsField.Roots);
+    }
+
+    [Fact]
+    public void BrowseFromTheFolderHoldingTheFirstRoot()
+    {
+        Opened(new SettingsScope.Roots()).BrowseFrom.ShouldBe(FolderPath.From(@"C:\Users\me\source"));
+        Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("relative\nD:\\")).BrowseFrom.ShouldBe(FolderPath.From(@"D:\"), "a root with no parent is its own start");
+        Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged(" ")).BrowseFrom.ShouldBeNull();
+    }
+
+    [Fact]
+    public void ReplaceTheWorktreeRootWithTheFolderChosen()
+    {
+        SettingsState opened = Opened(new SettingsScope.WorktreeRoot());
+
+        SettingsState chosen = Reduce(opened, new SettingsInput.FoldersChosen([@"D:\trees"]));
+
+        chosen.Text.WorktreeRoot.ShouldBe(@"D:\trees");
+        chosen.Text.Roots.ShouldBe(opened.Text.Roots, "the roots are another dialog's");
+        Reduce(opened, new SettingsInput.FoldersChosen([])).ShouldBe(opened);
+        SettingsView.Reduce(chosen, new SettingsInput.Save()).Effect.ShouldBeOfType<SettingsEffect.Save>().Settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\trees"));
+    }
+
+    [Fact]
+    public void BrowseForTheWorktreeRootFromTheFolderHoldingIt()
+    {
+        SettingsState opened = Opened(new SettingsScope.WorktreeRoot());
+
+        opened.BrowseFrom.ShouldBe(FolderPath.From(@"C:\Users\me\source"));
+        Reduce(opened, new SettingsInput.WorktreeRootChanged(@"E:\")).BrowseFrom.ShouldBe(FolderPath.From(@"E:\"), "a worktree root with no parent is its own start");
+        Reduce(opened, new SettingsInput.WorktreeRootChanged("trees")).BrowseFrom.ShouldBeNull();
+    }
+
+    [Fact]
+    public void BrowseOnlyForTheTwoFolderSettings()
+    {
+        Opened(new SettingsScope.Roots()).Browses.ShouldBe(SettingsBrowse.SeveralFolders);
+        Opened(new SettingsScope.WorktreeRoot()).Browses.ShouldBe(SettingsBrowse.OneFolder);
+        Opened(new SettingsScope.Editor()).Browses.ShouldBe(SettingsBrowse.No);
+        Opened(new SettingsScope.Base()).Browses.ShouldBe(SettingsBrowse.No);
+        Opened(new SettingsScope.Place()).Browses.ShouldBe(SettingsBrowse.No);
+    }
+
+    [Fact]
     public void ClearTheProblemOnceTheValueIsValid()
     {
         SettingsState refused = SettingsView.Reduce(Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("repos")), new SettingsInput.Save()).State;
@@ -156,6 +245,7 @@ public sealed class SettingsViewShould
         SettingsScope.For(rows.OfType<ConfigRow.WorktreeRoot>().Single()).ShouldBe(new SettingsScope.WorktreeRoot());
         SettingsScope.For(rows.OfType<ConfigRow.OpenFolderWith>().Single()).ShouldBe(new SettingsScope.Editor());
         SettingsScope.For(rows.OfType<ConfigRow.DefaultBase>().Single()).ShouldBe(new SettingsScope.Base());
+        SettingsScope.For(rows.OfType<ConfigRow.DefaultPlace>().Single()).ShouldBe(new SettingsScope.Place());
     }
 
     private static SettingsState Reduce(SettingsState state, SettingsInput input)

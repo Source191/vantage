@@ -18,6 +18,32 @@ public sealed record SettingsState(SettingsText Text, SettingsProblem? Problem, 
         return new SettingsState(settings.ToText(), Problem: null, scope.Field, folderExists, scope);
     }
 
+    /// <summary>Whether the dialog's Browse opens the folder picker: for several repository roots, for the one worktree root, or not at all.</summary>
+    public SettingsBrowse Browses => Scope switch
+    {
+        SettingsScope.Roots => SettingsBrowse.SeveralFolders,
+        SettingsScope.WorktreeRoot => SettingsBrowse.OneFolder,
+        _ => SettingsBrowse.No,
+    };
+
+    /// <summary>Where the folder picker opens: the folder holding the first root typed that is a full path, or the worktree root typed (the folder itself when it has no parent); nothing when there is none.</summary>
+    public FolderPath? BrowseFrom => FolderTyped() is FolderPath typed ? typed.Parent ?? typed : null;
+
     /// <summary>The executable and arguments fields show only for a custom editor.</summary>
     public bool ShowsCustomEditor => Text.Preset == EditorPreset.Custom;
+
+    private FolderPath? FolderTyped() => Browses switch
+    {
+        SettingsBrowse.SeveralFolders => Text.Roots.Split('\n').Select(line => line.Trim()).Parsed<FolderPath>().FirstOrDefault(),
+        SettingsBrowse.OneFolder => FolderPath.TryParse(Text.WorktreeRoot.Trim(), out FolderPath? root) ? root : null,
+        SettingsBrowse.No => null,
+    };
+}
+
+/// <summary>What a setting's dialog can browse for: nothing, the one worktree root, or several repository roots.</summary>
+public enum SettingsBrowse
+{
+    No,
+    OneFolder,
+    SeveralFolders,
 }

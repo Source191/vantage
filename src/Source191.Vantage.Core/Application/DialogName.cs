@@ -8,6 +8,7 @@ public enum DialogName
     Rename,
     Resume,
     Settings,
+    FolderPicker,
     DeleteSession,
     DeleteBranch,
     CloseEmpty,

@@ -729,7 +729,7 @@ public sealed class WordingShould
     [Fact]
     public void NameEveryEditorPreset()
     {
-        Enum.GetValues<EditorPreset>().Select(Wording.Describe).ShouldBe(["VS Code", "Cursor", "Rider", "Explorer", "Custom"]);
+        Enum.GetValues<EditorPreset>().Select(Wording.Describe).ShouldBe(["VS Code", "Visual Studio", "Rider", "Explorer", "Custom"]);
     }
 
     [Fact]

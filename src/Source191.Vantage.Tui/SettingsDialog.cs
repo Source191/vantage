@@ -68,6 +68,27 @@ internal static class SettingsDialog
             Apply(new SettingsInput.Save());
         }
 
+        // The picker answers folders; the reducer adds them as lines and F5 checks them with the typed ones.
+        void Browse()
+        {
+            using OpenDialog picker = new() { Title = Wording.FolderPickerTitle(scope), OpenMode = OpenMode.Directory, AllowsMultipleSelection = state.Browses == SettingsBrowse.SeveralFolders };
+            if (state.BrowseFrom is FolderPath from)
+            {
+                picker.Path = from.Value;
+            }
+
+            picker.SetScheme(Palette.Focusable(Palette.White));
+            DialogTabTitle.Apply(app, log, picker, DialogName.FolderPicker);
+            app.Run(picker);
+            Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
+            Apply(new SettingsInput.WorktreeRootChanged(controls.WorktreeRoot.Text));
+            Apply(new SettingsInput.FoldersChosen(picker.Canceled ? [] : picker.FilePaths));
+            binding = true;
+            controls.ShowFolders(state);
+            binding = false;
+        }
+
+        bool browses = state.Browses != SettingsBrowse.No;
         controls.WhenFocused(field => Apply(new SettingsInput.FieldFocused(field)));
         controls.Roots.ContentsChanged += (_, _) => Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
         controls.WorktreeRoot.TextChanging += (_, changing) => Apply(new SettingsInput.WorktreeRootChanged(changing.Result ?? string.Empty));
@@ -75,11 +96,17 @@ internal static class SettingsDialog
         controls.Executable.TextChanging += (_, changing) => Apply(new SettingsInput.ExecutableChanged(changing.Result ?? string.Empty));
         controls.Arguments.TextChanging += (_, changing) => Apply(new SettingsInput.ArgumentsChanged(changing.Result ?? string.Empty));
         controls.BaseRef.ValueChanged += (_, _) => Apply(new SettingsInput.BaseChanged(controls.BaseRef.Value == 1 ? WorktreeBase.Head : WorktreeBase.RemoteDefault));
+        controls.Place.ValueChanged += (_, _) => Apply(new SettingsInput.PlaceChanged((LaunchMode)(controls.Place.Value ?? 0)));
         // Enter in a one-line field does nothing by itself: only Save (F5) saves.
         controls.WorktreeRoot.Accepting += (_, accepting) => accepting.Handled = true;
         controls.Executable.Accepting += (_, accepting) => accepting.Handled = true;
         controls.Arguments.Accepting += (_, accepting) => accepting.Handled = true;
-        dialog.KeyDown += (_, key) => key.Handled = key == GuiKey.F5 && WizardControls.Handled(Save);
+        dialog.KeyDown += (_, key) => key.Handled = (key == GuiKey.F5 && WizardControls.Handled(Save)) || (browses && key == GuiKey.F3 && WizardControls.Handled(Browse));
+        if (browses)
+        {
+            dialog.AddButton(WizardControls.Button(Wording.BrowseButton, Browse));
+        }
+
         dialog.AddButton(WizardControls.Button("_Save (F5)", Save));
         dialog.AddButton(WizardControls.Button("_Cancel (Esc)", () => Apply(new SettingsInput.Cancel())));
         dialog.Initialized += (_, _) => Push();

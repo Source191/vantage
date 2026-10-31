@@ -1,5 +1,6 @@
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application;
@@ -14,6 +15,8 @@ public sealed class EditorLocatorShould
         @"C:\Program Files",
         @"C:\Program Files (x86)",
         @"C:\Windows");
+
+    private readonly FakeProcessRunner processes = new();
 
     [Fact]
     public async Task FindCodeExeBesideTheCodeCmdShimOnThePath()
@@ -42,7 +45,7 @@ public sealed class EditorLocatorShould
     [Fact]
     public async Task AnswerNullWhenNotInstalled()
     {
-        EditorPreset[] presets = [EditorPreset.VsCode, EditorPreset.Cursor, EditorPreset.Rider, EditorPreset.Custom];
+        EditorPreset[] presets = [EditorPreset.VsCode, EditorPreset.VisualStudio, EditorPreset.Rider, EditorPreset.Custom];
         foreach (EditorPreset preset in presets)
         {
             (await Locate(new FakeFolders(), preset)).ShouldBeNull(preset.ToString());
@@ -58,11 +61,25 @@ public sealed class EditorLocatorShould
     }
 
     [Fact]
-    public async Task FindCursorInTheUserInstallFolder()
+    public async Task AskVswhereForTheNewestVisualStudio()
     {
-        FakeFolders folders = new FakeFolders().WithFile(@"C:\Users\me\AppData\Local\Programs\cursor\Cursor.exe");
+        const string vswhere = @"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe";
+        const string devenv = @"C:\Program Files\Microsoft Visual Studio\18\Professional\Common7\IDE\devenv.exe";
+        FakeFolders folders = new FakeFolders().WithFile(vswhere).WithFile(devenv);
+        processes.AnswerAll(new ProcessResult(0, devenv + "\r\n", string.Empty));
 
-        (await Locate(folders, EditorPreset.Cursor)).ShouldBe(@"C:\Users\me\AppData\Local\Programs\cursor\Cursor.exe");
+        (await Locate(folders, EditorPreset.VisualStudio)).ShouldBe(devenv);
+        processes.CapturedRequests.Single().FileName.ShouldBe(vswhere);
+        processes.CapturedRequests.Single().Arguments.ShouldBe(["-latest", "-property", "productPath"]);
+    }
+
+    [Fact]
+    public async Task AnswerNullWhenVswhereNamesNothingThatExists()
+    {
+        FakeFolders folders = new FakeFolders().WithFile(@"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe");
+        processes.AnswerAll(new ProcessResult(0, @"C:\Gone\devenv.exe", string.Empty));
+
+        (await Locate(folders, EditorPreset.VisualStudio)).ShouldBeNull();
     }
 
     [Fact]
@@ -95,8 +112,8 @@ public sealed class EditorLocatorShould
         (await Locate(new FakeFolders(), EditorPreset.Explorer)).ShouldBe(@"C:\Windows\explorer.exe");
     }
 
-    private static Task<string?> Locate(FakeFolders folders, EditorPreset preset)
+    private Task<string?> Locate(FakeFolders folders, EditorPreset preset)
     {
-        return new EditorLocator(folders, Where).LocateAsync(preset, CancellationToken.None);
+        return new EditorLocator(folders, processes, Where).LocateAsync(preset, CancellationToken.None);
     }
 }

@@ -26,6 +26,7 @@ internal sealed class SettingsControls
         Executable.Text = text.Executable;
         Arguments.Text = text.Arguments;
         BaseRef.Value = text.Base == WorktreeBase.Head ? 1 : 0;
+        Place.Value = (int)text.Place;
         Custom = [Caption(RightColumn, 1, "Executable (full path, not a .cmd or .bat)"), Executable, Caption(RightColumn, 4, $"Arguments ({EditorChoice.FolderPlaceholder} is the folder)"), Arguments];
         (IReadOnlyDictionary<SettingsField, View> Fields, View[] All, int Height) layout = state.Scope switch
         {
@@ -45,6 +46,10 @@ internal sealed class SettingsControls
                 new Dictionary<SettingsField, View> { [SettingsField.Base] = BaseRef },
                 [Caption(LeftColumn, 0, "Worktree base (↑↓ then Space)"), BaseRef, Placed(Problem, 4)],
                 10),
+            SettingsScope.Place => (
+                new Dictionary<SettingsField, View> { [SettingsField.Place] = Place },
+                [Caption(LeftColumn, 0, Wording.PlaceCaption), Place, Placed(Problem, 4)],
+                10),
             _ => throw new UnreachableException($"{state.Scope.GetType().Name} has no controls."),
         };
         (Fields, All, Height) = layout;
@@ -63,7 +68,9 @@ internal sealed class SettingsControls
 
     public TextField Arguments { get; } = new() { X = RightColumn, Y = 5, Width = 40 };
 
-    public OptionSelector BaseRef { get; } = new() { X = LeftColumn, Y = 1, Labels = ["origin default branch", "current HEAD"], Value = 0 };
+    public OptionSelector BaseRef { get; } = new() { X = LeftColumn, Y = 1, Labels = [.. Enum.GetValues<WorktreeBase>().Select(Wording.Describe)], Value = 0 };
+
+    public OptionSelector Place { get; } = new() { X = LeftColumn, Y = 1, Labels = [.. Enum.GetValues<LaunchMode>().Select(Wording.Describe)], Value = 0 };
 
     public Label Problem { get; } = Text(LeftColumn, Palette.Red, Dim.Fill(1));
 
@@ -85,6 +92,13 @@ internal sealed class SettingsControls
         Array.ForEach(Custom, view => view.Visible = state.ShowsCustomEditor);
         Problem.Text = state.Problem is null ? string.Empty : Wording.Describe(state.Problem);
         Fields[state.Focus].SetFocus();
+    }
+
+    /// <summary>Puts the folders the state holds into their boxes, after the folder picker has added to or replaced them.</summary>
+    public void ShowFolders(SettingsState state)
+    {
+        Roots.Text = state.Text.Roots;
+        WorktreeRoot.Text = state.Text.WorktreeRoot;
     }
 
     /// <summary>Tells the dialog which field took focus, by Tab, a click or the dialog itself.</summary>

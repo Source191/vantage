@@ -4,7 +4,7 @@ namespace Source191.Vantage.Domain;
 public enum EditorPreset
 {
     VsCode,
-    Cursor,
+    VisualStudio,
     Rider,
     Explorer,
     Custom,

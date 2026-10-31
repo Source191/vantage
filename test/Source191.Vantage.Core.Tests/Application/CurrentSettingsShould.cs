@@ -7,7 +7,7 @@ namespace Source191.Vantage.Core.Tests.Application;
 public sealed class CurrentSettingsShould
 {
     private static readonly FolderPath Home = FolderPath.From(@"C:\Users\me");
-    private static readonly Settings Saved = Settings.Resolve([FolderPath.From(@"D:\work")], FolderPath.From(@"D:\worktrees"), EditorChoice.Of(EditorPreset.Cursor), WorktreeBase.Head, Home);
+    private static readonly Settings Saved = Settings.Resolve([FolderPath.From(@"D:\work")], FolderPath.From(@"D:\worktrees"), EditorChoice.Of(EditorPreset.VisualStudio), WorktreeBase.Head, Home);
 
     [Fact]
     public async Task AnswerTheSettingsItWasBuiltWith()

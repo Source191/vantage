@@ -11,6 +11,7 @@ public enum SettingsField
     Executable,
     Arguments,
     Base,
+    Place,
 }
 
 /// <summary>What happened in a setting's dialog: each case is one control event or button, raised by the dialog that binds them.</summary>
@@ -18,6 +19,9 @@ public abstract record SettingsInput
 {
     /// <summary>The repository roots, one per line, as typed.</summary>
     public sealed record RootsChanged(string Text) : SettingsInput;
+
+    /// <summary>The folders chosen in the picker, in the order chosen; none when it was cancelled.</summary>
+    public sealed record FoldersChosen(IReadOnlyList<string> Folders) : SettingsInput;
 
     public sealed record WorktreeRootChanged(string Text) : SettingsInput;
 
@@ -28,6 +32,8 @@ public abstract record SettingsInput
     public sealed record ArgumentsChanged(string Text) : SettingsInput;
 
     public sealed record BaseChanged(WorktreeBase Base) : SettingsInput;
+
+    public sealed record PlaceChanged(LaunchMode Place) : SettingsInput;
 
     /// <summary>A field took focus, by Tab, a click or the dialog itself.</summary>
     public sealed record FieldFocused(SettingsField Field) : SettingsInput;

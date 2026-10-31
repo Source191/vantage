@@ -173,7 +173,7 @@ public static partial class Wording
         return preset switch
         {
             EditorPreset.VsCode => "VS Code",
-            EditorPreset.Cursor => "Cursor",
+            EditorPreset.VisualStudio => "Visual Studio",
             EditorPreset.Rider => "Rider",
             EditorPreset.Explorer => "Explorer",
             EditorPreset.Custom => "Custom",

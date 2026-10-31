@@ -3,12 +3,6 @@ using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Launch;
 
-public enum LaunchMode
-{
-    CurrentBranch,
-    NewWorktree,
-}
-
 /// <summary>What the user typed and chose in the wizard, before any rule is applied.</summary>
 public sealed record LaunchRequest(
     RepositoryChoice Repository,

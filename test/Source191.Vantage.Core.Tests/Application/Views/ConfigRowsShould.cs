@@ -22,12 +22,13 @@ public sealed class ConfigRowsShould
     {
         IReadOnlyList<ConfigRow> rows = ConfigRows.For(TestSettings.For(Repos), AllSetUp);
 
-        rows.Take(5).ShouldBe(
+        rows.Take(6).ShouldBe(
         [
             new ConfigRow.RepositoryRoot(0, FolderPath.From(Repos)),
             new ConfigRow.WorktreeRoot(FolderPath.From(@"C:\Users\me\source\worktrees")),
             new ConfigRow.OpenFolderWith(EditorChoice.VsCode),
             new ConfigRow.DefaultBase(WorktreeBase.RemoteDefault),
+            new ConfigRow.DefaultPlace(LaunchMode.NewWorktree),
             new ConfigRow.CheckForUpdates(On: true),
         ]);
     }
@@ -65,7 +66,7 @@ public sealed class ConfigRowsShould
     {
         IReadOnlyList<ConfigRow> rows = ConfigRows.For(TestSettings.For(Repos), AllSetUp);
 
-        rows.Skip(5).ShouldBe(
+        rows.Skip(6).ShouldBe(
         [
             new ConfigRow.Setup(SetupItem.SettingsFile, new SetupState.At(SettingsFile)),
             new ConfigRow.Setup(SetupItem.TerminalProfiles, new SetupState.At(Fragment)),
