@@ -75,12 +75,18 @@ public sealed class SettingsFileShould
     }
 
     [Fact]
-    public void ReadAnOldVisualStudioPresetAsVsCode()
+    public void ReadAnOldCursorPresetAsVsCode()
     {
-        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], null, null, new EditorSetting("VisualStudio", null, null)), Home);
+        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], null, null, new EditorSetting("Cursor", null, null)), Home);
 
         settings.Editor.ShouldBe(EditorChoice.VsCode);
         settings.RepositoryRoots.ShouldBe([FolderPath.From(@"D:\work")]);
+    }
+
+    [Fact]
+    public void ReadAVisualStudioPreset()
+    {
+        SettingsFile.From(new VantageConfig(null, null, null, new EditorSetting("VisualStudio", null, null)), Home).Editor.ShouldBe(EditorChoice.Of(EditorPreset.VisualStudio));
     }
 
     [Fact]

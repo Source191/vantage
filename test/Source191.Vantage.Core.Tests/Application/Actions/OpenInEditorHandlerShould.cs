@@ -43,13 +43,13 @@ public sealed class OpenInEditorHandlerShould
     [Fact]
     public async Task ReportAnEditorThatIsNotInstalled()
     {
-        EditorChoice cursor = EditorChoice.Of(EditorPreset.Cursor);
-        OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(cursor));
+        EditorChoice visualStudio = EditorChoice.Of(EditorPreset.VisualStudio);
+        OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(visualStudio));
 
         Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(FolderPath.From(Orders)), CancellationToken.None);
 
         desktop.Started.ShouldBeEmpty();
-        outcome.ShouldBe(new OpenInEditorOutcome.EditorNotFound(cursor));
+        outcome.ShouldBe(new OpenInEditorOutcome.EditorNotFound(visualStudio));
     }
 
     [Fact]
