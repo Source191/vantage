@@ -18,9 +18,9 @@ public sealed class CodeNameShould
     [Fact]
     public void NameANestedTypeWithTheTypeThatHoldsIt()
     {
-        CodeName name = CodeName.For(typeof(StartSessionOutcome.Started));
+        CodeName name = CodeName.For(typeof(StartSessionOutcome.NotListedYet));
 
-        name.ToString().ShouldBe("StartSessionOutcome.Started");
+        name.ToString().ShouldBe("StartSessionOutcome.NotListedYet");
     }
 
     [Fact]

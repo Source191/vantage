@@ -14,7 +14,7 @@
 ## 3. The wizard starts and opens (reducer)
 
 - [x] 3.1 Red: `WizardViewShould` asserts `WizardInput.Start` (no argument) returns `WizardEffect.Launch` with the plan, and Enter in a fixed folder's name the same effect. Green: drop `OpenInTab` from `WizardInput.Start` and `WizardEffect.Launch`. Verify the Core tests pass.
-- [ ] 3.2 Red: `WordingShould` asserts the wizard hints read "… Enter or Tab next field   F5 start and open in tab   Esc cancel" and, on a fixed folder, "Enter or F5 starts and opens in tab   Esc cancel". Green: `Wording.WizardHint`; the `WizardView` and `WizardInput` summaries stop naming F6. Verify the Core tests pass.
+- [x] 3.2 Red: `WordingShould` asserts the wizard hints read "… Enter or Tab next field   F5 start and open in tab   Esc cancel" and, on a fixed folder, "Enter or F5 starts and opens in tab   Esc cancel". Green: `Wording.WizardHint`; the `WizardView` and `WizardInput` summaries stop naming F6. Verify the Core tests pass.
 
 ## 4. Starting always opens the tab (handler)
 

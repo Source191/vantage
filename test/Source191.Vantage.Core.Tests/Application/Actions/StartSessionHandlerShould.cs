@@ -48,18 +48,9 @@ public sealed class StartSessionHandlerShould
     }
 
     [Fact]
-    public async Task ReportTheStartWithoutATabWhenNoneWasAsked()
+    public async Task OpenTheNewSessionInItsOwnTab()
     {
-        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: false), CancellationToken.None);
-
-        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", JobId.From("81cdb0f9")));
-        terminal.Opened.ShouldBeEmpty();
-    }
-
-    [Fact]
-    public async Task OpenTheNewSessionInItsOwnTabWhenAsked()
-    {
-        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(Plan), CancellationToken.None);
 
         footer.ShouldBe(new StartSessionOutcome.StartedAndOpened("Fix flaky tests", JobId.From("81cdb0f9"), new OpenTabOutcome.Opened("Fix flaky tests", "Red", ColourReused: false)));
         TabLaunch tab = terminal.Opened.Single();
@@ -72,7 +63,7 @@ public sealed class StartSessionHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("agents"), new ProcessResult(0, "[]", string.Empty));
 
-        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(Plan), CancellationToken.None);
 
         footer.ShouldBe(new StartSessionOutcome.NotListedYet("Fix flaky tests", JobId.From("81cdb0f9")));
         terminal.Opened.ShouldBeEmpty();
@@ -83,7 +74,7 @@ public sealed class StartSessionHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "Workspace not trusted. Run `claude` once and accept the trust prompt, then retry."));
 
-        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: true), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(Plan), CancellationToken.None);
 
         footer.ShouldBe(new StartSessionOutcome.NotTrusted(FolderPath.From(Repository)));
         TabLaunch tab = terminal.Opened.Single();
@@ -96,7 +87,7 @@ public sealed class StartSessionHandlerShould
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "supervisor not running"));
 
-        Outcome footer = await Handler.HandleAsync(new StartSession(Plan, OpenInTab: false), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(Plan), CancellationToken.None);
 
         footer.ShouldBe(new StartSessionOutcome.Failed("supervisor not running"));
         terminal.Opened.ShouldBeEmpty();
@@ -107,10 +98,10 @@ public sealed class StartSessionHandlerShould
     {
         LaunchPlan inWorktree = Plan with { Directory = FolderPath.From(Worktree), Repository = new RepositoryChoice("Northwind.Orders-fix-flaky-tests", FolderPath.From(Worktree), IsRepository: true) };
 
-        Outcome footer = await Handler.HandleAsync(new StartSession(inWorktree, OpenInTab: false), CancellationToken.None);
+        Outcome footer = await Handler.HandleAsync(new StartSession(inWorktree), CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(Worktree);
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
-        footer.ShouldBe(new StartSessionOutcome.Started("Fix flaky tests", JobId.From("81cdb0f9")));
+        footer.ShouldBeOfType<StartSessionOutcome.StartedAndOpened>().Name.ShouldBe("Fix flaky tests");
     }
 }

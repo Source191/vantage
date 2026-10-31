@@ -70,7 +70,7 @@ public sealed class DiagnosticsPrivacyShould
 
         IReadOnlyList<string> lines = sink.Lines;
         lines.ShouldContain(line => line.Contains("hand-off AttachToSession", StringComparison.Ordinal));
-        lines.ShouldContain(line => line.Contains("effect StartSession -> StartSessionOutcome.Started", StringComparison.Ordinal));
+        lines.ShouldContain(line => line.Contains("effect StartSession -> StartSessionOutcome.StartedAndOpened", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Effect RemoveWorktree: GitException", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Load SessionsViewState: InvalidOperationException", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Crash: InvalidOperationException", StringComparison.Ordinal));
@@ -144,9 +144,9 @@ public sealed class DiagnosticsPrivacyShould
         PlannedWorktree worktree = PlannedWorktree.For(FolderPath.From(WorktreeRoot), FolderPath.From(Repository), WorktreeSlug.From(Branch));
         LaunchPlan plan = new(FolderPath.From(Repository), SessionName.From(Name), worktree, ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, Prompt, new RepositoryChoice("Northwind.Orders", FolderPath.From(Repository), IsRepository: true));
 
-        Outcome outcome = await dispatcher.DispatchAsync(new StartSession(plan, OpenInTab: false), CancellationToken.None);
+        Outcome outcome = await dispatcher.DispatchAsync(new StartSession(plan), CancellationToken.None);
 
-        outcome.ShouldBeOfType<StartSessionOutcome.Started>();
+        outcome.ShouldBeOfType<StartSessionOutcome.StartedAndOpened>();
     }
 
     private async Task RemoveADirtyWorktreeAsync(GitCli git)
