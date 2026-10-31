@@ -4,6 +4,7 @@ public sealed class RunningLoads
 {
     private readonly Lock gate = new();
     private int reserved;
+    private int running;
 
     public bool IsRunning
     {
@@ -11,7 +12,7 @@ public sealed class RunningLoads
         {
             lock (gate)
             {
-                return reserved > 0;
+                return reserved + running > 0;
             }
         }
     }
@@ -20,7 +21,7 @@ public sealed class RunningLoads
     {
         lock (gate)
         {
-            if (reserved > 0)
+            if (reserved + running > 0)
             {
                 return false;
             }
@@ -30,4 +31,28 @@ public sealed class RunningLoads
             return true;
         }
     }
+
+    public Func<CancellationToken, Task<T>> Track<T>(Func<CancellationToken, Task<T>> load) => async cancellationToken =>
+    {
+        lock (gate)
+        {
+            running++;
+            if (reserved > 0)
+            {
+                reserved--;
+            }
+        }
+
+        try
+        {
+            return await load(cancellationToken);
+        }
+        finally
+        {
+            lock (gate)
+            {
+                running--;
+            }
+        }
+    };
 }
