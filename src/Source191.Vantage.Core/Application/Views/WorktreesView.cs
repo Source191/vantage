@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
@@ -109,7 +110,7 @@ public static class WorktreesView
     }
 
     /// <summary>Either an effect to run or a status message explaining why nothing happens.</summary>
-    private static WorktreesViewUpdate RowAction(WorktreesViewState state, Func<WorktreeRow, (ViewEffect? Effect, StatusMessage Message)> decide)
+    private static WorktreesViewUpdate RowAction(WorktreesViewState state, Func<WorktreeRow, RowDecision> decide)
     {
         WorktreeRow? row = state.Selected;
         if (row is null)
@@ -117,25 +118,26 @@ public static class WorktreesView
             return Unchanged(state with { Message = new StatusMessage.NoWorktreeSelected() });
         }
 
-        (ViewEffect? effect, StatusMessage message) = decide(row);
-
-        return effect is null
-            ? Unchanged(state with { Message = message })
-            : Effect(state with { Message = message }, effect);
+        return decide(row) switch
+        {
+            RowDecision.Act act => Effect(state with { Message = StatusMessage.None }, act.Effect),
+            RowDecision.Explain explain => Unchanged(state with { Message = explain.Message }),
+            _ => throw new UnreachableException(),
+        };
     }
 
-    private static (ViewEffect?, StatusMessage) Remove(WorktreeRow row, bool forced)
+    private static RowDecision Remove(WorktreeRow row, bool forced)
     {
         RemovalDecision decision = RemovalDecision.For(row.Facts(), forced);
         if (decision.Outcome == RemovalOutcome.Refused)
         {
-            return (null, new StatusMessage.NotRemoved(decision.Reason, OfferForce: !forced && decision.CanBeForced));
+            return new RowDecision.Explain(new StatusMessage.NotRemoved(decision.Reason, OfferForce: !forced && decision.CanBeForced));
         }
 
         // The folder name is what the dialog says it deletes, so that is the text to type; a branch name would be a second thing to look up.
         return forced
-            ? (new ConfirmForceRemove(row, row.FolderName), StatusMessage.None)
-            : (new RemoveWorktree(row, Forced: false), StatusMessage.None);
+            ? new RowDecision.Act(new ConfirmForceRemove(row, row.FolderName))
+            : new RowDecision.Act(new RemoveWorktree(row, Forced: false));
     }
 
     /// <summary>The typed text must match exactly; anything else says what was typed so a near miss is obvious.</summary>
@@ -153,40 +155,41 @@ public static class WorktreesView
 
     private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove) => Effect(state with { Message = new StatusMessage.Working(remove) }, remove);
 
-    private static (ViewEffect?, StatusMessage) PullRequestOf(WorktreeRow row) => row.PullRequest switch
+    private static RowDecision PullRequestOf(WorktreeRow row) => row.PullRequest switch
     {
-        PullRequestLookup.Found found => (new OpenPullRequest(found.PullRequest), StatusMessage.None),
-        PullRequestLookup.Missing missing => (null, new StatusMessage.NoPullRequest(row.FolderName, missing.Gap, missing.Host)),
-        _ => (null, StatusMessage.None),
+        PullRequestLookup.Found found => new RowDecision.Act(new OpenPullRequest(found.PullRequest)),
+        PullRequestLookup.Missing missing => new RowDecision.Explain(new StatusMessage.NoPullRequest(row.FolderName, missing.Gap, missing.Host)),
+        _ => new RowDecision.Explain(StatusMessage.None),
     };
 
-    private static (ViewEffect?, StatusMessage) Prune(WorktreeRow row)
+    private static RowDecision Prune(WorktreeRow row)
     {
         return row.OwnerExists
-            ? (new PruneRepository(row.Repository), StatusMessage.None)
-            : (null, new StatusMessage.NothingToPrune(row.RepositoryName));
+            ? new RowDecision.Act(new PruneRepository(row.Repository))
+            : new RowDecision.Explain(new StatusMessage.NothingToPrune(row.RepositoryName));
     }
 
     /// <summary>A real worktree is one git still has: ok, locked, or elsewhere (registered with a repository outside the roots).</summary>
-    private static (ViewEffect?, StatusMessage) InRealWorktree(WorktreeRow row, ViewEffect effect)
+    private static RowDecision InRealWorktree(WorktreeRow row, ViewEffect effect)
     {
         return row.Health.Kind is WorktreeHealthKind.Ok or WorktreeHealthKind.Locked or WorktreeHealthKind.Elsewhere && row.FolderExists
-            ? (effect, StatusMessage.None)
-            : (null, new StatusMessage.LeftoverFolder(row.FolderName));
+            ? new RowDecision.Act(effect)
+            : new RowDecision.Explain(new StatusMessage.LeftoverFolder(row.FolderName));
     }
 
     /// <summary>The folder keys need a folder on disc; a leftover whose folder is gone is refused as the start and shell keys refuse it.</summary>
-    private static (ViewEffect?, StatusMessage) WithFolder(WorktreeRow row, ViewEffect effect)
+    private static RowDecision WithFolder(WorktreeRow row, ViewEffect effect)
     {
         return row.FolderExists
-            ? (effect, StatusMessage.None)
-            : (null, new StatusMessage.LeftoverFolder(row.FolderName));
+            ? new RowDecision.Act(effect)
+            : new RowDecision.Explain(new StatusMessage.LeftoverFolder(row.FolderName));
     }
-    private static (ViewEffect?, StatusMessage) JumpToSession(WorktreeRow row)
+
+    private static RowDecision JumpToSession(WorktreeRow row)
     {
         return row.SessionId is null
-            ? (null, new StatusMessage.NoSessionIn(row.FolderName))
-            : (new JumpToSession(row.SessionId), StatusMessage.None);
+            ? new RowDecision.Explain(new StatusMessage.NoSessionIn(row.FolderName))
+            : new RowDecision.Act(new JumpToSession(row.SessionId));
     }
 
     private static WorktreesViewUpdate Unchanged(WorktreesViewState state) => new(state, []);
