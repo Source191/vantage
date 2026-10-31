@@ -47,4 +47,29 @@ public sealed class LatestSessionsShould
         completedBeforeTheListing.ShouldBeFalse();
         sessions.Select(session => session.Name).ShouldBe(["fix-orders", "fix-billing"]);
     }
+
+    [Fact]
+    public async Task AnswerNoSessionsWhenTheFirstListingFails()
+    {
+        LatestSessions latest = Latest;
+        processes.Fail(new InvalidOperationException("claude could not be started"));
+
+        await Should.ThrowAsync<InvalidOperationException>(() => latest.ListAsync(CancellationToken.None));
+        IReadOnlyList<Session> sessions = await latest.SessionsAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        sessions.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task KeepTheLastSessionsWhenALaterListingFails()
+    {
+        LatestSessions latest = Latest;
+        await latest.ListAsync(CancellationToken.None);
+        processes.Fail(new InvalidOperationException("claude could not be started"));
+
+        await Should.ThrowAsync<InvalidOperationException>(() => latest.ListAsync(CancellationToken.None));
+        IReadOnlyList<Session> sessions = await latest.SessionsAsync(CancellationToken.None);
+
+        sessions.Select(session => session.Name).ShouldBe(["fix-orders", "fix-billing"]);
+    }
 }
