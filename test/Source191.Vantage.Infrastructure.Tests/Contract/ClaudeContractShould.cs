@@ -2,6 +2,7 @@ using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 
@@ -114,7 +115,7 @@ public sealed class ClaudeContractShould
 
             await EndAsync(cli, jobId);
 
-            IReadOnlyList<Session> sessions = await cli.ListSessionsAsync(Cancellation);
+            IReadOnlyList<Session> sessions = (await cli.ListSessionsAsync(Cancellation)).Sessions;
             sessions.ShouldNotContain(session => session.Name == name.Value);
         }
         finally
@@ -122,6 +123,71 @@ public sealed class ClaudeContractShould
             // A second stop and rm of an id already gone is harmless: their results are not read.
             await EndAsync(cli, jobId);
         }
+    }
+
+    /// <summary>
+    /// <c>claude -p</c> with no prompt waits about 17 s for its standard input, listed as an Agent SDK run is (interactive, no status),
+    /// and then exits 1 without calling the model, so the fact spends no tokens.
+    /// </summary>
+    [Fact]
+    public async Task ListAPromptlessPrintRunAsAnAutomatedRun()
+    {
+        string executable = ClaudeContract.Executable();
+        ClaudeCli cli = new(runner, executable);
+        using Process print = StartPrintRun(executable);
+        try
+        {
+            SessionListing listing = await ListedRunAsync(cli, print.Id);
+
+            listing.Sessions.OfType<InteractiveSession>().Select(session => session.ProcessId).ShouldNotContain(print.Id, "the run is listed as a session too");
+            print.StandardInput.Close();
+            await print.WaitForExitAsync(Cancellation).WaitAsync(ListingDeadline, Cancellation);
+            print.ExitCode.ShouldBe(1, "claude -p with no prompt and no input should fail before calling the model");
+        }
+        finally
+        {
+            if (!print.HasExited)
+            {
+                print.Kill();
+            }
+        }
+    }
+
+    private static Process StartPrintRun(string executable)
+    {
+        ProcessStartInfo start = new(executable)
+        {
+            WorkingDirectory = RepositoryFolder.Root(),
+            RedirectStandardInput = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+        start.ArgumentList.Add("-p");
+        foreach (string name in start.Environment.Keys.Where(InheritedEnvironment.ShouldDrop).ToList())
+        {
+            start.Environment.Remove(name);
+        }
+
+        return Process.Start(start) ?? throw new ShouldAssertException("claude -p did not start.");
+    }
+
+    /// <summary>The listing once it holds the run; a new process takes a few seconds to register.</summary>
+    private static async Task<SessionListing> ListedRunAsync(ClaudeCli cli, int processId)
+    {
+        DateTimeOffset deadline = TimeProvider.System.GetUtcNow() + ListingDeadline;
+        while (TimeProvider.System.GetUtcNow() < deadline)
+        {
+            SessionListing listing = await cli.ListSessionsAsync(Cancellation);
+            if (listing.AutomatedRuns.Any(run => run.ProcessId == processId))
+            {
+                return listing;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(1), Cancellation);
+        }
+
+        throw new ShouldAssertException($"claude -p (process {processId}) was not listed as an automated run within {ListingDeadline.TotalSeconds} s.");
     }
 
     private static SessionName UniqueName(string purpose)
@@ -145,7 +211,7 @@ public sealed class ClaudeContractShould
         DateTimeOffset deadline = TimeProvider.System.GetUtcNow() + ListingDeadline;
         while (TimeProvider.System.GetUtcNow() < deadline)
         {
-            IReadOnlyList<Session> sessions = await cli.ListSessionsAsync(Cancellation);
+            IReadOnlyList<Session> sessions = (await cli.ListSessionsAsync(Cancellation)).Sessions;
             Session? listed = sessions.FirstOrDefault(session => session.Name == name.Value);
             if (listed is not null)
             {

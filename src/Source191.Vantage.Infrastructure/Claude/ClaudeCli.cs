@@ -7,7 +7,7 @@ namespace Source191.Vantage.Adapters.Claude;
 
 public sealed partial class ClaudeCli(IProcessRunner processes, string executable) : IClaudeCli
 {
-    public async Task<IReadOnlyList<Session>> ListSessionsAsync(CancellationToken cancellationToken)
+    public async Task<SessionListing> ListSessionsAsync(CancellationToken cancellationToken)
     {
         ProcessResult result = await processes.RunAsync(Request(["agents", "--json", "--all"]), cancellationToken);
 

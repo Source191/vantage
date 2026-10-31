@@ -90,6 +90,34 @@ public sealed class SessionRowEnricherShould : IDisposable
     }
 
     [Fact]
+    public void CountTheAutomatedRunsAndAddUpTheMemoryOfTheirTrees()
+    {
+        registry.InTree(300, "claude", 1).Using(300, Noon.AddSeconds(-20), MemorySize.FromMegabytes(200))
+            .InTree(301, "node", 300).Using(301, Noon.AddSeconds(-19), MemorySize.FromMegabytes(15))
+            .InTree(400, "claude", 1).Using(400, Noon.AddSeconds(-5), MemorySize.FromMegabytes(216));
+
+        AutomatedRuns runs = Enricher.Measure([Run(300), Run(400)]);
+
+        runs.ShouldBe(new AutomatedRuns(2, MemorySize.FromMegabytes(431)));
+    }
+
+    [Fact]
+    public void CountARunWhoseProcessHasGoneWithoutItsMemory()
+    {
+        registry.InTree(400, "claude", 1).Using(400, Noon.AddSeconds(-5), MemorySize.FromMegabytes(216));
+
+        AutomatedRuns runs = Enricher.Measure([Run(400), Run(401)]);
+
+        runs.ShouldBe(new AutomatedRuns(2, MemorySize.FromMegabytes(216)));
+    }
+
+    [Fact]
+    public void MeasureNoRunsAsNone()
+    {
+        Enricher.Measure([]).ShouldBe(AutomatedRuns.None);
+    }
+
+    [Fact]
     public async Task CarryNoMemoryForASessionWithoutAProcessOrWhoseProcessHasGone()
     {
         registry.InTree(100, "claude", 1).Using(100, Noon.AddMinutes(-10), MemorySize.FromMegabytes(296));
@@ -253,6 +281,11 @@ public sealed class SessionRowEnricherShould : IDisposable
     private static BackgroundSession Session(string workingDirectory)
     {
         return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From("81cdb0f9"), "name", FolderPath.From(workingDirectory), Noon, DisplayState.Working);
+    }
+
+    private static AutomatedRun Run(int processId)
+    {
+        return new AutomatedRun(SessionId.From(Guid.NewGuid().ToString()), FolderPath.From(@"C:\repos\Northwind.Orders-fix"), processId);
     }
 
     public void Dispose()

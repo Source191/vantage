@@ -141,13 +141,26 @@ public sealed class WordingOfScreensShould
             SessionIn(DisplayState.Completed, 3), SessionIn(DisplayState.NeedsInput, 4), SessionIn(DisplayState.Stopped, 5),
         ];
 
-        Wording.SessionCounts(rows).ShouldBe(
+        Wording.SessionCounts(rows, AutomatedRuns.None).ShouldBe(
         [
             new TextPart("◐ 2 need input", TextTone.Amber), new TextPart("● 1 working", TextTone.Cyan), new TextPart("○ 1 idle", TextTone.Plain),
             new TextPart("✓ 1 completed", TextTone.Green), new TextPart("■ 1 stopped", TextTone.Grey),
         ]);
-        Wording.SessionCounts([SessionIn(DisplayState.NeedsInput, 0)]).ShouldBe([new TextPart("◐ 1 needs input", TextTone.Amber)]);
-        Wording.SessionCounts([]).ShouldBeEmpty();
+        Wording.SessionCounts([SessionIn(DisplayState.NeedsInput, 0)], AutomatedRuns.None).ShouldBe([new TextPart("◐ 1 needs input", TextTone.Amber)]);
+        Wording.SessionCounts([], AutomatedRuns.None).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void EndTheCountsWithTheAutomatedRunsAndTheirMemoryInGrey()
+    {
+        SessionRow[] rows = [SessionIn(DisplayState.Working, 0), SessionIn(DisplayState.Stopped, 1)];
+
+        Wording.SessionCounts(rows, new AutomatedRuns(1, MemorySize.FromMegabytes(216))).ShouldBe(
+        [
+            new TextPart("● 1 working", TextTone.Cyan), new TextPart("■ 1 stopped", TextTone.Grey), new TextPart("◇ 1 automated 216 MB", TextTone.Grey),
+        ]);
+        Wording.SessionCounts(rows, new AutomatedRuns(2, MemorySize.FromMegabytes(431)))[^1].ShouldBe(new TextPart("◇ 2 automated 431 MB", TextTone.Grey));
+        Wording.SessionCounts([], new AutomatedRuns(1, MemorySize.FromMegabytes(216))).ShouldBe([new TextPart("◇ 1 automated 216 MB", TextTone.Grey)]);
     }
 
     [Fact]

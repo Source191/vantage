@@ -27,7 +27,7 @@ public sealed class ClaudeCliShould
     {
         processes.Answer(request => request.Arguments.Contains("agents"), new ProcessResult(0, """[{"sessionId":"81cdb0f9-0000-4000-8000-000000000001","id":"81cdb0f9","name":"one","cwd":"C:\\x","kind":"background","startedAt":1,"status":"idle","state":"done","pid":5}]""", string.Empty));
 
-        IReadOnlyList<Session> sessions = await Cli.ListSessionsAsync(CancellationToken.None);
+        IReadOnlyList<Session> sessions = (await Cli.ListSessionsAsync(CancellationToken.None)).Sessions;
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe(Executable),
