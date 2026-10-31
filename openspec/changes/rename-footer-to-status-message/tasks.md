@@ -9,7 +9,7 @@
 ## 2. The words around it
 
 - [x] 2.1 Reword `README.md` (five mentions) and `CLAUDE.md` (two) to say the status line or `StatusMessage`, and check `CONTRIBUTING.md`. Verify with a case-insensitive search for footer in the three files that finds nothing.
-- [ ] 2.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview. Verify with `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` once committed.
+- [x] 2.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview. Verify with `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` once committed.
 
 ## 3. Checks
 
