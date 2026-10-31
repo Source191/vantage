@@ -147,7 +147,7 @@ public sealed class StatusTonesShould
     {
         Wording.ToneOf(new ResumeSessionsOutcome(2, 2, [])).ShouldBe(StatusTone.Success);
         Wording.ToneOf(new ResumeSessionsOutcome(1, 2, [])).ShouldBe(StatusTone.Notice);
-        Wording.ToneOf(new ResumeSessionsOutcome(2, 2, [new ResumeNote("fix-123", null)])).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new ResumeSessionsOutcome(2, 2, [new ResumeNote.NeverSentAMessage("fix-123")])).ShouldBe(StatusTone.Notice);
     }
 
     // Status messages, each built with the placeholders below; the placeholder outcome is a success.
