@@ -31,7 +31,7 @@
 
 - [x] 6.1 `LaunchWizardDialog` handles F5 only and has the buttons `_Start (F5)` and Cancel; `WizardResult` and `DialogEffects` carry only the plan. Verify `dotnet build -c Debug`, then headless with `drive`: `n`, choose a repository, type a name, F6 leaves the wizard open and starts nothing, F5 starts the throwaway session and opens its tab (stop and remove it afterwards).
   - 31 October 2026, the Debug build under `drive`, through the compact wizard (`s` on this worktree's row, current branch) so no worktree was created in a real repository; it is the same dialog and the same F5 handler as `n`'s: F6 after a name, then Esc, started nothing (no `vantage-f6-check` job listed); F6 then F5 started one session and its footer read "Started vantage-f5-check (…). Opened vantage-f5-check in …", one job listed, stopped and removed afterwards.
-- [ ] 6.2 README's wizard section (F5 starts and opens the tab; no F6, no start without a tab) and the `s` row of the worktrees keys. Verify the README matches `Wording.WizardHint`.
+- [x] 6.2 README's wizard section (F5 starts and opens the tab; no F6, no start without a tab) and the `s` row of the worktrees keys. Verify the README matches `Wording.WizardHint`.
 
 ## 7. The hand-off check drives vantage here
 
