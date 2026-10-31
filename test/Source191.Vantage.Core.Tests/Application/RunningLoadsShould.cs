@@ -51,4 +51,40 @@ public sealed class RunningLoadsShould
         loads.IsRunning.ShouldBeFalse();
         loads.TryReserve().ShouldBeTrue();
     }
+
+    [Fact]
+    public async Task CountALoadThatWasNotReserved()
+    {
+        TaskCompletionSource<string> rows = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        Func<CancellationToken, Task<string>> load = loads.Track(_ => rows.Task);
+
+        Task<string> loading = load(CancellationToken.None);
+        bool reservedWhileItWaits = loads.TryReserve();
+        rows.SetResult("rows");
+        await loading;
+
+        reservedWhileItWaits.ShouldBeFalse();
+        loads.TryReserve().ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task StayRunningUntilBothFinish()
+    {
+        TaskCompletionSource<string> afterAnAction = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        TaskCompletionSource<string> onShow = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        Func<CancellationToken, Task<string>> reload = loads.Track(_ => afterAnAction.Task);
+        Func<CancellationToken, Task<string>> scan = loads.Track(_ => onShow.Task);
+
+        loads.TryReserve();
+        Task<string> reloading = reload(CancellationToken.None);
+        Task<string> scanning = scan(CancellationToken.None);
+        afterAnAction.SetResult("rows after the action");
+        await reloading;
+        bool runningAfterTheFirst = loads.IsRunning;
+        onShow.SetResult("rows on show");
+        await scanning;
+
+        runningAfterTheFirst.ShouldBeTrue();
+        loads.IsRunning.ShouldBeFalse();
+    }
 }
