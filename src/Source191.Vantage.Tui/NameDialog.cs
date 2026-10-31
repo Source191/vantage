@@ -8,12 +8,12 @@ using Attribute = Terminal.Gui.Drawing.Attribute;
 
 namespace Source191.Vantage.Tui;
 
-/// <summary>Asks for one line of text, pre-filled. Enter in the box answers; Esc or Cancel returns null.</summary>
+/// <summary>Asks for one line of text, pre-filled. Enter in the box answers what was typed; Esc or Cancel answers <see cref="TypedAnswer.Cancelled"/>.</summary>
 internal static class NameDialog
 {
-    public static string? Show(IApplication app, DiagnosticLog log, DialogName name, string title, string message, string current)
+    public static TypedAnswer Show(IApplication app, DiagnosticLog log, DialogName name, string title, string message, string current)
     {
-        string? answer = null;
+        TypedAnswer answer = new TypedAnswer.Cancelled();
         using Dialog dialog = new() { Title = title, Width = 72, Height = 11 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
         DialogTabTitle.Apply(app, log, dialog, name);
@@ -31,7 +31,7 @@ internal static class NameDialog
         input.Accepting += (_, accepting) =>
         {
             accepting.Handled = true;
-            answer = input.Text;
+            answer = new TypedAnswer.Typed(input.Text);
             app.RequestStop(dialog);
         };
         Button cancel = new() { Text = "_Cancel (Esc)" };

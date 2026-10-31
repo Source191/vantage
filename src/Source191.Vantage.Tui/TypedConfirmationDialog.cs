@@ -13,13 +13,13 @@ namespace Source191.Vantage.Tui;
 /// A question answered by typing a specific word, for actions that destroy work. The word is shown highlighted on
 /// its own line and F2 copies it to the clipboard, so it can be pasted rather than typed. Enter in the box is the
 /// only way to confirm, and the dialog stays open, saying what was typed, until the text matches or Esc cancels.
-/// Returns the matching text, or null when cancelled.
+/// Answers the matching text, or <see cref="TypedAnswer.Cancelled"/>.
 /// </summary>
 internal static class TypedConfirmationDialog
 {
-    public static string? Show(IApplication app, DiagnosticLog log, DialogName name, string title, string message, string expected, string expectedKind)
+    public static TypedAnswer Show(IApplication app, DiagnosticLog log, DialogName name, string title, string message, string expected, string expectedKind)
     {
-        string? confirmed = null;
+        TypedAnswer confirmed = new TypedAnswer.Cancelled();
         using Dialog dialog = new() { Title = title, Width = 76, Height = 15 };
         dialog.SetScheme(Palette.Focusable(Palette.White));
         DialogTabTitle.Apply(app, log, dialog, name);
@@ -56,7 +56,7 @@ internal static class TypedConfirmationDialog
             string typed = input.Text;
             if (string.Equals(typed, expected, StringComparison.Ordinal))
             {
-                confirmed = typed;
+                confirmed = new TypedAnswer.Typed(typed);
                 app.RequestStop(dialog);
                 return;
             }
