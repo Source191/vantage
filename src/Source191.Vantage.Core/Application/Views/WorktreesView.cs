@@ -5,8 +5,11 @@ namespace Source191.Vantage.Application.Views;
 
 public sealed record WorktreeRowsLoaded(IReadOnlyList<WorktreeRow> Rows) : ViewInput;
 
-/// <summary>What the user typed into the force-remove confirmation; null when they cancelled.</summary>
-public sealed record ForceConfirmed(WorktreeRow Row, string ConfirmationText, string? Typed) : ViewInput;
+/// <summary>What the user typed into the force-remove confirmation.</summary>
+public sealed record ForceConfirmed(WorktreeRow Row, string ConfirmationText, string Typed) : ViewInput;
+
+/// <summary>The force-remove confirmation was closed without an answer.</summary>
+public sealed record ForceCancelled(WorktreeRow Row) : ViewInput;
 
 /// <summary>Remove through git, or delete a leftover folder; the action re-checks the facts it alone can settle.</summary>
 public sealed record RemoveWorktree(WorktreeRow Row, bool Forced) : ViewEffect, IDialogEffect;
@@ -73,6 +76,7 @@ public static class WorktreesView
             MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             ForceConfirmed confirmed => Force(state, confirmed),
+            ForceCancelled => Unchanged(state with { Message = new StatusMessage.ForceCancelled() }),
             UpdateTabOpened => Effect(state, new Quit()),
             KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Message = StatusMessage.None }),
             KeyPressed pressed => Act(state, pressed.Key),
@@ -145,7 +149,6 @@ public static class WorktreesView
     {
         return confirmed.Typed switch
         {
-            null => Unchanged(state with { Message = new StatusMessage.ForceCancelled() }),
             "" => Unchanged(state with { Message = new StatusMessage.NothingTyped() }),
             string typed when !string.Equals(typed, confirmed.ConfirmationText, StringComparison.Ordinal) =>
                 Unchanged(state with { Message = new StatusMessage.TypedWrongName(typed, confirmed.ConfirmationText) }),

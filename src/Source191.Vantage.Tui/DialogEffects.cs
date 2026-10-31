@@ -67,8 +67,13 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static void Rename(IEffectContext context, BackgroundSession session)
     {
-        string? typed = NameDialog.Show(context.App, context.Diagnostics, DialogName.Rename, "Rename session", Wording.RenamePrompt(session.Name), session.Name);
-        context.Reduce(new RenameConfirmed(session, typed));
+        ViewInput answered = NameDialog.Show(context.App, context.Diagnostics, DialogName.Rename, "Rename session", Wording.RenamePrompt(session.Name), session.Name) switch
+        {
+            TypedAnswer.Typed typed => new RenameConfirmed(session, typed.Text),
+            TypedAnswer.Cancelled => new RenameCancelled(session),
+            _ => throw new UnreachableException(),
+        };
+        context.Reduce(answered);
     }
 
     private static void ConfirmCloseEmpty(IEffectContext context, CloseEmptyTerminals close)
@@ -101,7 +106,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static void ConfirmForce(IEffectContext context, ConfirmForceRemove confirm)
     {
-        string? typed = TypedConfirmationDialog.Show(
+        TypedAnswer answer = TypedConfirmationDialog.Show(
             context.App,
             context.Diagnostics,
             DialogName.ForceRemove,
@@ -109,7 +114,13 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             Wording.ForceRemoveWarning,
             confirm.ConfirmationText,
             "folder name");
-        context.Reduce(new ForceConfirmed(confirm.Row, confirm.ConfirmationText, typed));
+        ViewInput answered = answer switch
+        {
+            TypedAnswer.Typed typed => new ForceConfirmed(confirm.Row, confirm.ConfirmationText, typed.Text),
+            TypedAnswer.Cancelled => new ForceCancelled(confirm.Row),
+            _ => throw new UnreachableException(),
+        };
+        context.Reduce(answered);
     }
 
     /// <summary>
