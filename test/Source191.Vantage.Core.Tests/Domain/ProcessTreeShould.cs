@@ -17,9 +17,8 @@ public sealed class ProcessTreeShould
             .InTree(300, "uvx", 100).Using(300, Noon.AddSeconds(1), MemorySize.FromMegabytes(30))
             .InTree(999, "explorer", 1).Using(999, Noon.AddHours(-1), MemorySize.FromMegabytes(500));
 
-        ProcessTree? tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf);
+        ProcessTree tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf).ShouldBeOfType<ProcessTreeLookup.Found>().Tree;
 
-        tree.ShouldNotBeNull();
         tree.Process.Name.ShouldBe("claude");
         tree.Total.ShouldBe(MemorySize.FromMegabytes(426));
         tree.Count.ShouldBe(4);
@@ -36,9 +35,8 @@ public sealed class ProcessTreeShould
             .InTree(201, "Wispr Flow", 200).Using(201, Noon.AddSeconds(1), MemorySize.FromMegabytes(40))
             .InTree(300, "uvx", 100).Using(300, Noon.AddSeconds(1), MemorySize.FromMegabytes(30));
 
-        ProcessTree? tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf);
+        ProcessTree tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf).ShouldBeOfType<ProcessTreeLookup.Found>().Tree;
 
-        tree.ShouldNotBeNull();
         tree.Children.Select(child => child.Process.ProcessId).ShouldBe([300]);
         tree.Total.ShouldBe(MemorySize.FromMegabytes(326));
         tree.Count.ShouldBe(2);
@@ -53,9 +51,8 @@ public sealed class ProcessTreeShould
             .InTree(201, "node", 200).Using(201, Noon.AddSeconds(2), MemorySize.FromMegabytes(92))
             .InTree(202, "stale", 200).Using(202, Noon.AddHours(-1), MemorySize.FromMegabytes(500));
 
-        ProcessTree? tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf);
+        ProcessTree tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf).ShouldBeOfType<ProcessTreeLookup.Found>().Tree;
 
-        tree.ShouldNotBeNull();
         tree.Children.Single().Usage.ShouldBeNull();
         tree.Children.Single().Children.Select(child => child.Process.ProcessId).ShouldBe([201]);
         tree.Total.ShouldBe(MemorySize.FromMegabytes(388));
@@ -63,11 +60,11 @@ public sealed class ProcessTreeShould
     }
 
     [Fact]
-    public void BeNothingWhenTheRootCannotBeMeasured()
+    public void BeNotMeasurableWhenTheRootIsNotListedOrCannotBeMeasured()
     {
         FakeProcessRegistry processes = new FakeProcessRegistry().InTree(100, "claude", 1);
 
-        ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf).ShouldBeNull();
-        ProcessTree.Under(42, processes.Snapshot(), processes.UsageOf).ShouldBeNull();
+        ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf).ShouldBeOfType<ProcessTreeLookup.NotMeasurable>();
+        ProcessTree.Under(42, processes.Snapshot(), processes.UsageOf).ShouldBeOfType<ProcessTreeLookup.NotMeasurable>();
     }
 }
