@@ -12,6 +12,7 @@ public sealed class PullRequestCatalogueShould : IDisposable
     private static readonly FolderPath Checkout = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
     private static readonly GitHubRepository Orders = new("northwind", "Northwind.Orders");
     private static readonly BranchName Fix = BranchName.From("fix-123");
+    private static readonly Head OnFix = new Head.OnBranch(Fix);
     private static readonly PullRequest Open = new(PullRequestHost.GitHub, 123, new Uri("https://github.com/northwind/Northwind.Orders/pull/123"), PullRequestState.Open, new DateTimeOffset(2026, 10, 20, 9, 0, 0, TimeSpan.Zero));
     private static readonly PullRequest Merged = Open with { State = PullRequestState.Merged };
 
@@ -30,7 +31,7 @@ public sealed class PullRequestCatalogueShould : IDisposable
     [Fact]
     public void AnswerLookingBeforeTheFirstListing()
     {
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
     }
 
     [Fact]
@@ -38,8 +39,8 @@ public sealed class PullRequestCatalogueShould : IDisposable
     {
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
-        catalogue.Find(Checkout, BranchName.From("spike-cache")).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking), "a branch no row has asked for is not looked up");
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Found(Open));
+        catalogue.Find(Checkout, new Head.OnBranch(BranchName.From("spike-cache"))).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking), "a branch no row has asked for is not looked up");
     }
 
     [Fact]
@@ -50,8 +51,8 @@ public sealed class PullRequestCatalogueShould : IDisposable
         await catalogue.RefreshStaleAsync([(Checkout, Fix), (FolderPath.From(@"c:\users\me\source\repos\Northwind.Orders\"), spike)]);
 
         hosts.Requests.ShouldBe([(Orders, Fix), (Orders, spike)], ignoreOrder: true);
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
-        catalogue.Find(Checkout, spike).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Found(Open));
+        catalogue.Find(Checkout, new Head.OnBranch(spike)).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
     }
 
     [Fact]
@@ -89,11 +90,11 @@ public sealed class PullRequestCatalogueShould : IDisposable
 
         Task refresh = catalogue.RefreshStaleAsync([(Checkout, Fix)]);
         await WaitForCallsAsync(2);
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Found(Open));
         hosts.Release();
         await refresh;
 
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Merged));
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Found(Merged));
     }
 
     [Fact]
@@ -124,7 +125,7 @@ public sealed class PullRequestCatalogueShould : IDisposable
         await Task.WhenAll(first, second);
 
         hosts.Calls.Count.ShouldBe(1);
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Found(Open));
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Found(Open));
     }
 
     [Fact]
@@ -136,7 +137,7 @@ public sealed class PullRequestCatalogueShould : IDisposable
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
         hosts.Calls.Count.ShouldBe(1);
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, PullRequestHost.GitHub), "the status line names the host's CLI");
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, PullRequestHost.GitHub), "the status line names the host's CLI");
     }
 
     [Theory]
@@ -148,7 +149,7 @@ public sealed class PullRequestCatalogueShould : IDisposable
 
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(expected));
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Missing(expected));
         hosts.Calls.ShouldBeEmpty();
     }
 
@@ -159,15 +160,16 @@ public sealed class PullRequestCatalogueShould : IDisposable
 
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
-        catalogue.Find(Checkout, Fix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Failed));
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Failed));
     }
 
     [Fact]
-    public async Task AnswerNoBranchForADetachedHead()
+    public async Task AnswerNoBranchForADetachedOrUnknownHead()
     {
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
-        catalogue.Find(Checkout, null).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
+        catalogue.Find(Checkout, new Head.Detached()).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
+        catalogue.Find(Checkout, new Head.Unknown()).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
     }
 
     private static PullRequestListing.Listed Listing(PullRequest pullRequest) => new([new BranchPullRequest(Fix, pullRequest)]);
