@@ -9,13 +9,14 @@ namespace Source191.Vantage.Tui;
 
 /// <summary>
 /// Asks which solution to open when a folder holds several: a list of each one's path relative to the folder, whole and
-/// one per line, the arrow keys to choose, Enter to open, Esc or Cancel to leave. Answers the chosen index, or null.
+/// one per line, the arrow keys to choose, Enter to open, Esc or Cancel to leave. Answers the chosen file, or
+/// <see cref="SolutionChoice.NoneChosen"/>.
 /// </summary>
 internal static class ChooseSolutionDialog
 {
-    public static int? Show(IApplication app, DiagnosticLog log, FolderPath folder, IReadOnlyList<string> files)
+    public static SolutionChoice Show(IApplication app, DiagnosticLog log, FolderPath folder, IReadOnlyList<string> files)
     {
-        int? answer = null;
+        SolutionChoice answer = new SolutionChoice.NoneChosen();
         string question = Wording.ChooseSolutionQuestion(folder.Name);
         string[] paths = [.. files.Select(file => Path.GetRelativePath(folder.Value, file))];
         int width = Math.Clamp(Math.Max(paths.Max(path => path.Length), question.Length) + 6, 40, app.Screen.Width - 2);
@@ -33,7 +34,7 @@ internal static class ChooseSolutionDialog
         list.Accepting += (_, accepting) =>
         {
             accepting.Handled = true;
-            answer = list.SelectedItem;
+            answer = list.SelectedItem is int chosen && chosen >= 0 && chosen < files.Count ? new SolutionChoice.Chosen(files[chosen]) : new SolutionChoice.NoneChosen();
             app.RequestStop(dialog);
         };
         dialog.Add(text, list);

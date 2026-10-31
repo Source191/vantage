@@ -6,14 +6,14 @@ using Terminal.Gui.Views;
 namespace Source191.Vantage.Tui;
 
 /// <summary>
-/// A question with buttons, in Vantage's colours rather than Terminal.Gui's default blue. Returns the index of the
-/// button pressed, or null when the dialog was left with Esc. The first button is the default.
+/// A question with buttons, in Vantage's colours rather than Terminal.Gui's default blue. Answers true when the first
+/// button, the default, was pressed; any other button or Esc answers false.
 /// </summary>
 internal static class Confirm
 {
-    public static int? Query(IApplication app, DiagnosticLog log, DialogName name, string title, string message, params string[] buttons)
+    public static bool Ask(IApplication app, DiagnosticLog log, DialogName name, string title, string message, params string[] buttons)
     {
-        int? answer = null;
+        bool answer = false;
         string[] lines = message.Split('\n');
         int width = Math.Clamp(Math.Max(lines.Max(line => line.Length), title.Length) + 6, 40, 110);
         using Dialog dialog = new() { Title = title, Width = width, Height = lines.Length + 6 };
@@ -26,12 +26,12 @@ internal static class Confirm
 
         for (int index = 0; index < buttons.Length; index++)
         {
-            int chosen = index;
-            Button button = new() { Text = $"_{buttons[index]}", IsDefault = index == 0 };
+            bool first = index == 0;
+            Button button = new() { Text = $"_{buttons[index]}", IsDefault = first };
             button.Accepting += (_, accepting) =>
             {
                 accepting.Handled = true;
-                answer = chosen;
+                answer = first;
                 app.RequestStop(dialog);
             };
             dialog.AddButton(button);
