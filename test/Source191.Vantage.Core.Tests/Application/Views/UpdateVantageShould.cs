@@ -9,7 +9,7 @@ public sealed class UpdateVantageShould
     [Fact]
     public void AskToUpdateWhenAnUpdateIsKnown()
     {
-        UpdateStatus available = new UpdateStatus.Available(ReleaseVersion.TryParse("0.9.0")!, ReleaseVersion.TryParse("0.10.0")!);
+        UpdateStatus available = new UpdateStatus.Available(ReleaseVersions.Version("0.9.0"), ReleaseVersions.Version("0.10.0"));
 
         UpdateVantage.Refusal(available).ShouldBeNull();
     }

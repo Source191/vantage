@@ -40,7 +40,7 @@ public sealed class ScreenLoopShould : IDisposable
         await loop.RunAsync(processId: 100, CancellationToken.None);
         await loop.UpdateCheckTask;
 
-        updates.Status.ShouldBe(new UpdateStatus.Available(ReleaseVersion.TryParse("0.9.0")!, ReleaseVersion.TryParse("0.10.0")!));
+        updates.Status.ShouldBe(new UpdateStatus.Available(ReleaseVersions.Version("0.9.0"), ReleaseVersions.Version("0.10.0")));
         packages.Calls.ShouldBe(0);
     }
 

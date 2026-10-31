@@ -19,7 +19,7 @@ public sealed class StartUpdateHandlerShould
         FakeWindowsTerminal terminal = new();
         StartUpdateHandler handler = new(terminal, new TabScripts(@"C:\Users\me\.local\bin\claude.exe", Vantage), 4242, Home);
 
-        Outcome outcome = await handler.HandleAsync(new StartUpdate(ReleaseVersion.TryParse("0.10.0")!), CancellationToken.None);
+        Outcome outcome = await handler.HandleAsync(new StartUpdate(ReleaseVersions.Version("0.10.0")), CancellationToken.None);
 
         TabLaunch tab = terminal.Opened.Single();
         tab.Title.ShouldBe("Update Vantage");
