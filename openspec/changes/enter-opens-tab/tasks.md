@@ -2,7 +2,7 @@
 
 ## 1. Enter opens the tab (Sessions reducer)
 
-- [ ] 1.1 Red: `SessionsViewShould.Enter_opens_the_selected_session_in_its_own_tab` asserts Enter on a background session returns `OpenTabForSession` for it, and `Enter_switches_to_a_live_tab` that a row with a live tab returns `OpenTabForSession` with `HasLiveTab` true rather than a footer. Green: Enter's arm raises `OpenTabForSession` with `Attachment.InOwnTab`. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build`.
+- [x] 1.1 Red: `SessionsViewShould.Enter_opens_the_selected_session_in_its_own_tab` asserts Enter on a background session returns `OpenTabForSession` for it, and `Enter_switches_to_a_live_tab` that a row with a live tab returns `OpenTabForSession` with `HasLiveTab` true rather than a footer. Green: Enter's arm raises `OpenTabForSession` with `Attachment.InOwnTab`. Verify `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build`.
 - [ ] 1.2 Red: `SessionsViewShould.O_does_nothing` asserts `o` leaves the state unchanged with no effect; the existing Enter refusals (no selection, a terminal session, a stub session never sent a message) are restated for Enter with the footers `o` gave. Green: remove the `o` arm; delete `Attachment.Here`, `Footer.OpenInAnotherTab` and its words in `Wording.Describe`, and the facts that asserted them. Verify the Core tests pass and no `AttachToSession` is raised by `SessionsView`.
 
 ## 2. The Sessions tab's words

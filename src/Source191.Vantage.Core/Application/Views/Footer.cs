@@ -19,8 +19,6 @@ public abstract record Footer
     /// <summary>A plain claude session in some tab: Vantage cannot attach to it, stop it or delete it from outside.</summary>
     public sealed record RunsInOwnTerminal(string Name, bool HasTranscript) : Footer;
 
-    public sealed record OpenInAnotherTab(string Name) : Footer;
-
     /// <summary>A stopped session with no transcript: there is nothing to attach to or resume.</summary>
     public sealed record NeverSentAMessage(string Name) : Footer;
 

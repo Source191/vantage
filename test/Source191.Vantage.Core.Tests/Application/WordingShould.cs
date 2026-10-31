@@ -70,12 +70,6 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void PointToTheTabThatAlreadyShowsTheSession()
-    {
-        Wording.Describe(new Footer.OpenInAnotherTab("fix-123")).ShouldBe("fix-123 is open in another tab; press o to switch to it.");
-    }
-
-    [Fact]
     public void SayASessionNeverSentAMessageHasNothingToResume()
     {
         Wording.Describe(new Footer.NeverSentAMessage("fix-123")).ShouldBe("fix-123 has nothing to resume: it was never sent a message. d deletes it.");
