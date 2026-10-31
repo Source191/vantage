@@ -129,8 +129,11 @@ public sealed class ClaudeContractShould
     }
 
     /// <summary>
-    /// <c>claude -p</c> with no prompt waits about 17 s for its standard input, listed as an Agent SDK run is (interactive, no status),
-    /// and then exits 1 without calling the model, so the fact spends no tokens.
+    /// <c>claude -p</c> with no prompt waits 3 s for its standard input, fails on the missing input without calling the model, so the
+    /// fact spends no tokens, and exits 1. On a clean machine it registers at about 7 s and exits at about 8.5 s, before a listing
+    /// can see it, so <see cref="HoldOpenSettings"/> gives it a SessionEnd hook that sleeps for 20 s and keeps it registered and
+    /// listed as an Agent SDK run is (interactive, no status). The exit is awaited for <see cref="ExitDeadline"/> after the listing,
+    /// because the hook may run for its whole timeout of 40 s and a developer's own SessionEnd hooks lengthen the run further.
     /// </summary>
     [Fact]
     public async Task ListAPromptlessPrintRunAsAnAutomatedRun()
@@ -177,6 +180,10 @@ public sealed class ClaudeContractShould
         return Process.Start(start) ?? throw new ShouldAssertException("claude -p did not start.");
     }
 
+    /// <summary>
+    /// The settings for <c>--settings</c>: a SessionEnd hook runs after the input has failed, so holding the run open there can never
+    /// let it reach the model, and the timeout stops the CLI cutting the sleep short.
+    /// </summary>
     private static string HoldOpenSettings()
     {
         JsonObject hook = new()
