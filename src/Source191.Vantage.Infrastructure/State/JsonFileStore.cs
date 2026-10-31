@@ -177,7 +177,11 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     /// </summary>
     private static async Task WriteJsonAsync<T>(string file, T value)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+        if (Path.GetDirectoryName(file) is string folder)
+        {
+            Directory.CreateDirectory(folder);
+        }
+
         await using FileStream stream = new(file, FileMode.Create, FileAccess.Write, FileShare.Read);
         await JsonSerializer.SerializeAsync(stream, value, Options);
     }
