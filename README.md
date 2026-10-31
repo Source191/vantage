@@ -172,8 +172,7 @@ Press `n`. The wizard is one column, read from the top: your repositories first 
 
 A cyan line under the choices says exactly what will happen ("Worktree Northwind.Orders-fix-tests under C:\Users\you\source\worktrees, on branch fix-tests."). Then:
 
-- **F5 Start:** start the session and stay in Vantage.
-- **F6 Start and open in tab:** start it and open it in its own Windows Terminal tab straight away, as `o` does; Vantage stays on screen.
+- **F5 Start:** start the session and open it in its own Windows Terminal tab straight away, as Enter on its row does; Vantage stays on screen in its own tab.
 - **Esc:** cancel.
 
 Enter never starts a session here, so there is nothing to undo if you press it too soon. If a repository has not been trusted by Claude Code yet, the start is refused with an explanation and Vantage offers to open a plain tab there so you can run `claude` once and accept the trust prompt.
@@ -214,7 +213,7 @@ The selected row's health and its reason are in the detail pane, and its colour 
 | D | Force removal: the folder name opens selected in a read-only box, so Ctrl+C copies it (F2 also copies, from anywhere in the dialog); Tab or Enter moves to the answer box, Ctrl+V pastes, Enter confirms. There is no Remove button; a wrong or empty answer keeps the dialog open and says what was typed, and Esc cancels. Never forces a locked worktree, one with a live session, or an `elsewhere` one |
 | P | Prune stale registrations in the row's repository (`p` before 0.11.0) |
 | p | Open the row's pull request in your default browser, as in the sessions view |
-| s | Start a session in this worktree: a compact wizard with only the name and the prompt; type a name and Enter starts the session and opens it in its own tab (F5 starts it without a tab) |
+| s | Start a session in this worktree: a compact wizard with only the name and the prompt; type a name and Enter (or F5) starts the session and opens it in its own tab |
 | o | Open a plain PowerShell tab in the worktree |
 | Enter | Go to the session running in the worktree (selected by its id, so two sessions with the same name cannot be confused) |
 | 1, Esc | Back to the Sessions tab (Esc clears a filter first); `3` shows the Config tab |
@@ -326,9 +325,9 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 ## Common scenarios
 
-**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story (`New worktree` is already chosen), type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, its REPOSITORY cell reads the repository, and the detail pane names the worktree's slug.
+**Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story (`New worktree` is already chosen), type the opening prompt, F5. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, its REPOSITORY cell reads the repository, and the detail pane names the worktree's slug.
 
-**Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row opens or switches to its tab; answer there, and Ctrl+Z closes the tab when you are done.
+**Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart; each opens in its own tab, and you can switch back to the Vantage tab straight away. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row opens or switches to its tab; answer there, and Ctrl+Z closes the tab when you are done.
 
 **Keep one session in its own tab.** Enter opens it in a coloured tab you can leave open all day. The TAB column shows a block in the tab's colour; Enter again switches to that tab until it is closed.
 
