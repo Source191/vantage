@@ -61,7 +61,7 @@ public sealed record EditorChoice
         return preset switch
         {
             null => VsCode,
-            EditorPreset.Custom when Problem(executable ?? string.Empty, arguments ?? []) is null => Custom(executable!, arguments!),
+            EditorPreset.Custom when executable is string path && arguments is { } list && Problem(path, list) is null => Custom(path, list),
             EditorPreset.Custom => VsCode,
             EditorPreset known => Of(known),
         };
