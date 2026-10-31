@@ -34,9 +34,9 @@ public sealed class WordingShould
     {
         System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
         object[] arguments = [.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))];
-        StatusMessage footer = (StatusMessage)constructor.Invoke(arguments);
+        StatusMessage message = (StatusMessage)constructor.Invoke(arguments);
 
-        Wording.Describe(footer).ShouldNotBe(footer.ToString(), $"{type.Name} has no arm in Wording.Describe");
+        Wording.Describe(message).ShouldNotBe(message.ToString(), $"{type.Name} has no arm in Wording.Describe");
     }
 
     // Standing footers.

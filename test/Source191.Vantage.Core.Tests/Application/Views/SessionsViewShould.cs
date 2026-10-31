@@ -171,7 +171,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(onInteractive, new KeyPressed(Key.Enter));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new StatusMessage.RunsInOwnTerminal("repos-93", HasTranscript: true));
+        update.State.Message.ShouldBe(new StatusMessage.RunsInOwnTerminal("repos-93", HasTranscript: true));
     }
 
     [Fact]
@@ -193,7 +193,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('b')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new StatusMessage.WorkingSoAdoptWaits("busy-terminal"));
+        update.State.Message.ShouldBe(new StatusMessage.WorkingSoAdoptWaits("busy-terminal"));
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('b')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new StatusMessage.AlreadyUnderVantage("change-feed"));
+        update.State.Message.ShouldBe(new StatusMessage.AlreadyUnderVantage("change-feed"));
     }
 
     [Fact]
@@ -218,7 +218,7 @@ public sealed class SessionsViewShould
             ViewUpdate update = SessionsView.Reduce(withStub, new KeyPressed(key));
 
             update.Effects.ShouldBeEmpty();
-            update.State.Footer.ShouldBe(new StatusMessage.NeverSentAMessage("repos-f6"));
+            update.State.Message.ShouldBe(new StatusMessage.NeverSentAMessage("repos-f6"));
         }
 
         SessionsView.Reduce(withStub, new KeyPressed(Key.Of('d'))).Effects.ShouldBe([new DeleteSession(stubJob)]);
@@ -235,7 +235,7 @@ public sealed class SessionsViewShould
         ViewUpdate closed = SessionsView.Reduce(onUntouched, new KeyPressed(Key.Of('d')));
 
         enter.Effects.ShouldBeEmpty();
-        enter.State.Footer.ShouldBe(new StatusMessage.RunsInOwnTerminal("repos-f6", HasTranscript: false));
+        enter.State.Message.ShouldBe(new StatusMessage.RunsInOwnTerminal("repos-f6", HasTranscript: false));
         closed.Effects.Single().ShouldBeOfType<CloseEmptyTerminals>().Sessions.ShouldBe([untouchedTerminal]);
     }
 
@@ -254,7 +254,7 @@ public sealed class SessionsViewShould
 
         update.Effects.Single().ShouldBeOfType<CloseEmptyTerminals>().Sessions.ShouldBe([firstTerminal, secondTerminal], ignoreOrder: true);
         none.Effects.ShouldBeEmpty();
-        none.State.Footer.ShouldBe(new StatusMessage.NoEmptyTerminals());
+        none.State.Message.ShouldBe(new StatusMessage.NoEmptyTerminals());
     }
 
     [Fact]
@@ -265,7 +265,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(onInteractive, new KeyPressed(Key.Of('d')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBeOfType<StatusMessage.RunsInOwnTerminal>().HasTranscript.ShouldBeTrue();
+        update.State.Message.ShouldBeOfType<StatusMessage.RunsInOwnTerminal>().HasTranscript.ShouldBeTrue();
     }
 
     [Fact]
@@ -276,7 +276,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(withTab, new KeyPressed(Key.Enter));
 
         update.Effects.ShouldBe([new OpenTabForSession(WaitingJob, HasLiveTab: true)]);
-        update.State.Footer.ShouldBe(StatusMessage.None);
+        update.State.Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
@@ -301,12 +301,12 @@ public sealed class SessionsViewShould
         ViewUpdate cancelled = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, null));
 
         renamed.Effects.ShouldBe([new RenameSession(WaitingJob, SessionName.From("fix the tests"))]);
-        renamed.State.Footer.ShouldBe(new StatusMessage.Working(new RenameSession(WaitingJob, SessionName.From("fix the tests"))));
+        renamed.State.Message.ShouldBe(new StatusMessage.Working(new RenameSession(WaitingJob, SessionName.From("fix the tests"))));
         blank.Effects.ShouldBeEmpty();
-        blank.State.Footer.ShouldBe(new StatusMessage.InvalidName(NameProblem.Missing));
+        blank.State.Message.ShouldBe(new StatusMessage.InvalidName(NameProblem.Missing));
         semicolon.Effects.ShouldBe([new RenameSession(WaitingJob, SessionName.From("fix a;b"))]);
         cancelled.Effects.ShouldBeEmpty();
-        cancelled.State.Footer.ShouldBe(new StatusMessage.RenameCancelled());
+        cancelled.State.Message.ShouldBe(new StatusMessage.RenameCancelled());
     }
 
     [Fact]
@@ -317,7 +317,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(onWorking, new KeyPressed(Key.Of('r')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new StatusMessage.WorkingSoRenameWaits("remove-sonar"));
+        update.State.Message.ShouldBe(new StatusMessage.WorkingSoRenameWaits("remove-sonar"));
     }
 
     [Theory]
@@ -367,7 +367,7 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('m')));
 
         update.Effects.ShouldBe([new ShowMemory(running, 5151)]);
-        update.State.Footer.ShouldBe(StatusMessage.None);
+        update.State.Message.ShouldBe(StatusMessage.None);
         new ShowMemory(running, 5151).ShouldBeAssignableTo<IDialogEffect>();
     }
 
@@ -391,13 +391,13 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(onStopped, new KeyPressed(Key.Of('m')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new StatusMessage.NothingToMeasure("old-spike"));
+        update.State.Message.ShouldBe(new StatusMessage.NothingToMeasure("old-spike"));
     }
 
     [Fact]
     public void SayNoSessionIsSelectedOnM()
     {
-        SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of('m'))).State.Footer.ShouldBe(new StatusMessage.NoSessionSelected());
+        SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of('m'))).State.Message.ShouldBe(new StatusMessage.NoSessionSelected());
     }
 
     [Fact]
@@ -430,18 +430,18 @@ public sealed class SessionsViewShould
     public void ShowNothingUntilThereIsAMessage()
     {
         Loaded.Shown.ShouldBe(StatusMessage.None);
-        (Loaded with { Footer = new StatusMessage.Kept() }).Shown.ShouldBe(new StatusMessage.Kept());
+        (Loaded with { Message = new StatusMessage.Kept() }).Shown.ShouldBe(new StatusMessage.Kept());
     }
 
     [Fact]
     public void ClearAMessageWhenTheSelectionMovesOrTheFilterChanges()
     {
-        SessionsViewState said = Loaded with { Footer = new StatusMessage.Kept() };
+        SessionsViewState said = Loaded with { Message = new StatusMessage.Kept() };
 
-        Press(said, Key.Down).Footer.ShouldBe(StatusMessage.None);
-        Press(said, Key.Up).Footer.ShouldBe(StatusMessage.None);
-        Press(said, Key.Of('/')).Footer.ShouldBe(StatusMessage.None);
-        Press(Press(said, Key.Of('/')) with { Footer = new StatusMessage.Kept() }, Key.Of('k')).Footer.ShouldBe(StatusMessage.None);
+        Press(said, Key.Down).Message.ShouldBe(StatusMessage.None);
+        Press(said, Key.Up).Message.ShouldBe(StatusMessage.None);
+        Press(said, Key.Of('/')).Message.ShouldBe(StatusMessage.None);
+        Press(Press(said, Key.Of('/')) with { Message = new StatusMessage.Kept() }, Key.Of('k')).Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
@@ -469,13 +469,13 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('p')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new StatusMessage.NoPullRequest("change-feed", PullRequestGap.NotSignedIn, PullRequestHost.GitHub));
+        update.State.Message.ShouldBe(new StatusMessage.NoPullRequest("change-feed", PullRequestGap.NotSignedIn, PullRequestHost.GitHub));
     }
 
     [Fact]
     public void NeedASelectionToOpenAPullRequest()
     {
-        SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of('p'))).State.Footer.ShouldBe(new StatusMessage.NoSessionSelected());
+        SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of('p'))).State.Message.ShouldBe(new StatusMessage.NoSessionSelected());
     }
 
     [Fact]
@@ -515,15 +515,15 @@ public sealed class SessionsViewShould
         ViewUpdate update = SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of(key)));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new StatusMessage.NoSessionSelected());
+        update.State.Message.ShouldBe(new StatusMessage.NoSessionSelected());
     }
 
     [Fact]
     public void ClearTheLastMessageWhenAFolderKeyActs()
     {
-        SessionsViewState withMessage = Loaded with { Footer = new StatusMessage.RenameCancelled() };
+        SessionsViewState withMessage = Loaded with { Message = new StatusMessage.RenameCancelled() };
 
-        SessionsView.Reduce(withMessage, new KeyPressed(Key.Of('c'))).State.Footer.ShouldBe(StatusMessage.None);
+        SessionsView.Reduce(withMessage, new KeyPressed(Key.Of('c'))).State.Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
@@ -558,9 +558,9 @@ public sealed class SessionsViewShould
     public void ClearTheMessageItWasAskedToClear()
     {
         StatusMessage message = new StatusMessage.NoPathHere();
-        SessionsViewState shown = Loaded with { Footer = message };
+        SessionsViewState shown = Loaded with { Message = message };
 
-        Reduce(shown, new MessageDismissed(message)).Footer.ShouldBe(StatusMessage.None);
+        Reduce(shown, new MessageDismissed(message)).Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
@@ -568,9 +568,9 @@ public sealed class SessionsViewShould
     {
         StatusMessage older = new StatusMessage.NoPathHere();
         StatusMessage newer = new StatusMessage.NoPathHere();
-        SessionsViewState shown = Loaded with { Footer = newer };
+        SessionsViewState shown = Loaded with { Message = newer };
 
-        Reduce(shown, new MessageDismissed(older)).Footer.ShouldBeSameAs(newer);
+        Reduce(shown, new MessageDismissed(older)).Message.ShouldBeSameAs(newer);
     }
     private static SessionsViewState Reduce(SessionsViewState state, ViewInput input)
     {

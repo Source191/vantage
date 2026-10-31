@@ -17,11 +17,11 @@ public sealed record ConfigViewState(
     RowFilter Filter,
     bool FilterEditing,
     string? Banner,
-    StatusMessage Footer,
+    StatusMessage Message,
     bool Loaded = false)
     : IListViewState<ConfigRow>
 {
-    public static readonly ConfigViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: StatusMessage.None);
+    public static readonly ConfigViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Message: StatusMessage.None);
 
     private static readonly ListPolicy<ConfigRow> Policy = new(
         KeyOf: row => row.Key,
@@ -34,10 +34,10 @@ public sealed record ConfigViewState(
     public ConfigRow? Selected => List.Selected;
 
     /// <summary>The last message, else what the selected row is for.</summary>
-    public StatusMessage Shown => (Footer, Selected) switch
+    public StatusMessage Shown => (Message, Selected) switch
     {
         (StatusMessage.Blank, ConfigRow row) => new StatusMessage.SettingHint(row),
-        _ => Footer,
+        _ => Message,
     };
 
     public TableTitle Title => List.Title("row", Wording.ConfigSetting);
@@ -56,10 +56,10 @@ public static class ConfigView
         {
             ConfigRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
-            MessageDismissed dismissed when ReferenceEquals(state.Footer, dismissed.Message) => Unchanged(state with { Footer = StatusMessage.None }),
+            MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             UpdateTabOpened => Effect(state, new Quit()),
-            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Footer = StatusMessage.None }),
+            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Message = StatusMessage.None }),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
         };
@@ -82,12 +82,12 @@ public static class ConfigView
         return key switch
         {
             // Moving on or filtering clears the last message, so the status line goes back to what the selected row is for.
-            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = StatusMessage.None }),
-            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = StatusMessage.None }),
+            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
+            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Escape } => Effect(state, new SelectTab(ConsoleTab.Sessions)),
             { Name: KeyName.Enter } => RowAction(state, Enter),
-            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = StatusMessage.None }),
+            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'c' } => RowAction(state, row => WithPath(row, path => new CopyFolderPath(FolderPath.From(path)))),
             { Name: KeyName.Character, Character: 'e' } => RowAction(state, row => WithPath(row, path => new OpenFolderInEditor(FolderOf(row, path)))),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
@@ -100,18 +100,18 @@ public static class ConfigView
     }
 
     /// <summary>Either an effect to run or a footer explaining why nothing happens.</summary>
-    private static ConfigViewUpdate RowAction(ConfigViewState state, Func<ConfigRow, (ViewEffect? Effect, StatusMessage Footer)> decide)
+    private static ConfigViewUpdate RowAction(ConfigViewState state, Func<ConfigRow, (ViewEffect? Effect, StatusMessage Message)> decide)
     {
         if (state.Selected is not ConfigRow row)
         {
-            return Unchanged(state with { Footer = new StatusMessage.NoSettingSelected() });
+            return Unchanged(state with { Message = new StatusMessage.NoSettingSelected() });
         }
 
-        (ViewEffect? effect, StatusMessage footer) = decide(row);
+        (ViewEffect? effect, StatusMessage message) = decide(row);
 
         return effect is null
-            ? Unchanged(state with { Footer = footer })
-            : Effect(state with { Footer = footer }, effect);
+            ? Unchanged(state with { Message = message })
+            : Effect(state with { Message = message }, effect);
     }
 
     private static (ViewEffect?, StatusMessage) Enter(ConfigRow row)

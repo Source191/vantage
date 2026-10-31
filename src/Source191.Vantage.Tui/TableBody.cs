@@ -239,7 +239,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public void Reduce(ViewInput input) => Apply(input);
 
-    public void ShowFooter(StatusMessage footer) => State = definition.WithFooter(State, footer);
+    public void ShowMessage(StatusMessage message) => State = definition.WithMessage(State, message);
 
     public void Dispatch(ViewEffect effect) => Dispatch(effect, outcome => new StatusMessage.Reported(outcome));
 
@@ -247,7 +247,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public void RunInBackground<T>(StatusMessage working, Func<CancellationToken, Task<T>> action, Func<T, StatusMessage> onUiThread)
     {
-        State = definition.WithFooter(State, working);
+        State = definition.WithMessage(State, working);
         running = true;
         Redraw();
         Task.Run(async () =>
@@ -267,7 +267,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
             app.Invoke(() =>
             {
                 running = false;
-                State = definition.WithFooter(State, settle());
+                State = definition.WithMessage(State, settle());
                 Redraw();
                 TriggerLoad();
             });

@@ -57,7 +57,7 @@ public sealed class ConfigViewShould
         ConfigViewUpdate update = ConfigView.Reduce(At($"setup:{item}"), new KeyPressed(Key.Enter));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new StatusMessage.SetupAdvice(item));
+        update.State.Message.ShouldBe(new StatusMessage.SetupAdvice(item));
     }
 
     [Theory]
@@ -98,7 +98,7 @@ public sealed class ConfigViewShould
         ConfigViewUpdate update = ConfigView.Reduce(At("open-folder-with"), new KeyPressed(Key.Of(key)));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new StatusMessage.NoPathHere());
+        update.State.Message.ShouldBe(new StatusMessage.NoPathHere());
     }
 
     [Fact]
@@ -163,7 +163,7 @@ public sealed class ConfigViewShould
         ConfigViewState moved = Press(advised, Key.Down);
 
         moved.Selected!.Key.ShouldBe("setup:DiagnosticLog");
-        moved.Footer.ShouldBe(StatusMessage.None);
+        moved.Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public sealed class ConfigViewShould
         ConfigViewState advised = ConfigView.Reduce(At("setup:ClaudeBell"), new KeyPressed(Key.Enter)).State;
 
         onWorktreeRoot.Shown.ShouldBe(new StatusMessage.SettingHint(onWorktreeRoot.Selected!));
-        advised.Shown.ShouldBe(advised.Footer);
+        advised.Shown.ShouldBe(advised.Message);
         ConfigViewState moved = Press(advised, Key.Down);
 
         moved.Shown.ShouldBe(new StatusMessage.SettingHint(moved.Selected!));
@@ -184,8 +184,8 @@ public sealed class ConfigViewShould
     {
         ConfigViewState advised = ConfigView.Reduce(At("setup:ClaudeBell"), new KeyPressed(Key.Enter)).State;
 
-        Press(advised, Key.Of('/')).Footer.ShouldBe(StatusMessage.None);
-        Press(Press(advised, Key.Of('/')) with { Footer = new StatusMessage.Kept() }, Key.Of('w')).Footer.ShouldBe(StatusMessage.None);
+        Press(advised, Key.Of('/')).Message.ShouldBe(StatusMessage.None);
+        Press(Press(advised, Key.Of('/')) with { Message = new StatusMessage.Kept() }, Key.Of('w')).Message.ShouldBe(StatusMessage.None);
     }
 
     private static ConfigViewState At(string key) => Loaded.With(Loaded.List.Select(key));
@@ -196,9 +196,9 @@ public sealed class ConfigViewShould
     public void ClearTheMessageItWasAskedToClear()
     {
         StatusMessage message = new StatusMessage.NoPathHere();
-        ConfigViewState shown = Loaded with { Footer = message };
+        ConfigViewState shown = Loaded with { Message = message };
 
-        ConfigView.Reduce(shown, new MessageDismissed(message)).State.Footer.ShouldBe(StatusMessage.None);
+        ConfigView.Reduce(shown, new MessageDismissed(message)).State.Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
@@ -206,8 +206,8 @@ public sealed class ConfigViewShould
     {
         StatusMessage older = new StatusMessage.NoPathHere();
         StatusMessage newer = new StatusMessage.NoPathHere();
-        ConfigViewState shown = Loaded with { Footer = newer };
+        ConfigViewState shown = Loaded with { Message = newer };
 
-        ConfigView.Reduce(shown, new MessageDismissed(older)).State.Footer.ShouldBeSameAs(newer);
+        ConfigView.Reduce(shown, new MessageDismissed(older)).State.Message.ShouldBeSameAs(newer);
     }
 }

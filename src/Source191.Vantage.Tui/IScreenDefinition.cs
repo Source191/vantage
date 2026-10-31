@@ -49,7 +49,7 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>The key bar for the selected row and the listed rows; Update shows when a release is known.</summary>
     KeyBar Bar(TState state, bool updateKnown);
 
-    TState WithFooter(TState state, StatusMessage footer);
+    TState WithMessage(TState state, StatusMessage message);
 
     (TState State, IReadOnlyList<ViewEffect> Effects) Reduce(TState state, ViewInput input);
 
@@ -74,7 +74,7 @@ internal interface IEffectContext
     /// <summary>The screen's key help, for the help dialog.</summary>
     string HelpText { get; }
 
-    void ShowFooter(StatusMessage footer);
+    void ShowMessage(StatusMessage message);
 
     /// <summary>Feeds a follow-up input (a dialog's answer) back through the reducer.</summary>
     void Reduce(ViewInput input);

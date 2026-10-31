@@ -31,12 +31,12 @@ public sealed record WorktreesViewState(
     RowFilter Filter,
     bool FilterEditing,
     string? Banner,
-    StatusMessage Footer,
+    StatusMessage Message,
     bool Loaded = false)
     : IListViewState<WorktreeRow>
 {
     /// <summary>Nothing scanned yet: the first scan has not arrived, so the screen shows that it is scanning rather than an empty table.</summary>
-    public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: StatusMessage.None);
+    public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Message: StatusMessage.None);
 
     private static readonly ListPolicy<WorktreeRow> Policy = new(
         KeyOf: row => row.Path.Key,
@@ -55,7 +55,7 @@ public sealed record WorktreesViewState(
     public WorktreesViewState With(ListSelection<WorktreeRow> list) => this with { Rows = list.Rows, SelectedPath = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 
     /// <summary>The last message only: the selected row's health is the detail pane's.</summary>
-    public StatusMessage Shown => Footer;
+    public StatusMessage Shown => Message;
 
     public TableTitle Title => List.Title("worktree", row => row.FolderName);
 }
@@ -69,11 +69,11 @@ public static class WorktreesView
         {
             WorktreeRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
-            MessageDismissed dismissed when ReferenceEquals(state.Footer, dismissed.Message) => Unchanged(state with { Footer = StatusMessage.None }),
+            MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             ForceConfirmed confirmed => Force(state, confirmed),
             UpdateTabOpened => Effect(state, new Quit()),
-            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Footer = StatusMessage.None }),
+            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Message = StatusMessage.None }),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
         };
@@ -84,12 +84,12 @@ public static class WorktreesView
         return key switch
         {
             // Moving on or filtering clears the last message, so the status line goes until there is something new to say.
-            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = StatusMessage.None }),
-            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = StatusMessage.None }),
+            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
+            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Escape } => Effect(state, new SelectTab(ConsoleTab.Sessions)),
             { Name: KeyName.Enter } => RowAction(state, JumpToSession),
-            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = StatusMessage.None }),
+            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'd' } => RowAction(state, row => Remove(row, forced: false)),
             { Name: KeyName.Character, Character: 'D' } => RowAction(state, row => Remove(row, forced: true)),
             { Name: KeyName.Character, Character: 'P' } => RowAction(state, Prune),
@@ -109,19 +109,19 @@ public static class WorktreesView
     }
 
     /// <summary>Either an effect to run or a footer explaining why nothing happens.</summary>
-    private static WorktreesViewUpdate RowAction(WorktreesViewState state, Func<WorktreeRow, (ViewEffect? Effect, StatusMessage Footer)> decide)
+    private static WorktreesViewUpdate RowAction(WorktreesViewState state, Func<WorktreeRow, (ViewEffect? Effect, StatusMessage Message)> decide)
     {
         WorktreeRow? row = state.Selected;
         if (row is null)
         {
-            return Unchanged(state with { Footer = new StatusMessage.NoWorktreeSelected() });
+            return Unchanged(state with { Message = new StatusMessage.NoWorktreeSelected() });
         }
 
-        (ViewEffect? effect, StatusMessage footer) = decide(row);
+        (ViewEffect? effect, StatusMessage message) = decide(row);
 
         return effect is null
-            ? Unchanged(state with { Footer = footer })
-            : Effect(state with { Footer = footer }, effect);
+            ? Unchanged(state with { Message = message })
+            : Effect(state with { Message = message }, effect);
     }
 
     private static (ViewEffect?, StatusMessage) Remove(WorktreeRow row, bool forced)
@@ -143,15 +143,15 @@ public static class WorktreesView
     {
         return confirmed.Typed switch
         {
-            null => Unchanged(state with { Footer = new StatusMessage.ForceCancelled() }),
-            "" => Unchanged(state with { Footer = new StatusMessage.NothingTyped() }),
+            null => Unchanged(state with { Message = new StatusMessage.ForceCancelled() }),
+            "" => Unchanged(state with { Message = new StatusMessage.NothingTyped() }),
             string typed when !string.Equals(typed, confirmed.ConfirmationText, StringComparison.Ordinal) =>
-                Unchanged(state with { Footer = new StatusMessage.TypedWrongName(typed, confirmed.ConfirmationText) }),
+                Unchanged(state with { Message = new StatusMessage.TypedWrongName(typed, confirmed.ConfirmationText) }),
             _ => Forced(state, new RemoveWorktree(confirmed.Row, Forced: true)),
         };
     }
 
-    private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove) => Effect(state with { Footer = new StatusMessage.Working(remove) }, remove);
+    private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove) => Effect(state with { Message = new StatusMessage.Working(remove) }, remove);
 
     private static (ViewEffect?, StatusMessage) PullRequestOf(WorktreeRow row) => row.PullRequest switch
     {

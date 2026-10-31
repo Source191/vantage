@@ -25,9 +25,9 @@ public static partial class Wording
     public static TextTone StatusWordsTone(StatusTone tone) => StatusMark(tone).Tone;
 
     /// <summary>How the status line marks a footer; a case with no arm here is a notice.</summary>
-    public static StatusTone ToneOf(StatusMessage footer)
+    public static StatusTone ToneOf(StatusMessage message)
     {
-        return footer switch
+        return message switch
         {
             StatusMessage.Blank or StatusMessage.SettingHint or StatusMessage.SetupAdvice => StatusTone.Hint,
             StatusMessage.RenameCancelled or StatusMessage.ForceCancelled or StatusMessage.Kept or StatusMessage.NothingChosenToResume => StatusTone.Hint,

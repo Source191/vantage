@@ -46,7 +46,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             return;
         }
 
-        context.ShowFooter(new StatusMessage.NoDialogFor(effect.GetType().Name));
+        context.ShowMessage(new StatusMessage.NoDialogFor(effect.GetType().Name));
     }
 
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>
@@ -76,7 +76,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.CloseEmpty, "Close empty terminal sessions", question, "Close", "Keep");
         if (answer != 0)
         {
-            context.ShowFooter(new StatusMessage.Kept());
+            context.ShowMessage(new StatusMessage.Kept());
             return;
         }
 
@@ -91,7 +91,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         List<SessionRow> toResume = [.. plan.Automatic, .. chosen];
         if (toResume.Count == 0)
         {
-            context.ShowFooter(new StatusMessage.NothingChosenToResume());
+            context.ShowMessage(new StatusMessage.NothingChosenToResume());
             return;
         }
 
@@ -120,7 +120,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         UpdateStatus status = updates.Status;
         if (status is not UpdateStatus.Available available)
         {
-            context.ShowFooter(UpdateVantage.Refusal(status) ?? new StatusMessage.UpToDate());
+            context.ShowMessage(UpdateVantage.Refusal(status) ?? new StatusMessage.UpToDate());
             return;
         }
 

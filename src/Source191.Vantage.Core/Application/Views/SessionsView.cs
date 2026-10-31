@@ -109,12 +109,12 @@ public sealed record SessionsViewState(
     RowFilter Filter,
     bool FilterEditing,
     string? Banner,
-    StatusMessage Footer,
+    StatusMessage Message,
     bool Loaded = false)
     : IListViewState<SessionRow>
 {
     /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
-    public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: StatusMessage.None);
+    public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Message: StatusMessage.None);
 
     /// <summary>The automated runs the last listing held, for the counts; kept when a listing fails, as the rows are.</summary>
     public AutomatedRuns AutomatedRuns { get; init; } = AutomatedRuns.None;
@@ -136,7 +136,7 @@ public sealed record SessionsViewState(
     public TableTitle Title => List.Title("session", row => row.Session.Name);
 
     /// <summary>The footer to show: the last message, else how many sessions need input.</summary>
-    public StatusMessage Shown => Footer;
+    public StatusMessage Shown => Message;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
     public SessionsViewState With(ListSelection<SessionRow> list) => this with { Rows = list.Rows, SelectedSessionId = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
@@ -159,12 +159,12 @@ public static class SessionsView
         {
             RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null, AutomatedRuns = loaded.AutomatedRuns }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
-            MessageDismissed dismissed when ReferenceEquals(state.Footer, dismissed.Message) => Unchanged(state with { Footer = StatusMessage.None }),
+            MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
             UpdateTabOpened => Effect(state, new Quit()),
             SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId.Value))),
-            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Footer = StatusMessage.None }),
+            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Message = StatusMessage.None }),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
         };
@@ -175,15 +175,15 @@ public static class SessionsView
         return key switch
         {
             // Moving on or filtering clears the last message, so the status line goes until there is something new to say.
-            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = StatusMessage.None }),
-            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = StatusMessage.None }),
+            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
+            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Enter } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
-            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = StatusMessage.None }),
+            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
             { Name: KeyName.Character, Character: 'x' } => SessionAction(state, (_, session) => new StopSession(session), Attachment.None),
             { Name: KeyName.Character, Character: 'd' } when state.Selected is { Session: InteractiveSession terminal, HasTranscript: false } =>
-                Effect(state with { Footer = StatusMessage.None }, new CloseEmptyTerminals([terminal])),
+                Effect(state with { Message = StatusMessage.None }, new CloseEmptyTerminals([terminal])),
             { Name: KeyName.Character, Character: 'C' } => CloseEmpty(state),
             { Name: KeyName.Character, Character: 'd' } => SessionAction(state, (_, session) => new DeleteSession(session), Attachment.None),
             { Name: KeyName.Character, Character: 'b' } => Adopt(state),
@@ -216,21 +216,21 @@ public static class SessionsView
         SessionRow? row = state.Selected;
         if (row is null)
         {
-            return Unchanged(state with { Footer = new StatusMessage.NoSessionSelected() });
+            return Unchanged(state with { Message = new StatusMessage.NoSessionSelected() });
         }
 
         if (row.Session is not BackgroundSession session)
         {
-            return Unchanged(state with { Footer = new StatusMessage.RunsInOwnTerminal(row.Session.Name, row.HasTranscript) });
+            return Unchanged(state with { Message = new StatusMessage.RunsInOwnTerminal(row.Session.Name, row.HasTranscript) });
         }
 
         // Attaching to a session with no process resumes it from its transcript; a session never sent a message has none.
         if (attachment != Attachment.None && session.ProcessId is null && !row.HasTranscript)
         {
-            return Unchanged(state with { Footer = new StatusMessage.NeverSentAMessage(row.Session.Name) });
+            return Unchanged(state with { Message = new StatusMessage.NeverSentAMessage(row.Session.Name) });
         }
 
-        return Effect(state with { Footer = StatusMessage.None }, effect(row, session));
+        return Effect(state with { Message = StatusMessage.None }, effect(row, session));
     }
 
     /// <summary>A key that takes the row's folder to another tool; every row has one, whatever kind of session it is.</summary>
@@ -238,8 +238,8 @@ public static class SessionsView
     {
         return state.Selected switch
         {
-            null => Unchanged(state with { Footer = new StatusMessage.NoSessionSelected() }),
-            SessionRow row => Effect(state with { Footer = StatusMessage.None }, effect(row.Session.WorkingDirectory, row.Repository)),
+            null => Unchanged(state with { Message = new StatusMessage.NoSessionSelected() }),
+            SessionRow row => Effect(state with { Message = StatusMessage.None }, effect(row.Session.WorkingDirectory, row.Repository)),
         };
     }
     /// <summary>The row's pull request in the browser, or a footer saying why it has none.</summary>
@@ -247,9 +247,9 @@ public static class SessionsView
     {
         return state.Selected switch
         {
-            null => Unchanged(state with { Footer = new StatusMessage.NoSessionSelected() }),
-            { PullRequest: PullRequestLookup.Found found } => Effect(state with { Footer = StatusMessage.None }, new OpenPullRequest(found.PullRequest)),
-            { PullRequest: PullRequestLookup.Missing missing } row => Unchanged(state with { Footer = new StatusMessage.NoPullRequest(row.Session.Name, missing.Gap, missing.Host) }),
+            null => Unchanged(state with { Message = new StatusMessage.NoSessionSelected() }),
+            { PullRequest: PullRequestLookup.Found found } => Effect(state with { Message = StatusMessage.None }, new OpenPullRequest(found.PullRequest)),
+            { PullRequest: PullRequestLookup.Missing missing } row => Unchanged(state with { Message = new StatusMessage.NoPullRequest(row.Session.Name, missing.Gap, missing.Host) }),
             _ => Unchanged(state),
         };
     }
@@ -259,10 +259,10 @@ public static class SessionsView
     {
         return state.Selected switch
         {
-            null => Unchanged(state with { Footer = new StatusMessage.NoSessionSelected() }),
-            { Session: BackgroundSession { ProcessId: int processId } session } => Effect(state with { Footer = StatusMessage.None }, new ShowMemory(session, processId)),
-            { Session: InteractiveSession session } => Effect(state with { Footer = StatusMessage.None }, new ShowMemory(session, session.ProcessId)),
-            SessionRow row => Unchanged(state with { Footer = new StatusMessage.NothingToMeasure(row.Session.Name) }),
+            null => Unchanged(state with { Message = new StatusMessage.NoSessionSelected() }),
+            { Session: BackgroundSession { ProcessId: int processId } session } => Effect(state with { Message = StatusMessage.None }, new ShowMemory(session, processId)),
+            { Session: InteractiveSession session } => Effect(state with { Message = StatusMessage.None }, new ShowMemory(session, session.ProcessId)),
+            SessionRow row => Unchanged(state with { Message = new StatusMessage.NothingToMeasure(row.Session.Name) }),
         };
     }
 
@@ -272,8 +272,8 @@ public static class SessionsView
         IReadOnlyList<InteractiveSession> empty = [.. state.Rows.Where(row => !row.HasTranscript).Select(row => row.Session).OfType<InteractiveSession>()];
 
         return empty.Count == 0
-            ? Unchanged(state with { Footer = new StatusMessage.NoEmptyTerminals() })
-            : Effect(state with { Footer = StatusMessage.None }, new CloseEmptyTerminals(empty));
+            ? Unchanged(state with { Message = new StatusMessage.NoEmptyTerminals() })
+            : Effect(state with { Message = StatusMessage.None }, new CloseEmptyTerminals(empty));
     }
 
     /// <summary>Renaming restarts the session under the new name, so it waits until nothing is in flight.</summary>
@@ -286,10 +286,10 @@ public static class SessionsView
 
         return (row.HasTranscript, session) switch
         {
-            (false, { ProcessId: null }) => Unchanged(state with { Footer = new StatusMessage.NeverSentAMessage(session.Name) }),
-            (false, _) => Unchanged(state with { Footer = new StatusMessage.NoMessagesToRename(session.Name) }),
-            (_, { State.Kind: DisplayStateKind.Working }) => Unchanged(state with { Footer = new StatusMessage.WorkingSoRenameWaits(session.Name) }),
-            _ => Effect(state with { Footer = StatusMessage.None }, new AskForNewName(session)),
+            (false, { ProcessId: null }) => Unchanged(state with { Message = new StatusMessage.NeverSentAMessage(session.Name) }),
+            (false, _) => Unchanged(state with { Message = new StatusMessage.NoMessagesToRename(session.Name) }),
+            (_, { State.Kind: DisplayStateKind.Working }) => Unchanged(state with { Message = new StatusMessage.WorkingSoRenameWaits(session.Name) }),
+            _ => Effect(state with { Message = StatusMessage.None }, new AskForNewName(session)),
         };
     }
 
@@ -297,18 +297,18 @@ public static class SessionsView
     {
         if (confirmed.Name is null)
         {
-            return Unchanged(state with { Footer = new StatusMessage.RenameCancelled() });
+            return Unchanged(state with { Message = new StatusMessage.RenameCancelled() });
         }
 
         return SessionName.Validate(confirmed.Name.Trim()) switch
         {
             SessionNameValidation.Valid valid => Renamed(state, new RenameSession(confirmed.Session, valid.Name)),
-            SessionNameValidation.Refused refused => Unchanged(state with { Footer = new StatusMessage.InvalidName(refused.Problem) }),
+            SessionNameValidation.Refused refused => Unchanged(state with { Message = new StatusMessage.InvalidName(refused.Problem) }),
             _ => throw new UnreachableException(),
         };
     }
 
-    private static ViewUpdate Renamed(SessionsViewState state, RenameSession rename) => Effect(state with { Footer = new StatusMessage.Working(rename) }, rename);
+    private static ViewUpdate Renamed(SessionsViewState state, RenameSession rename) => Effect(state with { Message = new StatusMessage.Working(rename) }, rename);
 
     /// <summary>
     /// Adoption ends the interactive process and resumes the conversation under the supervisor, so it is refused
@@ -320,10 +320,10 @@ public static class SessionsView
 
         return row switch
         {
-            null => Unchanged(state with { Footer = new StatusMessage.NoSessionSelected() }),
-            { Session: BackgroundSession } => Unchanged(state with { Footer = new StatusMessage.AlreadyUnderVantage(row.Session.Name) }),
-            { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Footer = new StatusMessage.WorkingSoAdoptWaits(row.Session.Name) }),
-            { Session: InteractiveSession terminal } => Effect(state with { Footer = StatusMessage.None }, new AdoptSession(terminal)),
+            null => Unchanged(state with { Message = new StatusMessage.NoSessionSelected() }),
+            { Session: BackgroundSession } => Unchanged(state with { Message = new StatusMessage.AlreadyUnderVantage(row.Session.Name) }),
+            { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Message = new StatusMessage.WorkingSoAdoptWaits(row.Session.Name) }),
+            { Session: InteractiveSession terminal } => Effect(state with { Message = StatusMessage.None }, new AdoptSession(terminal)),
             _ => Unchanged(state),
         };
     }

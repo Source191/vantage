@@ -63,9 +63,9 @@ public static partial class Wording
         return $"Problem report from Vantage {version.Text}";
     }
 
-    public static string Describe(StatusMessage footer)
+    public static string Describe(StatusMessage message)
     {
-        return footer switch
+        return message switch
         {
             StatusMessage.Blank => string.Empty,
             StatusMessage.NoSessionSelected => "No session selected.",
@@ -81,7 +81,7 @@ public static partial class Wording
             StatusMessage.InvalidName invalid => Describe(invalid.Problem),
             StatusMessage.AlreadyUnderVantage adopted => $"{adopted.Name} already runs in the background under Vantage.",
             StatusMessage.WorkingSoAdoptWaits adopt => $"{adopt.Name} is working; wait until it is idle or needs input, so nothing in flight is lost.",
-            _ => DescribeWorktreesAndScreen(footer),
+            _ => DescribeWorktreesAndScreen(message),
         };
     }
 
@@ -345,9 +345,9 @@ public static partial class Wording
 
     private static string SoundText(string? sound) => sound ?? "is Windows Terminal's own";
 
-    private static string DescribeWorktreesAndScreen(StatusMessage footer)
+    private static string DescribeWorktreesAndScreen(StatusMessage message)
     {
-        return footer switch
+        return message switch
         {
             StatusMessage.NoWorktreeSelected => "No worktree selected.",
             StatusMessage.SettingHint hint => ConfigDescription(hint.Row),
@@ -375,7 +375,7 @@ public static partial class Wording
             StatusMessage.BranchKept kept => $"{Describe(kept.Removal)} Branch kept.",
             StatusMessage.Followed followed => $"{Describe(followed.First)} {Describe(followed.Then)}",
             StatusMessage.Failed failed => $"Failed: {failed.Message}",
-            _ => footer.ToString(),
+            _ => message.ToString(),
         };
     }
 }

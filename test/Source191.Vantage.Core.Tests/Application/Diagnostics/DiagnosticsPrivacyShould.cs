@@ -154,13 +154,13 @@ public sealed class DiagnosticsPrivacyShould
 
     private async Task RemoveADirtyWorktreeAsync(GitCli git)
     {
-        string footer = await Attempt.RunAsync(log, FailureSite.Effect, CodeName.For(typeof(RemoveWorktree)), async () =>
+        string message = await Attempt.RunAsync(log, FailureSite.Effect, CodeName.For(typeof(RemoveWorktree)), async () =>
         {
             await git.RemoveWorktreeAsync(Repository, Worktree, force: false, CancellationToken.None);
             return "removed";
         }, exception => exception.Message);
 
-        footer.ShouldContain("modified or untracked");
+        message.ShouldContain("modified or untracked");
     }
 
     private async Task FailALoadAsync()
