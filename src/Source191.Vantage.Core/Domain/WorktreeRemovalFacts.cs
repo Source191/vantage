@@ -9,7 +9,7 @@ public sealed record WorktreeRemovalFacts(
     string Branch,
     int DirtyFileCount,
     int UnpushedCommitCount,
-    string? LiveSessionName,
+    WorktreeSession Session,
     bool BranchCreatedByVantage,
     bool BranchMerged,
     int LeftoverFileCount)
