@@ -498,7 +498,11 @@ public sealed class ConsoleScreen(
             object? timer = null;
             timer = app.AddTimeout(after, () =>
             {
-                timers.Remove(timer!);
+                if (timer is { } added)
+                {
+                    timers.Remove(added);
+                }
+
                 owner.Reduce(new MessageDismissed(message));
                 return false;
             });
