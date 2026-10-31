@@ -15,7 +15,7 @@ public sealed class PullRequestsShould
         PullRequest older = GitHub(7, open, Monday);
         PullRequest newer = GitHub(9, PullRequestState.Merged, Monday.AddDays(2));
 
-        PullRequests.ForBranch([newer, older]).ShouldBe(older);
+        PullRequests.ForBranch([newer, older]).ShouldBe(new PullRequestLookup.Found(older));
     }
 
     [Fact]
@@ -25,13 +25,13 @@ public sealed class PullRequestsShould
         PullRequest merged = GitHub(9, PullRequestState.Merged, Monday.AddDays(2));
         PullRequest abandoned = GitHub(8, PullRequestState.Abandoned, Monday.AddDays(1));
 
-        PullRequests.ForBranch([closed, merged, abandoned]).ShouldBe(merged);
+        PullRequests.ForBranch([closed, merged, abandoned]).ShouldBe(new PullRequestLookup.Found(merged));
     }
 
     [Fact]
-    public void AnswerNothingForNoPullRequests()
+    public void AnswerNoPullRequestForAnEmptyList()
     {
-        PullRequests.ForBranch([]).ShouldBeNull();
+        PullRequests.ForBranch([]).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoPullRequest));
     }
 
     [Theory]
