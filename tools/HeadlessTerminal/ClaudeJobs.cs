@@ -3,12 +3,10 @@ using System.Text.Json;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
-/// <summary>The few Claude Code CLI calls the hand-off check needs: start a background job, find it by name, stop and remove it.</summary>
+/// <summary>The few Claude Code CLI calls the hand-off check needs: find the job vantage here started by its name, stop and remove it.</summary>
 public sealed class ClaudeJobs
 {
     private readonly string claude = Locate();
-
-    public async Task StartAsync(string repository, string name, string prompt) => await RunAsync(repository, "--bg", "-n", name, prompt);
 
     public async Task<string?> FindJobIdAsync(string repository, string name)
     {

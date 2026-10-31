@@ -224,13 +224,13 @@ jobs:
           path: tools\HeadlessTerminal\drive-raw.txt
           if-no-files-found: ignore
 
-  # The hand-off check against a real Claude session (CLAUDE.md, "Hand-off check"). Needs the
+  # The hand-off check against a real Claude session (CLAUDE.md, "Hand-off check"): vantage here
+  # starts a throwaway session with no prompt, attaches, and is detached with Ctrl+Z. Needs the
   # CLAUDE_CODE_OAUTH_TOKEN secret from `claude setup-token`; without it every step after the gate
-  # is skipped. continue-on-error because the keystroke timings were tuned on a laptop and a slow
-  # runner can fail it for reasons that are not bugs: read the handoff-capture artefact when it does.
-  # Exit 1 is a blocked UI thread, 3 is Claude's screen missing from the capture (the attach never
-  # reached Claude). Claude's screen is in the artefact, not this log: read it with the tool's
-  # `count drive-raw.txt "Claude Code v"` or `grid`.
+  # is skipped. continue-on-error because a slow runner can fail it for reasons that are not bugs:
+  # read the handoff-capture artefact when it does. Exit 1 is vantage here not exiting after the
+  # detach, 3 is Claude's screen missing from the capture (the attach never reached Claude). Claude's
+  # screen is in the artefact, not this log: read it with the tool's `count drive-raw.txt "Claude Code v"`.
   handoff:
     name: handoff
     runs-on: windows-latest

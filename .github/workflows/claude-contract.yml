@@ -2,7 +2,7 @@ name: claude-contract
 
 # Every night, checks that the latest Claude Code CLI still offers what Vantage relies on (CLAUDE.md, "Claude Code
 # contract tests"): the contract tests drive Vantage's own Claude adapters against a fresh install, compare the
-# commands and options in the CLI's help with the committed snapshots, and the hand-off check attaches and returns.
+# commands and options in the CLI's help with the committed snapshots, and the hand-off check attaches through vantage here and detaches.
 # A failed install or contract test raises one rolling issue labelled claude-cli, assigned to the login in the
 # CLAUDE_CLI_WATCHER repository variable, so each failure notifies them. Never runs on pull requests: a CLI release
 # must not block a merge.
@@ -101,7 +101,7 @@ jobs:
           (Get-Content contract-output.txt) -replace '\e\[[0-9;?]*[A-Za-z]', '' | Set-Content contract-output.txt
           exit $exitCode
 
-      # Timings tuned on a laptop: a slow runner can fail it for reasons that are not bugs, so it marks the run
+      # A slow runner can fail it for reasons that are not bugs, so it marks the run
       # without raising the issue; read the handoff-capture artefact when it fails.
       - name: Hand-off check
         if: always() && steps.gate.outputs.enabled == 'true'
