@@ -71,7 +71,7 @@ internal static class SettingsDialog
         // The picker answers folders; the reducer adds them as lines and F5 checks them with the typed ones.
         void Browse()
         {
-            using OpenDialog picker = new() { Title = Wording.FolderPickerTitle, OpenMode = OpenMode.Directory, AllowsMultipleSelection = true };
+            using OpenDialog picker = new() { Title = Wording.FolderPickerTitle(scope), OpenMode = OpenMode.Directory, AllowsMultipleSelection = state.Browses == SettingsBrowse.SeveralFolders };
             if (state.BrowseFrom is FolderPath from)
             {
                 picker.Path = from.Value;
@@ -81,13 +81,14 @@ internal static class SettingsDialog
             DialogTabTitle.Apply(app, log, picker, DialogName.FolderPicker);
             app.Run(picker);
             Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
+            Apply(new SettingsInput.WorktreeRootChanged(controls.WorktreeRoot.Text));
             Apply(new SettingsInput.FoldersChosen(picker.Canceled ? [] : picker.FilePaths));
             binding = true;
-            controls.ShowRoots(state);
+            controls.ShowFolders(state);
             binding = false;
         }
 
-        bool browses = scope is SettingsScope.Roots;
+        bool browses = state.Browses != SettingsBrowse.No;
         controls.WhenFocused(field => Apply(new SettingsInput.FieldFocused(field)));
         controls.Roots.ContentsChanged += (_, _) => Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
         controls.WorktreeRoot.TextChanging += (_, changing) => Apply(new SettingsInput.WorktreeRootChanged(changing.Result ?? string.Empty));

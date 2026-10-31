@@ -13,7 +13,7 @@ public static partial class Wording
     public static string BrowseButton => "_Browse… (F3)";
 
     /// <summary>The folder picker's own title, inside the dialog; Vantage's tab says <see cref="DialogName.FolderPicker"/>.</summary>
-    public static string FolderPickerTitle => "Add repository roots";
+    public static string FolderPickerTitle(SettingsScope scope) => scope is SettingsScope.WorktreeRoot ? "Choose the worktree root" : "Add repository roots";
 
     /// <summary>The caption above the Default place dialog's choice.</summary>
     public static string PlaceCaption => "Where the wizard opened with n starts a session (↑↓ then Space)";
