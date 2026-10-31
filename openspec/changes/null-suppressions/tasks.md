@@ -13,7 +13,7 @@ Each task is one red-green-refactor cycle or a refactor step, with a commit per 
 ## 2. Application
 
 - [x] 2.1 `WorktreeInventory.OwnerOf` matches `gitDir is string dir` before slicing (refactor step). Verify `WorktreeInventoryShould` passes unchanged and `WorktreeInventory.cs` has one `!` left, `row.Branch!`, for null-free-rows.
-- [ ] 2.2 `ExceptionSummary.Frames` matches `frame.GetMethod() is MethodBase method` once and passes it to `IsAwaitMachinery` and `Frame` (refactor step). Verify `ExceptionSummaryShould` and `DiagnosticsPrivacyShould` pass unchanged.
+- [x] 2.2 `ExceptionSummary.Frames` matches `frame.GetMethod() is MethodBase method` once and passes it to `IsAwaitMachinery` and `Frame` (refactor step). Verify `ExceptionSummaryShould` and `DiagnosticsPrivacyShould` pass unchanged.
 
 ## 3. Adapters
 
