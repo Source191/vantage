@@ -18,7 +18,7 @@
 
 ## 4. Starting always opens the tab (handler)
 
-- [ ] 4.1 Red: `StartSessionHandlerShould` asserts a started, listed session answers `StartedAndOpened` with the tab outcome and an unlisted one `NotListedYet`, with no case for starting without a tab. Green: `StartSession` carries only the plan; `StartSessionHandler` drops the flag; `StartSessionOutcome.Started` goes. Verify the Core tests pass and `EffectDispatcherShould` still finds the registration.
+- [x] 4.1 Red: `StartSessionHandlerShould` asserts a started, listed session answers `StartedAndOpened` with the tab outcome and an unlisted one `NotListedYet`, with no case for starting without a tab. Green: `StartSession` carries only the plan; `StartSessionHandler` drops the flag; `StartSessionOutcome.Started` goes. Verify the Core tests pass and `EffectDispatcherShould` still finds the registration.
 - [ ] 4.2 Red: `WordingOfOutcomesShould` asserts `NotListedYet` says to press Enter on the session once it appears, and the reflection fact still finds words for every `StartSessionOutcome` case. Green: `WordingOfOutcomes`. Verify the Core tests pass.
 
 ## 5. The console only quits (ScreenLoop)

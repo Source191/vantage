@@ -385,7 +385,7 @@ public sealed class WordingOfOutcomesShould
     public void SayHowToOpenATabForASessionNotListedYet()
     {
         Wording.Describe(new StartSessionOutcome.NotListedYet("Fix flaky tests", JobId.From("81cdb0f9")))
-            .ShouldBe("Started Fix flaky tests (81cdb0f9). It is not listed yet: press o on it to open a tab.");
+            .ShouldBe("Started Fix flaky tests (81cdb0f9). It is not listed yet: press Enter on it to open its tab.");
     }
 
     [Fact]
