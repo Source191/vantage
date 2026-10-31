@@ -107,7 +107,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.LockReason, false, null, false));
             rows.Add(folderExists
                 ? await InspectedAsync(repository, path, entry, health, cancellationToken)
-                : new WorktreeRow(repository, path, entry.Branch, health, 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: false));
+                : new WorktreeRow(repository, path, BranchOf(entry), health, 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: false));
         }
 
         return rows;
@@ -122,7 +122,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             return new WorktreeRow(
                 repository,
                 path,
-                entry.Branch,
+                BranchOf(entry),
                 health,
                 counts.DirtyFiles,
                 counts.UnpushedCommits,
@@ -135,7 +135,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         }
         catch (GitException)
         {
-            return new WorktreeRow(repository, path, entry.Branch, health, 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: true);
+            return new WorktreeRow(repository, path, BranchOf(entry), health, 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: true);
         }
     }
 
@@ -225,6 +225,8 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             .Where(session => session is InteractiveSession or BackgroundSession { ProcessId: not null })
             .FirstOrDefault(session => session.WorkingDirectory.IsUnder(worktree));
     }
+
+    private static BranchName? BranchOf(GitWorktreeEntry entry) => entry.Head is Head.OnBranch on ? on.Branch : null;
 
     private static WorktreeRow WithLiveSession(WorktreeRow row, Session? live) => row with { SessionId = live?.SessionId, SessionName = live?.Name };
 }

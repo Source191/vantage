@@ -12,7 +12,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 2. Port and adapter: git's head
 
-- [ ] 2.1 `GitWorktreeListingShould.ReadABranchLineAsOnBranch`, `ReadADetachedLineAsDetached` and `ReadABranchItCannotNameAsUnknown`, and the existing facts reading `Commit` where they read `Head`: red, then `GitWorktreeEntry(Path, Commit, Head, IsMain, LockReason, PrunableReason)` and `ParseBlock` translating the lines green. Verify `GitWorktreeListingShould` passes and `GitWorktreeListing.cs` keeps no `BranchName?`.
+- [x] 2.1 `GitWorktreeListingShould.ReadABranchLineAsOnBranch`, `ReadADetachedLineAsDetached` and `ReadABranchItCannotNameAsUnknown`, and the existing facts reading `Commit` where they read `Head`: red, then `GitWorktreeEntry(Path, Commit, Head, IsMain, LockReason, PrunableReason)` and `ParseBlock` translating the lines green. Verify `GitWorktreeListingShould` passes and `GitWorktreeListing.cs` keeps no `BranchName?`.
 
 ## 3. Application: worktree rows
 
