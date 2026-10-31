@@ -3,6 +3,14 @@ namespace Source191.Vantage.Application.Detail;
 /// <summary>One request for the selected row's detail: its place in the order asked, and the row's key.</summary>
 public sealed record DetailRequest(int Number, object Key);
 
+/// <summary>What the pane does with an answer that arrived: show it, or drop it because its row is no longer selected or a newer answer was shown.</summary>
+public abstract record DetailAnswer
+{
+    public sealed record Show(DetailContent Content) : DetailAnswer;
+
+    public sealed record Dropped : DetailAnswer;
+}
+
 /// <summary>
 /// The order of one tab's detail requests and which answers the pane shows: moving the selection or refreshing the rows
 /// asks again, and an answer is shown only while its row is still selected and no newer answer has been shown. Used on
@@ -10,9 +18,12 @@ public sealed record DetailRequest(int Number, object Key);
 /// </summary>
 public sealed class DetailRequests
 {
+    /// <summary>The selection while no row is selected: no row's key equals it.</summary>
+    private static readonly object NoRow = new();
+
     private int asked;
     private int shown;
-    private object? selected;
+    private object selected = NoRow;
 
     /// <summary>The selection moved to this row, the rows were refreshed, or its tab was shown again.</summary>
     public DetailRequest Ask(object key)
@@ -28,20 +39,20 @@ public sealed class DetailRequests
     }
 
     /// <summary>No row is selected: every answer still on its way is dropped.</summary>
-    public void Cleared() => selected = null;
+    public void Cleared() => selected = NoRow;
 
-    /// <summary>What the pane shows once this answer arrives, or null when the answer is dropped.</summary>
-    public DetailContent? Accept(DetailRequest request, DetailContent content)
+    /// <summary>What the pane does once this answer arrives: shows it, or drops it.</summary>
+    public DetailAnswer Accept(DetailRequest request, DetailContent content)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(content);
         if (!Equals(request.Key, selected) || request.Number <= shown)
         {
-            return null;
+            return new DetailAnswer.Dropped();
         }
 
         shown = request.Number;
 
-        return content;
+        return new DetailAnswer.Show(content);
     }
 }
