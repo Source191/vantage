@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Source191.Vantage.Domain;
@@ -5,29 +6,42 @@ namespace Source191.Vantage.Domain;
 /// <summary>
 /// A semantic version, <c>major.minor.patch[-prerelease]</c>, compared by semantic version precedence; build metadata
 /// after <c>+</c> is dropped. Text from outside Vantage (nuget.org's list, the update-check record) goes through
-/// <see cref="TryParse"/>, which answers null for anything else.
+/// <see cref="TryParse"/>, which answers false for anything else.
 /// </summary>
 public sealed record ReleaseVersion(int Major, int Minor, int Patch, string? Prerelease) : IComparable<ReleaseVersion>
 {
     public bool IsPrerelease => Prerelease is not null;
 
-    public static ReleaseVersion? TryParse(string? text)
+    public static bool TryParse(string? text, [MaybeNullWhen(false)] out ReleaseVersion version)
     {
         string withoutMetadata = (text ?? string.Empty).Split('+')[0].Trim();
         int dash = withoutMetadata.IndexOf('-', StringComparison.Ordinal);
         string core = dash < 0 ? withoutMetadata : withoutMetadata[..dash];
         string? prerelease = dash < 0 ? null : withoutMetadata[(dash + 1)..];
-        string[] parts = core.Split('.');
-        if (parts.Length != 3 || prerelease is { Length: 0 })
+        if (prerelease is not { Length: 0 }
+            && core.Split('.') is [string major, string minor, string patch]
+            && Number(major) is int majorNumber
+            && Number(minor) is int minorNumber
+            && Number(patch) is int patchNumber)
         {
-            return null;
+            version = new ReleaseVersion(majorNumber, minorNumber, patchNumber, prerelease);
+            return true;
         }
 
-        int?[] numbers = [.. parts.Select(Number)];
+        version = null;
+        return false;
+    }
 
-        return numbers.All(number => number is not null)
-            ? new ReleaseVersion(numbers[0]!.Value, numbers[1]!.Value, numbers[2]!.Value, prerelease)
-            : null;
+    /// <summary>The texts that read as versions, in order; the rest are skipped.</summary>
+    public static IEnumerable<ReleaseVersion> Parsed(IEnumerable<string> texts)
+    {
+        foreach (string text in texts)
+        {
+            if (TryParse(text, out ReleaseVersion? version))
+            {
+                yield return version;
+            }
+        }
     }
 
     public static bool operator <(ReleaseVersion left, ReleaseVersion right) => left.CompareTo(right) < 0;

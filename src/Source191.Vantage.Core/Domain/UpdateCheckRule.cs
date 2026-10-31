@@ -27,9 +27,7 @@ public static class UpdateCheckRule
     /// <summary>The highest release in the list, or none; prereleases and text that is not a version are skipped.</summary>
     public static NewestRelease Newest(IEnumerable<string> versions)
     {
-        ReleaseVersion? highest = versions
-            .Select(ReleaseVersion.TryParse)
-            .OfType<ReleaseVersion>()
+        ReleaseVersion? highest = ReleaseVersion.Parsed(versions)
             .Where(version => !version.IsPrerelease)
             .Max();
 
@@ -50,10 +48,5 @@ public static class UpdateCheckRule
             : new UpdateStatus.UpToDate();
     }
 
-    private static ReleaseVersion? ReleaseOf(ToolVersion running)
-    {
-        ReleaseVersion? version = ReleaseVersion.TryParse(running.Text);
-
-        return version is { IsPrerelease: false } ? version : null;
-    }
+    private static ReleaseVersion? ReleaseOf(ToolVersion running) => ReleaseVersion.TryParse(running.Text, out ReleaseVersion? version) && !version.IsPrerelease ? version : null;
 }
