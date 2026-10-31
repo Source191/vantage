@@ -43,7 +43,7 @@ public sealed class ResumeSessionsHandlerShould
         processes.CapturedRequests.Count(request => request.Arguments.Contains("--resume")).ShouldBe(1);
         ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
         (resume.Resumed, resume.Chosen).ShouldBe((1, 2));
-        resume.Notes.ShouldBe([new ResumeNote("repos-f6", Failure: null)]);
+        resume.Notes.ShouldBe([new ResumeNote.NeverSentAMessage("repos-f6")]);
     }
 
     [Fact]
