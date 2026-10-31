@@ -6,22 +6,21 @@ namespace Source191.Vantage.Domain;
 /// </summary>
 public sealed record ProcessTree(ProcessFacts Process, ProcessUsage? Usage, IReadOnlyList<ProcessTree> Children)
 {
-    /// <summary>The tree under a root, or null when the root is not in the table or cannot be measured.</summary>
-    public static ProcessTree? Under(int rootId, IReadOnlyList<ProcessFacts> snapshot, Func<int, ProcessUsage?> usageOf)
+    /// <summary>The tree under a root, or <see cref="ProcessTreeLookup.NotMeasurable"/> when the root is not in the table or cannot be measured.</summary>
+    public static ProcessTreeLookup Under(int rootId, IReadOnlyList<ProcessFacts> snapshot, Func<int, ProcessUsage?> usageOf)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         ArgumentNullException.ThrowIfNull(usageOf);
 
         ProcessFacts? root = snapshot.FirstOrDefault(process => process.ProcessId == rootId);
-        ProcessUsage? usage = root is null ? null : usageOf(rootId);
-        if (root is null || usage is null)
+        if (root is null || usageOf(rootId) is not { } usage)
         {
-            return null;
+            return new ProcessTreeLookup.NotMeasurable();
         }
 
         ILookup<int, ProcessFacts> byParent = snapshot.ToLookup(process => process.ParentId);
 
-        return Build(root, usage, usage.StartedAt, byParent, usageOf);
+        return new ProcessTreeLookup.Found(Build(root, usage, usage.StartedAt, byParent, usageOf));
     }
 
     public MemorySize Total => Children.Aggregate(Usage?.PrivateMemory ?? MemorySize.Zero, (sum, child) => sum + child.Total);
@@ -48,4 +47,13 @@ public sealed record ProcessTree(ProcessFacts Process, ProcessUsage? Usage, IRea
 
         return new ProcessTree(process, usage, children);
     }
+}
+
+/// <summary>A process tree looked up by its root: the tree, or the reason there is none to measure.</summary>
+public abstract record ProcessTreeLookup
+{
+    public sealed record Found(ProcessTree Tree) : ProcessTreeLookup;
+
+    /// <summary>The root is not in the process table, or it refused to be measured.</summary>
+    public sealed record NotMeasurable : ProcessTreeLookup;
 }

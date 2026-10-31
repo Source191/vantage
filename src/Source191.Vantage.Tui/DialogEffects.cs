@@ -7,6 +7,7 @@ using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.Collections.Frozen;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Tui;
 
@@ -208,21 +209,19 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
         return new StatusMessage.Working(effect);
     }
-    /// <summary>Looks off the UI thread; back on it, one solution opens, none says so, and several are asked about.</summary>
+
     /// <summary>Measures the session's tree off the UI thread (a snapshot of the whole table), then shows the breakdown; a process gone since the listing reads as nothing to measure.</summary>
     private void ShowMemoryOf(IEffectContext context, ShowMemory show)
     {
         context.RunInBackground(
             new StatusMessage.Working(show),
-            _ => Task.FromResult(Measure(show)),
-            breakdown => breakdown is null ? new StatusMessage.NothingToMeasure(show.Session.Name) : ShowBreakdown(context, breakdown));
-    }
-
-    private MemoryBreakdown? Measure(ShowMemory show)
-    {
-        ProcessTree? tree = ProcessTree.Under(show.ProcessId, processes.Snapshot(), processes.UsageOf);
-
-        return tree is null ? null : MemoryBreakdown.Of(show.Session.Name, tree);
+            _ => Task.FromResult(ProcessTree.Under(show.ProcessId, processes.Snapshot(), processes.UsageOf)),
+            lookup => lookup switch
+            {
+                ProcessTreeLookup.Found found => ShowBreakdown(context, MemoryBreakdown.Of(show.Session.Name, found.Tree)),
+                ProcessTreeLookup.NotMeasurable => new StatusMessage.NothingToMeasure(show.Session.Name),
+                _ => throw new UnreachableException(),
+            });
     }
 
     private static StatusMessage ShowBreakdown(IEffectContext context, MemoryBreakdown breakdown)
@@ -232,6 +231,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         return StatusMessage.None;
     }
 
+    /// <summary>Looks off the UI thread; back on it, one solution opens, none says so, and several are asked about.</summary>
     private void OpenSolutionOf(IEffectContext context, FindSolution find)
     {
         context.RunInBackground(
