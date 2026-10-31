@@ -98,8 +98,9 @@ public sealed class ClaudeCliShould
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.WorkingDirectory.ShouldBe(Directory),
             request => request.Arguments.ShouldBe(["--bg", "-n", "Refund retry policy"]));
-        result.Outcome.ShouldBe(StartOutcome.Started);
-        result.JobId.ShouldBe("81cdb0f9");
+        StartResult.Started started = result.ShouldBeOfType<StartResult.Started>();
+        started.JobId.ShouldBe(JobId.From("81cdb0f9"));
+        started.Message.ShouldBe(StartedOutput.Trim());
     }
 
     [Fact]
@@ -119,8 +120,7 @@ public sealed class ClaudeCliShould
 
         StartResult result = await Cli.StartBackgroundAsync(Directory, name, openingPrompt: null, CancellationToken.None);
 
-        result.Outcome.ShouldBe(StartOutcome.WorkspaceNotTrusted);
-        result.JobId.ShouldBeNull();
+        result.ShouldBeOfType<StartResult.WorkspaceNotTrusted>().Message.ShouldStartWith("Workspace not trusted.");
     }
 
     [Fact]
@@ -130,8 +130,7 @@ public sealed class ClaudeCliShould
 
         StartResult result = await Cli.StartBackgroundAsync(Directory, name, openingPrompt: null, CancellationToken.None);
 
-        result.Outcome.ShouldBe(StartOutcome.Failed);
-        result.Message.ShouldContain("background service");
+        result.ShouldBeOfType<StartResult.Failed>().Message.ShouldContain("background service");
     }
 
     [Fact]
