@@ -29,7 +29,7 @@ Each task is one red-green-refactor cycle or a refactor step, with a commit per 
 ## 5. Version and the whole build
 
 - [x] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one step above main (projected `0.19.0-preview.4`). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`. Raised to `0.19.0-preview.6`, one step above the base branch `v-worktrees-preload` (two pull requests landed under the programme after the projection), and checked with `-Base v-worktrees-preload -Head HEAD`.
-- [ ] 5.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` pass; `Get-ChildItem src -Recurse -Filter *.cs | Select-String '\w!\.|\w!\)|\w!;|\w!,|\w!\[|null!|default!'` finds only `WorktreeInventory.cs`'s `row.Branch!`; `openspec validate null-suppressions` passes.
+- [x] 5.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` pass; `Get-ChildItem src -Recurse -Filter *.cs | Select-String '\w!\.|\w!\)|\w!;|\w!,|\w!\[|null!|default!'` finds only `WorktreeInventory.cs`'s `row.Branch!`; `openspec validate null-suppressions` passes. Build clean, 2105 passed and 8 skipped at the solution, format clean, the search finds only `row.Branch!`, and the change validates strictly.
 
 ## Workflow follow-up
 
