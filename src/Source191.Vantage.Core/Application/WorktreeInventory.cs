@@ -61,8 +61,8 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         return [.. rows.Select(row => WithPullRequest(WithLiveSession(row, LiveSessionIn(row.Path, sessions))))];
     }
 
-    /// <summary>A leftover has no branch, so it keeps the row's default of no branch to look up.</summary>
-    private WorktreeRow WithPullRequest(WorktreeRow row) => row.Branch is null ? row : row with { PullRequest = pullRequests.Find(row.Repository, row.Branch) };
+    /// <summary>A leftover's head is Unknown, so the catalogue answers no branch to look up, as the row's default does.</summary>
+    private WorktreeRow WithPullRequest(WorktreeRow row) => row with { PullRequest = pullRequests.Find(row.Repository, row.Head) };
 
     /// <summary>The paths among folder listings that are full paths; anything else is skipped.</summary>
     private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Parsed<FolderPath>();
