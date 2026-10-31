@@ -232,9 +232,12 @@ public static partial class Wording
 
     private static string Describe(ResumeSessionsOutcome outcome)
     {
-        IEnumerable<string> notes = outcome.Notes.Select(note => note.Failure is null
-            ? $"{note.Name}: never sent a message, so there is nothing to resume; d deletes it"
-            : $"{note.Name}: {note.Failure}");
+        IEnumerable<string> notes = outcome.Notes.Select(note => note switch
+        {
+            ResumeNote.NeverSentAMessage => $"{note.Name}: never sent a message, so there is nothing to resume; d deletes it",
+            ResumeNote.Failed failed => $"{note.Name}: {failed.Failure}",
+            _ => throw new UnreachableException(),
+        });
         string suffix = outcome.Notes.Count == 0 ? string.Empty : $" Notes: {string.Join("; ", notes)}";
 
         return $"Resumed {outcome.Resumed} of {outcome.Chosen}.{suffix}";
