@@ -85,9 +85,9 @@ public sealed class ScreenLoopShould : IDisposable
     }
 
     [Fact]
-    public async Task StartOnTheSessionsTabAndQuitWhenTheConsoleReturnsNoEffect()
+    public async Task StartOnTheSessionsTabAndQuitWhenTheConsoleLeavesWithQuit()
     {
-        ScriptedConsoleScreen screen = new(state => new ConsoleExit(state, null));
+        ScriptedConsoleScreen screen = new(state => new ConsoleExit(state, new Quit()));
 
         await Loop(screen).RunAsync(processId: 100, CancellationToken.None);
 

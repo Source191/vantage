@@ -29,7 +29,7 @@ public sealed class ScreenLoop(
         UpdateCheckTask = CheckForUpdatesAsync(cancellationToken);
 
         ConsoleExit exit = screen.Run(ConsoleState.Empty);
-        if (exit.Effect is not (null or Quit))
+        if (exit.Effect is not Quit)
         {
             throw new UnreachableException($"Only quit leaves the console, but {exit.Effect.GetType().Name} did.");
         }
