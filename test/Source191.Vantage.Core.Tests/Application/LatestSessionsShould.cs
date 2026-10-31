@@ -33,4 +33,18 @@ public sealed class LatestSessionsShould
         sessions.ShouldBe(listing.Sessions);
         AgentsRuns.ShouldBe(1);
     }
+
+    [Fact]
+    public async Task WaitForTheFirstListing()
+    {
+        LatestSessions latest = Latest;
+
+        Task<IReadOnlyList<Session>> waiting = latest.SessionsAsync(CancellationToken.None);
+        bool completedBeforeTheListing = waiting.IsCompleted;
+        await latest.ListAsync(CancellationToken.None);
+        IReadOnlyList<Session> sessions = await waiting;
+
+        completedBeforeTheListing.ShouldBeFalse();
+        sessions.Select(session => session.Name).ShouldBe(["fix-orders", "fix-billing"]);
+    }
 }
