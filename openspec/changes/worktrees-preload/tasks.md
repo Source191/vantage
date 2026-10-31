@@ -11,7 +11,7 @@
 
 - [x] 2.1 Test first: `RunningLoadsShould.ReserveOnlyWhenNothingRuns` asserts `TryReserve` answers true once, then false, and `IsRunning` is true after the first. Then add `Application\RunningLoads` with `TryReserve` and `IsRunning`, both counts behind a `Lock`. Verify by running the Core suite.
 - [x] 2.2 Test first: `RunningLoadsShould.CountATrackedLoadUntilItCompletes` reserves, calls the `Track`ed load (waiting on a `TaskCompletionSource`), asserts `IsRunning` while it waits and false after it completes, and that `TryReserve` answers true again. `CountATrackedLoadUntilItFails` does the same for a load that throws, and asserts the exception still reaches the caller. Then add `Track`, which takes a held reservation as the call starts. Verify by running the Core suite.
-- [ ] 2.3 Test first: `RunningLoadsShould.CountALoadThatWasNotReserved` calls a tracked load with no reservation, as the reload after an action does, and asserts `TryReserve` answers false until it completes. `StayRunningUntilBothFinish` reserves, starts an unreserved load, then the reserved one, completes them in turn, and asserts `IsRunning` stays true until the second completes. Then make them pass. Verify by running the Core suite and `dotnet format --verify-no-changes`.
+- [x] 2.3 Test first: `RunningLoadsShould.CountALoadThatWasNotReserved` calls a tracked load with no reservation, as the reload after an action does, and asserts `TryReserve` answers false until it completes. `StayRunningUntilBothFinish` reserves, starts an unreserved load, then the reserved one, completes them in turn, and asserts `IsRunning` stays true until the second completes. Then make them pass. Verify by running the Core suite and `dotnet format --verify-no-changes`.
 
 ## 3. Wiring and the console
 
