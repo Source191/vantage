@@ -37,7 +37,8 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
                 Checkout = location.Checkout,
                 TabColour = liveTabs.GetValueOrDefault(session.SessionId),
             };
-            rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, location.Branch) });
+            Head head = location.Branch is BranchName current ? new Head.OnBranch(current) : new Head.Unknown();
+            rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, head) });
             branches.AddRange(location is { Checkout: FolderPath checkout, Branch: BranchName branch } ? [(checkout, branch)] : []);
         }
 

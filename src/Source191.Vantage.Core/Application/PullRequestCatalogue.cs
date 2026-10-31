@@ -22,14 +22,23 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
     // A burst of rows becomes waves of four host processes rather than dozens at once.
     private readonly SemaphoreSlim slots = new(4);
 
-    public PullRequestLookup Find(FolderPath checkout, BranchName? branch) => (branch, branch is not null && answers.TryGetValue(KeyOf(checkout, branch), out Answer? answer) ? answer : null) switch
+    /// <summary>The pull request of the branch the head is on; a head on no branch has none to look up.</summary>
+    public PullRequestLookup Find(FolderPath checkout, Head head) => head is Head.OnBranch on ? Find(checkout, on.Branch) : new PullRequestLookup.Missing(PullRequestGap.NoBranch);
+
+    private PullRequestLookup Find(FolderPath checkout, BranchName branch)
     {
-        (null, _) => new PullRequestLookup.Missing(PullRequestGap.NoBranch),
-        (_, null) => new PullRequestLookup.Missing(PullRequestGap.Looking),
-        (BranchName named, { Listing: PullRequestListing.Listed listed }) => ForBranch(listed, named),
-        (_, { Listing: PullRequestListing.Unavailable unavailable, Host: var host }) => new PullRequestLookup.Missing(unavailable.Gap, host),
-        _ => new PullRequestLookup.Missing(PullRequestGap.Failed),
-    };
+        if (!answers.TryGetValue(KeyOf(checkout, branch), out Answer? answer))
+        {
+            return new PullRequestLookup.Missing(PullRequestGap.Looking);
+        }
+
+        return answer switch
+        {
+            { Listing: PullRequestListing.Listed listed } => ForBranch(listed, branch),
+            { Listing: PullRequestListing.Unavailable unavailable, Host: var host } => new PullRequestLookup.Missing(unavailable.Gap, host),
+            _ => new PullRequestLookup.Missing(PullRequestGap.Failed),
+        };
+    }
 
     public Task RefreshStaleAsync(IEnumerable<(FolderPath Checkout, BranchName Branch)> branches)
     {
