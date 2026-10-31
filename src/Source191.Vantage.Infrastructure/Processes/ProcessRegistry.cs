@@ -19,15 +19,14 @@ public sealed partial class ProcessRegistry : IProcessRegistry
     private const int StatusInfoLengthMismatch = unchecked((int)0xC0000004);
     private const uint ProcessQueryLimitedInformation = 0x1000;
 
-    public DateTimeOffset? StartTimeOf(int processId) => WithProcess<DateTimeOffset?>(processId, process => new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero));
+    public DateTimeOffset? StartTimeOf(int processId) => WithProcess<DateTimeOffset?>(processId, process => new DateTimeOffset(process.StartTime.ToUniversalTime(), TimeSpan.Zero), whenGone: null);
 
     public void Terminate(int processId)
     {
-        WithProcess<object?>(processId, process =>
+        WithProcess(processId, process =>
         {
             process.Kill(entireProcessTree: true);
             process.WaitForExit(TimeSpan.FromSeconds(5));
-            return null;
         });
     }
 
@@ -40,20 +39,18 @@ public sealed partial class ProcessRegistry : IProcessRegistry
 
             return status != 0 || parentId <= 0 || parentId > int.MaxValue
                 ? null
-                : WithProcess<ProcessParent?>((int)parentId, parent => new ProcessParent((int)parentId, parent.ProcessName));
-        });
+                : WithProcess<ProcessParent?>((int)parentId, parent => new ProcessParent((int)parentId, parent.ProcessName), whenGone: null);
+        }, whenGone: null);
     }
 
     public void EndCleanly(int processId)
     {
-        WithProcess<object?>(processId, process =>
+        WithProcess(processId, process =>
         {
             if (TerminateProcess(process.Handle, 0))
             {
                 process.WaitForExit(TimeSpan.FromSeconds(5));
             }
-
-            return null;
         });
     }
 
@@ -161,8 +158,8 @@ public sealed partial class ProcessRegistry : IProcessRegistry
         }
     }
 
-    /// <summary>Runs a query against a live process; a process that has gone, or refuses the query, reads as the default (null for the nullable results used here).</summary>
-    private static T WithProcess<T>(int processId, Func<Process, T> query)
+    /// <summary>Runs a query against a live process; a process that has gone, or refuses the query, reads as <paramref name="whenGone"/>.</summary>
+    private static T WithProcess<T>(int processId, Func<Process, T> query, T whenGone)
     {
         try
         {
@@ -172,16 +169,39 @@ public sealed partial class ProcessRegistry : IProcessRegistry
         }
         catch (ArgumentException)
         {
-            return default!;
+            return whenGone;
         }
         catch (InvalidOperationException)
         {
-            return default!;
+            return whenGone;
         }
         catch (Win32Exception)
         {
             // Protected processes refuse the query; a reused identifier may land on one.
-            return default!;
+            return whenGone;
+        }
+    }
+
+    /// <summary>Acts on a live process; a process that has gone, or refuses the action, is left alone.</summary>
+    private static void WithProcess(int processId, Action<Process> action)
+    {
+        try
+        {
+            using Process process = Process.GetProcessById(processId);
+
+            action(process);
+        }
+        catch (ArgumentException)
+        {
+            // The process has gone.
+        }
+        catch (InvalidOperationException)
+        {
+            // The process exited while it was being acted on.
+        }
+        catch (Win32Exception)
+        {
+            // Protected processes refuse the action; a reused identifier may land on one.
         }
     }
 
