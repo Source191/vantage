@@ -27,7 +27,7 @@ public sealed record ReportTitle : ITextValue<ReportTitle>
 
     private ReportTitle(string text)
     {
-        if (ProblemWith(text) is ReportTitleProblem problem)
+        if (HasProblem(text, out ReportTitleProblem problem))
         {
             throw new ArgumentException($"Not a report title: {problem}.", nameof(text));
         }
@@ -40,22 +40,29 @@ public sealed record ReportTitle : ITextValue<ReportTitle>
     public string Value { get; }
 
     /// <summary>Checks typed text, refused when blank or longer than <see cref="MostCharacters"/>.</summary>
-    public static ReportTitleValidation Validate(string text) => ProblemWith(text) switch
+    public static ReportTitleValidation Validate(string text)
     {
-        ReportTitleProblem problem => new ReportTitleValidation.Refused(problem),
-        null => new ReportTitleValidation.Valid(ReportTitle.From(text)),
-    };
+        return HasProblem(text, out ReportTitleProblem problem)
+            ? new ReportTitleValidation.Refused(problem)
+            : new ReportTitleValidation.Valid(ReportTitle.From(text));
+    }
 
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out ReportTitle value)
     {
-        value = text is not null && ProblemWith(text) is null ? ReportTitle.From(text) : null;
+        value = text is not null && !HasProblem(text, out _) ? ReportTitle.From(text) : null;
         return value is not null;
     }
 
-    private static ReportTitleProblem? ProblemWith(string text) => text switch
+    /// <summary>The two rules, in order: a title is not blank and not longer than <see cref="MostCharacters"/>.</summary>
+    private static bool HasProblem(string text, out ReportTitleProblem problem)
     {
-        _ when string.IsNullOrWhiteSpace(text) => ReportTitleProblem.Missing,
-        { Length: > MostCharacters } => ReportTitleProblem.TooLong,
-        _ => null,
-    };
+        (bool refused, problem) = text switch
+        {
+            _ when string.IsNullOrWhiteSpace(text) => (true, ReportTitleProblem.Missing),
+            { Length: > MostCharacters } => (true, ReportTitleProblem.TooLong),
+            _ => (false, default(ReportTitleProblem)),
+        };
+
+        return refused;
+    }
 }
