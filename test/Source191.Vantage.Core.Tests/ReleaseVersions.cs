@@ -7,6 +7,8 @@ public static class ReleaseVersions
 {
     public static ReleaseVersion Version(string text)
     {
-        return ReleaseVersion.TryParse(text).ShouldNotBeNull($"\"{text}\" should read as a release version");
+        ReleaseVersion.TryParse(text, out ReleaseVersion? version).ShouldBeTrue($"\"{text}\" should read as a release version");
+
+        return version;
     }
 }

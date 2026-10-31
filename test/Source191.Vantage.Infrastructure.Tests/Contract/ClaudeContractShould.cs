@@ -32,7 +32,7 @@ public sealed class ClaudeContractShould
 
         string? version = await cli.VersionAsync(Cancellation);
 
-        ReleaseVersion.TryParse(version).ShouldNotBeNull($"claude --version gave \"{version}\"");
+        ReleaseVersion.TryParse(version, out _).ShouldBeTrue($"claude --version gave \"{version}\"");
     }
 
     [Fact]

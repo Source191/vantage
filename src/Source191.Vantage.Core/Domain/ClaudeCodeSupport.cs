@@ -24,7 +24,7 @@ public static class ClaudeCodeSupport
             return new ClaudeCodeVersion.Unknown();
         }
 
-        return ReleaseVersion.TryParse(reported) is ReleaseVersion installed && Minimum.IsHigherThan(installed)
+        return ReleaseVersion.TryParse(reported, out ReleaseVersion? installed) && Minimum.IsHigherThan(installed)
             ? new ClaudeCodeVersion.BelowMinimum(installed, Minimum)
             : new ClaudeCodeVersion.Reported(reported);
     }
