@@ -56,9 +56,21 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         rows.AddRange(candidates.Where(candidate => !registered.Contains(candidate)).Select(BrokenWorktree));
 
         // Never awaited: the rows show what the catalogue already holds, and the next rescan picks up what lands.
-        _ = pullRequests.RefreshStaleAsync(rows.Where(row => row.Branch is not null).Select(row => (row.Repository, row.Branch!)));
+        _ = pullRequests.RefreshStaleAsync(BranchesOf(rows));
 
-        return [.. rows.Select(row => WithPullRequest(WithLiveSession(row, LiveSessionIn(row.Path, sessions))))];
+        return [.. rows.Select(row => WithPullRequest(row with { Session = LiveSessionIn(row.Path, sessions) }))];
+    }
+
+    /// <summary>Each row's repository and branch, for the rows whose head is on one.</summary>
+    private static IEnumerable<(FolderPath Checkout, BranchName Branch)> BranchesOf(IEnumerable<WorktreeRow> rows)
+    {
+        foreach (WorktreeRow row in rows)
+        {
+            if (row.Head is Head.OnBranch on)
+            {
+                yield return (row.Repository, on.Branch);
+            }
+        }
     }
 
     /// <summary>A leftover's head is Unknown, so the catalogue answers no branch to look up, as the row's default does.</summary>
@@ -218,12 +230,14 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             .Count();
     }
 
-    private static Session? LiveSessionIn(FolderPath worktree, IReadOnlyList<Session> sessions)
+    /// <summary>The first session with a process working in the worktree or a folder inside it.</summary>
+    private static WorktreeSession LiveSessionIn(FolderPath worktree, IReadOnlyList<Session> sessions)
     {
         return sessions
             .Where(session => session is InteractiveSession or BackgroundSession { ProcessId: not null })
-            .FirstOrDefault(session => session.WorkingDirectory.IsUnder(worktree));
+            .Where(session => session.WorkingDirectory.IsUnder(worktree))
+            .Select(WorktreeSession (session) => new WorktreeSession.Running(session.SessionId, session.Name))
+            .DefaultIfEmpty(new WorktreeSession.None())
+            .First();
     }
-
-    private static WorktreeRow WithLiveSession(WorktreeRow row, Session? live) => row with { Session = live is null ? new WorktreeSession.None() : new WorktreeSession.Running(live.SessionId, live.Name) };
 }
