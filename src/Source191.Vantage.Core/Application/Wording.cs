@@ -14,7 +14,7 @@ namespace Source191.Vantage.Application;
 public static partial class Wording
 {
     /// <summary>Printed on one line before an attach and erased after it, so it must never wrap.</summary>
-    public static string ReturnHint => "Ctrl+Z returns to Vantage.";
+    public static string ReturnHint => "Ctrl+Z detaches; the session keeps running.";
 
     /// <summary>vantage here refuses a dash-led name that did not follow --, since it is most likely a mistyped option.</summary>
     public static string NameLooksLikeAnOption(string token) => $"{token} looks like an option, not a session name. To use it as the name, put -- before it: vantage here -- {token}";
