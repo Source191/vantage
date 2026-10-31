@@ -34,17 +34,17 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
         }
 
         StartResult start = await claude.StartBackgroundAsync(plan.Directory.Value, plan.Name, plan.OpeningPrompt, cancellationToken);
-        if (start.Outcome != StartOutcome.Started || start.JobId is null)
+        if (start is not StartResult.Started started)
         {
-            LaunchOutcomeKind kind = start.Outcome == StartOutcome.WorkspaceNotTrusted ? LaunchOutcomeKind.WorkspaceNotTrusted : LaunchOutcomeKind.Failed;
+            LaunchOutcomeKind kind = start is StartResult.WorkspaceNotTrusted ? LaunchOutcomeKind.WorkspaceNotTrusted : LaunchOutcomeKind.Failed;
 
             return new LaunchOutcome(kind, JobId: null, start.Message);
         }
 
         await recent.RecordRecentRepositoryAsync(plan.Repository.Path.Value);
-        BackgroundSession? started = JobId.TryParse(start.JobId, out JobId? jobId) ? await ListedSessionAsync(jobId, cancellationToken) : null;
+        BackgroundSession? listed = await ListedSessionAsync(started.JobId, cancellationToken);
 
-        return new LaunchOutcome(LaunchOutcomeKind.Started, jobId, start.Message, started);
+        return new LaunchOutcome(LaunchOutcomeKind.Started, started.JobId, start.Message, listed);
     }
 
     private async Task CreateWorktreeAsync(LaunchPlan plan, PlannedWorktree worktree, CancellationToken cancellationToken)
