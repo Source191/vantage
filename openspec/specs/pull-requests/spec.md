@@ -92,7 +92,7 @@ When the selected row shows no pull request, the pull request key SHALL open not
 - **THEN** nothing opens and the footer says the branch name holds a character the Azure CLI cannot be given
 
 ### Requirement: Remote names never run as commands
-Names taken from a remote URL, and the branch name, SHALL reach the `gh` or `az` CLI only as arguments, never as command text. An Azure DevOps organisation, project or repository name that is not plain text for a batch file (the external-tools rule says which characters are) SHALL be treated as an unknown host, and a branch name that is not SHALL NOT be looked up on Azure DevOps: az SHALL NOT be started for it, the row's PR column SHALL be blank, and the pull request key SHALL say the branch name was not given to the Azure CLI.
+Names taken from a remote URL, and the branch name, SHALL reach the `gh` or `az` CLI only as arguments, never as command text.
 
 #### Scenario: Ampersand in a project name
 - **WHEN** origin names an Azure DevOps project called Northwind&Trading
@@ -151,3 +151,17 @@ Vantage SHALL ask a host for the pull requests of one branch at a time, only for
 #### Scenario: Bounded burst
 - **WHEN** twelve rows need a lookup at the same moment
 - **THEN** four lookups run at once and the rest follow as each finishes
+
+### Requirement: An Azure DevOps name that is not plain text is an unknown host
+An Azure DevOps organisation, project or repository name that is not plain text for a batch file (the external-tools rule says which characters are) SHALL be treated as an unknown host: no lookup SHALL run for that repository and its rows' PR column SHALL be blank.
+
+#### Scenario: Percent sign in an organisation name
+- **WHEN** origin names an Azure DevOps organisation called north%wind
+- **THEN** az is not started for that repository and its PR column is blank
+
+### Requirement: A branch name that is not plain text is not given to az
+A branch name that is not plain text for a batch file SHALL NOT be looked up on Azure DevOps: az SHALL NOT be started for it, the row's PR column SHALL be blank, and the pull request key SHALL say the branch name was not given to the Azure CLI.
+
+#### Scenario: Percent sign in a branch name
+- **WHEN** a worktree of an Azure DevOps repository is on the branch fix/50%-off
+- **THEN** az is not started for it, its PR column is blank, and the pull request key says the branch name was not given to the Azure CLI

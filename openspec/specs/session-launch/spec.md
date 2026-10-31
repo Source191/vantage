@@ -120,15 +120,11 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 - **THEN** all three exist in the new worktree under the same names, and the copy reports all three
 
 ### Requirement: A session can be started from the shell in the current folder
-`vantage here [name] [-p prompt]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed or the command line could not be parsed, and 2 when the name or the opening prompt is refused. Before attaching it SHALL print one line saying that Ctrl+Z detaches and the session keeps running, and SHALL erase that line when the attach exits.
+`vantage here [name] [-p prompt]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed or the command line could not be parsed, and 2 when the name or the opening prompt is refused.
 
 #### Scenario: Start here with a prompt
 - **WHEN** the user runs vantage here fix-tests -p "Fix the tests" in a trusted repository
 - **THEN** a background session named fix-tests starts there with that opening prompt and the shell is attached to it until Ctrl+Z
-
-#### Scenario: The line before attaching
-- **WHEN** vantage here starts a session and attaches
-- **THEN** the last line printed before handing over is exactly "Ctrl+Z detaches; the session keeps running.", and it is gone from the terminal once the attach exits
 
 #### Scenario: The removed description option
 - **WHEN** the user runs vantage here fix-tests -d "Flaky orders suite"
@@ -141,6 +137,13 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 #### Scenario: A refused prompt
 - **WHEN** the user runs vantage here fix-tests -p "-fix the tests" in a trusted repository
 - **THEN** it exits 2 with the sentence that an opening prompt cannot start with a dash, and starts nothing
+
+### Requirement: vantage here says how to detach
+Before attaching, `vantage here` SHALL print one line saying that Ctrl+Z detaches and the session keeps running, and SHALL erase that line when the attach exits.
+
+#### Scenario: The line before attaching
+- **WHEN** vantage here starts a session and attaches
+- **THEN** the last line printed before handing over is exactly "Ctrl+Z detaches; the session keeps running.", and it is gone from the terminal once the attach exits
 
 ### Requirement: Untrusted workspaces are handled
 When starting the session fails because the directory's workspace is not trusted, the wizard SHALL say so and offer to open a plain Claude Code tab in that directory so the trust dialog can be accepted, then retry.
@@ -172,12 +175,23 @@ Vantage SHALL record each worktree and branch it created and each launched repos
 - **WHEN** the state folder holds a `descriptions` folder or a `sessions.json` written by an earlier version
 - **THEN** Vantage neither reads nor deletes them
 
-### Requirement: The session starts under the supervisor and opens where the user chose
-Vantage SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was. A session started from the wizard SHALL then be opened in its own Windows Terminal tab; `vantage here` SHALL attach in its own tab instead. An opening prompt that starts with a dash SHALL be refused before anything starts, in the wizard and by `vantage here`, with a sentence saying the CLI would read it as options and to start it with a word.
+### Requirement: The session starts under the supervisor
+Vantage SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was. An opening prompt that starts with a dash SHALL be refused before anything starts, in the wizard and by `vantage here`, with a sentence saying the CLI would read it as options and to start it with a word.
 
 #### Scenario: No opening prompt
 - **WHEN** the user leaves the opening prompt blank
 - **THEN** the session starts idle and waits for input under the given name
+
+#### Scenario: Prompt that starts with a dash
+- **WHEN** the user types the opening prompt "- fix the tests" or "--dangerously-skip-permissions" and starts
+- **THEN** nothing starts and the wizard says an opening prompt cannot start with a dash because Claude Code would read it as options
+
+#### Scenario: Prompt with a dash inside it
+- **WHEN** the user types the opening prompt "Fix the tests - all of them"
+- **THEN** the session starts with that prompt
+
+### Requirement: A session started from the wizard opens in its own tab
+A session started from the wizard SHALL be opened in its own Windows Terminal tab as soon as the supervisor lists it, and the wizard SHALL have no way to start one without a tab; `vantage here` attaches in its own tab instead.
 
 #### Scenario: Start and open in a tab
 - **WHEN** the user starts a session from the wizard
@@ -190,14 +204,6 @@ Vantage SHALL start the session as a named background session in the chosen dire
 #### Scenario: Started session not listed yet
 - **WHEN** the user starts a session from the wizard and the supervisor has not yet listed the new session when the start returns
 - **THEN** the footer reports the session as started and says to press Enter on it once it appears, and no tab is opened
-
-#### Scenario: Prompt that starts with a dash
-- **WHEN** the user types the opening prompt "- fix the tests" or "--dangerously-skip-permissions" and starts
-- **THEN** nothing starts and the wizard says an opening prompt cannot start with a dash because Claude Code would read it as options
-
-#### Scenario: Prompt with a dash inside it
-- **WHEN** the user types the opening prompt "Fix the tests - all of them"
-- **THEN** the session starts with that prompt
 
 ### Requirement: Copied local files stay inside the new worktree
 The `.worktreeinclude` copy SHALL only read files inside the repository and only write files inside the new worktree; a listed path that is parent-relative, rooted or a network path SHALL be skipped, and nothing SHALL be written outside the worktree.
