@@ -36,7 +36,7 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
             return;
         }
 
-        string? found = UpdateCheckRule.Newest(versions)?.ToString();
+        string? found = UpdateCheckRule.Newest(versions) is NewestRelease.Found release ? release.Version.ToString() : null;
         await records.WriteUpdateCheckAsync(new UpdateCheckRecord(now, found));
         Volatile.Write(ref newest, found);
     }

@@ -24,14 +24,16 @@ public static class UpdateCheckRule
             && (lastCheckedAt is null || now - lastCheckedAt.Value >= Interval);
     }
 
-    /// <summary>The highest release in the list; prereleases and text that is not a version are skipped.</summary>
-    public static ReleaseVersion? Newest(IEnumerable<string> versions)
+    /// <summary>The highest release in the list, or none; prereleases and text that is not a version are skipped.</summary>
+    public static NewestRelease Newest(IEnumerable<string> versions)
     {
-        return versions
+        ReleaseVersion? highest = versions
             .Select(ReleaseVersion.TryParse)
             .OfType<ReleaseVersion>()
             .Where(version => !version.IsPrerelease)
             .Max();
+
+        return highest is null ? new NewestRelease.None() : new NewestRelease.Found(highest);
     }
 
     /// <summary>An update is offered only to a release build with the check on, and only when the newest known release is higher.</summary>
