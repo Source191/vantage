@@ -39,7 +39,7 @@ Choosing to open SHALL open the default browser on the `Source191/vantage` new-i
 
 #### Scenario: Open with a title
 - **WHEN** the user types "Attach froze after Ctrl+Z" and chooses to open
-- **THEN** the browser opens `https://github.com/Source191/vantage/issues/new?template=problem-report.yml` with that title and the diagnostics filled in, and the footer says the report was opened in the browser
+- **THEN** the browser opens `https://github.com/Source191/vantage/issues/new?template=problem-report.yml` with that title and the diagnostics filled in, and the status line says the report was opened in the browser
 
 #### Scenario: Open with a blank title
 - **WHEN** Vantage 0.18.0 opens a report with a blank title
@@ -47,7 +47,7 @@ Choosing to open SHALL open the default browser on the `Source191/vantage` new-i
 
 #### Scenario: The browser cannot be started
 - **WHEN** Windows cannot open the address
-- **THEN** the footer reports the failure and suggests copying the text instead, and the crash file is left as it was
+- **THEN** the status line reports the failure and suggests copying the text instead, and the crash file is left as it was
 
 ### Requirement: The report fits GitHub's address limit
 The page's address SHALL be at most 7,500 characters. When the full diagnostics would make it longer, the oldest events that are not failures SHALL be left out first, then the counts with exit code 0, then the oldest failures, and the text SHALL end with a line saying how many lines were left out; the environment and the crash summary SHALL always be kept.
@@ -61,7 +61,7 @@ Choosing to copy SHALL put the title and the full diagnostics text, untrimmed, o
 
 #### Scenario: Copy
 - **WHEN** the user chooses to copy
-- **THEN** the clipboard holds the title and the whole diagnostics text, the footer says it was copied, and the crash file is left as it was
+- **THEN** the clipboard holds the title and the whole diagnostics text, the status line says it was copied, and the crash file is left as it was
 
 ### Requirement: A crash is reported once
 When `last-crash.log` exists, the report SHALL include it under its own heading, and once the browser has been opened successfully Vantage SHALL remove it.

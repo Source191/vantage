@@ -59,7 +59,7 @@ When an effect, a view's load, a dialog flow, the update check or a background t
 
 #### Scenario: A load fails
 - **WHEN** the sessions view's load throws an `InvalidOperationException` whose message names a folder
-- **THEN** the footer shows the message as before, and the log records a load failure of the sessions view with `InvalidOperationException` and its frames, without the message
+- **THEN** the status line shows the message as before, and the log records a load failure of the sessions view with `InvalidOperationException` and its frames, without the message
 
 #### Scenario: Stack frames of a local build
 - **WHEN** a Vantage built in C:\Users\me\source\repos\vantage fails inside `GitCli.RunOrThrowAsync`

@@ -195,7 +195,7 @@ A session started from the wizard SHALL be opened in its own Windows Terminal ta
 
 #### Scenario: Start and open in a tab
 - **WHEN** the user starts a session from the wizard
-- **THEN** Vantage starts the session, opens it in a new Windows Terminal tab titled with the session name as the open-in-tab key does, and the sessions view stays on screen with the footer naming the tab's colour
+- **THEN** Vantage starts the session, opens it in a new Windows Terminal tab titled with the session name as the open-in-tab key does, and the sessions view stays on screen with the status line naming the tab's colour
 
 #### Scenario: No start without a tab
 - **WHEN** the user presses F6 in the wizard
@@ -203,7 +203,7 @@ A session started from the wizard SHALL be opened in its own Windows Terminal ta
 
 #### Scenario: Started session not listed yet
 - **WHEN** the user starts a session from the wizard and the supervisor has not yet listed the new session when the start returns
-- **THEN** the footer reports the session as started and says to press Enter on it once it appears, and no tab is opened
+- **THEN** the status line reports the session as started and says to press Enter on it once it appears, and no tab is opened
 
 ### Requirement: Copied local files stay inside the new worktree
 The `.worktreeinclude` copy SHALL only read files inside the repository and only write files inside the new worktree; a listed path that is parent-relative, rooted or a network path SHALL be skipped, and nothing SHALL be written outside the worktree.

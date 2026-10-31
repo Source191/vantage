@@ -79,7 +79,7 @@ Sessions whose kind is interactive SHALL appear in the list with their kind mark
 
 #### Scenario: Action on an interactive row
 - **WHEN** the user presses Enter on an interactive session's row
-- **THEN** the footer explains that the session runs in its own terminal and names the adopt key, and nothing else happens
+- **THEN** the status line explains that the session runs in its own terminal and names the adopt key, and nothing else happens
 
 ### Requirement: Rows are ordered by attention needed
 The view SHALL order rows by display state: needs input first, then working, idle, completed, failed, stopped, and within a state by most recently started first.
@@ -110,7 +110,7 @@ The view SHALL filter rows by a text typed after the filter key, matching case-i
 - **WHEN** the user types a filter of "templates"
 - **THEN** only rows whose name, repository or branch contains "templates" remain visible
 
-### Requirement: The screen is a header, a table and a footer
+### Requirement: The screen is a header, a table and a detail pane
 The sessions view SHALL be the Sessions tab of the console: under the settings rows and the tabs' row, a table framed by the tab, whose title, at the right end of the tabs' row, counts the rows shown, names the filter when one is set and names the selected session; a highlighted bar on the selected row; and the detail pane beneath the table.
 
 #### Scenario: Table title
@@ -152,7 +152,7 @@ The counts beside the tabs SHALL show how many sessions are in the needs-input s
 - **THEN** the counts row starts ◐ 2 need input in amber
 
 ### Requirement: Waiting is visible
-The sessions view SHALL show a spinner with the words "Listing sessions" in the middle of the table until the first listing arrives, and SHALL show a spinner beside the footer's working text while an action started from the view runs; neither spinner SHALL appear for the timed refreshes.
+The sessions view SHALL show a spinner with the words "Listing sessions" in the middle of the table until the first listing arrives, and SHALL show a spinner beside the status line's working text while an action started from the view runs; neither spinner SHALL appear for the timed refreshes.
 
 #### Scenario: First listing pending
 - **WHEN** Vantage starts and the CLI listing has not yet returned
@@ -160,7 +160,7 @@ The sessions view SHALL show a spinner with the words "Listing sessions" in the 
 
 #### Scenario: Action running
 - **WHEN** the user starts a session from the wizard
-- **THEN** the footer shows a spinner before "Starting name" until the start reports its outcome
+- **THEN** the status line shows a spinner before "Starting name" until the start reports its outcome
 
 #### Scenario: First listing fails
 - **WHEN** the first CLI listing fails
@@ -262,7 +262,7 @@ The memory used by a running session's process tree, the session's process and e
 - **THEN** it lists no MEM column, its Pane section explains the Memory line, and the m key's line says what m shows
 
 ### Requirement: A key shows what the memory is made of
-The `m` key SHALL open a dialog titled with the session's name that lists Claude Code itself and then one line per program the session's process started directly, each with the memory of that program's own tree, largest first, and a total with the number of processes in the tree. The dialog is a snapshot taken when it opens, closes with Close or Esc, and SHALL show a program's label only, never its command line. On a session with no process the footer SHALL say there is nothing to measure.
+The `m` key SHALL open a dialog titled with the session's name that lists Claude Code itself and then one line per program the session's process started directly, each with the memory of that program's own tree, largest first, and a total with the number of processes in the tree. The dialog is a snapshot taken when it opens, closes with Close or Esc, and SHALL show a program's label only, never its command line. On a session with no process the status line SHALL say there is nothing to measure.
 
 #### Scenario: A session with MCP servers
 - **WHEN** `m` is pressed on fix-123, whose process uses 296 MB and which started cmd /c npx -y @azure-devops/mcp m-kopa (100 MB in 5 processes), uvx mcp-grafana@latest (30 MB in 7 processes) and a pwsh shell running a build (78 MB in 3 processes)
@@ -278,7 +278,7 @@ The `m` key SHALL open a dialog titled with the session's name that lists Claude
 
 #### Scenario: A stopped session
 - **WHEN** `m` is pressed on a stopped session
-- **THEN** no dialog opens and the footer says there is nothing to measure for a session with no process
+- **THEN** no dialog opens and the status line says there is nothing to measure for a session with no process
 
 #### Scenario: The key is listed
 - **WHEN** a running session is selected on the Sessions tab

@@ -13,7 +13,7 @@
 
 ## 3. Checks
 
-- [ ] 3.1 Run the hand-off check, and `openspec validate rename-footer-to-status-message --strict`. Verify both pass, then archive the change and check that `openspec validate --specs --strict` passes and no main spec says footer.
+- [x] 3.1 Run the hand-off check, and `openspec validate rename-footer-to-status-message --strict`. Verify both pass, then archive the change and check that `openspec validate --specs --strict` passes and no main spec says footer.
 
 ## Workflow follow-up
 

@@ -22,15 +22,15 @@ Enter on a background session is the open-in-tab key. It SHALL open a new tab in
 
 #### Scenario: Tab already live
 - **WHEN** a Vantage-opened tab for that session is still alive and the user presses Enter on it
-- **THEN** no second tab is opened, the Windows Terminal tab titled with the session name is selected in the window that owns it, and the footer says Vantage switched to it
+- **THEN** no second tab is opened, the Windows Terminal tab titled with the session name is selected in the window that owns it, and the status line says Vantage switched to it
 
 #### Scenario: Live tab cannot be found
 - **WHEN** a Vantage-opened tab for that session is recorded as alive but no tab item with the session's name can be found in its Windows Terminal window
-- **THEN** no tab is opened and the footer says the tab is open but could not be found
+- **THEN** no tab is opened and the status line says the tab is open but could not be found
 
 #### Scenario: Tab closed by hand
 - **WHEN** the user closes the session's tab with the terminal's close button and, once the tab's shell has gone, presses Enter on the session before the next refresh
-- **THEN** the stale record is dropped, a new tab opens, and the footer says a tab was opened, not switched to
+- **THEN** the stale record is dropped, a new tab opens, and the status line says a tab was opened, not switched to
 
 #### Scenario: Earlier record dropped
 - **WHEN** a record for the session remains from a tab that has gone and the user presses Enter on the session
@@ -60,7 +60,7 @@ Vantage SHALL choose the first palette colour not used by any live Vantage-opene
 
 #### Scenario: Palette exhausted
 - **WHEN** every palette colour is in use
-- **THEN** the least used colour is reused and the footer shows a warning
+- **THEN** the least used colour is reused and the status line shows a warning
 
 ### Requirement: Live tabs are tracked by process
 Vantage SHALL record each tab it opens with the tab shell's process ID and start time, SHALL treat a record as live only while that process exists with the same start time, and SHALL remove stale records whenever it reads them. A tab opened for an attach SHALL close itself when the attach ends because the user detached or the session was stopped or removed, and SHALL stay open, showing the output, when the attach fails.
@@ -94,7 +94,7 @@ Stop and delete SHALL act on the session's ID taken from the listing, never on i
 
 #### Scenario: Stop closes the tab
 - **WHEN** the user presses the stop key on a session shown in a Vantage-opened tab
-- **THEN** the session is stopped, the tab closes, and the footer says both
+- **THEN** the session is stopped, the tab closes, and the status line says both
 
 ### Requirement: Delete offers to remove the session's worktree
 Deleting a session SHALL first end its Vantage-opened tab and wait for the tab's shell to exit. When the session's working directory is a worktree Vantage created, delete SHALL then offer to remove that worktree under the worktree-management safety rules.
@@ -109,15 +109,15 @@ Deleting a session SHALL first end its Vantage-opened tab and wait for the tab's
 
 #### Scenario: Tab closed before the worktree goes
 - **WHEN** the user deletes a session that was started and opened in its own tab
-- **THEN** the tab closes before the worktree is removed, the worktree is removed, and the footer says the session was deleted and its tab closed
+- **THEN** the tab closes before the worktree is removed, the worktree is removed, and the status line says the session was deleted and its tab closed
 
 #### Scenario: Worktree without its .git
 - **WHEN** the user deletes a session whose Vantage-created worktree no longer has a `.git` file
-- **THEN** the session is deleted, the folder is deleted, the stale registration is pruned from the repository, and the footer says so
+- **THEN** the session is deleted, the folder is deleted, the stale registration is pruned from the repository, and the status line says so
 
 #### Scenario: Folder still in use
 - **WHEN** the user deletes a session while a PowerShell tab opened from the worktrees view sits in its worktree
-- **THEN** the session is deleted, the footer says the worktree folder is still in use by a tab or program and names it, and pressing remove on it in the worktrees view after closing that tab deletes what is left
+- **THEN** the session is deleted, the status line says the worktree folder is still in use by a tab or program and names it, and pressing remove on it in the worktrees view after closing that tab deletes what is left
 
 ### Requirement: Resume sessions after a reboot without reviving deliberate stops
 The resume-all key SHALL run the CLI's background resume for every session in the failed state, SHALL present sessions in the stopped state as a checklist with none preselected because a deliberate stop also shows as stopped, and SHALL show on each row whether the CLI continued the session or started a copy.
@@ -139,15 +139,15 @@ The rename key SHALL ask for a new name in a dialog and then, because the CLI ha
 
 #### Scenario: Rename a session with an open tab
 - **WHEN** the user renames an idle session whose Vantage-opened tab is alive
-- **THEN** that tab closes, one tab titled with the new name opens in the same colour, and the footer says the session was renamed and its tab moved
+- **THEN** that tab closes, one tab titled with the new name opens in the same colour, and the status line says the session was renamed and its tab moved
 
 #### Scenario: Session is working
 - **WHEN** the user presses the rename key on a working session
-- **THEN** nothing happens and the footer explains that renaming restarts the session
+- **THEN** nothing happens and the status line explains that renaming restarts the session
 
 #### Scenario: New name refused
 - **WHEN** the user leaves the new name blank
-- **THEN** nothing runs and the footer shows exactly "A session name is required.", with nothing after it
+- **THEN** nothing runs and the status line shows exactly "A session name is required.", with nothing after it
 
 #### Scenario: New name with a semicolon
 - **WHEN** the user renames an idle session to `fix a;b`
@@ -158,37 +158,37 @@ The adopt key on an interactive session that is idle or waiting and has at least
 
 #### Scenario: Adopt an idle terminal session
 - **WHEN** the user presses the adopt key on an idle interactive session that has messages
-- **THEN** its process ends, the transcript is resumed as a background session with the same name, its old tab closes, and the footer says the session was moved and its tab closed
+- **THEN** its process ends, the transcript is resumed as a background session with the same name, its old tab closes, and the status line says the session was moved and its tab closed
 
 #### Scenario: Adoption fails
 - **WHEN** the resume under the supervisor fails
-- **THEN** the old tab stays open at a shell prompt in the session's folder and the footer says why the resume failed
+- **THEN** the old tab stays open at a shell prompt in the session's folder and the status line says why the resume failed
 
 #### Scenario: Process id reused
 - **WHEN** the user presses the adopt key on an interactive session whose listed process id now belongs to a process that started after the session did
-- **THEN** nothing is ended or resumed, and the footer says the session's process is no longer its own and to refresh
+- **THEN** nothing is ended or resumed, and the status line says the session's process is no longer its own and to refresh
 
 ### Requirement: Empty terminal sessions can be closed
 For an interactive session that has never been sent a message, the delete key SHALL end its claude process and then end the Windows Terminal tab's shell with exit code 0 so the tab closes; the close-empty key SHALL do the same for every such session after a confirmation naming them; a session not inside a Windows Terminal tab is only ended.
 
 #### Scenario: Close every empty tab
 - **WHEN** two interactive sessions have never been sent a message and the user presses the close-empty key and confirms
-- **THEN** both claude processes end, both tabs close, and the footer names them
+- **THEN** both claude processes end, both tabs close, and the status line names them
 
 #### Scenario: Nothing to close
 - **WHEN** no interactive session is without messages
-- **THEN** the footer says so and nothing is ended
+- **THEN** the status line says so and nothing is ended
 
 #### Scenario: A tab whose process id was reused
 - **WHEN** the user confirms close-empty while one of the named sessions' process ids now belongs to a process that started after that session did
-- **THEN** that process and its tab are left alone, the other sessions are closed, and the footer names the one left alone
+- **THEN** that process and its tab are left alone, the other sessions are closed, and the status line names the one left alone
 
 ### Requirement: Sessions with nothing to resume are refused
-Open-in-tab, rename and resume SHALL be refused for a session that has no process and no transcript, because Claude writes a session's transcript only on its first message, and the footer SHALL say that delete removes it.
+Open-in-tab, rename and resume SHALL be refused for a session that has no process and no transcript, because Claude writes a session's transcript only on its first message, and the status line SHALL say that delete removes it.
 
 #### Scenario: Stub session
 - **WHEN** the user presses Enter on a failed session whose transcript does not exist
-- **THEN** nothing happens, no tab opens, and the footer says it was never sent a message and that delete removes it
+- **THEN** nothing happens, no tab opens, and the status line says it was never sent a message and that delete removes it
 
 ### Requirement: Vantage's own tab is recognisable
 When the console starts in a Windows Terminal tab, Vantage SHALL title that tab "Vantage" and colour it green when no live Vantage-opened tab is green, otherwise with the first free palette colour; SHALL count its own tab's colour as in use when colouring session tabs; and SHALL clear the title and reset the colour when it quits, so the tab shows its profile's own colour again.
@@ -251,7 +251,7 @@ A worktree folder git cannot delete because a tab or program still uses it SHALL
 
 #### Scenario: A program holds the folder
 - **WHEN** the user deletes a session in a Vantage-created worktree while a program still uses that folder, so git cannot delete it
-- **THEN** the session is deleted, the footer says the folder is still in use, and the worktree is still listed in the worktrees view
+- **THEN** the session is deleted, the status line says the folder is still in use, and the worktree is still listed in the worktrees view
 
 ### Requirement: Rename moves the session's tab
 A session shown in a Vantage-opened tab SHALL have that tab closed after the job is removed, and a tab opened under the new name, in the same colour, once the session is resumed.
@@ -265,35 +265,35 @@ Renaming SHALL be refused while the session is working or when it has never been
 
 #### Scenario: No message yet
 - **WHEN** the user presses the rename key on a background session that has never been sent a message
-- **THEN** nothing runs and the footer says why the session cannot be renamed
+- **THEN** nothing runs and the status line says why the session cannot be renamed
 
 ### Requirement: A failed rename keeps the old name
 When the resume under the new name fails, rename SHALL resume the job under its old name.
 
 #### Scenario: Resume under the new name fails
 - **WHEN** the job has been removed and the resume under the new name fails
-- **THEN** the job is resumed under its old name and the footer says the rename failed and why
+- **THEN** the job is resumed under its old name and the status line says the rename failed and why
 
 ### Requirement: A new name is checked before anything runs
 A new name the launch rules would refuse SHALL be refused before anything runs, with the same sentence `vantage here` gives for that name.
 
 #### Scenario: The same words as vantage here
 - **WHEN** the user leaves the new name blank in the rename dialog
-- **THEN** no job is removed or resumed, and the footer shows the sentence `vantage here` gives for a blank name
+- **THEN** no job is removed or resumed, and the status line shows the sentence `vantage here` gives for a blank name
 
 ### Requirement: Adopt ends only the session's own process
-The adopt key SHALL end the process only while it is still the session's, that is while the process with the listed id started no later than the session did; when that id now belongs to another process, nothing SHALL be ended or resumed and the footer SHALL say the process is no longer the session's and to refresh.
+The adopt key SHALL end the process only while it is still the session's, that is while the process with the listed id started no later than the session did; when that id now belongs to another process, nothing SHALL be ended or resumed and the status line SHALL say the process is no longer the session's and to refresh.
 
 #### Scenario: The session's own process
 - **WHEN** the user presses the adopt key on an idle interactive session with messages whose listed process started before the session's listed start
 - **THEN** that process is ended and the transcript is resumed under the supervisor
 
 ### Requirement: Closing empty sessions ends only their own processes
-The delete and close-empty keys SHALL end a process only while it is still the session's (it started no later than the session did); a session whose listed process id now belongs to another process SHALL be left alone and named in the footer.
+The delete and close-empty keys SHALL end a process only while it is still the session's (it started no later than the session did); a session whose listed process id now belongs to another process SHALL be left alone and named in the status line.
 
 #### Scenario: Every process id reused
 - **WHEN** the user confirms close-empty while every named session's process id now belongs to a process that started after that session did
-- **THEN** no process or tab is ended and the footer names every session left alone
+- **THEN** no process or tab is ended and the status line names every session left alone
 
 ### Requirement: A dialog names itself in Vantage's tab
 While a dialog is open Vantage's tab SHALL read "Vantage" followed by the dialog's short name in brackets, and closing the dialog SHALL put "Vantage" back; no dialog's own title SHALL reach the tab.
