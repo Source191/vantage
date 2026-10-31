@@ -7,7 +7,7 @@
 
 ## 2. The Sessions tab's words
 
-- [ ] 2.1 Red: `WordingOfKeysAndColumnsShould` asserts the Sessions help lists Enter as "open in its own tab, or switch to it" and no `o` line, and `WordingShould` that `SessionsBar` for a running and a stopped background session starts Enter Open, x Stop / Enter Open, d Delete with no `o`, and still fits 120 columns. Green: Enter's `KeyHelp` (hint Open, the tooltip `o` had), the `o` line removed, both key bar rows. Verify the Core tests pass.
+- [x] 2.1 Red: `WordingOfKeysAndColumnsShould` asserts the Sessions help lists Enter as "open in its own tab, or switch to it" and no `o` line, and `WordingShould` that `SessionsBar` for a running and a stopped background session starts Enter Open, x Stop / Enter Open, d Delete with no `o`, and still fits 120 columns. Green: Enter's `KeyHelp` (hint Open, the tooltip `o` had), the `o` line removed, both key bar rows. Verify the Core tests pass.
 - [ ] 2.2 Red: `WordingShould` asserts `Wording.ReturnHint` is "Ctrl+Z detaches; the session keeps running." and `TerminalEffectsShould` that the attach prints it. Green: the words. Verify the Core and Infrastructure tests pass (`TerminalConsoleShould` passes the hint through unchanged).
 - [ ] 2.3 README: the Sessions keys table (Enter Open, no `o`, no attach in this tab), the "Attach in this tab" section removed and the open-in-tab section naming Enter, and the walkthroughs that say Enter then Ctrl+Z. Verify the README's keys match `Wording.SessionsKeys`.
 

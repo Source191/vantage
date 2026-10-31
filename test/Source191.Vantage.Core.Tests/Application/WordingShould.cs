@@ -404,8 +404,8 @@ public sealed class WordingShould
     [Fact]
     public void ReturnHintIsOneShortLine()
     {
-        Wording.ReturnHint.ShouldBe("Ctrl+Z returns to Vantage.");
-        Wording.ReturnHint.Length.ShouldBeLessThanOrEqualTo(40);
+        Wording.ReturnHint.ShouldBe("Ctrl+Z detaches; the session keeps running.");
+        Wording.ReturnHint.Length.ShouldBeLessThanOrEqualTo(60);
     }
 
     [Fact]
