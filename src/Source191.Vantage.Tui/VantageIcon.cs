@@ -32,13 +32,13 @@ internal static class VantageIcon
     public static int Fit(ImageView icon, SixelSupportResult? support)
     {
         ArgumentNullException.ThrowIfNull(icon);
-        icon.Visible = support?.IsSupported == true;
-        if (!icon.Visible)
+        if (support is not { IsSupported: true, Resolution: System.Drawing.Size cell })
         {
+            icon.Visible = false;
             return 0;
         }
 
-        System.Drawing.Size cell = support!.Resolution;
+        icon.Visible = true;
         int width = cell.Width > 0 && cell.Height > 0 ? (int)Math.Round((double)Height * cell.Height / cell.Width) : DefaultWidth;
         int cells = Math.Clamp(width, 1, 3);
         icon.Width = cells;
