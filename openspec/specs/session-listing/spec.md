@@ -135,7 +135,7 @@ The sessions view SHALL be the Sessions tab of the console: under the settings r
 
 #### Scenario: A message
 - **WHEN** the user presses c on fix-123
-- **THEN** a status line under the pane says the folder was copied, and it goes when the user presses Down
+- **THEN** a status line under the settings row, above the tabs, says the folder was copied, and it goes when the user presses Down
 
 ### Requirement: States are colour coded
 Each state SHALL be shown as a glyph and its word in its own colour: ◐ needs input amber, ● working cyan, ○ idle white, ✓ completed green, ✗ failed red, ■ stopped and unknown grey; and rows that are completed, failed or stopped SHALL be dimmed.
@@ -430,11 +430,11 @@ While any automated run is listed, the counts beside the tabs SHALL end with a g
 - **THEN** the counts keep ◇ 1 automated with its memory, as the rows keep what they last showed
 
 ### Requirement: The status line speaks only when there is something to say
-Beneath the detail pane, above the key bar, the sessions view SHALL show a status line only while there is a message or an action is running, the table taking its row otherwise. A message SHALL clear when the selection moves or the filter changes. The status line SHALL NOT name the view or repeat the counts beside the tabs.
+Under the settings row, above the tabs, the sessions view SHALL show a status line only while there is a message or an action is running, the tabs moving back up otherwise. A message SHALL clear when the selection moves or the filter changes. The status line SHALL NOT name the view or repeat the counts beside the tabs.
 
 #### Scenario: A message cleared by the filter
 - **WHEN** the status line says a folder was copied and the user starts a filter with / and types t
-- **THEN** the status line goes and the table takes its row
+- **THEN** the status line goes and the tabs move back up a row
 
 ### Requirement: Versions are shown without noise
 A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown.
