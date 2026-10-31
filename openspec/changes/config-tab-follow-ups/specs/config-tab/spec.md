@@ -21,6 +21,21 @@ The repository roots dialog SHALL offer Browse (F3), which opens a folder picker
 - **WHEN** the user browses to C:\Users\me\source\repos, already a root, and presses F5
 - **THEN** nothing is saved and the dialog says it is already a repository root
 
+### Requirement: The worktree root dialog browses for a folder
+The worktree root dialog SHALL offer Browse (F3), which opens the same folder picker for one folder, starting in the folder holding the current worktree root; the folder chosen SHALL replace the path in the box, and the dialog SHALL check it on F5 as it does for a typed path. Cancelling the picker SHALL change nothing.
+
+#### Scenario: Choose the worktree root by browsing
+- **WHEN** the worktree root is C:\Users\me\source\worktrees and the user presses F3, chooses D:\trees and confirms
+- **THEN** the box reads D:\trees, and nothing is saved until F5
+
+#### Scenario: Cancel the picker for the worktree root
+- **WHEN** the user presses F3 in the worktree root dialog and then Esc in the picker
+- **THEN** the box is unchanged
+
+#### Scenario: The picker starts beside the worktree root
+- **WHEN** the worktree root is C:\Users\me\source\worktrees and the user presses F3
+- **THEN** the picker opens in C:\Users\me\source
+
 ### Requirement: Default place is a setting row
 The Config tab SHALL show a Default place row after Default base, reading New worktree or Current branch; Enter on it SHALL open a dialog to choose between them, and saving SHALL write `config.json` and apply to the next wizard at once.
 
