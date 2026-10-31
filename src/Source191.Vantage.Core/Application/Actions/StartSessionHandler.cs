@@ -3,6 +3,7 @@ using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Actions;
 
@@ -17,20 +18,15 @@ public sealed class StartSessionHandler(LaunchService service, OpenTabHandler ta
     {
         LaunchOutcome outcome = await service.LaunchAsync(effect.Plan, cancellationToken);
 
+        string name = effect.Plan.Name.Value;
+
         return outcome switch
         {
-            { Kind: LaunchOutcomeKind.Started, JobId: JobId jobId } => await OpenAsync(effect.Plan.Name.Value, jobId, outcome.Session, cancellationToken),
-            { Kind: LaunchOutcomeKind.WorkspaceNotTrusted } => await OpenTrustTabAsync(effect.Plan.Directory, cancellationToken),
-            _ => new StartSessionOutcome.Failed(outcome.Message),
-        };
-    }
-
-    private async Task<StartSessionOutcome> OpenAsync(string name, JobId jobId, BackgroundSession? listed, CancellationToken cancellationToken)
-    {
-        return listed switch
-        {
-            null => new StartSessionOutcome.NotListedYet(name, jobId),
-            BackgroundSession session => new StartSessionOutcome.StartedAndOpened(name, jobId, await tabs.OpenAsync(session, cancellationToken)),
+            LaunchOutcome.Listed listed => new StartSessionOutcome.StartedAndOpened(name, listed.JobId, await tabs.OpenAsync(listed.Session, cancellationToken)),
+            LaunchOutcome.NotListedYet notListed => new StartSessionOutcome.NotListedYet(name, notListed.JobId),
+            LaunchOutcome.WorkspaceNotTrusted => await OpenTrustTabAsync(effect.Plan.Directory, cancellationToken),
+            LaunchOutcome.Failed failed => new StartSessionOutcome.Failed(failed.Message),
+            _ => throw new UnreachableException(),
         };
     }
 
