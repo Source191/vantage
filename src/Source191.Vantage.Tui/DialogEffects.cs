@@ -53,8 +53,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>
     private static StatusMessage AskAboutBranch(IEffectContext context, Outcome removal, BranchToConfirm branch, bool createdByVantage)
     {
-        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.DeleteBranch, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch.Value, createdByVantage), "Delete branch", "Keep");
-        if (answer != 0)
+        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.DeleteBranch, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch.Value, createdByVantage), "Delete branch", "Keep"))
         {
             return new StatusMessage.BranchKept(removal);
         }
@@ -79,8 +78,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     private static void ConfirmCloseEmpty(IEffectContext context, CloseEmptyTerminals close)
     {
         string question = Wording.CloseEmptyQuestion([.. close.Sessions.Select(session => session.Name)]);
-        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.CloseEmpty, "Close empty terminal sessions", question, "Close", "Keep");
-        if (answer != 0)
+        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.CloseEmpty, "Close empty terminal sessions", question, "Close", "Keep"))
         {
             context.ShowMessage(new StatusMessage.Kept());
             return;
@@ -144,8 +142,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static void AskToUpdate(IEffectContext context, ReleaseVersion newest)
     {
-        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.Update, "Update Vantage", Wording.UpdateQuestion(newest), "Update", "Cancel");
-        if (answer != 0)
+        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.Update, "Update Vantage", Wording.UpdateQuestion(newest), "Update", "Cancel"))
         {
             return;
         }
@@ -159,32 +156,37 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private void StartSession(IEffectContext context, FolderPath? fixedDirectory)
     {
-        WizardResult? wizard = LaunchWizardDialog.Show(context.App, context.Diagnostics, catalogue, recent, folders, settings.Value, fixedDirectory);
-        if (wizard is null)
+        switch (LaunchWizardDialog.Show(context.App, context.Diagnostics, catalogue, recent, folders, settings.Value, fixedDirectory))
         {
-            return;
+            case WizardEffect.Launch launch:
+                context.Dispatch(new StartSession(launch.Plan));
+                break;
+            case WizardEffect.Close:
+                break;
+            default:
+                throw new UnreachableException();
         }
-
-        context.Dispatch(new StartSession(wizard.Plan));
     }
 
     /// <summary>A setting's dialog over the settings saved now; a save is dispatched, so the status line confirms it and the refresh after it uses the new values.</summary>
     private void EditSettings(IEffectContext context, SettingsScope scope)
     {
-        Settings? saved = SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, scope, folders.DirectoryExists);
-        if (saved is null)
+        switch (SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, scope, folders.DirectoryExists))
         {
-            return;
+            case SettingsEffect.Save save:
+                context.Dispatch(new SaveSettings(save.Settings));
+                break;
+            case SettingsEffect.Close:
+                break;
+            default:
+                throw new UnreachableException();
         }
-
-        context.Dispatch(new SaveSettings(saved));
     }
 
     private void ConfirmDelete(IEffectContext context, DeleteSession deletion)
     {
         BackgroundSession session = deletion.Session;
-        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.DeleteSession, "Delete session", Wording.DeleteSessionQuestion(session.Name), "Delete", "Cancel");
-        if (answer != 0)
+        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.DeleteSession, "Delete session", Wording.DeleteSessionQuestion(session.Name), "Delete", "Cancel"))
         {
             return;
         }
@@ -266,11 +268,12 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static StatusMessage ChooseSolution(IEffectContext context, FindSolution find, IReadOnlyList<string> files)
     {
-        int? answer = ChooseSolutionDialog.Show(context.App, context.Diagnostics, find.Folder, files);
-
-        return answer is int chosen && chosen < files.Count
-            ? Open(context, files[chosen])
-            : StatusMessage.None;
+        return ChooseSolutionDialog.Show(context.App, context.Diagnostics, find.Folder, files) switch
+        {
+            SolutionChoice.Chosen chosen => Open(context, chosen.File),
+            SolutionChoice.NoneChosen => StatusMessage.None,
+            _ => throw new UnreachableException(),
+        };
     }
 
     private static StatusMessage.Working Open(IEffectContext context, string file)

@@ -19,13 +19,14 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 internal static class LaunchWizardDialog
 {
-    public static WizardResult? Show(IApplication app, DiagnosticLog log, RepositoryCatalogue catalogue, IRecentRepositories recentRepositories, IFolders folders, Settings settings, FolderPath? fixedDirectory = null)
+    /// <summary>The effect the wizard ended on: <see cref="WizardEffect.Launch"/> with the plan, or <see cref="WizardEffect.Close"/>.</summary>
+    public static WizardEffect Show(IApplication app, DiagnosticLog log, RepositoryCatalogue catalogue, IRecentRepositories recentRepositories, IFolders folders, Settings settings, FolderPath? fixedDirectory = null)
     {
         // Read once, on a pool thread: Terminal.Gui installs a synchronisation context while it runs, so awaiting
         // on the UI thread and then blocking for the result would deadlock (it did, after every attach-and-return).
         IReadOnlyList<string> recent = Task.Run(recentRepositories.ReadRecentRepositoriesAsync).GetAwaiter().GetResult();
         WizardState state = WizardState.Open(catalogue, recent, folders, settings, fixedDirectory);
-        WizardResult? result = null;
+        WizardEffect result = new WizardEffect.Close();
         bool binding = false;
         IReadOnlyList<string> listed = [];
         WizardControls controls = new(state);
@@ -47,13 +48,9 @@ internal static class LaunchWizardDialog
 
             WizardUpdate update = WizardView.Reduce(state, input);
             state = update.State;
-            if (update.Effect is WizardEffect.Launch launch)
-            {
-                result = new WizardResult(launch.Plan);
-            }
-
             if (update.Effect is not WizardEffect.None)
             {
+                result = update.Effect;
                 app.RequestStop(dialog);
                 return;
             }
