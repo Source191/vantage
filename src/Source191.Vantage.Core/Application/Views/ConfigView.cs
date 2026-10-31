@@ -26,7 +26,7 @@ public sealed record ConfigViewState(
 
     private static readonly ListPolicy<ConfigRow> Policy = new(
         KeyOf: row => row.Key,
-        FilterFields: row => ConfigView.PathOf(row) is string path ? [Wording.ConfigSetting(row), path] : [Wording.ConfigSetting(row)],
+        FilterFields: row => [Wording.ConfigSetting(row), .. FilterText.Of(ConfigView.PathOf(row))],
         Order: rows => rows,
         KeyComparison: StringComparison.Ordinal);
 

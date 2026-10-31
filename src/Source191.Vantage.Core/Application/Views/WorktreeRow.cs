@@ -32,8 +32,6 @@ public sealed record WorktreeRow(
     /// <summary>The branch while the callers still read one; goes once each matches the head.</summary>
     public BranchName? Branch => Head is Head.OnBranch on ? on.Branch : null;
 
-    /// <summary>The live session's id while the jump still reads one; goes once it matches the session.</summary>
-    public SessionId? SessionId => Session is WorktreeSession.Running running ? running.Id : null;
 
     /// <summary>The removal facts as far as the scan knows them; the branch flags are settled by the action. The folder name stands in for a branch the head does not name.</summary>
     public WorktreeRemovalFacts Facts(bool branchCreatedByVantage = false, bool branchMerged = false) => new(Health.Kind, Head is Head.OnBranch on ? on.Branch.Value : FolderName, DirtyFiles, UnpushedCommits, Session, branchCreatedByVantage, branchMerged, LeftoverFileCount);

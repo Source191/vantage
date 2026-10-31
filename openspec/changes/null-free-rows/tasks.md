@@ -21,7 +21,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 - [x] 3.3 `WorktreeInventoryShould` (Infrastructure tests, real git): a detached worktree's row has `Head.Detached`, a leftover's `Head.Unknown`, and only `OnBranch` rows are refreshed in the catalogue: red, then `WorktreeInventory` (the `row.Branch!` goes, `WithPullRequest` and `WithLiveSession` build the new values) and `DeleteSessionHandler`'s row green. Verify the inventory facts pass and `WorktreeInventory.cs` has no `!`.
 - [x] 3.4 `DetailLoaderShould`: a `Detached` row's merge state is `NotApplicable` as a branchless row's was: red, then `DetailLoader` matching `OnBranch` green. Verify the facts pass.
 - [x] 3.5 `RemoveWorktreeHandlerShould.KeepTheFolderNameAsTheBranchOfADetachedWorktree` (the existing stand-in, now named): red if the switch is missing, then `WorktreeRemover` switching on the head green. Verify the handler's facts pass with today's outcomes.
-- [ ] 3.6 `WorktreesViewShould`'s jump facts use `new WorktreeSession.Running(...)` and `WorktreeSession.None`, and its filter fact matches a branch and skips a detached row's missing one: red, then `WorktreesView`'s jump and filter fields on the new values green. Verify the view's facts pass with unchanged footers and effects.
+- [x] 3.6 `WorktreesViewShould`'s jump facts use `new WorktreeSession.Running(...)` and `WorktreeSession.None`, and its filter fact matches a branch and skips a detached row's missing one: red, then `WorktreesView`'s jump and filter fields on the new values green. Verify the view's facts pass with unchanged footers and effects.
 
 ## 4. Application: session rows
 
