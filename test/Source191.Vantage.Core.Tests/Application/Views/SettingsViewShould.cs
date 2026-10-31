@@ -159,6 +159,39 @@ public sealed class SettingsViewShould
     }
 
     [Fact]
+    public void ReplaceTheWorktreeRootWithTheFolderChosen()
+    {
+        SettingsState opened = Opened(new SettingsScope.WorktreeRoot());
+
+        SettingsState chosen = Reduce(opened, new SettingsInput.FoldersChosen([@"D:\trees"]));
+
+        chosen.Text.WorktreeRoot.ShouldBe(@"D:\trees");
+        chosen.Text.Roots.ShouldBe(opened.Text.Roots, "the roots are another dialog's");
+        Reduce(opened, new SettingsInput.FoldersChosen([])).ShouldBe(opened);
+        SettingsView.Reduce(chosen, new SettingsInput.Save()).Effect.ShouldBeOfType<SettingsEffect.Save>().Settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\trees"));
+    }
+
+    [Fact]
+    public void BrowseForTheWorktreeRootFromTheFolderHoldingIt()
+    {
+        SettingsState opened = Opened(new SettingsScope.WorktreeRoot());
+
+        opened.BrowseFrom.ShouldBe(FolderPath.From(@"C:\Users\me\source"));
+        Reduce(opened, new SettingsInput.WorktreeRootChanged(@"E:\")).BrowseFrom.ShouldBe(FolderPath.From(@"E:\"), "a worktree root with no parent is its own start");
+        Reduce(opened, new SettingsInput.WorktreeRootChanged("trees")).BrowseFrom.ShouldBeNull();
+    }
+
+    [Fact]
+    public void BrowseOnlyForTheTwoFolderSettings()
+    {
+        Opened(new SettingsScope.Roots()).Browses.ShouldBe(SettingsBrowse.SeveralFolders);
+        Opened(new SettingsScope.WorktreeRoot()).Browses.ShouldBe(SettingsBrowse.OneFolder);
+        Opened(new SettingsScope.Editor()).Browses.ShouldBe(SettingsBrowse.No);
+        Opened(new SettingsScope.Base()).Browses.ShouldBe(SettingsBrowse.No);
+        Opened(new SettingsScope.Place()).Browses.ShouldBe(SettingsBrowse.No);
+    }
+
+    [Fact]
     public void ClearTheProblemOnceTheValueIsValid()
     {
         SettingsState refused = SettingsView.Reduce(Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("repos")), new SettingsInput.Save()).State;
