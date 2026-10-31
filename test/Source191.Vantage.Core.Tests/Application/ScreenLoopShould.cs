@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Time.Testing;
-using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Diagnostics;
@@ -7,17 +6,15 @@ using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Core.Tests.Application;
 
 public sealed class ScreenLoopShould : IDisposable
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
-    private static readonly SessionRow First = Row("sess-1", "change-feed");
-    private static readonly SessionRow Second = Row("sess-2", "fix-tests");
     private static readonly ToolVersion Running = new("0.9.0");
 
-    private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
     private readonly FakeProcessRegistry registry = new FakeProcessRegistry().Running(100, Noon);
     private readonly FakeTerminalConsole console = new();
     private readonly DiagnosticLog log = new(new FakeTimeProvider(Noon), []);
@@ -26,10 +23,9 @@ public sealed class ScreenLoopShould : IDisposable
     private ScreenLoop Loop(ScriptedConsoleScreen screen, UpdateCheck? updates = null)
     {
         OwnTab ownTab = new(new InMemoryState(), registry, new FakeTimeProvider(Noon));
-        TerminalEffects effects = new(new ClaudeCli(processes, "claude.exe"), console);
         UpdateCheck checkTurnedOff = new(Running, () => false, new InMemoryState(), new FakePackageVersions([]), new FakeTimeProvider(Noon));
 
-        return new ScreenLoop(screen, ownTab, console, effects, updates ?? checkTurnedOff, log);
+        return new ScreenLoop(screen, ownTab, console, updates ?? checkTurnedOff, log);
     }
 
     [Fact]
@@ -100,45 +96,20 @@ public sealed class ScreenLoopShould : IDisposable
     }
 
     [Fact]
-    public async Task RunTerminalEffectsBetweenRunsAndHandTheStateBack()
+    public async Task RunTheScreenOnceAndRefuseAnyOtherWayOut()
     {
-        ConsoleState onWorktrees = ConsoleState.Empty with
-        {
-            Sessions = SessionsView.Reduce(SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([First, Second])).State, new KeyPressed(Key.Down)).State,
-            Active = ConsoleTab.Worktrees,
-        };
-        ScriptedConsoleScreen screen = new(
-            _ => new ConsoleExit(onWorktrees, new AttachToSession(JobId.From("81cdb0f9"))),
-            state => new ConsoleExit(state, new AttachToSession(JobId.From("92def0a1"))),
-            state => new ConsoleExit(state, new Quit()));
+        ScriptedConsoleScreen screen = new(state => new ConsoleExit(state, new AttachToSession(JobId.From("81cdb0f9"))));
 
-        await Loop(screen).RunAsync(processId: 100, CancellationToken.None);
+        await Should.ThrowAsync<UnreachableException>(() => Loop(screen).RunAsync(processId: 100, CancellationToken.None));
 
-        processes.InteractiveRequests.Select(request => request.Arguments[0]).ShouldBe(["attach", "attach"]);
-        screen.Given[1].ShouldBe(onWorktrees, "the console comes back to the tab and selection it left");
-        screen.Given[1].Sessions.Selected.ShouldBe(Second);
-        screen.Given[2].Active.ShouldBe(ConsoleTab.Worktrees);
-        console.Recovered.ShouldBe(2);
-        console.Shown.Count.ShouldBe(3, "once at start and once after each hand-off");
-        log.Snapshot().Select(timed => timed.Event).ShouldBe([
-            new HandingOver(CodeName.For(typeof(AttachToSession))),
-            new ChildReturned(),
-            new HandingOver(CodeName.For(typeof(AttachToSession))),
-            new ChildReturned(),
-        ]);
-        log.Snapshot().Select(DiagnosticLine.Render).ShouldAllBe(line => !line.Contains("81cdb0f9") && !line.Contains("92def0a1"));
+        screen.Given.Count.ShouldBe(1, "only quit leaves the console, so it is never run a second time");
+        console.Recovered.ShouldBe(0);
+        console.Shown.Count.ShouldBe(1, "the tab is labelled once, at start");
     }
 
     public void Dispose()
     {
         terminal.Dispose();
-    }
-
-    private static SessionRow Row(string sessionId, string name)
-    {
-        BackgroundSession session = new(SessionId.From(sessionId), JobId.From(sessionId == "sess-1" ? "81cdb0f9" : "92ddc1a0"), name, FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), Noon, DisplayState.Idle);
-
-        return new SessionRow(session, "Northwind.Orders", BranchName.From("main"), HasLiveTab: false, HasTranscript: true);
     }
 
     /// <summary>An update-check record that reads but cannot be written, as when the state folder is read-only.</summary>
