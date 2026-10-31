@@ -23,7 +23,7 @@ public sealed class DetailRequestsShould
         DetailRequests requests = new();
         DetailRequest asked = requests.Ask("fix-123");
 
-        requests.Accept(asked, Content("fix-123")).ShouldNotBeNull().Title.ShouldBe("fix-123");
+        requests.Accept(asked, Content("fix-123")).ShouldBeOfType<DetailAnswer.Show>().Content.Title.ShouldBe("fix-123");
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public sealed class DetailRequestsShould
         DetailRequest first = requests.Ask("fix-123");
         requests.Ask("invoice-pdf");
 
-        requests.Accept(first, Content("fix-123")).ShouldBeNull();
+        requests.Accept(first, Content("fix-123")).ShouldBeOfType<DetailAnswer.Dropped>();
     }
 
     [Fact]
@@ -44,8 +44,8 @@ public sealed class DetailRequestsShould
 
         DetailRequest moved = requests.Ask("invoice-pdf");
 
-        requests.Accept(first, Content("fix-123")).ShouldBeNull();
-        requests.Accept(moved, Content("invoice-pdf")).ShouldNotBeNull();
+        requests.Accept(first, Content("fix-123")).ShouldBeOfType<DetailAnswer.Dropped>();
+        requests.Accept(moved, Content("invoice-pdf")).ShouldBeOfType<DetailAnswer.Show>().Content.Title.ShouldBe("invoice-pdf");
     }
 
     [Fact]
@@ -54,9 +54,9 @@ public sealed class DetailRequestsShould
         DetailRequests requests = new();
         DetailRequest older = requests.Ask("Northwind.Orders-fix-123");
         DetailRequest newer = requests.Ask("Northwind.Orders-fix-123");
-        requests.Accept(newer, Content("newer")).ShouldNotBeNull();
+        requests.Accept(newer, Content("newer")).ShouldBeOfType<DetailAnswer.Show>();
 
-        requests.Accept(older, Content("older")).ShouldBeNull();
+        requests.Accept(older, Content("older")).ShouldBeOfType<DetailAnswer.Dropped>();
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class DetailRequestsShould
 
         requests.Cleared();
 
-        requests.Accept(asked, Content("fix-123")).ShouldBeNull();
+        requests.Accept(asked, Content("fix-123")).ShouldBeOfType<DetailAnswer.Dropped>();
     }
 
     private static DetailContent Content(string title) => new(title, [], []);
