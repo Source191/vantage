@@ -56,6 +56,16 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
+    public void FilterByABranchAndFindNoneInADetachedRow()
+    {
+        WorktreeRow detached = Row(@"C:\repos\Northwind.Orders-spike", new Head.Detached(), WorktreeHealthKind.Ok);
+        WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Locked, detached]));
+
+        Press(state, Key.Slash, Key.Of('m'), Key.Of('a'), Key.Of('i'), Key.Of('n'), Key.Of('t'), Key.Enter).VisibleRows.ShouldBe([Locked]);
+        Press(state, Key.Slash, Key.Of('d'), Key.Of('e'), Key.Of('t'), Key.Of('a'), Key.Of('c'), Key.Enter).VisibleRows.ShouldBeEmpty();
+    }
+
+    [Fact]
     public void FilterByRepositoryFolderBranchOrHealth()
     {
         WorktreesViewState filtered = Press(Loaded, Key.Slash, Key.Of('o'), Key.Of('r'), Key.Of('p'), Key.Enter);
