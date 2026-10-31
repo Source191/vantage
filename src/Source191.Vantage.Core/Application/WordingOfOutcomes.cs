@@ -198,7 +198,7 @@ public static partial class Wording
         return editor.Preset switch
         {
             EditorPreset.VsCode => "VS Code",
-            EditorPreset.Cursor => "Cursor",
+            EditorPreset.VisualStudio => "Visual Studio",
             EditorPreset.Rider => "Rider",
             EditorPreset.Explorer => "Explorer",
             EditorPreset.Custom => Path.GetFileNameWithoutExtension(editor.Executable),
