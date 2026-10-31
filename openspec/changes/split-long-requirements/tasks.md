@@ -11,7 +11,8 @@
 
 ## 2. Gate and review
 
-- [ ] 2.1 Verify the pull request touches only `openspec\`, so CI takes its documentation-only path and `Version` stays as it is.
+- [x] 2.1 Verify the pull request touches only `openspec\`, so CI takes its documentation-only path and `Version` stays as it is.
+  - Checked 31 October 2026: the 12 changed files are all under `openspec/` and `.github\scripts\Test-DocumentationOnly.ps1 -Base origin/main -Head HEAD` answers True; `Version` is unchanged.
 - [ ] 2.2 The product owner reads the split requirements in the pull request. Record here.
 
 ## Workflow follow-up
