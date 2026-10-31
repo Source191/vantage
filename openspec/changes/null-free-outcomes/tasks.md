@@ -34,7 +34,7 @@ Each task is one red-green-refactor cycle with a commit per step, the test named
 ## 5. Version and the whole build
 
 - [x] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one step above main's (projected `0.19.0-preview.5`). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`. Raised to `0.19.0-preview.7`, one step above the base branch `v-null-suppressions` (#140), and checked with `-Base v-null-suppressions -Head HEAD`, since this pull request is stacked.
-- [ ] 5.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate null-free-outcomes` all pass.
+- [x] 5.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate null-free-outcomes` all pass: 0 warnings, 2109 passed and 8 skipped (the Claude contract facts) of 2117, format clean, the change valid with `--strict`.
 
 ## Workflow follow-up
 
