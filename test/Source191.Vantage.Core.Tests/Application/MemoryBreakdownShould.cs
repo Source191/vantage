@@ -20,7 +20,7 @@ public sealed class MemoryBreakdownShould
     [Fact]
     public void ListClaudeCodeThenEachProgramLargestFirstThenTheTotal()
     {
-        ProcessTree tree = ProcessTree.Under(100, Processes.Snapshot(), Processes.UsageOf)!;
+        ProcessTree tree = ProcessTree.Under(100, Processes.Snapshot(), Processes.UsageOf).ShouldBeOfType<ProcessTreeLookup.Found>().Tree;
 
         MemoryBreakdown breakdown = MemoryBreakdown.Of("fix-123", tree);
 
@@ -42,7 +42,7 @@ public sealed class MemoryBreakdownShould
         FakeProcessRegistry processes = new FakeProcessRegistry()
             .InTree(100, "claude", 1).Using(100, Noon, MemorySize.FromMegabytes(296))
             .InTree(200, "gk-alpha", 100);
-        ProcessTree tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf)!;
+        ProcessTree tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf).ShouldBeOfType<ProcessTreeLookup.Found>().Tree;
 
         MemoryBreakdown.Of("fix-123", tree).Programs.ShouldBe([new MemoryShare("gk-alpha", MemorySize.Zero)]);
     }

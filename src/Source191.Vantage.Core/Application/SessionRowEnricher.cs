@@ -52,7 +52,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
     {
         IReadOnlyList<ProcessFacts> processTable = processes.Snapshot();
         MemorySize memory = runs
-            .Select(run => ProcessTree.Under(run.ProcessId, processTable, processes.UsageOf)?.Total ?? MemorySize.Zero)
+            .Select(run => ProcessTree.Under(run.ProcessId, processTable, processes.UsageOf) is ProcessTreeLookup.Found found ? found.Tree.Total : MemorySize.Zero)
             .Aggregate(MemorySize.Zero, (sum, size) => sum + size);
 
         return new AutomatedRuns(runs.Count, memory);
@@ -68,7 +68,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
             _ => throw new UnreachableException(),
         };
 
-        return processId is int root ? ProcessTree.Under(root, processTable, processes.UsageOf)?.Total : null;
+        return processId is int root && ProcessTree.Under(root, processTable, processes.UsageOf) is ProcessTreeLookup.Found found ? found.Tree.Total : null;
     }
 
     /// <summary>Each session with a live Vantage tab and that tab's colour; stale registrations are removed on the way.</summary>
