@@ -60,6 +60,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         await root.AddSiblingWorktreeAsync(orders, "fix-1");
         await root.AddSiblingWorktreeAsync(billing, "fix-2");
+        await root.GitAsync(orders, "worktree", "add", "--detach", $"{orders}-spike", "main");
 
         await Inventory.ScanAsync([], TestContext.Current.CancellationToken);
         while (hosts.Requests.Count < 2)
@@ -97,11 +98,25 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         IReadOnlyList<WorktreeRow> rows = await Inventory.ScanAsync([], TestContext.Current.CancellationToken);
 
-        rows.Select(row => (row.RepositoryName, row.Path, row.Branch, row.Health.Kind)).ShouldBe(
+        rows.Select(row => (row.RepositoryName, row.Path, row.Head, row.Health.Kind)).ShouldBe(
         [
-            ("Northwind.First", FolderPath.From(firstWorktree), BranchName.From("fix-1"), WorktreeHealthKind.Ok),
-            ("Northwind.Second", FolderPath.From(secondWorktree), BranchName.From("fix-2"), WorktreeHealthKind.Ok),
+            ("Northwind.First", FolderPath.From(firstWorktree), new Head.OnBranch(BranchName.From("fix-1")), WorktreeHealthKind.Ok),
+            ("Northwind.Second", FolderPath.From(secondWorktree), new Head.OnBranch(BranchName.From("fix-2")), WorktreeHealthKind.Ok),
         ]);
+    }
+
+    [Fact]
+    public async Task ReadAWorktreeOnADetachedHeadAsDetached()
+    {
+        string repository = await root.CreateRepositoryAsync("Northwind.Orders");
+        string worktree = $"{repository}-spike";
+        await root.GitAsync(repository, "worktree", "add", "--detach", worktree, "main");
+
+        WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
+
+        row.Path.ShouldBe(FolderPath.From(worktree));
+        row.Head.ShouldBe(new Head.Detached());
+        row.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
     }
 
     [Fact]
@@ -161,7 +176,7 @@ public sealed class WorktreeInventoryShould : IDisposable
         row.RepositoryName.ShouldBe("Northwind.Retired");
         row.Health.Kind.ShouldBe(WorktreeHealthKind.Broken);
         row.OwnerExists.ShouldBeFalse();
-        row.Branch.ShouldBeNull();
+        row.Head.ShouldBe(new Head.Unknown());
     }
 
     [Fact]
