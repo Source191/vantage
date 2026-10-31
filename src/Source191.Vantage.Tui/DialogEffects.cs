@@ -145,7 +145,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             return;
         }
 
-        context.Dispatch(new StartSession(wizard.Plan, wizard.OpenInTab));
+        context.Dispatch(new StartSession(wizard.Plan, OpenInTab: true));
     }
 
     /// <summary>A setting's dialog over the settings saved now; a save is dispatched, so the footer confirms it and the refresh after it uses the new values.</summary>

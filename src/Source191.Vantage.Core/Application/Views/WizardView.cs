@@ -26,9 +26,9 @@ public static class WizardView
             WizardInput.PromptChanged changed => Changed(state with { Prompt = changed.Text }),
             WizardInput.FieldFocused focused => Changed(state with { Focus = focused.Field }),
             WizardInput.ConfirmRepository => Changed(Confirmed(state)),
-            WizardInput.NextField when state is { Focus: WizardField.Name, ShowsChooser: false } => Started(state, openInTab: true),
+            WizardInput.NextField when state is { Focus: WizardField.Name, ShowsChooser: false } => Started(state),
             WizardInput.NextField => Changed(state with { Focus = Next(state) }),
-            WizardInput.Start start => Started(state, start.OpenInTab),
+            WizardInput.Start => Started(state),
             WizardInput.Cancel => new WizardUpdate(state, new WizardEffect.Close()),
             _ => Changed(state),
         };
@@ -79,7 +79,7 @@ public static class WizardView
         };
     }
 
-    private static WizardUpdate Started(WizardState state, bool openInTab)
+    private static WizardUpdate Started(WizardState state)
     {
         if (state.Chosen is not RepositoryChoice repository)
         {
@@ -90,7 +90,7 @@ public static class WizardView
 
         return LaunchPlanBuilder.Build(request, state.WorktreeRoot, state.Folders.DirectoryExists) switch
         {
-            LaunchPlanResult.Planned planned => new WizardUpdate(state, new WizardEffect.Launch(planned.Plan, openInTab)),
+            LaunchPlanResult.Planned planned => new WizardUpdate(state, new WizardEffect.Launch(planned.Plan)),
             LaunchPlanResult.Refused refused => Changed(state with { Problem = new WizardProblem.Refused(refused.Problem), Focus = WizardField.Name }),
             _ => throw new UnreachableException(),
         };

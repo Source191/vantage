@@ -43,8 +43,8 @@ public abstract record WizardInput
     /// <summary>Enter in a one-line field.</summary>
     public sealed record NextField : WizardInput;
 
-    /// <summary>F5, or F6 to open the session in its own tab as well.</summary>
-    public sealed record Start(bool OpenInTab) : WizardInput;
+    /// <summary>F5 or the Start button: start the session and open its tab.</summary>
+    public sealed record Start : WizardInput;
 
     /// <summary>Esc or the Cancel button.</summary>
     public sealed record Cancel : WizardInput;
@@ -56,7 +56,7 @@ public abstract record WizardEffect
     /// <summary>Nothing: the dialog pushes the new state back to its controls.</summary>
     public sealed record None : WizardEffect;
 
-    public sealed record Launch(LaunchPlan Plan, bool OpenInTab) : WizardEffect;
+    public sealed record Launch(LaunchPlan Plan) : WizardEffect;
 
     public sealed record Close : WizardEffect;
 }
