@@ -1,6 +1,7 @@
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Actions;
 
@@ -33,20 +34,22 @@ public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees
         }
 
         await createdWorktrees.ForgetCreatedWorktreeAsync(row.Path);
-        // A worktree on a detached head has no branch; the folder name stands in, as the removal rules assume.
-        BranchName? branch = row.Branch;
-        if (branch is null && BranchName.TryParse(row.FolderName, out BranchName? folderBranch))
+        return (decision.Branch, BranchToDealWith(row)) switch
         {
-            branch = folderBranch;
-        }
-
-        return (decision.Branch, branch) switch
-        {
-            (BranchAction.Delete, BranchName merged) => await DeleteBranchAsync(row, merged, cancellationToken),
-            (BranchAction.Ask, BranchName kept) => new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository, kept), createdByVantage),
-            (BranchAction.None, _) or (_, null) => new RemoveWorktreeOutcome.Removed(row.FolderName),
+            (BranchAction.Delete, Head.OnBranch merged) => await DeleteBranchAsync(row, merged.Branch, cancellationToken),
+            (BranchAction.Ask, Head.OnBranch kept) => new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository, kept.Branch), createdByVantage),
+            (BranchAction.None, _) or (_, Head.Detached or Head.Unknown) => new RemoveWorktreeOutcome.Removed(row.FolderName),
+            _ => throw new UnreachableException(),
         };
     }
+
+    /// <summary>The row's head when it is on a branch; otherwise the folder name stands in when it is a branch name, as the removal rules assume.</summary>
+    private static Head BranchToDealWith(WorktreeRow row) => row.Head switch
+    {
+        Head.OnBranch => row.Head,
+        Head.Detached or Head.Unknown => BranchName.TryParse(row.FolderName, out BranchName? folderBranch) ? new Head.OnBranch(folderBranch) : row.Head,
+        _ => throw new UnreachableException(),
+    };
 
     private async Task<RemoveWorktreeOutcome> DeleteBranchAsync(WorktreeRow row, BranchName branch, CancellationToken cancellationToken)
     {
