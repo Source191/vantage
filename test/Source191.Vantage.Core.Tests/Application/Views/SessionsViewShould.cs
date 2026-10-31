@@ -554,6 +554,24 @@ public sealed class SessionsViewShould
         return keys.Aggregate(state, (current, key) => SessionsView.Reduce(current, new KeyPressed(key)).State);
     }
 
+    [Fact]
+    public void ClearTheMessageItWasAskedToClear()
+    {
+        Footer message = new Footer.NoPathHere();
+        SessionsViewState shown = Loaded with { Footer = message };
+
+        Reduce(shown, new MessageDismissed(message)).Footer.ShouldBe(Footer.None);
+    }
+
+    [Fact]
+    public void KeepANewerMessageWithTheSameWords()
+    {
+        Footer older = new Footer.NoPathHere();
+        Footer newer = new Footer.NoPathHere();
+        SessionsViewState shown = Loaded with { Footer = newer };
+
+        Reduce(shown, new MessageDismissed(older)).Footer.ShouldBeSameAs(newer);
+    }
     private static SessionsViewState Reduce(SessionsViewState state, ViewInput input)
     {
         return SessionsView.Reduce(state, input).State;

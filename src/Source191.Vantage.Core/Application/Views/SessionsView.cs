@@ -56,6 +56,9 @@ public sealed record RowsLoaded(IReadOnlyList<SessionRow> Rows) : ViewInput
 
 public sealed record LoadFailed(string Message) : ViewInput;
 
+/// <summary>The status line's close mark was clicked, or a success's time ran out: clears that message, and never a newer one.</summary>
+public sealed record MessageDismissed(Footer Message) : ViewInput;
+
 public sealed record KeyPressed(Key Key) : ViewInput;
 
 /// <summary>Select a session by its id, as the worktrees view's Enter asks; a filter hiding it is cleared so it shows.</summary>
@@ -156,6 +159,8 @@ public static class SessionsView
         {
             RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null, AutomatedRuns = loaded.AutomatedRuns }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
+            MessageDismissed dismissed when ReferenceEquals(state.Footer, dismissed.Message) => Unchanged(state with { Footer = Footer.None }),
+            MessageDismissed => Unchanged(state),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
             UpdateTabOpened => Effect(state, new Quit()),
             SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId.Value))),

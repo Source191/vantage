@@ -80,6 +80,12 @@ public sealed class ConsoleScreen(
         private const int StripTop = SettingsRows;
         private const int TitleRow = StripTop + 1;
 
+        /// <summary>Where a status message's words start, after its mark or spinner and a space.</summary>
+        private const int StatusWordsAt = 2;
+
+        /// <summary>The cells kept after a message's last word for a space and its close mark.</summary>
+        private const int StatusCloseRoom = 2;
+
         private readonly ConsoleScreen screen;
         private readonly IApplication app;
         private readonly ImageView icon;
@@ -88,6 +94,11 @@ public sealed class ConsoleScreen(
         private readonly View counts;
         private readonly Label frameTitle;
         private readonly View bar;
+        private readonly View statusRows;
+        private readonly SpinnerView statusSpinner;
+        private readonly Label statusMark;
+        private readonly Label[] statusWords;
+        private readonly Label statusClose;
         private readonly TableBody<SessionsViewState, SessionRow> sessions;
         private readonly TableBody<WorktreesViewState, WorktreeRow> worktrees;
         private readonly TableBody<ConfigViewState, ConfigRow> config;
@@ -98,6 +109,10 @@ public sealed class ConsoleScreen(
         private KeyBar? shownBar;
         private IReadOnlyList<TextPart> shownCounts = [];
         private IReadOnlyList<IReadOnlyList<TextPart>> shownSettings = [];
+        private (Footer Footer, bool Running, int Width)? shownStatus;
+        private int shownStatusRows;
+        private int settingsIndent;
+        private ITabBody? statusOwner;
 
         public Frame(ConsoleScreen screen, IApplication app, ConsoleState initial)
         {
@@ -123,7 +138,20 @@ public sealed class ConsoleScreen(
             counts = new View { X = HeaderSpan() + 2, Y = TitleRow, Width = Dim.Fill(), Height = 1 };
             frameTitle = new Label { X = 0, Y = TitleRow, Width = 0, Height = 1, HotKeySpecifier = new System.Text.Rune(0xFFFF), Text = string.Empty };
             bar = new View { X = 0, Y = Pos.AnchorEnd(2), Width = Dim.Fill(), Height = 2 };
-            View[] views = [icon, .. settings, tabs, counts, frameTitle, bar];
+            // The status line: under the settings row and over the tabs, outside every tab, with rows only while the shown tab has something to say.
+            statusRows = new View { X = 0, Y = SettingsRows, Width = Dim.Fill(), Height = 0, Visible = false };
+            statusSpinner = Spinners.Create(0, 0);
+            statusMark = Text(0, 0, string.Empty, Palette.White);
+            statusMark.Width = 1;
+            statusWords = [.. Enumerable.Range(0, StatusLayout.MostRows).Select(row => Text(StatusWordsAt, row, string.Empty, Palette.White))];
+            Array.ForEach(statusWords, label => label.Width = Dim.Fill(StatusCloseRoom));
+            statusClose = Text(0, 0, Wording.StatusClose, Palette.Blue);
+            statusClose.Visible = false;
+            statusClose.MouseEvent += (_, mouse) => CloseStatus(mouse);
+            app.ToolTips?.SetToolTip(statusClose, () => ToolTips.View(Wording.StatusCloseTip));
+            View[] statusParts = [statusSpinner, statusMark, .. statusWords, statusClose];
+            statusRows.Add(statusParts);
+            View[] views = [icon, .. settings, statusRows, tabs, counts, frameTitle, bar];
             Window.Add(views);
 
             Window.KeyDown += (_, key) => Active.OnKey(key);
@@ -173,6 +201,7 @@ public sealed class ConsoleScreen(
             ShowCounts(Active.Counts);
             ShowFrameTitle(Active.FrameTitle);
             ShowBar(Active.Bar(screen.context.UpdateKnown()));
+            ShowStatus(Active.Status, Active.Running);
             Window.SetNeedsDraw();
         }
 
@@ -289,6 +318,9 @@ public sealed class ConsoleScreen(
         private void ShowSettings()
         {
             int indent = VantageIcon.Fit(icon, app.Driver?.SixelSupport);
+            // The status line's mark lines up with the first letter of the settings row.
+            settingsIndent = indent;
+            statusRows.X = indent;
             IReadOnlyList<IReadOnlyList<TextPart>> rows = screen.context.SettingsRows(ScreenWidth - indent);
             if (settings[0].X.Equals(Pos.Absolute(indent)) && rows.Count == shownSettings.Count && rows.Zip(shownSettings).All(pair => pair.First.SequenceEqual(pair.Second)))
             {
@@ -371,7 +403,106 @@ public sealed class ConsoleScreen(
             }
         }
 
-        /// <summary>The counts after the tab strip's titles, each in its tone and joined by a grey dot; rebuilt when they or the titles change.</summary>
+        /// <summary>
+        /// The shown tab's status line under the settings row: the spinner while its action runs, otherwise its tone's glyph,
+        /// then the words in the tone's colour, wrapped onto at most three rows. While it shows, the tab strip, its counts and
+        /// the table's title move down by its rows; the tabs keep their place above the key bar.
+        /// </summary>
+        private void ShowStatus(Footer footer, bool running)
+        {
+            int width = Math.Max(ScreenWidth - settingsIndent - StatusWordsAt - StatusCloseRoom, 1);
+            // By reference: a new message with the same words as the last is still a new message, with its own timer.
+            bool newMessage = shownStatus is not { } shown || !ReferenceEquals(shown.Footer, footer);
+            if (!newMessage && shownStatus is { } same && same.Running == running && same.Width == width)
+            {
+                return;
+            }
+
+            shownStatus = (footer, running, width);
+            statusOwner = Active;
+            IReadOnlyList<string> lines = StatusLayout.Lines(Wording.Describe(footer), width);
+            StatusTone tone = running ? StatusTone.Working : Wording.ToneOf(footer);
+            TextPart mark = Wording.StatusMark(tone);
+            // The glyph and the spinner share a cell; the glyph, drawn after it, would blank the spinner.
+            statusSpinner.Show(running);
+            statusMark.Visible = !running;
+            statusMark.Text = mark.Text;
+            statusMark.SetScheme(Palette.Plain(Palette.ForTone(mark.Tone)));
+            Color words = Palette.ForTone(Wording.StatusWordsTone(tone));
+            for (int row = 0; row < statusWords.Length; row++)
+            {
+                statusWords[row].Text = row < lines.Count ? lines[row] : string.Empty;
+                statusWords[row].SetScheme(Palette.Plain(words));
+            }
+
+            ShowClose(footer, running, lines);
+            if (newMessage && !running && StatusLayout.ClearsAfter(tone) is TimeSpan after)
+            {
+                ClearLater(Active, footer, after);
+            }
+
+            LayOutStatus(running ? Math.Max(lines.Count, 1) : lines.Count);
+        }
+
+        /// <summary>The close mark after the message's last word, on its last row; none while an action runs or for a standing description.</summary>
+        private void ShowClose(Footer footer, bool running, IReadOnlyList<string> lines)
+        {
+            statusClose.Visible = lines.Count > 0 && StatusLayout.Closes(footer, running);
+            if (!statusClose.Visible)
+            {
+                return;
+            }
+
+            statusClose.X = StatusWordsAt + lines[^1].Length + 1;
+            statusClose.Y = lines.Count - 1;
+        }
+
+        /// <summary>A click on the close mark clears the message it was drawn for, in the tab that showed it.</summary>
+        private void CloseStatus(Terminal.Gui.Input.Mouse mouse)
+        {
+            if (!mouse.Flags.HasFlag(Terminal.Gui.Input.MouseFlags.LeftButtonClicked) || statusOwner is null || shownStatus is not { } shown)
+            {
+                return;
+            }
+
+            mouse.Handled = true;
+            // The pointer has not moved, so the tooltip would stay, drawn over the tabs as they move up into the line's place.
+            app.ToolTips?.Hide();
+            statusOwner.Reduce(new MessageDismissed(shown.Footer));
+        }
+
+        /// <summary>Clears a success once its time is up, in the tab that showed it; a newer message there is left alone.</summary>
+        private void ClearLater(ITabBody owner, Footer footer, TimeSpan after)
+        {
+            object? timer = null;
+            timer = app.AddTimeout(after, () =>
+            {
+                timers.Remove(timer!);
+                owner.Reduce(new MessageDismissed(footer));
+                return false;
+            });
+            if (timer is not null)
+            {
+                timers.Add(timer);
+            }
+        }
+
+        /// <summary>Gives the status line its rows and moves the tab strip, its counts and the table's title down by them; nothing moves when the count is the same.</summary>
+        private void LayOutStatus(int rows)
+        {
+            if (rows == shownStatusRows)
+            {
+                return;
+            }
+
+            shownStatusRows = rows;
+            statusRows.Visible = rows > 0;
+            statusRows.Height = rows;
+            tabs.Y = StripTop + rows;
+            counts.Y = TitleRow + rows;
+            frameTitle.Y = TitleRow + rows;
+            Window.SetNeedsLayout();
+        }
         /// <summary>The two rows of the key bar: each item a blue key and a white word, both answering a click with the key and a hover with its tip; rebuilt only when the items change.</summary>
         private void ShowBar(KeyBar keys)
         {

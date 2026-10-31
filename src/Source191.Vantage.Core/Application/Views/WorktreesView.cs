@@ -69,6 +69,8 @@ public static class WorktreesView
         {
             WorktreeRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
+            MessageDismissed dismissed when ReferenceEquals(state.Footer, dismissed.Message) => Unchanged(state with { Footer = Footer.None }),
+            MessageDismissed => Unchanged(state),
             ForceConfirmed confirmed => Force(state, confirmed),
             UpdateTabOpened => Effect(state, new Quit()),
             KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Footer = Footer.None }),

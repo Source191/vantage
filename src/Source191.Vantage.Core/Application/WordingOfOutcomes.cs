@@ -40,6 +40,115 @@ public static partial class Wording
         };
     }
 
+    /// <summary>How the status line marks what a handler reports; a case with no arm here is a notice.</summary>
+    public static StatusTone ToneOf(Outcome outcome)
+    {
+        return outcome switch
+        {
+            StopSessionOutcome => StatusTone.Success,
+            AdoptSessionOutcome adopt => ToneOf(adopt),
+            RenameSessionOutcome rename => ToneOf(rename),
+            CloseEmptyTerminalsOutcome close => ToneOf(close),
+            ResumeSessionsOutcome resume => resume.Resumed == resume.Chosen && resume.Notes.Count == 0 ? StatusTone.Success : StatusTone.Notice,
+            DeleteSessionOutcome deletion => ToneOf(deletion),
+            DeleteBranchOutcome => StatusTone.Success,
+            RemoveWorktreeOutcome removal => ToneOf(removal),
+            PruneRepositoryOutcome => StatusTone.Success,
+            OpenShellOutcome => StatusTone.Success,
+            FolderPathCopied => StatusTone.Success,
+            ClipboardBusy => StatusTone.Notice,
+            OpenedSolution => StatusTone.Success,
+            OpenPullRequestOutcome => StatusTone.Success,
+            OpenInEditorOutcome editor => ToneOf(editor),
+            OpenTabOutcome tab => ToneOf(tab),
+            StartSessionOutcome start => ToneOf(start),
+            SaveSettingsOutcome => StatusTone.Success,
+            ToggleUpdateCheckOutcome => StatusTone.Success,
+            ProblemReportOutcome.Opened => StatusTone.Success,
+            ProblemReportOutcome.NotOpened => StatusTone.Failure,
+            ProblemReportOutcome.Copied => StatusTone.Success,
+            UpdateStartedOutcome => StatusTone.Success,
+            _ => StatusTone.Notice,
+        };
+    }
+
+    private static StatusTone ToneOf(AdoptSessionOutcome outcome)
+    {
+        return outcome switch
+        {
+            AdoptSessionOutcome.Moved => StatusTone.Success,
+            AdoptSessionOutcome.Failed => StatusTone.Failure,
+            _ => StatusTone.Notice,
+        };
+    }
+
+    private static StatusTone ToneOf(RenameSessionOutcome outcome)
+    {
+        return outcome switch
+        {
+            RenameSessionOutcome.Renamed => StatusTone.Success,
+            RenameSessionOutcome.Restored or RenameSessionOutcome.Unsupervised => StatusTone.Failure,
+            _ => StatusTone.Notice,
+        };
+    }
+
+    private static StatusTone ToneOf(DeleteSessionOutcome outcome)
+    {
+        return outcome switch
+        {
+            DeleteSessionOutcome.Deleted or DeleteSessionOutcome.RemovedWorktreeAndBranch or DeleteSessionOutcome.BranchNotMerged => StatusTone.Success,
+            DeleteSessionOutcome.RemovedWorktree removed => ToneOf(removed.Worktree),
+            _ => StatusTone.Notice,
+        };
+    }
+
+    private static StatusTone ToneOf(RemoveWorktreeOutcome outcome)
+    {
+        return outcome switch
+        {
+            RemoveWorktreeOutcome.Refused or RemoveWorktreeOutcome.InUse => StatusTone.Notice,
+            _ => StatusTone.Success,
+        };
+    }
+
+    private static StatusTone ToneOf(OpenInEditorOutcome outcome)
+    {
+        return outcome switch
+        {
+            OpenInEditorOutcome.Opened => StatusTone.Success,
+            OpenInEditorOutcome.EditorNotFound => StatusTone.Failure,
+            _ => StatusTone.Notice,
+        };
+    }
+
+    private static StatusTone ToneOf(OpenTabOutcome outcome)
+    {
+        return outcome switch
+        {
+            OpenTabOutcome.Opened { ColourReused: false } or OpenTabOutcome.SwitchedTo => StatusTone.Success,
+            _ => StatusTone.Notice,
+        };
+    }
+
+    /// <summary>Done only when every empty tab was closed and no session was skipped or gone.</summary>
+    private static StatusTone ToneOf(CloseEmptyTerminalsOutcome outcome)
+    {
+        bool closedSome = outcome.Closed.Count > 0 || outcome.Ended.Count > 0;
+        bool leftSome = outcome.Skipped.Count > 0 || outcome.Gone.Count > 0;
+
+        return closedSome && !leftSome ? StatusTone.Success : StatusTone.Notice;
+    }
+
+    private static StatusTone ToneOf(StartSessionOutcome outcome)
+    {
+        return outcome switch
+        {
+            StartSessionOutcome.StartedAndOpened opened => ToneOf(opened.Tab),
+            StartSessionOutcome.NotTrusted or StartSessionOutcome.Failed => StatusTone.Failure,
+            _ => StatusTone.Notice,
+        };
+    }
+
     /// <summary>What <c>vantage here</c> prints after the start: where it started, or why it could not.</summary>
     public static string Here(LaunchOutcome outcome, string name, string directory)
     {
