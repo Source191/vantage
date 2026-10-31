@@ -17,7 +17,7 @@ Each task is one red-green-refactor cycle or a refactor step, with a commit per 
 
 ## 3. Adapters
 
-- [ ] 3.1 `ProcessRegistry.WithProcess<T>(processId, query, whenGone)` and `WithProcess(processId, Action<Process>)`; `Terminate` and `EndCleanly` use the action overload, `StartTimeOf` and `ParentOf` pass `whenGone: null` (refactor step). Verify `dotnet test test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build` passes, including `ProcessRegistryIntegrationShould`, and `ProcessRegistry.cs` has no `default!` and no `object?`.
+- [x] 3.1 `ProcessRegistry.WithProcess<T>(processId, query, whenGone)` and `WithProcess(processId, Action<Process>)`; `Terminate` and `EndCleanly` use the action overload, `StartTimeOf` and `ParentOf` pass `whenGone: null` (refactor step). Verify `dotnet test test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build` passes, including `ProcessRegistryIntegrationShould`, and `ProcessRegistry.cs` has no `default!` and no `object?`.
 - [ ] 3.2 `WorktreeIncludeCopier` and `JsonFileStore` create the parent folder only when `Path.GetDirectoryName(...) is string folder` (refactor step). Verify `WorktreeIncludeCopierShould` and `JsonFileStoreShould` pass unchanged.
 
 ## 4. Tui
