@@ -66,15 +66,13 @@ public sealed record Settings
             roots.Add(root);
         }
 
-        SettingsProblem? problem = roots switch
+        return roots switch
         {
-            [] => new SettingsProblem.NoRoots(),
-            _ when roots.FirstOrDefault(root => !folderExists(root.Value)) is FolderPath missing => new SettingsProblem.RootMissing(missing),
-            _ when roots.Where((root, index) => roots.Take(index).Contains(root)).FirstOrDefault() is FolderPath repeated => new SettingsProblem.RootAlreadyListed(repeated),
-            _ => null,
+            [] => Refused(new SettingsProblem.NoRoots()),
+            _ when roots.FirstOrDefault(root => !folderExists(root.Value)) is FolderPath missing => Refused(new SettingsProblem.RootMissing(missing)),
+            _ when roots.Where((root, index) => roots.Take(index).Contains(root)).FirstOrDefault() is FolderPath repeated => Refused(new SettingsProblem.RootAlreadyListed(repeated)),
+            _ => Validated(text, roots),
         };
-
-        return problem is null ? Validated(text, roots) : Refused(problem);
     }
 
     /// <summary>The settings as the dialog shows them: roots one per line and the custom arguments on one line.</summary>
