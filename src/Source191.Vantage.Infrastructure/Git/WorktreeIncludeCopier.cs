@@ -28,7 +28,11 @@ public sealed class WorktreeIncludeCopier(IGit git) : IWorktreeIncludeCopier
         {
             string source = Path.Combine(repository, relative.Replace('/', Path.DirectorySeparatorChar));
             string target = Path.Combine(worktree, relative.Replace('/', Path.DirectorySeparatorChar));
-            Directory.CreateDirectory(Path.GetDirectoryName(target)!);
+            if (Path.GetDirectoryName(target) is string folder)
+            {
+                Directory.CreateDirectory(folder);
+            }
+
             File.Copy(source, target, overwrite: true);
             copied.Add(relative);
         }
