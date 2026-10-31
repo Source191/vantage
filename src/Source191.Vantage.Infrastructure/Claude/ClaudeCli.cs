@@ -78,15 +78,17 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         Match started = BackgroundedLine().Match(result.StandardOutput);
         if (started.Success)
         {
-            return new StartResult(StartOutcome.Started, started.Groups["id"].Value, result.StandardOutput.Trim());
+            // The pattern's eight hex characters are what a job id is, so this never fails; the adapter still checks the text it was given.
+            return JobId.TryParse(started.Groups["id"].Value, out JobId? jobId)
+                ? new StartResult.Started(jobId, result.StandardOutput.Trim())
+                : new StartResult.Failed(result.StandardOutput.Trim());
         }
 
         string message = string.IsNullOrWhiteSpace(result.StandardError) ? result.StandardOutput.Trim() : result.StandardError.Trim();
-        StartOutcome outcome = message.Contains("Workspace not trusted", StringComparison.OrdinalIgnoreCase)
-            ? StartOutcome.WorkspaceNotTrusted
-            : StartOutcome.Failed;
 
-        return new StartResult(outcome, JobId: null, message);
+        return message.Contains("Workspace not trusted", StringComparison.OrdinalIgnoreCase)
+            ? new StartResult.WorkspaceNotTrusted(message)
+            : new StartResult.Failed(message);
     }
 
     [GeneratedRegex(@"^\s*\d+(\.\d+)+")]

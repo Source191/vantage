@@ -92,16 +92,15 @@ public sealed class ClaudeContractShould
         StartResult started = await cli.StartBackgroundAsync(RepositoryFolder.Root(), UniqueName("encoding"), openingPrompt: null, Cancellation);
         try
         {
-            started.Outcome.ShouldBe(StartOutcome.Started, started.Message);
-            started.JobId.ShouldNotBeNull();
-            started.JobId.Length.ShouldBe(8);
-            started.Message.ShouldContain("·");
+            StartResult.Started running = started.ShouldBeOfType<StartResult.Started>(started.Message);
+            running.JobId.Value.Length.ShouldBe(8);
+            running.Message.ShouldContain("·");
         }
         finally
         {
-            if (started.JobId is not null)
+            if (started is StartResult.Started { JobId: JobId jobId })
             {
-                await EndAsync(cli, started.JobId);
+                await EndAsync(cli, jobId.Value);
             }
         }
     }
@@ -231,9 +230,7 @@ public sealed class ClaudeContractShould
     private static async Task<string> StartAsync(ClaudeCli cli, SessionName name)
     {
         StartResult started = await cli.StartBackgroundAsync(RepositoryFolder.Root(), name, openingPrompt: null, Cancellation);
-        started.Outcome.ShouldBe(StartOutcome.Started, started.Message);
-
-        return started.JobId.ShouldNotBeNull(started.Message);
+        return started.ShouldBeOfType<StartResult.Started>(started.Message).JobId.Value;
     }
 
     /// <summary>The started session as the listing shows it; the supervisor can take a few seconds to list a new job.</summary>
