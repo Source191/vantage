@@ -85,7 +85,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
             return (new PullRequestListing.Unavailable(PullRequestGap.NoRemote), null);
         }
 
-        if (RemoteRepository.Parse(url) is not RemoteRepository repository)
+        if (!RemoteRepository.TryParse(url, out RemoteRepository? repository))
         {
             return (new PullRequestListing.Unavailable(PullRequestGap.UnknownHost), null);
         }

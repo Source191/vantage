@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Source191.Vantage.Domain;
@@ -5,26 +6,34 @@ namespace Source191.Vantage.Domain;
 /// <summary>
 /// The repository an origin remote points at, on a host Vantage can ask for pull requests: github.com or Azure DevOps.
 /// Any other remote, and an Azure DevOps name that is not plain text for a batch file (<see cref="BatchFileArgument"/>),
-/// reads as null: az is a .cmd file that cmd.exe parses, so its arguments must hold none of its special characters.
+/// is not read: az is a .cmd file that cmd.exe parses, so its arguments must hold none of its special characters.
 /// </summary>
 public abstract partial record RemoteRepository
 {
     /// <summary>The host whose CLI lists this repository's pull requests.</summary>
     public abstract PullRequestHost Host { get; }
 
-    public static RemoteRepository? Parse(string? url)
+    public static bool TryParse(string? url, [MaybeNullWhen(false)] out RemoteRepository repository)
     {
         string text = url?.Trim() ?? string.Empty;
         Match gitHub = GitHub().Match(text);
         if (gitHub.Success)
         {
-            return new GitHubRepository(gitHub.Groups["owner"].Value, gitHub.Groups["name"].Value);
+            repository = new GitHubRepository(gitHub.Groups["owner"].Value, gitHub.Groups["name"].Value);
+            return true;
         }
 
-        return AzureDevOps().Match(text) is { Success: true } azure ? Azure(azure) : null;
+        if (AzureDevOps().Match(text) is { Success: true } azure && Azure(azure, out AzureDevOpsRepository? found))
+        {
+            repository = found;
+            return true;
+        }
+
+        repository = null;
+        return false;
     }
 
-    private static AzureDevOpsRepository? Azure(Match match)
+    private static bool Azure(Match match, [MaybeNullWhen(false)] out AzureDevOpsRepository repository)
     {
         string organisation = Uri.UnescapeDataString(match.Groups["org"].Value);
         string project = Uri.UnescapeDataString(match.Groups["project"].Value);
@@ -32,7 +41,14 @@ public abstract partial record RemoteRepository
 
         string[] parts = [organisation, project, name];
 
-        return parts.All(BatchFileArgument.IsSafe) ? new AzureDevOpsRepository(organisation, project, name) : null;
+        if (parts.All(BatchFileArgument.IsSafe))
+        {
+            repository = new AzureDevOpsRepository(organisation, project, name);
+            return true;
+        }
+
+        repository = null;
+        return false;
     }
 
     [GeneratedRegex(@"^(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)(?<owner>[^/\s]+)/(?<name>[^/\s]+?)(?:\.git)?/?$", RegexOptions.IgnoreCase)]
