@@ -57,7 +57,7 @@ public sealed class GitCliShould
             request => request.FileName.ShouldBe("git"),
             request => request.WorkingDirectory.ShouldBe(Repository),
             request => request.Arguments.ShouldBe(["worktree", "list", "--porcelain"]));
-        entries.Single().Branch.ShouldBe(BranchName.From("main"));
+        entries.Single().Head.ShouldBe(new Head.OnBranch(BranchName.From("main")));
     }
 
     [Fact]
