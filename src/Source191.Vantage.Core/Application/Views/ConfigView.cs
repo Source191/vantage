@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
@@ -100,31 +101,32 @@ public static class ConfigView
     }
 
     /// <summary>Either an effect to run or a status message explaining why nothing happens.</summary>
-    private static ConfigViewUpdate RowAction(ConfigViewState state, Func<ConfigRow, (ViewEffect? Effect, StatusMessage Message)> decide)
+    private static ConfigViewUpdate RowAction(ConfigViewState state, Func<ConfigRow, RowDecision> decide)
     {
         if (state.Selected is not ConfigRow row)
         {
             return Unchanged(state with { Message = new StatusMessage.NoSettingSelected() });
         }
 
-        (ViewEffect? effect, StatusMessage message) = decide(row);
-
-        return effect is null
-            ? Unchanged(state with { Message = message })
-            : Effect(state with { Message = message }, effect);
-    }
-
-    private static (ViewEffect?, StatusMessage) Enter(ConfigRow row)
-    {
-        return row switch
+        return decide(row) switch
         {
-            ConfigRow.CheckForUpdates => (new ToggleUpdateCheck(), StatusMessage.None),
-            ConfigRow.Setup setup => (null, new StatusMessage.SetupAdvice(setup.Item)),
-            _ => (new EditSetting(SettingsScope.For(row)), StatusMessage.None),
+            RowDecision.Act act => Effect(state with { Message = StatusMessage.None }, act.Effect),
+            RowDecision.Explain explain => Unchanged(state with { Message = explain.Message }),
+            _ => throw new UnreachableException(),
         };
     }
 
-    private static (ViewEffect?, StatusMessage) WithPath(ConfigRow row, Func<string, ViewEffect> effect) => PathOf(row) is string path ? (effect(path), StatusMessage.None) : (null, new StatusMessage.NoPathHere());
+    private static RowDecision Enter(ConfigRow row)
+    {
+        return row switch
+        {
+            ConfigRow.CheckForUpdates => new RowDecision.Act(new ToggleUpdateCheck()),
+            ConfigRow.Setup setup => new RowDecision.Explain(new StatusMessage.SetupAdvice(setup.Item)),
+            _ => new RowDecision.Act(new EditSetting(SettingsScope.For(row))),
+        };
+    }
+
+    private static RowDecision WithPath(ConfigRow row, Func<string, ViewEffect> effect) => PathOf(row) is string path ? new RowDecision.Act(effect(path)) : new RowDecision.Explain(new StatusMessage.NoPathHere());
 
     /// <summary>A setup row's path is a file, so the folder holding it is the one to open; a root is a folder already.</summary>
     private static FolderPath FolderOf(ConfigRow row, string path) => row is ConfigRow.Setup && FolderPath.From(path).Parent is FolderPath parent ? parent : FolderPath.From(path);
