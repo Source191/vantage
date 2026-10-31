@@ -314,50 +314,50 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     /// </summary>
     private void AskForDetail(bool refreshed)
     {
-        if (detail is null || requests is null || pane is null || !isShown)
+        if (detail is not { } source || requests is not { } requested || pane is not { } detailPane || !isShown)
         {
             return;
         }
 
         if (State.List.Selected is not TRow row)
         {
-            requests.Cleared();
+            requested.Cleared();
             detailKey = null;
-            pane.Show(null);
+            detailPane.Show(null);
             return;
         }
 
-        object key = detail.KeyOf(row);
+        object key = source.KeyOf(row);
         if (!refreshed && Equals(key, detailKey))
         {
             return;
         }
 
         detailKey = key;
-        ReadDetail(row, requests.Ask(key));
+        ReadDetail(source, row, requested, requested.Ask(key), detailPane);
     }
 
     /// <summary>Reads one request's detail off the UI thread and shows it there, unless a newer answer or another row came first.</summary>
-    private void ReadDetail(TRow row, DetailRequest request)
+    private void ReadDetail(IDetailSource<TRow> source, TRow row, DetailRequests requested, DetailRequest request, DetailPane detailPane)
     {
         CancellationToken token = lifetime.Token;
         Task.Run(async () =>
         {
-            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(row, token), _ => null);
+            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(source, row, token), _ => null);
             if (content is null || token.IsCancellationRequested)
             {
                 return;
             }
 
-            app.Invoke(() => ShowDetail(request, content));
+            app.Invoke(() => ShowDetail(requested, request, content, detailPane));
         }, token);
     }
 
-    private async Task<DetailContent?> ReadAsync(TRow row, CancellationToken token)
+    private static async Task<DetailContent?> ReadAsync(IDetailSource<TRow> source, TRow row, CancellationToken token)
     {
         try
         {
-            return await detail!.ReadAsync(row, token);
+            return await source.ReadAsync(row, token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
@@ -365,14 +365,14 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
     }
 
-    private void ShowDetail(DetailRequest request, DetailContent content)
+    private void ShowDetail(DetailRequests requested, DetailRequest request, DetailContent content, DetailPane detailPane)
     {
-        if (lifetime.IsCancellationRequested || requests?.Accept(request, content) is not DetailContent shown)
+        if (lifetime.IsCancellationRequested || requested.Accept(request, content) is not DetailContent shown)
         {
             return;
         }
 
-        pane!.Show(shown);
+        detailPane.Show(shown);
         View.SetNeedsDraw();
         host.FrameChanged();
     }
