@@ -3,20 +3,19 @@ using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
 /// <summary>
-/// The console session: labels Vantage's own tab, then runs the console screen until it quits. The screen keeps both
-/// tabs' state and hands it back on every exit, so a selection survives a trip into an attached session. Effects that
-/// need the terminal (attach) run here, between two runs. The update check starts on a pool thread before the first
-/// run and is never awaited; a failure in it is only recorded in the diagnostic log, as is each hand-off.
+/// The console session: labels Vantage's own tab, then runs the console screen until it quits. Nothing else leaves the
+/// screen: a session opens in a tab of its own, so the console never hands its terminal to a child. The update check
+/// starts on a pool thread before the run and is never awaited; a failure in it is only recorded in the diagnostic log.
 /// </summary>
 public sealed class ScreenLoop(
     IConsoleScreen screen,
     OwnTab ownTab,
     ITerminalConsole console,
-    TerminalEffects effects,
     UpdateCheck updates,
     DiagnosticLog log)
 {
@@ -29,19 +28,15 @@ public sealed class ScreenLoop(
         console.ShowOwnTab(ownColour);
         UpdateCheckTask = CheckForUpdatesAsync(cancellationToken);
 
-        ConsoleState state = ConsoleState.Empty;
-        while (true)
+        ConsoleExit exit = screen.Run(ConsoleState.Empty);
+        if (exit.Effect is not (null or Quit))
         {
-            ConsoleExit exit = screen.Run(state);
-            state = exit.State;
-            if (exit.Effect is null or Quit)
-            {
-                console.ClearOwnTab();
-                return 0;
-            }
-
-            await HandOverAsync(exit.Effect, ownColour, cancellationToken);
+            throw new UnreachableException($"Only quit leaves the console, but {exit.Effect.GetType().Name} did.");
         }
+
+        console.ClearOwnTab();
+
+        return 0;
     }
 
     private async Task CheckForUpdatesAsync(CancellationToken cancellationToken)
@@ -54,14 +49,5 @@ public sealed class ScreenLoop(
         {
             log.Record(new Failed(FailureSite.UpdateCheck, CodeName.For(typeof(UpdateCheck)), ExceptionSummary.From(exception)));
         }
-    }
-
-    private async Task HandOverAsync(ViewEffect effect, TabColour? ownColour, CancellationToken cancellationToken)
-    {
-        log.Record(new HandingOver(CodeName.For(effect.GetType())));
-        await effects.RunAsync(effect, cancellationToken);
-        log.Record(new ChildReturned());
-        console.RecoverAfterChild();
-        console.ShowOwnTab(ownColour);
     }
 }
