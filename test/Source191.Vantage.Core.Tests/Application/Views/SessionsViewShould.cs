@@ -155,11 +155,11 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
-    public void AttachToTheSelectedBackgroundSessionOnEnter()
+    public void OpenTheSelectedBackgroundSessionInItsOwnTabOnEnter()
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Enter));
 
-        update.Effects.ShouldBe([new AttachToSession(JobId.From("bbbb2222"))]);
+        update.Effects.ShouldBe([new OpenTabForSession(WaitingJob, HasLiveTab: false)]);
     }
 
     [Fact]
@@ -269,14 +269,14 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
-    public void RefuseEnterWhenALiveTabAlreadyShowsTheSessionAndNameTheWayThere()
+    public void SwitchToTheLiveTabThatShowsTheSessionOnEnter()
     {
         SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([Waiting with { HasLiveTab = true }]));
 
         ViewUpdate update = SessionsView.Reduce(withTab, new KeyPressed(Key.Enter));
 
-        update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new Footer.OpenInAnotherTab("change-feed"));
+        update.Effects.ShouldBe([new OpenTabForSession(WaitingJob, HasLiveTab: true)]);
+        update.State.Footer.ShouldBe(Footer.None);
     }
 
     [Fact]
