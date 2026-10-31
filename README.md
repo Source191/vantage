@@ -8,7 +8,7 @@ Vantage is mission control for Claude Code on Windows: one Windows Terminal tab 
 
 - **See every session at once:** each one is listed with its state, repository, branch and pull request.
 - **Start in a fresh worktree:** a new session gets its own git worktree, so sessions never trip over each other's changes.
-- **Attach, or open a tab:** attach to any session from the list, or open it in its own tab, named after the session and coloured so you can tell it apart at a glance.
+- **Open a session in its own tab:** Enter on any session in the list opens it in a tab of its own, named after the session and coloured so you can tell it apart at a glance, or switches to that tab when it is already open.
 - **Hear when one needs you:** the terminal bell rings when a session finishes or pauses for you.
 - **Keep working when the terminal closes:** sessions run under Claude Code's own background supervisor, so they carry on when no terminal shows them and are still listed after a reboot, ready to resume with one key.
 - **Tidy up with one key:** when the work is done, delete a session and its worktree together, unless that would lose uncommitted or unpushed work.
@@ -24,7 +24,7 @@ I built Vantage because I wanted a tool that worked the way I work. Before start
 - [Start Vantage](#start-vantage)
 - [The sessions view](#the-sessions-view)
 - [The new session wizard](#the-new-session-wizard)
-- [Attaching, tabs and getting back](#attaching-tabs-and-getting-back)
+- [Session tabs](#session-tabs)
 - [The worktrees view](#the-worktrees-view)
 - [The detail pane](#the-detail-pane)
 - [Pull requests](#pull-requests)
@@ -107,11 +107,11 @@ Open a tab and run `vantage` (or `v`). The screen has four parts, top to bottom:
 - **Settings:** one row, labels in orange and values in white: `Vantage 0.18.0 (35 MB) · Claude 2.1.310`. In a terminal that draws images, such as Windows Terminal, the Vantage icon sits to its left; elsewhere the row starts at the left edge. The Claude Code version reads `unknown` when `claude --version` cannot be read and `2.1.302 (below 2.1.309, update Claude Code)` when it is older than the minimum Vantage supports; a local install shows its prerelease label without the build timestamp (`0.6.0-local`); a newer release adds `0.19.0 available, U to update`. The repository roots and the worktree root are on the [Config tab](#the-config-tab).
 - **Tabs:** `Sessions`, `Worktrees` and `Config`, the title of the one shown in bold cyan and the others in grey, their frames grey; beside them the counts for the tab shown, such as `◐ 2 need input · ● 1 working · ■ 1 stopped` in the states' colours, ending with `◇ 1 automated 216 MB` in grey while any automated run is listed (see below). Left and Right move to the tab before or after (stopping at the ends), `1`, `2` and `3` choose one, and a click on a title selects it. Each tab keeps its selection, filter and message while another is shown, and switching is instant; the worktrees scan starts the first time its tab is shown and refreshes only while it is.
 - **Table:** in the tab's frame under a header box in the same grey with white column names, its title at the right end of the tabs' row: what it counts and which row is selected, `7 sessions, selected: fix-123`, or `2 of 7 sessions match "templates", selected: templates-sync` while a filter is set, with the filter being typed shown first (a failed listing shows there in red; a title too long for the row is cut at its end). The selection bar is bright cyan. Rest the mouse on a column header to see what the column shows; the tooltip appears on the rows just under the header. Under the table on the Sessions and Worktrees tabs the [detail pane](#the-detail-pane) shows the selected row in full; under that, while there is something to say, a status line with the last message: what a key did, why it was refused, or what the selected row needs. It goes when you move the selection or change the filter, and the table takes its row back. A spinner sits beside the message while an action runs (starting a session, opening a tab, renaming, deleting), and one sits in the middle of the empty table until the first listing or worktree scan arrives.
-- **Key bar:** the last two rows name the keys for the selected row: a background session's `Enter Attach  o Open tab  x Stop  d Delete  r Rename  m Memory`, a plain `claude` session's `b Adopt` (and `d Close tab` when it has never been sent a message), then `R Resume` while a stopped or failed session is listed, `C Close empty` while an empty terminal session is, `n New session`, and `U Update` when a newer release is known; the second row has the folder keys and the view's own. Click a key or its word to press it, and rest the mouse on it to see what it does; the tooltip is black on amber. The help lists every key whether the bar shows it or not.
+- **Key bar:** the last two rows name the keys for the selected row: a background session's `Enter Open  x Stop  d Delete  r Rename  m Memory`, a plain `claude` session's `b Adopt` (and `d Close tab` when it has never been sent a message), then `R Resume` while a stopped or failed session is listed, `C Close empty` while an empty terminal session is, `n New session`, and `U Update` when a newer release is known; the second row has the folder keys and the view's own. Click a key or its word to press it, and rest the mouse on it to see what it does; the tooltip is black on amber. The help lists every key whether the bar shows it or not.
 
 The sessions table refreshes every five seconds. `?` shows the keys and the columns of the current view (and, in the sessions view, the path of the Claude Code executable Vantage drives) and `q` quits. Quitting Vantage never stops a session.
 
-Vantage names its own tab `Vantage` (the version is in the settings row) and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs; they are restored when you return from an attached session (Claude names the tab itself while attached) and put back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab. While a dialog is open the tab says which, such as `Vantage (Keys)` for the help or `Vantage (Settings)` while a setting is edited, and goes back to `Vantage` when it closes.
+Vantage names its own tab `Vantage` (the version is in the settings row) and colours it green (or the first free palette colour when a session tab is already green), so it is easy to find among the session tabs, and puts them back when you quit. A Windows Terminal profile that sets its own `tabColor` keeps it, because the terminal ignores colour changes from inside such a tab. While a dialog is open the tab says which, such as `Vantage (Keys)` for the help or `Vantage (Settings)` while a setting is edited, and goes back to `Vantage` when it closes.
 
 **Help and version.** `vantage --help` (also `-h`, `/h`, `-?` or `/?`) lists the commands and options, and the same option after a command, anywhere on the line, shows that command's own (`vantage here --help`, `vantage setup-terminal -h`). `vantage --version` prints the installed version. Both exit 0 and neither needs Claude Code. Anything Vantage cannot parse is refused with exit code 1: the message names what was not recognised, suggests close matches (`vantage hre` suggests `here`) and shows the help. Options take their value after a space, `=` or `:` (`--prompt="Fix the tests"`), and `--` ends the options. Only `vantage` on its own opens the console.
 
@@ -137,8 +137,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | Up, Down | Move the selection bar |
 | Left, Right | Show the tab before or after this one |
 | <, > | Scroll the table sideways, one column at a time, when its columns do not all fit |
-| Enter | Attach to the selected background session in this tab; Ctrl+Z returns |
-| o | Open the session in its own coloured Windows Terminal tab; when one is already open for it, switch to that tab |
+| Enter | Open the session in its own coloured Windows Terminal tab; when one is already open for it, switch to that tab |
 | n | New session wizard |
 | r | Rename the session from Vantage: type the new name, Enter. The session restarts under the new name with the same id and conversation, so it is refused while the session is working or before its first message. A Vantage tab showing it closes and a tab under the new name opens in the same colour |
 | x | Stop the session (it stays listed and can be resumed); a Vantage tab showing it closes |
@@ -179,11 +178,9 @@ A cyan line under the choices says exactly what will happen ("Worktree Northwind
 
 Enter never starts a session here, so there is nothing to undo if you press it too soon. If a repository has not been trusted by Claude Code yet, the start is refused with an explanation and Vantage offers to open a plain tab there so you can run `claude` once and accept the trust prompt.
 
-## Attaching, tabs and getting back
+## Session tabs
 
-**Attach in this tab (Enter):** Vantage hands the terminal to `claude attach`. Press Ctrl+Z to detach and return to Vantage; the session keeps running. A session that has never had a message opens at its own prompt, and Ctrl+Z returns from it in the same way. Vantage prints a one-line reminder before every attach and erases it when you come back, so the scrollback keeps no copies.
-
-**Open in a tab (o):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there. The TAB column shows a block in that tab's colour, in the faded shade the tab has while you are looking at Vantage's own tab. While that tab is open, `o` switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; `o` checks the tab's shell is still running before switching, and opens a new tab when it is not.
+**Open (Enter):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there; Vantage itself stays on screen in its own tab. A session that has never had a message opens at its own prompt. The TAB column shows a block in that tab's colour, in the faded shade the tab has while you are looking at Vantage's own tab. While that tab is open, Enter switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; Enter checks the tab's shell is still running before switching, and opens a new tab when it is not. Vantage never attaches in its own tab; `vantage here` is the way to attach in the tab you are in.
 
 ## The worktrees view
 
@@ -302,7 +299,7 @@ There are no toasts; the need input count beside the tabs and the amber rows are
 Windows Terminal plays the bell with whatever sound the profile has, so a bell from Vantage sounds like every other notification until it has a profile of its own. `vantage setup-terminal` gives it two:
 
 - **Vantage:** runs the installed `vantage`; open it from the new-tab menu to get Vantage in a tab that closes when you quit. It has no tab colour, so Vantage still colours its own tab.
-- **Vantage session:** PowerShell. Every tab Vantage opens (`o`) uses it once it exists, so a bell from an attached session sounds different from Vantage's own.
+- **Vantage session:** PowerShell. Every tab Vantage opens (Enter) uses it once it exists, so a bell from an attached session sounds different from Vantage's own.
 
 Both profiles carry the Vantage icon as their tab icon, so it shows on Vantage's own tab and on every tab Vantage opens, but only on tabs opened from these profiles: a `vantage` typed into an ordinary PowerShell tab keeps that tab's icon. The icon is copied next to the fragment, so run `vantage setup-terminal` again after an update to refresh it. Both profiles sound the bell and flash the window and the taskbar. The profiles are added as a Windows Terminal fragment, a small JSON file that Windows Terminal reads at start-up; your own `settings.json` is never touched. Restart Windows Terminal after running the command, and the profiles appear in the new-tab menu.
 
@@ -325,17 +322,17 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 **Suggested sounds** in `C:\Windows\Media`: `Windows Notify Messaging.wav`, `Windows Notify Calendar.wav`, `Windows Proximity Notification.wav`, `Windows Message Nudge.wav`, `chimes.wav`, `Alarm01.wav` to `Alarm10.wav` and `Ring01.wav` to `Ring10.wav`. Not every edition of Windows ships all of them.
 
-**Undo.** `vantage setup-terminal --remove` deletes the fragment; restart Windows Terminal and the profiles are gone, and `o` opens tabs in your default profile again. Remove the `preferredNotifChannel` line from `~\.claude\settings.json` yourself if you want Claude's bell off.
+**Undo.** `vantage setup-terminal --remove` deletes the fragment; restart Windows Terminal and the profiles are gone, and Enter opens tabs in your default profile again. Remove the `preferredNotifChannel` line from `~\.claude\settings.json` yourself if you want Claude's bell off.
 
 ## Common scenarios
 
 **Start work on a story in a clean worktree.** `n`, choose the repository, name the session after the story (`New worktree` is already chosen), type the opening prompt, F6. The session opens in its own coloured tab and the overview stays where it is. The worktree is `<repository>-<name>` under the worktree root, its REPOSITORY cell reads the repository, and the detail pane names the worktree's slug.
 
-**Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row, answer, Ctrl+Z.
+**Kick off several sessions and let them run.** Use `n` with F5 for each, giving each a distinct name so you can tell them apart. Leave Vantage open: rows turn amber when one needs you, and the Vantage tab rings the bell even when another tab is in front. Enter on the amber row opens or switches to its tab; answer there, and Ctrl+Z closes the tab when you are done.
 
-**Keep one session in its own tab.** `o` opens it in a coloured tab you can leave open all day. The TAB column shows a block in the tab's colour; `o` again switches to that tab until it is closed.
+**Keep one session in its own tab.** Enter opens it in a coloured tab you can leave open all day. The TAB column shows a block in the tab's colour; Enter again switches to that tab until it is closed.
 
-**Start Claude from a repository folder you are already in.** `vh fix-tests -p "..."` instead of `claude`. It shows up in Vantage with a job id, so `o`, `x` and `d` work on it later.
+**Start Claude from a repository folder you are already in.** `vh fix-tests -p "..."` instead of `claude`. It shows up in Vantage with a job id, so Enter, `x` and `d` work on it later.
 
 **A session you started with plain `claude` needs the same treatment.** Select its row (the hollow `▯` swatch) and press `b` while it is idle or waiting. Vantage ends the plain process and resumes the same conversation under the supervisor with the same name; the old tab becomes an ordinary shell. A session you have not sent anything to yet is refused, because Claude writes no transcript until the first message and there would be nothing to resume: `d` closes that tab instead.
 
@@ -357,7 +354,7 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 | `update-check.json` | When Vantage last asked nuget.org for a newer release of itself and the newest release it found; see [Updates](#updates) |
 | `recent\` | One file per recently used repository, with when it was last used; the ten most recent are shown first in the wizard |
 | `created.json` | Worktrees Vantage created, which decides the branch-deletion rules |
-| `tabs\` | One file per tab Vantage opened, so a second `o` switches to the tab instead of opening another |
+| `tabs\` | One file per tab Vantage opened, so a second Enter switches to the tab instead of opening another |
 | `last-crash.log` | Written only when an exception ends Vantage: its diagnostic log, the child program counts and the crash; replaced by the next crash; see [What Vantage records](#what-vantage-records) |
 
 `vantage setup-terminal` also writes `%LOCALAPPDATA%\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json`, which belongs to Windows Terminal's fragment mechanism rather than to Vantage's own folder, and can set one line in `~\.claude\settings.json` (see [Windows Terminal setup](#windows-terminal-setup)).
