@@ -33,6 +33,12 @@ public sealed class EditorChoiceShould
     }
 
     [Fact]
+    public void ReadACustomEditorWithNoArgumentsAsVsCode()
+    {
+        EditorChoice.FromFile(EditorPreset.Custom, @"C:\Tools\subl.exe", arguments: null).ShouldBe(EditorChoice.VsCode);
+    }
+
+    [Fact]
     public void ReadACustomEditorWithoutAnExecutableAsVsCode()
     {
         EditorChoice.FromFile(EditorPreset.Custom, executable: null, ["{folder}"]).ShouldBe(EditorChoice.VsCode);
