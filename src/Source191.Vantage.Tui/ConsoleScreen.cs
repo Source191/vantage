@@ -105,7 +105,7 @@ public sealed class ConsoleScreen(
         private readonly TableBody<ConfigViewState, ConfigRow> config;
         private readonly List<object> timers = [];
         private ConsoleTab active;
-        private ViewEffect? leaving;
+        private ViewEffect leaving = new Quit();
         private bool binding;
         private KeyBar? shownBar;
         private IReadOnlyList<TextPart> shownCounts = [];
