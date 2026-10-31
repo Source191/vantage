@@ -43,7 +43,7 @@ Moved to detail-pane at the owner's check (30 October 2026) and delivered there;
 ## 5. Version and checks
 
 - [x] 5.1 Raise `Version` one preview step above `main`'s. Verify `dotnet build -c Debug`, `dotnet test -c Debug --no-build`, `dotnet format --verify-no-changes` and `openspec validate config-tab-follow-ups --strict` pass.
-  - 0.18.0-preview.11, two steps above `main`'s preview.9: this branch is built on wizard-one-form's, which still reads preview.9 and needs its own step, and tab-swatch-shade holds preview.10. Whichever of the three merges after another raises its version again.
+  - 0.18.0-preview.11, two steps above `main`'s preview.9: this branch is built on wizard-one-form's, which still reads preview.9 and needs its own step, and tab-swatch-shade holds preview.10. Whichever of the three merges after another raises its version again. Raised to 0.18.0-preview.12 on 31 October 2026, when tab-swatch-shade merged to `main` at preview.11.
 - [x] 5.2 Run the hand-off check and the smoke check against the packed tool. Verify both exit 0.
   - Done 30 October 2026: the hand-off check exits 0 (throwaway session stopped and removed), and the smoke check exits 0 against 0.18.0-preview.11 packed and installed into a temporary tool path, opening and cancelling the folder picker from the roots dialog among its 26 steps; Northwind.Smoke and its worktree were seeded as CI seeds them and removed after.
   - Re-run 31 October 2026 after main's merge and tasks 4.5 to 4.7: the hand-off check exits 0 and the smoke check exits 0 against a fresh Release pack in a temporary tool path, Northwind.Smoke seeded and removed.
