@@ -26,9 +26,9 @@ public sealed record SessionName : ITextValue<SessionName>
 {
     private SessionName(string text)
     {
-        if (ProblemWith(text) is NameProblem problem)
+        if (!IsName(text))
         {
-            throw new ArgumentException($"'{text}' is not a session name: {problem}.", nameof(text));
+            throw new ArgumentException($"'{text}' is not a session name: {NameProblem.Missing}.", nameof(text));
         }
 
         Value = text;
@@ -41,26 +41,18 @@ public sealed record SessionName : ITextValue<SessionName>
     /// <summary>Checks typed text, which is refused only when blank.</summary>
     public static SessionNameValidation Validate(string text)
     {
-        return ProblemWith(text) switch
-        {
-            NameProblem problem => new SessionNameValidation.Refused(problem),
-            null => new SessionNameValidation.Valid(SessionName.From(text)),
-        };
+        return IsName(text)
+            ? new SessionNameValidation.Valid(SessionName.From(text))
+            : new SessionNameValidation.Refused(NameProblem.Missing);
     }
 
     /// <summary>A blank or missing listing name answers false rather than failing a resume.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out SessionName value)
     {
-        value = text is not null && ProblemWith(text) is null ? SessionName.From(text) : null;
+        value = text is not null && IsName(text) ? SessionName.From(text) : null;
         return value is not null;
     }
 
-    private static NameProblem? ProblemWith(string text)
-    {
-        return text switch
-        {
-            _ when string.IsNullOrWhiteSpace(text) => NameProblem.Missing,
-            _ => null,
-        };
-    }
+    /// <summary>The one rule: a name is not blank.</summary>
+    private static bool IsName(string text) => !string.IsNullOrWhiteSpace(text);
 }
