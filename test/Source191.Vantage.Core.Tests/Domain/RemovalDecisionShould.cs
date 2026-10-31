@@ -9,7 +9,7 @@ public sealed class RemovalDecisionShould
         Branch: "fix-123",
         DirtyFileCount: 0,
         UnpushedCommitCount: 0,
-        LiveSessionName: null,
+        Session: new WorktreeSession.None(),
         BranchCreatedByVantage: true,
         BranchMerged: true,
         LeftoverFileCount: 0);
@@ -83,7 +83,7 @@ public sealed class RemovalDecisionShould
     [Fact]
     public void RefuseAWorktreeWithALiveSessionEvenWhenForced()
     {
-        RemovalDecision decision = RemovalDecision.For(Clean with { LiveSessionName = "remove-sonar" }, forced: true);
+        RemovalDecision decision = RemovalDecision.For(Clean with { Session = new WorktreeSession.Running(SessionId.From("sess-1"), "remove-sonar") }, forced: true);
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
         decision.Reason.ShouldBe(new RemovalReason.LiveSession("remove-sonar"));
@@ -159,7 +159,7 @@ public sealed class RemovalDecisionShould
     [Fact]
     public void RefuseALeftoverFolderWithALiveSessionEvenWhenForced()
     {
-        RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LiveSessionName = "fix-service-tests" }, forced: true);
+        RemovalDecision decision = RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, Session = new WorktreeSession.Running(SessionId.From("sess-2"), "fix-service-tests") }, forced: true);
 
         decision.Outcome.ShouldBe(RemovalOutcome.Refused);
         decision.Reason.ShouldBe(new RemovalReason.LiveSession("fix-service-tests"));
@@ -169,8 +169,8 @@ public sealed class RemovalDecisionShould
     public void SayWhetherARefusalCanBeForced()
     {
         RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Locked }, forced: false).CanBeForced.ShouldBeFalse();
-        RemovalDecision.For(Clean with { LiveSessionName = "remove-sonar" }, forced: false).CanBeForced.ShouldBeFalse();
-        RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LiveSessionName = "fix-service-tests" }, forced: false).CanBeForced.ShouldBeFalse();
+        RemovalDecision.For(Clean with { Session = new WorktreeSession.Running(SessionId.From("sess-1"), "remove-sonar") }, forced: false).CanBeForced.ShouldBeFalse();
+        RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, Session = new WorktreeSession.Running(SessionId.From("sess-2"), "fix-service-tests") }, forced: false).CanBeForced.ShouldBeFalse();
         RemovalDecision.For(Clean with { DirtyFileCount = 5 }, forced: false).CanBeForced.ShouldBeTrue();
         RemovalDecision.For(Clean with { UnpushedCommitCount = 2 }, forced: false).CanBeForced.ShouldBeTrue();
         RemovalDecision.For(Clean with { Health = WorktreeHealthKind.Orphan, LeftoverFileCount = 12 }, forced: false).CanBeForced.ShouldBeTrue();
