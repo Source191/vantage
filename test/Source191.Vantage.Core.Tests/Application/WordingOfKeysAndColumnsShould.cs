@@ -58,6 +58,13 @@ public sealed class WordingOfKeysAndColumnsShould
     }
 
     [Fact]
+    public void SayTheTabBlockMatchesTheTabAsItLooksFromVantage()
+    {
+        Wording.SessionsColumns.Single(column => column.Name == "TAB").Meaning
+            .ShouldStartWith("a block in the tab's colour, faded as the tab looks from Vantage's own tab,\nwhile a Vantage tab shows the session;");
+    }
+
+    [Fact]
     public void ExplainEveryLineOfEachPane()
     {
         Wording.SessionsPane.Select(line => line.Name).ShouldBe(["Waiting", "Started", "Prompted", "Folder", "Session", "Worktree", "Branch", "Tab", "Changes", "Memory"]);
@@ -86,8 +93,8 @@ public sealed class WordingOfKeysAndColumnsShould
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one
-            TAB         a block in the tab's colour while a Vantage tab shows the session,
-                        ▯ grey for a plain claude in its own terminal
+            TAB         a block in the tab's colour, faded as the tab looks from Vantage's own tab,
+                        while a Vantage tab shows the session; ▯ grey for a plain claude in its own terminal
             STATE       ◐ needs input (amber), ● working (cyan), ○ idle (white),
                         ✓ completed (green), ✗ failed (red), ■ stopped (grey)
             REPOSITORY  the repository it runs in, or the folder's label outside a repository
