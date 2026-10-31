@@ -53,7 +53,7 @@ public sealed class UpdateCheckRuleShould
     [Fact]
     public void OfferOnlyAHigherRelease()
     {
-        UpdateCheckRule.Offer(Release, enabled: true, NewestRelease.Recorded("0.10.0")).ShouldBe(new UpdateStatus.Available(ReleaseVersion.TryParse("0.9.0")!, ReleaseVersion.TryParse("0.10.0")!));
+        UpdateCheckRule.Offer(Release, enabled: true, NewestRelease.Recorded("0.10.0")).ShouldBe(new UpdateStatus.Available(ReleaseVersions.Version("0.9.0"), ReleaseVersions.Version("0.10.0")));
         UpdateCheckRule.Offer(Release, enabled: true, NewestRelease.Recorded("0.9.0")).ShouldBe(new UpdateStatus.UpToDate());
         UpdateCheckRule.Offer(Release, enabled: true, NewestRelease.Recorded("0.8.0")).ShouldBe(new UpdateStatus.UpToDate());
         UpdateCheckRule.Offer(Release, enabled: true, new NewestRelease.None()).ShouldBe(new UpdateStatus.UpToDate());

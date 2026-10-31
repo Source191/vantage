@@ -85,10 +85,10 @@ public sealed class WordingOfScreensShould
         ClaudeCodeVersion version = (claude, belowMinimum) switch
         {
             (null, _) => new ClaudeCodeVersion.Unknown(),
-            (_, true) => new ClaudeCodeVersion.BelowMinimum(ReleaseVersion.TryParse(claude)!, ReleaseVersion.TryParse("2.1.309")!),
+            (_, true) => new ClaudeCodeVersion.BelowMinimum(ReleaseVersions.Version(claude), ReleaseVersions.Version("2.1.309")),
             _ => new ClaudeCodeVersion.Reported(claude),
         };
-        UpdateStatus update = updateAvailable ? new UpdateStatus.Available(ReleaseVersion.TryParse("0.18.0")!, ReleaseVersion.TryParse("0.19.0")!) : new UpdateStatus.UpToDate();
+        UpdateStatus update = updateAvailable ? new UpdateStatus.Available(ReleaseVersions.Version("0.18.0"), ReleaseVersions.Version("0.19.0")) : new UpdateStatus.UpToDate();
 
         Text(Wording.SettingsRow(new ToolVersion(vantage), version, update, MemorySize.FromMegabytes(35))).ShouldBe(expected);
     }

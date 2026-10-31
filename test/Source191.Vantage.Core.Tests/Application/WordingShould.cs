@@ -286,13 +286,13 @@ public sealed class WordingShould
     [Fact]
     public void AskBeforeUpdating()
     {
-        Wording.UpdateQuestion(ReleaseVersion.TryParse("0.10.0")!).ShouldBe("Quit Vantage and update to 0.10.0?\nBackground sessions keep running.");
+        Wording.UpdateQuestion(ReleaseVersions.Version("0.10.0")).ShouldBe("Quit Vantage and update to 0.10.0?\nBackground sessions keep running.");
     }
 
     [Fact]
     public void SayTheUpdateTabIsOpening()
     {
-        Wording.Working(new StartUpdate(ReleaseVersion.TryParse("0.10.0")!)).ShouldBe("Opening a tab to update to 0.10.0...");
+        Wording.Working(new StartUpdate(ReleaseVersions.Version("0.10.0"))).ShouldBe("Opening a tab to update to 0.10.0...");
     }
 
     [Fact]

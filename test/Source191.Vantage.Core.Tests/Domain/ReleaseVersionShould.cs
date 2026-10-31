@@ -16,8 +16,8 @@ public sealed class ReleaseVersionShould
     [InlineData("1.0.0-alpha", "1.0.0-1")]
     public void CompareBySemanticVersionPrecedence(string higher, string lower)
     {
-        ReleaseVersion high = ReleaseVersion.TryParse(higher)!;
-        ReleaseVersion low = ReleaseVersion.TryParse(lower)!;
+        ReleaseVersion high = ReleaseVersions.Version(higher);
+        ReleaseVersion low = ReleaseVersions.Version(lower);
 
         high.IsHigherThan(low).ShouldBeTrue();
         low.IsHigherThan(high).ShouldBeFalse();
@@ -28,9 +28,9 @@ public sealed class ReleaseVersionShould
     [Fact]
     public void CompareWithOperators()
     {
-        ReleaseVersion low = ReleaseVersion.TryParse("0.9.0")!;
-        ReleaseVersion high = ReleaseVersion.TryParse("0.10.0")!;
-        ReleaseVersion same = ReleaseVersion.TryParse("0.9.0")!;
+        ReleaseVersion low = ReleaseVersions.Version("0.9.0");
+        ReleaseVersion high = ReleaseVersions.Version("0.10.0");
+        ReleaseVersion same = ReleaseVersions.Version("0.9.0");
 
         (low < high).ShouldBeTrue();
         (high < low).ShouldBeFalse();
@@ -46,15 +46,15 @@ public sealed class ReleaseVersionShould
     [Fact]
     public void RankAboveNothing()
     {
-        ReleaseVersion.TryParse("0.9.0")!.CompareTo(null).ShouldBePositive();
+        ReleaseVersions.Version("0.9.0").CompareTo(null).ShouldBePositive();
     }
 
     [Fact]
     public void IgnoreBuildMetadata()
     {
-        ReleaseVersion withMetadata = ReleaseVersion.TryParse("0.9.0+3f2a9c1d")!;
+        ReleaseVersion withMetadata = ReleaseVersions.Version("0.9.0+3f2a9c1d");
 
-        withMetadata.CompareTo(ReleaseVersion.TryParse("0.9.0")!).ShouldBe(0);
+        withMetadata.CompareTo(ReleaseVersions.Version("0.9.0")).ShouldBe(0);
         withMetadata.ToString().ShouldBe("0.9.0");
     }
 
@@ -63,13 +63,13 @@ public sealed class ReleaseVersionShould
     [InlineData("0.4.10-ci.12")]
     public void KnowAPrerelease(string text)
     {
-        ReleaseVersion.TryParse(text)!.IsPrerelease.ShouldBeTrue();
+        ReleaseVersions.Version(text).IsPrerelease.ShouldBeTrue();
     }
 
     [Fact]
     public void KnowARelease()
     {
-        ReleaseVersion.TryParse("0.10.0")!.IsPrerelease.ShouldBeFalse();
+        ReleaseVersions.Version("0.10.0").IsPrerelease.ShouldBeFalse();
     }
 
     [Theory]
@@ -89,6 +89,6 @@ public sealed class ReleaseVersionShould
     [Fact]
     public void WriteItselfAsItWasRead()
     {
-        ReleaseVersion.TryParse("0.10.0-rc.1")!.ToString().ShouldBe("0.10.0-rc.1");
+        ReleaseVersions.Version("0.10.0-rc.1").ToString().ShouldBe("0.10.0-rc.1");
     }
 }
