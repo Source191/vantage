@@ -22,8 +22,8 @@ public static class GitWorktreeListing
     private static GitWorktreeEntry ParseBlock(string block, bool isMain)
     {
         string path = string.Empty;
-        string head = string.Empty;
-        string? branch = null;
+        string commit = string.Empty;
+        Head head = new Head.Unknown();
         string? lockReason = null;
         string? prunableReason = null;
 
@@ -36,10 +36,13 @@ public static class GitWorktreeListing
                     path = value.Replace('/', System.IO.Path.DirectorySeparatorChar);
                     break;
                 case "HEAD":
-                    head = value;
+                    commit = value;
                     break;
                 case "branch":
-                    branch = value.StartsWith(RefsHeads, StringComparison.Ordinal) ? value[RefsHeads.Length..] : value;
+                    head = HeadOn(value);
+                    break;
+                case "detached":
+                    head = new Head.Detached();
                     break;
                 case "locked":
                     lockReason = value;
@@ -52,9 +55,15 @@ public static class GitWorktreeListing
             }
         }
 
-        BranchName? branchName = BranchName.TryParse(branch, out BranchName? parsed) ? parsed : null;
+        return new GitWorktreeEntry(path, commit, head, isMain, lockReason, prunableReason);
+    }
 
-        return new GitWorktreeEntry(path, head, branchName, isMain, lockReason, prunableReason);
+    /// <summary>The branch a "branch" line names, without its refs/heads/ prefix; Unknown when that is not a branch name.</summary>
+    private static Head HeadOn(string reference)
+    {
+        string branch = reference.StartsWith(RefsHeads, StringComparison.Ordinal) ? reference[RefsHeads.Length..] : reference;
+
+        return BranchName.TryParse(branch, out BranchName? name) ? new Head.OnBranch(name) : new Head.Unknown();
     }
 
     private static (string Key, string Value) SplitLine(string line)
