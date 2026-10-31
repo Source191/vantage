@@ -31,7 +31,7 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders, IDetailSou
         return column switch
         {
             // The branch, changes and health are the pane's, so the WORKTREE cell names the repository and the folder's slug only.
-            0 => WhereLabel.For(row.RepositoryName, folders.For(row.Path), branch: null, inRepository: true).Fit(width),
+            0 => WhereLabel.For(row.RepositoryName, folders.For(row.Path), inRepository: true).Fit(width),
             1 => row.LastCommitAt is null ? "-" : Durations.Age(now - row.LastCommitAt.Value),
             _ => row.SessionName ?? string.Empty,
         };
