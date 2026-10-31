@@ -26,7 +26,7 @@ public sealed class WordingShould
     private static readonly InteractiveSession Terminal = Sessions.Terminal("fix-123", 4242);
     private static readonly WorktreeRow Worktree = Worktrees.Row(WorktreeHealthKind.Ok);
 
-    public static TheoryData<Type> FooterCases => [.. typeof(Footer).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(Footer)))];
+    public static TheoryData<Type> FooterCases => [.. typeof(StatusMessage).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(StatusMessage)))];
 
     [Theory]
     [MemberData(nameof(FooterCases))]
@@ -34,7 +34,7 @@ public sealed class WordingShould
     {
         System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
         object[] arguments = [.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))];
-        Footer footer = (Footer)constructor.Invoke(arguments);
+        StatusMessage footer = (StatusMessage)constructor.Invoke(arguments);
 
         Wording.Describe(footer).ShouldNotBe(footer.ToString(), $"{type.Name} has no arm in Wording.Describe");
     }
@@ -44,7 +44,7 @@ public sealed class WordingShould
     [Fact]
     public void SayNothingForNoFooter()
     {
-        Wording.Describe(Footer.None).ShouldBe(string.Empty);
+        Wording.Describe(StatusMessage.None).ShouldBe(string.Empty);
     }
 
     // The sessions view.
@@ -52,71 +52,71 @@ public sealed class WordingShould
     [Fact]
     public void SayNoSessionIsSelected()
     {
-        Wording.Describe(new Footer.NoSessionSelected()).ShouldBe("No session selected.");
+        Wording.Describe(new StatusMessage.NoSessionSelected()).ShouldBe("No session selected.");
     }
 
     [Fact]
     public void ExplainATerminalSessionWithMessages()
     {
-        Wording.Describe(new Footer.RunsInOwnTerminal("fix-123", HasTranscript: true))
+        Wording.Describe(new StatusMessage.RunsInOwnTerminal("fix-123", HasTranscript: true))
             .ShouldBe("fix-123 runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there.");
     }
 
     [Fact]
     public void ExplainATerminalSessionWithoutMessages()
     {
-        Wording.Describe(new Footer.RunsInOwnTerminal("fix-123", HasTranscript: false))
+        Wording.Describe(new StatusMessage.RunsInOwnTerminal("fix-123", HasTranscript: false))
             .ShouldBe("fix-123 runs in its own terminal and has no messages yet. d closes its tab, C closes every such tab, or send it something there and press b.");
     }
 
     [Fact]
     public void SayASessionNeverSentAMessageHasNothingToResume()
     {
-        Wording.Describe(new Footer.NeverSentAMessage("fix-123")).ShouldBe("fix-123 has nothing to resume: it was never sent a message. d deletes it.");
+        Wording.Describe(new StatusMessage.NeverSentAMessage("fix-123")).ShouldBe("fix-123 has nothing to resume: it was never sent a message. d deletes it.");
     }
 
     [Fact]
     public void SayThereAreNoEmptyTerminals()
     {
-        Wording.Describe(new Footer.NoEmptyTerminals()).ShouldBe("No terminal sessions without messages.");
+        Wording.Describe(new StatusMessage.NoEmptyTerminals()).ShouldBe("No terminal sessions without messages.");
     }
 
     [Fact]
     public void RefuseToRenameASessionWithoutMessages()
     {
-        Wording.Describe(new Footer.NoMessagesToRename("fix-123")).ShouldBe("fix-123 has no messages yet, so it cannot be renamed; send it something first.");
+        Wording.Describe(new StatusMessage.NoMessagesToRename("fix-123")).ShouldBe("fix-123 has no messages yet, so it cannot be renamed; send it something first.");
     }
 
     [Fact]
     public void WaitForAWorkingSessionBeforeRenaming()
     {
-        Wording.Describe(new Footer.WorkingSoRenameWaits("fix-123")).ShouldBe("fix-123 is working; wait until it is idle or needs input, because renaming restarts it.");
+        Wording.Describe(new StatusMessage.WorkingSoRenameWaits("fix-123")).ShouldBe("fix-123 is working; wait until it is idle or needs input, because renaming restarts it.");
     }
 
     [Fact]
     public void SayARenameWasCancelled()
     {
-        Wording.Describe(new Footer.RenameCancelled()).ShouldBe("Rename cancelled.");
+        Wording.Describe(new StatusMessage.RenameCancelled()).ShouldBe("Rename cancelled.");
     }
 
     [Fact]
     public void SayANameIsRequired()
     {
         Wording.Describe(NameProblem.Missing).ShouldBe("A session name is required.");
-        Wording.Describe(new Footer.InvalidName(NameProblem.Missing)).ShouldBe("A session name is required.");
+        Wording.Describe(new StatusMessage.InvalidName(NameProblem.Missing)).ShouldBe("A session name is required.");
     }
 
 
     [Fact]
     public void SayABackgroundSessionIsAlreadyUnderVantage()
     {
-        Wording.Describe(new Footer.AlreadyUnderVantage("fix-123")).ShouldBe("fix-123 already runs in the background under Vantage.");
+        Wording.Describe(new StatusMessage.AlreadyUnderVantage("fix-123")).ShouldBe("fix-123 already runs in the background under Vantage.");
     }
 
     [Fact]
     public void WaitForAWorkingSessionBeforeAdopting()
     {
-        Wording.Describe(new Footer.WorkingSoAdoptWaits("fix-123")).ShouldBe("fix-123 is working; wait until it is idle or needs input, so nothing in flight is lost.");
+        Wording.Describe(new StatusMessage.WorkingSoAdoptWaits("fix-123")).ShouldBe("fix-123 is working; wait until it is idle or needs input, so nothing in flight is lost.");
     }
 
     // The worktrees view.
@@ -124,63 +124,63 @@ public sealed class WordingShould
     [Fact]
     public void SayNoWorktreeIsSelected()
     {
-        Wording.Describe(new Footer.NoWorktreeSelected()).ShouldBe("No worktree selected.");
+        Wording.Describe(new StatusMessage.NoWorktreeSelected()).ShouldBe("No worktree selected.");
     }
 
     [Fact]
     public void GiveTheReasonARemovalWasRefusedAndOfferTheForceKey()
     {
-        Wording.Describe(new Footer.NotRemoved(new RemovalReason.ChangesWouldBeLost(3), OfferForce: true))
+        Wording.Describe(new StatusMessage.NotRemoved(new RemovalReason.ChangesWouldBeLost(3), OfferForce: true))
             .ShouldBe("Not removed: 3 changed or untracked files would be lost. D forces after a typed confirmation.");
     }
 
     [Fact]
     public void GiveTheReasonARemovalWasRefusedWithoutTheForceKey()
     {
-        Wording.Describe(new Footer.NotRemoved(new RemovalReason.Locked(), OfferForce: false))
+        Wording.Describe(new StatusMessage.NotRemoved(new RemovalReason.Locked(), OfferForce: false))
             .ShouldBe("Not removed: the worktree is locked.");
     }
 
     [Fact]
     public void SayAForceRemovalWasCancelled()
     {
-        Wording.Describe(new Footer.ForceCancelled()).ShouldBe("Cancelled; nothing removed.");
+        Wording.Describe(new StatusMessage.ForceCancelled()).ShouldBe("Cancelled; nothing removed.");
     }
 
     [Fact]
     public void SayNothingWasTypedForAForceRemoval()
     {
-        Wording.Describe(new Footer.NothingTyped()).ShouldBe("Nothing was typed; nothing removed.");
+        Wording.Describe(new StatusMessage.NothingTyped()).ShouldBe("Nothing was typed; nothing removed.");
     }
 
     [Fact]
     public void ShowWhatWasTypedWhenItIsNotTheName()
     {
-        Wording.Describe(new Footer.TypedWrongName("x", "Northwind.Orders-fix-123")).ShouldBe("You typed x, not Northwind.Orders-fix-123; nothing removed.");
+        Wording.Describe(new StatusMessage.TypedWrongName("x", "Northwind.Orders-fix-123")).ShouldBe("You typed x, not Northwind.Orders-fix-123; nothing removed.");
     }
 
     [Fact]
     public void SayThereIsNothingToPruneWithoutARepository()
     {
-        Wording.Describe(new Footer.NothingToPrune("Northwind.Orders")).ShouldBe("Nothing to prune: the repository Northwind.Orders no longer exists.");
+        Wording.Describe(new StatusMessage.NothingToPrune("Northwind.Orders")).ShouldBe("Nothing to prune: the repository Northwind.Orders no longer exists.");
     }
 
     [Fact]
     public void SayALeftoverFolderIsNotAWorktree()
     {
-        Wording.Describe(new Footer.LeftoverFolder("fix-service-tests")).ShouldBe("fix-service-tests is a leftover folder, not a worktree.");
+        Wording.Describe(new StatusMessage.LeftoverFolder("fix-service-tests")).ShouldBe("fix-service-tests is a leftover folder, not a worktree.");
     }
 
     [Fact]
     public void SayNoSessionRunsInTheWorktree()
     {
-        Wording.Describe(new Footer.NoSessionIn("Northwind.Orders-fix-123")).ShouldBe("No session is running in Northwind.Orders-fix-123.");
+        Wording.Describe(new StatusMessage.NoSessionIn("Northwind.Orders-fix-123")).ShouldBe("No session is running in Northwind.Orders-fix-123.");
     }
 
     [Fact]
     public void SayAStoppedSessionHasNothingToMeasure()
     {
-        Wording.Describe(new Footer.NothingToMeasure("fix-123")).ShouldBe("fix-123 has no process to measure; it is stopped.");
+        Wording.Describe(new StatusMessage.NothingToMeasure("fix-123")).ShouldBe("fix-123 has no process to measure; it is stopped.");
         Wording.Working(new ShowMemory(Job, 5151)).ShouldBe("Measuring fix-123...");
     }
 
@@ -221,7 +221,7 @@ public sealed class WordingShould
     [Fact]
     public void SayNoSolutionWasFound()
     {
-        Wording.Describe(new Footer.NoSolution("Northwind.Orders-fix-123")).ShouldBe("No solution found in Northwind.Orders-fix-123 or its src folder.");
+        Wording.Describe(new StatusMessage.NoSolution("Northwind.Orders-fix-123")).ShouldBe("No solution found in Northwind.Orders-fix-123 or its src folder.");
     }
 
     [Fact]
@@ -259,7 +259,7 @@ public sealed class WordingShould
     [InlineData(PullRequestGap.BranchNotGivenToAz, PullRequestHost.AzureDevOps, "fix-123's branch name holds a character the Azure CLI cannot be given, so it was not looked up.")]
     public void SayWhyThereIsNoPullRequest(PullRequestGap gap, PullRequestHost? host, string expected)
     {
-        Wording.Describe(new Footer.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);
+        Wording.Describe(new StatusMessage.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);
     }
 
     [Fact]
@@ -274,13 +274,13 @@ public sealed class WordingShould
     [Fact]
     public void SayVantageIsUpToDate()
     {
-        Wording.Describe(new Footer.UpToDate()).ShouldBe("Vantage is up to date.");
+        Wording.Describe(new StatusMessage.UpToDate()).ShouldBe("Vantage is up to date.");
     }
 
     [Fact]
     public void SayTheUpdateCheckIsOff()
     {
-        Wording.Describe(new Footer.UpdateCheckOff()).ShouldBe("The update check is off, or this is a development build; nothing to update to.");
+        Wording.Describe(new StatusMessage.UpdateCheckOff()).ShouldBe("The update check is off, or this is a development build; nothing to update to.");
     }
 
     [Fact]
@@ -298,51 +298,51 @@ public sealed class WordingShould
     [Fact]
     public void SayTheEmptyTabsWereKept()
     {
-        Wording.Describe(new Footer.Kept()).ShouldBe("Kept.");
+        Wording.Describe(new StatusMessage.Kept()).ShouldBe("Kept.");
     }
 
     [Fact]
     public void SayNothingWasChosenToResume()
     {
-        Wording.Describe(new Footer.NothingChosenToResume()).ShouldBe("Nothing to resume.");
+        Wording.Describe(new StatusMessage.NothingChosenToResume()).ShouldBe("Nothing to resume.");
     }
 
     [Fact]
     public void NameAnEffectWithNoDialog()
     {
-        Wording.Describe(new Footer.NoDialogFor("OpenSettings")).ShouldBe("No dialog is defined for OpenSettings.");
+        Wording.Describe(new StatusMessage.NoDialogFor("OpenSettings")).ShouldBe("No dialog is defined for OpenSettings.");
     }
 
     [Fact]
     public void SayWhatARunningEffectIsDoing()
     {
-        Wording.Describe(new Footer.Working(new StopSession(Job))).ShouldBe("Stopping...");
+        Wording.Describe(new StatusMessage.Working(new StopSession(Job))).ShouldBe("Stopping...");
     }
 
     [Fact]
     public void SayWhatAHandlerDid()
     {
-        Wording.Describe(new Footer.Reported(new StopSessionOutcome("fix-123", TabClosed: false))).ShouldBe("Stopped fix-123.");
+        Wording.Describe(new StatusMessage.Reported(new StopSessionOutcome("fix-123", TabClosed: false))).ShouldBe("Stopped fix-123.");
     }
 
     [Fact]
     public void SayTheBranchWasKeptAfterTheRemoval()
     {
-        Wording.Describe(new Footer.BranchKept(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(FolderPath.From(Sessions.Repository), BranchName.From("fix-123")))))
+        Wording.Describe(new StatusMessage.BranchKept(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(FolderPath.From(Sessions.Repository), BranchName.From("fix-123")))))
             .ShouldBe("Deleted fix-123 and removed the worktree; branch fix-123 is not merged. Branch kept.");
     }
 
     [Fact]
     public void SayTheBranchWasDeletedAfterTheRemoval()
     {
-        Wording.Describe(new Footer.Followed(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(FolderPath.From(Sessions.Repository), BranchName.From("fix-123"))), new DeleteBranchOutcome()))
+        Wording.Describe(new StatusMessage.Followed(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(FolderPath.From(Sessions.Repository), BranchName.From("fix-123"))), new DeleteBranchOutcome()))
             .ShouldBe("Deleted fix-123 and removed the worktree; branch fix-123 is not merged. Branch deleted.");
     }
 
     [Fact]
     public void SayBackgroundWorkFailed()
     {
-        Wording.Describe(new Footer.Failed("git exited with 128")).ShouldBe("Failed: git exited with 128");
+        Wording.Describe(new StatusMessage.Failed("git exited with 128")).ShouldBe("Failed: git exited with 128");
     }
 
     [Fact]

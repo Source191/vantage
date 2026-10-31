@@ -2,7 +2,7 @@
 
 ## 1. The type and its members in the application layer
 
-- [ ] 1.1 Rename the `Footer` type to `StatusMessage` (and `Footer.cs` to `StatusMessage.cs`), keeping every case and `None`, across `src\`, `test\` and `tools\`. The existing tests are the guard: `WordingShould.HaveWordsForEveryFooterCase`, `StatusTonesShould` and every reducer test must pass unchanged in what they assert. Verify with `dotnet build -c Debug` (no warnings) and the Core suite.
+- [x] 1.1 Rename the `Footer` type to `StatusMessage` (and `Footer.cs` to `StatusMessage.cs`), keeping every case and `None`, across `src\`, `test\` and `tools\`. The existing tests are the guard: `WordingShould.HaveWordsForEveryFooterCase`, `StatusTonesShould` and every reducer test must pass unchanged in what they assert. Verify with `dotnet build -c Debug` (no warnings) and the Core suite.
 - [ ] 1.2 Rename each view state's `Footer` property to `Message`, `IScreenDefinition.WithFooter` to `WithMessage` and `IEffectContext.ShowFooter` to `ShowMessage`, and parameters and locals named `footer` to `message` (or a clearer name where `message` is taken). Verify with the build and the whole suite.
 - [ ] 1.3 Rename the tests and members whose names say footer (`HaveWordsForEveryFooterCase`, `FooterCases`, `FooterTones`, `FooterTable`, `ChooseAToneForEveryFooterCase`, `GiveEachFooterItsTone`, `NameAnyOtherFooterByItsKind`, `NameTheEffectAWorkingFooterWaitsFor`, `SayNothingForNoFooter`, `SayTheConfigFooters`, `Footers`) and reword comments, so a case-insensitive search for footer under `src\`, `test\` and `tools\` finds nothing. Verify with that search, the build, the whole suite and `dotnet format --verify-no-changes`.
 

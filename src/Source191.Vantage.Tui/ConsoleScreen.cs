@@ -109,7 +109,7 @@ public sealed class ConsoleScreen(
         private KeyBar? shownBar;
         private IReadOnlyList<TextPart> shownCounts = [];
         private IReadOnlyList<IReadOnlyList<TextPart>> shownSettings = [];
-        private (Footer Footer, bool Running, int Width)? shownStatus;
+        private (StatusMessage Footer, bool Running, int Width)? shownStatus;
         private int shownStatusRows;
         private int settingsIndent;
         private ITabBody? statusOwner;
@@ -408,7 +408,7 @@ public sealed class ConsoleScreen(
         /// then the words in the tone's colour, wrapped onto at most three rows. While it shows, the tab strip, its counts and
         /// the table's title move down by its rows; the tabs keep their place above the key bar.
         /// </summary>
-        private void ShowStatus(Footer footer, bool running)
+        private void ShowStatus(StatusMessage footer, bool running)
         {
             int width = Math.Max(ScreenWidth - settingsIndent - StatusWordsAt - StatusCloseRoom, 1);
             // By reference: a new message with the same words as the last is still a new message, with its own timer.
@@ -445,7 +445,7 @@ public sealed class ConsoleScreen(
         }
 
         /// <summary>The close mark after the message's last word, on its last row; none while an action runs or for a standing description.</summary>
-        private void ShowClose(Footer footer, bool running, IReadOnlyList<string> lines)
+        private void ShowClose(StatusMessage footer, bool running, IReadOnlyList<string> lines)
         {
             statusClose.Visible = lines.Count > 0 && StatusLayout.Closes(footer, running);
             if (!statusClose.Visible)
@@ -472,7 +472,7 @@ public sealed class ConsoleScreen(
         }
 
         /// <summary>Clears a success once its time is up, in the tab that showed it; a newer message there is left alone.</summary>
-        private void ClearLater(ITabBody owner, Footer footer, TimeSpan after)
+        private void ClearLater(ITabBody owner, StatusMessage footer, TimeSpan after)
         {
             object? timer = null;
             timer = app.AddTimeout(after, () =>

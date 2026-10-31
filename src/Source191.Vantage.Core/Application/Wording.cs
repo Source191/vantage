@@ -63,24 +63,24 @@ public static partial class Wording
         return $"Problem report from Vantage {version.Text}";
     }
 
-    public static string Describe(Footer footer)
+    public static string Describe(StatusMessage footer)
     {
         return footer switch
         {
-            Footer.Blank => string.Empty,
-            Footer.NoSessionSelected => "No session selected.",
-            Footer.RunsInOwnTerminal { HasTranscript: true } terminal =>
+            StatusMessage.Blank => string.Empty,
+            StatusMessage.NoSessionSelected => "No session selected.",
+            StatusMessage.RunsInOwnTerminal { HasTranscript: true } terminal =>
                 $"{terminal.Name} runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there.",
-            Footer.RunsInOwnTerminal terminal =>
+            StatusMessage.RunsInOwnTerminal terminal =>
                 $"{terminal.Name} runs in its own terminal and has no messages yet. d closes its tab, C closes every such tab, or send it something there and press b.",
-            Footer.NeverSentAMessage never => $"{never.Name} has nothing to resume: it was never sent a message. d deletes it.",
-            Footer.NoEmptyTerminals => "No terminal sessions without messages.",
-            Footer.NoMessagesToRename rename => $"{rename.Name} has no messages yet, so it cannot be renamed; send it something first.",
-            Footer.WorkingSoRenameWaits rename => $"{rename.Name} is working; wait until it is idle or needs input, because renaming restarts it.",
-            Footer.RenameCancelled => "Rename cancelled.",
-            Footer.InvalidName invalid => Describe(invalid.Problem),
-            Footer.AlreadyUnderVantage adopted => $"{adopted.Name} already runs in the background under Vantage.",
-            Footer.WorkingSoAdoptWaits adopt => $"{adopt.Name} is working; wait until it is idle or needs input, so nothing in flight is lost.",
+            StatusMessage.NeverSentAMessage never => $"{never.Name} has nothing to resume: it was never sent a message. d deletes it.",
+            StatusMessage.NoEmptyTerminals => "No terminal sessions without messages.",
+            StatusMessage.NoMessagesToRename rename => $"{rename.Name} has no messages yet, so it cannot be renamed; send it something first.",
+            StatusMessage.WorkingSoRenameWaits rename => $"{rename.Name} is working; wait until it is idle or needs input, because renaming restarts it.",
+            StatusMessage.RenameCancelled => "Rename cancelled.",
+            StatusMessage.InvalidName invalid => Describe(invalid.Problem),
+            StatusMessage.AlreadyUnderVantage adopted => $"{adopted.Name} already runs in the background under Vantage.",
+            StatusMessage.WorkingSoAdoptWaits adopt => $"{adopt.Name} is working; wait until it is idle or needs input, so nothing in flight is lost.",
             _ => DescribeWorktreesAndScreen(footer),
         };
     }
@@ -345,36 +345,36 @@ public static partial class Wording
 
     private static string SoundText(string? sound) => sound ?? "is Windows Terminal's own";
 
-    private static string DescribeWorktreesAndScreen(Footer footer)
+    private static string DescribeWorktreesAndScreen(StatusMessage footer)
     {
         return footer switch
         {
-            Footer.NoWorktreeSelected => "No worktree selected.",
-            Footer.SettingHint hint => ConfigDescription(hint.Row),
-            Footer.SetupAdvice advice => Describe(advice.Item),
-            Footer.NoPathHere => "This row's value is not a path.",
-            Footer.NoSettingSelected => "No setting selected.",
-            Footer.NotRemoved { OfferForce: true } refused => $"Not removed: {Describe(refused.Reason)}. D forces after a typed confirmation.",
-            Footer.NotRemoved refused => $"Not removed: {Describe(refused.Reason)}.",
-            Footer.ForceCancelled => "Cancelled; nothing removed.",
-            Footer.NothingTyped => "Nothing was typed; nothing removed.",
-            Footer.TypedWrongName wrong => $"You typed {wrong.Typed}, not {wrong.Expected}; nothing removed.",
-            Footer.NothingToPrune prune => $"Nothing to prune: the repository {prune.RepositoryName} no longer exists.",
-            Footer.LeftoverFolder leftover => $"{leftover.FolderName} is a leftover folder, not a worktree.",
-            Footer.NoSessionIn none => $"No session is running in {none.FolderName}.",
-            Footer.NoSolution none => $"No solution found in {none.FolderName} or its src folder.",
-            Footer.NothingToMeasure stopped => $"{stopped.Name} has no process to measure; it is stopped.",
-            Footer.NoPullRequest none => Describe(none),
-            Footer.UpToDate => "Vantage is up to date.",
-            Footer.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",
-            Footer.Kept => "Kept.",
-            Footer.NothingChosenToResume => "Nothing to resume.",
-            Footer.NoDialogFor missing => $"No dialog is defined for {missing.EffectName}.",
-            Footer.Working working => Working(working.Effect),
-            Footer.Reported reported => Describe(reported.Outcome),
-            Footer.BranchKept kept => $"{Describe(kept.Removal)} Branch kept.",
-            Footer.Followed followed => $"{Describe(followed.First)} {Describe(followed.Then)}",
-            Footer.Failed failed => $"Failed: {failed.Message}",
+            StatusMessage.NoWorktreeSelected => "No worktree selected.",
+            StatusMessage.SettingHint hint => ConfigDescription(hint.Row),
+            StatusMessage.SetupAdvice advice => Describe(advice.Item),
+            StatusMessage.NoPathHere => "This row's value is not a path.",
+            StatusMessage.NoSettingSelected => "No setting selected.",
+            StatusMessage.NotRemoved { OfferForce: true } refused => $"Not removed: {Describe(refused.Reason)}. D forces after a typed confirmation.",
+            StatusMessage.NotRemoved refused => $"Not removed: {Describe(refused.Reason)}.",
+            StatusMessage.ForceCancelled => "Cancelled; nothing removed.",
+            StatusMessage.NothingTyped => "Nothing was typed; nothing removed.",
+            StatusMessage.TypedWrongName wrong => $"You typed {wrong.Typed}, not {wrong.Expected}; nothing removed.",
+            StatusMessage.NothingToPrune prune => $"Nothing to prune: the repository {prune.RepositoryName} no longer exists.",
+            StatusMessage.LeftoverFolder leftover => $"{leftover.FolderName} is a leftover folder, not a worktree.",
+            StatusMessage.NoSessionIn none => $"No session is running in {none.FolderName}.",
+            StatusMessage.NoSolution none => $"No solution found in {none.FolderName} or its src folder.",
+            StatusMessage.NothingToMeasure stopped => $"{stopped.Name} has no process to measure; it is stopped.",
+            StatusMessage.NoPullRequest none => Describe(none),
+            StatusMessage.UpToDate => "Vantage is up to date.",
+            StatusMessage.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",
+            StatusMessage.Kept => "Kept.",
+            StatusMessage.NothingChosenToResume => "Nothing to resume.",
+            StatusMessage.NoDialogFor missing => $"No dialog is defined for {missing.EffectName}.",
+            StatusMessage.Working working => Working(working.Effect),
+            StatusMessage.Reported reported => Describe(reported.Outcome),
+            StatusMessage.BranchKept kept => $"{Describe(kept.Removal)} Branch kept.",
+            StatusMessage.Followed followed => $"{Describe(followed.First)} {Describe(followed.Then)}",
+            StatusMessage.Failed failed => $"Failed: {failed.Message}",
             _ => footer.ToString(),
         };
     }

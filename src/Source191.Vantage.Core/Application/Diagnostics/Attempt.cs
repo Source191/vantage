@@ -26,5 +26,5 @@ public static class Attempt
     }
 
     /// <summary>What a background job was doing, from the footer it showed meanwhile: the effect it waits for, or the footer's own kind.</summary>
-    public static CodeName What(Footer working) => working is Footer.Working waiting ? CodeName.For(waiting.Effect.GetType()) : CodeName.For(working.GetType());
+    public static CodeName What(StatusMessage working) => working is StatusMessage.Working waiting ? CodeName.For(waiting.Effect.GetType()) : CodeName.For(working.GetType());
 }

@@ -34,7 +34,7 @@ public sealed class AttemptShould
     [Fact]
     public async Task NameTheEffectAWorkingFooterWaitsFor()
     {
-        Footer working = new Footer.Working(new Quit());
+        StatusMessage working = new StatusMessage.Working(new Quit());
 
         await Attempt.RunAsync<int>(log, FailureSite.Effect, Attempt.What(working), () => throw new InvalidOperationException(), _ => 0);
 
@@ -44,6 +44,6 @@ public sealed class AttemptShould
     [Fact]
     public void NameAnyOtherFooterByItsKind()
     {
-        Attempt.What(new Footer.WorkingSoRenameWaits("Fix flaky tests")).ShouldBe(CodeName.For(typeof(Footer.WorkingSoRenameWaits)));
+        Attempt.What(new StatusMessage.WorkingSoRenameWaits("Fix flaky tests")).ShouldBe(CodeName.For(typeof(StatusMessage.WorkingSoRenameWaits)));
     }
 }

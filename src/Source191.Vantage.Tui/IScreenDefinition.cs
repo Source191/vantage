@@ -49,7 +49,7 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>The key bar for the selected row and the listed rows; Update shows when a release is known.</summary>
     KeyBar Bar(TState state, bool updateKnown);
 
-    TState WithFooter(TState state, Footer footer);
+    TState WithFooter(TState state, StatusMessage footer);
 
     (TState State, IReadOnlyList<ViewEffect> Effects) Reduce(TState state, ViewInput input);
 
@@ -74,7 +74,7 @@ internal interface IEffectContext
     /// <summary>The screen's key help, for the help dialog.</summary>
     string HelpText { get; }
 
-    void ShowFooter(Footer footer);
+    void ShowFooter(StatusMessage footer);
 
     /// <summary>Feeds a follow-up input (a dialog's answer) back through the reducer.</summary>
     void Reduce(ViewInput input);
@@ -83,8 +83,8 @@ internal interface IEffectContext
     void Dispatch(ViewEffect effect);
 
     /// <summary>As above, with a continuation on the UI thread that turns the handler's answer into the footer.</summary>
-    void Dispatch(ViewEffect effect, Func<Outcome, Footer> onUiThread);
+    void Dispatch(ViewEffect effect, Func<Outcome, StatusMessage> onUiThread);
 
     /// <summary>Runs work that is not a dispatched effect (its outcome needs a question) with a continuation on the UI thread.</summary>
-    void RunInBackground<T>(Footer working, Func<CancellationToken, Task<T>> action, Func<T, Footer> onUiThread);
+    void RunInBackground<T>(StatusMessage working, Func<CancellationToken, Task<T>> action, Func<T, StatusMessage> onUiThread);
 }

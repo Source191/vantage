@@ -29,7 +29,7 @@ internal interface ITabBody
     KeyBar Bar(bool updateKnown);
 
     /// <summary>What the console's status line says while this tab is shown: its last message, or its standing hint.</summary>
-    Footer Status { get; }
+    StatusMessage Status { get; }
 
     /// <summary>Whether an action this tab started is still running, which the status line shows with its spinner.</summary>
     bool Running { get; }
@@ -186,7 +186,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public KeyBar Bar(bool updateKnown) => definition.Bar(State, updateKnown);
 
-    public Footer Status => State.Shown;
+    public StatusMessage Status => State.Shown;
 
     public bool Running => running;
 
@@ -239,13 +239,13 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public void Reduce(ViewInput input) => Apply(input);
 
-    public void ShowFooter(Footer footer) => State = definition.WithFooter(State, footer);
+    public void ShowFooter(StatusMessage footer) => State = definition.WithFooter(State, footer);
 
-    public void Dispatch(ViewEffect effect) => Dispatch(effect, outcome => new Footer.Reported(outcome));
+    public void Dispatch(ViewEffect effect) => Dispatch(effect, outcome => new StatusMessage.Reported(outcome));
 
-    public void Dispatch(ViewEffect effect, Func<Outcome, Footer> onUiThread) => RunInBackground(new Footer.Working(effect), token => dispatcher.DispatchAsync(effect, token), onUiThread);
+    public void Dispatch(ViewEffect effect, Func<Outcome, StatusMessage> onUiThread) => RunInBackground(new StatusMessage.Working(effect), token => dispatcher.DispatchAsync(effect, token), onUiThread);
 
-    public void RunInBackground<T>(Footer working, Func<CancellationToken, Task<T>> action, Func<T, Footer> onUiThread)
+    public void RunInBackground<T>(StatusMessage working, Func<CancellationToken, Task<T>> action, Func<T, StatusMessage> onUiThread)
     {
         State = definition.WithFooter(State, working);
         running = true;
@@ -253,7 +253,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         Task.Run(async () =>
         {
             // The continuation is built here but run on the UI thread, where onUiThread must run.
-            Func<Footer> settle = await Attempt.RunAsync<Func<Footer>>(
+            Func<StatusMessage> settle = await Attempt.RunAsync<Func<StatusMessage>>(
                 Diagnostics,
                 FailureSite.Effect,
                 Attempt.What(working),
@@ -262,7 +262,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
                     T result = await action(CancellationToken.None);
                     return () => onUiThread(result);
                 },
-                exception => () => new Footer.Failed(exception.Message));
+                exception => () => new StatusMessage.Failed(exception.Message));
 
             app.Invoke(() =>
             {

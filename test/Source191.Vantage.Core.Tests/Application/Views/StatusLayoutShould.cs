@@ -63,16 +63,16 @@ public sealed class StatusLayoutShould
     [Fact]
     public void OfferTheCloseMarkForAMessage()
     {
-        StatusLayout.Closes(new Footer.NoSessionSelected(), running: false).ShouldBeTrue();
-        StatusLayout.Closes(new Footer.Failed("no claude"), running: false).ShouldBeTrue();
+        StatusLayout.Closes(new StatusMessage.NoSessionSelected(), running: false).ShouldBeTrue();
+        StatusLayout.Closes(new StatusMessage.Failed("no claude"), running: false).ShouldBeTrue();
     }
 
     [Fact]
     public void OfferNoCloseMarkWhileRunningOrForAStandingDescription()
     {
-        StatusLayout.Closes(new Footer.Working(new Quit()), running: true).ShouldBeFalse();
-        StatusLayout.Closes(new Footer.NoSessionSelected(), running: true).ShouldBeFalse();
-        StatusLayout.Closes(Footer.None, running: false).ShouldBeFalse();
-        StatusLayout.Closes(new Footer.SettingHint(new ConfigRow.CheckForUpdates(On: true)), running: false).ShouldBeFalse();
+        StatusLayout.Closes(new StatusMessage.Working(new Quit()), running: true).ShouldBeFalse();
+        StatusLayout.Closes(new StatusMessage.NoSessionSelected(), running: true).ShouldBeFalse();
+        StatusLayout.Closes(StatusMessage.None, running: false).ShouldBeFalse();
+        StatusLayout.Closes(new StatusMessage.SettingHint(new ConfigRow.CheckForUpdates(On: true)), running: false).ShouldBeFalse();
     }
 }

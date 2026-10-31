@@ -49,7 +49,7 @@ internal sealed class ConfigScreenDefinition : IScreenDefinition<ConfigViewState
 
     public KeyBar Bar(ConfigViewState state, bool updateKnown) => Wording.ConfigBar(state, updateKnown);
 
-    public ConfigViewState WithFooter(ConfigViewState state, Footer footer) => state with { Footer = footer };
+    public ConfigViewState WithFooter(ConfigViewState state, StatusMessage footer) => state with { Footer = footer };
 
     public (ConfigViewState State, IReadOnlyList<ViewEffect> Effects) Reduce(ConfigViewState state, ViewInput input)
     {

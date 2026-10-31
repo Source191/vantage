@@ -10,7 +10,7 @@ public interface IListViewState<TRow>
     string? Banner { get; }
 
     /// <summary>The footer to show: the last message, else the view's standing footer.</summary>
-    Footer Shown { get; }
+    StatusMessage Shown { get; }
 
     bool Loaded { get; }
 

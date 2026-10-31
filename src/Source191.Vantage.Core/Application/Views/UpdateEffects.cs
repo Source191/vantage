@@ -9,13 +9,13 @@ namespace Source191.Vantage.Application.Views;
 public sealed record UpdateVantage : ViewEffect, IDialogEffect
 {
     /// <summary>The footer when there is nothing to update to; null when an update is available and the question should be asked.</summary>
-    public static Footer? Refusal(UpdateStatus status)
+    public static StatusMessage? Refusal(UpdateStatus status)
     {
         return status switch
         {
             UpdateStatus.Available => null,
-            UpdateStatus.UpToDate => new Footer.UpToDate(),
-            _ => new Footer.UpdateCheckOff(),
+            UpdateStatus.UpToDate => new StatusMessage.UpToDate(),
+            _ => new StatusMessage.UpdateCheckOff(),
         };
     }
 }

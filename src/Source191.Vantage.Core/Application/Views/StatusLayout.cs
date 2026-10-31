@@ -23,7 +23,7 @@ public static class StatusLayout
     };
 
     /// <summary>Whether the message has a close mark: not while an action runs, and not for no message or Config's description of the selected row, which are not messages.</summary>
-    public static bool Closes(Footer footer, bool running) => !running && footer is not (Footer.Blank or Footer.SettingHint);
+    public static bool Closes(StatusMessage footer, bool running) => !running && footer is not (StatusMessage.Blank or StatusMessage.SettingHint);
 
     public static IReadOnlyList<string> Lines(string words, int width)
     {
