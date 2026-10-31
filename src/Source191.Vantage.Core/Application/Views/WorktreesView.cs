@@ -44,7 +44,7 @@ public sealed record WorktreesViewState(
 
     private static readonly ListPolicy<WorktreeRow> Policy = new(
         KeyOf: row => row.Path.Key,
-        FilterFields: row => [row.RepositoryName, row.FolderName, row.Branch?.Value, row.Health.Kind.ToString()],
+        FilterFields: row => row.Branch is BranchName branch ? [row.RepositoryName, row.FolderName, branch.Value, row.Health.Kind.ToString()] : [row.RepositoryName, row.FolderName, row.Health.Kind.ToString()],
         Order: rows => rows.OrderBy(row => row.Repository.Key, StringComparer.Ordinal).ThenBy(row => row.FolderName, StringComparer.OrdinalIgnoreCase),
         KeyComparison: StringComparison.Ordinal);
 

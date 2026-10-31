@@ -124,7 +124,7 @@ public sealed record SessionsViewState(
 
     private static readonly ListPolicy<SessionRow> Policy = new(
         KeyOf: row => row.Session.SessionId.Value,
-        FilterFields: row => [row.Session.Name, row.Repository, row.Branch?.Value],
+        FilterFields: row => row.Branch is BranchName branch ? [row.Session.Name, row.Repository, branch.Value] : [row.Session.Name, row.Repository],
         Order: ByAttention,
         KeyComparison: StringComparison.Ordinal);
 
