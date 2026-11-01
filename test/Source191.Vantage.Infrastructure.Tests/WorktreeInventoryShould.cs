@@ -195,6 +195,23 @@ public sealed class WorktreeInventoryShould : IDisposable
     }
 
     [Fact]
+    public async Task CountAPrunableWorktreeWhoseFolderExistsAsALeftover()
+    {
+        string repository = await root.CreateRepositoryAsync("Northwind.Orders");
+        string worktree = await root.AddSiblingWorktreeAsync(repository, "fix-1");
+        await File.WriteAllTextAsync(Path.Combine(worktree, "notes.txt"), "work", TestContext.Current.CancellationToken);
+        await File.WriteAllTextAsync(Path.Combine(worktree, "draft.txt"), "work", TestContext.Current.CancellationToken);
+        File.Delete(Path.Combine(worktree, ".git"));
+
+        WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
+
+        row.Path.Value.ShouldBe(worktree);
+        row.Health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.GitFileGone()));
+        row.FolderExists.ShouldBeTrue();
+        row.LeftoverFileCount.ShouldBe(3, "the two new files and the checked-out README");
+    }
+
+    [Fact]
     public async Task ReportEmptyLeftoverFoldersDirectlyUnderARoot()
     {
         Directory.CreateDirectory(Path.Combine(root.Path, "Northwind.Orders.worktrees"));
