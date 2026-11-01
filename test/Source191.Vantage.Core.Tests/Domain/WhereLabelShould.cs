@@ -65,4 +65,34 @@ public sealed class WhereLabelShould
         label.Fit(20).ShouldEndWith("› fix-123");
         label.Fit(20).Length.ShouldBe(20);
     }
+
+    public static TheoryData<WhereLabel> LabelsToFit =>
+    [
+        new WhereLabel.Inside("Northwind.Orders", "fix-123"),
+        new WhereLabel.Inside("Northwind.Orders", string.Empty),
+        new WhereLabel.Outside(@"~\scratch\notes"),
+    ];
+
+    [Theory]
+    [MemberData(nameof(LabelsToFit))]
+    public void NeverAnswerMoreThanTheWidth(WhereLabel label)
+    {
+        for (int width = 0; width <= 4; width++)
+        {
+            label.Fit(width).Length.ShouldBeLessThanOrEqualTo(width);
+        }
+    }
+
+    [Fact]
+    public void KeepTheSeparatorForAPlaceOnly()
+    {
+        WhereLabel noPlace = new WhereLabel.Inside("Northwind.Orders", string.Empty);
+
+        for (int width = 0; width <= 6; width++)
+        {
+            noPlace.Fit(width).ShouldNotContain("›");
+        }
+
+        new WhereLabel.Inside("Northwind.Orders", "fix-123").Fit(5).ShouldBe("… › …");
+    }
 }
