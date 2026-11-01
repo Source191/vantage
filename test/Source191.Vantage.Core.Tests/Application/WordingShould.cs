@@ -425,7 +425,7 @@ public sealed class WordingShould
     [Fact]
     public void SayWhatEachSessionEffectIsDoingWhileItRuns()
     {
-        Wording.Working(new OpenTabForSession(Job, HasLiveTab: false)).ShouldBe("Opening a tab for fix-123...");
+        Wording.Working(new OpenTabForSession(Job, new LiveTab.None())).ShouldBe("Opening a tab for fix-123...");
         Wording.Working(new StopSession(Job)).ShouldBe("Stopping...");
         Wording.Working(new AdoptSession(Terminal)).ShouldBe("Moving fix-123 under Vantage...");
         Wording.Working(new RenameSession(Job, SessionName.From("fix-124"))).ShouldBe("Renaming fix-123 to fix-124...");
