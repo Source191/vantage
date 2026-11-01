@@ -35,6 +35,36 @@ public sealed class ClaudeCliShould
         sessions.Single().Name.ShouldBe("one");
     }
 
+    [Theory]
+    [InlineData("agents")]
+    [InlineData("stop")]
+    [InlineData("rm")]
+    public async Task ThrowWithClaudesWordsWhenTheListingStopOrRemoveFails(string subcommand)
+    {
+        processes.AnswerAll(new ProcessResult(1, string.Empty, "Couldn't connect to the background service\n"));
+
+        ClaudeCliException exception = await Should.ThrowAsync<ClaudeCliException>(() => RunAsync(subcommand));
+
+        exception.Message.ShouldBe("Couldn't connect to the background service");
+    }
+
+    [Fact]
+    public async Task NameTheCommandAndExitCodeWhenClaudePrintsNothing()
+    {
+        processes.AnswerAll(new ProcessResult(2, string.Empty, string.Empty));
+
+        ClaudeCliException exception = await Should.ThrowAsync<ClaudeCliException>(() => Cli.StopAsync("81cdb0f9", CancellationToken.None));
+
+        exception.Message.ShouldBe("claude stop exited with code 2");
+    }
+
+    private Task RunAsync(string subcommand) => subcommand switch
+    {
+        "agents" => Cli.ListSessionsAsync(CancellationToken.None),
+        "stop" => Cli.StopAsync("81cdb0f9", CancellationToken.None),
+        _ => Cli.RemoveAsync("81cdb0f9", CancellationToken.None),
+    };
+
     [Fact]
     public async Task ReadTheVersionFromVersionOutput()
     {
