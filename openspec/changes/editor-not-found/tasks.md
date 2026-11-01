@@ -44,7 +44,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 5. Version and whole-solution check
 
-- [ ] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next minor preview above the one on `main` when implementing (F3 is new in the dialog). Verify `Assert-VersionBumped.ps1` passes against `origin/main`.
+- [x] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next minor preview above the one on `main` when implementing (F3 is new in the dialog). Verify `Assert-VersionBumped.ps1` passes against `origin/main`.
+  Done: 0.20.0-preview.11. The 0.20.0 line is unreleased, so in this stack a minor change takes the next preview step on it; checked against `v-tidy-root` (this branch's base, 0.20.0-preview.10), which passed.
 - [ ] 5.2 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate editor-not-found --strict` all pass; then `tools\install-local.ps1` and by hand: a Custom editor pointed at a renamed file gives the new line on f; the dialog shows Rider (not found) on a machine without it; F3 picks an executable; s on a solution with its association removed gives the no-application line.
 
 ## Workflow follow-up
