@@ -73,7 +73,6 @@ public sealed class NullFreeModelsShould
         new(typeof(Started), "ClaudeCode", "Claude Code's version could not be read"),
         new(typeof(Failed), "What", "a failure outside an effect has no code name"),
         new(typeof(TerminalGuiReported), "Failure", "Terminal.Gui reports some events without an exception"),
-        new(typeof(Attempt), "RunAsync(what)", "passed on as Failed.What"),
         new(typeof(TerminalGuiBridge), "BeginScope", "ILogger's signature, from Microsoft.Extensions.Logging"),
         new(typeof(TerminalGuiBridge), "Log(exception)", "ILogger's signature, from Microsoft.Extensions.Logging"),
         new(typeof(TerminalGuiBridge), "Log(formatter)", "ILogger's signature, from Microsoft.Extensions.Logging"),
