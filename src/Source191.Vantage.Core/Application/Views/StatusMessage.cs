@@ -98,7 +98,7 @@ public abstract record StatusMessage
     /// <summary>Enter on a setup row: how that setup is changed, since the tab only reads it.</summary>
     public sealed record SetupAdvice(SetupItem Item) : StatusMessage;
 
-    /// <summary>c or e on a Config row whose value is not a path.</summary>
+    /// <summary>c or f on a Config row whose value is not a path.</summary>
     public sealed record NoPathHere : StatusMessage;
 
     public sealed record NoSettingSelected : StatusMessage;

@@ -27,6 +27,15 @@ public sealed class ConfigViewShould
         Loaded.Shown.ShouldBe(StatusMessage.None);
     }
 
+    [Fact]
+    public void ShowALoadFailureAsABannerUntilTheNextLoad()
+    {
+        ConfigViewState failed = ConfigView.Reduce(Loaded, new LoadFailed("config.json is locked")).State;
+
+        failed.Banner.ShouldBe(new LoadBanner.Failed("config.json is locked"));
+        ConfigView.Reduce(failed, new ConfigRowsLoaded(Loaded.Rows)).State.Banner.ShouldBe(new LoadBanner.None());
+    }
+
     [Theory]
     [InlineData("root:1")]
     [InlineData("worktree-root")]

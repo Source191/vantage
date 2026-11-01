@@ -6,9 +6,10 @@ public sealed record ToolVersion(string Text)
     private const string Unknown = "unknown";
     private const string LocalPrerelease = "-local.";
 
-    public static ToolVersion FromInformational(string? informational)
+    public static ToolVersion FromInformational(string informational)
     {
-        string withoutCommit = (informational ?? string.Empty).Split('+')[0].Trim();
+        ArgumentNullException.ThrowIfNull(informational);
+        string withoutCommit = informational.Split('+')[0].Trim();
         if (withoutCommit.Length == 0)
         {
             return new ToolVersion(Unknown);

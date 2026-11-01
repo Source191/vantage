@@ -13,9 +13,16 @@ public static class SettingsFile
     {
         ArgumentNullException.ThrowIfNull(config);
         IReadOnlyList<FolderPath> roots = [.. (config.RepositoryRoots ?? []).Parsed<FolderPath>()];
-        FolderPath? worktreeRoot = FolderPath.TryParse(config.WorktreeRoot, out FolderPath? parsed) ? parsed : null;
+        WorktreeRootChoice worktreeRoot = FolderPath.TryParse(config.WorktreeRoot, out FolderPath? parsed) ? new WorktreeRootChoice.At(parsed) : new WorktreeRootChoice.BesideFirstRoot();
 
-        return Settings.Resolve(roots, worktreeRoot, Editor(config.Editor), config.DefaultBase, home, config.CheckForUpdates, config.DefaultPlace);
+        return Settings.Resolve(
+            roots,
+            worktreeRoot,
+            Editor(config.Editor),
+            config.DefaultBase ?? Settings.BaseWhenUnset,
+            home,
+            config.CheckForUpdates ?? Settings.ChecksForUpdatesWhenUnset,
+            config.DefaultPlace ?? Settings.PlaceWhenUnset);
     }
 
     public static VantageConfig ToConfig(Settings settings)

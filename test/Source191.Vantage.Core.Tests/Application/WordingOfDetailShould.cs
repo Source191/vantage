@@ -17,7 +17,7 @@ public sealed class WordingOfDetailShould
     {
         SessionRow row = Row(DisplayState.NeedsInput, process: new JobProcess.Running(4242)) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = new SessionMemory.Measured(MemorySize.FromMegabytes(903)) };
         row = row with { Session = row.Session with { WaitingFor = new WaitingReason.Given("permission prompt") } };
-        SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, Now.AddHours(-2))));
+        SessionDetail detail = new(row, new LastPrompt.NotSeen(), new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new LastCommit.Made(Now.AddHours(-2)))));
 
         DetailContent content = Wording.Detail(detail, Now);
 
@@ -73,7 +73,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void GiveTheLastPromptAndAStoppedSessionsMemory()
     {
-        SessionDetail detail = new(Row(DisplayState.Stopped, process: new JobProcess.None()), Now.AddMinutes(-4), new DetailFact<WorktreeCounts>.Unavailable());
+        SessionDetail detail = new(Row(DisplayState.Stopped, process: new JobProcess.None()), new LastPrompt.Seen(Now.AddMinutes(-4)), new DetailFact<WorktreeCounts>.Unavailable());
 
         string[] lines = Text(Wording.Detail(detail, Now));
 
@@ -101,7 +101,7 @@ public sealed class WordingOfDetailShould
         WorktreeRow row = WorktreeRowOf(unpushed: 12, dirty: 0);
         WorktreeDetail detail = new(
             row,
-            new CreatedWorktree(Worktree, BranchName.From("fix-123"), Repository, new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero)),
+            new WorktreeOrigin.CreatedByVantage(new CreatedWorktree(Worktree, BranchName.From("fix-123"), Repository, new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero))),
             new DetailFact<MergeState>.Known(new MergeState("origin/main", Merged: false)),
             new DetailFact<IReadOnlyList<UnpushedCommit>>.Known(commits),
             new DetailFact<IReadOnlyList<string>>.NotApplicable());
@@ -134,7 +134,7 @@ public sealed class WordingOfDetailShould
     {
         WorktreeDetail detail = new(
             WorktreeRowOf(unpushed: 0, dirty: 2),
-            Created: null,
+            new WorktreeOrigin.NotByVantage(),
             new DetailFact<MergeState>.Unavailable(),
             new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(),
             new DetailFact<IReadOnlyList<string>>.Known(["Invoice.cs", "Totals.cs"]));
@@ -150,7 +150,7 @@ public sealed class WordingOfDetailShould
     public void GiveABrokenLeftoversReasonAndUnavailableGitLines()
     {
         WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Health = new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()), Head = new Head.Unknown(), FolderExists = false };
-        WorktreeDetail detail = new(row, Created: null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.Unavailable(), new DetailFact<IReadOnlyList<string>>.Unavailable());
+        WorktreeDetail detail = new(row, new WorktreeOrigin.NotByVantage(), new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.Unavailable(), new DetailFact<IReadOnlyList<string>>.Unavailable());
 
         DetailContent content = Wording.Detail(detail, Now);
         string[] lines = Text(content);
@@ -177,7 +177,7 @@ public sealed class WordingOfDetailShould
         foreach (Head head in new Head[] { new Head.Detached(), new Head.Unknown() })
         {
             WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Head = head };
-            WorktreeDetail detail = new(row, Created: null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
+            WorktreeDetail detail = new(row, new WorktreeOrigin.NotByVantage(), new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
 
             Rows(Wording.Detail(detail, Now))[1].ShouldBe(["Branch none", "PR none"]);
         }
@@ -186,13 +186,13 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void KeepEveryDetailToItsFactRows()
     {
-        WorktreeDetail worktree = new(WorktreeRowOf(unpushed: 0, dirty: 0), null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
+        WorktreeDetail worktree = new(WorktreeRowOf(unpushed: 0, dirty: 0), new WorktreeOrigin.NotByVantage(), new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
 
         Wording.Detail(Detail(Row(DisplayState.Idle, process: new JobProcess.None())), Now).Facts.Count.ShouldBe(Wording.DetailFactRows);
         Wording.Detail(worktree, Now).Facts.Count.ShouldBe(Wording.DetailFactRows);
     }
 
-    private static SessionDetail Detail(SessionRow row) => new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.NotApplicable());
+    private static SessionDetail Detail(SessionRow row) => new(row, new LastPrompt.NotSeen(), new DetailFact<WorktreeCounts>.NotApplicable());
 
     private static string[] Text(DetailContent content) => [.. content.Facts.SelectMany(line => line).Concat(content.Below).Select(line => $"{line.Label} {line.Text}")];
 
@@ -206,5 +206,5 @@ public sealed class WordingOfDetailShould
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
-        new(Repository, Worktree, new Head.OnBranch(BranchName.From("fix-123")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Now, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+        new(Repository, Worktree, new Head.OnBranch(BranchName.From("fix-123")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, new LastCommit.Made(Now), new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
 }

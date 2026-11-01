@@ -114,16 +114,16 @@ public sealed record ViewUpdate(SessionsViewState State, IReadOnlyList<ViewEffec
 
 public sealed record SessionsViewState(
     IReadOnlyList<SessionRow> Rows,
-    string? SelectedSessionId,
+    SelectionKey SelectedSessionId,
     RowFilter Filter,
     bool FilterEditing,
-    string? Banner,
+    LoadBanner Banner,
     StatusMessage Message,
     bool Loaded = false)
     : IListViewState<SessionRow>
 {
     /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
-    public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Message: StatusMessage.None);
+    public static readonly SessionsViewState Empty = new([], new SelectionKey.None(), new RowFilter(string.Empty), FilterEditing: false, Banner: new LoadBanner.None(), Message: StatusMessage.None);
 
     /// <summary>The automated runs the last listing held, for the counts; kept when a listing fails, as the rows are.</summary>
     public AutomatedRuns AutomatedRuns { get; init; } = AutomatedRuns.None;
@@ -135,7 +135,7 @@ public sealed record SessionsViewState(
         KeyComparison: StringComparison.Ordinal);
 
     /// <summary>The rows, selection, filter and loaded flag as the shared list component, built from this state's fields.</summary>
-    public ListSelection<SessionRow> List => new(Policy, Rows, SelectedSessionId, Filter, FilterEditing, Loaded);
+    public ListSelection<SessionRow> List => Policy.List(Rows, SelectedSessionId, Filter, FilterEditing, Loaded);
 
     public IReadOnlyList<SessionRow> VisibleRows => List.Visible;
 
@@ -148,7 +148,7 @@ public sealed record SessionsViewState(
     public StatusMessage Shown => Message;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
-    public SessionsViewState With(ListSelection<SessionRow> list) => this with { Rows = list.Rows, SelectedSessionId = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
+    public SessionsViewState With(ListSelection<SessionRow> list) => this with { Rows = list.Rows, SelectedSessionId = list.Selection, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 
     private static IEnumerable<SessionRow> ByAttention(IEnumerable<SessionRow> rows)
     {
@@ -166,8 +166,8 @@ public static class SessionsView
     {
         return input switch
         {
-            RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null, AutomatedRuns = loaded.AutomatedRuns }),
-            LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
+            RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = new LoadBanner.None(), AutomatedRuns = loaded.AutomatedRuns }),
+            LoadFailed failed => Unchanged(state with { Banner = new LoadBanner.Failed(failed.Message) }),
             MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
@@ -207,7 +207,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
             { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
             { Name: KeyName.Character, Character: '!' } => Effect(state, new ShowProblemReport()),
-            _ when TabKeys.For(key) is ViewEffect tab => Effect(state, tab),
+            _ when TabKeys.TryFor(key, out ViewEffect? tab) => Effect(state, tab),
             _ => Unchanged(state),
         };
     }

@@ -173,9 +173,9 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public IReadOnlyList<TextPart> Counts => definition.Counts(State);
 
-    public TextPart FrameTitle => State.Banner is null
-        ? new TextPart(DescribedTitle, TextTone.Cyan)
-        : new TextPart($"{definition.LoadFailurePrefix}: {State.Banner}", TextTone.Red);
+    public TextPart FrameTitle => State.Banner is LoadBanner.Failed failed
+        ? new TextPart($"{definition.LoadFailurePrefix}: {failed.Message}", TextTone.Red)
+        : new TextPart(DescribedTitle, TextTone.Cyan);
 
     /// <summary>The table's title, with a filter being typed before it, so the typed text stays in view when the title is cut.</summary>
     private string DescribedTitle => State.List.FilterEditing ? $"filter: {State.List.Filter.Text}_  {Wording.Describe(State.Title)}" : Wording.Describe(State.Title);
@@ -302,7 +302,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
             table.SetSelection(0, index, false, null);
         }
 
-        waiting.Show(isShown && !State.Loaded && State.Banner is null);
+        waiting.Show(isShown && !State.Loaded && State.Banner is LoadBanner.None);
         AskForDetail(refreshed: false);
         View.SetNeedsDraw();
         host.FrameChanged();

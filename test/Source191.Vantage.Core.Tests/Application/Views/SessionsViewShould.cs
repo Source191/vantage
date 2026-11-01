@@ -87,8 +87,7 @@ public sealed class SessionsViewShould
         SessionsViewState failed = Reduce(Loaded, new LoadFailed("claude exited with code 1"));
 
         failed.VisibleRows.Count.ShouldBe(4);
-        failed.Banner.ShouldNotBeNull();
-        failed.Banner.ShouldContain("exited with code 1");
+        failed.Banner.ShouldBe(new LoadBanner.Failed("claude exited with code 1"));
     }
 
     [Fact]
@@ -96,7 +95,7 @@ public sealed class SessionsViewShould
     {
         SessionsViewState failed = Reduce(Loaded, new LoadFailed("boom"));
 
-        Reduce(failed, new RowsLoaded([Working])).Banner.ShouldBeNull();
+        Reduce(failed, new RowsLoaded([Working])).Banner.ShouldBe(new LoadBanner.None());
     }
 
     [Fact]

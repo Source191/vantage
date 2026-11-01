@@ -23,11 +23,10 @@ public sealed class ToolVersionShould
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
     [InlineData("+abc")]
-    public void ReadUnknownWhenBlank(string? informational)
+    public void ReadUnknownWhenBlank(string informational)
     {
         ToolVersion.FromInformational(informational).Text.ShouldBe("unknown");
     }

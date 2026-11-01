@@ -14,10 +14,9 @@ public sealed class UpdateCheckOptOutShould
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("  ")]
-    public void NotApplyWhenUnsetEmptyOrBlank(string? value)
+    public void NotApplyWhenEmptyOrBlank(string value)
     {
         UpdateCheckOptOut.Applies(value).ShouldBeFalse();
     }

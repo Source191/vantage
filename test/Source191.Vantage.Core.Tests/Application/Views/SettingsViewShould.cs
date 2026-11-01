@@ -153,9 +153,9 @@ public sealed class SettingsViewShould
     [Fact]
     public void BrowseFromTheFolderHoldingTheFirstRoot()
     {
-        Opened(new SettingsScope.Roots()).BrowseFrom.ShouldBe(FolderPath.From(@"C:\Users\me\source"));
-        Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("relative\nD:\\")).BrowseFrom.ShouldBe(FolderPath.From(@"D:\"), "a root with no parent is its own start");
-        Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged(" ")).BrowseFrom.ShouldBeNull();
+        Opened(new SettingsScope.Roots()).BrowseFrom.ShouldBe(new BrowseStart.At(FolderPath.From(@"C:\Users\me\source")));
+        Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("relative\nD:\\")).BrowseFrom.ShouldBe(new BrowseStart.At(FolderPath.From(@"D:\")), "a root with no parent is its own start");
+        Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged(" ")).BrowseFrom.ShouldBe(new BrowseStart.NoFolderTyped());
     }
 
     [Fact]
@@ -176,9 +176,9 @@ public sealed class SettingsViewShould
     {
         SettingsState opened = Opened(new SettingsScope.WorktreeRoot());
 
-        opened.BrowseFrom.ShouldBe(FolderPath.From(@"C:\Users\me\source"));
-        Reduce(opened, new SettingsInput.WorktreeRootChanged(@"E:\")).BrowseFrom.ShouldBe(FolderPath.From(@"E:\"), "a worktree root with no parent is its own start");
-        Reduce(opened, new SettingsInput.WorktreeRootChanged("trees")).BrowseFrom.ShouldBeNull();
+        opened.BrowseFrom.ShouldBe(new BrowseStart.At(FolderPath.From(@"C:\Users\me\source")));
+        Reduce(opened, new SettingsInput.WorktreeRootChanged(@"E:\")).BrowseFrom.ShouldBe(new BrowseStart.At(FolderPath.From(@"E:\")), "a worktree root with no parent is its own start");
+        Reduce(opened, new SettingsInput.WorktreeRootChanged("trees")).BrowseFrom.ShouldBe(new BrowseStart.NoFolderTyped());
     }
 
     [Fact]
