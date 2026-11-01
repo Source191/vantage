@@ -31,8 +31,9 @@ public sealed class WordingOfConfigShould
         { new ConfigRow.Setup(SetupItem.ClaudeBell, new SetupState.Unreadable()), "Claude bell", "could not be read" },
         { new ConfigRow.Setup(SetupItem.DiagnosticLog, new SetupState.Disabled()), "Diagnostic log", "off" },
         { new ConfigRow.Setup(SetupItem.DiagnosticLog, new SetupState.Reading()), "Diagnostic log", "reading…" },
-        { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Checked(new DateTimeOffset(2026, 10, 30, 9, 12, 0, TimeSpan.Zero), "0.18.0")), "Last update check", "09:12 today, newest 0.18.0" },
-        { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Checked(new DateTimeOffset(2026, 10, 28, 18, 5, 0, TimeSpan.Zero), Newest: null)), "Last update check", "28 October 2026 18:05" },
+        { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Checked(new DateTimeOffset(2026, 10, 30, 9, 12, 0, TimeSpan.Zero), new NewestRelease.Found(ReleaseVersions.Version("0.18.0")))), "Last update check", "09:12 today, newest 0.18.0" },
+        { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Checked(new DateTimeOffset(2026, 10, 30, 9, 12, 0, TimeSpan.Zero), new NewestRelease.Unreadable("rubbish"))), "Last update check", "09:12 today, newest rubbish" },
+        { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Checked(new DateTimeOffset(2026, 10, 28, 18, 5, 0, TimeSpan.Zero), new NewestRelease.None())), "Last update check", "28 October 2026 18:05" },
         { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Never()), "Last update check", "never" },
     };
 
