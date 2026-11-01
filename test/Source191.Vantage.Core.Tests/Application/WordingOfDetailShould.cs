@@ -15,7 +15,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void DescribeASessionAtAPermissionPrompt()
     {
-        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = MemorySize.FromMegabytes(903) };
+        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = new SessionMemory.Measured(MemorySize.FromMegabytes(903)) };
         row = row with { Session = row.Session with { WaitingFor = new WaitingReason.Given("permission prompt") } };
         SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, Now.AddHours(-2))));
 

@@ -43,7 +43,7 @@ public static partial class Wording
             [new("Worktree", PlaceOf(row)), new("Branch", HeadLine(row.Head)), new("Tab", TabLine(row))],
             [
                 new("Changes", CountsLine(detail.Counts, now), Span: 2),
-                new("Memory", row.Memory is MemorySize memory ? $"{Memory(memory)} (m for the breakdown)" : "nothing to measure"),
+                new("Memory", row.Memory is SessionMemory.Measured measured ? $"{Memory(measured.Size)} (m for the breakdown)" : "nothing to measure"),
             ],
         ];
 
