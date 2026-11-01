@@ -231,6 +231,7 @@ public static partial class Wording
             ShowMemory show => $"Measuring {show.Session.Name}...",
             OpenSolution solution => $"Opening {Path.GetFileName(solution.File)}...",
             OpenPullRequest open => $"Opening {PullRequestNumber(open.PullRequest.Host, open.PullRequest.Number)}...",
+            OpenReleasePage page => $"Opening the {page.Version} release page...",
             SaveSettings => "Saving settings...",
             StartUpdate update => $"Opening a tab to update to {update.Newest}...",
             ShowProblemReport => "Gathering the diagnostics...",

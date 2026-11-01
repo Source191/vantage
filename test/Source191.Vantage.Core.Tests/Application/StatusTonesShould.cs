@@ -91,6 +91,8 @@ public sealed class StatusTonesShould
         [typeof(ProblemReportOutcome.NotOpened)] = StatusTone.Failure,
         [typeof(ProblemReportOutcome.Copied)] = StatusTone.Success,
         [typeof(UpdateStartedOutcome)] = StatusTone.Success,
+        [typeof(OpenReleasePageOutcome.Opened)] = StatusTone.Success,
+        [typeof(OpenReleasePageOutcome.NotOpened)] = StatusTone.Failure,
     };
 
     public static TheoryData<Type> OutcomeCases =>
