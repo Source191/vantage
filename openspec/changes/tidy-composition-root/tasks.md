@@ -59,7 +59,8 @@ Every task here is a refactor of untested wiring: verify with the build, `dotnet
 
 ## 6. Whole-solution check
 
-- [ ] 6.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate tidy-composition-root --strict` all pass. Record the totals here.
+- [x] 6.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate tidy-composition-root --strict` all pass. Record the totals here.
+  1 November 2026: build 0 warnings; solution 2345 tests (2336 passed, 9 skipped, 0 failed), Core.Tests 1975 of them; format clean; `openspec validate tidy-composition-root --strict` valid.
 
 ## Workflow follow-up
 
