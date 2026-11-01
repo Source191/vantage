@@ -87,6 +87,9 @@ public sealed class ReleaseVersionShould
     [InlineData("1.x.0")]
     [InlineData("-1.0.0")]
     [InlineData("1.0.0-")]
+    [InlineData("01.0.0")]
+    [InlineData("1.0.0-01")]
+    [InlineData("1.0.0-a..b")]
     public void AnswerFalseForTextThatIsNotAVersion(string? text)
     {
         ReleaseVersion.TryParse(text, out ReleaseVersion? version).ShouldBeFalse();
@@ -98,6 +101,8 @@ public sealed class ReleaseVersionShould
     [InlineData("2.1.310", 2, 1, 310, "")]
     [InlineData("0.19.0-preview.6", 0, 19, 0, "preview.6")]
     [InlineData(" 1.0.0+3f2a9c1d ", 1, 0, 0, "")]
+    [InlineData("1.0.0-0", 1, 0, 0, "0")]
+    [InlineData("1.0.0-01a", 1, 0, 0, "01a")]
     public void ReadAVersion(string text, int major, int minor, int patch, string prerelease)
     {
         ReleaseVersion.TryParse(text, out ReleaseVersion? version).ShouldBeTrue();
