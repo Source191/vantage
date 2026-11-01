@@ -117,7 +117,7 @@ public sealed class WizardViewShould
     [InlineData(LaunchMode.NewWorktree)]
     public void OpenOnTheDefaultPlace(LaunchMode place)
     {
-        Settings settings = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, TestSettings.Home, defaultPlace: place);
+        Settings settings = Settings.Resolve([FolderPath.From(Root)], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, TestSettings.Home, defaultPlace: place);
 
         WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, settings, new WizardOrigin.Anywhere()).Mode.ShouldBe(place);
     }
@@ -127,7 +127,7 @@ public sealed class WizardViewShould
     [InlineData(LaunchMode.NewWorktree)]
     public void OpenAFixedFolderOnItsCurrentBranchWhateverTheDefaultPlace(LaunchMode place)
     {
-        Settings settings = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, TestSettings.Home, defaultPlace: place);
+        Settings settings = Settings.Resolve([FolderPath.From(Root)], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, TestSettings.Home, defaultPlace: place);
 
         WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, settings, WizardOrigin.In(FolderPath.From(Billing))).Mode.ShouldBe(LaunchMode.CurrentBranch);
     }

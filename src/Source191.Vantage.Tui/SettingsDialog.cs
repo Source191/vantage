@@ -68,9 +68,9 @@ internal static class SettingsDialog
         void Browse()
         {
             using OpenDialog picker = new() { Title = Wording.FolderPickerTitle(scope), OpenMode = OpenMode.Directory, AllowsMultipleSelection = state.Browses == SettingsBrowse.SeveralFolders };
-            if (state.BrowseFrom is FolderPath from)
+            if (state.BrowseFrom is BrowseStart.At from)
             {
-                picker.Path = from.Value;
+                picker.Path = from.Folder.Value;
             }
 
             picker.SetScheme(Palette.Focusable(Palette.White));

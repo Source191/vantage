@@ -32,18 +32,35 @@ public sealed record Settings
     /// <summary>Where the wizard opened with n starts a new session: a new worktree, or the repository's current branch.</summary>
     public LaunchMode DefaultPlace { get; }
 
+    /// <summary>The base a file without one branches from: origin's default branch.</summary>
+    public const WorktreeBase BaseWhenUnset = WorktreeBase.RemoteDefault;
+
+    /// <summary>A file without the update setting has the check on.</summary>
+    public const bool ChecksForUpdatesWhenUnset = true;
+
+    /// <summary>A file without a place starts new sessions in a new worktree.</summary>
+    public const LaunchMode PlaceWhenUnset = LaunchMode.NewWorktree;
+
     /// <summary>
-    /// Fills in what is missing: no roots means <c>&lt;home&gt;\source\repos</c>; no worktree root means <c>worktrees</c>
-    /// beside the first root (inside it when it has no parent, such as <c>D:\</c>); no base means origin's default branch; no update setting means the check is on; no place means a new worktree.
+    /// Fills in what is missing: no roots means <c>&lt;home&gt;\source\repos</c>; <see cref="WorktreeRootChoice.BesideFirstRoot"/> means <c>worktrees</c>
+    /// beside the first root (inside it when it has no parent, such as <c>D:\</c>). A file's missing base, update setting and place are <see cref="BaseWhenUnset"/>, <see cref="ChecksForUpdatesWhenUnset"/> and <see cref="PlaceWhenUnset"/>.
     /// </summary>
-    public static Settings Resolve(IReadOnlyList<FolderPath>? roots, FolderPath? worktreeRoot, EditorChoice editor, WorktreeBase? defaultBase, FolderPath home, bool? checkForUpdates = null, LaunchMode? defaultPlace = null)
+    public static Settings Resolve(IReadOnlyList<FolderPath> roots, WorktreeRootChoice worktreeRoot, EditorChoice editor, WorktreeBase defaultBase, FolderPath home, bool checkForUpdates = ChecksForUpdatesWhenUnset, LaunchMode defaultPlace = PlaceWhenUnset)
     {
+        ArgumentNullException.ThrowIfNull(roots);
+        ArgumentNullException.ThrowIfNull(worktreeRoot);
         ArgumentNullException.ThrowIfNull(editor);
         ArgumentNullException.ThrowIfNull(home);
         IReadOnlyList<FolderPath> resolvedRoots = roots is { Count: > 0 } ? roots : [home.Combine(Path.Combine("source", "repos"))];
         FolderPath first = resolvedRoots[0];
+        FolderPath resolvedWorktreeRoot = worktreeRoot switch
+        {
+            WorktreeRootChoice.At chosen => chosen.Folder,
+            WorktreeRootChoice.BesideFirstRoot => (first.Parent ?? first).Combine("worktrees"),
+            _ => throw new UnreachableException(),
+        };
 
-        return new Settings(resolvedRoots, worktreeRoot ?? (first.Parent ?? first).Combine("worktrees"), editor, defaultBase ?? WorktreeBase.RemoteDefault, checkForUpdates ?? true, defaultPlace ?? LaunchMode.NewWorktree);
+        return new Settings(resolvedRoots, resolvedWorktreeRoot, editor, defaultBase, checkForUpdates, defaultPlace);
     }
 
     /// <summary>
@@ -131,7 +148,7 @@ public sealed record Settings
 }
 
 /// <summary>The settings dialog's fields as typed, before any rule is applied.</summary>
-public sealed record SettingsText(string Roots, string WorktreeRoot, EditorPreset Preset, string Executable, string Arguments, WorktreeBase Base, bool CheckForUpdates = true, LaunchMode Place = LaunchMode.NewWorktree);
+public sealed record SettingsText(string Roots, string WorktreeRoot, EditorPreset Preset, string Executable, string Arguments, WorktreeBase Base, bool CheckForUpdates = Settings.ChecksForUpdatesWhenUnset, LaunchMode Place = Settings.PlaceWhenUnset);
 
 /// <summary>Why typed settings are refused, as a fact; <c>Wording</c> says it.</summary>
 public abstract record SettingsProblem

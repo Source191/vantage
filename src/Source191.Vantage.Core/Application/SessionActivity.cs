@@ -25,7 +25,7 @@ public sealed class SessionActivity(TimeProvider clock)
         }
     }
 
-    public DateTimeOffset? LastPromptedAt(SessionId session) => prompted.TryGetValue(session, out DateTimeOffset at) ? at : null;
+    public LastPrompt LastPromptedAt(SessionId session) => prompted.TryGetValue(session, out DateTimeOffset at) ? new LastPrompt.Seen(at) : new LastPrompt.NotSeen();
 
     private static bool WasWaiting(Dictionary<SessionId, DisplayStateKind> before, SessionId session) =>
         before.TryGetValue(session, out DisplayStateKind was) && was is DisplayStateKind.NeedsInput or DisplayStateKind.Idle;
