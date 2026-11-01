@@ -3,6 +3,7 @@ using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -343,7 +344,12 @@ public static partial class Wording
     /// <summary>An exception's message reports what failed, here and nowhere as a reason.</summary>
     public static string TerminalSetupFailed(string path, string reason) => $"Could not write {path}: {reason}";
 
-    private static string SoundText(string? sound) => sound ?? "is Windows Terminal's own";
+    private static string SoundText(BellSound sound) => sound switch
+    {
+        BellSound.File file => file.Path,
+        BellSound.TerminalDefault => "is Windows Terminal's own",
+        _ => throw new UnreachableException(),
+    };
 
     private static string DescribeWorktreesAndScreen(StatusMessage message)
     {

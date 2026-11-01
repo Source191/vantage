@@ -36,8 +36,8 @@ public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = 
         JsonObject fragment = new()
         {
             ["profiles"] = new JsonArray(
-                Profile(TerminalProfiles.VantageProfileName, $"\"{profiles.VantageExecutable}\"", profiles.VantageSound, icon),
-                Profile(TerminalProfiles.SessionProfileName, TerminalProfiles.SessionCommandLine, profiles.SessionSound, icon)),
+                Profile(TerminalProfiles.VantageProfileName, $"\"{profiles.VantageExecutable}\"", profiles.VantageSound is BellSound.File vantage ? vantage.Path : null, icon),
+                Profile(TerminalProfiles.SessionProfileName, TerminalProfiles.SessionCommandLine, profiles.SessionSound is BellSound.File session ? session.Path : null, icon)),
         };
 
         await File.WriteAllTextAsync(Location, fragment.ToJsonString(Options), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), cancellationToken);
