@@ -1,6 +1,6 @@
 namespace Source191.Vantage.Application.Diagnostics;
 
-/// <summary>How late the UI thread ran its heartbeat, counted for every beat more than 100 ms late.</summary>
+/// <summary>How late the UI thread ran its heartbeat, counted for every beat more than <see cref="Heartbeat.Stall"/> late.</summary>
 public sealed class StallCounts
 {
     private readonly DurationSample sample = new();

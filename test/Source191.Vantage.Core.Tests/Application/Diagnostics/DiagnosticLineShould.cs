@@ -97,6 +97,12 @@ public sealed class DiagnosticLineShould
     }
 
     [Fact]
+    public void RenderAStall()
+    {
+        Body(new UiThreadStalled(TimeSpan.FromMilliseconds(820))).ShouldBe("stalled ui thread for 820 ms");
+    }
+
+    [Fact]
     public void RenderACountWithItsWriteTimeAndTypicalFigures()
     {
         ProcessCounts counts = new();
