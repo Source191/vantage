@@ -28,22 +28,22 @@ public static class ProblemReportView
 
         return ReportTitle.Validate(state.TitleText) switch
         {
-            ReportTitleValidation.Valid valid => new ProblemReportUpdate(state with { Problem = null }, effect(valid.Title)),
-            ReportTitleValidation.Refused refused => Changed(state with { Problem = refused.Problem }),
+            ReportTitleValidation.Valid valid => new ProblemReportUpdate(state with { Problem = new ReportTitleProblemLine.None() }, effect(valid.Title)),
+            ReportTitleValidation.Refused refused => Changed(state with { Problem = new ReportTitleProblemLine.Shows(refused.Problem) }),
             _ => throw new UnreachableException(),
         };
     }
 
     /// <summary>Only length is worth saying while typing: a blank box is allowed and takes the default title.</summary>
-    private static ReportTitleProblem? TooLong(string text) => text.Length > ReportTitle.MostCharacters ? ReportTitleProblem.TooLong : null;
+    private static ReportTitleProblemLine TooLong(string text) => text.Length > ReportTitle.MostCharacters ? new ReportTitleProblemLine.Shows(ReportTitleProblem.TooLong) : new ReportTitleProblemLine.None();
 
     private static ProblemReportUpdate Changed(ProblemReportState state) => new(state, new ProblemReportEffect.None());
 }
 
 /// <summary>The dialog's state: the title as typed, the problem to show under it, and the title a blank box stands for.</summary>
-public sealed record ProblemReportState(string TitleText, ReportTitleProblem? Problem, ReportTitle DefaultTitle)
+public sealed record ProblemReportState(string TitleText, ReportTitleProblemLine Problem, ReportTitle DefaultTitle)
 {
-    public static ProblemReportState Open(ReportTitle defaultTitle) => new(string.Empty, Problem: null, defaultTitle);
+    public static ProblemReportState Open(ReportTitle defaultTitle) => new(string.Empty, new ReportTitleProblemLine.None(), defaultTitle);
 }
 
 public abstract record ProblemReportInput
@@ -70,3 +70,12 @@ public abstract record ProblemReportEffect
 }
 
 public sealed record ProblemReportUpdate(ProblemReportState State, ProblemReportEffect Effect);
+
+/// <summary>What the problem report dialog shows under the title: nothing, or why the title is refused.</summary>
+public abstract record ReportTitleProblemLine
+{
+    /// <summary>Nothing is wrong: the problem line is blank.</summary>
+    public sealed record None : ReportTitleProblemLine;
+
+    public sealed record Shows(ReportTitleProblem Problem) : ReportTitleProblemLine;
+}
