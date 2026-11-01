@@ -1,4 +1,5 @@
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 using System.Text;
 
 namespace Source191.Vantage.Adapters.Terminal;
@@ -38,19 +39,21 @@ public static class EncodedCommand
 }
 
 /// <summary>
-/// Opens tabs through wt.exe, run by the full path it was given (null when wt.exe is not on the PATH, which fails each
+/// Opens tabs through wt.exe, run by the full path it was given (missing when wt.exe is not on the PATH, which fails each
 /// open with a sentence naming it). When Vantage's fragment is installed the tab asks for the "Vantage session"
 /// profile, so its bell sounds different from other tabs; the file is checked on each open, so a setup run while
 /// Vantage is open takes effect at once.
 /// </summary>
-public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment fragment, string? executable) : IWindowsTerminal
+public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment fragment, ProgramLocation wt) : IWindowsTerminal
 {
     public async Task OpenTabAsync(TabLaunch launch, CancellationToken cancellationToken)
     {
-        if (executable is null)
+        string executable = wt switch
         {
-            throw new TerminalException("Windows Terminal (wt.exe) was not found on the PATH, so no tab can be opened.");
-        }
+            ProgramLocation.Found found => found.Path,
+            ProgramLocation.Missing => throw new TerminalException("Windows Terminal (wt.exe) was not found on the PATH, so no tab can be opened."),
+            _ => throw new UnreachableException(),
+        };
 
         string? profile = fragment.Exists ? TerminalProfiles.SessionProfileName : null;
         ProcessRequest request = new(executable, WindowsTerminalArguments.ForTab(launch, profile), launch.StartingDirectory.Value);
