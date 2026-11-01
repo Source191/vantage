@@ -132,4 +132,21 @@ public sealed class ResumeSessionsHandlerShould
         (await store.ReadTabsAsync()).ShouldBeEmpty();
         message.ShouldBeOfType<ResumeSessionsOutcome>().Notes.ShouldBe([new ResumeNote.NeverSentAMessage("repos-f6"), new ResumeNote.Failed("fix-124", "Workspace not trusted", SessionId.From("sess-2"))]);
     }
-}
+
+    [Fact]
+    public async Task SkipASessionWhoseJobCannotBeRemovedAndResumeTheOthers()
+    {
+        processes.Answer(request => request.Arguments.Contains("rm") && request.Arguments.Contains("81cdb0f9"), new ProcessResult(1, string.Empty, "Session 81cdb0f9 not found"));
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · c429a96e · fix-124", string.Empty));
+        transcripts.WithMessages("sess-1").WithMessages("sess-2");
+        BackgroundSession first = Job(Repository, DisplayState.Failed);
+        BackgroundSession second = Job(Worktree, DisplayState.Stopped) with { SessionId = SessionId.From("sess-2"), JobId = JobId.From("c429a96e"), Name = "fix-124" };
+
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
+
+        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("sess-1"));
+        terminal.Opened.ShouldHaveSingleItem().Title.ShouldBe("fix-124");
+        ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
+        (resume.Resumed, resume.Chosen).ShouldBe((1, 2));
+        resume.Notes.ShouldBe([new ResumeNote.NotRemoved("fix-123", "Session 81cdb0f9 not found")]);
+    }}

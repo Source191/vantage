@@ -183,4 +183,18 @@ public sealed class DeleteSessionHandlerShould
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("prune") || request.Arguments.Contains("remove"));
         outcome.ShouldBeOfType<DeleteSessionOutcome.KeptWorktree>();
     }
-}
+
+    [Fact]
+    public async Task ReportADeleteClaudeRefusedAndTouchNothing()
+    {
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Noon));
+        await LiveTabAsync(store, registry, shell: 4000);
+        processes.Answer(request => request.Arguments.Contains("rm"), new ProcessResult(1, string.Empty, "Session 81cdb0f9 not found"));
+
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Job(Worktree), forced: false, CancellationToken.None);
+
+        processes.CapturedRequests.ShouldNotContain(request => request.FileName == "git");
+        registry.EndedCleanly.ShouldBeEmpty();
+        folders.DirectoryExists(Worktree).ShouldBeTrue();
+        outcome.ShouldBe(new DeleteSessionOutcome.NotDeleted("fix-123", "Session 81cdb0f9 not found"));
+    }}

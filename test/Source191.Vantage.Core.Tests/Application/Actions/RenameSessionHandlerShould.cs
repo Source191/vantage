@@ -117,4 +117,18 @@ public sealed class RenameSessionHandlerShould
     }
 
     private string ClaudeCalls() => string.Join(", ", processes.CapturedRequests.Where(request => request.FileName == Claude).Select(request => string.Join(' ', request.Arguments)));
-}
+
+    [Fact]
+    public async Task ResumeNothingWhenTheJobCannotBeRemoved()
+    {
+        processes.Answer(request => request.Arguments.Contains("rm"), new ProcessResult(1, string.Empty, "Session 81cdb0f9 not found"));
+        transcripts.WithMessages("sess-1");
+        await LiveTabAsync(store, registry, shell: 4000);
+
+        Outcome message = await Handler.HandleAsync(Rename, CancellationToken.None);
+
+        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("--resume"));
+        registry.EndedCleanly.ShouldBeEmpty();
+        terminal.Opened.ShouldBeEmpty();
+        message.ShouldBe(new RenameSessionOutcome.NotRemoved("fix-123", "Session 81cdb0f9 not found"));
+    }}

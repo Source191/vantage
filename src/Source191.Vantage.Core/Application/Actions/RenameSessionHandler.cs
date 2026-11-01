@@ -23,7 +23,15 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
         }
 
         TabRegistration? earlier = (await registrations.ReadTabsAsync()).FirstOrDefault(tab => tab.Owner == new TabOwner.ForSession(session.SessionId));
-        await claude.RemoveAsync(session.JobId.Value, cancellationToken);
+        try
+        {
+            await claude.RemoveAsync(session.JobId.Value, cancellationToken);
+        }
+        catch (ClaudeCliException refusal)
+        {
+            return new RenameSessionOutcome.NotRemoved(session.Name, refusal.Message);
+        }
+
         bool tabClosed = await tabs.CloseAsync(session.SessionId) == TabClosure.Closed;
         ResumeResult renamed = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, newName, cancellationToken);
         if (renamed is ResumeResult.Continued)

@@ -42,7 +42,8 @@ public sealed class StatusTonesShould
 
     private static readonly Dictionary<Type, StatusTone> OutcomeTones = new()
     {
-        [typeof(StopSessionOutcome)] = StatusTone.Success,
+        [typeof(StopSessionOutcome.Stopped)] = StatusTone.Success,
+        [typeof(StopSessionOutcome.NotStopped)] = StatusTone.Failure,
         [typeof(AdoptSessionOutcome.NoMessages)] = StatusTone.Notice,
         [typeof(AdoptSessionOutcome.Moved)] = StatusTone.Success,
         [typeof(AdoptSessionOutcome.Failed)] = StatusTone.Failure,
@@ -51,6 +52,7 @@ public sealed class StatusTonesShould
         [typeof(RenameSessionOutcome.Renamed)] = StatusTone.Success,
         [typeof(RenameSessionOutcome.Restored)] = StatusTone.Failure,
         [typeof(RenameSessionOutcome.Unsupervised)] = StatusTone.Failure,
+        [typeof(RenameSessionOutcome.NotRemoved)] = StatusTone.Failure,
         [typeof(CloseEmptyTerminalsOutcome)] = StatusTone.Notice,
         [typeof(ResumeSessionsOutcome)] = StatusTone.Success,
         [typeof(DeleteSessionOutcome.Deleted)] = StatusTone.Success,
@@ -59,6 +61,7 @@ public sealed class StatusTonesShould
         [typeof(DeleteSessionOutcome.BranchNotMerged)] = StatusTone.Success,
         [typeof(DeleteSessionOutcome.RemovedWorktree)] = StatusTone.Success,
         [typeof(DeleteSessionOutcome.WorktreeInUse)] = StatusTone.Notice,
+        [typeof(DeleteSessionOutcome.NotDeleted)] = StatusTone.Failure,
         [typeof(DeleteBranchOutcome)] = StatusTone.Success,
         [typeof(RemoveWorktreeOutcome.Refused)] = StatusTone.Notice,
         [typeof(RemoveWorktreeOutcome.Removed)] = StatusTone.Success,
@@ -155,6 +158,7 @@ public sealed class StatusTonesShould
         Wording.ToneOf(new ResumeSessionsOutcome(2, 2, [])).ShouldBe(StatusTone.Success);
         Wording.ToneOf(new ResumeSessionsOutcome(1, 2, [])).ShouldBe(StatusTone.Notice);
         Wording.ToneOf(new ResumeSessionsOutcome(2, 2, [new ResumeNote.NeverSentAMessage("fix-123")])).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new ResumeSessionsOutcome(1, 2, [new ResumeNote.NotRemoved("fix-123", "Session 81cdb0f9 not found")])).ShouldBe(StatusTone.Notice);
     }
 
     // Status messages, each built with the placeholders below; the placeholder outcome is a success.
@@ -281,7 +285,7 @@ public sealed class StatusTonesShould
             _ when type == typeof(NameProblem) => NameProblem.Missing,
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
-            _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123", TabClosed: false),
+            _ when type == typeof(Outcome) => new StopSessionOutcome.Stopped("fix-123", TabClosed: false),
             _ when type == typeof(SetupItem) => SetupItem.TerminalProfiles,
             _ when type == typeof(ConfigRow) => new ConfigRow.CheckForUpdates(On: true),
             _ => throw new InvalidOperationException($"A field of type {type.Name} needs a placeholder."),

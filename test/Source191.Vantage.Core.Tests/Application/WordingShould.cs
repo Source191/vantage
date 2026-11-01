@@ -326,7 +326,7 @@ public sealed class WordingShould
     [Fact]
     public void SayWhatAHandlerDid()
     {
-        Wording.Describe(new StatusMessage.Reported(new StopSessionOutcome("fix-123", TabClosed: false))).ShouldBe("Stopped fix-123.");
+        Wording.Describe(new StatusMessage.Reported(new StopSessionOutcome.Stopped("fix-123", TabClosed: false))).ShouldBe("Stopped fix-123.");
     }
 
     [Fact]
@@ -675,7 +675,7 @@ public sealed class WordingShould
             _ when type == typeof(FolderPath) => FolderPath.From(@"D:\nowhere"),
             _ when type == typeof(LaunchProblem) => new LaunchProblem.WorktreeNeedsLetters(),
             _ when type == typeof(ViewEffect) => new Quit(),
-            _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123", TabClosed: false),
+            _ when type == typeof(Outcome) => new StopSessionOutcome.Stopped("fix-123", TabClosed: false),
             _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
             _ when type == typeof(LookupHost) => new LookupHost.Known(PullRequestHost.GitHub),
             _ when type == typeof(SetupItem) => SetupItem.TerminalProfiles,
