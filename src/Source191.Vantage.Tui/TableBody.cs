@@ -3,6 +3,7 @@ using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
+using System.Diagnostics;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
@@ -89,9 +90,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly TableView table;
     private readonly WaitingIndicator waiting;
     private readonly string[] columnNames;
-    private readonly IDetailSource<TRow>? detail;
-    private readonly DetailRequests? requests;
-    private readonly DetailPane? pane;
+    private readonly DetailPart detailPart;
     private readonly CancellationTokenSource lifetime = new();
 
     /// <summary>
@@ -119,7 +118,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         this.host = host;
         State = initial;
         columnNames = [.. definition.Columns.Select(column => column.Name)];
-        detail = definition.Detail;
 
         // The tab's title is the view's Title; it can take focus because Tabs shows whichever tab has it.
         View = new View { Title = definition.TabTitle(initial), Width = Dim.Fill(), Height = Dim.Fill(), CanFocus = true };
@@ -148,15 +146,12 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         waiting = new WaitingIndicator(definition.WaitingText) { Y = Pos.Func(_ => table.Frame.Y + (table.Frame.Height / 2), table) };
 
         View.Add(table, waiting, toolTipAnchor);
-        if (detail is not null)
+        detailPart = definition.Detail switch
         {
-            requests = new DetailRequests();
-            // The pane closes the tab: nothing is drawn under it inside the frame, since the status line is the console's.
-            pane = new DetailPane(detail.Rows);
-            pane.Y = Pos.AnchorEnd(pane.Rows);
-            table.Height = Dim.Fill(pane.Rows);
-            View.Add(pane);
-        }
+            TableDetail<TRow>.Pane pane => AddPane(pane.Source),
+            TableDetail<TRow>.None => new DetailPart.NoPane(),
+            _ => throw new UnreachableException(),
+        };
 
         ShowColumnToolTips();
     }
@@ -308,48 +303,59 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     }
 
 
+    /// <summary>Builds the pane under the table and its requests; the pane closes the tab, since the status line is the console's.</summary>
+    private DetailPart.Pane AddPane(IDetailSource<TRow> source)
+    {
+        DetailPane pane = new(source.Rows);
+        pane.Y = Pos.AnchorEnd(pane.Rows);
+        table.Height = Dim.Fill(pane.Rows);
+        View.Add(pane);
+
+        return new DetailPart.Pane(source, new DetailRequests(), pane);
+    }
+
     /// <summary>
     /// Asks for the selected row's detail while the tab is shown (a hidden tab draws nothing of its own, or it lands on top
     /// of the shown one): when the selection moved, or for every refresh; an empty table empties the pane.
     /// </summary>
     private void AskForDetail(bool refreshed)
     {
-        if (detail is not { } source || requests is not { } requested || pane is not { } detailPane || !isShown)
+        if (detailPart is not DetailPart.Pane part || !isShown)
         {
             return;
         }
 
         if (State.List.Selected is not TRow row)
         {
-            requested.Cleared();
+            part.Requests.Cleared();
             detailKey = null;
-            detailPane.Show(DetailContent.Empty);
+            part.View.Show(DetailContent.Empty);
             return;
         }
 
-        object key = source.KeyOf(row);
+        object key = part.Source.KeyOf(row);
         if (!refreshed && Equals(key, detailKey))
         {
             return;
         }
 
         detailKey = key;
-        ReadDetail(source, row, requested, requested.Ask(key), detailPane);
+        ReadDetail(part, row, part.Requests.Ask(key));
     }
 
     /// <summary>Reads one request's detail off the UI thread and shows it there, unless a newer answer or another row came first.</summary>
-    private void ReadDetail(IDetailSource<TRow> source, TRow row, DetailRequests requested, DetailRequest request, DetailPane detailPane)
+    private void ReadDetail(DetailPart.Pane part, TRow row, DetailRequest request)
     {
         CancellationToken token = lifetime.Token;
         Task.Run(async () =>
         {
-            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(source, row, token), _ => null);
+            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(part.Source, row, token), _ => null);
             if (content is null || token.IsCancellationRequested)
             {
                 return;
             }
 
-            app.Invoke(() => ShowDetail(requested, request, content, detailPane));
+            app.Invoke(() => ShowDetail(part, request, content));
         }, token);
     }
 
@@ -365,14 +371,14 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
     }
 
-    private void ShowDetail(DetailRequests requested, DetailRequest request, DetailContent content, DetailPane detailPane)
+    private void ShowDetail(DetailPart.Pane part, DetailRequest request, DetailContent content)
     {
-        if (lifetime.IsCancellationRequested || requested.Accept(request, content) is not DetailAnswer.Show shown)
+        if (lifetime.IsCancellationRequested || part.Requests.Accept(request, content) is not DetailAnswer.Show shown)
         {
             return;
         }
 
-        detailPane.Show(shown.Content);
+        part.View.Show(shown.Content);
         View.SetNeedsDraw();
         host.FrameChanged();
     }
@@ -576,6 +582,15 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         return Equals(row, selected)
             ? Palette.SelectedRow()
             : Palette.Plain(definition.RowColour(row));
+    }
+
+    /// <summary>The tab's detail pane as the tab holds it: none, or the pane with its source and the order of its requests.</summary>
+    private abstract record DetailPart
+    {
+        /// <summary>No pane: nothing is added under the table, which fills the tab.</summary>
+        public sealed record NoPane : DetailPart;
+
+        public sealed record Pane(IDetailSource<TRow> Source, DetailRequests Requests, DetailPane View) : DetailPart;
     }
 }
 

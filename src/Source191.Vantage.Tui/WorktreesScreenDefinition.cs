@@ -11,7 +11,7 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders, IDetailSou
 {
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(15);
 
-    public IDetailSource<WorktreeRow>? Detail => detail;
+    public TableDetail<WorktreeRow> Detail => new TableDetail<WorktreeRow>.Pane(detail);
 
     public string? RowTip(WorktreeRow row) => null;
 
