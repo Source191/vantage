@@ -18,12 +18,12 @@ public sealed record ConfigViewState(
     string? SelectedKey,
     RowFilter Filter,
     bool FilterEditing,
-    string? Banner,
+    LoadBanner Banner,
     StatusMessage Message,
     bool Loaded = false)
     : IListViewState<ConfigRow>
 {
-    public static readonly ConfigViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Message: StatusMessage.None);
+    public static readonly ConfigViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: new LoadBanner.None(), Message: StatusMessage.None);
 
     private static readonly ListPolicy<ConfigRow> Policy = new(
         KeyOf: row => row.Key,
@@ -56,8 +56,8 @@ public static class ConfigView
 
         return input switch
         {
-            ConfigRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
-            LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
+            ConfigRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = new LoadBanner.None() }),
+            LoadFailed failed => Unchanged(state with { Banner = new LoadBanner.Failed(failed.Message) }),
             MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             UpdateTabOpened => Effect(state, new Quit()),

@@ -34,13 +34,13 @@ public sealed record WorktreesViewState(
     string? SelectedPath,
     RowFilter Filter,
     bool FilterEditing,
-    string? Banner,
+    LoadBanner Banner,
     StatusMessage Message,
     bool Loaded = false)
     : IListViewState<WorktreeRow>
 {
     /// <summary>Nothing scanned yet: the first scan has not arrived, so the screen shows that it is scanning rather than an empty table.</summary>
-    public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Message: StatusMessage.None);
+    public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: new LoadBanner.None(), Message: StatusMessage.None);
 
     private static readonly ListPolicy<WorktreeRow> Policy = new(
         KeyOf: row => row.Path.Key,
@@ -71,8 +71,8 @@ public static class WorktreesView
     {
         return input switch
         {
-            WorktreeRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
-            LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
+            WorktreeRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = new LoadBanner.None() }),
+            LoadFailed failed => Unchanged(state with { Banner = new LoadBanner.Failed(failed.Message) }),
             MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             ForceConfirmed confirmed => Force(state, confirmed),

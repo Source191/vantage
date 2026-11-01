@@ -120,13 +120,13 @@ public sealed record SessionsViewState(
     string? SelectedSessionId,
     RowFilter Filter,
     bool FilterEditing,
-    string? Banner,
+    LoadBanner Banner,
     StatusMessage Message,
     bool Loaded = false)
     : IListViewState<SessionRow>
 {
     /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
-    public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Message: StatusMessage.None);
+    public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: new LoadBanner.None(), Message: StatusMessage.None);
 
     /// <summary>The automated runs the last listing held, for the counts; kept when a listing fails, as the rows are.</summary>
     public AutomatedRuns AutomatedRuns { get; init; } = AutomatedRuns.None;
@@ -169,8 +169,8 @@ public static class SessionsView
     {
         return input switch
         {
-            RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null, AutomatedRuns = loaded.AutomatedRuns }),
-            LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
+            RowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = new LoadBanner.None(), AutomatedRuns = loaded.AutomatedRuns }),
+            LoadFailed failed => Unchanged(state with { Banner = new LoadBanner.Failed(failed.Message) }),
             MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
