@@ -9,7 +9,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 2. The rule over Core
 
-- [ ] 2.1 `NullFreeModelsShould.FindTheModelTypes`: the type finder covers `Domain`, `Ports` and `Application` and their sub-namespaces, public and nested-public types only, and finds a known type from each (`SessionName`, `IGit`, `CurrentSettings`, `SessionsView`). Red, then green. Verify the fact passes.
+- [x] 2.1 `NullFreeModelsShould.FindTheModelTypes`: the type finder covers `Domain`, `Ports` and `Application` and their sub-namespaces, public and nested-public types only, and finds a known type from each (`SessionName`, `IGit`, `CurrentSettings`, `SessionsView`). Red, then green. Verify the fact passes.
 - [ ] 2.2 `NullFreeModelsShould.HoldNoNullableMember`: run over Core with an empty allow-list and record what it reports. Every reported member is either named as kept in a sibling change's design (add it to `Kept` with a one-line reason) or a gap (list it in this task and ask the owner: allow with a reason, or a follow-up change). Green once every report is allowed or the owner has decided. Verify the fact passes, `Kept` has a reason per entry, and the gaps and the owner's decisions are recorded here.
 - [ ] 2.3 `NullFreeModelsShould.KeepNoStaleEntry`: every `Kept` entry names an existing member that is still nullable. Red with a deliberately stale entry, then green with it removed. Verify the fact passes.
 
