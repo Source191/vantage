@@ -7,7 +7,7 @@ public interface IListViewState<TRow>
 
     ListSelection<TRow> List { get; }
 
-    string? Banner { get; }
+    LoadBanner Banner { get; }
 
     /// <summary>The status message to show: the last message, else the view's standing message.</summary>
     StatusMessage Shown { get; }

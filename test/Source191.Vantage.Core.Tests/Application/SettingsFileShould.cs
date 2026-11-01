@@ -110,7 +110,7 @@ public sealed class SettingsFileShould
     [Fact]
     public void RoundTripThroughTheFileRecord()
     {
-        Settings settings = Settings.Resolve([FolderPath.From(@"C:\repos"), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home, defaultPlace: LaunchMode.CurrentBranch);
+        Settings settings = Settings.Resolve([FolderPath.From(@"C:\repos"), FolderPath.From(@"D:\work")], new WorktreeRootChoice.At(FolderPath.From(@"E:\trees")), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home, defaultPlace: LaunchMode.CurrentBranch);
 
         VantageConfig config = SettingsFile.ToConfig(settings);
 

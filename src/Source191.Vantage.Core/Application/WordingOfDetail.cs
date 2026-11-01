@@ -41,7 +41,7 @@ public static partial class Wording
             [
                 WaitingLine(WaitingFor(row)),
                 new("Started", TimeAgo(session.StartedAt, now, zone)),
-                new("Prompted", detail.LastPromptedAt is DateTimeOffset prompted ? TimeAgo(prompted, now, zone) : "not seen since Vantage started"),
+                new("Prompted", detail.LastPromptedAt is LastPrompt.Seen prompted ? TimeAgo(prompted.At, now, zone) : "not seen since Vantage started"),
             ],
             [new("Folder", session.WorkingDirectory.Value, Span: 2), new("Session", session.SessionId.Value)],
             [new("Worktree", PlaceOf(row)), new("Branch", HeadLine(row.Head)), new("Tab", TabLine(row))],
@@ -66,7 +66,7 @@ public static partial class Wording
             [new("Branch", BranchLine(row.Head, detail.Merge), Span: 2), new("PR", PullRequestLine(row.PullRequest))],
             [
                 new("Folder", row.Path.Value, Span: 2),
-                new("Created", detail.Created is CreatedWorktree created ? $"by Vantage, {DayAndTime(created.CreatedAt, now, zone)}" : "not by Vantage"),
+                new("Created", detail.Created is WorktreeOrigin.CreatedByVantage created ? $"by Vantage, {DayAndTime(created.Record.CreatedAt, now, zone)}" : "not by Vantage"),
             ],
             [new("Changes", $"{Count(row.DirtyFiles, "changed file")} · {Count(row.UnpushedCommits, "unpushed commit")}", row.DirtyFiles + row.UnpushedCommits > 0 ? TextTone.Amber : TextTone.Plain, Span: 3)],
         ];
@@ -148,7 +148,7 @@ public static partial class Wording
 
     private static string CountsText(WorktreeCounts counts, DateTimeOffset now)
     {
-        string last = counts.LastCommitAt is DateTimeOffset at ? $" · last commit {Durations.Age(now - at)} ago" : string.Empty;
+        string last = counts.LastCommitAt is LastCommit.Made made ? $" · last commit {Durations.Age(now - made.At)} ago" : string.Empty;
 
         return $"{Count(counts.DirtyFiles, "changed file")} · {Count(counts.UnpushedCommits, "unpushed commit")}{last}";
     }

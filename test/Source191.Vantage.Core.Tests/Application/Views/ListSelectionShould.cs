@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Core.Tests.Application.Views;
 
@@ -34,6 +35,20 @@ public sealed class ListSelectionShould
 
         onPear.Load(["apple", "fig"]).Selected.ShouldBe("fig");
         onPear.Load([]).Selected.ShouldBeNull();
+    }
+
+    [Fact]
+    public void AnswerItsKeyAsASelectionKey()
+    {
+        Loaded.Selection.ShouldBe(new SelectionKey.Row("apple"));
+        Loaded.Load([]).Selection.ShouldBe(new SelectionKey.None());
+    }
+
+    [Fact]
+    public void BuildASelectionFromASelectionKey()
+    {
+        Alphabetical.List(["pear", "fig"], new SelectionKey.Row("pear"), RowFilter.None, filterEditing: false, loaded: true).Selected.ShouldBe("pear");
+        Alphabetical.List(["pear", "fig"], new SelectionKey.None(), RowFilter.None, filterEditing: false, loaded: true).SelectedKey.ShouldBeNull();
     }
 
     [Fact]

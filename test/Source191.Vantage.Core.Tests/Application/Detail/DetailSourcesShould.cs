@@ -39,7 +39,7 @@ public sealed class DetailSourcesShould
     public async Task WordAWorktreesDetailKeyedByItsFolderWithRoomForItsListing()
     {
         WorktreeDetails source = new(Loader(), clock);
-        WorktreeRow row = new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 12, Noon, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: false, FolderExists: true);
+        WorktreeRow row = new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 12, new LastCommit.Made(Noon), new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: false, FolderExists: true);
 
         DetailContent content = await source.ReadAsync(row, CancellationToken.None);
 
@@ -72,7 +72,7 @@ public sealed class DetailSourcesShould
         InMemoryState state = new();
         await state.RecordCreatedWorktreeAsync(new CreatedWorktree(Worktree, BranchName.From("invoice-pdf"), Repository, new DateTimeOffset(2026, 7, 15, 8, 14, 0, TimeSpan.Zero)));
         WorktreeDetails source = new(Loader(state, summer), summer);
-        WorktreeRow row = new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 0, SummerNoon, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+        WorktreeRow row = new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 0, new LastCommit.Made(SummerNoon), new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
 
         DetailContent content = await source.ReadAsync(row, CancellationToken.None);
 

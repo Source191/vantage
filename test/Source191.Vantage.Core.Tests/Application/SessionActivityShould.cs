@@ -21,7 +21,7 @@ public sealed class SessionActivityShould
         clock.Advance(TimeSpan.FromMinutes(3));
         activity.Observe([row], [WithState(row, DisplayState.Working)]);
 
-        activity.LastPromptedAt(row.Session.SessionId).ShouldBe(Noon.AddMinutes(3));
+        activity.LastPromptedAt(row.Session.SessionId).ShouldBe(new LastPrompt.Seen(Noon.AddMinutes(3)));
     }
 
     public static TheoryData<DisplayState> Prompted => new(DisplayState.NeedsInput, DisplayState.Idle);
@@ -34,7 +34,7 @@ public sealed class SessionActivityShould
 
         activity.Observe([row], [WithState(row, DisplayState.NeedsInput)]);
 
-        activity.LastPromptedAt(row.Session.SessionId).ShouldBeNull();
+        activity.LastPromptedAt(row.Session.SessionId).ShouldBe(new LastPrompt.NotSeen());
     }
 
     [Fact]
@@ -45,13 +45,13 @@ public sealed class SessionActivityShould
 
         activity.Observe([row], [WithState(row, DisplayState.Working)]);
 
-        activity.LastPromptedAt(row.Session.SessionId).ShouldBeNull();
+        activity.LastPromptedAt(row.Session.SessionId).ShouldBe(new LastPrompt.NotSeen());
     }
 
     [Fact]
     public void AnswerNothingForASessionNeverSeenPrompted()
     {
-        new SessionActivity(clock).LastPromptedAt(SessionId.From(Guid.NewGuid().ToString())).ShouldBeNull();
+        new SessionActivity(clock).LastPromptedAt(SessionId.From(Guid.NewGuid().ToString())).ShouldBe(new LastPrompt.NotSeen());
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public sealed class SessionActivityShould
         activity.Observe([working], [waiting]);
         activity.Observe([waiting], [working]);
 
-        activity.LastPromptedAt(waiting.Session.SessionId).ShouldBe(Noon.AddMinutes(10));
+        activity.LastPromptedAt(waiting.Session.SessionId).ShouldBe(new LastPrompt.Seen(Noon.AddMinutes(10)));
     }
 
     private static SessionRow WithState(SessionRow row, DisplayState state) => row with { Session = row.Session with { State = state } };
