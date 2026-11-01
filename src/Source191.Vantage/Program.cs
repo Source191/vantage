@@ -122,7 +122,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
     CurrentSettings settings = await CurrentSettings.LoadAsync(store, home);
     ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
-    WindowsTerminal terminal = new(processes, terminalFragment, programs.Locate("wt"));
+    WindowsTerminal terminal = new(processes, terminalFragment, PathOf(programs.Locate("wt")));
     Folders folders = new();
     TerminalConsole console = new(Console.Out, tabTitle);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
@@ -130,7 +130,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
     using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
     Task<string?> claudeVersion = claude.VersionAsync(versionTimeout.Token);
-    using PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes, programs.Locate("gh")), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
+    using PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes, PathOf(programs.Locate("gh"))), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
     SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
     StateTransitionNotifier notifier = new(Console.Out);
     SessionActivity activity = new(TimeProvider.System);
@@ -139,7 +139,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     using NuGetPackageVersions packageVersions = new(version, new HttpClientHandler());
     bool optOutOfUpdateCheck = UpdateCheckOptOut.Applies(Environment.GetEnvironmentVariable(UpdateCheckOptOut.VariableName));
     UpdateCheck updates = new(version, () => settings.Value.CheckForUpdates && !optOutOfUpdateCheck, store, packageVersions, TimeProvider.System);
-    EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes, programs.Locate("pwsh")), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders, crashFile);
+    EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes, PathOf(programs.Locate("pwsh"))), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders, crashFile);
     EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home), log);
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);
     string? claudeVersionText = await claudeVersion;
@@ -180,7 +180,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
 // git's full path, or null after the sentence saying it was not found: the console and vantage here both need it.
 async Task<string?> LocateGitAsync()
 {
-    string? gitExecutable = programs.Locate("git");
+    string? gitExecutable = PathOf(programs.Locate("git"));
     if (gitExecutable is null)
     {
         await Console.Error.WriteLineAsync(Wording.GitNotFound);
@@ -204,6 +204,8 @@ async Task<string?> LocateClaudeAsync()
             return null;
     }
 }
+
+static string? PathOf(ProgramLocation location) => location is ProgramLocation.Found found ? found.Path : null;
 
 // The start facts: versions and the terminal's size, never a path or a name.
 Started RecordStart(string? claudeVersionText)

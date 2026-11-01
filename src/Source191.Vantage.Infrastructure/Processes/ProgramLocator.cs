@@ -14,14 +14,15 @@ public sealed class ProgramLocator(IFolders folders, IReadOnlyList<string> pathF
 
     public static ProgramLocator ForCurrentUser() => new(new Folders(), PathFolders.ForCurrentUser());
 
-    /// <summary>The full path of the program's .exe, or null when no PATH folder holds one.</summary>
-    public string? Locate(string program)
+    /// <summary>The full path of the program's .exe, or missing when no PATH folder holds one.</summary>
+    public ProgramLocation Locate(string program)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(program);
         string fileName = Path.HasExtension(program) ? program : program + Executable;
-
-        return fileName.EndsWith(Executable, StringComparison.OrdinalIgnoreCase)
+        string? found = fileName.EndsWith(Executable, StringComparison.OrdinalIgnoreCase)
             ? pathFolders.Select(folder => Path.Combine(folder, fileName)).FirstOrDefault(folders.FileExists)
             : null;
+
+        return found is null ? new ProgramLocation.Missing() : new ProgramLocation.Found(found);
     }
 }
