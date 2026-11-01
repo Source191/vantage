@@ -3,6 +3,7 @@ using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
+using System.Diagnostics;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
@@ -89,20 +90,22 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly TableView table;
     private readonly WaitingIndicator waiting;
     private readonly string[] columnNames;
-    private readonly IDetailSource<TRow>? detail;
-    private readonly DetailRequests? requests;
-    private readonly DetailPane? pane;
+    private readonly DetailPart detailPart;
     private readonly CancellationTokenSource lifetime = new();
+
+    /// <summary>What <see cref="detailKey"/> holds when the next redraw must ask for the selected row's detail again; no row's key equals it.</summary>
+    private readonly object askAgain = new();
 
     /// <summary>
     /// What a tooltip hangs from: Terminal.Gui draws a tooltip under its target's frame, and under the whole table that is
     /// the detail pane, so the target is this view, as wide as nothing, laid over the header or the row under the pointer.
     /// </summary>
     private readonly View toolTipAnchor = new() { X = 0, Y = 0, Width = 0, Height = HeaderRows, CanFocus = false };
-    private object? detailKey;
+
+    /// <summary>The key of the row whose detail was last asked for, or <see cref="askAgain"/>.</summary>
+    private object detailKey;
     private TRow? selected;
-    private int? headerUnderMouse;
-    private int? rowUnderMouse;
+    private PointerOver pointer = new PointerOver.Nothing();
     private int columnOffset;
     private bool isShown;
     private bool running;
@@ -119,7 +122,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         this.host = host;
         State = initial;
         columnNames = [.. definition.Columns.Select(column => column.Name)];
-        detail = definition.Detail;
+        detailKey = askAgain;
 
         // The tab's title is the view's Title; it can take focus because Tabs shows whichever tab has it.
         View = new View { Title = definition.TabTitle(initial), Width = Dim.Fill(), Height = Dim.Fill(), CanFocus = true };
@@ -148,15 +151,12 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         waiting = new WaitingIndicator(definition.WaitingText) { Y = Pos.Func(_ => table.Frame.Y + (table.Frame.Height / 2), table) };
 
         View.Add(table, waiting, toolTipAnchor);
-        if (detail is not null)
+        detailPart = definition.Detail switch
         {
-            requests = new DetailRequests();
-            // The pane closes the tab: nothing is drawn under it inside the frame, since the status line is the console's.
-            pane = new DetailPane(detail.Rows);
-            pane.Y = Pos.AnchorEnd(pane.Rows);
-            table.Height = Dim.Fill(pane.Rows);
-            View.Add(pane);
-        }
+            TableDetail<TRow>.Pane pane => AddPane(pane.Source),
+            TableDetail<TRow>.None => new DetailPart.NoPane(),
+            _ => throw new UnreachableException(),
+        };
 
         ShowColumnToolTips();
     }
@@ -206,7 +206,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
             app.Invoke(() =>
             {
-                object? before = detailKey;
+                object before = detailKey;
                 Apply(input);
                 if (Equals(detailKey, before))
                 {
@@ -218,8 +218,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public void OnKey(GuiKey key)
     {
-        Key? mapped = KeyMapping.From(key);
-        if (mapped is null)
+        if (!KeyMapping.TryFrom(key, out Key? mapped))
         {
             return;
         }
@@ -280,7 +279,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         isShown = shown;
         if (shown)
         {
-            detailKey = null;
+            detailKey = askAgain;
         }
 
         Redraw();
@@ -308,71 +307,83 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     }
 
 
+    /// <summary>Builds the pane under the table and its requests; the pane closes the tab, since the status line is the console's.</summary>
+    private DetailPart.Pane AddPane(IDetailSource<TRow> source)
+    {
+        DetailPane pane = new(source.Rows);
+        pane.Y = Pos.AnchorEnd(pane.Rows);
+        table.Height = Dim.Fill(pane.Rows);
+        View.Add(pane);
+
+        return new DetailPart.Pane(source, new DetailRequests(), pane);
+    }
+
     /// <summary>
     /// Asks for the selected row's detail while the tab is shown (a hidden tab draws nothing of its own, or it lands on top
     /// of the shown one): when the selection moved, or for every refresh; an empty table empties the pane.
     /// </summary>
     private void AskForDetail(bool refreshed)
     {
-        if (detail is not { } source || requests is not { } requested || pane is not { } detailPane || !isShown)
+        if (detailPart is not DetailPart.Pane part || !isShown)
         {
             return;
         }
 
         if (State.List.Selected is not TRow row)
         {
-            requested.Cleared();
-            detailKey = null;
-            detailPane.Show(null);
+            part.Requests.Cleared();
+            detailKey = askAgain;
+            part.View.Show(DetailContent.Empty);
             return;
         }
 
-        object key = source.KeyOf(row);
+        object key = part.Source.KeyOf(row);
         if (!refreshed && Equals(key, detailKey))
         {
             return;
         }
 
         detailKey = key;
-        ReadDetail(source, row, requested, requested.Ask(key), detailPane);
+        ReadDetail(part, row, part.Requests.Ask(key));
     }
 
     /// <summary>Reads one request's detail off the UI thread and shows it there, unless a newer answer or another row came first.</summary>
-    private void ReadDetail(IDetailSource<TRow> source, TRow row, DetailRequests requested, DetailRequest request, DetailPane detailPane)
+    private void ReadDetail(DetailPart.Pane part, TRow row, DetailRequest request)
     {
         CancellationToken token = lifetime.Token;
         Task.Run(async () =>
         {
-            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(source, row, token), _ => null);
-            if (content is null || token.IsCancellationRequested)
+            DetailAnswer read = await Attempt.RunAsync<DetailAnswer>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(part.Source, row, token), _ => new DetailAnswer.Dropped());
+            if (read is not DetailAnswer.Show { Content: DetailContent content } || token.IsCancellationRequested)
             {
                 return;
             }
 
-            app.Invoke(() => ShowDetail(requested, request, content, detailPane));
+            app.Invoke(() => ShowDetail(part, request, content));
         }, token);
     }
 
-    private static async Task<DetailContent?> ReadAsync(IDetailSource<TRow> source, TRow row, CancellationToken token)
+    /// <summary>The row's detail as read, or dropped when the tab was disposed while it was being read.</summary>
+    private static async Task<DetailAnswer> ReadAsync(IDetailSource<TRow> source, TRow row, CancellationToken token)
     {
         try
         {
-            return await source.ReadAsync(row, token);
+            return new DetailAnswer.Show(await source.ReadAsync(row, token));
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            return null;
+            return new DetailAnswer.Dropped();
         }
     }
 
-    private void ShowDetail(DetailRequests requested, DetailRequest request, DetailContent content, DetailPane detailPane)
+    private void ShowDetail(DetailPart.Pane part, DetailRequest request, DetailContent content)
     {
-        if (lifetime.IsCancellationRequested || requested.Accept(request, content) is not DetailAnswer.Show shown)
+        if (lifetime.IsCancellationRequested || part.Requests.Accept(request, content) is not DetailAnswer.Show shown)
         {
             return;
         }
 
-        detailPane.Show(shown.Content);
+        part.View.Show(shown.Content);
         View.SetNeedsDraw();
         host.FrameChanged();
     }
@@ -432,46 +443,50 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     private void HideColumnToolTip()
     {
-        if (headerUnderMouse is not null || rowUnderMouse is not null)
+        if (pointer is not PointerOver.Nothing)
         {
             app.ToolTips?.Hide();
         }
 
-        headerUnderMouse = null;
-        rowUnderMouse = null;
+        pointer = new PointerOver.Nothing();
     }
 
     /// <summary>A column's meaning while the pointer rests on its header; a row's tip, when the view gives one, while it rests on the row.</summary>
     private void ShowColumnToolTip(Terminal.Gui.Input.Mouse mouse)
     {
-        int? header = null;
-        System.Drawing.Point? cell = null;
-        if (mouse.Position is System.Drawing.Point position)
-        {
-            cell = table.ScreenToCell(position, out header);
-        }
-
-        int? row = header is null ? cell?.Y : null;
-        if (header == headerUnderMouse && row == rowUnderMouse)
+        PointerOver over = mouse.Position is System.Drawing.Point position ? PointerAt(position) : new PointerOver.Nothing();
+        if (over == pointer)
         {
             return;
         }
 
         HideColumnToolTip();
-        headerUnderMouse = header;
-        rowUnderMouse = row;
+        pointer = over;
         int x = table.Frame.X + (mouse.Position?.X ?? 0);
-        if (header is int column && column < definition.Columns.Count)
+        if (over is PointerOver.Header header && header.Column < definition.Columns.Count)
         {
-            ColumnHelp help = definition.Columns[column];
+            ColumnHelp help = definition.Columns[header.Column];
             ShowToolTip(x, table.Frame.Y, HeaderRows, $"{help.Name}: {help.Meaning}");
             return;
         }
 
-        if (row is int index && table.Table is TableSource<TRow> source && index < source.Rows && definition.RowTip(source.RowAt(index)) is string tip)
+        if (over is PointerOver.Row row && table.Table is TableSource<TRow> source && row.Index < source.Rows && definition.RowTip(source.RowAt(row.Index)) is { Length: > 0 } tip)
         {
             ShowToolTip(x, table.Frame.Y + (mouse.Position?.Y ?? 0), 1, tip);
         }
+    }
+
+    /// <summary>What the pointer is over, from Terminal.Gui's answer: a header's column, else the row of the cell under it, else nothing.</summary>
+    private PointerOver PointerAt(System.Drawing.Point position)
+    {
+        System.Drawing.Point? cell = table.ScreenToCell(position, out int? header);
+
+        return (header, cell) switch
+        {
+            (int column, _) => new PointerOver.Header(column),
+            (null, System.Drawing.Point { Y: int index }) => new PointerOver.Row(index),
+            _ => new PointerOver.Nothing(),
+        };
     }
 
     /// <summary>Lays the anchor over the header or the row at the pointer and shows the tooltip on the row under it.</summary>
@@ -554,13 +569,17 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
 
         TRow row = source.RowAt(args.RowIndex);
-        CellPaint? paint = definition.CellPaint(row, args.ColIdex);
+        bool onSelected = Equals(row, selected);
 
-        return paint switch
+        // Null is Terminal.Gui's "the row's own scheme applies".
+        return definition.CellPaint(row, args.ColIdex) switch
         {
-            { Always: true } when Equals(row, selected) => Palette.SelectedRow(paint.Foreground),
-            not null when !Equals(row, selected) => Palette.Plain(paint.Foreground),
-            _ => null,
+            CellPaint.Fill fill when onSelected => Palette.SelectedRow(fill.Foreground),
+            CellPaint.Fill fill => Palette.Plain(fill.Foreground),
+            CellPaint.Text when onSelected => null,
+            CellPaint.Text text => Palette.Plain(text.Foreground),
+            CellPaint.None => null,
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -576,6 +595,25 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         return Equals(row, selected)
             ? Palette.SelectedRow()
             : Palette.Plain(definition.RowColour(row));
+    }
+
+    /// <summary>What the pointer rests on, so a tooltip is shown once per header or row it enters.</summary>
+    private abstract record PointerOver
+    {
+        public sealed record Nothing : PointerOver;
+
+        public sealed record Header(int Column) : PointerOver;
+
+        public sealed record Row(int Index) : PointerOver;
+    }
+
+    /// <summary>The tab's detail pane as the tab holds it: none, or the pane with its source and the order of its requests.</summary>
+    private abstract record DetailPart
+    {
+        /// <summary>No pane: nothing is added under the table, which fills the tab.</summary>
+        public sealed record NoPane : DetailPart;
+
+        public sealed record Pane(IDetailSource<TRow> Source, DetailRequests Requests, DetailPane View) : DetailPart;
     }
 }
 

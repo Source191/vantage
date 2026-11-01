@@ -30,6 +30,8 @@ public sealed class WordingOfKeyBarShould
         KeyBar bar = Wording.SessionsBar(Selecting([Running, EmptyTerminal], EmptyTerminal), updateKnown: false);
 
         Texts(bar.First).ShouldBe(["b Adopt", "d Close tab", "m Memory", "C Close empty", "n New session"]);
+        bar.First[1].Tip.ShouldBe("Close this terminal session's tab; it was never sent a message, so nothing is lost.");
+        bar.First[0].Tip.ShouldBe(Wording.SessionsKeys.Single(key => key.Key == "b").Tip, "a key without a bar word keeps its own tip");
     }
 
     [Fact]
@@ -96,7 +98,7 @@ public sealed class WordingOfKeyBarShould
 
     private static readonly ConfigViewState ConfigLoaded = ConfigView.Reduce(
         ConfigViewState.Empty,
-        new ConfigRowsLoaded(ConfigRows.For(Settings.Resolve([FolderPath.From(@"C:\Users\me\source\repos"), FolderPath.From(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me")), facts: null))).State;
+        new ConfigRowsLoaded(ConfigRows.For(Settings.Resolve([FolderPath.From(@"C:\Users\me\source\repos"), FolderPath.From(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me")), SetupFacts.Reading))).State;
 
     [Fact]
     public void PlaceEachItemOneCellFromTheEdgeAndTwoCellsAfterTheLast()

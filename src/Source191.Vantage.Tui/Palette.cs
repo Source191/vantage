@@ -75,9 +75,12 @@ internal static class Palette
     /// colour there (the TAB block). Such a table draws the selected row with the Active role, which Terminal.Gui otherwise
     /// derives from Normal as a lighter shade, so every role is set to the exact colours.
     /// </summary>
-    public static Scheme SelectedRow(Color? foreground = null)
+    public static Scheme SelectedRow() => SelectedRow(SelectionText);
+
+    /// <summary>The selected row's scheme for a cell that keeps its own colour there, such as the TAB block.</summary>
+    public static Scheme SelectedRow(Color foreground)
     {
-        Attribute attribute = new(foreground ?? SelectionText, SelectionBackground, TextStyle.Bold);
+        Attribute attribute = new(foreground, SelectionBackground, TextStyle.Bold);
 
         return new Scheme { Normal = attribute, Focus = attribute, HotNormal = attribute, HotFocus = attribute, Active = attribute, HotActive = attribute, Disabled = attribute };
     }

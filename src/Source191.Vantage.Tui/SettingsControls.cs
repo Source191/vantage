@@ -90,7 +90,7 @@ internal sealed class SettingsControls
     public void Show(SettingsState state)
     {
         Array.ForEach(Custom, view => view.Visible = state.ShowsCustomEditor);
-        Problem.Text = state.Problem is null ? string.Empty : Wording.Describe(state.Problem);
+        Problem.Text = state.Problem is SettingsProblemLine.Shows shows ? Wording.Describe(shows.Problem) : string.Empty;
         Fields[state.Focus].SetFocus();
     }
 

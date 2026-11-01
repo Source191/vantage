@@ -13,7 +13,7 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 internal sealed class DetailPane : View
 {
-    private DetailContent? content;
+    private DetailContent content = DetailContent.Empty;
 
     /// <param name="lines">The most lines the tab's detail takes under the divider.</param>
     public DetailPane(int lines)
@@ -31,20 +31,16 @@ internal sealed class DetailPane : View
     /// <summary>The pane's height, divider included.</summary>
     public int Rows { get; }
 
-    public void Show(DetailContent? shown)
+    /// <summary>Shows a row's detail, or <see cref="DetailContent.Empty"/> for none: its divider then has no title, not two stray spaces.</summary>
+    public void Show(DetailContent shown)
     {
         content = shown;
-        Title = shown is null ? string.Empty : $" {shown.Title} ";
+        Title = shown.Title.Length > 0 ? $" {shown.Title} " : string.Empty;
         SetNeedsDraw();
     }
 
     protected override bool OnDrawingContent(DrawContext? context)
     {
-        if (content is null)
-        {
-            return true;
-        }
-
         int width = Math.Max(Viewport.Width - 2, 0);
         IReadOnlyList<IReadOnlyList<TextPart>> laid = DetailLayout.Rows(content, width, Viewport.Height);
         for (int row = 0; row < laid.Count; row++)

@@ -107,13 +107,12 @@ public sealed class ConsoleScreen(
         private ConsoleTab active;
         private ViewEffect leaving = new Quit();
         private bool binding;
-        private KeyBar? shownBar;
+        private KeyBar shownBar = new([], []);
         private IReadOnlyList<TextPart> shownCounts = [];
         private IReadOnlyList<IReadOnlyList<TextPart>> shownSettings = [];
-        private (StatusMessage Message, bool Running, int Width)? shownStatus;
+        private StatusShown shownStatus = new StatusShown.Nothing();
         private int shownStatusRows;
         private int settingsIndent;
-        private ITabBody? statusOwner;
 
         public Frame(ConsoleScreen screen, IApplication app, ConsoleState initial)
         {
@@ -317,7 +316,7 @@ public sealed class ConsoleScreen(
         /// <summary>The icon shows where the terminal draws images, and the two settings rows start after it; elsewhere they start at the left edge.</summary>
         private void ShowSettings()
         {
-            int indent = VantageIcon.Fit(icon, app.Driver?.SixelSupport);
+            int indent = app.Driver?.SixelSupport is { IsSupported: true, Resolution: System.Drawing.Size cell } ? VantageIcon.Fit(icon, cell) : VantageIcon.Hide(icon);
             // The status line's mark lines up with the first letter of the settings row.
             settingsIndent = indent;
             statusRows.X = indent;
@@ -331,7 +330,7 @@ public sealed class ConsoleScreen(
             for (int row = 0; row < settings.Length; row++)
             {
                 settings[row].X = indent;
-                Fill(settings[row], row < rows.Count ? rows[row] : [], separator: null);
+                Fill(settings[row], row < rows.Count ? rows[row] : []);
             }
         }
 
@@ -356,26 +355,23 @@ public sealed class ConsoleScreen(
             }
 
             shownCounts = parts;
-            Fill(counts, parts, new TextPart(Separator, TextTone.Grey));
+            Fill(counts, Joined(parts, new TextPart(Separator, TextTone.Grey)));
         }
 
-        /// <summary>Replaces a row's labels with one per part, in its tone, with the separator between parts when one is given.</summary>
-        private static void Fill(View row, IReadOnlyList<TextPart> parts, TextPart? separator)
+        /// <summary>Replaces a row's labels with one per part, in its tone, each after the last.</summary>
+        private static void Fill(View row, IReadOnlyList<TextPart> parts)
         {
             row.RemoveAll();
             int x = 0;
-            for (int index = 0; index < parts.Count; index++)
+            foreach (TextPart part in parts)
             {
-                if (index > 0 && separator is not null)
-                {
-                    row.Add(Text(x, 0, separator.Text, Palette.ForTone(separator.Tone)));
-                    x += separator.Text.Length;
-                }
-
-                row.Add(Text(x, 0, parts[index].Text, Palette.ForTone(parts[index].Tone)));
-                x += parts[index].Text.Length;
+                row.Add(Text(x, 0, part.Text, Palette.ForTone(part.Tone)));
+                x += part.Text.Length;
             }
         }
+
+        /// <summary>The parts with the separator between each two.</summary>
+        private static IReadOnlyList<TextPart> Joined(IReadOnlyList<TextPart> parts, TextPart separator) => [.. parts.SelectMany((part, index) => index == 0 ? [part] : new[] { separator, part })];
 
         /// <summary>The strip's width: each title with a border cell either side, adjacent tabs sharing one (measured with the spike of 30 October 2026); the titles never change, so neither does this.</summary>
         private int HeaderSpan() => sessions.View.Title.Length + worktrees.View.Title.Length + config.View.Title.Length + 4;
@@ -433,14 +429,13 @@ public sealed class ConsoleScreen(
         {
             int width = Math.Max(ScreenWidth - settingsIndent - StatusWordsAt - StatusCloseRoom, 1);
             // By reference: a new message with the same words as the last is still a new message, with its own timer.
-            bool newMessage = shownStatus is not { } shown || !ReferenceEquals(shown.Message, message);
-            if (!newMessage && shownStatus is { } same && same.Running == running && same.Width == width)
+            bool newMessage = shownStatus is not StatusShown.Message shown || !ReferenceEquals(shown.Status, message);
+            if (!newMessage && shownStatus is StatusShown.Message same && same.Running == running && same.Width == width)
             {
                 return;
             }
 
-            shownStatus = (message, running, width);
-            statusOwner = Active;
+            shownStatus = new StatusShown.Message(message, running, width, Active);
             IReadOnlyList<string> lines = StatusLayout.Lines(Wording.Describe(message), width);
             StatusTone tone = running ? StatusTone.Working : Wording.ToneOf(message);
             TextPart mark = Wording.StatusMark(tone);
@@ -457,9 +452,9 @@ public sealed class ConsoleScreen(
             }
 
             ShowClose(message, running, lines);
-            if (newMessage && !running && StatusLayout.ClearsAfter(tone) is TimeSpan after)
+            if (newMessage && !running && StatusLayout.ClearsBySelf(tone))
             {
-                ClearLater(Active, message, after);
+                ClearLater(Active, message, StatusLayout.SuccessShownFor);
             }
 
             LayOutStatus(running ? Math.Max(lines.Count, 1) : lines.Count);
@@ -481,7 +476,7 @@ public sealed class ConsoleScreen(
         /// <summary>A click on the close mark clears the message it was drawn for, in the tab that showed it.</summary>
         private void CloseStatus(Terminal.Gui.Input.Mouse mouse)
         {
-            if (!mouse.Flags.HasFlag(Terminal.Gui.Input.MouseFlags.LeftButtonClicked) || statusOwner is null || shownStatus is not { } shown)
+            if (!mouse.Flags.HasFlag(Terminal.Gui.Input.MouseFlags.LeftButtonClicked) || shownStatus is not StatusShown.Message shown)
             {
                 return;
             }
@@ -489,7 +484,7 @@ public sealed class ConsoleScreen(
             mouse.Handled = true;
             // The pointer has not moved, so the tooltip would stay, drawn over the tabs as they move up into the line's place.
             app.ToolTips?.Hide();
-            statusOwner.Reduce(new MessageDismissed(shown.Message));
+            shown.Owner.Reduce(new MessageDismissed(shown.Status));
         }
 
         /// <summary>Clears a success once its time is up, in the tab that showed it; a newer message there is left alone.</summary>
@@ -531,7 +526,7 @@ public sealed class ConsoleScreen(
         /// <summary>The two rows of the key bar: each item a blue key and a white word, both answering a click with the key and a hover with its tip; rebuilt only when the items change.</summary>
         private void ShowBar(KeyBar keys)
         {
-            if (shownBar is not null && keys.First.SequenceEqual(shownBar.First) && keys.Second.SequenceEqual(shownBar.Second))
+            if (keys.First.SequenceEqual(shownBar.First) && keys.Second.SequenceEqual(shownBar.Second))
             {
                 return;
             }
@@ -582,6 +577,15 @@ public sealed class ConsoleScreen(
             label.SetScheme(Palette.Plain(colour));
 
             return label;
+        }
+
+        /// <summary>What the status line shows: nothing yet, or a message with whether its action runs, the width it was laid out at and the tab that showed it.</summary>
+        private abstract record StatusShown
+        {
+            public sealed record Nothing : StatusShown;
+
+            /// <summary>A message shown, compared by reference: the same words again are still a new message.</summary>
+            public sealed record Message(StatusMessage Status, bool Running, int Width, ITabBody Owner) : StatusShown;
         }
     }
 }

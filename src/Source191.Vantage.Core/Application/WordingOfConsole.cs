@@ -61,13 +61,9 @@ public static partial class Wording
     public static KeyBar ConfigBar(ConfigViewState state, bool updateKnown)
     {
         ArgumentNullException.ThrowIfNull(state);
-        IReadOnlyList<(string Key, string? Word)> first =
-        [
-            ("enter", null),
-            .. updateKnown ? [("U", (string?)null)] : Array.Empty<(string, string?)>(),
-        ];
+        IReadOnlyList<string> first = ["enter", .. updateKnown ? ["U"] : Array.Empty<string>()];
 
-        return new KeyBar(Placed(ConfigKeys, first), Placed(ConfigKeys, [.. SecondBarRowForConfig.Select(key => (key, (string?)null))]));
+        return new KeyBar(Placed(ConfigKeys, first, []), Placed(ConfigKeys, SecondBarRowForConfig, []));
     }
 
     /// <summary>A tab's title, which never changes, so the tab strip never has to measure it again.</summary>
@@ -119,39 +115,35 @@ public static partial class Wording
     public static KeyBar SessionsBar(SessionsViewState state, bool updateKnown)
     {
         ArgumentNullException.ThrowIfNull(state);
-        IReadOnlyList<(string Key, string? Word)> forRow = state.Selected switch
+        (IReadOnlyList<string> Keys, IReadOnlyList<BarWord> Words) forRow = state.Selected switch
         {
-            null => [],
-            { Session: BackgroundSession { ProcessId: not null } } => [("enter", null), ("x", null), ("d", null), ("r", null), ("m", null)],
-            { Session: BackgroundSession } => [("enter", null), ("d", null), ("r", null)],
-            { Session: InteractiveSession, HasTranscript: false } => [("b", null), ("d", "Close tab"), ("m", null)],
-            _ => [("b", null), ("m", null)],
+            null => ([], []),
+            { Session: BackgroundSession { ProcessId: not null } } => (["enter", "x", "d", "r", "m"], []),
+            { Session: BackgroundSession } => (["enter", "d", "r"], []),
+            { Session: InteractiveSession, HasTranscript: false } => (["b", "d", "m"], [CloseTab]),
+            _ => (["b", "m"], []),
         };
         bool stoppedListed = state.Rows.Any(row => row.Session.State.Kind is DisplayStateKind.Stopped or DisplayStateKind.Failed);
         bool emptyTerminalListed = state.Rows.Any(row => row is { Session: InteractiveSession, HasTranscript: false });
-        IReadOnlyList<(string Key, string? Word)> first =
+        IReadOnlyList<string> first =
         [
-            .. forRow,
-            .. stoppedListed ? [("R", (string?)null)] : Array.Empty<(string, string?)>(),
-            .. emptyTerminalListed ? [("C", (string?)null)] : Array.Empty<(string, string?)>(),
-            ("n", null),
-            .. updateKnown ? [("U", (string?)null)] : Array.Empty<(string, string?)>(),
+            .. forRow.Keys,
+            .. stoppedListed ? ["R"] : Array.Empty<string>(),
+            .. emptyTerminalListed ? ["C"] : Array.Empty<string>(),
+            "n",
+            .. updateKnown ? ["U"] : Array.Empty<string>(),
         ];
 
-        return new KeyBar(Placed(SessionsKeys, first), Placed(SessionsKeys, [.. SecondBarRowForSessions.Select(key => (key, (string?)null))]));
+        return new KeyBar(Placed(SessionsKeys, first, forRow.Words), Placed(SessionsKeys, SecondBarRowForSessions, []));
     }
 
     /// <summary>The worktrees tab's key bar: the keys that act on a worktree and Update when a release is known; the folder and view keys below.</summary>
     public static KeyBar WorktreesBar(WorktreesViewState state, bool updateKnown)
     {
         ArgumentNullException.ThrowIfNull(state);
-        IReadOnlyList<(string Key, string? Word)> first =
-        [
-            .. FirstBarRowForWorktrees.Select(key => (key, (string?)null)),
-            .. updateKnown ? [("U", (string?)null)] : Array.Empty<(string, string?)>(),
-        ];
+        IReadOnlyList<string> first = [.. FirstBarRowForWorktrees, .. updateKnown ? ["U"] : Array.Empty<string>()];
 
-        return new KeyBar(Placed(WorktreesKeys, first), Placed(WorktreesKeys, [.. SecondBarRowForSessions.Select(key => (key, (string?)null))]));
+        return new KeyBar(Placed(WorktreesKeys, first, []), Placed(WorktreesKeys, SecondBarRowForSessions, []));
     }
 
     private static string CountedState(DisplayStateKind kind, List<SessionRow> rows) => kind switch
@@ -186,15 +178,17 @@ public static partial class Wording
         WorktreeHealthKind.Elsewhere => TextTone.Amber,
     };
 
-    /// <summary>The items of one bar row, each placed two cells after the last; a word given overrides the key's hint.</summary>
-    private static List<KeyBarItem> Placed(IReadOnlyList<KeyHelp> keys, IReadOnlyList<(string Key, string? Word)> row)
+    /// <summary>The items of one bar row, each placed two cells after the last; a word given for a key overrides its hint and tip.</summary>
+    private static List<KeyBarItem> Placed(IReadOnlyList<KeyHelp> keys, IReadOnlyList<string> row, IReadOnlyList<BarWord> words)
     {
         List<KeyBarItem> items = [];
         int x = BarStart;
-        foreach ((string key, string? word) in row)
+        foreach (string key in row)
         {
             KeyHelp help = keys.First(candidate => candidate.Key == key);
-            KeyBarItem item = new(help.HelpKey, word ?? help.Hint ?? help.Line, x, word is null ? help.Tip : TerminalTabTip);
+            KeyBarItem item = words.FirstOrDefault(word => word.Key == key) is BarWord word
+                ? new(help.HelpKey, word.Word, x, word.Tip)
+                : OwnItem(help, x);
             items.Add(item);
             x = item.End + BarGap;
         }
@@ -202,6 +196,15 @@ public static partial class Wording
         return items;
     }
 
+    /// <summary>A key's item in its own words: its hint, or its help line for a key the bar has no hint for.</summary>
+    private static KeyBarItem OwnItem(KeyHelp help, int x) => new(help.HelpKey, help.OnBar ? help.Hint : help.Line, x, help.Tip);
+
     private const string TerminalTabTip = "Close this terminal session's tab; it was never sent a message, so nothing is lost.";
+
+    /// <summary>On an empty terminal session's row, d closes its tab rather than deleting a session.</summary>
+    private static readonly BarWord CloseTab = new("d", "Close tab", TerminalTabTip);
+
+    /// <summary>A bar word that differs from the key's own hint, with the tip that goes with it.</summary>
+    private sealed record BarWord(string Key, string Word, string Tip);
 
 }

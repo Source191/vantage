@@ -11,9 +11,9 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders, IDetailSou
 {
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(15);
 
-    public IDetailSource<WorktreeRow>? Detail => detail;
+    public TableDetail<WorktreeRow> Detail => new TableDetail<WorktreeRow>.Pane(detail);
 
-    public string? RowTip(WorktreeRow row) => null;
+    public string RowTip(WorktreeRow row) => string.Empty;
 
 
     public string WaitingText => "Scanning worktrees";
@@ -37,7 +37,7 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders, IDetailSou
         };
     }
 
-    public CellPaint? CellPaint(WorktreeRow row, int column) => null;
+    public CellPaint CellPaint(WorktreeRow row, int column) => new CellPaint.None();
 
     public Color RowColour(WorktreeRow row)
     {

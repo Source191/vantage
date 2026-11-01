@@ -11,7 +11,7 @@ public sealed class ProblemReportViewShould
     [Fact]
     public void OpenWithAnEmptyTitleAndNoProblem()
     {
-        Opened.ShouldBe(new ProblemReportState(string.Empty, Problem: null, Default));
+        Opened.ShouldBe(new ProblemReportState(string.Empty, new ReportTitleProblemLine.None(), Default));
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public sealed class ProblemReportViewShould
     {
         ProblemReportUpdate update = ProblemReportView.Reduce(Opened, new ProblemReportInput.TitleChanged(new string('a', 201)));
 
-        update.State.Problem.ShouldBe(ReportTitleProblem.TooLong);
+        update.State.Problem.ShouldBe(new ReportTitleProblemLine.Shows(ReportTitleProblem.TooLong));
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public sealed class ProblemReportViewShould
     {
         ProblemReportState tooLong = ProblemReportView.Reduce(Opened, new ProblemReportInput.TitleChanged(new string('a', 201))).State;
 
-        ProblemReportView.Reduce(tooLong, new ProblemReportInput.TitleChanged("short")).State.Problem.ShouldBeNull();
+        ProblemReportView.Reduce(tooLong, new ProblemReportInput.TitleChanged("short")).State.Problem.ShouldBe(new ReportTitleProblemLine.None());
     }
 
     [Fact]
