@@ -34,7 +34,9 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 ## 7. Release and whole build
 
 - [x] 7.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview after main's version when implementation starts (0.19.0-preview.14 if nothing else has released by then). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against main.
-- [ ] 7.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate locale-safety --strict` pass, and the packed tool's `vantage.runtimeconfig.json` (from `dotnet pack`) still sets `System.Globalization.Invariant` to true. Record the counts here.
+  - 1 November 2026: main had already released 0.19.0-preview.14, so this raises it to 0.19.0-preview.15; the script reports the raise against `origin/main`.
+- [x] 7.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate locale-safety --strict` pass, and the packed tool's `vantage.runtimeconfig.json` (from `dotnet pack`) still sets `System.Globalization.Invariant` to true. Record the counts here.
+  - 1 November 2026: build clean (0 warnings, with the culture analysers now on the libraries); solution 2210 total, 2202 passed, 8 skipped (the Claude contract facts), 0 failed, all three test projects in invariant mode; format clean once the two new files had CRLF and no final newline; `openspec validate locale-safety --strict` valid; `Source191.Vantage.0.19.0-preview.15.nupkg`'s `tools/net10.0/any/vantage.runtimeconfig.json` sets `System.Globalization.Invariant` to true.
 
 ## Workflow follow-up
 
