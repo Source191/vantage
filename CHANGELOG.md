@@ -6,7 +6,7 @@ What changes in each release of Vantage, written for the people who use it. The 
 
 ### Added
 
-- U opens a What's new dialog listing the changes in every release since the running one, with Update now, Release page and Later; a newly found release is announced once in the status line, and the first start after an update shows what changed, once (#TBD)
+- U opens a What's new dialog listing the changes in every release since the running one, with Update now, Release page and Later; a newly found release is announced once in the status line, and the first start after an update shows what changed, once (#180)
 - Sessions, Worktrees and Config are tabs of one screen, each title carrying its count with the state counts and glyphs beside it, and a two-line key bar at the bottom (#114)
 - A Config tab lists every setting and the setup Vantage reads (settings file, terminal profiles, Claude's bell, diagnostic log, last update check); Enter edits a setting in a small dialog and saves at once, and setup that needs attention says what to run (#117)
 - Left and Right, 1, 2 and 3, or a click on a title move between the tabs; Esc on Worktrees or Config with no filter returns to Sessions (#117)
@@ -28,7 +28,7 @@ What changes in each release of Vantage, written for the people who use it. The 
 
 ### Changed
 
-- The update notice in the settings row is amber (#TBD)
+- The update notice in the settings row is amber (#180)
 - The header is one grey settings row with Vantage's version and memory and Claude Code's version; the repository roots and worktree root moved to the Config tab, so every table gains rows (#117)
 - A status line appears under the settings row only when there is something to say, marked by its tone (✓ done, ! refused, ✗ failed, a spinner while working), wraps up to three rows and can be closed with ✕ (#129)
 - Enter on a session opens it in its own Windows Terminal tab, or switches to that tab; the console never attaches in its own tab, and F5 in the wizard starts the session and opens its tab (#128)
