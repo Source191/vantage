@@ -279,9 +279,9 @@ public sealed class SessionRowEnricherShould : IDisposable
         IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([inWorktree, outside], CancellationToken.None);
 
         rows[0].Checkout.ShouldBe(FolderPath.From(@"C:\repos\Northwind.Orders"));
-        rows[0].TabColour.ShouldBe(TabPalette.Default[2]);
+        rows[0].Tab.ShouldBe(new LiveTab.Open(TabPalette.Default[2]));
         rows[1].Checkout.ShouldBeNull();
-        rows[1].TabColour.ShouldBeNull();
+        rows[1].Tab.ShouldBe(new LiveTab.None());
     }
 
     private void AnswerGit(string directory, string root, string commonDir, string branch)

@@ -52,7 +52,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         return (column, row) switch
         {
             (TabColumn, { Session: InteractiveSession }) => new CellPaint(Palette.Grey),
-            (TabColumn, { HasLiveTab: true, TabColour: TabColour colour }) when Color.TryParse(TabShade.Unselected(colour), out Color? parsed) => new CellPaint(parsed.Value, Always: true),
+            (TabColumn, { Tab: LiveTab.Open { Colour: TabColour colour } }) when Color.TryParse(TabShade.Unselected(colour), out Color? parsed) => new CellPaint(parsed.Value, Always: true),
             _ => null,
         };
     }
@@ -94,7 +94,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         return row switch
         {
             { Session: InteractiveSession } => Wording.TerminalSwatch,
-            { HasLiveTab: true } => TabBlock,
+            { Tab: LiveTab.Open } => TabBlock,
             _ => string.Empty,
         };
     }

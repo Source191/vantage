@@ -11,14 +11,6 @@ namespace Source191.Vantage.Application.Views;
 /// </summary>
 public sealed record SessionRow(Session Session, string Repository, Head Head, LiveTab Tab, bool HasTranscript)
 {
-    /// <summary>The branch while the callers still read one; goes once each matches the head.</summary>
-    public BranchName? Branch => Head is Head.OnBranch on ? on.Branch : null;
-
-    /// <summary>Whether a live tab shows the session, while the callers still read it; goes once each matches the tab.</summary>
-    public bool HasLiveTab => Tab is LiveTab.Open;
-
-    /// <summary>The live tab's colour while the callers still read it; goes once each matches the tab.</summary>
-    public TabColour? TabColour => Tab is LiveTab.Open open ? open.Colour : null;
 
     /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
     public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);

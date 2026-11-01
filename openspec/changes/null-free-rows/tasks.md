@@ -32,7 +32,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 5. Tui
 
-- [ ] 5.1 `SessionsScreenDefinition` (TAB cell paint and swatch on `LiveTab.Open`, REPOSITORY as `WhereLabel.Outside` or `Inside`), `WorktreesScreenDefinition` (WORKTREE through `WhereLabel.For` with no branch, SESSION from `WorktreeSession`) and `ResumeChecklistDialog` ("-" for a head that is not `OnBranch`) (refactor step: `Tui` has no test project). Verify the build, and the smoke check: `dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>` against a locally packed tool passes.
+- [x] 5.1 `SessionsScreenDefinition` (TAB cell paint and swatch on `LiveTab.Open`, REPOSITORY as `WhereLabel.Outside` or `Inside`), `WorktreesScreenDefinition` (WORKTREE through `WhereLabel.For` with no branch, SESSION from `WorktreeSession`) and `ResumeChecklistDialog` ("-" for a head that is not `OnBranch`) (refactor step: `Tui` has no test project). Verify the build, and the smoke check: `dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>` against a locally packed tool passes. Done: the build passes; the smoke check is left to CI's `check` job, because the brief forbids running it locally (it removes an idle worktree under the owner's real roots).
 
 ## 6. Version and the whole build
 
