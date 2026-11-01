@@ -91,6 +91,16 @@ public sealed class TabRegistrationShould
 
         TabRegistration claimed = Pending(createdAt: Now).ClaimedBy(4007, ProcessStart);
 
-        claimed.OwningTerminal(processes).ShouldBe(1);
+        claimed.OwningTerminal(processes).ShouldBe(new TerminalWindow.Owning(1));
+    }
+
+    [Fact]
+    public void AnswerTheOwningWindowOrAnyWhileUnclaimed()
+    {
+        FakeProcessRegistry processes = new FakeProcessRegistry().InTree(1, "WindowsTerminal", 0).InTree(4000, "pwsh", 1).InTree(5000, "pwsh", 0);
+
+        Pending(createdAt: Now).ClaimedBy(4000, ProcessStart).OwningTerminal(processes).ShouldBe(new TerminalWindow.Owning(1));
+        Pending(createdAt: Now).OwningTerminal(processes).ShouldBe(new TerminalWindow.Any(), "a tab still being claimed may be in any window");
+        Pending(createdAt: Now).ClaimedBy(5000, ProcessStart).OwningTerminal(processes).ShouldBe(new TerminalWindow.Any(), "a shell outside Windows Terminal names no window");
     }
 }
