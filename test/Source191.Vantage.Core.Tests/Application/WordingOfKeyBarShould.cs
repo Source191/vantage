@@ -30,6 +30,8 @@ public sealed class WordingOfKeyBarShould
         KeyBar bar = Wording.SessionsBar(Selecting([Running, EmptyTerminal], EmptyTerminal), updateKnown: false);
 
         Texts(bar.First).ShouldBe(["b Adopt", "d Close tab", "m Memory", "C Close empty", "n New session"]);
+        bar.First[1].Tip.ShouldBe("Close this terminal session's tab; it was never sent a message, so nothing is lost.");
+        bar.First[0].Tip.ShouldBe(Wording.SessionsKeys.Single(key => key.Key == "b").Tip, "a key without a bar word keeps its own tip");
     }
 
     [Fact]
