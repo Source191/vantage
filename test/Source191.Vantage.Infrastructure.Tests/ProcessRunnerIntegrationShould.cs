@@ -47,6 +47,16 @@ public sealed class ProcessRunnerIntegrationShould
     }
 
     [Fact]
+    public async Task RunAnInheritingChildInVantagesOwnFolder()
+    {
+        ProcessRequest request = new("cmd.exe", ["/c", "cd"], WorkingFolder.Inherit);
+
+        ProcessResult result = await runner.RunAsync(request, TestContext.Current.CancellationToken);
+
+        result.StandardOutput.Trim().ShouldBe(Environment.CurrentDirectory.TrimEnd('\\'), StringCompareShould.IgnoreCase);
+    }
+
+    [Fact]
     public async Task ListTheMachineSessionsThroughTheRealClaudeCli()
     {
         string? executable = ClaudeExecutable.Locate() is ClaudeLocation.Found found ? found.Path : null;
