@@ -168,8 +168,8 @@ public sealed class ClaudeAgentsListingShould
     {
         IReadOnlyList<Session> sessions = ClaudeAgentsListing.Parse(Capture).Sessions;
 
-        sessions.Single(session => session.Name == "spike-permission-2").WaitingFor.ShouldBe("permission prompt");
-        sessions.Single(session => session.Name == "spike-commit-check").WaitingFor.ShouldBeNull();
+        sessions.Single(session => session.Name == "spike-permission-2").WaitingFor.ShouldBe(new WaitingReason.Given("permission prompt"));
+        sessions.Single(session => session.Name == "spike-commit-check").WaitingFor.ShouldBe(new WaitingReason.None());
     }
 
     [Fact]
