@@ -26,6 +26,13 @@ public sealed class DetailLayoutShould
     }
 
     [Fact]
+    public void LayOutNothingForTheEmptyContent()
+    {
+        DetailContent.Empty.Title.ShouldBeEmpty();
+        DetailLayout.Rows(DetailContent.Empty, width: 60, height: 5).ShouldBeEmpty();
+    }
+
+    [Fact]
     public void WidenTheColumnsAWideFactSpansBeforeGivingTheLastTheRest()
     {
         string folder = new('x', 40);
