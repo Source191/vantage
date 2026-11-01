@@ -131,4 +131,19 @@ public sealed class ResumeSessionsHandlerShould
         terminal.Opened.Select(launch => launch.StartingDirectory.Value).ShouldBe([Repository, Worktree], "the tabs open in the order the sessions were given");
         (await store.ReadTabsAsync()).Select(tab => tab.Owner).ShouldBe([new TabOwner.ForSession(SessionId.From("sess-1")), new TabOwner.ForSession(SessionId.From("sess-2"))]);
     }
+
+    [Fact]
+    public async Task OpenNoTabForASessionThatDidNotResume()
+    {
+        processes.Answer(request => request.Arguments.Contains("sess-2"), new ProcessResult(1, string.Empty, "Workspace not trusted"));
+        transcripts.WithMessages("sess-2");
+        BackgroundSession stub = Job(Repository, DisplayState.Stopped) with { SessionId = SessionId.From("sess-stub"), Name = "repos-f6" };
+        BackgroundSession refused = Job(Worktree, DisplayState.Failed) with { SessionId = SessionId.From("sess-2"), JobId = JobId.From("c429a96e"), Name = "fix-124" };
+
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([stub, refused]), CancellationToken.None);
+
+        terminal.Opened.ShouldBeEmpty("neither session is running again, so there is nothing to attach to");
+        (await store.ReadTabsAsync()).ShouldBeEmpty();
+        message.ShouldBeOfType<ResumeSessionsOutcome>().Notes.ShouldBe([new ResumeNote.NeverSentAMessage("repos-f6"), new ResumeNote.Failed("fix-124", "Workspace not trusted", SessionId.From("sess-2"))]);
+    }
 }
