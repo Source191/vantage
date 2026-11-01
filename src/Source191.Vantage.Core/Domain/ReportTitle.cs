@@ -2,21 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Source191.Vantage.Domain;
 
-/// <summary>Why a typed problem report title is refused; <c>Wording</c> says it.</summary>
-public enum ReportTitleProblem
-{
-    Missing,
-    TooLong,
-}
-
-/// <summary>A typed title checked against the rules: the title, or the reason it is refused.</summary>
-public abstract record ReportTitleValidation
-{
-    public sealed record Valid(ReportTitle Title) : ReportTitleValidation;
-
-    public sealed record Refused(ReportTitleProblem Problem) : ReportTitleValidation;
-}
-
 /// <summary>
 /// The title of a problem report, the one text in a report the user typed. It is never recorded in the diagnostic log.
 /// At most 200 characters, so the title cannot crowd the diagnostics out of the page's address.

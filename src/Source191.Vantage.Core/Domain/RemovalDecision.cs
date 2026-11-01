@@ -1,19 +1,5 @@
 namespace Source191.Vantage.Domain;
 
-public enum RemovalOutcome
-{
-    Refused,
-    RemoveWorktree,
-    DeleteFolder,
-}
-
-public enum BranchAction
-{
-    None,
-    Delete,
-    Ask,
-}
-
 /// <summary>
 /// What removing a worktree should do. CanBeForced says, for a refusal, whether force-remove would go ahead: true when
 /// only work would be lost, false for a lock or a live session, so the view never has to read the reason to find out.

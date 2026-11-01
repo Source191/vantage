@@ -1,7 +1,5 @@
 namespace Source191.Vantage.Domain;
 
-public sealed record ColourChoice(TabColour Colour, bool Reused);
-
 public sealed class TabColourSelection(IReadOnlyList<TabColour> palette)
 {
     /// <summary>The preferred colour when nothing live uses it; otherwise the usual first free colour.</summary>

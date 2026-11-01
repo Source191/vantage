@@ -2,16 +2,6 @@ using System.Diagnostics;
 
 namespace Source191.Vantage.Domain;
 
-/// <summary>The editors Vantage knows by name, and Custom for an executable the user names.</summary>
-public enum EditorPreset
-{
-    VsCode,
-    VisualStudio,
-    Rider,
-    Explorer,
-    Custom,
-}
-
 /// <summary>
 /// The editor that opens a folder: a preset, or a custom executable whose arguments hold <see cref="FolderPlaceholder"/>
 /// where the folder goes. Arguments are a list, never a command line, so nothing re-parses a path. How a preset
@@ -109,12 +99,4 @@ public sealed record EditorChoice
         return executable.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase)
             || executable.EndsWith(".bat", StringComparison.OrdinalIgnoreCase);
     }
-}
-
-/// <summary>A custom editor's command checked against the rules: the editor, or the first reason it cannot be used.</summary>
-public abstract record EditorChoiceValidation
-{
-    public sealed record Valid(EditorChoice Editor) : EditorChoiceValidation;
-
-    public sealed record Refused(SettingsProblem Problem) : EditorChoiceValidation;
 }

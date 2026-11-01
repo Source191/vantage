@@ -2,20 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Source191.Vantage.Domain;
 
-/// <summary>Why a typed session name is refused; <c>Wording</c> says it.</summary>
-public enum NameProblem
-{
-    Missing,
-}
-
-/// <summary>A typed name checked against the rules: the name, or the reason it is refused.</summary>
-public abstract record SessionNameValidation
-{
-    public sealed record Valid(SessionName Name) : SessionNameValidation;
-
-    public sealed record Refused(NameProblem Problem) : SessionNameValidation;
-}
-
 /// <summary>
 /// A session's name. Three doors share one rule: the constructor for text already known to be a valid name,
 /// <see cref="Validate"/> for typed text, which says why it refuses, and <see cref="TryParse"/> for a listing's name.

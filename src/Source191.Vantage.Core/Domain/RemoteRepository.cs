@@ -60,15 +60,3 @@ public abstract partial record RemoteRepository
         @"|[^@/\s]+@vs-ssh\.visualstudio\.com:v3/(?<org>[^/\s]+)/(?<project>[^/\s]+)/(?<name>[^/\s]+?))/?$", RegexOptions.IgnoreCase)]
     private static partial Regex AzureDevOps();
 }
-
-/// <summary>A repository on github.com.</summary>
-public sealed record GitHubRepository(string Owner, string Name) : RemoteRepository
-{
-    public override PullRequestHost Host => PullRequestHost.GitHub;
-}
-
-/// <summary>A repository in Azure DevOps.</summary>
-public sealed record AzureDevOpsRepository(string Organisation, string Project, string Name) : RemoteRepository
-{
-    public override PullRequestHost Host => PullRequestHost.AzureDevOps;
-}
