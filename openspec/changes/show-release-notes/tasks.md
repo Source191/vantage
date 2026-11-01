@@ -16,13 +16,13 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 - [x] 2.3 `ReleaseNotesShould.ChooseTheStableSectionsBetweenTwoVersionsNewestFirst`: `Between(0.19.0, 0.21.0)` gives 0.21.0 then 0.20.0, never Unreleased, 0.19.0 or a prerelease heading. Verify the fact passes.
 - [x] 2.4 `ReleaseNotesShould.LeaveOutInternalEntries`. Verify the fact passes.
 - [x] 2.5 `ReleaseNotesShould.DropControlCharactersFromEachLine`: an entry holding `\u001b]2;owned\u0007` keeps its visible text without ESC or BEL. Verify the fact passes.
-- [ ] 2.6 `ReleaseNotesShould.SkipLinesItDoesNotUnderstand` (prose, a table row, a heading of an unknown kind). Verify the fact passes and a Stryker run scoped with `--mutate "**/Domain/ReleaseNotes.cs"` leaves no surviving mutant that changes which entries are shown.
+- [x] 2.6 `ReleaseNotesShould.SkipLinesItDoesNotUnderstand` (prose, a table row, a heading of an unknown kind). Verify the fact passes and a Stryker run scoped with `--mutate "**/Domain/ReleaseNotes.cs"` leaves no surviving mutant that changes which entries are shown.
 
 ## 3. Reading and recording the notes
 
-- [ ] 3.1 `NuGetPackageVersionsShould.ReadTheReleaseNotesFromTheNuspec`: a stub `HttpMessageHandler` answering a nuspec for `0.21.0` at `.../source191.vantage/0.21.0/source191.vantage.nuspec` gives `PackageNotes.Read` with the `releaseNotes` text, sent with the `Vantage/<version>` user agent. Red, then `IPackageVersions.NotesAsync` and the adapter (`XmlReader`, DTD prohibited). Verify the fact passes.
-- [ ] 3.2 `NuGetPackageVersionsShould.LearnNothingFromAFailedOrUnreadableNuspec` (404, timeout, malformed XML, a DTD, no `releaseNotes`). Verify the facts pass.
-- [ ] 3.3 `FakePackageVersions` in TestDoubles answers notes per version. Verify the build.
+- [x] 3.1 `NuGetPackageVersionsShould.ReadTheReleaseNotesFromTheNuspec`: a stub `HttpMessageHandler` answering a nuspec for `0.21.0` at `.../source191.vantage/0.21.0/source191.vantage.nuspec` gives `PackageNotes.Read` with the `releaseNotes` text, sent with the `Vantage/<version>` user agent. Red, then `IPackageVersions.NotesAsync` and the adapter (`XmlReader`, DTD prohibited). Verify the fact passes.
+- [x] 3.2 `NuGetPackageVersionsShould.LearnNothingFromAFailedOrUnreadableNuspec` (404, timeout, malformed XML, a DTD, no `releaseNotes`). Verify the facts pass.
+- [x] 3.3 `FakePackageVersions` in TestDoubles answers notes per version. Verify the build.
 - [ ] 3.4 `JsonFileStoreShould.KeepTheNewestReleasesNotes`: `update-check.json` round-trips a `Checked` record with notes, and a file written by 0.20.0 (no `notes`) reads with none. Red, then `UpdateCheckRecord.Checked.NewestNotes` and the file's optional `notes`. Verify the facts and `NullFreeModelsShould` pass.
 - [ ] 3.5 `JsonFileStoreShould.RecordTheLastVersionRun`: `ILastRunVersion` reads `Never` with no `last-run.json`, and the version written. Verify the fact passes.
 - [ ] 3.6 `PackagedReleaseNotesShould.ReadTheChangelogBesideTheTool` (a temporary folder as the base directory) and answer nothing when the file is missing. Red, then `IPackagedReleaseNotes` and its adapter. Verify the facts pass.
