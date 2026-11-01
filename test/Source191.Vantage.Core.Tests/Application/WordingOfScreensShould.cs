@@ -44,6 +44,26 @@ public sealed class WordingOfScreensShould
         Wording.StateGlyph(kind).ShouldBe(glyph);
     }
 
+    [Theory]
+    [InlineData(WorktreeHealthKind.Ok, "✓")]
+    [InlineData(WorktreeHealthKind.Locked, "◆")]
+    [InlineData(WorktreeHealthKind.Orphan, "△")]
+    [InlineData(WorktreeHealthKind.Broken, "✗")]
+    [InlineData(WorktreeHealthKind.Empty, "□")]
+    [InlineData(WorktreeHealthKind.Elsewhere, "↗")]
+    public void GiveEveryHealthItsOwnGlyph(WorktreeHealthKind kind, string glyph)
+    {
+        Wording.HealthGlyph(kind).ShouldBe(glyph);
+    }
+
+    [Fact]
+    public void GiveNoTwoHealthsTheSameGlyph()
+    {
+        WorktreeHealthKind[] kinds = Enum.GetValues<WorktreeHealthKind>();
+
+        kinds.Select(Wording.HealthGlyph).Distinct().Count().ShouldBe(kinds.Length);
+    }
+
     [Fact]
     public void HaveATabTitleForEveryDialog()
     {
