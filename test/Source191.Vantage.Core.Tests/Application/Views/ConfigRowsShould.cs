@@ -90,7 +90,7 @@ public sealed class ConfigRowsShould
     [Fact]
     public void ShowTheSetupAsReadingBeforeItIsRead()
     {
-        IReadOnlyList<ConfigRow.Setup> setup = [.. ConfigRows.For(TestSettings.For(Repos), facts: null).OfType<ConfigRow.Setup>()];
+        IReadOnlyList<ConfigRow.Setup> setup = [.. ConfigRows.For(TestSettings.For(Repos), SetupFacts.Reading).OfType<ConfigRow.Setup>()];
 
         setup.Select(row => row.Item).ShouldBe(Enum.GetValues<SetupItem>());
         setup.ShouldAllBe(row => row.State is SetupState.Reading);
