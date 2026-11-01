@@ -6,11 +6,11 @@ A locale review (1 November 2026) found three faults that do not depend on the l
 
 ## What Changes
 
-- The detail pane's times (Started, Prompted, Created, a commit's time) and the Config tab's Last update check are shown in the user's local time zone, converted with that zone's rules for the moment shown, so a time from before a clock change keeps its own offset; "today" is the local date.
+- The detail pane's times (Started, Prompted and Created; a commit shows only its age) and the Config tab's Last update check are shown in the user's local time zone, converted with that zone's rules for the moment shown, so a time from before a clock change keeps its own offset; "today" is the local date.
 - The Rider preset ranks its installs by comparing the numbers in their paths as numbers, without depending on culture data, so 2025.10 is newer than 2025.9 in the shipped tool.
 - The detail pane lists a changed file by its name as typed, whatever letters it has, by asking git not to quote such paths.
 - `InvariantGlobalization` leaves the Core, Infrastructure and Tui library projects, so the culture analysers check their code (they find nothing today), and joins the three test projects, so the tests run as the tool runs. The tool project and the headless terminal keep it.
-- `CLAUDE.md` gains a section of what translating Vantage, or supporting another culture, will need.
+- `CLAUDE.md` gains a section of what translating Vantage, or supporting another culture, will need (on merging main, which had split `CLAUDE.md`, a bullet in its C# idioms and `.claude\rules\locale.md`; design decision 5).
 - The tool's version rises to the next preview in the pull request that implements this.
 
 ## Capabilities

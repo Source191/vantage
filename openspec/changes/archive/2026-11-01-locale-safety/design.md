@@ -36,7 +36,7 @@ Tests use the Windows zones `GMT Standard Time` and `E. Africa Standard Time` by
 
 ### 2. A culture-free number-aware order for Rider
 
-A `Domain\NumberAwareOrder` (an `IComparer<string>`, one static instance) compares two strings run by run. A run of ASCII digits compares with a run of ASCII digits by value: leading zeros are dropped, then the shorter run is smaller, then digit by digit. Any other character compares by `char.ToUpperInvariant` ordinally. Where everything compares equal, the shorter string comes first. `EditorLocator.NewestRider` orders by it descending in place of `StringComparer.Create(CultureInfo.InvariantCulture, CompareOptions.NumericOrdering | CompareOptions.IgnoreCase)`.
+A static `Domain\NumberAwareOrder.Compare(string, string)` compares two strings run by run; callers wrap it with `Comparer<string>.Create`. It is not an `IComparer<string>` itself, because that interface's `Compare(string?, string?)` would be a nullable member of a Domain type, which `NullFreeModelsShould` refuses. A run of ASCII digits compares with a run of ASCII digits by value: leading zeros are dropped, then the shorter run is smaller, then digit by digit. Any other character compares by `char.ToUpperInvariant` ordinally. Where everything compares equal, the shorter string comes first, then an ordinal comparison decides, so only the same text answers zero. `EditorLocator.NewestRider` orders by it descending in place of `StringComparer.Create(CultureInfo.InvariantCulture, CompareOptions.NumericOrdering | CompareOptions.IgnoreCase)`.
 
 - **Alternative, parse a version from the folder name:** rejected. Standalone folders read `JetBrains Rider 2025.10` and Toolbox ones `253.28294.112`, so it means two parsers for the same answer.
 - **Alternative, turn invariant mode off for the tool:** rejected. It loads ICU, makes every culture-aware call live on the user's culture, and is the decision recorded for translation in `CLAUDE.md`, not a fix for one sort.
@@ -45,7 +45,7 @@ It compares whole paths, as now, so a Toolbox install (under `%LOCALAPPDATA%`) s
 
 ### 3. `-c core.quotePath=false` for the changed files
 
-`GitCli.ChangedFilesAsync` runs `git -c core.quotePath=false status --porcelain`. Only that list shows paths. `CountChangedFilesAsync` counts lines, which quoting does not change, so it stays as it is.
+`GitCli.ChangedFilesAsync` runs `git -c core.quotePath=false status --porcelain`. Only that list shows paths. A diagnostic record keeps a child's leading arguments only while each is on its program's fixed word list, so `-c` and `core.quotePath=false` join git's list in `ChildCommandWords`, and the record reads `git -c core.quotePath=false status` rather than a bare `git`; both are fixed words, so nothing personal can enter by them. `CountChangedFilesAsync` counts lines, which quoting does not change, so it stays as it is.
 
 - **Alternative, `-z`:** rejected for now. It also handles a tab, a newline or a double quote in a name (which git still quotes with `core.quotePath` off) and gives renames as two entries, but it needs a new parser for a case nobody has reported.
 
@@ -61,6 +61,8 @@ Moving the test projects first makes `EditorLocatorShould.RankRiderBuildsByNumbe
 ### 5. A section in `CLAUDE.md` for translation and other cultures
 
 It records what supporting another language or culture will need: turning invariant mode off and what that wakes up, `Wording` becoming resources, culture-formatted dates and numbers, cell widths, slugs for other scripts, the az code page, git's translations, and the parts that must stay invariant (state files, diagnostics, arguments to child programs). Its wording is drafted in task 6.1.
+
+Main split `CLAUDE.md` into always-loaded rules and path-scoped `.claude\rules` files (slim-claude-md) while this change was in progress, so the section follows that layout: the rules that govern code anywhere (invariant culture, ordinal comparisons, times converted by zone, where `InvariantGlobalization` is set) are one bullet in `CLAUDE.md`'s C# idioms, and the rest is `.claude\rules\locale.md`, loaded with the files its facts are about (`Wording`, the layouts, `WorktreeSlug`, `GitCli`, `AzureDevOpsPullRequests`, the project files) and named in `CLAUDE.md`'s list of rule files.
 
 ## Risks / Trade-offs
 

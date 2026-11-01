@@ -8,6 +8,7 @@ public sealed class ChildCommandShould
     [Theory]
     [InlineData("git", new[] { "worktree", "list", "--porcelain" }, "git worktree list")]
     [InlineData("git", new[] { "branch", "-d", "fix-123" }, "git branch")]
+    [InlineData("git", new[] { "-c", "core.quotePath=false", "status", "--porcelain" }, "git -c core.quotePath=false status")]
     [InlineData("git", new[] { "worktree", "add", @"C:\Users\me\source\worktrees\Northwind.Orders-list", "-b", "list" }, "git worktree add")]
     [InlineData(@"C:\Users\me\.local\bin\claude.exe", new[] { "--bg", "-n", "Fix flaky tests" }, "claude --bg")]
     [InlineData(@"C:\Users\me\.local\bin\claude.exe", new[] { "--bg", "--resume", "81cdb0f9-0000", "-n", "Fix" }, "claude --bg --resume")]

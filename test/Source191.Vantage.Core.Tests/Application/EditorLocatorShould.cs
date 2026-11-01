@@ -105,6 +105,16 @@ public sealed class EditorLocatorShould
         (await Locate(folders, EditorPreset.Rider)).ShouldBe(new ProgramLocation.Found(@"C:\Program Files\JetBrains\JetBrains Rider 2025.10\bin\rider64.exe"));
     }
 
+    [Fact]
+    public async Task RankToolboxBuildsByNumber()
+    {
+        FakeFolders folders = new FakeFolders()
+            .WithFile(@"C:\Users\me\AppData\Local\JetBrains\Toolbox\apps\Rider\ch-0\253.99\bin\rider64.exe")
+            .WithFile(@"C:\Users\me\AppData\Local\JetBrains\Toolbox\apps\Rider\ch-0\253.100\bin\rider64.exe");
+
+        (await Locate(folders, EditorPreset.Rider)).ShouldBe(new ProgramLocation.Found(@"C:\Users\me\AppData\Local\JetBrains\Toolbox\apps\Rider\ch-0\253.100\bin\rider64.exe"));
+    }
+
 
     [Fact]
     public async Task AnswerExplorerFromTheWindowsFolder()

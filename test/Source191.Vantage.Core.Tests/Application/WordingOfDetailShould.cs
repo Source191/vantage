@@ -11,6 +11,8 @@ public sealed class WordingOfDetailShould
     private static readonly DateTimeOffset Now = new(2026, 10, 30, 14, 7, 0, TimeSpan.Zero);
     private static readonly FolderPath Worktree = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-123");
     private static readonly FolderPath Repository = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
+    private static readonly TimeZoneInfo UnitedKingdom = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
+    private static readonly TimeZoneInfo Nairobi = TimeZoneInfo.FindSystemTimeZoneById("E. Africa Standard Time");
 
     [Fact]
     public void DescribeASessionAtAPermissionPrompt()
@@ -19,7 +21,7 @@ public sealed class WordingOfDetailShould
         row = row with { Session = row.Session with { WaitingFor = new WaitingReason.Given("permission prompt") } };
         SessionDetail detail = new(row, new LastPrompt.NotSeen(), new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new LastCommit.Made(Now.AddHours(-2)))));
 
-        DetailContent content = Wording.Detail(detail, Now);
+        DetailContent content = Wording.Detail(detail, Now, TimeZoneInfo.Utc);
 
         content.Title.ShouldBe("fix-123");
         Rows(content).ShouldBe(
@@ -39,7 +41,7 @@ public sealed class WordingOfDetailShould
     {
         SessionRow row = Row(DisplayState.NeedsInput, process: new JobProcess.Running(4242)) with { HasTranscript = false };
 
-        DetailLine waiting = Wording.Detail(Detail(row), Now).Facts[0][0];
+        DetailLine waiting = Wording.Detail(Detail(row), Now, TimeZoneInfo.Utc).Facts[0][0];
 
         (waiting.Text, waiting.Tone).ShouldBe(("a first prompt", TextTone.Amber));
     }
@@ -47,7 +49,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void SayAWorkingSessionWaitsForNothing()
     {
-        DetailLine waiting = Wording.Detail(Detail(Row(DisplayState.Working, process: new JobProcess.Running(4242))), Now).Facts[0][0];
+        DetailLine waiting = Wording.Detail(Detail(Row(DisplayState.Working, process: new JobProcess.Running(4242))), Now, TimeZoneInfo.Utc).Facts[0][0];
 
         (waiting.Text, waiting.Tone).ShouldBe(("nothing", TextTone.Plain));
     }
@@ -58,8 +60,8 @@ public sealed class WordingOfDetailShould
         SessionRow main = Row(DisplayState.Idle, process: new JobProcess.Running(4242), folder: Repository);
         SessionRow inside = Row(DisplayState.Idle, process: new JobProcess.Running(4242), folder: Repository.Combine(@"src\Api"));
 
-        Text(Wording.Detail(Detail(main), Now)).ShouldContain("Worktree main checkout");
-        Text(Wording.Detail(Detail(inside), Now)).ShouldContain(@"Worktree src\Api");
+        Text(Wording.Detail(Detail(main), Now, TimeZoneInfo.Utc)).ShouldContain("Worktree main checkout");
+        Text(Wording.Detail(Detail(inside), Now, TimeZoneInfo.Utc)).ShouldContain(@"Worktree src\Api");
     }
 
     [Fact]
@@ -67,7 +69,7 @@ public sealed class WordingOfDetailShould
     {
         SessionRow spike = Row(DisplayState.Idle, process: new JobProcess.Running(4242), folder: FolderPath.From(@"C:\Users\me\source\worktrees\spike"));
 
-        Text(Wording.Detail(Detail(spike), Now)).ShouldContain("Worktree spike");
+        Text(Wording.Detail(Detail(spike), Now, TimeZoneInfo.Utc)).ShouldContain("Worktree spike");
     }
 
     [Fact]
@@ -75,7 +77,7 @@ public sealed class WordingOfDetailShould
     {
         SessionDetail detail = new(Row(DisplayState.Stopped, process: new JobProcess.None()), new LastPrompt.Seen(Now.AddMinutes(-4)), new DetailFact<WorktreeCounts>.Unavailable());
 
-        string[] lines = Text(Wording.Detail(detail, Now));
+        string[] lines = Text(Wording.Detail(detail, Now, TimeZoneInfo.Utc));
 
         lines.ShouldContain("Prompted 14:03 (4m ago)");
         lines.ShouldContain("Changes unavailable");
@@ -87,7 +89,7 @@ public sealed class WordingOfDetailShould
     {
         SessionRow row = Row(DisplayState.Idle, process: new JobProcess.None()) with { Session = new InteractiveSession(SessionId.From("82db48ec-63de-49db-9831-b8147075dc3a"), "repos-93", Worktree, Now, DisplayState.Idle, ProcessId: 51432), Location = new SessionLocation.Outside("Northwind.Orders") };
 
-        string[] lines = Text(Wording.Detail(Detail(row), Now));
+        string[] lines = Text(Wording.Detail(Detail(row), Now, TimeZoneInfo.Utc));
 
         lines.ShouldContain("Tab its own terminal");
         lines.ShouldContain("Worktree not in a repository");
@@ -106,7 +108,7 @@ public sealed class WordingOfDetailShould
             new DetailFact<IReadOnlyList<UnpushedCommit>>.Known(commits),
             new DetailFact<IReadOnlyList<string>>.NotApplicable());
 
-        DetailContent content = Wording.Detail(detail, Now);
+        DetailContent content = Wording.Detail(detail, Now, TimeZoneInfo.Utc);
 
         content.Title.ShouldBe("Northwind.Orders-fix-123");
         Rows(content).ShouldBe(
@@ -139,7 +141,7 @@ public sealed class WordingOfDetailShould
             new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(),
             new DetailFact<IReadOnlyList<string>>.Known(["Invoice.cs", "Totals.cs"]));
 
-        string[] lines = Text(Wording.Detail(detail, Now));
+        string[] lines = Text(Wording.Detail(detail, Now, TimeZoneInfo.Utc));
 
         lines.ShouldContain("Created not by Vantage");
         lines.ShouldContain("Branch fix-123, merge state unavailable");
@@ -152,7 +154,7 @@ public sealed class WordingOfDetailShould
         WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Health = new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()), Head = new Head.Unknown(), FolderExists = false };
         WorktreeDetail detail = new(row, new WorktreeOrigin.NotByVantage(), new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.Unavailable(), new DetailFact<IReadOnlyList<string>>.Unavailable());
 
-        DetailContent content = Wording.Detail(detail, Now);
+        DetailContent content = Wording.Detail(detail, Now, TimeZoneInfo.Utc);
         string[] lines = Text(content);
 
         lines[0].ShouldBe($"Health broken: {Wording.Describe(new HealthReason.FolderGone())}");
@@ -167,8 +169,8 @@ public sealed class WordingOfDetailShould
         SessionRow detached = Row(DisplayState.Idle, process: new JobProcess.Running(4242)) with { Head = new Head.Detached() };
         SessionRow unknown = Row(DisplayState.Idle, process: new JobProcess.Running(4242)) with { Head = new Head.Unknown() };
 
-        Rows(Wording.Detail(Detail(detached), Now))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
-        Rows(Wording.Detail(Detail(unknown), Now))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
+        Rows(Wording.Detail(Detail(detached), Now, TimeZoneInfo.Utc))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
+        Rows(Wording.Detail(Detail(unknown), Now, TimeZoneInfo.Utc))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
     }
 
     [Fact]
@@ -179,7 +181,7 @@ public sealed class WordingOfDetailShould
             WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Head = head };
             WorktreeDetail detail = new(row, new WorktreeOrigin.NotByVantage(), new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
 
-            Rows(Wording.Detail(detail, Now))[1].ShouldBe(["Branch none", "PR none"]);
+            Rows(Wording.Detail(detail, Now, TimeZoneInfo.Utc))[1].ShouldBe(["Branch none", "PR none"]);
         }
     }
 
@@ -188,8 +190,45 @@ public sealed class WordingOfDetailShould
     {
         WorktreeDetail worktree = new(WorktreeRowOf(unpushed: 0, dirty: 0), new WorktreeOrigin.NotByVantage(), new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
 
-        Wording.Detail(Detail(Row(DisplayState.Idle, process: new JobProcess.None())), Now).Facts.Count.ShouldBe(Wording.DetailFactRows);
-        Wording.Detail(worktree, Now).Facts.Count.ShouldBe(Wording.DetailFactRows);
+        Wording.Detail(Detail(Row(DisplayState.Idle, process: new JobProcess.None())), Now, TimeZoneInfo.Utc).Facts.Count.ShouldBe(Wording.DetailFactRows);
+        Wording.Detail(worktree, Now, TimeZoneInfo.Utc).Facts.Count.ShouldBe(Wording.DetailFactRows);
+    }
+
+    [Fact]
+    public void ShowASummerStartInUnitedKingdomTime()
+    {
+        SessionRow row = Row(DisplayState.Working, process: new JobProcess.Running(4242));
+        row = row with { Session = row.Session with { StartedAt = new DateTimeOffset(2026, 7, 15, 13, 32, 0, TimeSpan.Zero) } };
+
+        DetailContent content = Wording.Detail(Detail(row), new DateTimeOffset(2026, 7, 15, 13, 37, 0, TimeSpan.Zero), UnitedKingdom);
+
+        Text(content).ShouldContain("Started 14:32 (5m ago)");
+    }
+
+    [Fact]
+    public void ShowATimeFromBeforeTheClocksWentBackInItsOwnOffset()
+    {
+        WorktreeDetail detail = new(
+            WorktreeRowOf(unpushed: 0, dirty: 0),
+            new WorktreeOrigin.CreatedByVantage(new CreatedWorktree(Worktree, BranchName.From("fix-123"), Repository, new DateTimeOffset(2026, 10, 23, 8, 14, 0, TimeSpan.Zero))),
+            new DetailFact<MergeState>.NotApplicable(),
+            new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(),
+            new DetailFact<IReadOnlyList<string>>.NotApplicable());
+
+        DetailContent content = Wording.Detail(detail, new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.Zero), UnitedKingdom);
+
+        Text(content).ShouldContain("Created by Vantage, 23 Oct 09:14");
+    }
+
+    [Fact]
+    public void CountTodayByTheLocalDate()
+    {
+        SessionRow row = Row(DisplayState.Working, process: new JobProcess.Running(4242));
+        row = row with { Session = row.Session with { StartedAt = new DateTimeOffset(2026, 11, 1, 21, 30, 0, TimeSpan.Zero) } };
+
+        DetailContent content = Wording.Detail(Detail(row), new DateTimeOffset(2026, 11, 2, 0, 30, 0, TimeSpan.Zero), Nairobi);
+
+        Text(content).ShouldContain("Started 00:30 (3h00m ago)");
     }
 
     private static SessionDetail Detail(SessionRow row) => new(row, new LastPrompt.NotSeen(), new DetailFact<WorktreeCounts>.NotApplicable());
