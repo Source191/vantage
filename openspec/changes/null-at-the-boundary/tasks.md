@@ -21,7 +21,7 @@ Each task is one red-green-refactor cycle with a commit per step, or a refactor 
 ## 3. Pull-request hosts
 
 - [x] 3.1 `PullRequestCatalogueShould`'s facts for no remote, an unknown host and a failed lookup expect `NotRead`, and a listed or unavailable host `Known`: red, then `PullRequestCatalogue`'s `ListAsync` and `Answer` carrying `LookupHost` green. Verify the facts pass with the same gaps. (Note: the facts were pinned green, since 1.2's one-argument constructor already supplied `NotRead`; the catalogue's internals followed as a refactor.)
-- [ ] 3.2 `WordingShould`'s pull-request facts build `Footer.NoPullRequest` with a `LookupHost` and expect today's sentences, including "the GitHub CLI (gh) or the Azure CLI (az)" and "gh auth login or az login" for `NotRead`: red, then `Footer.NoPullRequest`, `SessionsView`, `WorktreesView` and `WordingOfPullRequests.Cli`, `SignIn` and the `Failed` arm on `LookupHost` (both cases named, `UnreachableException` discard arm) green. Verify every pull-request wording fact passes unchanged in its expected text.
+- [x] 3.2 `WordingShould`'s pull-request facts build `Footer.NoPullRequest` with a `LookupHost` and expect today's sentences, including "the GitHub CLI (gh) or the Azure CLI (az)" and "gh auth login or az login" for `NotRead`: red, then `Footer.NoPullRequest`, `SessionsView`, `WorktreesView` and `WordingOfPullRequests.Cli`, `SignIn` and the `Failed` arm on `LookupHost` (both cases named, `UnreachableException` discard arm) green. Verify every pull-request wording fact passes unchanged in its expected text.
 
 ## 4. Terminal setup sounds
 
