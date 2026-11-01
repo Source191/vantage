@@ -885,7 +885,7 @@ public sealed class WordingShould
     [Fact]
     public void ShowWhatTheProfilesWillBe()
     {
-        TerminalProfiles profiles = new(@"C:\Users\me\.dotnet\tools\vantage.exe", @"C:\Windows\Media\Windows Notify Messaging.wav", SessionSound: null);
+        TerminalProfiles profiles = new(@"C:\Users\me\.dotnet\tools\vantage.exe", new BellSound.File(@"C:\Windows\Media\Windows Notify Messaging.wav"), new BellSound.TerminalDefault());
 
         Wording.TerminalSetupPlan(@"C:\Users\me\AppData\Local\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json", profiles).ShouldBe("""
             Two Windows Terminal profiles will be written to C:\Users\me\AppData\Local\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json

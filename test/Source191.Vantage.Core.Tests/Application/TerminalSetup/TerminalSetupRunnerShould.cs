@@ -36,7 +36,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         exitCode.ShouldBe(0);
         fragment.Written.ShouldBeEmpty();
         settings.Enabled.ShouldBe(0);
-        output.ToString().ShouldContain(Wording.TerminalSetupPlan(fragment.Location, new TerminalProfiles(Vantage, NotifyMessaging, ProximityNotification)));
+        output.ToString().ShouldContain(Wording.TerminalSetupPlan(fragment.Location, new TerminalProfiles(Vantage, new BellSound.File(NotifyMessaging), new BellSound.File(ProximityNotification))));
         output.ToString().ShouldContain(Wording.WriteProfilesQuestion);
         output.ToString().ShouldContain(Wording.NothingWritten);
     }
@@ -58,7 +58,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         int exitCode = await RunAsync("y\nn\n");
 
         exitCode.ShouldBe(0);
-        fragment.Written.ShouldBe([new TerminalProfiles(Vantage, NotifyMessaging, ProximityNotification)]);
+        fragment.Written.ShouldBe([new TerminalProfiles(Vantage, new BellSound.File(NotifyMessaging), new BellSound.File(ProximityNotification))]);
         output.ToString().ShouldContain(Wording.ProfilesWritten(fragment.Location));
         output.ToString().ShouldNotContain(Wording.NothingWritten);
     }
@@ -77,7 +77,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = new SoundArgument.Given(Chimes), SessionSound = new SoundArgument.Given(NotifyMessaging.ToUpperInvariant()) });
 
         exitCode.ShouldBe(0);
-        fragment.Written.Single().ShouldBe(new TerminalProfiles(Vantage, Chimes, NotifyMessaging.ToUpperInvariant()));
+        fragment.Written.Single().ShouldBe(new TerminalProfiles(Vantage, new BellSound.File(Chimes), new BellSound.File(NotifyMessaging.ToUpperInvariant())));
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = new SoundArgument.Given("ding.wav") });
 
         exitCode.ShouldBe(0);
-        fragment.Written.Single().VantageSound.ShouldBe(full);
+        fragment.Written.Single().VantageSound.ShouldBe(new BellSound.File(full));
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
 
         await runner.RunAsync(Defaults, CancellationToken.None);
 
-        fragment.Written.Single().ShouldBe(new TerminalProfiles(Vantage, VantageSound: null, ProximityNotification));
+        fragment.Written.Single().ShouldBe(new TerminalProfiles(Vantage, new BellSound.TerminalDefault(), new BellSound.File(ProximityNotification)));
         output.ToString().ShouldContain(Wording.DefaultSoundMissing("Vantage", NotifyMessaging));
         output.ToString().ShouldNotContain("Vantage session profile uses");
     }
