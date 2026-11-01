@@ -105,8 +105,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     /// <summary>The key of the row whose detail was last asked for, or <see cref="askAgain"/>.</summary>
     private object detailKey;
     private TRow? selected;
-    private int? headerUnderMouse;
-    private int? rowUnderMouse;
+    private PointerOver pointer = new PointerOver.Nothing();
     private int columnOffset;
     private bool isShown;
     private bool running;
@@ -219,8 +218,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public void OnKey(GuiKey key)
     {
-        Key? mapped = KeyMapping.From(key);
-        if (mapped is null)
+        if (!KeyMapping.TryFrom(key, out Key? mapped))
         {
             return;
         }
@@ -445,46 +443,50 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     private void HideColumnToolTip()
     {
-        if (headerUnderMouse is not null || rowUnderMouse is not null)
+        if (pointer is not PointerOver.Nothing)
         {
             app.ToolTips?.Hide();
         }
 
-        headerUnderMouse = null;
-        rowUnderMouse = null;
+        pointer = new PointerOver.Nothing();
     }
 
     /// <summary>A column's meaning while the pointer rests on its header; a row's tip, when the view gives one, while it rests on the row.</summary>
     private void ShowColumnToolTip(Terminal.Gui.Input.Mouse mouse)
     {
-        int? header = null;
-        System.Drawing.Point? cell = null;
-        if (mouse.Position is System.Drawing.Point position)
-        {
-            cell = table.ScreenToCell(position, out header);
-        }
-
-        int? row = header is null ? cell?.Y : null;
-        if (header == headerUnderMouse && row == rowUnderMouse)
+        PointerOver over = mouse.Position is System.Drawing.Point position ? PointerAt(position) : new PointerOver.Nothing();
+        if (over == pointer)
         {
             return;
         }
 
         HideColumnToolTip();
-        headerUnderMouse = header;
-        rowUnderMouse = row;
+        pointer = over;
         int x = table.Frame.X + (mouse.Position?.X ?? 0);
-        if (header is int column && column < definition.Columns.Count)
+        if (over is PointerOver.Header header && header.Column < definition.Columns.Count)
         {
-            ColumnHelp help = definition.Columns[column];
+            ColumnHelp help = definition.Columns[header.Column];
             ShowToolTip(x, table.Frame.Y, HeaderRows, $"{help.Name}: {help.Meaning}");
             return;
         }
 
-        if (row is int index && table.Table is TableSource<TRow> source && index < source.Rows && definition.RowTip(source.RowAt(index)) is string tip)
+        if (over is PointerOver.Row row && table.Table is TableSource<TRow> source && row.Index < source.Rows && definition.RowTip(source.RowAt(row.Index)) is string tip)
         {
             ShowToolTip(x, table.Frame.Y + (mouse.Position?.Y ?? 0), 1, tip);
         }
+    }
+
+    /// <summary>What the pointer is over, from Terminal.Gui's answer: a header's column, else the row of the cell under it, else nothing.</summary>
+    private PointerOver PointerAt(System.Drawing.Point position)
+    {
+        System.Drawing.Point? cell = table.ScreenToCell(position, out int? header);
+
+        return (header, cell) switch
+        {
+            (int column, _) => new PointerOver.Header(column),
+            (null, System.Drawing.Point { Y: int index }) => new PointerOver.Row(index),
+            _ => new PointerOver.Nothing(),
+        };
     }
 
     /// <summary>Lays the anchor over the header or the row at the pointer and shows the tooltip on the row under it.</summary>
@@ -589,6 +591,16 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         return Equals(row, selected)
             ? Palette.SelectedRow()
             : Palette.Plain(definition.RowColour(row));
+    }
+
+    /// <summary>What the pointer rests on, so a tooltip is shown once per header or row it enters.</summary>
+    private abstract record PointerOver
+    {
+        public sealed record Nothing : PointerOver;
+
+        public sealed record Header(int Column) : PointerOver;
+
+        public sealed record Row(int Index) : PointerOver;
     }
 
     /// <summary>The tab's detail pane as the tab holds it: none, or the pane with its source and the order of its requests.</summary>

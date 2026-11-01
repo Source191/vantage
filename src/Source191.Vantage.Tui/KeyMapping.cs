@@ -1,4 +1,5 @@
 using Source191.Vantage.Application.Views;
+using System.Diagnostics.CodeAnalysis;
 using GuiKey = Terminal.Gui.Input.Key;
 
 namespace Source191.Vantage.Tui;
@@ -6,45 +7,33 @@ namespace Source191.Vantage.Tui;
 /// <summary>Translates Terminal.Gui keys into the reducer's library-free keys.</summary>
 internal static class KeyMapping
 {
-    public static Key? From(GuiKey key)
+    /// <summary>The named keys the reducers know, each with its Terminal.Gui key.</summary>
+    private static readonly (GuiKey Gui, Key Key)[] Named =
+    [
+        (GuiKey.Enter, Key.Enter),
+        (GuiKey.Esc, Key.Escape),
+        (GuiKey.CursorUp, Key.Up),
+        (GuiKey.CursorDown, Key.Down),
+        (GuiKey.CursorLeft, Key.Left),
+        (GuiKey.CursorRight, Key.Right),
+        (GuiKey.Backspace, Key.Backspace),
+    ];
+
+    /// <summary>Whether the reducers know this key (a named key, or a printable character), and the key they know it as.</summary>
+    public static bool TryFrom(GuiKey key, [NotNullWhen(true)] out Key? mapped)
     {
-        if (key == GuiKey.Enter)
+        foreach ((GuiKey gui, Key named) in Named)
         {
-            return Key.Enter;
-        }
-
-        if (key == GuiKey.Esc)
-        {
-            return Key.Escape;
-        }
-
-        if (key == GuiKey.CursorUp)
-        {
-            return Key.Up;
-        }
-
-        if (key == GuiKey.CursorDown)
-        {
-            return Key.Down;
-        }
-
-        if (key == GuiKey.CursorLeft)
-        {
-            return Key.Left;
-        }
-
-        if (key == GuiKey.CursorRight)
-        {
-            return Key.Right;
-        }
-
-        if (key == GuiKey.Backspace)
-        {
-            return Key.Backspace;
+            if (key == gui)
+            {
+                mapped = named;
+                return true;
+            }
         }
 
         string text = key.AsRune.ToString();
+        mapped = text.Length == 1 && !char.IsControl(text[0]) ? Key.Of(text[0]) : null;
 
-        return text.Length == 1 && !char.IsControl(text[0]) ? Key.Of(text[0]) : null;
+        return mapped is not null;
     }
 }
