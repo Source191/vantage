@@ -55,6 +55,15 @@ public sealed class ClaudeStatesShould
     }
 
     [Fact]
+    public void ShowStartingForABackgroundJobWithAProcessAndNoStatus()
+    {
+        DisplayState state = ClaudeStates.From(processId: 100, status: null, state: "blocked");
+
+        state.Kind.ShouldBe(DisplayStateKind.Working);
+        state.Label.ShouldBe("starting");
+    }
+
+    [Fact]
     public void ShowTheRawValuesForAnUnknownCombination()
     {
         DisplayState state = ClaudeStates.From(processId: 100, status: "paused", state: "dreaming");
