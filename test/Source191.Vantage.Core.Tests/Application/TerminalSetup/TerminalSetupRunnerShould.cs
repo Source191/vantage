@@ -151,6 +151,39 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     }
 
     [Fact]
+    public async Task RefuseABlankSoundAsMissingWithExitTwo()
+    {
+        int exitCode = await RunAsync("y\ny\n", Defaults with { Sound = new SoundArgument.Given("  ") });
+
+        exitCode.ShouldBe(2);
+        error.ToString().ShouldBe(Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotFound("  ")) + Environment.NewLine, "blank text is kept as it is, never made a full path");
+        fragment.Written.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ReportTheVantageSoundsProblemBeforeTheSessionSounds()
+    {
+        int exitCode = await RunAsync("y\ny\n", Defaults with { Sound = new SoundArgument.Given(@"C:\Windows\Media\notes.txt"), SessionSound = new SoundArgument.Given(@"C:\Users\me\missing.wav") });
+
+        exitCode.ShouldBe(2);
+        error.ToString().ShouldBe(Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotWav(@"C:\Windows\Media\notes.txt")) + Environment.NewLine, "the first refusal wins");
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public async Task RefuseRemoveWithEitherSoundWithExitTwo(bool sound, bool sessionSound)
+    {
+        SoundArgument chimes = new SoundArgument.Given(Chimes);
+
+        int exitCode = await RunAsync(string.Empty, Defaults with { Remove = true, Sound = sound ? chimes : new SoundArgument.Omitted(), SessionSound = sessionSound ? chimes : new SoundArgument.Omitted() });
+
+        exitCode.ShouldBe(2);
+        error.ToString().ShouldBe(Wording.DescribeSetupProblem(new TerminalSetupProblem.RemoveWithSound()) + Environment.NewLine);
+        fragment.Removals.ShouldBe(0);
+    }
+
+    [Fact]
     public async Task RefuseRemoveWithASoundWithExitTwo()
     {
         int exitCode = await RunAsync(string.Empty, Defaults with { Remove = true, Sound = new SoundArgument.Given(Chimes) });
