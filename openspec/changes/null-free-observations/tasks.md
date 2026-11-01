@@ -12,7 +12,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 2. Adapters
 
-- [ ] 2.1 `JsonFileStoreShould.ReadAPendingTabFileWrittenByTheCurrentVersion` (a file with `"processId": null` and `"processStartedAt": null` reads as `Pending`) and `WriteTheTabFileItAlwaysHas` (a written claimed tab's text has the same keys and values as `SessionTabJson`), with `RoundTripATabRegistration` and `ReadTabFilesWrittenByTheCurrentVersion` unchanged: red, then `Adapters\State\TabFile.cs` and `JsonFileStore` mapping through it, without `KeepTabOwnerAsSessionId`, green. Verify the four facts pass.
+- [x] 2.1 `JsonFileStoreShould.ReadAPendingTabFileWrittenByTheCurrentVersion` (a file with `"processId": null` and `"processStartedAt": null` reads as `Pending`) and `WriteTheTabFileItAlwaysHas` (a written claimed tab's text has the same keys and values as `SessionTabJson`), with `RoundTripATabRegistration` and `ReadTabFilesWrittenByTheCurrentVersion` unchanged: red, then `Adapters\State\TabFile.cs` and `JsonFileStore` mapping through it, without `KeepTabOwnerAsSessionId`, green. Verify the four facts pass.
 - [ ] 2.2 `GitWorktreeListingShould`: a `locked` line gives `Locked` with git's reason or `""`, no line gives `Unlocked`, and a `prunable` line sets `IsPrunable`: red, then `GitWorktreeEntry`'s `Lock` and `IsPrunable` and `ParseBlock` green. Verify the facts pass and `GitWorktreeListing.cs` keeps no `string?`.
 - [ ] 2.3 `ClaudeAgentsListingShould`'s waiting facts expect `new WaitingReason.Given("permission prompt")` and `WaitingReason.Nothing`: red, then `Session.WaitingFor` as a `WaitingReason` and `ClaudeAgentsListing` translating the row green. Verify the facts pass.
 
