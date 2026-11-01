@@ -146,7 +146,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     ClaudeVersionReport claudeVersionReport = await claudeVersion;
     Started start = RecordStart(claudeVersionReport);
     ProblemReports reports = new(log, processCounts, crashFile, start, settings);
-    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders), reports, processRegistry);
+    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders, settings), new RemoveWorktreeHandler(git, store, folders, settings), reports, processRegistry);
 
     ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionReport);
     ScreenContext context = new(tabTitle, _ => [Wording.SettingsRow(version, claudeCode, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero)], () => updates.Status is UpdateStatus.Available, clipboard, log);

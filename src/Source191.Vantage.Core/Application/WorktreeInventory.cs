@@ -239,22 +239,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         return leftoverName && folders.IsEmpty(folder.Value);
     }
 
-    /// <summary>
-    /// Files git no longer tracks, so would be lost with the folder; the .git pointer file itself does not count. Counting
-    /// stops at the Domain limit so a leftover with a dependencies tree inside does not slow every scan.
-    /// </summary>
-    private int CountLeftoverFiles(FolderPath folder)
-    {
-        if (!folders.DirectoryExists(folder.Value))
-        {
-            return 0;
-        }
-
-        return folders.Files(folder.Value)
-            .Where(file => !string.Equals(IOPath.GetFileName(file), ".git", StringComparison.OrdinalIgnoreCase))
-            .Take(WorktreeRemovalFacts.LeftoverFileLimit)
-            .Count();
-    }
+    private int CountLeftoverFiles(FolderPath folder) => LeftoverFiles.Count(folders, folder);
 
     /// <summary>The first session with a process working in the worktree or a folder inside it.</summary>
     private static WorktreeSession LiveSessionIn(FolderPath worktree, IReadOnlyList<Session> sessions)

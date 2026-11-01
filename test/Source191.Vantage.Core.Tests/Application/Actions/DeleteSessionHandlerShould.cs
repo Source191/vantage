@@ -18,7 +18,7 @@ public sealed class DeleteSessionHandlerShould
     private readonly FakeProcessRegistry registry = new();
     private readonly FakeFolders folders = new FakeFolders().WithDirectory(Worktree);
 
-    private DeleteSessionHandler Handler => new(new ClaudeCli(processes, Claude), new GitCli(processes, "git"), store, new SessionTabs(store, registry, new FakeTimeProvider(Noon)), folders);
+    private DeleteSessionHandler Handler => new(new ClaudeCli(processes, Claude), new GitCli(processes, "git"), store, new SessionTabs(store, registry, new FakeTimeProvider(Noon)), folders, TestSettings.Current(@"C:\repos"));
 
     [Fact]
     public async Task DeleteASessionOutsideAVantageWorktreeWithoutTouchingGit()
