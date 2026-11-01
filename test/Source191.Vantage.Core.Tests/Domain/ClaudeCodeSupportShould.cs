@@ -7,13 +7,13 @@ public sealed class ClaudeCodeSupportShould
     [Fact]
     public void AnswerUnknownWhenNothingWasRead()
     {
-        ClaudeCodeSupport.Check(null).ShouldBe(new ClaudeCodeVersion.Unknown());
+        ClaudeCodeSupport.Check(new ClaudeVersionReport.NotRead()).ShouldBe(new ClaudeCodeVersion.Unknown());
     }
 
     [Fact]
     public void AnswerBelowMinimumForAnOlderVersion()
     {
-        ClaudeCodeSupport.Check("2.1.302").ShouldBe(new ClaudeCodeVersion.BelowMinimum(new ReleaseVersion(2, 1, 302, ""), new ReleaseVersion(2, 1, 309, "")));
+        ClaudeCodeSupport.Check(new ClaudeVersionReport.Printed("2.1.302")).ShouldBe(new ClaudeCodeVersion.BelowMinimum(new ReleaseVersion(2, 1, 302, ""), new ReleaseVersion(2, 1, 309, "")));
     }
 
     [Theory]
@@ -21,12 +21,12 @@ public sealed class ClaudeCodeSupportShould
     [InlineData("2.1.310")]
     public void AnswerReportedAtOrAboveTheMinimum(string version)
     {
-        ClaudeCodeSupport.Check(version).ShouldBe(new ClaudeCodeVersion.Reported(version));
+        ClaudeCodeSupport.Check(new ClaudeVersionReport.Printed(version)).ShouldBe(new ClaudeCodeVersion.Reported(version));
     }
 
     [Fact]
     public void AnswerReportedForAVersionItCannotRead()
     {
-        ClaudeCodeSupport.Check("2.1").ShouldBe(new ClaudeCodeVersion.Reported("2.1"));
+        ClaudeCodeSupport.Check(new ClaudeVersionReport.Printed("2.1")).ShouldBe(new ClaudeCodeVersion.Reported("2.1"));
     }
 }
