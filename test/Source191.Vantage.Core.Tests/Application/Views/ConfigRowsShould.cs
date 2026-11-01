@@ -66,7 +66,7 @@ public sealed class ConfigRowsShould
     {
         IReadOnlyList<ConfigRow> rows = ConfigRows.For(TestSettings.For(Repos), AllSetUp);
 
-        rows.Skip(6).ShouldBe(
+        rows.Skip(7).ShouldBe(
         [
             new ConfigRow.Setup(SetupItem.SettingsFile, new SetupState.At(SettingsFile)),
             new ConfigRow.Setup(SetupItem.TerminalProfiles, new SetupState.At(Fragment)),
@@ -74,6 +74,19 @@ public sealed class ConfigRowsShould
             new ConfigRow.Setup(SetupItem.DiagnosticLog, new SetupState.Disabled()),
             new ConfigRow.Setup(SetupItem.LastUpdateCheck, AllSetUp.LastUpdateCheck),
         ]);
+    }
+
+    [Fact]
+    public void HeadTheSetupRows()
+    {
+        IReadOnlyList<ConfigRow> rows = ConfigRows.For(TestSettings.For(Repos), AllSetUp);
+        IReadOnlyList<ConfigRow> saved = ConfigRows.For(TestSettings.For([Repos], @"D:\worktrees"), AllSetUp);
+
+        rows.OfType<ConfigRow.Heading>().Count().ShouldBe(1);
+        rows[5].ShouldBeOfType<ConfigRow.CheckForUpdates>();
+        rows[6].ShouldBeOfType<ConfigRow.Heading>();
+        rows[7].ShouldBe(new ConfigRow.Setup(SetupItem.SettingsFile, new SetupState.At(SettingsFile)));
+        saved[6].Key.ShouldBe(rows[6].Key);
     }
 
     [Fact]

@@ -21,6 +21,9 @@ public abstract record ConfigRow(string Key)
 
     public sealed record CheckForUpdates(bool On) : ConfigRow("check-for-updates");
 
+    /// <summary>The heading over the setup rows: a row the selection steps over and any filter hides.</summary>
+    public sealed record Heading() : ConfigRow("heading:setup");
+
     /// <summary>A piece of setup: what it is and what was read about it.</summary>
     public sealed record Setup(SetupItem Item, SetupState State) : ConfigRow($"setup:{Item}");
 }
