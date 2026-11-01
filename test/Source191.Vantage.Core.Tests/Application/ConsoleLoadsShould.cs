@@ -40,10 +40,14 @@ public sealed class ConsoleLoadsShould : IDisposable
     private readonly FakeTimeProvider clock = new(Noon);
     private readonly CurrentSettings settings = TestSettings.Current(Root);
     private readonly PullRequestCatalogue catalogue;
+    private readonly DiagnosticLog log;
+    private readonly RefreshCounts refreshes;
 
     public ConsoleLoadsShould()
     {
-        catalogue = new PullRequestCatalogue(new GitCli(new FakeProcessRunner().AnswerAll(new ProcessResult(2, string.Empty, string.Empty)), "git"), new FakePullRequests(), clock);
+        log = new DiagnosticLog(clock, []);
+        refreshes = new RefreshCounts(clock, log);
+        catalogue = new PullRequestCatalogue(new GitCli(new FakeProcessRunner().AnswerAll(new ProcessResult(2, string.Empty, string.Empty)), "git"), new FakePullRequests(), clock, new RefreshCounts(clock, new DiagnosticLog(clock, [])));
     }
 
     [Fact]
@@ -96,6 +100,48 @@ public sealed class ConsoleLoadsShould : IDisposable
         after.ShouldNotBe(before);
     }
 
+    [Fact]
+    public async Task TimeTheListingAndTheEnrichmentApart()
+    {
+        claudeRuns.OnRun = _ => clock.Advance(TimeSpan.FromMilliseconds(1700));
+        gitRuns.OnRun = _ => clock.Advance(TimeSpan.FromMilliseconds(30));
+
+        await Loads().LoadSessionsAsync(TestContext.Current.CancellationToken);
+
+        TimeSpan listing = TimeSpan.FromMilliseconds(1700);
+        TimeSpan enrichment = TimeSpan.FromMilliseconds(30 * gitRuns.CapturedRequests.Count);
+        enrichment.ShouldBeGreaterThan(TimeSpan.Zero, "the enrichment ran git");
+        refreshes.Snapshot().ShouldBe([
+            new RefreshCount(RefreshPart.SessionsListing, new DurationFigures(1, listing, listing, listing)),
+            new RefreshCount(RefreshPart.SessionsEnrichment, new DurationFigures(1, enrichment, enrichment, enrichment)),
+        ]);
+        log.Snapshot().ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task TimeTheScanWithoutItsWaitForTheFirstListing()
+    {
+        claudeRuns.OnRun = _ => clock.Advance(TimeSpan.FromSeconds(9));
+        ConsoleLoads loads = Loads();
+
+        Task<ViewInput> scan = loads.ScanWorktreesAsync(TestContext.Current.CancellationToken);
+        await loads.LoadSessionsAsync(TestContext.Current.CancellationToken);
+        await scan;
+
+        refreshes.Snapshot().Single(count => count.Part == RefreshPart.WorktreesScan).Durations.Longest.ShouldBe(TimeSpan.Zero, "git took no time on the fake clock; the 9 s were the listing's");
+        log.Snapshot().Select(timed => timed.Event).ShouldBe([new RefreshSlow(RefreshPart.SessionsListing, TimeSpan.FromSeconds(9))]);
+    }
+
+    [Fact]
+    public async Task NotTimeAFailedListing()
+    {
+        claudeRuns.Fail(new System.ComponentModel.Win32Exception(2, "The system cannot find the file specified."));
+
+        await Should.ThrowAsync<System.ComponentModel.Win32Exception>(() => Loads().LoadSessionsAsync(TestContext.Current.CancellationToken));
+
+        refreshes.Snapshot().ShouldBeEmpty();
+    }
+
     private ConsoleLoads Loads()
     {
         GitCli git = new(gitRuns, "git");
@@ -103,7 +149,7 @@ public sealed class ConsoleLoadsShould : IDisposable
         WorktreeInventory inventory = new(git, folders, settings, catalogue);
         SetupFactsReader setup = new(new FakeTerminalFragment(), new FakeClaudeSettings(new NotificationChannelState.Unset()), store, SettingsFile, new DiagnosticLogSetting.Off());
 
-        return new ConsoleLoads(new LatestSessions(new ClaudeCli(claudeRuns, Claude)), enricher, inventory, setup, settings);
+        return new ConsoleLoads(new LatestSessions(new ClaudeCli(claudeRuns, Claude)), enricher, inventory, setup, settings, refreshes);
     }
 
     public void Dispose()

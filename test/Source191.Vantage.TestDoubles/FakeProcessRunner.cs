@@ -32,6 +32,9 @@ public sealed class FakeProcessRunner : IProcessRunner
     /// <summary>Called as each interactive run starts, so a test can put it in order with other fakes' records.</summary>
     public Action<ProcessRequest> OnInteractive { get; set; } = _ => { };
 
+    /// <summary>Called as each captured run starts, so a test can make it take time on a fake clock.</summary>
+    public Action<ProcessRequest> OnRun { get; set; } = _ => { };
+
     public FakeProcessRunner Answer(Func<ProcessRequest, bool> matches, ProcessResult result)
     {
         rules.Insert(0, new Rule(matches, new Queue<ProcessResult>([result])));
@@ -60,6 +63,7 @@ public sealed class FakeProcessRunner : IProcessRunner
     public async Task<ProcessResult> RunAsync(ProcessRequest request, CancellationToken cancellationToken)
     {
         await Task.Yield();
+        OnRun(request);
         lock (gate)
         {
             captured.Add(request);

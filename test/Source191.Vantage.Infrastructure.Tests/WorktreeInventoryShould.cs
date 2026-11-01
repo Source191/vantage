@@ -2,6 +2,7 @@ using Source191.Vantage.Adapters.Files;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -27,7 +28,7 @@ public sealed class WorktreeInventoryShould : IDisposable
     public WorktreeInventoryShould()
     {
         // The origin comes from a fake: a real git still running in the folder in the background would stop Dispose deleting it.
-        catalogue = new PullRequestCatalogue(new GitCli(remotes, "git"), hosts, TimeProvider.System);
+        catalogue = new PullRequestCatalogue(new GitCli(remotes, "git"), hosts, TimeProvider.System, new RefreshCounts(TimeProvider.System, new DiagnosticLog(TimeProvider.System, [])));
     }
 
     private WorktreeInventory Inventory => new(new GitCli(new ProcessRunner(), "git"), new Folders(), TestSettings.Current(TestSettings.For([root.Path], root.WorktreeRoot)), catalogue);

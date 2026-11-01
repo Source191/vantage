@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -25,7 +26,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
     public SessionRowEnricherShould()
     {
-        catalogue = new PullRequestCatalogue(new GitCli(remotes, "git"), hosts, clock);
+        catalogue = new PullRequestCatalogue(new GitCli(remotes, "git"), hosts, clock, new RefreshCounts(clock, new DiagnosticLog(clock, [])));
     }
 
     private SessionRowEnricher Enricher => new(new GitCli(processes, "git"), store, registry, clock, transcripts, catalogue);

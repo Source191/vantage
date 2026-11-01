@@ -389,27 +389,29 @@ public sealed class ConsoleScreen(
 
         /// <summary>
         /// The sessions are listed at once and on every tick, shown or not. The worktrees are scanned once at once, whichever
-        /// tab is shown (the scan waits for the first sessions listing), and on a tick only while their tab is shown.
+        /// tab is shown (the scan waits for the first sessions listing), and on a tick only while their tab is shown. The
+        /// heartbeat beats on its own timeout, which Terminal.Gui keeps running under a dialog too.
         /// </summary>
         private void StartRefreshing()
         {
-            Every(sessions, sessions.TriggerLoad);
-            Every(worktrees, () =>
+            Every(sessions.RefreshEvery, sessions.TriggerLoad);
+            Every(worktrees.RefreshEvery, () =>
             {
                 if (Active == worktrees)
                 {
                     ScanWorktrees();
                 }
             });
+            Every(Heartbeat.Interval, screen.context.Heartbeat.Beat);
             sessions.TriggerLoad();
             ScanWorktrees();
         }
 
-        private void Every(ITabBody body, Action refresh)
+        private void Every(TimeSpan interval, Action tick)
         {
-            object? timer = app.AddTimeout(body.RefreshEvery, () =>
+            object? timer = app.AddTimeout(interval, () =>
             {
-                refresh();
+                tick();
                 return true;
             });
             if (timer is not null)

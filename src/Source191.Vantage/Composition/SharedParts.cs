@@ -18,7 +18,7 @@ internal sealed record SharedParts(
     ProgramLocator Programs,
     DiagnosticLogSetting LogSetting,
     DiagnosticLog Log,
-    ProcessCounts ProcessCounts,
+    PerformanceCounts Counts,
     RecordedProcessRunner Processes,
     CrashFile CrashFile,
     CrashRecorder Crashes)
@@ -41,11 +41,12 @@ internal sealed record SharedParts(
         DiagnosticLogSetting logSetting = DiagnosticLogSetting.Read(Environment.GetEnvironmentVariable("VANTAGE_LOG"));
         DiagnosticLog log = new(TimeProvider.System, logSetting is DiagnosticLogSetting.File logFile ? [new DiagnosticFile(logFile.Path)] : []);
         ProcessCounts processCounts = new();
+        PerformanceCounts counts = new(processCounts, new RefreshCounts(TimeProvider.System, log), new StallCounts());
         RecordedProcessRunner processes = new(new ProcessRunner(), log, processCounts, TimeProvider.System);
         CrashFile crashFile = new(stateFolder);
-        CrashRecorder crashes = new(log, processCounts, crashFile);
+        CrashRecorder crashes = new(log, counts, crashFile, TimeProvider.System);
 
-        return new SharedParts(store, processRegistry, version, vantageExecutable, terminalFragment, programs, logSetting, log, processCounts, processes, crashFile, crashes);
+        return new SharedParts(store, processRegistry, version, vantageExecutable, terminalFragment, programs, logSetting, log, counts, processes, crashFile, crashes);
     }
 
     // The start facts: versions and the terminal's size, never a path or a name.

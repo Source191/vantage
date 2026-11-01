@@ -24,6 +24,9 @@ internal static class ConsoleComposition
 {
     public static async Task<int> RunAsync(SharedParts parts, LaunchParts launch, CancellationToken cancellationToken)
     {
+        // With VANTAGE_LOG set, the counts are also written every 10 minutes; disposed as this returns, before the crash
+        // recorder's exit write.
+        using PeriodicCounts periodicCounts = new(TimeProvider.System, parts.Log, parts.Counts, parts.LogSetting);
         FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         CurrentSettings settings = await CurrentSettings.LoadAsync(parts.Store, home);
         ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
@@ -59,7 +62,7 @@ internal static class ConsoleComposition
         GitHubPullRequests gitHub = new(parts.Processes, parts.Programs.Locate("gh"));
         AzureDevOpsPullRequests azureDevOps = new(parts.Processes, AzureCliExecutable.Locate(PathFolders.ForCurrentUser()));
 
-        return new PullRequestCatalogue(git, new PullRequestHosts(gitHub, azureDevOps), TimeProvider.System);
+        return new PullRequestCatalogue(git, new PullRequestHosts(gitHub, azureDevOps), TimeProvider.System, parts.Counts.Refreshes);
     }
 
     private static EffectDispatcher Dispatcher(
@@ -86,7 +89,7 @@ internal static class ConsoleComposition
     private static DialogEffects Dialogs(
         SharedParts parts, LaunchParts launch, CurrentSettings settings, Folders folders, UpdateCheck updates, Started start)
     {
-        ProblemReports reports = new(parts.Log, parts.ProcessCounts, parts.CrashFile, start, settings);
+        ProblemReports reports = new(parts.Log, parts.Counts.Processes, parts.CrashFile, start, settings, TimeProvider.System);
         SessionTabs sessionTabs = new(parts.Store, parts.ProcessRegistry, TimeProvider.System);
         DeleteSessionHandler deleteSession = new(launch.Claude, launch.Git, parts.Store, sessionTabs, folders, settings);
         RemoveWorktreeHandler removeWorktree = new(launch.Git, parts.Store, folders, settings);
@@ -103,7 +106,9 @@ internal static class ConsoleComposition
         ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionReport);
         HeaderSettingsRow header = new(parts.Version, claudeCode, updates, parts.ProcessRegistry, Environment.ProcessId);
 
-        return new ScreenContext(Wording.TabTitle, header.Rows, () => updates.Status is UpdateStatus.Available, clipboard, parts.Log);
+        Heartbeat heartbeat = new(TimeProvider.System, parts.Counts.Stalls, parts.Log);
+
+        return new ScreenContext(Wording.TabTitle, header.Rows, () => updates.Status is UpdateStatus.Available, clipboard, parts.Log, heartbeat);
     }
 
     private static ConsoleLoads Loads(
@@ -121,7 +126,7 @@ internal static class ConsoleComposition
         // The Sessions tab's listing is held for the worktrees scan, which waits for the first and runs none of its own.
         LatestSessions latestSessions = new(launch.Claude);
 
-        return new ConsoleLoads(latestSessions, enricher, inventory, setup, settings);
+        return new ConsoleLoads(latestSessions, enricher, inventory, setup, settings, parts.Counts.Refreshes);
     }
 
     private static ConsoleScreen Screen(

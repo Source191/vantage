@@ -12,7 +12,7 @@ How to watch Vantage during a normal working day and find what makes it slow. Ev
 - [All day: the log and the counters](#all-day-the-log-and-the-counters)
 - [When something feels slow: traces](#when-something-feels-slow-traces)
 - [Reading the results](#reading-the-results)
-- [What the log does not record yet](#what-the-log-does-not-record-yet)
+- [The lines the log writes](#the-lines-the-log-writes)
 
 ## What to expect
 
@@ -34,7 +34,7 @@ $env:VANTAGE_LOG = "$env:TEMP\vantage-$(Get-Date -Format yyyy-MM-dd).log"
 vantage
 ```
 
-The file gets every line of the diagnostic log as it happens: the start (versions and terminal size), each view and dialog, each key's effect with its duration, failures, Terminal.Gui's warnings and any child program slower than 5 seconds. When you quit with `q` it also gets the child program counts: runs per program, subcommand and exit code, with the longest run. Close Vantage with `q` at the end of the day, or the counts are lost.
+The file gets every line of the diagnostic log as it happens: the start (versions and terminal size), each view and dialog, each key's effect with its duration, failures, Terminal.Gui's warnings, any child program slower than 5 seconds, any part of a refresh slower than 3 seconds and any time the screen's thread ran more than half a second late. Every 10 minutes, and again when you quit with `q`, it also gets the counts: the child programs, the refresh parts and the screen thread's stalls, each with the number of runs, the median, the 95th percentile and the longest. Closing the tab without `q` loses at most the last 10 minutes of counts.
 
 In a second tab, record the .NET runtime counters to a CSV file every 10 seconds. `dnx` runs the tool without installing it (.NET 10 SDK); `dotnet tool install --global dotnet-counters` installs it if you prefer. `dnx` keeps a few options for itself, such as `--help` and `--version`, so ask an installed tool for those.
 
@@ -114,7 +114,7 @@ The log is plain text, one line per event, each starting with its UTC time. A fe
 ```powershell
 $log = "$env:TEMP\vantage-$(Get-Date -Format yyyy-MM-dd).log"
 
-# Every child program that took over 5 seconds
+# Every child program that took over 5 seconds, and every refresh part over 3 seconds
 Select-String -Path $log -Pattern ' slow ' | ForEach-Object Line
 
 # The slowest key effects
@@ -123,26 +123,51 @@ Select-String -Path $log -Pattern ' effect (\S+) -> (\S+) in (\d+) ms' |
     Sort-Object -Property Milliseconds -Descending |
     Select-Object -First 20
 
-# The child program counts written when Vantage quit
-Select-String -Path $log -Pattern '^counts ' | ForEach-Object Line
+# The last set of child program counts
+Select-String -Path $log -Pattern ' counts ' | Select-Object -Last 40 | ForEach-Object Line
 ```
 
 Questions worth answering from a day's files:
 
 - **Which child program costs most:** runs times a typical duration. A program run thousands of times at a modest cost usually beats a rare slow one.
-- **Whether a refresh overlaps the next:** a `claude agents` run near or over 5 seconds means the Sessions tab is always refreshing.
+- **Whether a refresh overlaps the next:** a `sessions listing` 95th percentile near or over 5 seconds means the Sessions tab is always refreshing.
+- **Whether the screen froze:** the `stalls` line and the `stalled` events, matched against what you were doing.
 - **Whether effects are slow or their programs are:** compare a slow effect's time with the slow child lines around it.
 - **Whether Vantage itself is busy:** the CPU and thread-pool counters while you were not touching it.
 
 Bring the log, the counters file and any trace to a Vantage change (see [CONTRIBUTING.md](../CONTRIBUTING.md)) rather than tuning by feel; a change should say which figure it moves.
 
-## What the log does not record yet
+## The lines the log writes
 
-The OpenSpec change `performance-diagnostics` (in `openspec\changes`) adds what this guide cannot yet get from the log. Until it is implemented:
+Every line starts with its UTC time; the word after it says what kind of line it is, so one `Select-String` per kind pulls them apart. The counts are written as a set every 10 minutes and at exit, each line stamped with the time of the set; the latest set holds the figures for the whole run so far (the number of runs and the longest over every run, the median and the 95th percentile over each key's latest 1,000).
 
-- **Refreshes are not timed:** there is no line for how long a Sessions refresh or a Worktrees scan takes, or which part of it. Use the `slow` lines and a trace.
-- **UI stalls are not detected:** a frozen screen shows only as a gap in what you did. Use a trace taken while it happens.
-- **Typical durations are not kept:** the counts hold the longest run only, not the median or the 95th percentile.
-- **Counts are written only at exit:** closing the tab or a crash before `q` loses them (a crash writes them to `last-crash.log` instead).
+```
+2026-11-01T10:00:00.000Z counts claude agents --json exit 0: 120 runs, median 1650 ms, p95 2100 ms, longest 4900 ms
+2026-11-01T10:00:00.000Z refreshes sessions listing: 120 runs, median 1700 ms, p95 2200 ms, longest 5000 ms
+2026-11-01T10:00:00.000Z stalls ui thread: 3 stalls, median 180 ms, p95 820 ms, longest 820 ms
+2026-11-01T10:03:12.417Z slow refresh worktrees scan in 3400 ms
+2026-11-01T10:04:55.002Z stalled ui thread for 820 ms
+```
 
-Once the change is implemented, this section is replaced by how to read the new lines.
+- **counts:** one line per child program, subcommand and exit code.
+- **refreshes:** one line per part of a refresh that has run: `sessions listing` (the `claude agents` run), `sessions enrichment` (git, transcripts and processes for the rows), `worktrees scan` (not counting the first scan's wait for the first listing) and `pull-request refresh` (from a refresh that starts a lookup until its last lookup lands). A cancelled or failed part is not counted.
+- **stalls:** how late the screen's thread ran a heartbeat it is asked to run four times a second, for every beat more than 100 ms late. The line is written even with `0 stalls`, so a file shows the heartbeat ran. A gap over 30 seconds is the machine sleeping and is ignored.
+- **slow refresh** and **stalled:** a single refresh part over 3 seconds, and a single beat more than 500 ms late, as events in the log at the moment they happen.
+
+```powershell
+$log = "$env:TEMP\vantage-$(Get-Date -Format yyyy-MM-dd).log"
+
+# How the refresh parts have gone, set by set through the day
+Select-String -Path $log -Pattern ' refreshes ' | ForEach-Object Line
+
+# The stall counts, and every freeze with its time
+Select-String -Path $log -Pattern ' stalls ui thread' | ForEach-Object Line
+Select-String -Path $log -Pattern ' stalled ui thread for (\d+) ms' |
+    ForEach-Object { [pscustomobject]@{ At = $_.Line.Substring(0, 24); Milliseconds = [int]$_.Matches.Groups[1].Value } }
+
+# The sessions listing's 95th percentile in each set, to see it drift
+Select-String -Path $log -Pattern '^(\S+) refreshes sessions listing: .* p95 (\d+) ms' |
+    ForEach-Object { [pscustomobject]@{ At = $_.Matches.Groups[1].Value; NinetyFifth = [int]$_.Matches.Groups[2].Value } }
+```
+
+A median near the 95th percentile means a part is steadily that slow; a 95th percentile far above the median means occasional slow runs, worth matching against the `slow` lines and your notes.

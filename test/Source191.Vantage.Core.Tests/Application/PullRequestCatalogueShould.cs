@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
@@ -21,11 +22,15 @@ public sealed class PullRequestCatalogueShould : IDisposable
 
     private readonly FakePullRequests hosts = new FakePullRequests().Answer(Orders, Listing(Open));
     private readonly FakeTimeProvider clock = new(new DateTimeOffset(2026, 10, 25, 9, 0, 0, TimeSpan.Zero));
+    private readonly DiagnosticLog log;
+    private readonly RefreshCounts refreshes;
     private readonly PullRequestCatalogue catalogue;
 
     public PullRequestCatalogueShould()
     {
-        catalogue = new PullRequestCatalogue(new GitCli(processes, "git"), hosts, clock);
+        log = new DiagnosticLog(clock, []);
+        refreshes = new RefreshCounts(clock, log);
+        catalogue = new PullRequestCatalogue(new GitCli(processes, "git"), hosts, clock, refreshes);
     }
 
     [Fact]
@@ -170,6 +175,61 @@ public sealed class PullRequestCatalogueShould : IDisposable
 
         catalogue.Find(Checkout, new Head.Detached()).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
         catalogue.Find(Checkout, new Head.Unknown()).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
+    }
+
+    [Fact]
+    public async Task TimeARefreshThatStartsALookup()
+    {
+        hosts.Hold();
+
+        Task refresh = catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+        await WaitForCallsAsync(1);
+        clock.Advance(TimeSpan.FromMilliseconds(1200));
+        hosts.Release();
+        await refresh;
+
+        TimeSpan took = TimeSpan.FromMilliseconds(1200);
+        refreshes.Snapshot().ShouldBe([new RefreshCount(RefreshPart.PullRequestRefresh, new DurationFigures(1, took, took, took))]);
+    }
+
+    [Fact]
+    public async Task NotTimeARefreshWithNothingStale()
+    {
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+        clock.Advance(TimeSpan.FromSeconds(10));
+
+        await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+        await catalogue.RefreshStaleAsync([]);
+
+        refreshes.Snapshot().Single().Durations.Runs.ShouldBe(1, "only the first refresh started a lookup");
+    }
+
+    [Fact]
+    public async Task NotTimeARefreshThatOnlyJoinsALookupAlreadyRunning()
+    {
+        hosts.Hold();
+        Task first = catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+        await WaitForCallsAsync(1);
+
+        Task second = catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+        hosts.Release();
+        await Task.WhenAll(first, second);
+
+        refreshes.Snapshot().Single().Durations.Runs.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task RecordARefreshSlowerThanThreeSeconds()
+    {
+        hosts.Hold();
+
+        Task refresh = catalogue.RefreshStaleAsync([(Checkout, Fix)]);
+        await WaitForCallsAsync(1);
+        clock.Advance(TimeSpan.FromSeconds(4));
+        hosts.Release();
+        await refresh;
+
+        log.Snapshot().Select(timed => timed.Event).ShouldBe([new RefreshSlow(RefreshPart.PullRequestRefresh, TimeSpan.FromSeconds(4))]);
     }
 
     private static PullRequestListing.Listed Listing(PullRequest pullRequest) => new([new BranchPullRequest(Fix, pullRequest)]);
