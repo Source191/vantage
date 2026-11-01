@@ -64,7 +64,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 6. The guide, the version and the whole-solution check
 
-- [ ] 6.1 `docs\performance-monitoring.md` gains how to read the new lines (refresh, stall and count lines, pulling each kind out with `Select-String`) and drops its "not yet recorded" notes. Verify by reading it against the design's line formats.
+- [x] 6.1 `docs\performance-monitoring.md` gains how to read the new lines (refresh, stall and count lines, pulling each kind out with `Select-String`) and drops its "not yet recorded" notes. Verify by reading it against the design's line formats.
+  Done: "What the log does not record yet" becomes "The lines the log writes" (the five line shapes, what each part means, PowerShell to pull each kind out); the all-day section says the counts are written every 10 minutes, and the old `'^counts '` pattern, which the time at the start of each count line would break, is now `' counts '`. Read against the design's formats; every command is PowerShell, no em dash.
 - [ ] 6.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next minor preview above the stack's latest at the time (0.21.0-preview.1 if `main` is still at 0.20.0-preview.7). Verify `Assert-VersionBumped.ps1` passes against `origin/main`.
 - [ ] 6.3 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate performance-diagnostics --strict` all pass; then a working day with `VANTAGE_LOG` set on the owner's machine produces stamped count lines every 10 minutes and plausible refresh figures. Record the results here.
 
