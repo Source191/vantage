@@ -26,15 +26,14 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         foreach (Session session in sessions)
         {
             Location location = await LocateAsync(session.WorkingDirectory, cancellationToken);
-            Head head = location.Branch is BranchName current ? new Head.OnBranch(current) : new Head.Unknown();
             LiveTab tab = liveTabs.TryGetValue(session.SessionId, out TabColour? colour) ? new LiveTab.Open(colour) : new LiveTab.None();
-            SessionRow row = new(session, location.Repository, head, tab, transcripts.HasMessages(session.SessionId.Value))
+            SessionRow row = new(session, location.Repository, location.Head, tab, transcripts.HasMessages(session.SessionId.Value))
             {
                 Memory = MemoryOf(session, processTable),
                 Checkout = location.Checkout,
             };
-            rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, head) });
-            branches.AddRange(location is { Checkout: FolderPath checkout, Branch: BranchName branch } ? [(checkout, branch)] : []);
+            rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, location.Head) });
+            branches.AddRange(location is { Checkout: FolderPath checkout, Head: Head.OnBranch on } ? [(checkout, on.Branch)] : []);
         }
 
         // Never awaited: the rows show what the catalogue already holds, and a later refresh picks up what lands.
@@ -108,19 +107,19 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         string? root = await git.RepositoryRootAsync(directory.Value, cancellationToken);
         if (root is null)
         {
-            return new Location(directory.Name, Branch: null, Checkout: null);
+            return new Location(directory.Name, new Head.Unknown(), Checkout: null);
         }
 
         string? main = await git.MainCheckoutOfAsync(directory.Value, cancellationToken);
         string? branch = await git.CurrentBranchAsync(directory.Value, cancellationToken);
         FolderPath? mainCheckout = FolderPath.TryParse(main, out FolderPath? parsedMain) ? parsedMain : null;
         FolderPath? rootPath = FolderPath.TryParse(root, out FolderPath? parsedRoot) ? parsedRoot : null;
-        BranchName? currentBranch = BranchName.TryParse(branch, out BranchName? parsedBranch) ? parsedBranch : null;
+        Head head = BranchName.TryParse(branch, out BranchName? current) ? new Head.OnBranch(current) : new Head.Unknown();
         FolderPath? repository = mainCheckout ?? rootPath;
 
-        return new Location(repository?.Name ?? root, currentBranch, repository);
+        return new Location(repository?.Name ?? root, head, repository);
     }
 
-    /// <summary>Checkout is the main checkout (or the root when git names none), where the pull request lookup runs.</summary>
-    private sealed record Location(string Repository, BranchName? Branch, FolderPath? Checkout);
+    /// <summary>Checkout is the main checkout (or the root when git names none), where the pull request lookup runs. Head is Unknown outside a repository and where git names no branch, since the port cannot tell a detached head from a failure.</summary>
+    private sealed record Location(string Repository, Head Head, FolderPath? Checkout);
 }
