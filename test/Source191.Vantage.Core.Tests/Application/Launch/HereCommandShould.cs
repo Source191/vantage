@@ -15,7 +15,7 @@ public sealed class HereCommandShould
         plan.Directory.Value.ShouldBe(Directory);
         plan.Name.Value.ShouldBe("Northwind.Orders");
         plan.Worktree.ShouldBeNull();
-        plan.OpeningPrompt.ShouldBeNull();
+        plan.OpeningPrompt.ShouldBe(new OpeningPrompt.None());
         plan.Repository.ShouldBe(new RepositoryChoice("Northwind.Orders", FolderPath.From(Directory), IsRepository: true));
     }
 
@@ -25,7 +25,7 @@ public sealed class HereCommandShould
         LaunchPlan plan = HereCommand.Plan(Directory, "fix-tests", "Fix the failing tests", isRepository: _ => true).ShouldBeOfType<LaunchPlanResult.Planned>().Plan;
 
         plan.Name.Value.ShouldBe("fix-tests");
-        plan.OpeningPrompt.ShouldBe("Fix the failing tests");
+        plan.OpeningPrompt.ShouldBe(new OpeningPrompt.Text("Fix the failing tests"));
     }
 
     [Fact]
