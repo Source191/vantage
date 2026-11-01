@@ -259,6 +259,32 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
+    public async Task LeaveNoTemporaryFileBehind()
+    {
+        await Store.WriteConfigAsync(SavedConfig);
+        await Store.WriteConfigAsync(SavedConfig with { CheckForUpdates = false });
+        await Store.WriteTabAsync(SessionTab);
+        await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
+        await Store.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon, new NewestRelease.None()));
+        await Store.WriteLastRunAsync(new ReleaseVersion(0, 21, 0, ""));
+
+        Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories).ShouldAllBe(file => file.EndsWith(".json", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task KeepTheOldFileAndNoTemporaryWhenTheReplaceIsRefused()
+    {
+        await Store.WriteConfigAsync(SavedConfig);
+        await using FileStream holding = new(Path.Combine(folder, "config.json"), FileMode.Open, FileAccess.Read, FileShare.Read);
+
+        await Should.ThrowAsync<IOException>(() => Store.WriteConfigAsync(SavedConfig with { CheckForUpdates = false }));
+
+        await holding.DisposeAsync();
+        (await Store.ReadConfigAsync()).ShouldBe(SavedConfig);
+        Directory.GetFiles(folder).Select(Path.GetFileName).ShouldBe(["config.json"]);
+    }
+
+    [Fact]
     public async Task TreatAHalfWrittenRecordAsAbsentUntilItIsFinished()
     {
         await Store.RecordRecentRepositoryAsync(@"C:\repos\A");

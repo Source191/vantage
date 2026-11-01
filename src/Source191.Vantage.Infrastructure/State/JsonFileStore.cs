@@ -207,9 +207,9 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     }
 
     /// <summary>
-    /// Writes one record, allowing readers in while it does: Windows refuses to rename over a file another process
-    /// has open, so an atomic replace is not available, and a reader that catches the record half-written treats it as
-    /// absent until the next refresh instead.
+    /// Writes one record beside its file and moves it over, so a crash, a kill or a full disc leaves the previous file
+    /// and no reader sees a half-written one. Readers open with delete sharing, which is what lets the move replace a
+    /// file another Vantage process has open. The temporary name is unique because a tab file has two writers.
     /// </summary>
     private static async Task WriteJsonAsync<T>(string file, T value)
     {
@@ -218,8 +218,29 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
             Directory.CreateDirectory(folder);
         }
 
-        await using FileStream stream = new(file, FileMode.Create, FileAccess.Write, FileShare.Read);
-        await JsonSerializer.SerializeAsync(stream, value, Options);
+        string temporary = $"{file}.{Guid.NewGuid():N}.tmp";
+        await using (FileStream stream = new(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            await JsonSerializer.SerializeAsync(stream, value, Options);
+        }
+
+        ReplaceOrMove(temporary, file);
+    }
+
+    /// <summary>
+    /// File.Move with overwrite is refused over a file another process holds open even with delete sharing, where
+    /// File.Replace is not, so an existing file is replaced and only a missing one is moved into place.
+    /// </summary>
+    private static void ReplaceOrMove(string temporary, string file)
+    {
+        try
+        {
+            File.Replace(temporary, file, destinationBackupFileName: null);
+        }
+        catch (FileNotFoundException)
+        {
+            File.Move(temporary, file);
+        }
     }
 
     /// <summary>A file another process is reading or has already removed is not an error; it will be gone soon enough.</summary>
