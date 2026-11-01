@@ -9,6 +9,8 @@ name: publish
 # No API key is stored. NuGet/login exchanges this run's GitHub identity for a short-lived key
 # through a Trusted Publishing policy on nuget.org (owner Source191, repository vantage, workflow
 # publish.yml, environment nuget). Only the nuget.org profile name is a secret (NUGET_USER).
+# Trusted Publishing: https://learn.microsoft.com/nuget/nuget-org/trusted-publishing
+# NuGet/login: https://github.com/NuGet/login
 on:
   workflow_dispatch:
     inputs:

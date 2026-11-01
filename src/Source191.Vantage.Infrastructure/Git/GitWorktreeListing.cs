@@ -3,7 +3,7 @@ using Source191.Vantage.Ports;
 namespace Source191.Vantage.Adapters.Git;
 
 /// <summary>
-/// Parses "git worktree list --porcelain": blank-line separated blocks of "worktree", "HEAD", then
+/// Parses <see href="https://git-scm.com/docs/git-worktree">"git worktree list --porcelain"</see>: blank-line separated blocks of "worktree", "HEAD", then
 /// "branch" or "detached", with optional "locked [reason]" and "prunable reason" lines.
 /// </summary>
 public static class GitWorktreeListing

@@ -70,6 +70,8 @@ jobs:
 
       # Signed build provenance for the package: which commit and workflow built it, kept by GitHub and checked
       # with `gh attestation verify <nupkg> --repo Source191/vantage` before a publish or an install.
+      # (https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds,
+      # https://cli.github.com/manual/gh_attestation_verify)
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         if: steps.check.outputs.changed == 'true'
         with:

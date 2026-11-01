@@ -4,8 +4,9 @@ using System.Globalization;
 namespace Source191.Vantage.Domain;
 
 /// <summary>
-/// A semantic version, <c>major.minor.patch[-prerelease]</c>, compared by semantic version precedence; build metadata
-/// after <c>+</c> is dropped. Text from outside Vantage (nuget.org's list, the update-check record) goes through
+/// A <see href="https://semver.org/">semantic version</see>, <c>major.minor.patch[-prerelease]</c>, compared by
+/// <see href="https://semver.org/#spec-item-11">semantic version precedence</see>; build metadata after <c>+</c> is
+/// dropped. Text from outside Vantage (nuget.org's list, the update-check record) goes through
 /// <see cref="TryParse"/>, which answers false for anything else.
 /// </summary>
 public sealed record ReleaseVersion(int Major, int Minor, int Patch, string Prerelease) : IComparable<ReleaseVersion>

@@ -90,6 +90,7 @@ if ($Clean -and $installed -gt 0) {
 
 # --allow-downgrade: a local or CI prerelease sorts below the plain release version it was built from, and a
 # ci build sorts below a local one, so moving between them is often a downgrade in NuGet's eyes.
+# (https://learn.microsoft.com/nuget/concepts/package-versioning, https://learn.microsoft.com/dotnet/core/tools/dotnet-tool-update)
 $verb = if ($installed -gt 0) { 'update' } else { 'install' }
 dotnet tool $verb -g $PackageId --add-source $source --version $version --allow-downgrade
 if ($LASTEXITCODE -ne 0) {

@@ -6,7 +6,8 @@ using System.Text.Json;
 namespace Source191.Vantage.Adapters.Packages;
 
 /// <summary>
-/// nuget.org's flat-container index for a package (<c>{"versions": [...]}</c>, every listed version, no key needed):
+/// nuget.org's <see href="https://learn.microsoft.com/nuget/api/package-base-address-resource">flat-container index</see>
+/// for a package (<c>{"versions": [...]}</c>, every listed version, no key needed):
 /// one anonymous request with a 3 second timeout and a <c>Vantage/&lt;version&gt;</c> user agent. Any failure, or a reply without its versions, answers <see cref="VersionListing.NothingLearned"/>.
 /// </summary>
 public sealed class NuGetPackageVersions(ToolVersion version, HttpMessageHandler handler) : IPackageVersions, IDisposable

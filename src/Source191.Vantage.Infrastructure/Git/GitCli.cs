@@ -4,10 +4,15 @@ using System.Globalization;
 
 namespace Source191.Vantage.Adapters.Git;
 
-/// <summary>Runs git by the full path it was given, so Windows never resolves a bare name against the current directory.</summary>
+/// <summary>
+/// Runs git by the full path it was given, so
+/// <see href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">Windows
+/// never resolves a bare name against the current directory</see>.
+/// </summary>
 public sealed class GitCli(IProcessRunner processes, string executable) : IGit
 {
-    // Windows' "The directory name is invalid": the working directory given to CreateProcess does not exist.
+    // Windows' "The directory name is invalid": the working directory given to CreateProcess does not exist
+    // (ERROR_DIRECTORY, https://learn.microsoft.com/windows/win32/debug/system-error-codes--0-499-).
     private const int ErrorDirectory = 267;
 
     public async Task<IReadOnlyList<GitWorktreeEntry>> ListWorktreesAsync(string repository, CancellationToken cancellationToken)
@@ -53,7 +58,8 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
     public async Task<int> PruneWorktreesAsync(string repository, CancellationToken cancellationToken)
     {
         // Git 2.55 on Windows prints nothing for --verbose, so the count comes from the listings either side.
-        // Without --expire now, git keeps stale registrations younger than gc.worktreePruneExpire (three months).
+        // Without --expire now, git keeps stale registrations younger than gc.worktreePruneExpire (three months)
+        // (https://git-scm.com/docs/git-worktree).
         int before = (await ListWorktreesAsync(repository, cancellationToken)).Count;
         await RunOrThrowAsync(repository, ["worktree", "prune", "--expire", "now"], cancellationToken);
         int after = (await ListWorktreesAsync(repository, cancellationToken)).Count;
@@ -89,7 +95,8 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
     {
         ProcessResult result = await RunOrThrowAsync(worktree, ["status", "--porcelain"], cancellationToken);
 
-        // A porcelain line is two status letters (the first may be a space, so lines are not trimmed), a space and the path.
+        // A porcelain line is two status letters (the first may be a space, so lines are not trimmed), a space and the path
+        // (https://git-scm.com/docs/git-status).
         return [.. result.StandardOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries).Select(line => line.TrimEnd('\r')).Where(line => line.Length > 3).Select(line => line[3..]).Take(limit)];
     }
 
@@ -153,7 +160,8 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
 
     public async Task<IReadOnlyList<string>> ListIgnoredFilesAsync(string repository, CancellationToken cancellationToken)
     {
-        // -z because git quotes a name with non-ASCII characters in its line-based listing ("Caf\303\251.env").
+        // -z because git quotes a name with non-ASCII characters in its line-based listing ("Caf\303\251.env")
+        // (https://git-scm.com/docs/git-ls-files).
         ProcessResult result = await RunOrThrowAsync(repository, ["ls-files", "--others", "--ignored", "--exclude-standard", "-z"], cancellationToken);
 
         return NulSeparated(result.StandardOutput);
@@ -171,7 +179,8 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
     }
 
     // A folder deleted by hand (a removed worktree) stops git starting at all, so it answers like any failed git run.
-    // Any other start failure (git not installed is ERROR_FILE_NOT_FOUND) still surfaces.
+    // Any other start failure (git not installed is ERROR_FILE_NOT_FOUND) still surfaces
+    // (https://learn.microsoft.com/windows/win32/debug/system-error-codes--0-499-).
     private async Task<ProcessResult> RunAsync(string directory, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
         try
