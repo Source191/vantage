@@ -21,7 +21,7 @@ public sealed class WindowsTerminalShould
 
         ProcessRequest request = processes.CapturedRequests.Single();
         request.FileName.ShouldBe(Wt);
-        request.Arguments.ShouldBe(WindowsTerminalArguments.ForTab(Launch, profile: null));
+        request.Arguments.ShouldBe(WindowsTerminalArguments.ForTab(Launch, profile: []));
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public sealed class WindowsTerminalShould
 
         await terminal.OpenTabAsync(Launch, CancellationToken.None);
 
-        processes.CapturedRequests.Single().Arguments.ShouldBe(WindowsTerminalArguments.ForTab(Launch, "Vantage session"));
+        processes.CapturedRequests.Single().Arguments.ShouldBe(WindowsTerminalArguments.ForTab(Launch, ["--profile", "Vantage session"]));
     }
 
     [Fact]
