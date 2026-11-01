@@ -121,12 +121,12 @@ public sealed class WorktreesViewShould
     [Fact]
     public void NotSuggestForceWhenTheRefusalCannotBeForced()
     {
-        WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path.Key };
-        WorktreesViewState onBusy = Loaded with { SelectedPath = Busy.Path.Key };
+        WorktreesViewState onLocked = Loaded with { SelectedPath = new SelectionKey.Row(Locked.Path.Key) };
+        WorktreesViewState onBusy = Loaded with { SelectedPath = new SelectionKey.Row(Busy.Path.Key) };
 
         WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('d'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.Locked(), OfferForce: false));
         WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('d'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.LiveSession("fix-the-tests"), OfferForce: false));
-        WorktreesView.Reduce(Loaded with { SelectedPath = Dirty.Path.Key }, new KeyPressed(Key.Of('d'))).State.Message.ShouldBeOfType<StatusMessage.NotRemoved>().OfferForce.ShouldBeTrue();
+        WorktreesView.Reduce(Loaded with { SelectedPath = new SelectionKey.Row(Dirty.Path.Key) }, new KeyPressed(Key.Of('d'))).State.Message.ShouldBeOfType<StatusMessage.NotRemoved>().OfferForce.ShouldBeTrue();
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public sealed class WorktreesViewShould
     [Fact]
     public void TreatAnElsewhereWorktreeAsRealForSessionsAndShells()
     {
-        WorktreesViewState onElsewhere = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean, Elsewhere])) with { SelectedPath = Elsewhere.Path.Key };
+        WorktreesViewState onElsewhere = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean, Elsewhere])) with { SelectedPath = new SelectionKey.Row(Elsewhere.Path.Key) };
 
         WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('s'))).Effects.ShouldBe([new StartSessionIn(Elsewhere)]);
         WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenShellTab(Elsewhere)]);
@@ -204,7 +204,7 @@ public sealed class WorktreesViewShould
     [Fact]
     public void NeverRemoveAnElsewhereWorktreeNorOfferForce()
     {
-        WorktreesViewState onElsewhere = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean, Elsewhere])) with { SelectedPath = Elsewhere.Path.Key };
+        WorktreesViewState onElsewhere = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean, Elsewhere])) with { SelectedPath = new SelectionKey.Row(Elsewhere.Path.Key) };
 
         WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('d'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.RepositoryOutsideRoots(), OfferForce: false));
         WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('D'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.RepositoryOutsideRoots(), OfferForce: false));
@@ -270,7 +270,7 @@ public sealed class WorktreesViewShould
     [Fact]
     public void ForceOnlyWhenTheTypedTextMatchesAndSayWhatWasTypedOtherwise()
     {
-        WorktreesViewState onDirty = Loaded with { SelectedPath = Dirty.Path.Key };
+        WorktreesViewState onDirty = Loaded with { SelectedPath = new SelectionKey.Row(Dirty.Path.Key) };
 
         WorktreesViewUpdate cancelled = WorktreesView.Reduce(onDirty, new ForceCancelled(Dirty));
         WorktreesViewUpdate blank = WorktreesView.Reduce(onDirty, new ForceConfirmed(Dirty, "fix-2", Typed: string.Empty));
@@ -288,8 +288,8 @@ public sealed class WorktreesViewShould
     [Fact]
     public void ShowOnlyMessagesTheHealthBeingThePanes()
     {
-        WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path.Key };
-        WorktreesViewState onClean = Loaded with { SelectedPath = Clean.Path.Key };
+        WorktreesViewState onLocked = Loaded with { SelectedPath = new SelectionKey.Row(Locked.Path.Key) };
+        WorktreesViewState onClean = Loaded with { SelectedPath = new SelectionKey.Row(Clean.Path.Key) };
 
         onLocked.Shown.ShouldBe(StatusMessage.None);
         onClean.Shown.ShouldBe(StatusMessage.None);
@@ -299,7 +299,7 @@ public sealed class WorktreesViewShould
     [Fact]
     public void ClearTheLastMessageWhenTheSelectionMovesSoTheNewRowsReasonShows()
     {
-        WorktreesViewState afterDelete = Loaded with { SelectedPath = Clean.Path.Key, Message = new StatusMessage.Reported(new RemoveWorktreeOutcome.DeletedFolder("Northwind.Orders.worktrees")) };
+        WorktreesViewState afterDelete = Loaded with { SelectedPath = new SelectionKey.Row(Clean.Path.Key), Message = new StatusMessage.Reported(new RemoveWorktreeOutcome.DeletedFolder("Northwind.Orders.worktrees")) };
 
         Press(afterDelete, Key.Down).Message.ShouldBe(StatusMessage.None);
         Press(afterDelete, Key.Up).Message.ShouldBe(StatusMessage.None);
