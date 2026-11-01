@@ -97,7 +97,7 @@ public sealed class NullFreeModelsShould
         types.ShouldContain(typeof(CurrentSettings));
         types.ShouldContain(typeof(SessionsView));
         types.ShouldContain(typeof(Head.OnBranch));
-        types.Select(type => type.FullName).ShouldNotContain("Source191.Vantage.Application.Views.RowDecision");
+        types.Select(type => type.FullName).ShouldNotContain("Source191.Vantage.Application.Views.FilterText");
         types.ShouldAllBe(type => type.IsVisible);
     }
 

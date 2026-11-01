@@ -69,11 +69,13 @@ public sealed class StatusLayoutShould
     }
 
     [Fact]
-    public void OfferNoCloseMarkWhileRunningOrForAStandingDescription()
+    public void OfferNoCloseMarkWhileRunningOrForNoMessage()
     {
         StatusLayout.Closes(new StatusMessage.Working(new Quit()), running: true).ShouldBeFalse();
         StatusLayout.Closes(new StatusMessage.NoSessionSelected(), running: true).ShouldBeFalse();
         StatusLayout.Closes(StatusMessage.None, running: false).ShouldBeFalse();
-        StatusLayout.Closes(new StatusMessage.SettingHint(new ConfigRow.CheckForUpdates(On: true)), running: false).ShouldBeFalse();
     }
+
+    [Fact]
+    public void OfferACloseMarkForSetupAdvice() => StatusLayout.Closes(new StatusMessage.SetupAdvice(SetupItem.ClaudeBell), running: false).ShouldBeTrue();
 }

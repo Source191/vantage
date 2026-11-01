@@ -175,6 +175,7 @@ public sealed class WordingShould
     public void SayNoSessionRunsInTheWorktree()
     {
         Wording.Describe(new StatusMessage.NoSessionIn("Northwind.Orders-fix-123")).ShouldBe("No session is running in Northwind.Orders-fix-123.");
+        Wording.Describe(new StatusMessage.SessionNotListed("fix-123")).ShouldBe("fix-123 is not in the sessions list any more; it may have ended. Try again after the next refresh.");
     }
 
     [Fact]

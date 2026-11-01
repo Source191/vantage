@@ -25,4 +25,13 @@ public sealed class EffectRoutingShould
         EffectsMarked<ISwitchesTab>().ShouldAllBe(type => ConsoleView.Handles(type), "an effect that switches tab has no case in ConsoleView.Apply");
         EffectsMarked<ISwitchesTab>().ShouldNotContain(type => type.IsAssignableTo(typeof(ILeavesScreen)), "a tab switch never leaves the screen");
     }
+
+    [Fact]
+    public void AnswerEveryEffectThatConsultsTheSessions()
+    {
+        EffectsMarked<IConsultsSessions>().ShouldNotBeEmpty();
+        EffectsMarked<IConsultsSessions>().ShouldAllBe(type => ConsoleView.Answers(type), "an effect that consults the sessions has no answer in ConsoleView");
+        EffectsMarked<IConsultsSessions>().ShouldNotContain(type => type.IsAssignableTo(typeof(ISwitchesTab)) || type.IsAssignableTo(typeof(ILeavesScreen)) || type.IsAssignableTo(typeof(IDialogEffect)), "an effect is routed by one marker");
+        ConsoleView.Answers(typeof(Quit)).ShouldBeFalse();
+    }
 }

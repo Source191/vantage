@@ -48,12 +48,12 @@ The editor setting SHALL be one of the presets VS Code, Visual Studio, Rider and
 - **THEN** the editor reads as Visual Studio, the Open folder with row shows Visual Studio, and `D:\work` is still the repository root
 
 #### Scenario: Visual Studio opens the folder
-- **WHEN** the editor is Visual Studio and the user presses e on a worktree row
+- **WHEN** the editor is Visual Studio and the user presses f on a worktree row
 - **THEN** the newest installed Visual Studio opens that worktree's folder
 
 #### Scenario: The dialog's words
 - **WHEN** the user presses Enter on the Open folder with row
-- **THEN** the dialog's choice is captioned "Open folder with", lists VS Code, Visual Studio, Rider, Explorer and Custom, and the e key's bar item reads Open folder
+- **THEN** the dialog's choice is captioned "Open folder with", lists VS Code, Visual Studio, Rider, Explorer and Custom, and the f key's bar item reads Open folder
 
 ### Requirement: Settings can be edited from either view
 The settings SHALL be shown and edited on the Config tab, a row at a time: the repository roots together, one per line, and the worktree root, the editor and the default worktree base each in a dialog for that one value, the update check by Enter on its row. Esc SHALL close a dialog without changing anything. No other key SHALL open a settings dialog.

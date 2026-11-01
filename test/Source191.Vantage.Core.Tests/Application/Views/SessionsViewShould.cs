@@ -128,24 +128,6 @@ public sealed class SessionsViewShould
         cleared.Title.ShouldBe(new TableTitle("session", Shown: 4, Total: 4, Filter: string.Empty, Selected: "change-feed"));
     }
 
-    [Fact]
-    public void SelectASessionByIdWhenAskedTo()
-    {
-        Reduce(Loaded, new SelectSession(Stopped.Session.SessionId)).Selected.ShouldBe(Stopped);
-        Reduce(Loaded, new SelectSession(SessionId.From("no-such-session"))).Selected.ShouldBe(Waiting);
-    }
-
-    [Fact]
-    public void ClearTheFilterWhenTheSessionToSelectIsHiddenByIt()
-    {
-        SessionsViewState filtered = Press(Loaded, Key.Slash, Key.Of('o'), Key.Of('l'), Key.Enter);
-        filtered.VisibleRows.ShouldBe([Stopped]);
-
-        SessionsViewState selected = Reduce(filtered, new SelectSession(Working.Session.SessionId));
-
-        selected.Selected.ShouldBe(Working);
-        selected.Filter.Text.ShouldBeEmpty();
-    }
 
     [Fact]
     public void StopCarriesTheSelectedRow()
@@ -349,6 +331,8 @@ public sealed class SessionsViewShould
     [Theory]
     [InlineData('w')]
     [InlineData(',')]
+    [InlineData('e')]
+    [InlineData('v')]
     public void IgnoreTheRetiredKeys(char key)
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of(key)));
@@ -492,23 +476,23 @@ public sealed class SessionsViewShould
         SessionsViewState onStopped = Press(Loaded, Key.Down, Key.Down, Key.Down);
 
         onTerminal.Selected.ShouldBe(Interactive);
-        SessionsView.Reduce(onTerminal, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Interactive.Session.WorkingDirectory)]);
+        SessionsView.Reduce(onTerminal, new KeyPressed(Key.Of('f'))).Effects.ShouldBe([new OpenFolderInEditor(Interactive.Session.WorkingDirectory)]);
         onStopped.Selected.ShouldBe(Stopped);
-        SessionsView.Reduce(onStopped, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Stopped.Session.WorkingDirectory)]);
+        SessionsView.Reduce(onStopped, new KeyPressed(Key.Of('f'))).Effects.ShouldBe([new OpenFolderInEditor(Stopped.Session.WorkingDirectory)]);
     }
 
     [Fact]
     public void FindTheSelectedSessionsSolutionByItsFolderAndRepository()
     {
-        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('v')));
+        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('s')));
 
         update.Effects.ShouldBe([new FindSolution(Waiting.Session.WorkingDirectory, "Northwind.Shipping")]);
     }
 
     [Theory]
     [InlineData('c')]
-    [InlineData('e')]
-    [InlineData('v')]
+    [InlineData('f')]
+    [InlineData('s')]
     public void SayNoSessionIsSelectedWhenAFolderKeyIsPressedOnAnEmptyTable(char key)
     {
         ViewUpdate update = SessionsView.Reduce(SessionsViewState.Empty, new KeyPressed(Key.Of(key)));
@@ -516,6 +500,7 @@ public sealed class SessionsViewShould
         update.Effects.ShouldBeEmpty();
         update.State.Message.ShouldBe(new StatusMessage.NoSessionSelected());
     }
+
 
     [Fact]
     public void ClearTheLastMessageWhenAFolderKeyActs()

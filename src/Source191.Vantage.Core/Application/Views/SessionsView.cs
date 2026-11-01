@@ -70,9 +70,6 @@ public sealed record MessageDismissed(StatusMessage Message) : ViewInput;
 
 public sealed record KeyPressed(Key Key) : ViewInput;
 
-/// <summary>Select a session by its id, as the worktrees view's Enter asks; a filter hiding it is cleared so it shows.</summary>
-public sealed record SelectSession(SessionId SessionId) : ViewInput;
-
 public abstract record ViewEffect;
 
 public sealed record AttachToSession(JobId JobId) : ViewEffect, ILeavesScreen;
@@ -176,7 +173,6 @@ public static class SessionsView
             RenameConfirmed confirmed => RenameWith(state, confirmed),
             RenameCancelled => Unchanged(state with { Message = new StatusMessage.RenameCancelled() }),
             UpdateTabOpened => Effect(state, new Quit()),
-            SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId.Value))),
             KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Message = StatusMessage.None }),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
@@ -191,18 +187,18 @@ public static class SessionsView
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
-            { Name: KeyName.Enter } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.Tab), Attachment.InOwnTab),
+            { Name: KeyName.Enter } => Open(state),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
-            { Name: KeyName.Character, Character: 'x' } => SessionAction(state, (_, session) => new StopSession(session), Attachment.None),
+            { Name: KeyName.Character, Character: 'x' } => SessionAction(state, (_, session) => new StopSession(session)),
             { Name: KeyName.Character, Character: 'd' } when state.Selected is { Session: InteractiveSession terminal, HasTranscript: false } =>
                 Effect(state with { Message = StatusMessage.None }, new CloseEmptyTerminals([terminal])),
             { Name: KeyName.Character, Character: 'C' } => CloseEmpty(state),
-            { Name: KeyName.Character, Character: 'd' } => SessionAction(state, (_, session) => new DeleteSession(session), Attachment.None),
+            { Name: KeyName.Character, Character: 'd' } => SessionAction(state, (_, session) => new DeleteSession(session)),
             { Name: KeyName.Character, Character: 'b' } => Adopt(state),
             { Name: KeyName.Character, Character: 'c' } => FolderAction(state, (folder, _) => new CopyFolderPath(folder)),
-            { Name: KeyName.Character, Character: 'e' } => FolderAction(state, (folder, _) => new OpenFolderInEditor(folder)),
-            { Name: KeyName.Character, Character: 'v' } => FolderAction(state, (folder, repository) => new FindSolution(folder, repository)),
+            { Name: KeyName.Character, Character: 'f' } => FolderAction(state, (folder, _) => new OpenFolderInEditor(folder)),
+            { Name: KeyName.Character, Character: 's' } => FolderAction(state, (folder, repository) => new FindSolution(folder, repository)),
             { Name: KeyName.Character, Character: 'p' } => OpenPullRequest(state),
             { Name: KeyName.Character, Character: 'm' } => MeasureMemory(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
@@ -216,15 +212,39 @@ public static class SessionsView
         };
     }
 
-    /// <summary>Whether a key attaches to the session, in its own tab, or not at all.</summary>
-    private enum Attachment
+    /// <summary>
+    /// What Enter does to a session: open it in its own tab or switch to that tab, or say why it cannot. The Sessions tab
+    /// asks it for the selected row and the console for a worktree's session, so both tabs' Enter behave the same.
+    /// </summary>
+    public static RowDecision Opening(SessionRow row)
     {
-        None,
-        InOwnTab,
+        ArgumentNullException.ThrowIfNull(row);
+
+        return row.Session switch
+        {
+            not BackgroundSession => new RowDecision.Explain(new StatusMessage.RunsInOwnTerminal(row.Session.Name, row.HasTranscript)),
+            // Attaching to a session with no process resumes it from its transcript; a session never sent a message has none.
+            BackgroundSession { Process: JobProcess.None } when !row.HasTranscript => new RowDecision.Explain(new StatusMessage.NeverSentAMessage(row.Session.Name)),
+            BackgroundSession session => new RowDecision.Act(new OpenTabForSession(session, row.Tab)),
+        };
+    }
+
+    private static ViewUpdate Open(SessionsViewState state)
+    {
+        return state.Selected switch
+        {
+            null => Unchanged(state with { Message = new StatusMessage.NoSessionSelected() }),
+            SessionRow row => Opening(row) switch
+            {
+                RowDecision.Act act => Effect(state with { Message = StatusMessage.None }, act.Effect),
+                RowDecision.Explain explain => Unchanged(state with { Message = explain.Message }),
+                _ => throw new UnreachableException(),
+            },
+        };
     }
 
     /// <summary>A key that acts on a supervised job; a terminal session gets the status message that says why it cannot.</summary>
-    private static ViewUpdate SessionAction(SessionsViewState state, Func<SessionRow, BackgroundSession, ViewEffect> effect, Attachment attachment)
+    private static ViewUpdate SessionAction(SessionsViewState state, Func<SessionRow, BackgroundSession, ViewEffect> effect)
     {
         SessionRow? row = state.Selected;
         if (row is null)
@@ -235,12 +255,6 @@ public static class SessionsView
         if (row.Session is not BackgroundSession session)
         {
             return Unchanged(state with { Message = new StatusMessage.RunsInOwnTerminal(row.Session.Name, row.HasTranscript) });
-        }
-
-        // Attaching to a session with no process resumes it from its transcript; a session never sent a message has none.
-        if (attachment != Attachment.None && session.Process is JobProcess.None && !row.HasTranscript)
-        {
-            return Unchanged(state with { Message = new StatusMessage.NeverSentAMessage(row.Session.Name) });
         }
 
         return Effect(state with { Message = StatusMessage.None }, effect(row, session));
@@ -294,7 +308,7 @@ public static class SessionsView
     {
         if (state.Selected is not { Session: BackgroundSession session } row)
         {
-            return SessionAction(state, (_, background) => new AskForNewName(background), Attachment.None);
+            return SessionAction(state, (_, background) => new AskForNewName(background));
         }
 
         return (row.HasTranscript, session) switch

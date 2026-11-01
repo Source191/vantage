@@ -40,7 +40,7 @@ public static partial class Wording
     {
         ConfigRow.RepositoryRoot => "A folder Vantage searches for git repositories; Enter edits every root, one per line.",
         ConfigRow.WorktreeRoot => "Where new worktrees go, each in a folder named <repository>-<slug> on a branch named <slug>.",
-        ConfigRow.OpenFolderWith => "The program e opens a row's folder with: one of the editors Vantage knows, or a program of your own.",
+        ConfigRow.OpenFolderWith => "The program f opens a row's folder with: one of the editors Vantage knows, or a program of your own.",
         ConfigRow.DefaultBase => "New worktrees branch from origin's default branch as of your last git fetch (no fetch is made), or from HEAD.",
         ConfigRow.DefaultPlace => "Where the wizard opened with n starts a session: a new worktree, or the repository's current branch.",
         ConfigRow.CheckForUpdates => "Whether Vantage asks nuget.org once a day for a newer release, which U then installs.",
@@ -116,7 +116,7 @@ public static partial class Wording
     {
         return item switch
         {
-            SetupItem.SettingsFile => "The file Vantage keeps the settings above in; e opens the folder holding it.",
+            SetupItem.SettingsFile => "The file Vantage keeps the settings above in; f opens the folder holding it.",
             SetupItem.TerminalProfiles => "Windows Terminal profiles that give Vantage tabs a bell and the Vantage icon.",
             SetupItem.ClaudeBell => "Claude's terminal bell, which rings when a session finishes or needs permission while you are away.",
             SetupItem.DiagnosticLog => "The file VANTAGE_LOG names, where Vantage writes its diagnostic log as it runs.",

@@ -24,7 +24,7 @@ public sealed class ConfigViewShould
     {
         Loaded.Loaded.ShouldBeTrue();
         Loaded.Selected.ShouldBe(new ConfigRow.RepositoryRoot(0, FolderPath.From(Repos)));
-        Loaded.Shown.ShouldBe(new StatusMessage.SettingHint(new ConfigRow.RepositoryRoot(0, FolderPath.From(Repos))));
+        Loaded.Shown.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
@@ -95,8 +95,8 @@ public sealed class ConfigViewShould
     [Fact]
     public void OpenAFolderOrTheFolderHoldingAFile()
     {
-        ConfigView.Reduce(At("worktree-root"), new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(FolderPath.From(@"C:\Users\me\source\worktrees"))]);
-        ConfigView.Reduce(At("setup:SettingsFile"), new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(FolderPath.From(@"C:\Users\me\AppData\Local\Vantage"))]);
+        ConfigView.Reduce(At("worktree-root"), new KeyPressed(Key.Of('f'))).Effects.ShouldBe([new OpenFolderInEditor(FolderPath.From(@"C:\Users\me\source\worktrees"))]);
+        ConfigView.Reduce(At("setup:SettingsFile"), new KeyPressed(Key.Of('f'))).Effects.ShouldBe([new OpenFolderInEditor(FolderPath.From(@"C:\Users\me\AppData\Local\Vantage"))]);
     }
 
     [Fact]
@@ -109,7 +109,7 @@ public sealed class ConfigViewShould
 
     [Theory]
     [InlineData('c')]
-    [InlineData('e')]
+    [InlineData('f')]
     public void SayWhenTheValueIsNotAPath(char key)
     {
         ConfigViewUpdate update = ConfigView.Reduce(At("open-folder-with"), new KeyPressed(Key.Of(key)));
@@ -117,6 +117,7 @@ public sealed class ConfigViewShould
         update.Effects.ShouldBeEmpty();
         update.State.Message.ShouldBe(new StatusMessage.NoPathHere());
     }
+
 
     [Fact]
     public void ChooseATabWithTheTabKeys()
@@ -132,6 +133,8 @@ public sealed class ConfigViewShould
     [Theory]
     [InlineData('w')]
     [InlineData(',')]
+    [InlineData('e')]
+    [InlineData('v')]
     public void IgnoreTheRetiredKeys(char key)
     {
         ConfigViewUpdate update = ConfigView.Reduce(Loaded, new KeyPressed(Key.Of(key)));
@@ -184,16 +187,16 @@ public sealed class ConfigViewShould
     }
 
     [Fact]
-    public void DescribeTheSelectedRowUntilThereIsAMessage()
+    public void ShowNoMessageForTheSelectedRowAlone()
     {
         ConfigViewState onWorktreeRoot = Press(Loaded, Key.Down, Key.Down);
         ConfigViewState advised = ConfigView.Reduce(At("setup:ClaudeBell"), new KeyPressed(Key.Enter)).State;
 
-        onWorktreeRoot.Shown.ShouldBe(new StatusMessage.SettingHint(onWorktreeRoot.Selected!));
+        onWorktreeRoot.Shown.ShouldBe(StatusMessage.None);
         advised.Shown.ShouldBe(advised.Message);
         ConfigViewState moved = Press(advised, Key.Down);
 
-        moved.Shown.ShouldBe(new StatusMessage.SettingHint(moved.Selected!));
+        moved.Shown.ShouldBe(StatusMessage.None);
     }
 
     [Fact]

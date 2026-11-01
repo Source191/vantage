@@ -53,12 +53,14 @@ internal interface ITabBody
     void Shown(bool shown);
 }
 
-/// <summary>Where a tab hands what is not its own: an effect that leaves the console, a tab switch, and a change the frame must redraw.</summary>
+/// <summary>Where a tab hands what is not its own: an effect that leaves the console, a tab switch, a question only the Sessions tab's rows answer, and a change the frame must redraw.</summary>
 internal interface ITabHost
 {
     void Leave(ViewEffect effect);
 
     void Switch(ISwitchesTab effect);
+
+    RowDecision Consult(IConsultsSessions effect);
 
     void FrameChanged();
 }
@@ -404,6 +406,9 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
                     Redraw();
                     host.Switch(switching);
                     return;
+                case IConsultsSessions consulting:
+                    Follow(host.Consult(consulting));
+                    break;
                 case IDialogEffect:
                     dialogs.Show(this, effect);
                     break;
@@ -414,6 +419,22 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
 
         Redraw();
+    }
+
+    /// <summary>The Sessions tab's answer, run from this tab: the effect goes to its handler, so its outcome shows on this tab's status line, or the reason is shown here.</summary>
+    private void Follow(RowDecision decision)
+    {
+        switch (decision)
+        {
+            case RowDecision.Act act:
+                Dispatch(act.Effect);
+                break;
+            case RowDecision.Explain explain:
+                ShowMessage(explain.Message);
+                break;
+            default:
+                throw new UnreachableException();
+        }
     }
 
     /// <summary>Left and Right move the table one column sideways, within its columns; presentation only, so the reducer never sees a change.</summary>

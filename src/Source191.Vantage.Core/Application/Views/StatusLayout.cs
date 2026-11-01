@@ -23,8 +23,8 @@ public static class StatusLayout
         StatusTone.Hint => false,
     };
 
-    /// <summary>Whether the message has a close mark: not while an action runs, and not for no message or Config's description of the selected row, which are not messages.</summary>
-    public static bool Closes(StatusMessage message, bool running) => !running && message is not (StatusMessage.Blank or StatusMessage.SettingHint);
+    /// <summary>Whether the message has a close mark: not while an action runs, and not for no message.</summary>
+    public static bool Closes(StatusMessage message, bool running) => !running && message is not StatusMessage.Blank;
 
     public static IReadOnlyList<string> Lines(string words, int width)
     {

@@ -9,6 +9,9 @@ public interface ILeavesScreen;
 /// <summary>An effect that shows the other tab of the console, or a row on it; the console applies it without leaving the screen.</summary>
 public interface ISwitchesTab;
 
+/// <summary>An effect another tab raises about a session: the console answers it from the Sessions tab's rows, which alone know the session's kind and tab.</summary>
+public interface IConsultsSessions;
+
 /// <summary>An effect whose flow includes a dialog, before it runs or about what it left behind; the answer comes back as an input or another effect.</summary>
 public interface IDialogEffect;
 

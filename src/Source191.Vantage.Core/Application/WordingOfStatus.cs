@@ -29,7 +29,7 @@ public static partial class Wording
     {
         return message switch
         {
-            StatusMessage.Blank or StatusMessage.SettingHint or StatusMessage.SetupAdvice => StatusTone.Hint,
+            StatusMessage.Blank or StatusMessage.SetupAdvice => StatusTone.Hint,
             StatusMessage.RenameCancelled or StatusMessage.ForceCancelled or StatusMessage.Kept or StatusMessage.NothingChosenToResume => StatusTone.Hint,
             StatusMessage.UpToDate => StatusTone.Success,
             StatusMessage.NoPullRequest { Gap: PullRequestGap.Failed } => StatusTone.Failure,

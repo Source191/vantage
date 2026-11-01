@@ -3,6 +3,7 @@ using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
+using System.Diagnostics;
 using Terminal.Gui.App;
 using Terminal.Gui.Drawing;
 using Terminal.Gui.ViewBase;
@@ -188,12 +189,19 @@ public sealed class ConsoleScreen(
         public void Switch(ISwitchesTab effect)
         {
             ConsoleState state = ConsoleView.Apply(new ConsoleState(sessions.State, worktrees.State, config.State, active), effect);
-            if (state.Sessions != sessions.State)
-            {
-                sessions.Reduce(new SelectSession(((JumpToSession)effect).SessionId));
-            }
 
             Show(state.Active);
+        }
+
+        public RowDecision Consult(IConsultsSessions effect)
+        {
+            ConsoleState state = new(sessions.State, worktrees.State, config.State, active);
+
+            return effect switch
+            {
+                OpenWorktreeSession open => ConsoleView.OpenSession(state, open),
+                _ => throw new UnreachableException($"{effect.GetType().Name} consults the sessions but ConsoleScreen has no case for it; EffectRoutingShould guards this."),
+            };
         }
 
         public void FrameChanged()

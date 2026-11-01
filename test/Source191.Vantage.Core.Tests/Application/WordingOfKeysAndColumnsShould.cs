@@ -13,18 +13,18 @@ public sealed class WordingOfKeysAndColumnsShould
         [
             "enter Open", "n New session", "r Rename", "x Stop", "d Delete",
             "R Resume", "C Close empty", "b Adopt", "/ Filter", "? Help", "q Quit",
-            "c Copy path", "e Open folder", "v Solution", "p Open PR", "m Memory", "U Update", "! Report", .. TabKeys,
+            "c Copy path", "f Open folder", "s Open solution", "p Open PR", "m Memory", "U Update", "! Report", .. TabKeys,
         ]);
         Wording.WorktreesKeys.Select(key => $"{key.Key} {key.Hint}").ShouldBe(
         [
-            "d Remove", "D Force remove", "P Prune", "s Start session", "o Open shell", "enter Go to session",
+            "d Remove", "D Force remove", "P Prune", "n New session", "o Open shell", "enter Open session",
             "esc Sessions", "/ Filter", "? Help", "q Quit",
-            "c Copy path", "e Open folder", "v Solution", "p Open PR", "U Update", "! Report", .. TabKeys,
+            "c Copy path", "f Open folder", "s Open solution", "p Open PR", "U Update", "! Report", .. TabKeys,
         ]);
         Wording.ConfigKeys.Select(key => $"{key.Key} {key.Hint}").ShouldBe(
         [
             "enter Edit", "esc Sessions", "/ Filter", "? Help", "q Quit",
-            "c Copy", "e Open folder", "U Update", "! Report", .. TabKeys,
+            "c Copy", "f Open folder", "U Update", "! Report", .. TabKeys,
         ]);
     }
 
@@ -93,7 +93,7 @@ public sealed class WordingOfKeysAndColumnsShould
             C      close tabs of unused terminal sessions        b      move a terminal session under Vantage
             /      filter                                        ?      help
             q      quit                                          c      copy the folder path
-            e      open the folder in your editor                v      open its solution
+            f      open the folder in your editor                s      open its solution
             p      open its pull request in the browser          m      what its memory is made of
             U      update Vantage in a new tab                   !      report a problem on GitHub
             1      the Sessions tab                              2      the Worktrees tab
@@ -134,12 +134,12 @@ public sealed class WordingOfKeysAndColumnsShould
         Wording.WorktreesHelp.ShouldBe("""
             Keys
             d      remove (refused when work would be lost)      D      force remove after typing its name
-            P      prune stale registrations in its repository   s      start a session in this worktree
-            o      open a PowerShell tab there                   Enter  go to the session running in it
+            P      prune stale registrations in its repository   n      start a session in this worktree
+            o      open a PowerShell tab there                   Enter  open its session's tab, or switch to it
             Esc    back to sessions (clears a filter first)      /      filter
             ?      help                                          q      quit
-            c      copy the folder path                          e      open the folder in your editor
-            v      open its solution                             p      open its pull request in the browser
+            c      copy the folder path                          f      open the folder in your editor
+            s      open its solution                             p      open its pull request in the browser
             U      update Vantage in a new tab                   !      report a problem on GitHub
             1      the Sessions tab                              2      the Worktrees tab
             3      the Config tab                                ←      the tab to the left
@@ -173,7 +173,7 @@ public sealed class WordingOfKeysAndColumnsShould
             Enter  edit the setting, or say how to set up         Esc    back to sessions (clears a filter first)
             /      filter                                         ?      help
             q      quit                                           c      copy the path
-            e      open the folder, or the one holding the file   U      update Vantage in a new tab
+            f      open the folder, or the one holding the file   U      update Vantage in a new tab
             !      report a problem on GitHub                     1      the Sessions tab
             2      the Worktrees tab                              3      the Config tab
             ←      the tab to the left                            →      the tab to the right

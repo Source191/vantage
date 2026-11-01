@@ -37,9 +37,9 @@ public static partial class Wording
     private const int BarStart = 1;
     private const int BarGap = 2;
 
-    private static readonly string[] SecondBarRowForSessions = ["c", "e", "v", "p", "/", "?", "!", "q"];
-    private static readonly string[] SecondBarRowForConfig = ["c", "e", "/", "?", "!", "q"];
-    private static readonly string[] FirstBarRowForWorktrees = ["d", "D", "P", "s", "o", "enter"];
+    private static readonly string[] SecondBarRowForSessions = ["c", "f", "s", "p", "/", "?", "!", "q"];
+    private static readonly string[] SecondBarRowForConfig = ["c", "f", "/", "?", "!", "q"];
+    private static readonly string[] FirstBarRowForWorktrees = ["d", "D", "P", "n", "o", "enter"];
 
     private static readonly TextPart Dot = new(" · ", TextTone.Grey);
 
