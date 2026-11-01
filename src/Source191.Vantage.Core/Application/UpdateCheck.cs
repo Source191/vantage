@@ -1,5 +1,6 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -22,10 +23,14 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
-        UpdateCheckRecord record = await records.ReadUpdateCheckAsync();
-        newest.Replace(record is UpdateCheckRecord.Checked recorded ? recorded.Newest : new NewestRelease.None());
         DateTimeOffset now = clock.GetUtcNow();
-        bool due = record is UpdateCheckRecord.Checked last ? UpdateCheckRule.ShouldCheck(running, enabled(), last.CheckedAt, now) : UpdateCheckRule.ShouldCheck(running, enabled());
+        (NewestRelease recorded, bool due) = await records.ReadUpdateCheckAsync() switch
+        {
+            UpdateCheckRecord.Checked last => (last.Newest, UpdateCheckRule.ShouldCheck(running, enabled(), last.CheckedAt, now)),
+            UpdateCheckRecord.Never => (new NewestRelease.None(), UpdateCheckRule.ShouldCheck(running, enabled())),
+            _ => throw new UnreachableException(),
+        };
+        newest.Replace(recorded);
         if (!due)
         {
             return;
