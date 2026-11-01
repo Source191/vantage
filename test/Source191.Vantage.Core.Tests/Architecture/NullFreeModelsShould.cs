@@ -128,9 +128,7 @@ public sealed class NullFreeModelsShould
     public void HoldNoNullableMember()
     {
         IEnumerable<string> unexplained = ModelTypes
-            .SelectMany(type => NullableMembersOf(type).Select(member => new AllowedNullable(type, member, string.Empty)))
-            .Where(found => !Kept.Any(kept => kept.Type == found.Type && kept.Member == found.Member))
-            .Select(found => found.Name);
+            .SelectMany(type => NullableMembersOf(type).Where(member => !Kept.Any(kept => kept.Type == type && kept.Member == member)).Select(member => NameOf(type, member)));
 
         unexplained.ShouldBeEmpty();
     }
@@ -163,6 +161,16 @@ public sealed class NullFreeModelsShould
             .Where(parameter => !properties.Contains(PropertyNameIn(parameter)));
 
         return properties.Concat(methods).Concat(constructors).Distinct();
+    }
+
+    private static string NameOf(Type type, string member)
+    {
+        return $"{NameOf(type)}.{member}";
+    }
+
+    private static string NameOf(Type type)
+    {
+        return type.DeclaringType is { } outer ? $"{NameOf(outer)}.{type.Name}" : type.Name;
     }
 
     private static IEnumerable<string> NullableReturnOf(NullabilityInfoContext context, MethodInfo method)
@@ -332,12 +340,7 @@ public sealed class NullFreeModelsShould
 
     private sealed record AllowedNullable(Type Type, string Member, string Reason)
     {
-        public string Name => $"{NameOf(Type)}.{Member}";
-
-        private static string NameOf(Type type)
-        {
-            return type.DeclaringType is { } outer ? $"{NameOf(outer)}.{type.Name}" : type.Name;
-        }
+        public string Name => NameOf(Type, Member);
     }
 
     private interface IProbe
