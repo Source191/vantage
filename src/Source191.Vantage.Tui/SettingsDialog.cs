@@ -17,9 +17,9 @@ namespace Source191.Vantage.Tui;
 internal static class SettingsDialog
 {
     /// <summary>The effect the dialog ended on: <see cref="SettingsEffect.Save"/> with the settings, or <see cref="SettingsEffect.Close"/>.</summary>
-    public static SettingsEffect Show(IApplication app, DiagnosticLog log, Settings current, SettingsScope scope, Func<string, bool> folderExists)
+    public static SettingsEffect Show(IApplication app, DiagnosticLog log, Settings current, SettingsScope scope, Func<string, bool> folderExists, Func<string, bool> fileExists)
     {
-        SettingsState state = SettingsState.Open(current, scope, folderExists);
+        SettingsState state = SettingsState.Open(current, scope, folderExists, fileExists);
         SettingsEffect result = new SettingsEffect.Close();
         bool binding = false;
         SettingsControls controls = new(state);

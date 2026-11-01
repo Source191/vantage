@@ -66,12 +66,13 @@ public sealed record Settings
     /// <summary>
     /// Checks what the settings dialog holds, in the order its fields read: the roots (one per line, each a full path
     /// that exists, none listed twice), the worktree root (a full path, created when first used), then a custom editor's
-    /// command.
+    /// command, whose executable must exist by <paramref name="fileExists"/>.
     /// </summary>
-    public static SettingsValidation Validate(SettingsText text, Func<string, bool> folderExists)
+    public static SettingsValidation Validate(SettingsText text, Func<string, bool> folderExists, Func<string, bool> fileExists)
     {
         ArgumentNullException.ThrowIfNull(text);
         ArgumentNullException.ThrowIfNull(folderExists);
+        ArgumentNullException.ThrowIfNull(fileExists);
         List<string> lines = [.. text.Roots.Split('\n').Select(line => line.Trim()).Where(line => line.Length > 0)];
         List<FolderPath> roots = [];
         foreach (string line in lines)
@@ -89,7 +90,7 @@ public sealed record Settings
             [] => Refused(new SettingsProblem.NoRoots()),
             _ when roots.FirstOrDefault(root => !folderExists(root.Value)) is FolderPath missing => Refused(new SettingsProblem.RootMissing(missing)),
             _ when roots.Where((root, index) => roots.Take(index).Contains(root)).FirstOrDefault() is FolderPath repeated => Refused(new SettingsProblem.RootAlreadyListed(repeated)),
-            _ => Validated(text, roots),
+            _ => Validated(text, roots, fileExists),
         };
     }
 
@@ -123,7 +124,7 @@ public sealed record Settings
 
     public override int GetHashCode() => HashCode.Combine(RepositoryRoots.Count, WorktreeRoot, Editor, DefaultBase);
 
-    private static SettingsValidation Validated(SettingsText text, IReadOnlyList<FolderPath> roots)
+    private static SettingsValidation Validated(SettingsText text, IReadOnlyList<FolderPath> roots, Func<string, bool> fileExists)
     {
         if (!FolderPath.TryParse(text.WorktreeRoot.Trim(), out FolderPath? worktreeRoot))
         {
@@ -137,7 +138,7 @@ public sealed record Settings
 
         IReadOnlyList<string> arguments = CommandArguments.Split(text.Arguments);
 
-        return EditorChoice.Validate(text.Executable, arguments) switch
+        return EditorChoice.Validate(text.Executable, arguments, fileExists) switch
         {
             EditorChoiceValidation.Valid valid => new SettingsValidation.Valid(new Settings(roots, worktreeRoot, valid.Editor, text.Base, text.CheckForUpdates, text.Place)),
             EditorChoiceValidation.Refused refused => Refused(refused.Problem),

@@ -24,5 +24,8 @@ public abstract record SettingsProblem
 
     public sealed record BatchFileExecutable : SettingsProblem;
 
+    /// <summary>The custom executable typed is not there; one already in config.json is kept, so only the dialog refuses it.</summary>
+    public sealed record ExecutableMissing(string Path) : SettingsProblem;
+
     public sealed record NoFolderPlaceholder : SettingsProblem;
 }

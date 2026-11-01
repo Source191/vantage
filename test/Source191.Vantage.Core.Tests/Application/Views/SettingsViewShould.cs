@@ -12,9 +12,11 @@ public sealed class SettingsViewShould
 
     private static readonly Func<string, bool> Exists = path => path is Root or Work;
 
+    private static readonly Func<string, bool> Installed = path => path is @"C:\Tools\subl.exe";
+
     private static readonly Settings TwoRoots = TestSettings.For([Root, Work], @"D:\worktrees", WorktreeBase.Head);
 
-    private static SettingsState Opened(SettingsScope scope) => SettingsState.Open(TestSettings.For(Root), scope, Exists);
+    private static SettingsState Opened(SettingsScope scope) => SettingsState.Open(TestSettings.For(Root), scope, Exists, Installed);
 
     public static TheoryData<SettingsScope, SettingsField> Scopes => new()
     {
@@ -29,7 +31,7 @@ public sealed class SettingsViewShould
     [MemberData(nameof(Scopes))]
     public void OpenOnTheOneValueWithItsField(SettingsScope scope, SettingsField field)
     {
-        SettingsState opened = SettingsState.Open(TwoRoots, scope, Exists);
+        SettingsState opened = SettingsState.Open(TwoRoots, scope, Exists, Installed);
 
         opened.Scope.ShouldBe(scope);
         opened.Focus.ShouldBe(field);
@@ -64,6 +66,7 @@ public sealed class SettingsViewShould
         { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged("subl"), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.ExecutableNotFullPath(), SettingsField.Executable },
         { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\edit.cmd"), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.BatchFileExecutable(), SettingsField.Executable },
         { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\subl.exe"), new SettingsInput.ArgumentsChanged("-n")], new SettingsProblem.NoFolderPlaceholder(), SettingsField.Arguments },
+        { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\gone.exe"), new SettingsInput.ArgumentsChanged("-n {folder}")], new SettingsProblem.ExecutableMissing(@"C:\Tools\gone.exe"), SettingsField.Executable },
     };
 
     [Theory]
@@ -90,7 +93,7 @@ public sealed class SettingsViewShould
     [Fact]
     public void SaveTheWorktreeRootKeepingEverythingElse()
     {
-        SettingsState state = Reduce(SettingsState.Open(TwoRoots, new SettingsScope.WorktreeRoot(), Exists), new SettingsInput.WorktreeRootChanged(@"E:\trees"));
+        SettingsState state = Reduce(SettingsState.Open(TwoRoots, new SettingsScope.WorktreeRoot(), Exists, Installed), new SettingsInput.WorktreeRootChanged(@"E:\trees"));
 
         SettingsView.Reduce(state, new SettingsInput.Save()).Effect.ShouldBe(new SettingsEffect.Save(TestSettings.For([Root, Work], @"E:\trees", WorktreeBase.Head)));
     }

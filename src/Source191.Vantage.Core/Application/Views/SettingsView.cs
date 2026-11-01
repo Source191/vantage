@@ -33,7 +33,7 @@ public static class SettingsView
 
     private static SettingsUpdate Saved(SettingsState state)
     {
-        return Settings.Validate(state.Text, state.FolderExists) switch
+        return Settings.Validate(state.Text, state.FolderExists, state.FileExists) switch
         {
             SettingsValidation.Valid valid => new SettingsUpdate(state with { Problem = new SettingsProblemLine.None() }, new SettingsEffect.Save(valid.Settings)),
             SettingsValidation.Refused refused => Changed(state with { Problem = new SettingsProblemLine.Shows(refused.Problem), Focus = FieldOf(refused.Problem) }),
@@ -48,7 +48,7 @@ public static class SettingsView
         {
             SettingsProblem.NoRoots or SettingsProblem.RootNotFullPath or SettingsProblem.RootMissing or SettingsProblem.RootAlreadyListed => SettingsField.Roots,
             SettingsProblem.WorktreeRootNotFullPath => SettingsField.WorktreeRoot,
-            SettingsProblem.NoExecutable or SettingsProblem.ExecutableNotFullPath or SettingsProblem.BatchFileExecutable => SettingsField.Executable,
+            SettingsProblem.NoExecutable or SettingsProblem.ExecutableNotFullPath or SettingsProblem.BatchFileExecutable or SettingsProblem.ExecutableMissing => SettingsField.Executable,
             SettingsProblem.NoFolderPlaceholder => SettingsField.Arguments,
             _ => throw new UnreachableException(),
         };

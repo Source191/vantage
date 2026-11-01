@@ -155,7 +155,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// <summary>A setting's dialog over the settings saved now; a save is dispatched, so the status line confirms it and the refresh after it uses the new values.</summary>
     private void EditSettings(IEffectContext context, SettingsScope scope)
     {
-        switch (SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, scope, folders.DirectoryExists))
+        switch (SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, scope, folders.DirectoryExists, folders.FileExists))
         {
             case SettingsEffect.Save save:
                 context.Dispatch(new SaveSettings(save.Settings));
