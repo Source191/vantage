@@ -38,7 +38,7 @@ Each Core task is one red-green-refactor cycle with a commit per step, the test 
 ## 5. Tui state
 
 - [x] 5.1 `TableBody`: `headerUnderMouse` and `rowUnderMouse` become one `PointerOver` (`Nothing`, `Header`, `Row`), and `KeyMapping.From` becomes `KeyMapping.TryFrom`, with `OnKey` returning early when it answers false. Verify the build, that `TableBody.cs` has no `int?` field and `KeyMapping.cs` no `Key?` return, and that the smoke check's keys still reach the views (5.4).
-- [ ] 5.2 `CellPaint` and `RowTip`:
+- [x] 5.2 `CellPaint` and `RowTip`:
   - `CellPaint` becomes `None`, `Text(Color)` and `Fill(Color)`.
   - `IScreenDefinition.CellPaint` answers it, and `RowTip` answers `string`.
   - The Sessions definition answers `Text(Palette.Grey)` where it answered `new CellPaint(Palette.Grey)`, and `Fill(...)` where it answered `Always: true`. The other two definitions answer `None` and `string.Empty`.

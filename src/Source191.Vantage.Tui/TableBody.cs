@@ -470,7 +470,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
             return;
         }
 
-        if (over is PointerOver.Row row && table.Table is TableSource<TRow> source && row.Index < source.Rows && definition.RowTip(source.RowAt(row.Index)) is string tip)
+        if (over is PointerOver.Row row && table.Table is TableSource<TRow> source && row.Index < source.Rows && definition.RowTip(source.RowAt(row.Index)) is { Length: > 0 } tip)
         {
             ShowToolTip(x, table.Frame.Y + (mouse.Position?.Y ?? 0), 1, tip);
         }
@@ -569,13 +569,17 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
 
         TRow row = source.RowAt(args.RowIndex);
-        CellPaint? paint = definition.CellPaint(row, args.ColIdex);
+        bool onSelected = Equals(row, selected);
 
-        return paint switch
+        // Null is Terminal.Gui's "the row's own scheme applies".
+        return definition.CellPaint(row, args.ColIdex) switch
         {
-            { Always: true } when Equals(row, selected) => Palette.SelectedRow(paint.Foreground),
-            not null when !Equals(row, selected) => Palette.Plain(paint.Foreground),
-            _ => null,
+            CellPaint.Fill fill when onSelected => Palette.SelectedRow(fill.Foreground),
+            CellPaint.Fill fill => Palette.Plain(fill.Foreground),
+            CellPaint.Text when onSelected => null,
+            CellPaint.Text text => Palette.Plain(text.Foreground),
+            CellPaint.None => null,
+            _ => throw new UnreachableException(),
         };
     }
 

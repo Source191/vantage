@@ -20,7 +20,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public TableDetail<SessionRow> Detail => new TableDetail<SessionRow>.Pane(detail);
 
-    public string? RowTip(SessionRow row) => null;
+    public string RowTip(SessionRow row) => string.Empty;
 
 
     public string WaitingText => "Listing sessions";
@@ -47,13 +47,13 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
     }
 
     /// <summary>The block keeps its tab's colour, in the shade the tab shows while Vantage's own tab is selected, on every row, the selected one too; a plain claude in its own terminal shows a grey hollow block.</summary>
-    public CellPaint? CellPaint(SessionRow row, int column)
+    public CellPaint CellPaint(SessionRow row, int column)
     {
         return (column, row) switch
         {
-            (TabColumn, { Session: InteractiveSession }) => new CellPaint(Palette.Grey),
-            (TabColumn, { Tab: LiveTab.Open { Colour: TabColour colour } }) when Color.TryParse(TabShade.Unselected(colour), out Color? parsed) => new CellPaint(parsed.Value, Always: true),
-            _ => null,
+            (TabColumn, { Session: InteractiveSession }) => new CellPaint.Text(Palette.Grey),
+            (TabColumn, { Tab: LiveTab.Open { Colour: TabColour colour } }) when Color.TryParse(TabShade.Unselected(colour), out Color? parsed) => new CellPaint.Fill(parsed.Value),
+            _ => new CellPaint.None(),
         };
     }
 
