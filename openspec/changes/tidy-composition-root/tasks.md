@@ -54,7 +54,8 @@ Every task here is a refactor of untested wiring: verify with the build, `dotnet
   Passed on 1 November 2026 after `dotnet build src\Source191.Vantage -c Release`: the banner appeared at about 11.5 s, `vantage here` exited 0 by itself after Ctrl+Z, the throwaway session was stopped and removed; exit 0. The smoke check is left to CI.
 - [x] 5.6 Docs say the tool project (`Program.cs` and its `Composition` folder) is the only composition root and that its classes are untested wiring: `CLAUDE.md` (the layers paragraph and the TDD rule), `CONTRIBUTING.md`'s "How the code is organised" row, `src\Source191.Vantage\README.md`, `openspec\config.yaml`'s context and `LayeringShould`'s summary. Verify by reading each against design.md and checking no em dash was introduced.
   Done, and also where the same old sentence appeared: CLAUDE.md's projects line, command-line paragraph, `TabScripts` line and security line; `security.md` and `console-screen.md`; the doc comments of `ScreenContext` and `Application\Effects\Composition`. The README records why no container. No em dash added.
-- [ ] 5.7 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview above `main` (0.20.0-preview.8 if nothing lands first). Verify `.github\scripts\Assert-VersionBumped.ps1` passes locally against `main`.
+- [x] 5.7 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview above `main` (0.20.0-preview.8 if nothing lands first). Verify `.github\scripts\Assert-VersionBumped.ps1` passes locally against `main`.
+  Deviation: set to `0.20.0-preview.10`, the next preview in the stack (`standardise-maybe-null-when` took .9), and checked against this branch's base `v-maybe-null-when` rather than `main`: `Assert-VersionBumped.ps1 -Base v-maybe-null-when -Head HEAD` passes.
 
 ## 6. Whole-solution check
 
