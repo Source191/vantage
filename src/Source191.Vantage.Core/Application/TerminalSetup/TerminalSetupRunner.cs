@@ -103,28 +103,29 @@ public sealed class TerminalSetupRunner(
 
     private async Task<TerminalProfiles> ChooseProfilesAsync(TerminalSetupRequest request)
     {
-        string? vantageSound = await SoundOrDefaultAsync(request.Sound, VantageDefaultSound, TerminalProfiles.VantageProfileName);
-        string? sessionSound = await SoundOrDefaultAsync(request.SessionSound, SessionDefaultSound, TerminalProfiles.SessionProfileName);
+        BellSound vantageSound = await SoundOrDefaultAsync(request.Sound, VantageDefaultSound, TerminalProfiles.VantageProfileName);
+        BellSound sessionSound = await SoundOrDefaultAsync(request.SessionSound, SessionDefaultSound, TerminalProfiles.SessionProfileName);
 
         return new TerminalProfiles(vantageExecutable, vantageSound, sessionSound);
     }
 
-    private async Task<string?> SoundOrDefaultAsync(SoundArgument sound, string defaultFile, string profileName)
+    /// <summary>The sound given, else the Windows media default, else Windows Terminal's own after saying so.</summary>
+    private async Task<BellSound> SoundOrDefaultAsync(SoundArgument sound, string defaultFile, string profileName)
     {
         if (sound is SoundArgument.Given given)
         {
-            return given.Path;
+            return new BellSound.File(given.Path);
         }
 
         string defaultSound = Path.Combine(windowsMediaFolder, defaultFile);
         if (folders.FileExists(defaultSound))
         {
-            return defaultSound;
+            return new BellSound.File(defaultSound);
         }
 
         await output.WriteLineAsync(Wording.DefaultSoundMissing(profileName, defaultSound));
 
-        return null;
+        return new BellSound.TerminalDefault();
     }
 
     private async Task<Step> WriteProfilesAsync(TerminalSetupRequest request, TerminalProfiles profiles, CancellationToken cancellationToken)
