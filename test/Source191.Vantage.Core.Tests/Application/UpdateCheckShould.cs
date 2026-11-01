@@ -20,7 +20,7 @@ public sealed class UpdateCheckShould
     [Fact]
     public async Task OfferTheRecordedReleaseAtStart()
     {
-        await state.WriteUpdateCheckAsync(new UpdateCheckRecord(Noon.AddHours(-1), "0.10.0"));
+        await state.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon.AddHours(-1), new NewestRelease.Found(Newer)));
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
@@ -40,7 +40,7 @@ public sealed class UpdateCheckShould
         packages.Calls.ShouldBe(1);
         packages.LastPackageId.ShouldBe("Source191.Vantage");
         check.Status.ShouldBe(new UpdateStatus.Available(Current, Newer));
-        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord(Noon, "0.10.0"));
+        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Checked(Noon, new NewestRelease.Found(Newer)));
     }
 
     [Fact]
@@ -52,13 +52,13 @@ public sealed class UpdateCheckShould
         await check.RunAsync(TestContext.Current.CancellationToken);
 
         check.Status.ShouldBe(new UpdateStatus.UpToDate());
-        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord(Noon, null));
+        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Checked(Noon, new NewestRelease.None()));
     }
 
     [Fact]
     public async Task NotRequestWithinADay()
     {
-        await state.WriteUpdateCheckAsync(new UpdateCheckRecord(Noon.AddHours(-23), "0.9.0"));
+        await state.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon.AddHours(-23), new NewestRelease.Found(Current)));
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
@@ -70,7 +70,7 @@ public sealed class UpdateCheckShould
     [Fact]
     public async Task RecordNothingWhenTheRequestFails()
     {
-        UpdateCheckRecord old = new(Noon.AddDays(-2), "0.10.0");
+        UpdateCheckRecord.Checked old = new(Noon.AddDays(-2), new NewestRelease.Found(Newer));
         await state.WriteUpdateCheckAsync(old);
         packages.Answer = new VersionListing.NothingLearned();
         UpdateCheck check = Check(Running);

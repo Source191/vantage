@@ -1,6 +1,5 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
-using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -23,10 +22,10 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
-        UpdateCheckRecord? record = await records.ReadUpdateCheckAsync();
-        newest.Replace(record?.Newest is string text ? NewestRelease.Recorded(text) : new NewestRelease.None());
+        UpdateCheckRecord record = await records.ReadUpdateCheckAsync();
+        newest.Replace(record is UpdateCheckRecord.Checked recorded ? recorded.Newest : new NewestRelease.None());
         DateTimeOffset now = clock.GetUtcNow();
-        bool due = record is null ? UpdateCheckRule.ShouldCheck(running, enabled()) : UpdateCheckRule.ShouldCheck(running, enabled(), record.CheckedAt, now);
+        bool due = record is UpdateCheckRecord.Checked last ? UpdateCheckRule.ShouldCheck(running, enabled(), last.CheckedAt, now) : UpdateCheckRule.ShouldCheck(running, enabled());
         if (!due)
         {
             return;
@@ -38,19 +37,7 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
         }
 
         NewestRelease found = UpdateCheckRule.Newest(listed.Versions);
-        await records.WriteUpdateCheckAsync(new UpdateCheckRecord(now, RecordedText(found)));
+        await records.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(now, found));
         newest.Replace(found);
-    }
-
-    /// <summary>The record keeps the newest release as text, and no text when there is none.</summary>
-    private static string? RecordedText(NewestRelease release)
-    {
-        return release switch
-        {
-            NewestRelease.Found found => found.Version.ToString(),
-            NewestRelease.None => null,
-            NewestRelease.Unreadable unreadable => unreadable.Text,
-            _ => throw new UnreachableException(),
-        };
     }
 }
