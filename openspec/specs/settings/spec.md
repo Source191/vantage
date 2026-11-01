@@ -20,6 +20,10 @@ Vantage SHALL keep its settings in `config.json` in its state folder: the reposi
 - **WHEN** `config.json` is not valid JSON
 - **THEN** Vantage starts with every default and does not exit
 
+#### Scenario: A path holding a NUL character
+- **WHEN** `config.json` holds `repositoryRoots` of `C:\Users\me\source\repos` and a second root whose text holds a NUL character, and a `worktreeRoot` whose text holds one too
+- **THEN** Vantage starts, scans `C:\Users\me\source\repos` alone, puts new worktrees under `C:\Users\me\source\worktrees`, and does not exit
+
 #### Scenario: The default place by hand
 - **WHEN** `config.json` holds `defaultPlace` of `CurrentBranch`
 - **THEN** the wizard opened with n starts on Current branch

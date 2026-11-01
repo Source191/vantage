@@ -83,10 +83,10 @@ public sealed class TabRegistrationShould
     [Fact]
     public void FindTheOwningTerminalWhateverItsCaseAndUpToEightStepsAway()
     {
-        FakeProcessRegistry processes = new FakeProcessRegistry().InTree(1, "windowsterminal", 0).InTree(4000, "pwsh", 1);
+        FakeProcessRegistry processes = new FakeProcessRegistry().InTree(1, "windowsterminal", 0, ProcessStart.AddHours(-1)).InTree(4000, "pwsh", 1, ProcessStart.AddMinutes(-10));
         for (int process = 4001; process <= 4007; process++)
         {
-            processes.InTree(process, "node", process - 1);
+            processes.InTree(process, "node", process - 1, ProcessStart.AddMinutes(process - 4008));
         }
 
         TabRegistration claimed = Pending(createdAt: Now).ClaimedBy(4007, ProcessStart);
@@ -97,7 +97,7 @@ public sealed class TabRegistrationShould
     [Fact]
     public void AnswerTheOwningWindowOrAnyWhileUnclaimed()
     {
-        FakeProcessRegistry processes = new FakeProcessRegistry().InTree(1, "WindowsTerminal", 0).InTree(4000, "pwsh", 1).InTree(5000, "pwsh", 0);
+        FakeProcessRegistry processes = new FakeProcessRegistry().InTree(1, "WindowsTerminal", 0, ProcessStart.AddHours(-1)).InTree(4000, "pwsh", 1, ProcessStart).InTree(5000, "pwsh", 0, ProcessStart);
 
         Pending(createdAt: Now).ClaimedBy(4000, ProcessStart).OwningTerminal(processes).ShouldBe(new TerminalWindow.Owning(1));
         Pending(createdAt: Now).OwningTerminal(processes).ShouldBe(new TerminalWindow.Any(), "a tab still being claimed may be in any window");

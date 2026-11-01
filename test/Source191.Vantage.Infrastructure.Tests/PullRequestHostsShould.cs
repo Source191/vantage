@@ -38,9 +38,30 @@ public sealed class PullRequestHostsShould : IDisposable
         File.WriteAllText(Path.Combine(bin, "az.cmd"), "@echo off");
         File.WriteAllText(Path.Combine(later, "az.cmd"), "@echo off");
 
-        AzureCliExecutable.Locate($"{Path.Combine(folder, "missing")};{bin};{later}").ShouldBe(new ProgramLocation.Found(Path.Combine(bin, "az.cmd")), "the first PATH folder holding az.cmd wins");
-        AzureCliExecutable.Locate(Path.Combine(folder, "missing")).ShouldBe(new ProgramLocation.Missing());
-        AzureCliExecutable.Locate(null).ShouldBe(new ProgramLocation.Missing());
+        AzureCliExecutable.Locate([Path.Combine(folder, "missing"), bin, later]).ShouldBe(new ProgramLocation.Found(Path.Combine(bin, "az.cmd")), "the first PATH folder holding az.cmd wins");
+        AzureCliExecutable.Locate([Path.Combine(folder, "missing")]).ShouldBe(new ProgramLocation.Missing());
+        AzureCliExecutable.Locate([]).ShouldBe(new ProgramLocation.Missing());
+    }
+
+    [Fact]
+    public void FindAzOnlyInFullPathFolders()
+    {
+        string relativeName = "vantage-az-relative-" + Guid.NewGuid().ToString("N");
+        string relative = Path.Combine(Environment.CurrentDirectory, relativeName);
+        string full = Path.Combine(folder, "full");
+        Directory.CreateDirectory(relative);
+        Directory.CreateDirectory(full);
+        File.WriteAllText(Path.Combine(relative, "az.cmd"), "@echo off");
+        File.WriteAllText(Path.Combine(full, "az.cmd"), "@echo off");
+
+        try
+        {
+            AzureCliExecutable.Locate([relativeName, full]).ShouldBe(new ProgramLocation.Found(Path.Combine(full, "az.cmd")), "a relative PATH entry is never searched, even when it holds az.cmd");
+        }
+        finally
+        {
+            Directory.Delete(relative, recursive: true);
+        }
     }
 
     public void Dispose()

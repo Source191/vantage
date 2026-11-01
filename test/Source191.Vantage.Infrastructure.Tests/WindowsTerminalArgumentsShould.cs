@@ -13,7 +13,9 @@ public sealed class WindowsTerminalArgumentsShould
         StartingDirectory: FolderPath.From(@"C:\repos\Northwind.Orders"),
         Script: "& 'C:\\Users\\me\\.local\\bin\\claude.exe' attach 81cdb0f9");
 
-    private static readonly List<string> Arguments = [.. WindowsTerminalArguments.ForTab(Launch, profile: [])];
+    private const string Pwsh = @"C:\Program Files\PowerShell\7\pwsh.exe";
+
+    private static readonly List<string> Arguments = [.. WindowsTerminalArguments.ForTab(Launch, profile: [], Pwsh)];
 
     [Fact]
     public void OpenANewTabInTheCurrentWindow()
@@ -34,9 +36,9 @@ public sealed class WindowsTerminalArgumentsShould
     [Fact]
     public void RunPowerShellWithTheEncodedScriptAndKeepTheTabOpen()
     {
-        int pwsh = Arguments.IndexOf("pwsh.exe");
+        int pwsh = Arguments.IndexOf(Pwsh);
 
-        Arguments.Skip(pwsh).Take(3).ShouldBe(["pwsh.exe", "-NoExit", "-EncodedCommand"], customMessage: "the profile must load so the shell behind the session is the normal one");
+        Arguments.Skip(pwsh).Take(3).ShouldBe([Pwsh, "-NoExit", "-EncodedCommand"], customMessage: "the profile must load so the shell behind the session is the normal one");
         string decoded = Encoding.Unicode.GetString(Convert.FromBase64String(Arguments[pwsh + 3]));
         decoded.ShouldBe(Launch.Script);
     }
@@ -46,7 +48,7 @@ public sealed class WindowsTerminalArgumentsShould
     {
         TabLaunch launch = Launch with { Title = "fix a;b", StartingDirectory = FolderPath.From(@"C:\repos\Northwind;Orders") };
 
-        List<string> arguments = [.. WindowsTerminalArguments.ForTab(launch, profile: [])];
+        List<string> arguments = [.. WindowsTerminalArguments.ForTab(launch, profile: [], Pwsh)];
 
         arguments[arguments.IndexOf("--title") + 1].ShouldBe(@"fix a\;b");
         arguments[arguments.IndexOf("--startingDirectory") + 1].ShouldBe(@"C:\repos\Northwind\;Orders");
@@ -56,10 +58,10 @@ public sealed class WindowsTerminalArgumentsShould
     [Fact]
     public void AddTheProfileWhenGiven()
     {
-        List<string> withProfile = [.. WindowsTerminalArguments.ForTab(Launch, ["--profile", "Vantage session"])];
+        List<string> withProfile = [.. WindowsTerminalArguments.ForTab(Launch, ["--profile", "Vantage session"], Pwsh)];
 
         withProfile[withProfile.IndexOf("--profile") + 1].ShouldBe("Vantage session");
-        withProfile.IndexOf("--profile").ShouldBeLessThan(withProfile.IndexOf("pwsh.exe"));
+        withProfile.IndexOf("--profile").ShouldBeLessThan(withProfile.IndexOf(Pwsh));
     }
 
     [Fact]
@@ -71,15 +73,25 @@ public sealed class WindowsTerminalArgumentsShould
     [Fact]
     public void BuildTheWholeArgumentListWithAndWithoutTheProfile()
     {
-        string[] tail = ["--title", "Refund retry policy", "--tabColor", "#0078D4", "--suppressApplicationTitle", "--startingDirectory", @"C:\repos\Northwind.Orders", "pwsh.exe", "-NoExit", "-EncodedCommand", EncodedCommand.Encode(Launch.Script)];
+        string[] tail = ["--title", "Refund retry policy", "--tabColor", "#0078D4", "--suppressApplicationTitle", "--startingDirectory", @"C:\repos\Northwind.Orders", Pwsh, "-NoExit", "-EncodedCommand", EncodedCommand.Encode(Launch.Script)];
 
         Arguments.ShouldBe(["-w", "0", "new-tab", .. tail]);
-        WindowsTerminalArguments.ForTab(Launch, ["--profile", "Vantage session"]).ShouldBe(["-w", "0", "new-tab", "--profile", "Vantage session", .. tail]);
+        WindowsTerminalArguments.ForTab(Launch, ["--profile", "Vantage session"], Pwsh).ShouldBe(["-w", "0", "new-tab", "--profile", "Vantage session", .. tail]);
+    }
+
+    [Fact]
+    public void NamePwshByItsFullPath()
+    {
+        TabLaunch launch = Launch with { StartingDirectory = FolderPath.From(@"C:\repos\Northwind;Orders") };
+        List<string> arguments = [.. WindowsTerminalArguments.ForTab(launch, profile: [], Pwsh)];
+
+        arguments[arguments.IndexOf("--startingDirectory") + 2].ShouldBe(@"C:\Program Files\PowerShell\7\pwsh.exe");
+        arguments[arguments.IndexOf("--startingDirectory") + 1].ShouldBe(@"C:\repos\Northwind\;Orders");
     }
 
     [Fact]
     public void PutTheTabOptionsBeforeTheCommand()
     {
-        Arguments.IndexOf("--suppressApplicationTitle").ShouldBeLessThan(Arguments.IndexOf("pwsh.exe"));
+        Arguments.IndexOf("--suppressApplicationTitle").ShouldBeLessThan(Arguments.IndexOf(Pwsh));
     }
 }

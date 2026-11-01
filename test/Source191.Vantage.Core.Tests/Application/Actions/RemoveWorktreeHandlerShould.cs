@@ -14,7 +14,7 @@ public sealed class RemoveWorktreeHandlerShould
     private readonly FakeFolders folders = new();
     private readonly InMemoryState store = new();
 
-    private RemoveWorktreeHandler Handler => new(new GitCli(processes, "git"), store, folders);
+    private RemoveWorktreeHandler Handler => new(new GitCli(processes, "git"), store, folders, TestSettings.Current(Root));
 
     [Fact]
     public async Task RemoveACleanWorktreeAndOfferToDeleteAHandMadeBranch()
@@ -110,7 +110,7 @@ public sealed class RemoveWorktreeHandlerShould
     public async Task DeleteABrokenLeftoverFolderAndPruneItsOwner()
     {
         string folder = Path.Combine(Root, "Northwind.Orders-stale");
-        folders.WithFile(Path.Combine(folder, "pack.idx"));
+        folders.WithDirectory(folder);
         processes.AnswerInTurn(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/a\nHEAD a\nbranch refs/heads/main\n\nworktree C:/b\nHEAD b\nbranch refs/heads/x\n", string.Empty), new ProcessResult(0, "worktree C:/a\nHEAD a\nbranch refs/heads/main\n", string.Empty));
 
         RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Broken, folder, head: new Head.Unknown()), forced: false, CancellationToken.None);
@@ -131,5 +131,57 @@ public sealed class RemoveWorktreeHandlerShould
         folders.DirectoryExists(folder).ShouldBeFalse();
         GitCalls(processes).ShouldBeEmpty();
         outcome.ShouldBe(new RemoveWorktreeOutcome.DeletedFolder("fix-service-tests"));
+    }
+
+    [Fact]
+    public async Task ReadTheFolderWhenTheKeyIsPressed()
+    {
+        string folder = Path.Combine(Root, "Northwind.Orders-stale");
+        folders.WithFile(Path.Combine(folder, "a.txt")).WithFile(Path.Combine(folder, "b.txt")).WithFile(Path.Combine(folder, "c.txt"));
+        WorktreeRow scannedEmpty = Row(WorktreeHealthKind.Broken, folder, head: new Head.Unknown());
+
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(scannedEmpty, forced: false, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.Refused(new RemovalReason.LeftoverFilesWouldBeLost(3, AtLeast: false)));
+        folders.DirectoryExists(folder).ShouldBeTrue();
+        GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("prune"));
+    }
+
+    [Fact]
+    public async Task RefuseAnEmptyLeftoverThatHasGainedFilesSinceTheScan()
+    {
+        string folder = Path.Combine(Root, "Northwind.Orders.worktrees");
+        folders.WithFile(Path.Combine(folder, "a.txt"));
+
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Empty, folder, head: new Head.Unknown()), forced: false, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.Refused(new RemovalReason.LeftoverFilesWouldBeLost(1, AtLeast: false)));
+        folders.DirectoryExists(folder).ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RefuseAFolderOutsideTheRoots(bool forced)
+    {
+        const string archive = @"D:\Northwind.Archive";
+        folders.WithDirectory(archive);
+
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Broken, archive, head: new Head.Unknown()), forced, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.Refused(new RemovalReason.OutsideTheRoots(FolderPath.From(archive))));
+        folders.DirectoryExists(archive).ShouldBeTrue();
+        GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("prune"));
+    }
+
+    [Fact]
+    public async Task RefuseToDeleteARootItself()
+    {
+        folders.WithDirectory(Root);
+
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Orphan, Root, head: new Head.Unknown()), forced: true, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.Refused(new RemovalReason.OutsideTheRoots(FolderPath.From(Root))));
+        folders.DirectoryExists(Root).ShouldBeTrue();
     }
 }

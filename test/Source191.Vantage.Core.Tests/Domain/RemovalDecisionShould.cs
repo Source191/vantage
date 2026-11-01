@@ -130,6 +130,7 @@ public sealed class RemovalDecisionShould
     [Theory]
     [InlineData(WorktreeHealthKind.Orphan)]
     [InlineData(WorktreeHealthKind.Broken)]
+    [InlineData(WorktreeHealthKind.Empty)]
     public void RefuseALeftoverFolderThatStillHasFilesInIt(WorktreeHealthKind health)
     {
         RemovalDecision decision = RemovalDecision.For(Clean with { Health = health, LeftoverFileCount = 12 }, forced: false);
@@ -184,5 +185,18 @@ public sealed class RemovalDecisionShould
 
         decision.Outcome.ShouldBe(RemovalOutcome.DeleteFolder);
         decision.PruneRegistration.ShouldBeTrue();
+    }
+
+    /// <summary>A worktree whose .git file is gone is broken with files in it: refused, but force-remove deletes and prunes.</summary>
+    [Fact]
+    public void ForceRemoveABrokenFolderThatStillHasFilesAndPruneItsRegistration()
+    {
+        WorktreeRemovalFacts gitFileGone = Clean with { Health = WorktreeHealthKind.Broken, LeftoverFileCount = 12 };
+
+        RemovalDecision.For(gitFileGone, forced: false).CanBeForced.ShouldBeTrue();
+        RemovalDecision forced = RemovalDecision.For(gitFileGone, forced: true);
+        forced.Outcome.ShouldBe(RemovalOutcome.DeleteFolder);
+        forced.Forced.ShouldBeTrue();
+        forced.PruneRegistration.ShouldBeTrue();
     }
 }

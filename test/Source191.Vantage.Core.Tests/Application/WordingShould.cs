@@ -547,6 +547,12 @@ public sealed class WordingShould
         Wording.Describe(new RemovalReason.RepositoryOutsideRoots()).ShouldBe("its repository is not under the roots; add that root in settings or remove the worktree with git there");
     }
 
+    [Fact]
+    public void SayALeftoverOutsideTheRootsIsNotDeleted()
+    {
+        Wording.Describe(new RemovalReason.OutsideTheRoots(FolderPath.From(@"D:\Northwind.Archive"))).ShouldBe(@"D:\Northwind.Archive is outside the repository roots and the worktree root, so it is not deleted");
+    }
+
     public static TheoryData<Type> HealthReasons => [.. typeof(HealthReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(HealthReason)))];
 
     [Theory]
@@ -569,6 +575,12 @@ public sealed class WordingShould
     public void SayTheFolderIsGone()
     {
         Wording.Describe(new HealthReason.FolderGone()).ShouldBe("registered with git but the folder is gone");
+    }
+
+    [Fact]
+    public void SayTheGitFileIsGone()
+    {
+        Wording.Describe(new HealthReason.GitFileGone()).ShouldBe("registered with git but its .git file is gone");
     }
 
     [Fact]

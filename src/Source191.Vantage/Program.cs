@@ -123,7 +123,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
     CurrentSettings settings = await CurrentSettings.LoadAsync(store, home);
     ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
-    WindowsTerminal terminal = new(processes, terminalFragment, programs.Locate("wt"));
+    WindowsTerminal terminal = new(processes, terminalFragment, programs.Locate("wt"), programs.Locate("pwsh"));
     Folders folders = new();
     TerminalConsole console = new(Console.Out, tabTitle);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
@@ -131,7 +131,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
     using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
     Task<ClaudeVersionReport> claudeVersion = claude.VersionAsync(versionTimeout.Token);
-    using PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes, programs.Locate("gh")), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
+    using PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes, programs.Locate("gh")), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(PathFolders.ForCurrentUser()))), TimeProvider.System);
     SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
     StateTransitionNotifier notifier = new(Console.Out);
     SessionActivity activity = new(TimeProvider.System);
@@ -146,7 +146,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     ClaudeVersionReport claudeVersionReport = await claudeVersion;
     Started start = RecordStart(claudeVersionReport);
     ProblemReports reports = new(log, processCounts, crashFile, start, settings);
-    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders), reports, processRegistry);
+    DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders, settings), new RemoveWorktreeHandler(git, store, folders, settings), reports, processRegistry);
 
     ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionReport);
     ScreenContext context = new(tabTitle, _ => [Wording.SettingsRow(version, claudeCode, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero)], () => updates.Status is UpdateStatus.Available, clipboard, log);

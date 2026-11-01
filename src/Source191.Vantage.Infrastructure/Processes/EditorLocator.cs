@@ -41,7 +41,7 @@ public sealed class EditorLocator(IFolders folders, IProcessRunner processes, Ed
 
     private IEnumerable<string> CodeBesideTheShim()
     {
-        return where.PathFolders
+        return Processes.PathFolders.Searchable(where.PathFolders)
             .Where(folder => folders.FileExists(Path.Combine(folder, "code.cmd")))
             .Select(folder => Path.Combine(folder, "..", "Code.exe"))
             .Select(Path.GetFullPath);

@@ -19,6 +19,7 @@ public sealed record WorktreeHealth(WorktreeHealthKind Kind, HealthReason Reason
         return observation switch
         {
             { RegisteredWithGit: true, FolderExists: false } => new(WorktreeHealthKind.Broken, new HealthReason.FolderGone()),
+            { RegisteredWithGit: true, Prunable: true } => new(WorktreeHealthKind.Broken, new HealthReason.GitFileGone()),
             { RegisteredWithGit: true, Lock: WorktreeLock.Locked locked } => new(WorktreeHealthKind.Locked, new HealthReason.Locked(locked.Reason)),
             { RegisteredWithGit: true } => new(WorktreeHealthKind.Ok, new HealthReason.None()),
             { GitFile: GitPointer.RegisteredElsewhere elsewhere } => new(WorktreeHealthKind.Elsewhere, new HealthReason.RepositoryOutsideRoots(elsewhere.Owner)),

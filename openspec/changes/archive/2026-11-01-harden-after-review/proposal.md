@@ -16,7 +16,7 @@ The security review of 1 November 2026 (branch v-sec, at main a09d1184, read-onl
 - **A NUL character in a state file reads as a bad value,** not a crash at start-up.
 - **CI:** `publish.yml` verifies the release package's provenance attestation before pushing it, and immutable releases are turned on; `release.yml` builds and tests in a job with read rights and attests and publishes in a second job that only downloads; `claude-contract.yml` raises its issue from a job of its own, so the install and the tests run without `issues: write`.
 - **Documentation:** README's "What Vantage trusts", `CONTRIBUTING.md` and `.claude\rules\checks.md` match.
-- The tool's version takes a minor step in the pull request that implements this: removal refuses more than it did.
+- The tool's version takes a minor step in the pull request that implements this, because removal refuses more than it did: `0.20.0-preview.6`, on the 0.20.0 line that is already the minor step over the released 0.19 line.
 
 ## Capabilities
 

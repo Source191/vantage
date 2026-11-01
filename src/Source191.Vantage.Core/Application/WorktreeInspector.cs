@@ -18,15 +18,20 @@ public sealed class WorktreeInspector(IGit git)
         await git.CountUnpushedCommitsAsync(worktree.Value, cancellationToken),
         await git.LastCommitAtAsync(worktree.Value, cancellationToken) is DateTimeOffset at ? new LastCommit.Made(at) : new LastCommit.Unknown());
 
-    /// <summary>Health as git's listing gives it: broken when git no longer lists the worktree or calls it prunable, locked with git's reason.</summary>
-    public async Task<WorktreeHealth> HealthAsync(FolderPath repository, FolderPath worktree, CancellationToken cancellationToken)
+    /// <summary>
+    /// Health as git's listing and the disc give it, the caller having read whether the folder exists: listed and fine
+    /// is ok or locked with git's reason; listed and prunable is broken, its folder gone or only its .git file; not
+    /// listed is broken with its folder gone, or, while the folder exists (git may list it under another spelling, such
+    /// as the real folder behind a junction), not registered, so its files are counted before anything is deleted.
+    /// </summary>
+    public async Task<WorktreeHealth> HealthAsync(FolderPath repository, FolderPath worktree, bool folderExists, CancellationToken cancellationToken)
     {
         IReadOnlyList<GitWorktreeEntry> entries = await git.ListWorktreesAsync(repository.Value, cancellationToken);
         GitWorktreeEntry? entry = entries.FirstOrDefault(candidate => FolderPath.TryParse(candidate.Path, out FolderPath? path) && path.Equals(worktree));
 
         return entry is null
-            ? WorktreeHealth.From(new WorktreeObservation(true, false, new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), false))
-            : WorktreeHealth.From(new WorktreeObservation(true, !entry.IsPrunable, entry.Lock, false, new GitPointer.NoGitFile(), false));
+            ? WorktreeHealth.From(new WorktreeObservation(RegisteredWithGit: !folderExists, folderExists, new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), false, Prunable: false))
+            : WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.Lock, false, new GitPointer.NoGitFile(), false, entry.IsPrunable));
     }
 
     /// <summary>Merged into the remote default branch, or into HEAD when the repository has none.</summary>

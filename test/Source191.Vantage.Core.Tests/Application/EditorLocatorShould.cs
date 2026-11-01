@@ -27,6 +27,15 @@ public sealed class EditorLocatorShould
     }
 
     [Fact]
+    public async Task IgnoreACodeShimInARelativeFolder()
+    {
+        EditorFolders relative = Where with { PathFolders = [@"tools\VSCode\bin"] };
+        FakeFolders folders = new FakeFolders().WithFile(@"tools\VSCode\bin\code.cmd").WithFile(Path.GetFullPath(@"tools\VSCode\Code.exe"));
+
+        (await new EditorLocator(folders, processes, relative).LocateAsync(EditorPreset.VsCode, CancellationToken.None)).ShouldBe(new ProgramLocation.Missing());
+    }
+
+    [Fact]
     public async Task FallBackToTheUserInstallFolder()
     {
         FakeFolders folders = new FakeFolders().WithFile($@"{Install}\Code.exe");

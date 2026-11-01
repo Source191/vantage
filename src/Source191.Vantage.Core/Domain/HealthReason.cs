@@ -8,6 +8,9 @@ public abstract record HealthReason
 
     public sealed record FolderGone : HealthReason;
 
+    /// <summary>Git still registers the worktree and its folder exists, but the folder's .git file is gone.</summary>
+    public sealed record GitFileGone : HealthReason;
+
     /// <summary>Git's own words for the lock, kept as it said them; they may be empty.</summary>
     public sealed record Locked(string LockReason) : HealthReason;
 

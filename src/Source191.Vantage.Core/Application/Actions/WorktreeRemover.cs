@@ -7,9 +7,11 @@ namespace Source191.Vantage.Application.Actions;
 
 /// <summary>
 /// Carries out a removal decision for a worktree, the one way both views remove one: refuse, delete a leftover folder
-/// (pruning its registration when the decision says so), or remove it through git and then deal with its branch.
+/// (pruning its registration when the decision says so), or remove it through git and then deal with its branch. The
+/// last guard before a folder is deleted from disc is that it lies inside a repository root or the worktree root, read
+/// from the settings as they are now, whoever asked and whatever the decision said.
 /// </summary>
-public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees, IFolders folders)
+public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees, IFolders folders, CurrentSettings settings)
 {
     public async Task<RemoveWorktreeOutcome> CarryOutAsync(WorktreeRow row, RemovalDecision decision, bool createdByVantage, CancellationToken cancellationToken)
     {
@@ -60,6 +62,11 @@ public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees
 
     private async Task<RemoveWorktreeOutcome> DeleteFolderAsync(WorktreeRow row, RemovalDecision decision, CancellationToken cancellationToken)
     {
+        if (!InsideTheRoots(row.Path))
+        {
+            return new RemoveWorktreeOutcome.Refused(new RemovalReason.OutsideTheRoots(row.Path));
+        }
+
         folders.DeleteTree(row.Path.Value);
         if (!decision.PruneRegistration || !row.OwnerExists)
         {
@@ -69,5 +76,13 @@ public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees
         int pruned = await git.PruneWorktreesAsync(row.Repository.Value, cancellationToken);
 
         return new RemoveWorktreeOutcome.DeletedFolderAndPruned(row.FolderName, pruned, row.RepositoryName);
+    }
+
+    /// <summary>Strictly inside a repository root or the worktree root: a root itself is never deleted as a leftover.</summary>
+    private bool InsideTheRoots(FolderPath folder)
+    {
+        Settings now = settings.Value;
+
+        return now.RepositoryRoots.Append(now.WorktreeRoot).Any(root => folder.IsUnder(root) && !folder.Equals(root));
     }
 }

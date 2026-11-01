@@ -23,7 +23,7 @@ public sealed class ProgramLocator(IFolders folders, IReadOnlyList<string> pathF
         ArgumentException.ThrowIfNullOrWhiteSpace(program);
         string fileName = Path.HasExtension(program) ? program : program + Executable;
         string? found = fileName.EndsWith(Executable, StringComparison.OrdinalIgnoreCase)
-            ? pathFolders.Select(folder => Path.Combine(folder, fileName)).FirstOrDefault(folders.FileExists)
+            ? PathFolders.Searchable(pathFolders).Select(folder => Path.Combine(folder, fileName)).FirstOrDefault(folders.FileExists)
             : null;
 
         return found is null ? new ProgramLocation.Missing() : new ProgramLocation.Found(found);

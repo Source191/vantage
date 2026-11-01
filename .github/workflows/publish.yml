@@ -31,6 +31,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
+      attestations: read
     steps:
       # The tag is typed by a person and ends up in a command, so it is checked first and then only
       # ever read from an environment variable, never interpolated into the script.
@@ -61,6 +62,22 @@ jobs:
               throw "Expected exactly one .nupkg on release $env:TAG, found $($packages.Count)."
           }
           Write-Host "Publishing $($packages[0].Name)"
+
+      # Only what release.yml built from main is pushed: the package must carry the provenance attestation that
+      # release.yml signed for this repository, from main. A package swapped on the release after it was made, or
+      # attested by any other workflow or ref, fails here and nothing reaches nuget.org.
+      # (https://cli.github.com/manual/gh_attestation_verify)
+      - name: Verify the package's provenance
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $package = (Get-ChildItem package -Filter *.nupkg).FullName
+          gh attestation verify $package --repo Source191/vantage --signer-workflow Source191/vantage/.github/workflows/release.yml --source-ref refs/heads/main
+          if ($LASTEXITCODE -ne 0) {
+              throw "gh attestation verify failed with exit code $LASTEXITCODE: the package is not the one release.yml built from main."
+          }
 
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:

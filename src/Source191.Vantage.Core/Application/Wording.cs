@@ -115,6 +115,7 @@ public static partial class Wording
             RemovalReason.UnpushedCommits unpushed => $"branch {unpushed.Branch} has {unpushed.Count} unpushed commits",
             RemovalReason.LeftoverFolder => "leftover folder",
             RemovalReason.RepositoryOutsideRoots => "its repository is not under the roots; add that root in settings or remove the worktree with git there",
+            RemovalReason.OutsideTheRoots outside => $"{outside.Folder} is outside the repository roots and the worktree root, so it is not deleted",
             _ => reason.ToString(),
         };
     }
@@ -126,6 +127,7 @@ public static partial class Wording
         {
             HealthReason.None => string.Empty,
             HealthReason.FolderGone => "registered with git but the folder is gone",
+            HealthReason.GitFileGone => "registered with git but its .git file is gone",
             HealthReason.Locked locked => locked.LockReason,
             HealthReason.RegistrationGone => "its .git file points at a registration that no longer exists",
             HealthReason.UnderClaudeWorktrees => @"under .claude\worktrees but git no longer lists it",

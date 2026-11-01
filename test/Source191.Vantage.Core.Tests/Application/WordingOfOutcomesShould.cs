@@ -214,6 +214,20 @@ public sealed class WordingOfOutcomesShould
     }
 
     [Fact]
+    public void SayHowToDeleteAKeptWorktreeThatStillHoldsFiles()
+    {
+        Wording.Describe(new DeleteSessionOutcome.KeptWorktree("fix-123", new RemovalReason.LeftoverFilesWouldBeLost(12, AtLeast: false)))
+            .ShouldBe("Deleted fix-123; kept its worktree because 12 files that git no longer tracks would be lost; force remove (D) on the Worktrees tab deletes it.");
+    }
+
+    [Fact]
+    public void SayALeftoverOutsideTheRootsWasNotRemoved()
+    {
+        Wording.Describe(new RemoveWorktreeOutcome.Refused(new RemovalReason.OutsideTheRoots(FolderPath.From(@"D:\Northwind.Archive"))))
+            .ShouldBe(@"Not removed: D:\Northwind.Archive is outside the repository roots and the worktree root, so it is not deleted.");
+    }
+
+    [Fact]
     public void SayADeletedSessionsWorktreeAndBranchWentToo()
     {
         Wording.Describe(new DeleteSessionOutcome.RemovedWorktreeAndBranch("fix-123", BranchName.From("fix-123"))).ShouldBe("Deleted fix-123 and removed the worktree and branch fix-123.");

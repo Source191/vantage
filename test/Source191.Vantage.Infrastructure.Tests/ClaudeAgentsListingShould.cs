@@ -44,6 +44,20 @@ public sealed class ClaudeAgentsListingShould
     }
 
     [Fact]
+    public void SkipARowWhoseSessionIdIsNotAnId()
+    {
+        const string json = """
+            [
+              {"pid":51432,"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"interactive","startedAt":1792591583841,"sessionId":"--dangerously-skip-permissions","name":"option","status":"idle"},
+              {"pid":51433,"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"interactive","startedAt":1792591583841,"sessionId":"..\\..\\Northwind","name":"separator","status":"idle"},
+              {"pid":51434,"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"interactive","startedAt":1792591583841,"sessionId":"a2db48ec-63de-49db-9831-b8147075dc3a","name":"an-id","status":"idle"}
+            ]
+            """;
+
+        ClaudeAgentsListing.Parse(json).Sessions.Select(session => session.Name).ShouldBe(["an-id"]);
+    }
+
+    [Fact]
     public void MapBackgroundRowsAndInteractiveRows()
     {
         InteractiveSession interactive = Sessions.Single(session => session.Name == "repos-93").ShouldBeOfType<InteractiveSession>();
