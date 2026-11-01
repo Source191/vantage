@@ -8,7 +8,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
   Red was a build failure (no type), so it is folded into the green commit; Core.Tests 1957 passed, the architecture facts among them.
 - [x] 1.2 `RequiredProgramsShould.RefuseABatchFile`, `SayClaudeCodeIsMissing` and `SayGitIsMissing`: `Missing` with `Wording.ClaudeIsABatchFile(path)`, `Wording.ClaudeNotFound` and `Wording.GitNotFound`. Red, then green. Verify the facts pass.
   Red: three facts failed on the naive casts; green: a switch naming every `ClaudeLocation` case, discard arm `UnreachableException`; Core.Tests 1960 passed.
-- [ ] 1.3 `RequiredProgramsShould.PutClaudeCodeFirstWhenBothAreMissing`: a missing Claude Code and a missing git answer Claude Code's sentence, as `Program.cs` does today. Verify the fact passes (green at once is acceptable; say so in the commit).
+- [x] 1.3 `RequiredProgramsShould.PutClaudeCodeFirstWhenBothAreMissing`: a missing Claude Code and a missing git answer Claude Code's sentence, as `Program.cs` does today. Verify the fact passes (green at once is acceptable; say so in the commit).
+  Green at once: 1.2's switch already judges Claude Code first; Core.Tests 1961 passed.
 
 ## 2. The start event
 

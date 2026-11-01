@@ -41,4 +41,12 @@ public sealed class RequiredProgramsShould
 
         programs.ShouldBe(new RequiredPrograms.Missing(Wording.GitNotFound));
     }
+
+    [Fact]
+    public void PutClaudeCodeFirstWhenBothAreMissing()
+    {
+        RequiredPrograms programs = RequiredPrograms.Check(new ClaudeLocation.Missing(), new ProgramLocation.Missing());
+
+        programs.ShouldBe(new RequiredPrograms.Missing(Wording.ClaudeNotFound));
+    }
 }
