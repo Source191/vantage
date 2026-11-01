@@ -18,7 +18,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step and
 
 ## 3. The rule in words and the version
 
-- [ ] 3.1 `CLAUDE.md`: the house-shape sentence in "Values, sessions and null" names a Try method's `out` marked `[MaybeNullWhen(false)]` only, and "C# idioms" gains one line: a Try method's `out` parameter is a non-nullable `T` marked `[MaybeNullWhen(false)]`, never `[NotNullWhen(true)] out T?`, as `ITextValue` and the base class library's `IParsable` declare it, and callers declare `out T? x`. Verify by reading both against design.md and checking no em dash was introduced.
+- [x] 3.1 `CLAUDE.md`: the house-shape sentence in "Values, sessions and null" names a Try method's `out` marked `[MaybeNullWhen(false)]` only, and "C# idioms" gains one line: a Try method's `out` parameter is a non-nullable `T` marked `[MaybeNullWhen(false)]`, never `[NotNullWhen(true)] out T?`, as `ITextValue` and the base class library's `IParsable` declare it, and callers declare `out T? x`. Verify by reading both against design.md and checking no em dash was introduced.
+  Verified: both lines read against design.md; the idiom line also says "reference type" (design.md's second risk) and that `NullFreeModelsShould` keeps it in Core while review keeps `Infrastructure` and `Tui`; no em dash.
 - [ ] 3.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` by one preview step above main at the time. Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
 - [ ] 3.3 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate standardise-maybe-null-when --strict` all pass. Record the counts here.
 
