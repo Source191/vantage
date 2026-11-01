@@ -30,8 +30,8 @@ public sealed class LaunchPlanShould
     [Fact]
     public void DropABlankOpeningPromptSoTheSessionStartsIdle()
     {
-        LaunchPlanBuilder.Build(Default, WorktreeRoot, _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan.OpeningPrompt.ShouldBeNull();
-        LaunchPlanBuilder.Build(Default with { OpeningPromptText = "Fix the test" }, WorktreeRoot, _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan.OpeningPrompt.ShouldBe("Fix the test");
+        LaunchPlanBuilder.Build(Default, WorktreeRoot, _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan.OpeningPrompt.ShouldBe(new OpeningPrompt.None());
+        LaunchPlanBuilder.Build(Default with { OpeningPromptText = "  Fix the test " }, WorktreeRoot, _ => false).ShouldBeOfType<LaunchPlanResult.Planned>().Plan.OpeningPrompt.ShouldBe(new OpeningPrompt.Text("Fix the test"));
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public sealed class LaunchPlanShould
     public void LaunchAnOpeningPromptWithADashInsideIt()
     {
         LaunchPlanBuilder.Build(Default with { OpeningPromptText = "Fix the tests - all of them" }, WorktreeRoot, _ => false)
-            .ShouldBeOfType<LaunchPlanResult.Planned>().Plan.OpeningPrompt.ShouldBe("Fix the tests - all of them");
+            .ShouldBeOfType<LaunchPlanResult.Planned>().Plan.OpeningPrompt.ShouldBe(new OpeningPrompt.Text("Fix the tests - all of them"));
     }
 
     [Fact]
