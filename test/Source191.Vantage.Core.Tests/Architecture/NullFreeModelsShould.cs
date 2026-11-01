@@ -53,8 +53,6 @@ public sealed class NullFreeModelsShould
         new(typeof(EditorChoice), "FromFile(preset)", "reads EditorSetting's properties as config.json has them"),
         new(typeof(EditorChoice), "FromFile(executable)", "reads EditorSetting's properties as config.json has them"),
         new(typeof(EditorChoice), "FromFile(arguments)", "reads EditorSetting's properties as config.json has them"),
-        new(typeof(ToolVersion), "FromInformational(informational)", "the assembly's informational version attribute may be missing"),
-        new(typeof(UpdateCheckOptOut), "Applies(value)", "reads an environment variable that may be unset"),
         new(typeof(DiagnosticLogSetting), "Read(variable)", "reads VANTAGE_LOG, which may be unset"),
         new(typeof(Wording), "ClaudeBellPlan(replacing)", "Claude's settings.json may name no other notification channel"),
         new(typeof(WorktreeCounts), "LastCommitAt", "IGit.LastCommitAtAsync's answer as it comes"),
