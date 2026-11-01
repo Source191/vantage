@@ -11,7 +11,7 @@ public abstract record Session(SessionId SessionId, string Name, FolderPath Work
     public WaitingReason WaitingFor { get; init; } = new WaitingReason.None();
 }
 
-/// <summary>A supervised job: attachable, stoppable and removable by its job id. A stopped job has no process.</summary>
+/// <summary>A supervised job: attachable, stoppable and removable by its job id. A stopped job has no process (<see cref="JobProcess.None"/>).</summary>
 public sealed record BackgroundSession(
     SessionId SessionId,
     JobId JobId,
@@ -19,8 +19,11 @@ public sealed record BackgroundSession(
     FolderPath WorkingDirectory,
     DateTimeOffset StartedAt,
     DisplayState State,
-    int? ProcessId = null)
-    : Session(SessionId, Name, WorkingDirectory, StartedAt, State);
+    JobProcess Process)
+    : Session(SessionId, Name, WorkingDirectory, StartedAt, State)
+{
+    public int? ProcessId => Process is JobProcess.Running running ? running.Id : null;
+}
 
 /// <summary>Plain claude in a tab of its own: it always has a process, and Vantage can only end it or move it under the supervisor.</summary>
 public sealed record InteractiveSession(

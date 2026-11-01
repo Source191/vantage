@@ -361,7 +361,7 @@ public sealed class SessionsViewShould
     [Fact]
     public void ShowTheMemoryOfARunningSessionOnM()
     {
-        BackgroundSession running = WaitingJob with { ProcessId = 5151 };
+        BackgroundSession running = WaitingJob with { Process = new JobProcess.Running(5151) };
         SessionsViewState state = Reduce(SessionsViewState.Empty, new RowsLoaded([Row(running)]));
 
         ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('m')));
@@ -593,7 +593,7 @@ public sealed class SessionsViewShould
 
     private static BackgroundSession Job(string name, DisplayState state, string repository, string jobId)
     {
-        return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From(jobId), name, FolderPath.From($@"C:\repos\{repository}"), Noon, state);
+        return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From(jobId), name, FolderPath.From($@"C:\repos\{repository}"), Noon, state, new JobProcess.None());
     }
 
     private static InteractiveSession Terminal(string name, DisplayState state, string repository)
