@@ -115,6 +115,8 @@ public static partial class Wording
             RemovalReason.UnpushedCommits unpushed => $"branch {unpushed.Branch} has {unpushed.Count} unpushed commits",
             RemovalReason.LeftoverFolder => "leftover folder",
             RemovalReason.RepositoryOutsideRoots => "its repository is not under the roots; add that root in settings or remove the worktree with git there",
+            RemovalReason.RepositoryGone gone => $"its repository {gone.Repository} no longer exists; remove it from the Worktrees tab",
+            RemovalReason.GitFailed failed => $"git could not inspect it: {failed.Message}; check it on the Worktrees tab",
             RemovalReason.OutsideTheRoots outside => $"{outside.Folder} is outside the repository roots and the worktree root, so it is not deleted",
             _ => reason.ToString(),
         };

@@ -254,6 +254,20 @@ public sealed class WordingOfOutcomesShould
     }
 
     [Fact]
+    public void SayAKeptWorktreeWhoseRepositoryHasGone()
+    {
+        Wording.Describe(new DeleteSessionOutcome.KeptWorktree("fix-123", new RemovalReason.RepositoryGone(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"))))
+            .ShouldBe(@"Deleted fix-123; kept its worktree because its repository C:\Users\me\source\repos\Northwind.Orders no longer exists; remove it from the Worktrees tab.");
+    }
+
+    [Fact]
+    public void SayAKeptWorktreeThatGitCouldNotInspect()
+    {
+        Wording.Describe(new DeleteSessionOutcome.KeptWorktree("fix-123", new RemovalReason.GitFailed("fatal: not a git repository")))
+            .ShouldBe("Deleted fix-123; kept its worktree because git could not inspect it: fatal: not a git repository; check it on the Worktrees tab.");
+    }
+
+    [Fact]
     public void SayALeftoverOutsideTheRootsWasNotRemoved()
     {
         Wording.Describe(new RemoveWorktreeOutcome.Refused(new RemovalReason.OutsideTheRoots(FolderPath.From(@"D:\Northwind.Archive"))))
