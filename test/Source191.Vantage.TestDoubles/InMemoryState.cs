@@ -14,7 +14,7 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
     private readonly Dictionary<Guid, TabRegistration> tabs = [];
     private readonly List<string> recent = [];
     private readonly List<CreatedWorktree> created = [];
-    private UpdateCheckRecord? updateCheck;
+    private UpdateCheckRecord updateCheck = new UpdateCheckRecord.Never();
     private VantageConfig config = VantageConfig.Missing;
 
     public Task<IReadOnlyList<TabRegistration>> ReadTabsAsync()
@@ -80,12 +80,12 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
         return Task.CompletedTask;
     }
 
-    public Task<UpdateCheckRecord?> ReadUpdateCheckAsync()
+    public Task<UpdateCheckRecord> ReadUpdateCheckAsync()
     {
         return Task.FromResult(updateCheck);
     }
 
-    public Task WriteUpdateCheckAsync(UpdateCheckRecord record)
+    public Task WriteUpdateCheckAsync(UpdateCheckRecord.Checked record)
     {
         updateCheck = record;
         return Task.CompletedTask;
