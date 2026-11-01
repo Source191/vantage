@@ -194,7 +194,7 @@ public static partial class Wording
         foreach ((string key, string? word) in row)
         {
             KeyHelp help = keys.First(candidate => candidate.Key == key);
-            KeyBarItem item = new(help.HelpKey, word ?? help.Hint ?? help.Line, x, word is null ? help.Tip : TerminalTabTip);
+            KeyBarItem item = new(help.HelpKey, word ?? (help.OnBar ? help.Hint : help.Line), x, word is null ? help.Tip : TerminalTabTip);
             items.Add(item);
             x = item.End + BarGap;
         }
