@@ -136,7 +136,7 @@ public sealed class DetailLoaderShould
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
-        new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Noon, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+        new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, new LastCommit.Made(Noon), new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
 
     /// <summary>Records compare lists by reference, so a known list is compared by its items.</summary>
     private sealed class ListOfStringsComparer : IEqualityComparer<DetailFact<IReadOnlyList<string>>>

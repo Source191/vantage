@@ -32,7 +32,9 @@ public sealed class WorktreeInspectorShould
     [Fact]
     public async Task AnswerAnUnknownLastCommitWhenGitHasNone()
     {
-        processes.Answer(request => request.Arguments.Contains("log"), new ProcessResult(128, string.Empty, "fatal: your current branch does not have any commits yet"));
+        processes
+            .Answer(request => request.Arguments.Contains("rev-list"), new ProcessResult(0, "0\n", string.Empty))
+            .Answer(request => request.Arguments.Contains("log"), new ProcessResult(128, string.Empty, "fatal: your current branch does not have any commits yet"));
 
         WorktreeCounts counts = await Inspector.CountAsync(Worktree, CancellationToken.None);
 

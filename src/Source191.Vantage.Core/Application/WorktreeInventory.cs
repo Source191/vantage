@@ -120,7 +120,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.Lock, false, new GitPointer.NoGitFile(), false));
             rows.Add(folderExists
                 ? await InspectedAsync(repository, path, entry, health, cancellationToken)
-                : new WorktreeRow(repository, path, entry.Head, health, 0, 0, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: false));
+                : new WorktreeRow(repository, path, entry.Head, health, 0, 0, new LastCommit.Unknown(), new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: false));
         }
 
         return rows;
@@ -147,7 +147,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         }
         catch (GitException)
         {
-            return new WorktreeRow(repository, path, entry.Head, health, 0, 0, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: true);
+            return new WorktreeRow(repository, path, entry.Head, health, 0, 0, new LastCommit.Unknown(), new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: true);
         }
     }
 
@@ -190,7 +190,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         return Leftover(owner, folder, observation, ownerExists);
     }
 
-    private WorktreeRow Leftover(FolderPath repository, FolderPath folder, WorktreeObservation observation, bool ownerExists) => new(repository, folder, new Head.Unknown(), WorktreeHealth.From(observation), 0, 0, null, new WorktreeSession.None(), CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder.Value));
+    private WorktreeRow Leftover(FolderPath repository, FolderPath folder, WorktreeObservation observation, bool ownerExists) => new(repository, folder, new Head.Unknown(), WorktreeHealth.From(observation), 0, 0, new LastCommit.Unknown(), new WorktreeSession.None(), CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder.Value));
 
     /// <summary>Whether the registration a .git file points at still exists; never names an owner.</summary>
     private GitPointer TargetOf(string gitDir) => folders.DirectoryExists(gitDir) ? new GitPointer.TargetExists() : new GitPointer.TargetGone();

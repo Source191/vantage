@@ -146,7 +146,7 @@ public static partial class Wording
 
     private static string CountsText(WorktreeCounts counts, DateTimeOffset now)
     {
-        string last = counts.LastCommitAt is DateTimeOffset at ? $" · last commit {Durations.Age(now - at)} ago" : string.Empty;
+        string last = counts.LastCommitAt is LastCommit.Made made ? $" · last commit {Durations.Age(now - made.At)} ago" : string.Empty;
 
         return $"{Count(counts.DirtyFiles, "changed file")} · {Count(counts.UnpushedCommits, "unpushed commit")}{last}";
     }

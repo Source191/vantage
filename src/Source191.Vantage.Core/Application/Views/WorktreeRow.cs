@@ -16,7 +16,7 @@ public sealed record WorktreeRow(
     WorktreeHealth Health,
     int DirtyFiles,
     int UnpushedCommits,
-    DateTimeOffset? LastCommitAt,
+    LastCommit LastCommitAt,
     WorktreeSession Session,
     int LeftoverFileCount,
     bool OwnerExists,

@@ -206,5 +206,5 @@ public sealed class WordingOfDetailShould
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
-        new(Repository, Worktree, new Head.OnBranch(BranchName.From("fix-123")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Now, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+        new(Repository, Worktree, new Head.OnBranch(BranchName.From("fix-123")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, new LastCommit.Made(Now), new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
 }
