@@ -180,13 +180,14 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
 // git's full path, or null after the sentence saying it was not found: the console and vantage here both need it.
 async Task<string?> LocateGitAsync()
 {
-    string? gitExecutable = PathOf(programs.Locate("git"));
-    if (gitExecutable is null)
+    if (programs.Locate("git") is ProgramLocation.Found git)
     {
-        await Console.Error.WriteLineAsync(Wording.GitNotFound);
+        return git.Path;
     }
 
-    return gitExecutable;
+    await Console.Error.WriteLineAsync(Wording.GitNotFound);
+
+    return null;
 }
 
 // An executable's path, or null after the sentence saying why Claude Code cannot be run: a batch file is never run.
@@ -204,8 +205,6 @@ async Task<string?> LocateClaudeAsync()
             return null;
     }
 }
-
-static string? PathOf(ProgramLocation location) => location is ProgramLocation.Found found ? found.Path : null;
 
 // The start facts: versions and the terminal's size, never a path or a name.
 Started RecordStart(string? claudeVersionText)
