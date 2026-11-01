@@ -36,8 +36,8 @@ public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = 
         JsonObject fragment = new()
         {
             ["profiles"] = new JsonArray(
-                Profile(TerminalProfiles.VantageProfileName, $"\"{profiles.VantageExecutable}\"", profiles.VantageSound is BellSound.File vantage ? vantage.Path : null, icon),
-                Profile(TerminalProfiles.SessionProfileName, TerminalProfiles.SessionCommandLine, profiles.SessionSound is BellSound.File session ? session.Path : null, icon)),
+                Profile(TerminalProfiles.VantageProfileName, $"\"{profiles.VantageExecutable}\"", profiles.VantageSound, icon),
+                Profile(TerminalProfiles.SessionProfileName, TerminalProfiles.SessionCommandLine, profiles.SessionSound, icon)),
         };
 
         await File.WriteAllTextAsync(Location, fragment.ToJsonString(Options), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), cancellationToken);
@@ -68,7 +68,7 @@ public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = 
         return Task.FromResult(true);
     }
 
-    private static JsonObject Profile(string name, string commandLine, string? sound, string? icon)
+    private static JsonObject Profile(string name, string commandLine, BellSound sound, string? icon)
     {
         JsonObject profile = new()
         {
@@ -76,9 +76,10 @@ public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = 
             ["commandline"] = commandLine,
             ["bellStyle"] = new JsonArray([.. TerminalProfiles.BellStyle.Select(style => (JsonNode?)JsonValue.Create(style))]),
         };
-        if (sound is not null)
+        // Windows Terminal's own sound is its default, so it is written by leaving bellSound out.
+        if (sound is BellSound.File file)
         {
-            profile["bellSound"] = sound;
+            profile["bellSound"] = file.Path;
         }
 
         if (icon is not null)
