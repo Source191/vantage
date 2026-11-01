@@ -15,7 +15,7 @@ public static partial class FileAssociations
     private const int ProgId = 20;
 
     /// <summary>The HRESULT of ERROR_NO_ASSOCIATION (1155).</summary>
-    private const int NoAssociation = unchecked((int)0x80070483);
+    private const uint NoAssociation = 0x80070483;
 
     /// <summary>True only when Windows answers that nothing is associated with the extension (such as <c>.slnx</c>); any other answer, an error included, is false.</summary>
     public static bool NoneFor(string extension)
@@ -27,5 +27,5 @@ public static partial class FileAssociations
     }
 
     [LibraryImport("shlwapi.dll", EntryPoint = "AssocQueryStringW", StringMarshalling = StringMarshalling.Utf16)]
-    private static partial int AssocQueryString(uint flags, int text, string association, string? extra, nint output, ref uint length);
+    private static partial uint AssocQueryString(uint flags, int text, string association, string? extra, nint output, ref uint length);
 }
