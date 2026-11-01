@@ -180,7 +180,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void AddANoteForEachSessionThatDidNotResume()
     {
-        Wording.Describe(new ResumeSessionsOutcome(1, 3, [new ResumeNote.NeverSentAMessage("repos-f6"), new ResumeNote.Failed("fix-123", "boom")]))
+        Wording.Describe(new ResumeSessionsOutcome(1, 3, [new ResumeNote.NeverSentAMessage("repos-f6"), new ResumeNote.Failed("fix-123", "boom", SessionId.From("sess-1"))]))
             .ShouldBe("Resumed 1 of 3. Notes: repos-f6: never sent a message, so there is nothing to resume; d deletes it; fix-123: boom");
     }
 
