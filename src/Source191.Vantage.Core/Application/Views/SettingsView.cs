@@ -35,8 +35,8 @@ public static class SettingsView
     {
         return Settings.Validate(state.Text, state.FolderExists) switch
         {
-            SettingsValidation.Valid valid => new SettingsUpdate(state with { Problem = null }, new SettingsEffect.Save(valid.Settings)),
-            SettingsValidation.Refused refused => Changed(state with { Problem = refused.Problem, Focus = FieldOf(refused.Problem) }),
+            SettingsValidation.Valid valid => new SettingsUpdate(state with { Problem = new SettingsProblemLine.None() }, new SettingsEffect.Save(valid.Settings)),
+            SettingsValidation.Refused refused => Changed(state with { Problem = new SettingsProblemLine.Shows(refused.Problem), Focus = FieldOf(refused.Problem) }),
             _ => throw new UnreachableException(),
         };
     }
