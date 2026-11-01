@@ -31,7 +31,7 @@ public sealed class OpenInEditorHandlerShould
     public async Task StartACustomEditorFromItsOwnExecutable()
     {
         EditorChoice custom = EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]);
-        OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(custom));
+        OpenInEditorHandler handler = new(locator, desktop, folders.WithFile(@"C:\Tools\subl.exe"), CurrentWith(custom));
 
         Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(FolderPath.From(Orders)), CancellationToken.None);
 

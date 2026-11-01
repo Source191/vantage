@@ -22,7 +22,7 @@ public sealed class OpenInEditorHandler(IEditorLocator locator, IDesktop desktop
 
         EditorChoice editor = settings.Value.Editor;
         ProgramLocation location = editor.Preset == EditorPreset.Custom
-            ? new ProgramLocation.Found(editor.Executable)
+            ? CustomExecutable(editor)
             : await locator.LocateAsync(editor.Preset, cancellationToken);
 
         return location switch
@@ -32,6 +32,9 @@ public sealed class OpenInEditorHandler(IEditorLocator locator, IDesktop desktop
             _ => throw new UnreachableException(),
         };
     }
+
+    /// <summary>A Custom editor's executable is looked for as the key is pressed, since it may have gone since it was saved.</summary>
+    private ProgramLocation CustomExecutable(EditorChoice editor) => folders.FileExists(editor.Executable) ? new ProgramLocation.Found(editor.Executable) : new ProgramLocation.Missing();
 
     private async Task<Outcome> OpenAsync(EditorChoice editor, string executable, FolderPath folder, CancellationToken cancellationToken)
     {
