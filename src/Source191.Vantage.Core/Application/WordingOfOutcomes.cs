@@ -240,7 +240,9 @@ public static partial class Wording
         });
         string suffix = outcome.Notes.Count == 0 ? string.Empty : $" Notes: {string.Join("; ", notes)}";
 
-        return $"Resumed {outcome.Resumed} of {outcome.Chosen}.{suffix}";
+        string tabs = outcome.Resumed == 0 ? string.Empty : ", each in its own tab";
+
+        return $"Resumed {outcome.Resumed} of {outcome.Chosen}{tabs}.{suffix}";
     }
 
     private static string Describe(DeleteSessionOutcome outcome)
