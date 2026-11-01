@@ -7,7 +7,7 @@ namespace Source191.Vantage.Domain;
 public abstract record NewestRelease
 {
     /// <summary>Recorded text: <see cref="Found"/> when it reads as a version, <see cref="None"/> when it does not.</summary>
-    public static NewestRelease Recorded(string text) => ReleaseVersion.TryParse(text) is { } version ? new Found(version) : new None();
+    public static NewestRelease Recorded(string text) => ReleaseVersion.TryParse(text, out ReleaseVersion? version) ? new Found(version) : new None();
 
     public sealed record None : NewestRelease;
 

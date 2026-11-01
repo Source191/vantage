@@ -14,7 +14,8 @@ public sealed class RemoteRepositoryShould
     [InlineData("  https://github.com/northwind/Northwind.Orders.git\n")]
     public void ParseGitHubHttpsAndSshRemotes(string url)
     {
-        RemoteRepository.Parse(url).ShouldBe(new GitHubRepository("northwind", "Northwind.Orders"));
+        RemoteRepository.TryParse(url, out RemoteRepository? repository).ShouldBeTrue();
+        repository.ShouldBe(new GitHubRepository("northwind", "Northwind.Orders"));
     }
 
     [Theory]
@@ -26,7 +27,8 @@ public sealed class RemoteRepositoryShould
     [InlineData("northwind@vs-ssh.visualstudio.com:v3/northwind/Trading/Northwind.Orders")]
     public void ParseAzureDevOpsRemotes(string url)
     {
-        RemoteRepository.Parse(url).ShouldBe(new AzureDevOpsRepository("northwind", "Trading", "Northwind.Orders"));
+        RemoteRepository.TryParse(url, out RemoteRepository? repository).ShouldBeTrue();
+        repository.ShouldBe(new AzureDevOpsRepository("northwind", "Trading", "Northwind.Orders"));
     }
 
     [Theory]
@@ -34,7 +36,8 @@ public sealed class RemoteRepositoryShould
     [InlineData("git@ssh.dev.azure.com:v3/northwind/Northwind%20Trading/Northwind.Orders")]
     public void DecodeEscapedProjectNames(string url)
     {
-        RemoteRepository.Parse(url).ShouldBe(new AzureDevOpsRepository("northwind", "Northwind Trading", "Northwind.Orders"));
+        RemoteRepository.TryParse(url, out RemoteRepository? repository).ShouldBeTrue();
+        repository.ShouldBe(new AzureDevOpsRepository("northwind", "Northwind Trading", "Northwind.Orders"));
     }
 
     [Fact]
@@ -56,8 +59,9 @@ public sealed class RemoteRepositoryShould
     [InlineData("https://dev.azure.com/northwind/Trading|Co/_git/Northwind.Orders")]
     [InlineData("https://dev.azure.com/northwind/Trading/_git/Northwind^Orders")]
     [InlineData("git@ssh.dev.azure.com:v3/north%25wind/Trading/Northwind.Orders")]
-    public void AnswerNullForOtherHostsBlankTextAndUnsafeAzureNames(string? url)
+    public void AnswerFalseForOtherHostsBlankTextAndUnsafeAzureNames(string? url)
     {
-        RemoteRepository.Parse(url).ShouldBeNull();
+        RemoteRepository.TryParse(url, out RemoteRepository? repository).ShouldBeFalse();
+        repository.ShouldBeNull();
     }
 }

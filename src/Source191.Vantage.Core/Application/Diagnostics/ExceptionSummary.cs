@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Source191.Vantage.Application.Diagnostics;
 
@@ -39,20 +40,28 @@ public sealed record ExceptionSummary
         return frames.Count == 0 ? type : $"{type} at {string.Join(" < ", frames)}";
     }
 
-    private static IEnumerable<string> Frames(Exception exception) => new StackTrace(exception, fNeedFileInfo: true).GetFrames()
-        .Where(frame => frame.GetMethod() is not null && !IsAwaitMachinery(frame))
-        .Select(Frame);
-
-    private static bool IsAwaitMachinery(StackFrame frame)
+    /// <summary>A frame without metadata (trimmed or native code) has no method, and is skipped.</summary>
+    private static IEnumerable<string> Frames(Exception exception)
     {
-        string space = frame.GetMethod()!.DeclaringType?.Namespace ?? string.Empty;
+        foreach (StackFrame frame in new StackTrace(exception, fNeedFileInfo: true).GetFrames())
+        {
+            if (frame.GetMethod() is MethodBase method && !IsAwaitMachinery(method))
+            {
+                yield return Frame(frame, method);
+            }
+        }
+    }
+
+    private static bool IsAwaitMachinery(MethodBase method)
+    {
+        string space = method.DeclaringType?.Namespace ?? string.Empty;
 
         return AwaitMachinery.Any(machinery => space.StartsWith(machinery, StringComparison.Ordinal));
     }
 
-    private static string Frame(StackFrame frame)
+    private static string Frame(StackFrame frame, MethodBase called)
     {
-        string method = CodeName.For(frame.GetMethod()!).ToString();
+        string method = CodeName.For(called).ToString();
         string? file = frame.GetFileName();
         int line = frame.GetFileLineNumber();
 

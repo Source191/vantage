@@ -10,8 +10,8 @@ public sealed class UpdateCheckShould
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 25, 12, 0, 0, TimeSpan.Zero);
     private static readonly ToolVersion Running = new("0.9.0");
-    private static readonly ReleaseVersion Current = ReleaseVersion.TryParse("0.9.0")!;
-    private static readonly ReleaseVersion Newer = ReleaseVersion.TryParse("0.10.0")!;
+    private static readonly ReleaseVersion Current = ReleaseVersions.Version("0.9.0");
+    private static readonly ReleaseVersion Newer = ReleaseVersions.Version("0.10.0");
 
     private readonly InMemoryState state = new();
     private readonly FakePackageVersions packages = new(["0.8.0", "0.9.0"]);
