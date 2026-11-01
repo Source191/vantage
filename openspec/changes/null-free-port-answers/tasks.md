@@ -23,7 +23,7 @@ Each task is one red-green-refactor cycle with a commit per step, or a refactor 
 
 ## 4. Docs, version and the whole build
 
-- [ ] 4.1 `CLAUDE.md`: "(null on failure)" after `IClaudeCli.VersionAsync` becomes "(`NotRead` on failure)". Verify `Select-String -Path CLAUDE.md -Pattern 'null on failure'` finds nothing.
+- [x] 4.1 `CLAUDE.md`: "(null on failure)" after `IClaudeCli.VersionAsync` becomes "(`NotRead` on failure)". Verify `Select-String -Path CLAUDE.md -Pattern 'null on failure'` finds nothing.
 - [ ] 4.2 Confine-check: `Get-ChildItem src -Recurse -Filter *.cs | Select-String -CaseSensitive -Pattern '(ReadConfigAsync|ReadUpdateCheckAsync|VersionAsync|ListAsync)\b.*\?>|Task<string\?> ReadAsync|string\? Newest|DateTimeOffset\? lastCheckedAt|Check\(string\? '` finds only `JsonFileStore`'s private reader and its private `UpdateCheckFile`. Verify by running it.
 - [ ] 4.3 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one step above main's (projected `0.19.0-preview.10`). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
 - [ ] 4.4 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate null-free-port-answers` all pass; start a locally installed build (`tools\install-local.ps1`) against the real `%LOCALAPPDATA%\Vantage` once and confirm the header, the Config tab's update-check row and the settings read as before.
