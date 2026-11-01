@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Source191.Vantage.Core.Tests.Architecture;
 
@@ -16,9 +17,52 @@ public sealed class NullFreeModelsShould
         NullableMembersOf(typeof(ProbeRecord)).ShouldBe(["Maybe"]);
     }
 
+    private const BindingFlags Declared = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
+
     private static IEnumerable<string> NullableMembersOf(Type type)
     {
-        return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(property => property.Name);
+        NullabilityInfoContext context = new();
+        string[] properties = [.. type.GetProperties(Declared)
+            .Where(property => !IsGenerated(property) && IsNullable(context.Create(property)))
+            .Select(property => property.Name)];
+        IEnumerable<string> methods = type.GetMethods(Declared)
+            .Where(method => !method.IsSpecialName && !IsGenerated(method))
+            .SelectMany(method => NullableReturnOf(context, method).Concat(NullableParametersOf(context, method, method.Name)));
+        IEnumerable<string> constructors = type.GetConstructors(Declared)
+            .SelectMany(constructor => NullableParametersOf(context, constructor, "new"))
+            .Where(parameter => !properties.Contains(PropertyNameIn(parameter)));
+
+        return properties.Concat(methods).Concat(constructors).Distinct();
+    }
+
+    private static IEnumerable<string> NullableReturnOf(NullabilityInfoContext context, MethodInfo method)
+    {
+        return IsNullable(context.Create(method.ReturnParameter)) ? [method.Name] : [];
+    }
+
+    private static IEnumerable<string> NullableParametersOf(NullabilityInfoContext context, MethodBase method, string name)
+    {
+        return method.GetParameters()
+            .Where(parameter => IsNullable(context.Create(parameter)))
+            .Select(parameter => $"{name}({parameter.Name})");
+    }
+
+    private static string PropertyNameIn(string constructorParameter)
+    {
+        return constructorParameter["new(".Length..^1];
+    }
+
+    private static bool IsNullable(NullabilityInfo info)
+    {
+        return info.ReadState == NullabilityState.Nullable
+            || info.WriteState == NullabilityState.Nullable
+            || info.GenericTypeArguments.Any(IsNullable)
+            || (info.ElementType is { } element && IsNullable(element));
+    }
+
+    private static bool IsGenerated(MemberInfo member)
+    {
+        return member.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false);
     }
 
     private interface IProbe
