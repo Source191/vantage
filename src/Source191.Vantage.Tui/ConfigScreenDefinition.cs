@@ -16,7 +16,7 @@ internal sealed class ConfigScreenDefinition : IScreenDefinition<ConfigViewState
     public TableDetail<ConfigRow> Detail => new TableDetail<ConfigRow>.None();
 
     /// <summary>What the setting does or the setup is for, the same words the status line gives the selected row.</summary>
-    public string? RowTip(ConfigRow row) => Wording.ConfigDescription(row);
+    public string RowTip(ConfigRow row) => Wording.ConfigDescription(row);
 
 
     public string WaitingText => "Reading the settings";
@@ -38,7 +38,7 @@ internal sealed class ConfigScreenDefinition : IScreenDefinition<ConfigViewState
         };
     }
 
-    public CellPaint? CellPaint(ConfigRow row, int column) => null;
+    public CellPaint CellPaint(ConfigRow row, int column) => new CellPaint.None();
 
     public Color RowColour(ConfigRow row) => row is ConfigRow.Setup ? Palette.Grey : Palette.White;
 
