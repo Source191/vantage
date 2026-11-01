@@ -36,22 +36,15 @@ vantage
 
 The file gets every line of the diagnostic log as it happens: the start (versions and terminal size), each view and dialog, each key's effect with its duration, failures, Terminal.Gui's warnings and any child program slower than 5 seconds. When you quit with `q` it also gets the child program counts: runs per program, subcommand and exit code, with the longest run. Close Vantage with `q` at the end of the day, or the counts are lost.
 
-In a second tab, record the .NET runtime counters to a CSV file every 10 seconds. `dnx` runs the tool without installing it (.NET 10 SDK); `dotnet tool install --global dotnet-counters` installs it if you prefer.
+In a second tab, record the .NET runtime counters to a CSV file every 10 seconds. `dnx` runs the tool without installing it (.NET 10 SDK); `dotnet tool install --global dotnet-counters` installs it if you prefer. `dnx` keeps a few options for itself, such as `--help` and `--version`, so ask an installed tool for those.
 
 ```powershell
 $vantage = Get-Process -Name vantage | Sort-Object -Property StartTime | Select-Object -First 1
-$counters = @{
-    FilePath     = 'dnx'
-    ArgumentList = 'dotnet-counters', 'collect',
-        '--process-id', $vantage.Id,
-        '--refresh-interval', '10',
-        '--counters', 'System.Runtime',
-        '--format', 'csv',
-        '--output', "$env:TEMP\vantage-counters-$(Get-Date -Format yyyy-MM-dd).csv"
-    NoNewWindow  = $true
-    Wait         = $true
-}
-Start-Process @counters
+dnx dotnet-counters collect --process-id $vantage.Id `
+    --refresh-interval 10 `
+    --counters System.Runtime `
+    --format csv `
+    --output "$env:TEMP\vantage-counters-$(Get-Date -Format yyyy-MM-dd).csv"
 ```
 
 Pick the process by id rather than by name: `vantage here` and the hidden `claim-tab` command are also `vantage` processes, and the console is normally the oldest. Press `q` in that tab to stop recording. A day at 10 seconds is a few megabytes.
@@ -63,9 +56,18 @@ The counters worth looking at in the CSV:
 | dotnet.process.cpu.time | Vantage's own CPU; a steady climb while idle means a loop doing too much |
 | dotnet.thread_pool.queue.length | Work waiting for a thread; anything above a handful for long means blocking calls |
 | dotnet.monitor.lock_contentions | Threads waiting on each other's locks |
-| dotnet.exceptions | Exceptions thrown; a steady rate means a failure being retried quietly |
+| dotnet.exceptions | Exceptions thrown, by type; a steady rate means a failure being retried quietly |
 | dotnet.gc.heap.total_allocated | Allocation; its slope matters more than its value |
 | dotnet.process.memory.working_set | Should stay flat; a slope is a leak |
+
+Each row names the counter with its unit and attributes, such as `dotnet.process.cpu.time (s / 10 sec)[cpu.mode=user]`, so filter by the start of the name:
+
+```powershell
+Import-Csv -Path "$env:TEMP\vantage-counters-$(Get-Date -Format yyyy-MM-dd).csv" |
+    Where-Object -Property 'Counter Name' -Like 'dotnet.thread_pool.queue.length*' |
+    Sort-Object -Property { [double]$_.'Mean/Increment' } -Descending |
+    Select-Object -First 10
+```
 
 Make a short note of anything unusual you did (a big build, a rebase across many worktrees, a sleep) and when, so a spike can be matched to a cause.
 
@@ -83,15 +85,15 @@ dnx dotnet-trace collect --process-id $vantage.Id `
     --output "$env:TEMP\vantage-$(Get-Date -Format HHmmss).nettrace"
 ```
 
-The `dotnet-sampled-thread-time` profile samples every thread's stack about once a millisecond, so it shows where time goes, including time spent waiting; `dotnet-common` adds garbage collection, JIT and exception events. (Older guides name a `cpu-sampling` profile: it has been removed from `dotnet-trace`.)
+The `dotnet-sampled-thread-time` profile samples every thread's stack about a hundred times a second, so it shows where time goes, including time spent waiting; `dotnet-common` adds garbage collection, JIT and exception events. (Older guides name a `cpu-sampling` profile: it has been removed from `dotnet-trace`.)
 
-Open the `.nettrace` file in Visual Studio (File, Open, then the CPU Usage view) or in [PerfView](https://github.com/microsoft/perfview). For a quick answer in the terminal:
+A minute is about 70 MB. Open the `.nettrace` file in Visual Studio or [PerfView](https://github.com/microsoft/perfview). For a quick answer in the terminal, list the methods where the samples landed:
 
 ```powershell
-dnx dotnet-trace report "$env:TEMP\vantage-<time>.nettrace" topN --number 20 --inclusive
+dnx dotnet-trace report "$env:TEMP\vantage-<time>.nettrace" topN --number 25
 ```
 
-Look at the UI thread first (the one in Terminal.Gui's main loop): time it spends in anything but waiting for input is time the screen cannot answer a key.
+Most samples land in waits (`LowLevelLifoSemaphore.WaitForSignal`, `WaitHandle.WaitOneNoCheck`): idle pool threads, which are not a cost. Look past them, and in Visual Studio or PerfView at the UI thread first (the one in Terminal.Gui's main loop): time it spends in anything but waiting for input is time the screen cannot answer a key. `--inclusive` ranks by time on the stack instead, which is mostly thread start-up frames.
 
 ### Every process on the machine
 
