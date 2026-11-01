@@ -32,7 +32,7 @@ public sealed class UpdateCheckShould
     [Fact]
     public async Task RequestOnceAndRecordTheNewest()
     {
-        packages.Answer = ["0.9.0", "0.10.0", "0.11.0-rc.1"];
+        packages.Answer = new VersionListing.Listed(["0.9.0", "0.10.0", "0.11.0-rc.1"]);
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
@@ -46,7 +46,7 @@ public sealed class UpdateCheckShould
     [Fact]
     public async Task RecordACheckThatFoundNoRelease()
     {
-        packages.Answer = ["1.0.0-rc.1"];
+        packages.Answer = new VersionListing.Listed(["1.0.0-rc.1"]);
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
@@ -72,7 +72,7 @@ public sealed class UpdateCheckShould
     {
         UpdateCheckRecord old = new(Noon.AddDays(-2), "0.10.0");
         await state.WriteUpdateCheckAsync(old);
-        packages.Answer = null;
+        packages.Answer = new VersionListing.NothingLearned();
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
@@ -113,7 +113,7 @@ public sealed class UpdateCheckShould
     [Fact]
     public async Task ReadTheSettingEachTimeItIsAsked()
     {
-        packages.Answer = ["0.10.0"];
+        packages.Answer = new VersionListing.Listed(["0.10.0"]);
         bool enabled = true;
         UpdateCheck check = new(Running, () => enabled, state, packages, clock);
         await check.RunAsync(TestContext.Current.CancellationToken);
