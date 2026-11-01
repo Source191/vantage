@@ -154,7 +154,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     // The Sessions tab's listing is held for the worktrees scan, which waits for the first and runs none of its own.
     LatestSessions latestSessions = new(claude);
     RunningLoads scans = new();
-    ConsoleScreen consoleScreen = new(LoadAsync, scans.Track<ViewInput>(ScanAsync), scans, ReadConfigAsync, () => ConfigRows.For(settings.Value, facts: null), notifier, activity, new DetailLoader(git, store, activity), dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
+    ConsoleScreen consoleScreen = new(LoadAsync, scans.Track<ViewInput>(ScanAsync), scans, ReadConfigAsync, () => ConfigRows.For(settings.Value, SetupFacts.Reading), notifier, activity, new DetailLoader(git, store, activity), dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
     ScreenLoop loop = new(consoleScreen, ownTab, console, updates, log);
 
     return await loop.RunAsync(Environment.ProcessId, cancellationToken);
