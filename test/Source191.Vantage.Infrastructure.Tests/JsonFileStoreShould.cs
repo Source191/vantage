@@ -1,10 +1,14 @@
 using Microsoft.Extensions.Time.Testing;
+using System.Runtime.Versioning;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Infrastructure.Tests;
 
+[SupportedOSPlatform("windows")]
 public sealed class JsonFileStoreShould : IDisposable
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
@@ -282,6 +286,46 @@ public sealed class JsonFileStoreShould : IDisposable
         await holding.DisposeAsync();
         (await Store.ReadConfigAsync()).ShouldBe(SavedConfig);
         Directory.GetFiles(folder).Select(Path.GetFileName).ShouldBe(["config.json"]);
+    }
+
+    [Fact]
+    public async Task ReadAFileItIsNotAllowedToOpenAsAbsent()
+    {
+        await Store.WriteConfigAsync(SavedConfig);
+        FileInfo file = new(Path.Combine(folder, "config.json"));
+        SecurityIdentifier user = WindowsIdentity.GetCurrent().User!;
+        FileSystemAccessRule deny = new(user, FileSystemRights.ReadData, AccessControlType.Deny);
+        FileSecurity security = file.GetAccessControl();
+        security.AddAccessRule(deny);
+        file.SetAccessControl(security);
+
+        try
+        {
+            (await Store.ReadConfigAsync()).ShouldBe(VantageConfig.Missing);
+        }
+        finally
+        {
+            security.RemoveAccessRule(deny);
+            file.SetAccessControl(security);
+        }
+    }
+
+    [Fact]
+    public async Task ReadAConfigHoldingANumberForTheBaseAsMissing()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), """{ "repositoryRoots": ["D:\\work"], "defaultBase": 7 }""", TestContext.Current.CancellationToken);
+
+        (await Store.ReadConfigAsync()).ShouldBe(VantageConfig.Missing);
+    }
+
+    [Fact]
+    public async Task ReadAConfigHoldingANumberForThePlaceAsMissing()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), """{ "repositoryRoots": ["D:\\work"], "defaultPlace": 7 }""", TestContext.Current.CancellationToken);
+
+        (await Store.ReadConfigAsync()).ShouldBe(VantageConfig.Missing);
     }
 
     [Fact]
