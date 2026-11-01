@@ -24,6 +24,16 @@ public sealed class OneTypePerFileShould
         offenders.ShouldBeEmpty($"{offenders.Count} files declare more than one top-level type:{Environment.NewLine}{string.Join(Environment.NewLine, offenders)}");
     }
 
+    [Fact]
+    public void NameEachFileAfterItsType()
+    {
+        List<string> offenders = [.. SourceFiles()
+            .Where(file => file.Types.Count == 1 && !file.IsNamedAfter(file.Types[0]))
+            .Select(file => $"{file.RelativePath}: {file.Types[0].Name}")];
+
+        offenders.ShouldBeEmpty($"{offenders.Count} files are not named after their type:{Environment.NewLine}{string.Join(Environment.NewLine, offenders)}");
+    }
+
     private static IEnumerable<SourceFile> SourceFiles()
     {
         string root = RepositoryFolder.Root();
