@@ -53,7 +53,7 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
     /// </summary>
     private async Task<WorktreeRow> RowAsync(CreatedWorktree created, CancellationToken cancellationToken)
     {
-        WorktreeHealth health = await inspector.HealthAsync(created.Repository, created.Path, cancellationToken);
+        WorktreeHealth health = await inspector.HealthAsync(created.Repository, created.Path, folderExists: true, cancellationToken);
         WorktreeCounts counts = health.Kind == WorktreeHealthKind.Ok
             ? await inspector.CountAsync(created.Path, cancellationToken)
             : new WorktreeCounts(0, 0, new LastCommit.Unknown());

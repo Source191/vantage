@@ -41,14 +41,48 @@ public sealed class WorktreeInspectorShould
         counts.LastCommitAt.ShouldBe(new LastCommit.Unknown());
     }
 
+    private const string MainOnly = "worktree C:/Users/me/source/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n";
+    private const string WithFix = MainOnly + "\nworktree C:/Users/me/source/repos/Northwind.Orders-fix-123\nHEAD b\nbranch refs/heads/fix-123\n";
+
     [Fact]
-    public async Task ReportBrokenWhenGitNoLongerListsIt()
+    public async Task ReportTheFolderGoneWhenGitNoLongerListsItAndTheFolderIsGone()
     {
-        processes.Answer(request => request.Arguments.Contains("list"), new ProcessResult(0, "worktree C:/Users/me/source/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n", string.Empty));
+        processes.Answer(request => request.Arguments.Contains("list"), new ProcessResult(0, MainOnly, string.Empty));
 
-        WorktreeHealth health = await Inspector.HealthAsync(Repository, Worktree, CancellationToken.None);
+        WorktreeHealth health = await Inspector.HealthAsync(Repository, Worktree, folderExists: false, CancellationToken.None);
 
-        health.Kind.ShouldBe(WorktreeHealthKind.Broken);
+        health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()));
+    }
+
+    [Fact]
+    public async Task NeverReportTheFolderGoneWhenGitDoesNotListItButTheFolderExists()
+    {
+        processes.Answer(request => request.Arguments.Contains("list"), new ProcessResult(0, MainOnly, string.Empty));
+
+        WorktreeHealth health = await Inspector.HealthAsync(Repository, Worktree, folderExists: true, CancellationToken.None);
+
+        health.Kind.ShouldNotBe(WorktreeHealthKind.Ok);
+        health.Reason.ShouldNotBe(new HealthReason.FolderGone());
+    }
+
+    [Fact]
+    public async Task ReportTheGitFileGoneForAListedPrunableWorktreeWhoseFolderExists()
+    {
+        processes.Answer(request => request.Arguments.Contains("list"), new ProcessResult(0, WithFix + "prunable gitdir file points to non-existent location\n", string.Empty));
+
+        WorktreeHealth health = await Inspector.HealthAsync(Repository, Worktree, folderExists: true, CancellationToken.None);
+
+        health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.GitFileGone()));
+    }
+
+    [Fact]
+    public async Task ReportTheFolderGoneForAListedWorktreeWhoseFolderIsGone()
+    {
+        processes.Answer(request => request.Arguments.Contains("list"), new ProcessResult(0, WithFix + "prunable gitdir file points to non-existent location\n", string.Empty));
+
+        WorktreeHealth health = await Inspector.HealthAsync(Repository, Worktree, folderExists: false, CancellationToken.None);
+
+        health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()));
     }
 
     [Fact]
@@ -56,7 +90,7 @@ public sealed class WorktreeInspectorShould
     {
         processes.Answer(request => request.Arguments.Contains("list"), new ProcessResult(0, "worktree C:/Users/me/source/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n\nworktree C:/Users/me/source/repos/Northwind.Orders-fix-123\nHEAD b\nbranch refs/heads/fix-123\nlocked in use by another tool\n", string.Empty));
 
-        WorktreeHealth health = await Inspector.HealthAsync(Repository, Worktree, CancellationToken.None);
+        WorktreeHealth health = await Inspector.HealthAsync(Repository, Worktree, folderExists: true, CancellationToken.None);
 
         health.Kind.ShouldBe(WorktreeHealthKind.Locked);
         health.Reason.ShouldBe(new HealthReason.Locked("in use by another tool"));

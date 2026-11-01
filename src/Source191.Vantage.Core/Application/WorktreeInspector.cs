@@ -19,7 +19,7 @@ public sealed class WorktreeInspector(IGit git)
         await git.LastCommitAtAsync(worktree.Value, cancellationToken) is DateTimeOffset at ? new LastCommit.Made(at) : new LastCommit.Unknown());
 
     /// <summary>Health as git's listing gives it: broken when git no longer lists the worktree or calls it prunable, locked with git's reason.</summary>
-    public async Task<WorktreeHealth> HealthAsync(FolderPath repository, FolderPath worktree, CancellationToken cancellationToken)
+    public async Task<WorktreeHealth> HealthAsync(FolderPath repository, FolderPath worktree, bool folderExists, CancellationToken cancellationToken)
     {
         IReadOnlyList<GitWorktreeEntry> entries = await git.ListWorktreesAsync(repository.Value, cancellationToken);
         GitWorktreeEntry? entry = entries.FirstOrDefault(candidate => FolderPath.TryParse(candidate.Path, out FolderPath? path) && path.Equals(worktree));
