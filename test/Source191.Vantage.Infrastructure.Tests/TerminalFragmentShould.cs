@@ -13,7 +13,7 @@ public sealed class TerminalFragmentShould : IDisposable
 
     public TerminalFragmentShould()
     {
-        fragment = new TerminalFragment(root);
+        fragment = new TerminalFragment(root, Path.Combine(root, "tool", "absent.ico"));
     }
 
     private static TerminalProfiles Profiles => new(@"C:\Users\me\.dotnet\tools\vantage.exe", new BellSound.File(@"C:\Windows\Media\Windows Notify Messaging.wav"), new BellSound.File(@"C:\Windows\Media\Windows Proximity Notification.wav"));
@@ -158,11 +158,11 @@ public sealed class TerminalFragmentShould : IDisposable
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("missing.ico")]
-    public async Task WriteNoIconWhenTheToolHasNone(string? source)
+    [InlineData(@"no-such-folder\vantage.ico")]
+    public async Task WriteNoIconWhenTheToolHasNone(string source)
     {
-        TerminalFragment withoutIcon = new(root, source is null ? null : Path.Combine(root, source));
+        TerminalFragment withoutIcon = new(root, Path.Combine(root, source));
 
         await withoutIcon.WriteAsync(Profiles, CancellationToken.None);
 
@@ -170,6 +170,8 @@ public sealed class TerminalFragmentShould : IDisposable
         {
             profile!.AsObject().ContainsKey("icon").ShouldBeFalse();
         }
+
+        File.Exists(Path.Combine(root, "Vantage", "vantage.ico")).ShouldBeFalse();
     }
 
     [Fact]
