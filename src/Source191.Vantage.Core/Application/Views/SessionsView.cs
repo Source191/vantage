@@ -91,7 +91,7 @@ public sealed record RenameCancelled(BackgroundSession Session) : ViewInput;
 public sealed record RenameSession(BackgroundSession Session, SessionName NewName) : ViewEffect;
 
 /// <summary>Open the job in its own tab, or switch to the tab that already shows it.</summary>
-public sealed record OpenTabForSession(BackgroundSession Session, bool HasLiveTab) : ViewEffect;
+public sealed record OpenTabForSession(BackgroundSession Session, LiveTab Tab) : ViewEffect;
 
 public sealed record StopSession(BackgroundSession Session) : ViewEffect;
 
@@ -193,7 +193,7 @@ public static class SessionsView
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
-            { Name: KeyName.Enter } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
+            { Name: KeyName.Enter } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.Tab), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
             { Name: KeyName.Character, Character: 'x' } => SessionAction(state, (_, session) => new StopSession(session), Attachment.None),
