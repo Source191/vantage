@@ -30,7 +30,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
   Done, moved: tidy-composition-root (#177) took the loads out of `Program.cs`, so the wrapping is in `Application\ConsoleLoads` (`LoadSessionsAsync` times the listing and the enrichment apart, `ScanWorktreesAsync` only the inventory scan), where it is tested: `ConsoleLoadsShould.TimeTheListingAndTheEnrichmentApart`, `TimeTheScanWithoutItsWaitForTheFirstListing` (a 9 s listing, the scan counted as 0 ms with no slow line) and `NotTimeAFailedListing`. `FakeProcessRunner` gains an `OnRun` hook so a run takes time on the fake clock. `SharedParts` holds one `PerformanceCounts` (it replaces the `ProcessCounts` member) and `ConsoleComposition` hands its `RefreshCounts` to the loads and the catalogue. Whole solution: 2,449 passed, 9 skipped.
 - [x] 3.6 `DiagnosticsPrivacyShould` gains a slow scan over the Northwind fixtures and fails on any fixture value in the output. Verify the fact passes.
   Done with 3.5 in one commit: the daily flows scan a linked Northwind worktree through the real `WorktreeInventory`, each git run taking 4 s on the fake clock, and the fact asserts the `slow refresh worktrees scan` line and checks the refresh counts with everything else.
-- [ ] 3.7 README "What Vantage records": a refreshes bullet (parts, typical figures, the 3-second line). Verify by reading against the spec delta.
+- [x] 3.7 README "What Vantage records": a refreshes bullet (parts, typical figures, the 3-second line). Verify by reading against the spec delta.
+  Done: a sentence in the one "What it records" bullet rather than a bullet of its own (see 2.5); read against the spec delta.
 
 ## 4. Counts are written while Vantage runs
 
