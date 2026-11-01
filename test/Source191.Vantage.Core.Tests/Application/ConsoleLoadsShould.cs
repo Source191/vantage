@@ -43,7 +43,7 @@ public sealed class ConsoleLoadsShould : IDisposable
 
     public ConsoleLoadsShould()
     {
-        catalogue = new PullRequestCatalogue(new GitCli(new FakeProcessRunner().AnswerAll(new ProcessResult(2, string.Empty, string.Empty)), "git"), new FakePullRequests(), clock);
+        catalogue = new PullRequestCatalogue(new GitCli(new FakeProcessRunner().AnswerAll(new ProcessResult(2, string.Empty, string.Empty)), "git"), new FakePullRequests(), clock, new RefreshCounts(clock, new DiagnosticLog(clock, [])));
     }
 
     [Fact]

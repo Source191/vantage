@@ -59,7 +59,7 @@ internal static class ConsoleComposition
         GitHubPullRequests gitHub = new(parts.Processes, parts.Programs.Locate("gh"));
         AzureDevOpsPullRequests azureDevOps = new(parts.Processes, AzureCliExecutable.Locate(PathFolders.ForCurrentUser()));
 
-        return new PullRequestCatalogue(git, new PullRequestHosts(gitHub, azureDevOps), TimeProvider.System);
+        return new PullRequestCatalogue(git, new PullRequestHosts(gitHub, azureDevOps), TimeProvider.System, parts.RefreshCounts);
     }
 
     private static EffectDispatcher Dispatcher(
