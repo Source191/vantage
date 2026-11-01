@@ -55,7 +55,7 @@ public abstract record StatusMessage
     public sealed record NoSessionIn(string FolderName) : StatusMessage;
 
     /// <summary>The pull request key found none for the row: Gap says why, and Host names the CLI when the remote was read.</summary>
-    public sealed record NoPullRequest(string RowName, PullRequestGap Gap, PullRequestHost? Host) : StatusMessage;
+    public sealed record NoPullRequest(string RowName, PullRequestGap Gap, LookupHost Host) : StatusMessage;
 
     /// <summary>The memory key on a session with no process: it is stopped, so there is nothing to measure.</summary>
     public sealed record NothingToMeasure(string Name) : StatusMessage;
