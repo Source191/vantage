@@ -17,6 +17,8 @@ public sealed class NullFreeModelsShould
 {
     private const BindingFlags Declared = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
+    private static readonly string[] ModelNamespaces = ["Source191.Vantage.Domain", "Source191.Vantage.Ports", "Source191.Vantage.Application"];
+
     private static readonly string[] EqualityNames = ["Equals", "CompareTo", "op_Equality", "op_Inequality"];
 
     [Fact]
@@ -48,7 +50,7 @@ public sealed class NullFreeModelsShould
     }
 
     private static IEnumerable<Type> ModelTypes => typeof(SessionName).Assembly.GetTypes()
-        .Where(type => type.Namespace == "Source191.Vantage.Domain");
+        .Where(type => type.IsVisible && ModelNamespaces.Any(model => type.Namespace == model || type.Namespace?.StartsWith(model + ".", StringComparison.Ordinal) == true));
 
     private static IEnumerable<string> NullableMembersOf(Type type)
     {
