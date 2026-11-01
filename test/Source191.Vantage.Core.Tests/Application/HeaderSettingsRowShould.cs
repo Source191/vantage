@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Application;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application;
@@ -32,5 +33,30 @@ public sealed class HeaderSettingsRowShould
         IReadOnlyList<IReadOnlyList<TextPart>> rows = header.Rows(118);
 
         rows.ShouldHaveSingleItem().ShouldBe(Wording.SettingsRow(Running, Claude, updates.Status, MemorySize.FromMegabytes(35)));
+    }
+
+    [Fact]
+    public void ShowZeroWhenTheProcessCannotBeMeasured()
+    {
+        HeaderSettingsRow header = new(Running, Claude, updates, processes, VantageProcess);
+
+        IReadOnlyList<IReadOnlyList<TextPart>> rows = header.Rows(118);
+
+        rows.ShouldHaveSingleItem().ShouldBe(Wording.SettingsRow(Running, Claude, updates.Status, MemorySize.Zero));
+    }
+
+    [Fact]
+    public async Task ShowTheUpdateStatusAsItIsNow()
+    {
+        HeaderSettingsRow header = new(Running, Claude, updates, processes, VantageProcess);
+        IReadOnlyList<TextPart> before = header.Rows(118).Single();
+        ReleaseVersion newer = ReleaseVersions.Version("0.21.0");
+        await state.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon.AddHours(-1), new NewestRelease.Found(newer)));
+
+        await updates.RunAsync(TestContext.Current.CancellationToken);
+        IReadOnlyList<TextPart> after = header.Rows(118).Single();
+
+        before.ShouldBe(Wording.SettingsRow(Running, Claude, new UpdateStatus.UpToDate(), MemorySize.Zero));
+        after.ShouldBe(Wording.SettingsRow(Running, Claude, new UpdateStatus.Available(ReleaseVersions.Version("0.20.0"), newer), MemorySize.Zero));
     }
 }
