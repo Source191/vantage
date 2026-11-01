@@ -3,11 +3,11 @@
 ## ADDED Requirements
 
 ### Requirement: Resume every shown stopped or failed session in its own tab
-The resume-all key SHALL, without a dialog, run the CLI's background resume for every background session in the stopped or failed state that the table shows, in the table's order, SHALL open a Vantage tab for each session the CLI resumes, and SHALL show on each row whether the CLI continued the session or started a copy. With no such session shown it SHALL resume nothing and the status line SHALL say there is nothing to resume.
+The resume-all key SHALL, without a dialog, resume every background session in the stopped or failed state that the table shows, in the table's order, and SHALL open a Vantage tab for each one the CLI resumes. It SHALL remove each job before resuming it by session ID, since resuming a listed job starts a copy. A resume that fails after the removal SHALL get no tab and SHALL be reported with the command that resumes it. With none shown, the status line SHALL say there is nothing to resume.
 
 #### Scenario: Resume after restart
 - **WHEN** three sessions show failed after a reboot and the user presses resume-all
-- **THEN** the background resume command runs for each of the three, a tab opens for each, and their rows return to idle or working on the next refresh
+- **THEN** each job is removed and resumed by session ID, a tab opens for each, and the same three rows, with the same session IDs, return to idle or working on the next refresh
 
 #### Scenario: Stopped sessions resume too
 - **WHEN** two sessions show stopped and one shows failed when the user presses resume-all
@@ -21,6 +21,18 @@ The resume-all key SHALL, without a dialog, run the CLI's background resume for 
 - **WHEN** the user presses resume-all on two stopped sessions and the CLI refuses to resume one of them
 - **THEN** the other resumes in its own tab, no tab opens for the refused one, and the status line says one of two resumed and names the refused one with the CLI's reason
 
+#### Scenario: No duplicate after a resume
+- **WHEN** the user resumes a stopped session named fix-123 with session ID sess-1
+- **THEN** the next refresh lists exactly one row named fix-123, with session ID sess-1, and no stopped copy of it
+
+#### Scenario: Resume fails after the job was removed
+- **WHEN** the user resumes a failed session named fix-123 with session ID sess-1 and the resume command fails with "Workspace not trusted"
+- **THEN** no tab opens for it, and the status line names fix-123, gives the failure, and says to resume it with claude --bg --resume sess-1
+
+#### Scenario: A session never sent a message
+- **WHEN** the user presses resume-all while a stopped session named repos-f6 has no transcript
+- **THEN** its job is neither removed nor resumed, no tab opens for it, and the status line names repos-f6 and says there is nothing to resume
+
 #### Scenario: Nothing to resume
 - **WHEN** no shown session is stopped or failed and the user presses resume-all
 - **THEN** nothing is resumed, no tab opens, and the status line says there is nothing to resume
@@ -28,7 +40,7 @@ The resume-all key SHALL, without a dialog, run the CLI's background resume for 
 ## REMOVED Requirements
 
 ### Requirement: Resume sessions after a reboot without reviving deliberate stops
-**Reason**: After a reboot the user ticks every stopped session one by one, and a session stopped on purpose and not wanted back is better deleted; the checklist dialog goes.
+**Reason**: After a reboot the user ticks every stopped session one by one, and a session stopped on purpose and not wanted back is better deleted; the checklist dialog goes. Its remove-then-resume behaviour and its report of a failed resume carry over to the new requirement.
 **Migration**: Replaced by "Resume every shown stopped or failed session in its own tab". Filter the table with / to resume only some, press Enter to resume one in its own tab, and delete a session that should stay stopped.
 
 ## MODIFIED Requirements
