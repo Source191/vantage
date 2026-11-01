@@ -109,7 +109,7 @@ The worktree SHALL branch from the remote default branch by default, or from the
 - **THEN** the new branch starts at origin's default branch
 
 ### Requirement: Gitignored local files are copied into a new worktree
-When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the gitignored files it matches into the new worktree before starting the session.
+When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the gitignored files it matches into the new worktree before starting the session. When the copy fails because a file cannot be read or written, the session SHALL NOT start, the worktree SHALL be kept and remain recorded as Vantage's own, and the status line SHALL say the session could not start and give the reason.
 
 #### Scenario: Include file present
 - **WHEN** `.worktreeinclude` lists appsettings.Development.json and that file is gitignored in the main checkout
@@ -118,6 +118,10 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 #### Scenario: Names with non-ASCII characters, spaces and apostrophes
 - **WHEN** `.worktreeinclude` matches the gitignored files Café.local.json, my app.local.json and it's.local.json
 - **THEN** all three exist in the new worktree under the same names, and the copy reports all three
+
+#### Scenario: A file cannot be copied
+- **WHEN** `.worktreeinclude` matches a file that another program holds locked, so the copy fails
+- **THEN** no session starts, the worktree stays on disc and in Vantage's records, and the status line says the session could not start and why
 
 ### Requirement: A session can be started from the shell in the current folder
 `vantage here [name] [-p prompt]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed or the command line could not be parsed, and 2 when the name or the opening prompt is refused.
@@ -157,11 +161,15 @@ When starting the session fails because the directory's workspace is not trusted
 - **THEN** the trust tab shows its message with the folder name exactly as it is and starts Claude Code there
 
 ### Requirement: Vantage records what it created
-Vantage SHALL record each worktree and branch it created and each launched repository in its own state folder, and SHALL keep every record when two Vantage processes write at the same time. A list of created worktrees saved by an earlier version SHALL be read once, kept as records and removed.
+Vantage SHALL record each worktree and branch it created and each launched repository in its own state folder, and SHALL keep every record when two Vantage processes write at the same time. A new worktree SHALL be recorded as soon as git has created it, before its include files are copied, so a worktree that exists is never one Vantage does not know it made. A list of created worktrees saved by an earlier version SHALL be read once, kept as records and removed.
 
 #### Scenario: Worktree recorded
 - **WHEN** the wizard creates a worktree
 - **THEN** the state folder records the worktree path, branch, repository and creation time
+
+#### Scenario: Recorded before the includes are copied
+- **WHEN** the wizard creates a worktree in a repository with a `.worktreeinclude` file
+- **THEN** the worktree is recorded before any include file is copied, and a failed copy leaves it recorded
 
 #### Scenario: Two processes record at once
 - **WHEN** `vantage here` records a recent repository while the console records another recent repository and a created worktree
@@ -179,13 +187,13 @@ Vantage SHALL record each worktree and branch it created and each launched repos
 - **WHEN** a worktree already recorded at C:\Users\me\source\worktrees\Northwind.Orders-fix-123 is recorded again under the spelling c:\users\me\source\worktrees\northwind.orders-fix-123
 - **THEN** one record holds that worktree, with the newer branch and creation time
 
-#### Scenario: Existing state is kept
-- **WHEN** Vantage starts with recent repositories and created worktrees saved by an earlier version
-- **THEN** the recent repositories are still listed first in the wizard and the created worktrees still decide the branch-deletion rules
-
 #### Scenario: The old created list is imported once
 - **WHEN** the state folder holds a `created.json` list written by an earlier version and Vantage reads, records or forgets a created worktree
 - **THEN** each worktree in the list is a record of its own, the list file is gone, and a worktree forgotten straight after is not revived by a later read
+
+#### Scenario: Existing state is kept
+- **WHEN** Vantage starts with recent repositories and created worktrees saved by an earlier version
+- **THEN** the recent repositories are still listed first in the wizard and the created worktrees still decide the branch-deletion rules
 
 #### Scenario: Old description files are ignored
 - **WHEN** the state folder holds a `descriptions` folder or a `sessions.json` written by an earlier version
