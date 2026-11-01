@@ -90,7 +90,7 @@ public sealed class NullFreeModelsShould
     private static IEnumerable<string> NullableParametersOf(NullabilityInfoContext context, MethodBase method, string name)
     {
         return method.GetParameters()
-            .Where(parameter => IsNullable(context, parameter))
+            .Where(parameter => !IsOutUntilParsed(parameter) && IsNullable(context, parameter))
             .Select(parameter => $"{name}({parameter.Name})");
     }
 
