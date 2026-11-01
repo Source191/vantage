@@ -13,7 +13,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step and
 
 - [x] 2.1 `KeyMapping.TryFrom` declares `[MaybeNullWhen(false)] out Key mapped`; `TableBody.OnKey` keeps `out Key? mapped`. No test exists for the attribute in Tui (design.md), so verify the solution builds with no new warning and `git grep NotNullWhen -- src` answers nothing.
   Verified: build 0 warnings, 0 errors; `git grep NotNullWhen -- src` finds nothing.
-- [ ] 2.2 `ITextValue<TSelf>.TryParse` gains `<param name="value">` saying the value is null exactly when the method returns false. Verify the build passes and the comment reads correctly in the interface.
+- [x] 2.2 `ITextValue<TSelf>.TryParse` gains `<param name="value">` saying the value is null exactly when the method returns false. Verify the build passes and the comment reads correctly in the interface.
+  Verified: build 0 warnings. Deviation: a `<param name="text">` was added too, because with `value` alone the build fails with CS1573 (documentation file on, warnings as errors).
 
 ## 3. The rule in words and the version
 

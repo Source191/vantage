@@ -14,5 +14,7 @@ public interface ITextValue<TSelf>
 
     static abstract TSelf From(string text);
 
+    /// <param name="text">The text from outside Vantage, which may be null.</param>
+    /// <param name="value">The value when the method returns true; null exactly when it returns false.</param>
     static abstract bool TryParse(string? text, [MaybeNullWhen(false)] out TSelf value);
 }
