@@ -1,5 +1,6 @@
 using Source191.Vantage.Application;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application;
@@ -14,7 +15,7 @@ public sealed class CurrentSettingsShould
     {
         CurrentSettings current = await CurrentSettings.LoadAsync(new InMemoryState(), Home);
 
-        current.Value.ShouldBe(SettingsFile.From(config: null, Home));
+        current.Value.ShouldBe(SettingsFile.From(VantageConfig.Missing, Home));
     }
 
     [Fact]
