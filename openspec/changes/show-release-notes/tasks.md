@@ -12,20 +12,30 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 ## 2. Release notes as a Domain value
 
 - [x] 2.1 `ReleaseNotesShould.ReadTheSectionsOfAChangelog`: a Northwind changelog with Unreleased, 0.21.0 and 0.20.0 parses into two version sections with their entries under their headings. Red, then `Domain\ReleaseNotes` with `TryParse(string?, out ReleaseNotes)`, the house shape for text from outside Vantage. Verify the fact, `NullFreeModelsShould` and `SealedTypesShould` pass.
+  Done: `ReleaseNotes` (private constructor, `Text`, `Sections`, `None`) over `ReleaseSection`, `ReleaseEntry` and `ChangeKind`; the facts of 2.1 to 2.6 were written together, red on the missing type, and `ParsingShould` now lists `ReleaseNotes`. Core suite 2,103 passed.
 - [x] 2.2 `ReleaseNotesShould.AnswerFalseForTextWithNoVersionSection` (the current link-only release notes, an empty string, null). Verify the fact passes.
+  Done, with a fourth case: a changelog holding only Unreleased answers false too.
 - [x] 2.3 `ReleaseNotesShould.ChooseTheStableSectionsBetweenTwoVersionsNewestFirst`: `Between(0.19.0, 0.21.0)` gives 0.21.0 then 0.20.0, never Unreleased, 0.19.0 or a prerelease heading. Verify the fact passes.
+  Done, with `PutTheNewestSectionFirstWhateverTheOrderInTheFile` and `LeaveOutSectionsAboveTheVersionUpdatedTo`; a section left with no entries is kept, and `Wording` says so.
 - [x] 2.4 `ReleaseNotesShould.LeaveOutInternalEntries`. Verify the fact passes.
 - [x] 2.5 `ReleaseNotesShould.DropControlCharactersFromEachLine`: an entry holding `\u001b]2;owned\u0007` keeps its visible text without ESC or BEL. Verify the fact passes.
 - [x] 2.6 `ReleaseNotesShould.SkipLinesItDoesNotUnderstand` (prose, a table row, a heading of an unknown kind). Verify the fact passes and a Stryker run scoped with `--mutate "**/Domain/ReleaseNotes.cs"` leaves no surviving mutant that changes which entries are shown.
+  Done: Stryker 5.0.0 scoped to `ReleaseNotes.cs`, 32 of 37 mutants killed (84.21 %); the five survivors and one uncovered mutant change no entry shown: the `?? string.Empty` fallbacks for null text (which has no section either way), the two guard clauses of `Between`, and the two `return`s after a heading line, which no later test of the same line could match.
 
 ## 3. Reading and recording the notes
 
 - [x] 3.1 `NuGetPackageVersionsShould.ReadTheReleaseNotesFromTheNuspec`: a stub `HttpMessageHandler` answering a nuspec for `0.21.0` at `.../source191.vantage/0.21.0/source191.vantage.nuspec` gives `PackageNotes.Read` with the `releaseNotes` text, sent with the `Vantage/<version>` user agent. Red, then `IPackageVersions.NotesAsync` and the adapter (`XmlReader`, DTD prohibited). Verify the fact passes.
+  Done, with `Ports\PackageNotes` (`Read`, `NothingLearned`); the version in the URL is lower-cased too (`AskForAPrereleaseNuspecInLowerCase`), and `releaseNotes` is matched by local name only under `package/metadata`.
 - [x] 3.2 `NuGetPackageVersionsShould.LearnNothingFromAFailedOrUnreadableNuspec` (404, timeout, malformed XML, a DTD, no `releaseNotes`). Verify the facts pass.
+  Done as `LearnNothingFromAnUnreadableNuspec` (malformed, a DTD, none, outside the metadata), `LearnNothingFromAMissingNuspec`, `LearnNothingWhenTheNotesRequestTimesOut` and `...Fails`. Infrastructure suite 346 passed, 9 skipped.
 - [x] 3.3 `FakePackageVersions` in TestDoubles answers notes per version. Verify the build.
+  Done: `Notes` by version text and `NotesAskedFor`.
 - [x] 3.4 `JsonFileStoreShould.KeepTheNewestReleasesNotes`: `update-check.json` round-trips a `Checked` record with notes, and a file written by 0.20.0 (no `notes`) reads with none. Red, then `UpdateCheckRecord.Checked.NewestNotes` and the file's optional `notes`. Verify the facts and `NullFreeModelsShould` pass.
+  Done, with `ReadAnUpdateCheckFileWithoutNotesAsHavingNone` and `ReadNotesThatAreNotAChangelogAsNone`; `notes` is left out of the file when there are none, so `WriteTheUpdateCheckFileAsBefore` still holds. `Checked` keeps a two-argument constructor for a record with no notes, and `ReleaseNotes` are equal by their text.
 - [x] 3.5 `JsonFileStoreShould.RecordTheLastVersionRun`: `ILastRunVersion` reads `Never` with no `last-run.json`, and the version written. Verify the fact passes.
-- [ ] 3.6 `PackagedReleaseNotesShould.ReadTheChangelogBesideTheTool` (a temporary folder as the base directory) and answer nothing when the file is missing. Red, then `IPackagedReleaseNotes` and its adapter. Verify the facts pass.
+  Done, with `ReadAnUnreadableLastRunAsNever`; `Ports\LastRun` (`Never`, `Ran`), and `InMemoryState` implements the port.
+- [x] 3.6 `PackagedReleaseNotesShould.ReadTheChangelogBesideTheTool` (a temporary folder as the base directory) and answer nothing when the file is missing. Red, then `IPackagedReleaseNotes` and its adapter. Verify the facts pass.
+  Done as `ReadTheChangelogBesideTheTool` and `LearnNothingWhenTheChangelogIsMissing`; the port answers `PackageNotes` like the registry, the adapter is `Adapters\Packages\PackagedReleaseNotes` over a folder, and `FakePackagedReleaseNotes` is its fake.
 - [ ] 3.7 Pack the notes: `PackageReleaseNotes` from `CHANGELOG.md` and the file packed beside `vantage.dll`; record why in `src\Source191.Vantage\README.md` (no comment in the csproj). Verify `dotnet pack` then the nupkg's nuspec holds the changelog and `tools\net10.0\any\CHANGELOG.md` exists.
 
 ## 4. The check fetches notes and announces once
