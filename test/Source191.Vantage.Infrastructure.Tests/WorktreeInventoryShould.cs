@@ -17,6 +17,9 @@ public sealed class WorktreeInventoryShould : IDisposable
 
     private readonly TemporaryGitRoot root = new();
 
+    /// <summary>A folder that is not a root, for repositories the scan must never be asked about.</summary>
+    private readonly TemporaryGitRoot outside = new();
+
     private readonly FakePullRequests hosts = new();
     private readonly FakeProcessRunner remotes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, "https://github.com/northwind/Northwind.Orders.git", string.Empty));
     private readonly PullRequestCatalogue catalogue;
@@ -86,6 +89,7 @@ public sealed class WorktreeInventoryShould : IDisposable
     {
         catalogue.Dispose();
         root.Dispose();
+        outside.Dispose();
     }
 
     [Fact]
@@ -209,6 +213,49 @@ public sealed class WorktreeInventoryShould : IDisposable
         row.Health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.GitFileGone()));
         row.FolderExists.ShouldBeTrue();
         row.LeftoverFileCount.ShouldBe(3, "the two new files and the checked-out README");
+    }
+
+    [Fact]
+    public async Task ShowAWorktreeOfABareRepositoryAsElsewhere()
+    {
+        string source = await outside.CreateRepositoryAsync("Northwind.Source");
+        string bare = Path.Combine(outside.Path, "Northwind.Ledger.git");
+        await outside.GitAsync(outside.Path, "clone", "-q", "--bare", source, bare);
+        string worktree = Path.Combine(root.WorktreeRoot, "Northwind.Ledger-spike");
+        await outside.GitAsync(bare, "worktree", "add", "-q", worktree, "-b", "spike", "main");
+
+        WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
+
+        row.Path.Value.ShouldBe(worktree);
+        row.Health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Elsewhere, new HealthReason.RepositoryOutsideRoots(FolderPath.From(bare))));
+        row.RepositoryName.ShouldBe("Northwind.Ledger.git");
+    }
+
+    [Fact]
+    public async Task ShowACheckoutWithASeparateGitDirectoryAsElsewhere()
+    {
+        string gitDirectory = Path.Combine(outside.Path, "gitdirs", "Northwind.Ledger");
+        string checkout = Path.Combine(root.Path, "Northwind.Ledger");
+        await outside.GitAsync(outside.Path, "init", "-q", "-b", "main", "--separate-git-dir", gitDirectory, checkout);
+
+        WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
+
+        row.Path.Value.ShouldBe(checkout);
+        row.Health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Elsewhere, new HealthReason.RepositoryOutsideRoots(FolderPath.From(gitDirectory))));
+    }
+
+    [Fact]
+    public async Task ReadARelativeGitdirFromTheGitFilesFolder()
+    {
+        string repository = await outside.CreateRepositoryAsync("Northwind.Ledger");
+        string worktree = Path.Combine(root.WorktreeRoot, "Northwind.Ledger-spike");
+        await outside.GitAsync(repository, "worktree", "add", "-q", "--relative-paths", worktree, "-b", "spike", "main");
+        (await File.ReadAllTextAsync(Path.Combine(worktree, ".git"), TestContext.Current.CancellationToken)).ShouldStartWith("gitdir: ..");
+
+        WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
+
+        row.Health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Elsewhere, new HealthReason.RepositoryOutsideRoots(FolderPath.From(repository))));
+        row.RepositoryName.ShouldBe("Northwind.Ledger");
     }
 
     [Fact]
