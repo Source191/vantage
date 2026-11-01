@@ -38,7 +38,7 @@ public sealed class WordingOfScreensShould
     [InlineData(DisplayStateKind.Completed, "✓")]
     [InlineData(DisplayStateKind.Failed, "✗")]
     [InlineData(DisplayStateKind.Stopped, "■")]
-    [InlineData(DisplayStateKind.Unknown, "■")]
+    [InlineData(DisplayStateKind.Unknown, "?")]
     public void GiveEveryStateAGlyph(DisplayStateKind kind, string glyph)
     {
         Wording.StateGlyph(kind).ShouldBe(glyph);
