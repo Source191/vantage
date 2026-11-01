@@ -80,8 +80,20 @@ public sealed class ScreenLoopShould : IDisposable
         int exitCode = await Loop(screen).RunAsync(processId: 100, CancellationToken.None);
 
         exitCode.ShouldBe(0);
-        console.Shown.ShouldBe([TabPalette.Default[4]]);
+        console.Coloured.ShouldBe([TabPalette.Default[4]]);
+        console.TitledOnly.ShouldBe(0);
         console.Cleared.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task TitleTheOwnTabAloneWhenItCannotBeRegistered()
+    {
+        ScriptedConsoleScreen screen = new(state => new ConsoleExit(state, new Quit()));
+
+        await Loop(screen).RunAsync(processId: 200, CancellationToken.None);
+
+        console.Coloured.ShouldBeEmpty("process 200 has no start time to register under");
+        console.TitledOnly.ShouldBe(1);
     }
 
     [Fact]
@@ -104,7 +116,7 @@ public sealed class ScreenLoopShould : IDisposable
 
         screen.Given.Count.ShouldBe(1, "only quit leaves the console, so it is never run a second time");
         console.Recovered.ShouldBe(0);
-        console.Shown.Count.ShouldBe(1, "the tab is labelled once, at start");
+        (console.Coloured.Count + console.TitledOnly).ShouldBe(1, "the tab is labelled once, at start");
     }
 
     public void Dispose()
