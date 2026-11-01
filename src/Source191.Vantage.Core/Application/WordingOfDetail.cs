@@ -95,14 +95,16 @@ public static partial class Wording
     };
 
     /// <summary>Where in its repository the session runs: the main checkout, a path inside it, or a linked worktree's slug (its folder's name without the repository's).</summary>
-    private static string PlaceOf(SessionRow row)
+    private static string PlaceOf(SessionRow row) => row.Location switch
     {
-        FolderPath folder = row.Session.WorkingDirectory;
-        if (row.Checkout is not FolderPath checkout)
-        {
-            return NotInARepository;
-        }
+        SessionLocation.InRepository inRepository => PlaceIn(inRepository, row.Session.WorkingDirectory),
+        SessionLocation.Outside => NotInARepository,
+        _ => throw new UnreachableException(),
+    };
 
+    private static string PlaceIn(SessionLocation.InRepository repository, FolderPath folder)
+    {
+        FolderPath checkout = repository.Checkout;
         if (folder.Equals(checkout))
         {
             return "main checkout";
@@ -113,7 +115,7 @@ public static partial class Wording
             return folder.Value[(checkout.Value.Length + 1)..];
         }
 
-        string prefix = row.Repository + "-";
+        string prefix = repository.Name + "-";
 
         return folder.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ? folder.Name[prefix.Length..] : folder.Name;
     }
