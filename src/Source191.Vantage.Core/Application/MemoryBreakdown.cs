@@ -18,10 +18,10 @@ public sealed record MemoryBreakdown(string SessionName, MemorySize ClaudeCode, 
         IReadOnlyList<MemoryShare> programs =
         [
             .. tree.Children
-                .Select(child => new MemoryShare(ProgramLabel.From(child.Process.Name, child.Usage?.CommandLine ?? string.Empty), child.Total))
+                .Select(child => new MemoryShare(ProgramLabel.From(child.Process.Name, child.Usage is ProcessMeasure.Measured measured ? measured.Usage.CommandLine : string.Empty), child.Total))
                 .OrderByDescending(share => share.Memory),
         ];
 
-        return new MemoryBreakdown(sessionName, tree.Usage?.PrivateMemory ?? MemorySize.Zero, programs, tree.Total, tree.Count);
+        return new MemoryBreakdown(sessionName, tree.Usage is ProcessMeasure.Measured root ? root.Usage.PrivateMemory : MemorySize.Zero, programs, tree.Total, tree.Count);
     }
 }
