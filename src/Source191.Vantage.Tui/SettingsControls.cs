@@ -86,9 +86,10 @@ internal sealed class SettingsControls
     /// <summary>The custom editor's captions and fields, shown only while Custom is chosen.</summary>
     private View[] Custom { get; }
 
-    /// <summary>Pushes what the state decides back to the controls: the custom fields, the problem and the focus.</summary>
+    /// <summary>Pushes what the state decides back to the controls: the preset labels, the custom fields, the problem and the focus.</summary>
     public void Show(SettingsState state)
     {
+        ShowPresets(state.Presets);
         Array.ForEach(Custom, view => view.Visible = state.ShowsCustomEditor);
         Problem.Text = state.Problem is SettingsProblemLine.Shows shows ? Wording.Describe(shows.Problem) : string.Empty;
         Fields[state.Focus].SetFocus();
@@ -99,6 +100,22 @@ internal sealed class SettingsControls
     {
         Roots.Text = state.Text.Roots;
         WorktreeRoot.Text = state.Text.WorktreeRoot;
+    }
+
+    /// <summary>
+    /// Relabels the editor choices with what the dialog's look found. Setting <c>OptionSelector.Labels</c> would dispose and
+    /// rebuild every option and lose the focus, so each option's own title changes instead (<c>terminal-gui.md</c>).
+    /// </summary>
+    private void ShowPresets(PresetSearch search)
+    {
+        foreach ((CheckBox option, EditorPreset preset) in Editor.SubViews.OfType<CheckBox>().Zip(Enum.GetValues<EditorPreset>()))
+        {
+            string label = Wording.Describe(preset, search);
+            if (option.Title != label)
+            {
+                option.Title = label;
+            }
+        }
     }
 
     /// <summary>Tells the dialog which field took focus, by Tab, a click or the dialog itself.</summary>

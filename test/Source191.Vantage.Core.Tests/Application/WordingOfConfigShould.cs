@@ -127,6 +127,8 @@ public sealed class WordingOfConfigShould
         Wording.BrowseButton.ShouldBe("_Browse… (F3)");
         Wording.FolderPickerTitle(new SettingsScope.Roots()).ShouldBe("Add repository roots");
         Wording.FolderPickerTitle(new SettingsScope.WorktreeRoot()).ShouldBe("Choose the worktree root");
+        Wording.FilePickerTitle.ShouldBe("Choose the editor's executable");
+        Wording.ProgramFiles.ShouldBe("Programs");
     }
 
     [Fact]
