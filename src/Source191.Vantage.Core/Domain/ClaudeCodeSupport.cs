@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Source191.Vantage.Domain;
 
 /// <summary>What Vantage makes of the Claude Code version it read: nothing read, a version to show as it is, or one older than the minimum.</summary>
@@ -17,13 +19,18 @@ public static class ClaudeCodeSupport
     public static readonly ReleaseVersion Minimum = new(2, 1, 309, string.Empty);
 
     /// <summary>Only a version Vantage can read and compare is warned about; a false alarm is worse than none.</summary>
-    public static ClaudeCodeVersion Check(string? reported)
+    public static ClaudeCodeVersion Check(ClaudeVersionReport report)
     {
-        if (reported is null)
+        return report switch
         {
-            return new ClaudeCodeVersion.Unknown();
-        }
+            ClaudeVersionReport.NotRead => new ClaudeCodeVersion.Unknown(),
+            ClaudeVersionReport.Printed printed => Judge(printed.Text),
+            _ => throw new UnreachableException(),
+        };
+    }
 
+    private static ClaudeCodeVersion Judge(string reported)
+    {
         return ReleaseVersion.TryParse(reported, out ReleaseVersion? installed) && Minimum.IsHigherThan(installed)
             ? new ClaudeCodeVersion.BelowMinimum(installed, Minimum)
             : new ClaudeCodeVersion.Reported(reported);
