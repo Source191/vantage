@@ -66,6 +66,18 @@ public sealed class WorktreeInventoryLeftoversShould : IDisposable
     }
 
     [Fact]
+    public async Task KeepAnOrphanWhosePointerNamesARegistrationThatStillExistsAnOrphan()
+    {
+        string orphan = Path.Combine(Repository, ".claude", "worktrees", "fix-service-tests");
+        folders.WithFile(Path.Combine(orphan, ".git"), "gitdir: C:/Users/me/source/repos/Northwind.Orders/.git/worktrees/fix-service-tests\n")
+            .WithDirectory(Path.Combine(Repository, ".git", "worktrees", "fix-service-tests"));
+
+        WorktreeRow row = (await Inventory.ScanAsync([], CancellationToken.None)).Single();
+
+        row.Health.ShouldBe(new WorktreeHealth(WorktreeHealthKind.Orphan, new HealthReason.UnderClaudeWorktrees()), "an orphan never names an owner, so it is never elsewhere");
+    }
+
+    [Fact]
     public async Task ReportAnEmptyWorktreesFolderDirectlyUnderARootAsEmpty()
     {
         folders.WithDirectory(Path.Combine(Root, "Northwind.Orders.worktrees")).WithDirectory(Path.Combine(Root, "just-a-folder"));
