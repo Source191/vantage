@@ -35,7 +35,8 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         return answer switch
         {
             { Listing: PullRequestListing.Listed listed } => ForBranch(listed, branch),
-            { Listing: PullRequestListing.Unavailable unavailable, Host: var host } => new PullRequestLookup.Missing(unavailable.Gap, host),
+            { Listing: PullRequestListing.Unavailable unavailable, Host: PullRequestHost host } => new PullRequestLookup.Missing(unavailable.Gap, new LookupHost.Known(host)),
+            { Listing: PullRequestListing.Unavailable unavailable } => new PullRequestLookup.Missing(unavailable.Gap),
             _ => new PullRequestLookup.Missing(PullRequestGap.Failed),
         };
     }
