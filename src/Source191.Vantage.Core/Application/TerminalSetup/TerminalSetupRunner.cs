@@ -1,4 +1,5 @@
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.TerminalSetup;
 
@@ -40,7 +41,11 @@ public sealed class TerminalSetupRunner(
     }
 
     /// <summary>Windows Terminal does not share our working directory, so a sound is written as a full path.</summary>
-    private static SoundArgument FullPath(SoundArgument sound) => sound is SoundArgument.Given given && !string.IsNullOrWhiteSpace(given.Path) ? new SoundArgument.Given(Path.GetFullPath(given.Path)) : sound;
+    private static SoundArgument FullPath(SoundArgument sound) => sound switch
+    {
+        SoundArgument.Given given when !string.IsNullOrWhiteSpace(given.Path) => new SoundArgument.Given(Path.GetFullPath(given.Path)),
+        _ => sound,
+    };
 
     private async Task<int> RemoveAsync(CancellationToken cancellationToken)
     {
@@ -58,10 +63,9 @@ public sealed class TerminalSetupRunner(
 
     private async Task<int> SetUpAsync(TerminalSetupRequest request, CancellationToken cancellationToken)
     {
-        TerminalSetupProblem? problem = CheckSounds(request);
-        if (problem is not null)
+        if (CheckSounds(request) is SoundCheck.Refused refused)
         {
-            await ReportProblemAsync(problem);
+            await ReportProblemAsync(refused.Problem);
             return 2;
         }
 
@@ -82,16 +86,18 @@ public sealed class TerminalSetupRunner(
         return 0;
     }
 
-    private TerminalSetupProblem? CheckSounds(TerminalSetupRequest request) => CheckSound(request.Sound) ?? CheckSound(request.SessionSound);
+    /// <summary>The Vantage profile's sound is checked first, and its refusal is the one reported.</summary>
+    private SoundCheck CheckSounds(TerminalSetupRequest request) => CheckSound(request.Sound) is SoundCheck.Refused refused ? refused : CheckSound(request.SessionSound);
 
-    private TerminalSetupProblem? CheckSound(SoundArgument sound)
+    private SoundCheck CheckSound(SoundArgument sound)
     {
         return sound switch
         {
-            SoundArgument.Omitted => null,
-            SoundArgument.Given given when !folders.FileExists(given.Path) => new TerminalSetupProblem.SoundNotFound(given.Path),
-            SoundArgument.Given given when !string.Equals(Path.GetExtension(given.Path), ".wav", StringComparison.OrdinalIgnoreCase) => new TerminalSetupProblem.SoundNotWav(given.Path),
-            _ => null,
+            SoundArgument.Omitted => new SoundCheck.Accepted(),
+            SoundArgument.Given given when !folders.FileExists(given.Path) => new SoundCheck.Refused(new TerminalSetupProblem.SoundNotFound(given.Path)),
+            SoundArgument.Given given when !string.Equals(Path.GetExtension(given.Path), ".wav", StringComparison.OrdinalIgnoreCase) => new SoundCheck.Refused(new TerminalSetupProblem.SoundNotWav(given.Path)),
+            SoundArgument.Given => new SoundCheck.Accepted(),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -203,4 +209,12 @@ public sealed class TerminalSetupRunner(
     }
 
     private Task ReportProblemAsync(TerminalSetupProblem problem) => error.WriteLineAsync(Wording.DescribeSetupProblem(problem));
+
+    /// <summary>A given sound accepted, or the problem that refuses it; an omitted one is always accepted.</summary>
+    private abstract record SoundCheck
+    {
+        public sealed record Accepted : SoundCheck;
+
+        public sealed record Refused(TerminalSetupProblem Problem) : SoundCheck;
+    }
 }
