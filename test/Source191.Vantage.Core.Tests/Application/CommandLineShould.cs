@@ -107,7 +107,7 @@ public sealed class CommandLineShould : IDisposable
     [Theory]
     [InlineData(new[] { "setup-terminal", "--sound", "a.wav" }, "a.wav", null)]
     [InlineData(new[] { "setup-terminal", "--session-sound", "b.wav" }, null, "b.wav")]
-    [InlineData(new[] { "setup-terminal", "--sound", "  ", "--session-sound=" }, "  ", "")]
+    [InlineData(new[] { "setup-terminal", "--sound", "  ", "--session-sound", "" }, "  ", "")]
     [InlineData(new[] { "setup-terminal" }, null, null)]
     public async Task ReadSetupTerminalSoundsAsArguments(string[] arguments, string? sound, string? sessionSound)
     {
