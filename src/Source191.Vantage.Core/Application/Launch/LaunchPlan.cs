@@ -11,15 +11,24 @@ public sealed record LaunchRequest(
     WorktreeBase Base,
     string OpeningPromptText);
 
-/// <summary>What the launch service will do: where the session starts, under what name, and whether a worktree is made first.</summary>
+/// <summary>What the launch service will do: where the session starts, under what name, and whether a worktree is made first (<see cref="LaunchPlace"/>).</summary>
 public sealed record LaunchPlan(
     FolderPath Directory,
     SessionName Name,
-    PlannedWorktree? Worktree,
-    bool ReuseExistingWorktree,
+    LaunchPlace Place,
     WorktreeBase Base,
     OpeningPrompt OpeningPrompt,
-    RepositoryChoice Repository);
+    RepositoryChoice Repository)
+{
+    public PlannedWorktree? Worktree => Place switch
+    {
+        LaunchPlace.NewWorktree fresh => fresh.Worktree,
+        LaunchPlace.ExistingWorktree existing => existing.Worktree,
+        _ => null,
+    };
+
+    public bool ReuseExistingWorktree => Place is LaunchPlace.ExistingWorktree;
+}
 
 /// <summary>Why a launch request is refused, as a fact; <see cref="Wording"/> says it, in the wizard and from vantage here.</summary>
 public abstract record LaunchProblem
@@ -64,7 +73,7 @@ public static class LaunchPlanBuilder
 
         if (request.Mode == LaunchMode.CurrentBranch)
         {
-            return new LaunchPlanResult.Planned(new LaunchPlan(request.Repository.Path, name, Worktree: null, ReuseExistingWorktree: false, request.Base, prompt, request.Repository));
+            return new LaunchPlanResult.Planned(new LaunchPlan(request.Repository.Path, name, new LaunchPlace.CurrentBranch(), request.Base, prompt, request.Repository));
         }
 
         if (!request.Repository.IsRepository)
@@ -78,9 +87,9 @@ public static class LaunchPlanBuilder
         }
 
         PlannedWorktree worktree = PlannedWorktree.For(worktreeRoot, request.Repository.Path, slug);
-        bool reuse = folderExists(worktree.Path.Value);
+        LaunchPlace place = folderExists(worktree.Path.Value) ? new LaunchPlace.ExistingWorktree(worktree) : new LaunchPlace.NewWorktree(worktree);
 
-        return new LaunchPlanResult.Planned(new LaunchPlan(worktree.Path, name, worktree, reuse, request.Base, prompt, request.Repository));
+        return new LaunchPlanResult.Planned(new LaunchPlan(worktree.Path, name, place, request.Base, prompt, request.Repository));
     }
 
     private static bool Blank(string text) => string.IsNullOrWhiteSpace(text);
