@@ -86,26 +86,26 @@ public sealed class GitWorktreeListingShould
     [Fact]
     public void ReportALockWithNoReasonAsAnEmptyReason()
     {
-        Entries[1].LockReason.ShouldBe(string.Empty);
+        Entries[1].Lock.ShouldBe(new WorktreeLock.Locked(string.Empty));
     }
 
     [Fact]
     public void ReportALockReasonWhenGitGivesOne()
     {
-        Entries[2].LockReason.ShouldBe("kept for the study day");
+        Entries[2].Lock.ShouldBe(new WorktreeLock.Locked("kept for the study day"));
     }
 
     [Fact]
-    public void LeaveTheLockReasonNullWhenUnlocked()
+    public void ReportAWorktreeWithNoLockLineAsUnlocked()
     {
-        Entries[0].LockReason.ShouldBeNull();
+        Entries[0].Lock.ShouldBe(new WorktreeLock.Unlocked());
     }
 
     [Fact]
-    public void ReportThePrunableReason()
+    public void MarkAWorktreeWithAPrunableLineAsPrunable()
     {
-        Entries[3].PrunableReason.ShouldBe("gitdir file points to non-existent location");
-        Entries[0].PrunableReason.ShouldBeNull();
+        Entries[3].IsPrunable.ShouldBeTrue();
+        Entries[0].IsPrunable.ShouldBeFalse();
     }
 
     [Fact]
