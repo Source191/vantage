@@ -31,6 +31,6 @@ internal static class WorktreeTestData
     /// <summary>A row on branch fix-123 with no session running in it, unless the head or session say otherwise.</summary>
     public static WorktreeRow Row(WorktreeHealthKind health, string path = Worktree, Head? head = null, bool ownerExists = true, WorktreeSession? session = null)
     {
-        return new WorktreeRow(FolderPath.From(Repository), FolderPath.From(path), head ?? new Head.OnBranch(BranchName.From("fix-123")), new WorktreeHealth(health, new HealthReason.None()), 0, 0, Noon, session ?? new WorktreeSession.None(), 0, ownerExists, FolderExists: true);
+        return new WorktreeRow(FolderPath.From(Repository), FolderPath.From(path), head ?? new Head.OnBranch(BranchName.From("fix-123")), new WorktreeHealth(health, new HealthReason.None()), 0, 0, new LastCommit.Made(Noon), session ?? new WorktreeSession.None(), 0, ownerExists, FolderExists: true);
     }
 }

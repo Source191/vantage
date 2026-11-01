@@ -401,6 +401,6 @@ public sealed class WorktreesViewShould
 
     private static WorktreeRow Row(string path, Head head, WorktreeHealthKind health, HealthReason? reason = null)
     {
-        return new WorktreeRow(FolderPath.From(Repository), FolderPath.From(path), head, new WorktreeHealth(health, reason ?? new HealthReason.None()), 0, 0, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: true);
+        return new WorktreeRow(FolderPath.From(Repository), FolderPath.From(path), head, new WorktreeHealth(health, reason ?? new HealthReason.None()), 0, 0, new LastCommit.Unknown(), new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: true);
     }
 }

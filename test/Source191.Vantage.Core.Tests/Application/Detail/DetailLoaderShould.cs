@@ -35,7 +35,7 @@ public sealed class DetailLoaderShould
         SessionDetail detail = await Loader().SessionAsync(row, CancellationToken.None);
 
         detail.Row.ShouldBe(row);
-        detail.Counts.ShouldBe(new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new DateTimeOffset(2026, 10, 30, 11, 0, 0, TimeSpan.Zero))));
+        detail.Counts.ShouldBe(new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new LastCommit.Made(new DateTimeOffset(2026, 10, 30, 11, 0, 0, TimeSpan.Zero)))));
         detail.LastPromptedAt.ShouldBeNull();
     }
 

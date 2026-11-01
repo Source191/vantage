@@ -55,8 +55,6 @@ public sealed class NullFreeModelsShould
         new(typeof(EditorChoice), "FromFile(arguments)", "reads EditorSetting's properties as config.json has them"),
         new(typeof(DiagnosticLogSetting), "Read(variable)", "reads VANTAGE_LOG, which may be unset"),
         new(typeof(Wording), "ClaudeBellPlan(replacing)", "Claude's settings.json may name no other notification channel"),
-        new(typeof(WorktreeCounts), "LastCommitAt", "IGit.LastCommitAtAsync's answer as it comes"),
-        new(typeof(WorktreeRow), "LastCommitAt", "IGit.LastCommitAtAsync's answer as it comes"),
         new(typeof(SessionActivity), "LastPromptedAt", "this Vantage has seen no prompt for the session yet"),
         new(typeof(SessionDetail), "LastPromptedAt", "SessionActivity.LastPromptedAt's answer"),
         new(typeof(WorktreeDetail), "Created", "a worktree Vantage did not create has no creation record"),
