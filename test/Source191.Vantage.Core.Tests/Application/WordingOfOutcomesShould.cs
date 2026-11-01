@@ -86,8 +86,8 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASessionStopped()
     {
-        Wording.Describe(new StopSessionOutcome("fix-123", TabClosed: false)).ShouldBe("Stopped fix-123.");
-        Wording.Describe(new StopSessionOutcome("fix-123", TabClosed: true)).ShouldBe("Stopped fix-123 and closed its tab.");
+        Wording.Describe(new StopSessionOutcome.Stopped("fix-123", TabClosed: false)).ShouldBe("Stopped fix-123.");
+        Wording.Describe(new StopSessionOutcome.Stopped("fix-123", TabClosed: true)).ShouldBe("Stopped fix-123 and closed its tab.");
     }
 
 
@@ -555,5 +555,31 @@ public sealed class WordingOfOutcomesShould
             _ when type == typeof(PullRequestHost) => PullRequestHost.AzureDevOps,
             _ => throw new InvalidOperationException($"An outcome field of type {type.Name} needs a placeholder."),
         };
+    }
+
+    [Fact]
+    public void SayAStopClaudeRefused()
+    {
+        Wording.Describe(new StopSessionOutcome.NotStopped("fix-123", "Session 81cdb0f9 not found")).ShouldBe("Could not stop fix-123: Session 81cdb0f9 not found");
+    }
+
+    [Fact]
+    public void SayARenameWhoseJobCouldNotBeRemoved()
+    {
+        Wording.Describe(new RenameSessionOutcome.NotRemoved("fix-123", "Session 81cdb0f9 not found"))
+            .ShouldBe("Could not rename fix-123: Session 81cdb0f9 not found; it is still listed under its old name.");
+    }
+
+    [Fact]
+    public void NameASessionWhoseJobCouldNotBeRemovedWhenResuming()
+    {
+        Wording.Describe(new ResumeSessionsOutcome(0, 1, [new ResumeNote.NotRemoved("fix-123", "Session 81cdb0f9 not found")]))
+            .ShouldContain("fix-123: could not remove its job (Session 81cdb0f9 not found), so it was not resumed");
+    }
+
+    [Fact]
+    public void SayADeleteClaudeRefused()
+    {
+        Wording.Describe(new DeleteSessionOutcome.NotDeleted("fix-123", "Session 81cdb0f9 not found")).ShouldBe("Could not delete fix-123: Session 81cdb0f9 not found");
     }
 }

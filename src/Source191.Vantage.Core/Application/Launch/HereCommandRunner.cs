@@ -39,8 +39,15 @@ public sealed class HereCommandRunner(IFolders folders, LaunchService launches, 
     private async Task<int> AttachAsync(string said, JobId jobId, CancellationToken cancellationToken)
     {
         await output.WriteLineAsync(said);
-        await effects.RunAsync(new AttachToSession(jobId), cancellationToken);
-        console.RecoverAfterChild();
+        try
+        {
+            await effects.RunAsync(new AttachToSession(jobId), cancellationToken);
+        }
+        finally
+        {
+            console.RecoverAfterChild();
+        }
+
         return 0;
     }
 

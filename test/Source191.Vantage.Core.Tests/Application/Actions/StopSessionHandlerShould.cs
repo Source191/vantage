@@ -3,6 +3,7 @@ using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 using static Source191.Vantage.Core.Tests.Application.Actions.SessionTestData;
 
@@ -22,7 +23,7 @@ public sealed class StopSessionHandlerShould
         Outcome outcome = await Handler.HandleAsync(new StopSession(Job(Repository)), CancellationToken.None);
 
         processes.CapturedRequests.Single(request => request.FileName == Claude).Arguments.ShouldBe(["stop", "81cdb0f9"]);
-        outcome.ShouldBe(new StopSessionOutcome("fix-123", TabClosed: false));
+        outcome.ShouldBe(new StopSessionOutcome.Stopped("fix-123", TabClosed: false));
     }
 
     [Fact]
@@ -35,7 +36,7 @@ public sealed class StopSessionHandlerShould
         Outcome outcome = await Handler.HandleAsync(new StopSession(Job(Repository)), CancellationToken.None);
 
         order.ShouldBe(["shell 4000 ended after 1 claude call"]);
-        outcome.ShouldBe(new StopSessionOutcome("fix-123", TabClosed: true));
+        outcome.ShouldBe(new StopSessionOutcome.Stopped("fix-123", TabClosed: true));
     }
 
     [Fact]
@@ -44,6 +45,18 @@ public sealed class StopSessionHandlerShould
         Outcome outcome = await Handler.HandleAsync(new StopSession(Job(Repository)), CancellationToken.None);
 
         registry.EndedCleanly.ShouldBeEmpty();
-        outcome.ShouldBe(new StopSessionOutcome("fix-123", TabClosed: false));
+        outcome.ShouldBe(new StopSessionOutcome.Stopped("fix-123", TabClosed: false));
+    }
+
+    [Fact]
+    public async Task ReportAStopClaudeRefusedAndKeepTheTab()
+    {
+        await LiveTabAsync(store, registry, shell: 4000);
+        processes.Answer(request => request.Arguments.Contains("stop"), new ProcessResult(1, string.Empty, "Session 81cdb0f9 not found"));
+
+        Outcome outcome = await Handler.HandleAsync(new StopSession(Job(Repository)), CancellationToken.None);
+
+        outcome.ShouldBe(new StopSessionOutcome.NotStopped("fix-123", "Session 81cdb0f9 not found"));
+        registry.EndedCleanly.ShouldBeEmpty();
     }
 }

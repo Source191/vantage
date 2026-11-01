@@ -13,8 +13,9 @@ public static partial class Wording
     {
         return outcome switch
         {
-            StopSessionOutcome { TabClosed: true } stopped => $"Stopped {stopped.Name} and closed its tab.",
-            StopSessionOutcome stopped => $"Stopped {stopped.Name}.",
+            StopSessionOutcome.Stopped { TabClosed: true } stopped => $"Stopped {stopped.Name} and closed its tab.",
+            StopSessionOutcome.Stopped stopped => $"Stopped {stopped.Name}.",
+            StopSessionOutcome.NotStopped refused => $"Could not stop {refused.Name}: {refused.Failure}",
             AdoptSessionOutcome adopt => Describe(adopt),
             RenameSessionOutcome rename => Describe(rename),
             CloseEmptyTerminalsOutcome close => Describe(close),
@@ -49,6 +50,7 @@ public static partial class Wording
     {
         return outcome switch
         {
+            StopSessionOutcome.NotStopped => StatusTone.Failure,
             StopSessionOutcome => StatusTone.Success,
             AdoptSessionOutcome adopt => ToneOf(adopt),
             RenameSessionOutcome rename => ToneOf(rename),
@@ -94,7 +96,7 @@ public static partial class Wording
         return outcome switch
         {
             RenameSessionOutcome.Renamed => StatusTone.Success,
-            RenameSessionOutcome.Restored or RenameSessionOutcome.Unsupervised => StatusTone.Failure,
+            RenameSessionOutcome.Restored or RenameSessionOutcome.Unsupervised or RenameSessionOutcome.NotRemoved => StatusTone.Failure,
             _ => StatusTone.Notice,
         };
     }
@@ -105,6 +107,7 @@ public static partial class Wording
         {
             DeleteSessionOutcome.Deleted or DeleteSessionOutcome.RemovedWorktreeAndBranch or DeleteSessionOutcome.BranchNotMerged => StatusTone.Success,
             DeleteSessionOutcome.RemovedWorktree removed => ToneOf(removed.Worktree),
+            DeleteSessionOutcome.NotDeleted => StatusTone.Failure,
             _ => StatusTone.Notice,
         };
     }
@@ -206,6 +209,7 @@ public static partial class Wording
             RenameSessionOutcome.Renamed renamed => $"Renamed {renamed.OldName} to {renamed.NewName}; it restarts idle and keeps its conversation.",
             RenameSessionOutcome.Restored { TabClosed: true } restored => $"Could not rename {restored.OldName}: {restored.Failure}; it is back under its old name and its tab is closed: Enter opens a new one.",
             RenameSessionOutcome.Restored restored => $"Could not rename {restored.OldName}: {restored.Failure}; it is back under its old name.",
+            RenameSessionOutcome.NotRemoved kept => $"Could not rename {kept.OldName}: {kept.Failure}; it is still listed under its old name.",
             RenameSessionOutcome.Unsupervised lost =>
                 $"Could not rename {lost.OldName}: {lost.Failure}; resume it with claude --bg --resume {lost.SessionId} ({lost.RestoreFailure}).",
             _ => outcome.ToString(),
@@ -245,6 +249,7 @@ public static partial class Wording
         IEnumerable<string> notes = outcome.Notes.Select(note => note switch
         {
             ResumeNote.NeverSentAMessage => $"{note.Name}: never sent a message, so there is nothing to resume; d deletes it",
+            ResumeNote.NotRemoved kept => $"{note.Name}: could not remove its job ({kept.Failure}), so it was not resumed",
             ResumeNote.Failed failed => $"{note.Name}: {failed.Failure}; resume it with claude --bg --resume {failed.SessionId.Value}",
             _ => throw new UnreachableException(),
         });
@@ -259,6 +264,7 @@ public static partial class Wording
     {
         return outcome switch
         {
+            DeleteSessionOutcome.NotDeleted kept => $"Could not delete {kept.Name}: {kept.Failure}",
             DeleteSessionOutcome.Deleted deleted => $"{Gone(deleted, deleted.Name)}.",
             DeleteSessionOutcome.KeptWorktree { Reason: RemovalReason.LeftoverFilesWouldBeLost } kept => $"{Gone(kept, kept.Name)}; kept its worktree because {Describe(kept.Reason)}; force remove (D) on the Worktrees tab deletes it.",
             DeleteSessionOutcome.KeptWorktree kept => $"{Gone(kept, kept.Name)}; kept its worktree because {Describe(kept.Reason)}.",

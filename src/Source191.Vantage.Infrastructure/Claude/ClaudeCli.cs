@@ -13,7 +13,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
 {
     public async Task<SessionListing> ListSessionsAsync(CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(["agents", "--json", "--all"], WorkingFolder.Inherit), cancellationToken);
+        ProcessResult result = await RunOrThrowAsync(["agents", "--json", "--all"], cancellationToken);
 
         return ClaudeAgentsListing.Parse(result.StandardOutput);
     }
@@ -49,9 +49,9 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
 
     public Task<int> AttachAsync(string jobId, CancellationToken cancellationToken) => processes.RunInteractiveAsync(Request(["attach", jobId], WorkingFolder.Inherit), cancellationToken);
 
-    public Task StopAsync(string jobId, CancellationToken cancellationToken) => processes.RunAsync(Request(["stop", jobId], WorkingFolder.Inherit), cancellationToken);
+    public Task StopAsync(string jobId, CancellationToken cancellationToken) => RunOrThrowAsync(["stop", jobId], cancellationToken);
 
-    public Task RemoveAsync(string jobId, CancellationToken cancellationToken) => processes.RunAsync(Request(["rm", jobId], WorkingFolder.Inherit), cancellationToken);
+    public Task RemoveAsync(string jobId, CancellationToken cancellationToken) => RunOrThrowAsync(["rm", jobId], cancellationToken);
 
     public Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, SessionName name, CancellationToken cancellationToken) =>
         ResumeAsync(["--bg", "--resume", sessionId, "-n", name.Value], directory, cancellationToken);
@@ -64,7 +64,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         ProcessResult result = await processes.RunAsync(Request(arguments, new WorkingFolder.At(directory)), cancellationToken);
         if (result.ExitCode != 0)
         {
-            return new ResumeResult(Continued: false, (result.StandardError + result.StandardOutput).Trim());
+            return new ResumeResult.Failed((result.StandardError + result.StandardOutput).Trim());
         }
 
         string? note = result.StandardOutput
@@ -72,7 +72,25 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
             .Select(line => line.Trim())
             .FirstOrDefault(line => line.StartsWith("note:", StringComparison.OrdinalIgnoreCase));
 
-        return new ResumeResult(Continued: note is null, note ?? result.StandardOutput.Trim());
+        return note is null ? new ResumeResult.Continued(result.StandardOutput.Trim()) : new ResumeResult.Failed(note);
+    }
+
+    private async Task<ProcessResult> RunOrThrowAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+    {
+        ProcessResult result = await processes.RunAsync(Request(arguments, WorkingFolder.Inherit), cancellationToken);
+        if (result.ExitCode == 0)
+        {
+            return result;
+        }
+
+        throw new ClaudeCliException(RefusalWords(arguments[0], result));
+    }
+
+    private static string RefusalWords(string subcommand, ProcessResult result)
+    {
+        string words = string.IsNullOrWhiteSpace(result.StandardError) ? result.StandardOutput.Trim() : result.StandardError.Trim();
+
+        return words.Length > 0 ? words : $"claude {subcommand} exited with code {result.ExitCode}";
     }
 
     private ProcessRequest Request(IReadOnlyList<string> arguments, WorkingFolder folder) => new(executable, arguments, folder);

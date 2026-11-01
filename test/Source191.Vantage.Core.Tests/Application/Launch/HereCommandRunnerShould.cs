@@ -50,6 +50,17 @@ public sealed class HereCommandRunnerShould : IDisposable
     }
 
     [Fact]
+    public async Task RecoverTheConsoleWhenTheAttachThrows()
+    {
+        processes.OnInteractive = _ => throw new System.ComponentModel.Win32Exception("The system cannot find the file specified");
+
+        await Should.ThrowAsync<System.ComponentModel.Win32Exception>(() => Runner.RunAsync(Directory, new HereName.Typed("fix-tests"), "Fix the tests", CancellationToken.None));
+
+        console.Recovered.ShouldBe(1);
+        console.Events.ShouldContain("return hint removed");
+    }
+
+    [Fact]
     public async Task ExitOneWithTheTrustMessageWhenTheWorkspaceIsNotTrusted()
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "Workspace not trusted. Run `claude` once and accept the trust prompt."));

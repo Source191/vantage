@@ -32,7 +32,7 @@ public sealed class EffectDispatcherShould
         StopSession stop = new(Job(Repository));
 
         dispatcher.Handles(typeof(StopSession)).ShouldBeTrue();
-        (await dispatcher.DispatchAsync(stop, CancellationToken.None)).ShouldBe(new StopSessionOutcome("fix-123", TabClosed: false));
+        (await dispatcher.DispatchAsync(stop, CancellationToken.None)).ShouldBe(new StopSessionOutcome.Stopped("fix-123", TabClosed: false));
         processes.CapturedRequests.Single().Arguments.ShouldBe(["stop", "81cdb0f9"]);
     }
 
@@ -43,7 +43,7 @@ public sealed class EffectDispatcherShould
 
         await dispatcher.DispatchAsync(new StopSession(Job(Repository)), CancellationToken.None);
 
-        log.Snapshot().Select(timed => timed.Event).ShouldBe([new EffectRan(CodeName.For(typeof(StopSession)), CodeName.For(typeof(StopSessionOutcome)), TimeSpan.Zero)]);
+        log.Snapshot().Select(timed => timed.Event).ShouldBe([new EffectRan(CodeName.For(typeof(StopSession)), CodeName.For(typeof(StopSessionOutcome.Stopped)), TimeSpan.Zero)]);
         DiagnosticLine.Render(log.Snapshot().Single()).ShouldNotContain("81cdb0f9");
     }
 

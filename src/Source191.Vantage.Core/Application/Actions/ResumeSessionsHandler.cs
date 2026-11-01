@@ -25,13 +25,21 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
                 continue;
             }
 
-            await claude.RemoveAsync(session.JobId.Value, cancellationToken);
+            try
+            {
+                await claude.RemoveAsync(session.JobId.Value, cancellationToken);
+            }
+            catch (ClaudeCliException refusal)
+            {
+                notes.Add(new ResumeNote.NotRemoved(session.Name, refusal.Message));
+                continue;
+            }
 
             // A listed name SessionName refuses is resumed unnamed.
             ResumeResult result = SessionName.TryParse(session.Name, out SessionName? name)
                 ? await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken)
                 : await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, cancellationToken);
-            if (!result.Continued)
+            if (result is not ResumeResult.Continued)
             {
                 notes.Add(new ResumeNote.Failed(session.Name, result.Message, session.SessionId));
                 continue;

@@ -16,7 +16,15 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
 
     public async Task<DeleteSessionOutcome> DeleteAsync(BackgroundSession session, bool forced, CancellationToken cancellationToken)
     {
-        await claude.RemoveAsync(session.JobId.Value, cancellationToken);
+        try
+        {
+            await claude.RemoveAsync(session.JobId.Value, cancellationToken);
+        }
+        catch (ClaudeCliException refusal)
+        {
+            return new DeleteSessionOutcome.NotDeleted(session.Name, refusal.Message);
+        }
+
         bool tabClosed = await tabs.CloseAsync(session.SessionId) == TabClosure.Closed;
 
         return await RemoveWorktreeAsync(session, forced, cancellationToken) with { TabClosed = tabClosed };

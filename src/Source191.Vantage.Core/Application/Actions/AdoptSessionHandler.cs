@@ -36,7 +36,7 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
             ? await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken)
             : await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, cancellationToken);
 
-        if (!result.Continued)
+        if (result is not ResumeResult.Continued)
         {
             return new AdoptSessionOutcome.Failed(session.Name, result.Message);
         }

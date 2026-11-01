@@ -10,6 +10,9 @@ public abstract record DeleteSessionOutcome : Outcome
 
     public sealed record Deleted(string Name) : DeleteSessionOutcome;
 
+    /// <summary>Claude refused to remove the job: the session is still listed, its tab is open and its worktree untouched.</summary>
+    public sealed record NotDeleted(string Name, string Failure) : DeleteSessionOutcome;
+
     public sealed record KeptWorktree(string Name, RemovalReason Reason) : DeleteSessionOutcome;
 
     public sealed record RemovedWorktreeAndBranch(string Name, BranchName Branch) : DeleteSessionOutcome;

@@ -35,6 +35,36 @@ public sealed class ClaudeCliShould
         sessions.Single().Name.ShouldBe("one");
     }
 
+    [Theory]
+    [InlineData("agents")]
+    [InlineData("stop")]
+    [InlineData("rm")]
+    public async Task ThrowWithClaudesWordsWhenTheListingStopOrRemoveFails(string subcommand)
+    {
+        processes.AnswerAll(new ProcessResult(1, string.Empty, "Couldn't connect to the background service\n"));
+
+        ClaudeCliException exception = await Should.ThrowAsync<ClaudeCliException>(() => RunAsync(subcommand));
+
+        exception.Message.ShouldBe("Couldn't connect to the background service");
+    }
+
+    [Fact]
+    public async Task NameTheCommandAndExitCodeWhenClaudePrintsNothing()
+    {
+        processes.AnswerAll(new ProcessResult(2, string.Empty, string.Empty));
+
+        ClaudeCliException exception = await Should.ThrowAsync<ClaudeCliException>(() => Cli.StopAsync("81cdb0f9", CancellationToken.None));
+
+        exception.Message.ShouldBe("claude stop exited with code 2");
+    }
+
+    private Task RunAsync(string subcommand) => subcommand switch
+    {
+        "agents" => Cli.ListSessionsAsync(CancellationToken.None),
+        "stop" => Cli.StopAsync("81cdb0f9", CancellationToken.None),
+        _ => Cli.RemoveAsync("81cdb0f9", CancellationToken.None),
+    };
+
     [Fact]
     public async Task ReadTheVersionFromVersionOutput()
     {
@@ -171,7 +201,7 @@ public sealed class ClaudeCliShould
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Directory)),
             request => request.Arguments.ShouldBe(["--bg", "--resume", "81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6"]));
-        result.Continued.ShouldBeTrue();
+        result.ShouldBeOfType<ResumeResult.Continued>();
     }
 
     [Fact]
@@ -201,8 +231,7 @@ public sealed class ClaudeCliShould
 
         ResumeResult result = await Cli.ResumeBackgroundAsync("81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6", Directory, CancellationToken.None);
 
-        result.Continued.ShouldBeFalse();
-        result.Message.ShouldContain("copy");
+        result.ShouldBeOfType<ResumeResult.Failed>().Message.ShouldContain("copy");
     }
 
     [Fact]
@@ -212,8 +241,7 @@ public sealed class ClaudeCliShould
 
         ResumeResult result = await Cli.ResumeBackgroundAsync("81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6", Directory, CancellationToken.None);
 
-        result.Continued.ShouldBeFalse();
-        result.Message.ShouldBe("Session 81cdb0f9 can't start: source session not found");
+        result.ShouldBeOfType<ResumeResult.Failed>().Message.ShouldBe("Session 81cdb0f9 can't start: source session not found");
     }
 
 }
