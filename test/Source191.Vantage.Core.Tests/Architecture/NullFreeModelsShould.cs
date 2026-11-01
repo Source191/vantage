@@ -85,6 +85,7 @@ public sealed class NullFreeModelsShould
     {
         NullableMembersOf(typeof(IHouseShapes)).ShouldBeEmpty();
         NullableMembersOf(typeof(IBareTryParse)).ShouldBe(["TryParse(text)"]);
+        NullableMembersOf(typeof(INotNullWhenTry)).ShouldBe(["TryFind(found)"]);
     }
 
     [Fact]
@@ -287,9 +288,7 @@ public sealed class NullFreeModelsShould
 
     private static bool IsOutUntilParsed(ParameterInfo parameter)
     {
-        return parameter.IsOut
-            && (parameter.GetCustomAttribute<MaybeNullWhenAttribute>() is { ReturnValue: false }
-                || parameter.GetCustomAttribute<NotNullWhenAttribute>() is { ReturnValue: true });
+        return parameter.IsOut && parameter.GetCustomAttribute<MaybeNullWhenAttribute>() is { ReturnValue: false };
     }
 
     private static bool IsGenerated(MemberInfo member)
@@ -366,13 +365,16 @@ public sealed class NullFreeModelsShould
 
         int CompareTo(IHouseShapes? other);
 
-        bool TryFind(int key, [NotNullWhen(true)] out string? found);
-
         bool TryTake(IHouseShapes from, [MaybeNullWhen(false)] out IHouseShapes taken);
     }
 
     private interface IBareTryParse
     {
         static abstract bool TryParse(string? text, out IBareTryParse value);
+    }
+
+    private interface INotNullWhenTry
+    {
+        bool TryFind(int key, [NotNullWhen(true)] out string? found);
     }
 }

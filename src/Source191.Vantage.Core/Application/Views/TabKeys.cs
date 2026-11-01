@@ -6,7 +6,7 @@ namespace Source191.Vantage.Application.Views;
 public static class TabKeys
 {
     /// <summary>The effect of a tab key; false for a key that is not one.</summary>
-    public static bool TryFor(Key key, [NotNullWhen(true)] out ViewEffect? effect)
+    public static bool TryFor(Key key, [MaybeNullWhen(false)] out ViewEffect effect)
     {
         ArgumentNullException.ThrowIfNull(key);
         effect = key switch
