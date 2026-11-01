@@ -86,7 +86,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([running], CancellationToken.None);
 
-        rows.Single().Memory.ShouldBe(MemorySize.FromMegabytes(903));
+        rows.Single().Memory.ShouldBe(new SessionMemory.Measured(MemorySize.FromMegabytes(903)));
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public sealed class SessionRowEnricherShould : IDisposable
     }
 
     [Fact]
-    public async Task CarryNoMemoryForASessionWithoutAProcessOrWhoseProcessHasGone()
+    public async Task CarryNothingToMeasureForASessionWithoutAProcessOrWhoseProcessHasGone()
     {
         registry.InTree(100, "claude", 1).Using(100, Noon.AddMinutes(-10), MemorySize.FromMegabytes(296));
         BackgroundSession stopped = Session(@"C:\repos\Northwind.Orders");
@@ -127,9 +127,9 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([stopped, gone, terminal], CancellationToken.None);
 
-        rows[0].Memory.ShouldBeNull();
-        rows[1].Memory.ShouldBeNull();
-        rows[2].Memory.ShouldBe(MemorySize.FromMegabytes(296));
+        rows[0].Memory.ShouldBe(new SessionMemory.NothingToMeasure());
+        rows[1].Memory.ShouldBe(new SessionMemory.NothingToMeasure());
+        rows[2].Memory.ShouldBe(new SessionMemory.Measured(MemorySize.FromMegabytes(296)));
     }
 
     [Fact]
