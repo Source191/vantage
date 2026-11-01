@@ -36,7 +36,7 @@ public sealed class DetailLoaderShould
 
         detail.Row.ShouldBe(row);
         detail.Counts.ShouldBe(new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new LastCommit.Made(new DateTimeOffset(2026, 10, 30, 11, 0, 0, TimeSpan.Zero)))));
-        detail.LastPromptedAt.ShouldBeNull();
+        detail.LastPromptedAt.ShouldBe(new LastPrompt.NotSeen());
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class DetailLoaderShould
 
         SessionDetail detail = await Loader(activity).SessionAsync(working, CancellationToken.None);
 
-        detail.LastPromptedAt.ShouldBe(Noon.AddMinutes(3));
+        detail.LastPromptedAt.ShouldBe(new LastPrompt.Seen(Noon.AddMinutes(3)));
     }
 
     [Fact]

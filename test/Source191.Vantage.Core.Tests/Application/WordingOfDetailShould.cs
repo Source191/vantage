@@ -17,7 +17,7 @@ public sealed class WordingOfDetailShould
     {
         SessionRow row = Row(DisplayState.NeedsInput, process: new JobProcess.Running(4242)) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = new SessionMemory.Measured(MemorySize.FromMegabytes(903)) };
         row = row with { Session = row.Session with { WaitingFor = new WaitingReason.Given("permission prompt") } };
-        SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new LastCommit.Made(Now.AddHours(-2)))));
+        SessionDetail detail = new(row, new LastPrompt.NotSeen(), new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new LastCommit.Made(Now.AddHours(-2)))));
 
         DetailContent content = Wording.Detail(detail, Now);
 
@@ -192,7 +192,7 @@ public sealed class WordingOfDetailShould
         Wording.Detail(worktree, Now).Facts.Count.ShouldBe(Wording.DetailFactRows);
     }
 
-    private static SessionDetail Detail(SessionRow row) => new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.NotApplicable());
+    private static SessionDetail Detail(SessionRow row) => new(row, new LastPrompt.NotSeen(), new DetailFact<WorktreeCounts>.NotApplicable());
 
     private static string[] Text(DetailContent content) => [.. content.Facts.SelectMany(line => line).Concat(content.Below).Select(line => $"{line.Label} {line.Text}")];
 
