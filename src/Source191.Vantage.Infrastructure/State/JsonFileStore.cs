@@ -1,5 +1,6 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -36,7 +37,7 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     /// <summary>The settings file, which the Config tab names.</summary>
     public string ConfigFile => Path.Combine(folder, "config.json");
 
-    private string UpdateCheckFile => Path.Combine(folder, "update-check.json");
+    private string UpdateCheckPath => Path.Combine(folder, "update-check.json");
 
     public async Task<IReadOnlyList<TabRegistration>> ReadTabsAsync() => [.. (await ReadAllAsync<TabFile>(TabsFolder)).Select(file => file.ToRegistration())];
 
@@ -84,9 +85,29 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
     public Task WriteConfigAsync(VantageConfig config) => WriteJsonAsync(ConfigFile, config);
 
-    public Task<UpdateCheckRecord?> ReadUpdateCheckAsync() => ReadJsonAsync<UpdateCheckRecord>(UpdateCheckFile);
+    public async Task<UpdateCheckRecord> ReadUpdateCheckAsync()
+    {
+        UpdateCheckFile? file = await ReadJsonAsync<UpdateCheckFile>(UpdateCheckPath);
 
-    public Task WriteUpdateCheckAsync(UpdateCheckRecord record) => WriteJsonAsync(UpdateCheckFile, record);
+        return file is null ? new UpdateCheckRecord.Never() : new UpdateCheckRecord.Checked(file.CheckedAt, NewestOf(file.Newest));
+    }
+
+    public Task WriteUpdateCheckAsync(UpdateCheckRecord.Checked record) => WriteJsonAsync(UpdateCheckPath, new UpdateCheckFile(record.CheckedAt, RecordedText(record.Newest)));
+
+    /// <summary>The newest release the file names: a version as Found, any other text as Unreadable, and no text as None.</summary>
+    private static NewestRelease NewestOf(string? text) => text is string recorded ? NewestRelease.Recorded(recorded) : new NewestRelease.None();
+
+    /// <summary>The file keeps the newest release as text, and no text when there is none.</summary>
+    private static string? RecordedText(NewestRelease newest)
+    {
+        return newest switch
+        {
+            NewestRelease.Found found => found.Version.ToString(),
+            NewestRelease.None => null,
+            NewestRelease.Unreadable unreadable => unreadable.Text,
+            _ => throw new UnreachableException(),
+        };
+    }
 
     private string RecentFile(string repository) => Path.Combine(RecentFolder, $"{FileKey(repository.ToUpperInvariant())}.json");
 
@@ -199,4 +220,7 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     }
 
     private sealed record RecentRepository(string Path, DateTimeOffset UsedAt);
+
+    /// <summary>update-check.json as written, <c>{"checkedAt": ..., "newest": "0.10.0"}</c> or <c>"newest": null</c>: the same file every earlier version wrote.</summary>
+    private sealed record UpdateCheckFile(DateTimeOffset CheckedAt, string? Newest);
 }

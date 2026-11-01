@@ -32,7 +32,7 @@ public sealed class ScreenLoopShould : IDisposable
     public async Task StartTheUpdateCheckWhenTheConsoleOpens()
     {
         InMemoryState records = new();
-        await records.WriteUpdateCheckAsync(new UpdateCheckRecord(Noon.AddHours(-1), "0.10.0"));
+        await records.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon.AddHours(-1), new NewestRelease.Found(ReleaseVersions.Version("0.10.0"))));
         FakePackageVersions packages = new(["0.10.0"]);
         UpdateCheck updates = new(Running, () => true, records, packages, new FakeTimeProvider(Noon));
         ScreenLoop loop = Loop(new ScriptedConsoleScreen(state => new ConsoleExit(state, new Quit())), updates);
@@ -127,12 +127,12 @@ public sealed class ScreenLoopShould : IDisposable
     /// <summary>An update-check record that reads but cannot be written, as when the state folder is read-only.</summary>
     private sealed class UnwritableRecords(DateTimeOffset checkedAt) : IUpdateCheckRecords
     {
-        public Task<UpdateCheckRecord?> ReadUpdateCheckAsync()
+        public Task<UpdateCheckRecord> ReadUpdateCheckAsync()
         {
-            return Task.FromResult<UpdateCheckRecord?>(new UpdateCheckRecord(checkedAt, "0.9.0"));
+            return Task.FromResult<UpdateCheckRecord>(new UpdateCheckRecord.Checked(checkedAt, new NewestRelease.Found(ReleaseVersions.Version("0.9.0"))));
         }
 
-        public Task WriteUpdateCheckAsync(UpdateCheckRecord record)
+        public Task WriteUpdateCheckAsync(UpdateCheckRecord.Checked record)
         {
             throw new UnauthorizedAccessException(@"Access to C:\Users\me\AppData\Local\Vantage\update-check.json is denied.");
         }

@@ -1,6 +1,7 @@
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
@@ -17,7 +18,7 @@ public sealed class SetupFactsReaderShould
         FakeTerminalFragment fragment = new FakeTerminalFragment().Installed();
         InMemoryState state = new();
         DateTimeOffset nine = new(2026, 10, 30, 9, 12, 0, TimeSpan.Zero);
-        await state.WriteUpdateCheckAsync(new UpdateCheckRecord(nine, "0.18.0"));
+        await state.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(nine, new NewestRelease.Found(ReleaseVersions.Version("0.18.0"))));
         SetupFactsReader reader = new(fragment, new FakeClaudeSettings(new NotificationChannelState.Configured("terminal_bell")), state, SettingsFile, new DiagnosticLogSetting.File(LogFile));
 
         SetupFacts facts = await reader.ReadAsync(TestContext.Current.CancellationToken);
