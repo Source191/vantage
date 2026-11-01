@@ -149,7 +149,9 @@ public static partial class Wording
             (_, SetupState.OtherChannel other) => $"{other.Channel}, not the terminal bell",
             (_, SetupState.Disabled) => "off",
             (_, SetupState.Never) => "never",
-            (_, SetupState.Checked check) => $"{When(check.When, now)}{(check.Newest is null ? string.Empty : $", newest {check.Newest}")}",
+            (_, SetupState.Checked { Newest: NewestRelease.Found found } check) => $"{When(check.When, now)}, newest {found.Version}",
+            (_, SetupState.Checked { Newest: NewestRelease.Unreadable unreadable } check) => $"{When(check.When, now)}, newest {unreadable.Text}",
+            (_, SetupState.Checked { Newest: NewestRelease.None } check) => When(check.When, now),
             _ => state.ToString(),
         };
     }
