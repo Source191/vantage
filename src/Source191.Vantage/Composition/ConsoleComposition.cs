@@ -26,7 +26,7 @@ internal static class ConsoleComposition
     {
         // With VANTAGE_LOG set, the counts are also written every 10 minutes; disposed as this returns, before the crash
         // recorder's exit write.
-        using PeriodicCounts? periodicCounts = parts.LogSetting is DiagnosticLogSetting.File ? new PeriodicCounts(TimeProvider.System, parts.Log, parts.Counts) : null;
+        using PeriodicCounts periodicCounts = new(TimeProvider.System, parts.Log, parts.Counts, parts.LogSetting);
         FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         CurrentSettings settings = await CurrentSettings.LoadAsync(parts.Store, home);
         ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
