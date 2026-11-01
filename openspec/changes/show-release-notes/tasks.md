@@ -37,7 +37,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
   Done, with `ReadAnUnreadableLastRunAsNever`; `Ports\LastRun` (`Never`, `Ran`), and `InMemoryState` implements the port.
 - [x] 3.6 `PackagedReleaseNotesShould.ReadTheChangelogBesideTheTool` (a temporary folder as the base directory) and answer nothing when the file is missing. Red, then `IPackagedReleaseNotes` and its adapter. Verify the facts pass.
   Done as `ReadTheChangelogBesideTheTool` and `LearnNothingWhenTheChangelogIsMissing`; the port answers `PackageNotes` like the registry, the adapter is `Adapters\Packages\PackagedReleaseNotes` over a folder, and `FakePackagedReleaseNotes` is its fake.
-- [ ] 3.7 Pack the notes: `PackageReleaseNotes` from `CHANGELOG.md` and the file packed beside `vantage.dll`; record why in `src\Source191.Vantage\README.md` (no comment in the csproj). Verify `dotnet pack` then the nupkg's nuspec holds the changelog and `tools\net10.0\any\CHANGELOG.md` exists.
+- [x] 3.7 Pack the notes: `PackageReleaseNotes` from `CHANGELOG.md` and the file packed beside `vantage.dll`; record why in `src\Source191.Vantage\README.md` (no comment in the csproj). Verify `dotnet pack` then the nupkg's nuspec holds the changelog and `tools\net10.0\any\CHANGELOG.md` exists.
+  Done: `dotnet pack src\Source191.Vantage -c Release` into the job's temporary folder; the nuspec's `releaseNotes` equals `CHANGELOG.md` (line endings and the final newline aside) and `tools/net10.0/any/CHANGELOG.md` is in the package. The reasons are in the project's README under Package settings.
 
 ## 4. The check fetches notes and announces once
 
