@@ -13,7 +13,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
 
 ## 2. The start event
 
-- [ ] 2.1 `StartedShould.CarryTheVersionClaudeCodePrinted`: `Started.From(version, new ClaudeVersionReport.Printed("2.1.310"), windows, runtime, 120, 36)` carries Claude Code 2.1.310 and the other five values unchanged. Red, then green with `Started.From` in `src\Source191.Vantage.Core\Application\Diagnostics\Started.cs`, reading the report as `RecordStart` does. Verify the fact passes.
+- [x] 2.1 `StartedShould.CarryTheVersionClaudeCodePrinted`: `Started.From(version, new ClaudeVersionReport.Printed("2.1.310"), windows, runtime, 120, 36)` carries Claude Code 2.1.310 and the other five values unchanged. Red, then green with `Started.From` in `src\Source191.Vantage.Core\Application\Diagnostics\Started.cs`, reading the report as `RecordStart` does. Verify the fact passes.
+  Red was a build failure (no `From`), folded into green; `From` calls `ClaudeVersion.TryParse` with the house caller shape `out Version? parsed`; Core.Tests 1962 passed.
 - [ ] 2.2 `StartedShould.CarryNoVersionWhenNoneWasRead` (a theory over `NotRead` and a `Printed` text `ClaudeVersion.TryParse` refuses). Verify the fact passes and `DiagnosticEventsShould` stays green.
 
 ## 3. The update check's switch and the settings row
