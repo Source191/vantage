@@ -219,12 +219,21 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         }
 
         string temporary = $"{file}.{Guid.NewGuid():N}.tmp";
-        await using (FileStream stream = new(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        try
         {
-            await JsonSerializer.SerializeAsync(stream, value, Options);
-        }
+            await using (FileStream stream = new(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(stream, value, Options);
+            }
 
-        ReplaceOrMove(temporary, file);
+            ReplaceOrMove(temporary, file);
+        }
+        catch
+        {
+            TryDelete(temporary);
+
+            throw;
+        }
     }
 
     /// <summary>
