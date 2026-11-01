@@ -18,17 +18,8 @@ public sealed record LaunchPlan(
     LaunchPlace Place,
     WorktreeBase Base,
     OpeningPrompt OpeningPrompt,
-    RepositoryChoice Repository)
-{
-    public PlannedWorktree? Worktree => Place switch
-    {
-        LaunchPlace.NewWorktree fresh => fresh.Worktree,
-        LaunchPlace.ExistingWorktree existing => existing.Worktree,
-        _ => null,
-    };
+    RepositoryChoice Repository);
 
-    public bool ReuseExistingWorktree => Place is LaunchPlace.ExistingWorktree;
-}
 
 /// <summary>Why a launch request is refused, as a fact; <see cref="Wording"/> says it, in the wizard and from vantage here.</summary>
 public abstract record LaunchProblem

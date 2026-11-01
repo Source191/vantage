@@ -212,8 +212,7 @@ public sealed class WizardViewShould
         launch.Plan.ShouldSatisfyAllConditions(
             plan => plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Agents-fix-123"),
             plan => plan.Name.Value.ShouldBe("Fix 123"),
-            plan => plan.Worktree.ShouldNotBeNull(),
-            plan => plan.ReuseExistingWorktree.ShouldBeFalse(),
+            plan => plan.Place.ShouldBeOfType<LaunchPlace.NewWorktree>(),
             plan => plan.Base.ShouldBe(WorktreeBase.Head),
             plan => plan.OpeningPrompt.ShouldBe(new OpeningPrompt.Text("Read the README")));
     }
@@ -227,7 +226,7 @@ public sealed class WizardViewShould
 
         LaunchPlan plan = started.Effect.ShouldBeOfType<WizardEffect.Launch>().Plan;
         plan.Directory.Value.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Agents-fix-123");
-        plan.Worktree.ShouldNotBeNull();
+        plan.Place.ShouldBeOfType<LaunchPlace.NewWorktree>();
     }
 
 
@@ -238,7 +237,7 @@ public sealed class WizardViewShould
 
         WizardUpdate started = WizardView.Reduce(Fill(InAgents), new WizardInput.Start());
 
-        started.Effect.ShouldBeOfType<WizardEffect.Launch>().Plan.ReuseExistingWorktree.ShouldBeTrue();
+        started.Effect.ShouldBeOfType<WizardEffect.Launch>().Plan.Place.ShouldBeOfType<LaunchPlace.ExistingWorktree>();
     }
 
 
@@ -288,7 +287,7 @@ public sealed class WizardViewShould
 
         LaunchPlan plan = started.Effect.ShouldBeOfType<WizardEffect.Launch>().Plan;
         plan.Directory.Value.ShouldBe(Billing);
-        plan.Worktree.ShouldBeNull();
+        plan.Place.ShouldBe(new LaunchPlace.CurrentBranch());
         named.Preview.ShouldBe("Runs in Northwind.Billing on its current branch; the name is only the session's label.");
     }
 
