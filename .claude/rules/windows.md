@@ -5,7 +5,7 @@ paths:
   - "src/Source191.Vantage.Infrastructure/Packages/**"
   - "**/*WindowsTerminal*.cs"
   - "**/TerminalFragment*.cs"
-  - "**/TerminalSetupPorts*.cs"
+  - "**/TerminalSetup*.cs"
   - "**/UiAutomationTabs*.cs"
   - "**/TabShade*.cs"
   - "**/TerminalTab*.cs"

@@ -83,7 +83,7 @@ jobs:
 
           git push --quiet "https://x-access-token:$env:BUMP_TOKEN@github.com/$env:REPOSITORY.git" "HEAD:$env:HEAD_REF"
           if ($LASTEXITCODE -ne 0) {
-              Write-Host '::error::Pushing the version bump failed: DEPENDABOT_BUMP_TOKEN may have expired. Renew it under Settings, Secrets and variables, Dependabot (CONTRIBUTING.md, Dependabot and the version bump token).'
+              Write-Host '::error::Pushing the version bump failed: DEPENDABOT_BUMP_TOKEN may have expired. Renew it under Settings, Secrets and variables, Dependabot (MAINTAINING.md, Dependabot and the version bump token).'
               exit 1
           }
 
@@ -145,7 +145,7 @@ jobs:
           path: ${{ steps.build.outputs.package }}
           if-no-files-found: error
 
-      # The smoke check (CLAUDE.md, "Smoke check of the packed tool") runs the package a user would install, so a
+      # The smoke check (.claude\rules\checks.md, "Smoke check of the packed tool") runs the package a user would install, so a
       # missing DLL or a screen that no longer opens fails the pull request. Vantage needs the Claude Code CLI to
       # start; signed out, `claude agents --json` prints [] and the sessions view is simply empty. No workspace
       # trust is seeded: the smoke check never starts a session. If the background install is not there, it is run
@@ -180,7 +180,7 @@ jobs:
           $repository = Join-Path $env:USERPROFILE 'source\repos\Northwind.Smoke'
           New-Item -ItemType Directory -Force $repository | Out-Null
           git -C $repository init --initial-branch main
-          # Two solutions, neither named after the repository, so v on the worktree asks which one.
+          # Two solutions, neither named after the repository, so s on the worktree asks which one.
           New-Item -ItemType File (Join-Path $repository 'Api.sln'), (Join-Path $repository 'Worker.sln') | Out-Null
           git -C $repository add Api.sln Worker.sln
           git -C $repository -c user.name=Smoke -c user.email=smoke@example.invalid commit -m 'First commit'
@@ -225,7 +225,7 @@ jobs:
           path: tools\HeadlessTerminal\drive-raw.txt
           if-no-files-found: ignore
 
-  # The hand-off check against a real Claude session (CLAUDE.md, "Hand-off check"): vantage here
+  # The hand-off check against a real Claude session (.claude\rules\checks.md, "Hand-off check"): vantage here
   # starts a throwaway session with no prompt, attaches, and is detached with Ctrl+Z. Needs the
   # CLAUDE_CODE_OAUTH_TOKEN secret from `claude setup-token` (https://code.claude.com/docs/en/github-actions);
   # without it every step after the gate
@@ -314,7 +314,7 @@ jobs:
           & $claude --version
 
       # The runner has no desktop to accept the trust prompt on, so trust the checkout here. The
-      # only places this record is ever written by a script; see CLAUDE.md.
+      # only places this record is ever written by a script; see .claude\rules\claude-code.md.
       - name: Trust the checkout
         if: steps.gate.outputs.enabled == 'true'
         shell: pwsh

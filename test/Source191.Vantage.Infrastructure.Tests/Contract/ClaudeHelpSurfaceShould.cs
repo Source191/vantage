@@ -6,7 +6,7 @@ namespace Source191.Vantage.Infrastructure.Tests.Contract;
 /// <summary>
 /// The commands and options of the installed CLI's help, against the committed snapshots in Contract\Snapshots. A
 /// difference writes the new surface to &lt;name&gt;.received.txt beside the snapshot in the output folder; accept it by
-/// copying that file over the snapshot, in a change that re-checks CLAUDE.md's CLI facts. Never add
+/// copying that file over the snapshot, in a change that re-checks the CLI facts in .claude\rules\claude-code.md. Never add
 /// "--bg --resume --help": it starts a session.
 /// </summary>
 [Trait("Category", ClaudeContract.Category)]
