@@ -147,8 +147,8 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | R | Resume sessions that stopped with a reboot |
 | c | Copy the selected row's full folder path to the clipboard |
 | e | Open folder: open the row's folder with the program chosen under "Open folder with" on the [Config tab](#the-config-tab) (VS Code unless you chose another on the [Config tab](#the-config-tab)); works on terminal and stopped sessions too |
-| v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which from a list of their paths; none says so in the footer |
-| p | Open the row's pull request in your default browser; with none, the footer says why (no origin remote, a host Vantage does not know, `gh` or `az` missing or signed out, no pull request for the branch, or the lookup still running) |
+| v | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which from a list of their paths; none says so in the status line |
+| p | Open the row's pull request in your default browser; with none, the status line says why (no origin remote, a host Vantage does not know, `gh` or `az` missing or signed out, no pull request for the branch, or the lookup still running) |
 | m | Show what the session's memory is made of: Claude Code itself, then one line per program it started (an MCP server named from the package or executable that launched it, a shell running a command, anything else) with that program's whole tree, largest first, and the total with the process count. The [detail pane](#the-detail-pane)'s Memory line shows the total, the private working set (the figure Task Manager's Memory column shows), so pages shared between the MCP servers' node processes count once and pages Windows has paged out do not count. A snapshot, taken when the dialog opens; Esc or Close closes it. A stopped session has nothing to measure. Programs are named from their command lines, which are never shown or written anywhere |
 | U | Update Vantage when the settings row names a newer release: after a confirmation, a new tab waits for this Vantage to quit, updates it and starts it again (see [Updates](#updates)) |
 | ! | Report a problem: shows the diagnostics a GitHub issue would carry, then opens the issue form in your browser or copies the text (see [Reporting a problem](#reporting-a-problem)) |
@@ -157,7 +157,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | ? | Help: every key and what each column shows; on a short terminal the arrow keys and PageUp and PageDown scroll it |
 | q | Quit |
 
-Rows with the hollow `▯` swatch in TAB are sessions started by hand with `claude` in some tab. Vantage can see them but cannot attach to or stop them; press `b` to bring one under supervision, or type `/bg` inside it. One that has never been sent a message has nothing to keep: `d` closes its tab, `C` closes all such tabs, and the footer says so. Vantage ends the claude process, then ends the tab's shell with a clean exit code, which is what makes Windows Terminal close the tab; a session not inside a Windows Terminal tab is just ended.
+Rows with the hollow `▯` swatch in TAB are sessions started by hand with `claude` in some tab. Vantage can see them but cannot attach to or stop them; press `b` to bring one under supervision, or type `/bg` inside it. One that has never been sent a message has nothing to keep: `d` closes its tab, `C` closes all such tabs, and the status line says so. Vantage ends the claude process, then ends the tab's shell with a clean exit code, which is what makes Windows Terminal close the tab; a session not inside a Windows Terminal tab is just ended.
 
 An automated run is a `claude` started by a program rather than by you: a plugin's background review (the security-guidance plugin reviews changes through the Agent SDK after a commit or push and when a turn ends), a script using the Agent SDK, or `claude -p`. Claude Code lists it as an interactive session with no status, but it cannot be attached to, adopted or renamed and it ends by itself, so it is not a row. While any run, the counts end with `◇`, how many there are and the memory their processes use together, measured as a session's Memory line in the detail pane is; these runs do call the model, so they cost tokens.
 
@@ -203,7 +203,7 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 | LAST COMMIT | Age of the last commit |
 | SESSION | The session running inside it, if any |
 
-The branch, the pull request, the changed files, the unpushed commits and the health are in the [detail pane](#the-detail-pane). The health words: `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it), `elsewhere` (a live worktree of a repository that is not under the roots, so Vantage never scanned it; the row names that repository, and the footer says where it is).
+The branch, the pull request, the changed files, the unpushed commits and the health are in the [detail pane](#the-detail-pane). The health words: `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it), `elsewhere` (a live worktree of a repository that is not under the roots, so Vantage never scanned it; the row names that repository, and the status line says where it is).
 
 The selected row's health and its reason are in the detail pane, and its colour in the table. A long repository name is elided in the middle of the WORKTREE cell, and `<` and `>` scroll the table on a narrow terminal.
 
@@ -465,7 +465,7 @@ Press `!` in either view. A dialog shows a title box and, read-only, exactly the
 - **Claude Code was not found.** Vantage looks for `~\.local\bin\claude.exe`, then `claude.exe` in a folder on the PATH.
 - **Claude Code was found only as a batch file.** A `claude.cmd` on its own (an npm install's shim) is named and refused: Windows would run it through `cmd.exe`, which reads session names and prompts as commands. Install the native build with `irm https://claude.ai/install.ps1 | iex`.
 - **git was not found on the PATH.** Vantage needs `git.exe` in a folder on the PATH (`winget install --id Git.Git --exact --source winget`, then a new terminal); a `git.cmd` does not count.
-- **Windows Terminal (wt.exe) or PowerShell 7 (pwsh.exe) was not found.** The key that needs it says so in the footer; both must be in a folder on the PATH.
+- **Windows Terminal (wt.exe) or PowerShell 7 (pwsh.exe) was not found.** The key that needs it says so in the status line; both must be in a folder on the PATH.
 
 ## Contributing
 

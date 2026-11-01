@@ -29,11 +29,11 @@ When no folder on the PATH holds git.exe, the console and `vantage here` SHALL p
 
 #### Scenario: wt.exe missing
 - **WHEN** no folder on the PATH holds wt.exe and the user presses the open-in-tab key
-- **THEN** the footer reports that Windows Terminal (wt.exe) was not found on the PATH, and no tab opens
+- **THEN** the status line reports that Windows Terminal (wt.exe) was not found on the PATH, and no tab opens
 
 #### Scenario: pwsh.exe missing
 - **WHEN** no folder on the PATH holds pwsh.exe and the user presses the open-solution key on a row with one solution
-- **THEN** the footer reports that PowerShell 7 (pwsh.exe) was not found on the PATH, and nothing opens
+- **THEN** the status line reports that PowerShell 7 (pwsh.exe) was not found on the PATH, and nothing opens
 
 ### Requirement: Claude Code is run only as an executable
 Vantage SHALL run Claude Code from `~\.local\bin\claude.exe` when that file exists, else from the first `claude.exe` in a folder on the PATH. It SHALL NOT run a `claude.cmd` or `claude.bat`: when only one of those is found, the console and `vantage here` SHALL print a sentence naming that file and the native installer and exit 1, and when nothing is found they SHALL say Claude Code was not found and exit 1.

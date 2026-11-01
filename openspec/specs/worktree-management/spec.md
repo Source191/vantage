@@ -37,7 +37,7 @@ The view SHALL also show folders that git no longer recognises: a folder under a
 
 #### Scenario: Worktree of a repository outside the roots
 - **WHEN** a folder under C:\Users\me\source\worktrees has a .git file naming the registration D:\other\Northwind.Ledger\.git\worktrees\fix, that registration exists, D:\other\Northwind.Ledger\.git exists, and D:\other is not a root
-- **THEN** the view shows it with health elsewhere, its repository as Northwind.Ledger, and the footer says its repository D:\other\Northwind.Ledger is not under the roots
+- **THEN** the view shows it with health elsewhere, its repository as Northwind.Ledger, and the status line says its repository D:\other\Northwind.Ledger is not under the roots
 
 ### Requirement: Locked worktrees are marked
 A worktree that git reports as locked SHALL show health locked, its row in amber, and the detail pane's Health line SHALL show the lock reason when git provides one.
@@ -58,7 +58,7 @@ Removal SHALL be refused when the worktree has changed or untracked files, unpus
 
 #### Scenario: Unpushed commits
 - **WHEN** the user presses remove on a worktree with unpushed commits
-- **THEN** nothing is removed and the footer names the branch and the number of unpushed commits
+- **THEN** nothing is removed and the status line names the branch and the number of unpushed commits
 
 #### Scenario: Clean worktree
 - **WHEN** the user presses remove on a worktree with no changes, no unpushed commits, no lock and no session
@@ -66,10 +66,10 @@ Removal SHALL be refused when the worktree has changed or untracked files, unpus
 
 #### Scenario: Folder in use by a shell tab
 - **WHEN** the user presses remove on a clean worktree while a PowerShell tab opened from the worktrees view sits in it
-- **THEN** the footer says the folder is still in use by a tab or program and names it, and after that tab is closed a second remove deletes what is left and prunes the registration
+- **THEN** the status line says the folder is still in use by a tab or program and names it, and after that tab is closed a second remove deletes what is left and prunes the registration
 
 ### Requirement: Forced removal needs a typed confirmation
-The force-remove key SHALL remove a worktree despite changes or unpushed commits only after the user enters the worktree's folder name to confirm (shown selected in the dialog so it can be copied and pasted; a wrong or empty answer keeps the dialog open and says what was typed), and SHALL never force-remove a locked worktree or one with a live session. A refusal that cannot be forced SHALL NOT suggest force-remove in the footer.
+The force-remove key SHALL remove a worktree despite changes or unpushed commits only after the user enters the worktree's folder name to confirm (shown selected in the dialog so it can be copied and pasted; a wrong or empty answer keeps the dialog open and says what was typed), and SHALL never force-remove a locked worktree or one with a live session. A refusal that cannot be forced SHALL NOT suggest force-remove in the status line.
 
 #### Scenario: Confirmed force
 - **WHEN** the user presses force-remove and enters the exact folder name
@@ -81,11 +81,11 @@ The force-remove key SHALL remove a worktree despite changes or unpushed commits
 
 #### Scenario: Live session inside
 - **WHEN** the user presses force-remove on a worktree that a live session is using
-- **THEN** removal is refused and the footer names the session
+- **THEN** removal is refused and the status line names the session
 
 #### Scenario: Refusal that cannot be forced
 - **WHEN** plain remove is refused because the worktree is locked or a live session is using it
-- **THEN** the footer names the reason and does not mention force-remove, whatever words the reason uses
+- **THEN** the status line names the reason and does not mention force-remove, whatever words the reason uses
 
 ### Requirement: Branch deletion follows ownership and merge state
 After removing a worktree, Vantage SHALL delete its branch automatically only when Vantage created that branch and it is fully merged into the remote default branch, and SHALL otherwise ask before deleting.
@@ -107,14 +107,14 @@ For rows with health orphan, broken or empty, the remove key SHALL delete the fo
 
 #### Scenario: Leftover folder with files
 - **WHEN** the user presses remove on an orphan folder that still holds twelve files
-- **THEN** removal is refused and the footer says twelve untracked files would be lost, and force-remove with the typed confirmation deletes it
+- **THEN** removal is refused and the status line says twelve untracked files would be lost, and force-remove with the typed confirmation deletes it
 
 ### Requirement: Stale registrations can be pruned
 The prune key SHALL run git's worktree prune for the selected row's repository and report how many registrations were removed.
 
 #### Scenario: Prune
 - **WHEN** a repository has a registration whose folder is gone and the user presses prune
-- **THEN** the registration is removed and the footer reports one pruned
+- **THEN** the registration is removed and the status line reports one pruned
 
 ### Requirement: A session or shell can be started in a worktree
 From a worktree row whose folder exists and whose health is ok, locked or elsewhere, the user SHALL be able to start a new session in that worktree through the launch wizard with the directory preselected, or open a plain PowerShell tab there.
@@ -128,7 +128,7 @@ From a worktree row whose folder exists and whose health is ok, locked or elsewh
 - **THEN** a PowerShell tab opens in that folder
 
 ### Requirement: Scanning is visible
-The worktrees view SHALL show a spinner with the words "Scanning worktrees" in the middle of the table until the first scan arrives, and SHALL show a spinner beside the footer's working text while an action started from the view runs; neither spinner SHALL appear for the timed rescans.
+The worktrees view SHALL show a spinner with the words "Scanning worktrees" in the middle of the table until the first scan arrives, and SHALL show a spinner beside the status line's working text while an action started from the view runs; neither spinner SHALL appear for the timed rescans.
 
 #### Scenario: First scan pending
 - **WHEN** the user opens the worktrees view and the scan of the repository roots has not yet returned
@@ -136,7 +136,7 @@ The worktrees view SHALL show a spinner with the words "Scanning worktrees" in t
 
 #### Scenario: Action running
 - **WHEN** the user removes a worktree
-- **THEN** the footer shows a spinner before "Removing name" until the removal reports its outcome
+- **THEN** the status line shows a spinner before "Removing name" until the removal reports its outcome
 
 ### Requirement: Enter on a worktree row goes to its session by identity
 Enter on a worktree row with a running session SHALL switch to the sessions view with that session selected by its session id, so two sessions sharing a name cannot be confused.
@@ -206,15 +206,15 @@ The worktrees view SHALL be the Worktrees tab of the console, under the same set
 - **THEN** the first bar row reads d Remove, D Force remove, P Prune, s Start session, o Open shell and Enter Go to session, and the second c Copy path, e Open folder, v Solution, p Open PR, / Filter, ? Help, ! Report and q Quit
 
 ### Requirement: Deleting a leftover folder never deletes a root
-When Vantage deletes a leftover folder from disc, it SHALL refuse a path that is not fully qualified, or that is a drive root or a network share root, before changing anything. The footer SHALL report the refusal as a failure naming the path.
+When Vantage deletes a leftover folder from disc, it SHALL refuse a path that is not fully qualified, or that is a drive root or a network share root, before changing anything. The status line SHALL report the refusal as a failure naming the path.
 
 #### Scenario: A drive root reaches the deletion
 - **WHEN** a leftover folder's path is C:\
-- **THEN** nothing on the drive is deleted and the footer reports a failure naming C:\
+- **THEN** nothing on the drive is deleted and the status line reports a failure naming C:\
 
 #### Scenario: A share root or a relative path reaches the deletion
 - **WHEN** a leftover folder's path is \\server\share\ or Northwind.Orders-fix
-- **THEN** nothing is deleted and the footer reports a failure naming that path
+- **THEN** nothing is deleted and the status line reports a failure naming that path
 
 #### Scenario: An ordinary leftover folder with a trailing separator
 - **WHEN** the user removes an orphan folder whose path is written C:\Users\me\source\worktrees\Northwind.Orders-fix\
@@ -225,7 +225,7 @@ For a row with health elsewhere, the remove and force-remove keys SHALL refuse, 
 
 #### Scenario: Remove an elsewhere row
 - **WHEN** the user presses remove or force-remove on an elsewhere row
-- **THEN** nothing is deleted and the footer says the repository is not under the roots, without offering force-remove
+- **THEN** nothing is deleted and the status line says the repository is not under the roots, without offering force-remove
 
 ### Requirement: One WORKTREE column names the worktree
 The worktrees table SHALL show the repository and the folder in one WORKTREE column, as the repository, › and the folder's part after the repository (the slug of a folder named `<repository>-<slug>`, else the folder's label), elastic in width and elided in the middle of the repository name when too long, followed by LAST COMMIT and SESSION.
@@ -269,7 +269,7 @@ A row with health elsewhere is not a leftover and SHALL NOT be deleted as a plai
 
 #### Scenario: Remove on an elsewhere row
 - **WHEN** the user presses remove on a row with health elsewhere
-- **THEN** nothing is deleted and the footer says its repository is not under the roots
+- **THEN** nothing is deleted and the status line says its repository is not under the roots
 
 ### Requirement: The worktrees view explains itself
 The worktrees view's help SHALL explain each of its columns and each line of its detail pane; each item of its key bar SHALL show the key's tooltip while the mouse pointer rests on it, and each of its column headers SHALL show what the column shows.

@@ -83,7 +83,7 @@ public sealed class WorktreesViewShould
         WorktreesViewUpdate update = WorktreesView.Reduce(onDirty, new KeyPressed(Key.Of('d')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.ChangesWouldBeLost(5), OfferForce: true));
+        update.State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.ChangesWouldBeLost(5), OfferForce: true));
     }
 
     [Fact]
@@ -102,8 +102,8 @@ public sealed class WorktreesViewShould
         WorktreesViewState onLocked = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down, Key.Down);
         WorktreesViewState onBusy = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down);
 
-        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.Locked(), OfferForce: false));
-        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.LiveSession("fix-the-tests"), OfferForce: false));
+        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('D'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.Locked(), OfferForce: false));
+        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('D'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.LiveSession("fix-the-tests"), OfferForce: false));
         WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('D'))).Effects.ShouldBeEmpty();
     }
 
@@ -113,9 +113,9 @@ public sealed class WorktreesViewShould
         WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path.Key };
         WorktreesViewState onBusy = Loaded with { SelectedPath = Busy.Path.Key };
 
-        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.Locked(), OfferForce: false));
-        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.LiveSession("fix-the-tests"), OfferForce: false));
-        WorktreesView.Reduce(Loaded with { SelectedPath = Dirty.Path.Key }, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBeOfType<Footer.NotRemoved>().OfferForce.ShouldBeTrue();
+        WorktreesView.Reduce(onLocked, new KeyPressed(Key.Of('d'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.Locked(), OfferForce: false));
+        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Of('d'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.LiveSession("fix-the-tests"), OfferForce: false));
+        WorktreesView.Reduce(Loaded with { SelectedPath = Dirty.Path.Key }, new KeyPressed(Key.Of('d'))).State.Message.ShouldBeOfType<StatusMessage.NotRemoved>().OfferForce.ShouldBeTrue();
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public sealed class WorktreesViewShould
         WorktreesViewState onOrphan = Press(Loaded, Key.Down);
 
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('d'))).Effects.ShouldBe([new RemoveWorktree(Empty, Forced: false)]);
-        WorktreesView.Reduce(onOrphan, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.LeftoverFilesWouldBeLost(12, AtLeast: false), OfferForce: true));
+        WorktreesView.Reduce(onOrphan, new KeyPressed(Key.Of('d'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.LeftoverFilesWouldBeLost(12, AtLeast: false), OfferForce: true));
         WorktreesView.Reduce(onOrphan, new KeyPressed(Key.Of('D'))).Effects.ShouldBe([new ConfirmForceRemove(Orphan, ConfirmationText: "fix-service-tests")]);
     }
 
@@ -136,7 +136,7 @@ public sealed class WorktreesViewShould
         WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Of('P'))).Effects.ShouldBe([new PruneRepository(FolderPath.From(Repository))]);
         WorktreesViewUpdate refused = WorktreesView.Reduce(onGone, new KeyPressed(Key.Of('P')));
         refused.Effects.ShouldBeEmpty();
-        refused.State.Footer.ShouldBe(new Footer.NothingToPrune("Northwind.Retired"));
+        refused.State.Message.ShouldBe(new StatusMessage.NothingToPrune("Northwind.Retired"));
     }
 
     [Fact]
@@ -162,13 +162,13 @@ public sealed class WorktreesViewShould
         WorktreesViewUpdate update = WorktreesView.Reduce(state, new KeyPressed(Key.Of('p')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new Footer.NoPullRequest("Northwind.Orders-fix-1", PullRequestGap.Looking, null));
+        update.State.Message.ShouldBe(new StatusMessage.NoPullRequest("Northwind.Orders-fix-1", PullRequestGap.Looking, null));
     }
 
     [Fact]
     public void NeedASelectionToOpenAPullRequest()
     {
-        WorktreesView.Reduce(WorktreesViewState.Empty, new KeyPressed(Key.Of('p'))).State.Footer.ShouldBe(new Footer.NoWorktreeSelected());
+        WorktreesView.Reduce(WorktreesViewState.Empty, new KeyPressed(Key.Of('p'))).State.Message.ShouldBe(new StatusMessage.NoWorktreeSelected());
     }
 
     [Fact]
@@ -178,7 +178,7 @@ public sealed class WorktreesViewShould
 
         WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('s'))).Effects.ShouldBe([new StartSessionIn(Clean)]);
         WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenShellTab(Clean)]);
-        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('s'))).State.Footer.ShouldBe(new Footer.LeftoverFolder("Northwind.Orders.worktrees"));
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('s'))).State.Message.ShouldBe(new StatusMessage.LeftoverFolder("Northwind.Orders.worktrees"));
     }
 
     [Fact]
@@ -195,8 +195,8 @@ public sealed class WorktreesViewShould
     {
         WorktreesViewState onElsewhere = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean, Elsewhere])) with { SelectedPath = Elsewhere.Path.Key };
 
-        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('d'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.RepositoryOutsideRoots(), OfferForce: false));
-        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('D'))).State.Footer.ShouldBe(new Footer.NotRemoved(new RemovalReason.RepositoryOutsideRoots(), OfferForce: false));
+        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('d'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.RepositoryOutsideRoots(), OfferForce: false));
+        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('D'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.RepositoryOutsideRoots(), OfferForce: false));
         WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('D'))).Effects.ShouldBeEmpty();
     }
 
@@ -206,7 +206,7 @@ public sealed class WorktreesViewShould
         WorktreesViewState onBusy = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down);
 
         WorktreesView.Reduce(onBusy, new KeyPressed(Key.Enter)).Effects.ShouldBe([new JumpToSession(SessionId.From("sess-fix-3"))]);
-        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Enter)).State.Footer.ShouldBe(new Footer.NoSessionIn("Northwind.Orders-fix-1"));
+        WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Enter)).State.Message.ShouldBe(new StatusMessage.NoSessionIn("Northwind.Orders-fix-1"));
     }
 
     [Fact]
@@ -266,12 +266,12 @@ public sealed class WorktreesViewShould
         WorktreesViewUpdate wrong = WorktreesView.Reduce(onDirty, new ForceConfirmed(Dirty, "fix-2", Typed: "fix-9"));
         WorktreesViewUpdate right = WorktreesView.Reduce(onDirty, new ForceConfirmed(Dirty, "fix-2", Typed: "fix-2"));
 
-        cancelled.State.Footer.ShouldBe(new Footer.ForceCancelled());
-        blank.State.Footer.ShouldBe(new Footer.NothingTyped());
-        wrong.State.Footer.ShouldBe(new Footer.TypedWrongName("fix-9", "fix-2"));
+        cancelled.State.Message.ShouldBe(new StatusMessage.ForceCancelled());
+        blank.State.Message.ShouldBe(new StatusMessage.NothingTyped());
+        wrong.State.Message.ShouldBe(new StatusMessage.TypedWrongName("fix-9", "fix-2"));
         cancelled.Effects.Concat(blank.Effects).Concat(wrong.Effects).ShouldBeEmpty();
         right.Effects.ShouldBe([new RemoveWorktree(Dirty, Forced: true)]);
-        right.State.Footer.ShouldBe(new Footer.Working(new RemoveWorktree(Dirty, Forced: true)));
+        right.State.Message.ShouldBe(new StatusMessage.Working(new RemoveWorktree(Dirty, Forced: true)));
     }
 
     [Fact]
@@ -280,19 +280,19 @@ public sealed class WorktreesViewShould
         WorktreesViewState onLocked = Loaded with { SelectedPath = Locked.Path.Key };
         WorktreesViewState onClean = Loaded with { SelectedPath = Clean.Path.Key };
 
-        onLocked.Shown.ShouldBe(Footer.None);
-        onClean.Shown.ShouldBe(Footer.None);
-        (onLocked with { Footer = new Footer.Kept() }).Shown.ShouldBe(new Footer.Kept());
+        onLocked.Shown.ShouldBe(StatusMessage.None);
+        onClean.Shown.ShouldBe(StatusMessage.None);
+        (onLocked with { Message = new StatusMessage.Kept() }).Shown.ShouldBe(new StatusMessage.Kept());
     }
 
     [Fact]
     public void ClearTheLastMessageWhenTheSelectionMovesSoTheNewRowsReasonShows()
     {
-        WorktreesViewState afterDelete = Loaded with { SelectedPath = Clean.Path.Key, Footer = new Footer.Reported(new RemoveWorktreeOutcome.DeletedFolder("Northwind.Orders.worktrees")) };
+        WorktreesViewState afterDelete = Loaded with { SelectedPath = Clean.Path.Key, Message = new StatusMessage.Reported(new RemoveWorktreeOutcome.DeletedFolder("Northwind.Orders.worktrees")) };
 
-        Press(afterDelete, Key.Down).Footer.ShouldBe(Footer.None);
-        Press(afterDelete, Key.Up).Footer.ShouldBe(Footer.None);
-        Press(afterDelete, Key.Of('/'), Key.Of('k')).Footer.ShouldBe(Footer.None);
+        Press(afterDelete, Key.Down).Message.ShouldBe(StatusMessage.None);
+        Press(afterDelete, Key.Up).Message.ShouldBe(StatusMessage.None);
+        Press(afterDelete, Key.Of('/'), Key.Of('k')).Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
@@ -337,7 +337,7 @@ public sealed class WorktreesViewShould
         WorktreesViewUpdate update = WorktreesView.Reduce(state, new KeyPressed(Key.Of(key)));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new Footer.LeftoverFolder("fix-service-tests"));
+        update.State.Message.ShouldBe(new StatusMessage.LeftoverFolder("fix-service-tests"));
     }
 
     [Fact]
@@ -357,7 +357,7 @@ public sealed class WorktreesViewShould
         WorktreesViewUpdate update = WorktreesView.Reduce(WorktreesViewState.Empty, new KeyPressed(Key.Of(key)));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Footer.ShouldBe(new Footer.NoWorktreeSelected());
+        update.State.Message.ShouldBe(new StatusMessage.NoWorktreeSelected());
     }
     private static WorktreesViewState Press(WorktreesViewState state, params Key[] keys)
     {
@@ -367,20 +367,20 @@ public sealed class WorktreesViewShould
     [Fact]
     public void ClearTheMessageItWasAskedToClear()
     {
-        Footer message = new Footer.NoPathHere();
-        WorktreesViewState shown = Loaded with { Footer = message };
+        StatusMessage message = new StatusMessage.NoPathHere();
+        WorktreesViewState shown = Loaded with { Message = message };
 
-        Reduce(shown, new MessageDismissed(message)).Footer.ShouldBe(Footer.None);
+        Reduce(shown, new MessageDismissed(message)).Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
     public void KeepANewerMessageWithTheSameWords()
     {
-        Footer older = new Footer.NoPathHere();
-        Footer newer = new Footer.NoPathHere();
-        WorktreesViewState shown = Loaded with { Footer = newer };
+        StatusMessage older = new StatusMessage.NoPathHere();
+        StatusMessage newer = new StatusMessage.NoPathHere();
+        WorktreesViewState shown = Loaded with { Message = newer };
 
-        Reduce(shown, new MessageDismissed(older)).Footer.ShouldBeSameAs(newer);
+        Reduce(shown, new MessageDismissed(older)).Message.ShouldBeSameAs(newer);
     }
     private static WorktreesViewState Reduce(WorktreesViewState state, ViewInput input)
     {

@@ -76,15 +76,15 @@ public sealed class WordingOfConfigShould
     public void SayHowEachPieceOfSetupIsChanged()
     {
         Wording.Describe(SetupItem.TerminalProfiles).ShouldBe("Run vantage setup-terminal, then restart Windows Terminal, to add the Vantage profiles.");
-        Wording.Describe(new Footer.SetupAdvice(SetupItem.DiagnosticLog)).ShouldBe("Set the VANTAGE_LOG environment variable to a file path before starting Vantage to keep a diagnostic log.");
+        Wording.Describe(new StatusMessage.SetupAdvice(SetupItem.DiagnosticLog)).ShouldBe("Set the VANTAGE_LOG environment variable to a file path before starting Vantage to keep a diagnostic log.");
         Enum.GetValues<SetupItem>().Select(Wording.Describe).Distinct().Count().ShouldBe(Enum.GetValues<SetupItem>().Length);
     }
 
     [Fact]
-    public void SayTheConfigFooters()
+    public void SayTheConfigStatusMessages()
     {
-        Wording.Describe(new Footer.SettingHint(new ConfigRow.CheckForUpdates(On: true))).ShouldBe(Wording.ConfigDescription(new ConfigRow.CheckForUpdates(On: true)));
-        Wording.Describe(new Footer.NoPathHere()).ShouldBe("This row's value is not a path.");
+        Wording.Describe(new StatusMessage.SettingHint(new ConfigRow.CheckForUpdates(On: true))).ShouldBe(Wording.ConfigDescription(new ConfigRow.CheckForUpdates(On: true)));
+        Wording.Describe(new StatusMessage.NoPathHere()).ShouldBe("This row's value is not a path.");
     }
 
     [Fact]

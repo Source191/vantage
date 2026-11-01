@@ -58,7 +58,7 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders, IDetailSou
 
     public KeyBar Bar(WorktreesViewState state, bool updateKnown) => Wording.WorktreesBar(state, updateKnown);
 
-    public WorktreesViewState WithFooter(WorktreesViewState state, Footer footer) => state with { Footer = footer };
+    public WorktreesViewState WithMessage(WorktreesViewState state, StatusMessage message) => state with { Message = message };
 
     public (WorktreesViewState State, IReadOnlyList<ViewEffect> Effects) Reduce(WorktreesViewState state, ViewInput input)
     {

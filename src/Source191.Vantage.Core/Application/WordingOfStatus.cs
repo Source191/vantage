@@ -24,20 +24,20 @@ public static partial class Wording
     /// <summary>The colour of a message's words.</summary>
     public static TextTone StatusWordsTone(StatusTone tone) => StatusMark(tone).Tone;
 
-    /// <summary>How the status line marks a footer; a case with no arm here is a notice.</summary>
-    public static StatusTone ToneOf(Footer footer)
+    /// <summary>How the status line marks a status message; a case with no arm here is a notice.</summary>
+    public static StatusTone ToneOf(StatusMessage message)
     {
-        return footer switch
+        return message switch
         {
-            Footer.Blank or Footer.SettingHint or Footer.SetupAdvice => StatusTone.Hint,
-            Footer.RenameCancelled or Footer.ForceCancelled or Footer.Kept or Footer.NothingChosenToResume => StatusTone.Hint,
-            Footer.UpToDate => StatusTone.Success,
-            Footer.NoPullRequest { Gap: PullRequestGap.Failed } => StatusTone.Failure,
-            Footer.NoDialogFor or Footer.Failed => StatusTone.Failure,
-            Footer.Working => StatusTone.Working,
-            Footer.Reported reported => ToneOf(reported.Outcome),
-            Footer.BranchKept kept => ToneOf(kept.Removal),
-            Footer.Followed followed => ToneOf(followed.Then),
+            StatusMessage.Blank or StatusMessage.SettingHint or StatusMessage.SetupAdvice => StatusTone.Hint,
+            StatusMessage.RenameCancelled or StatusMessage.ForceCancelled or StatusMessage.Kept or StatusMessage.NothingChosenToResume => StatusTone.Hint,
+            StatusMessage.UpToDate => StatusTone.Success,
+            StatusMessage.NoPullRequest { Gap: PullRequestGap.Failed } => StatusTone.Failure,
+            StatusMessage.NoDialogFor or StatusMessage.Failed => StatusTone.Failure,
+            StatusMessage.Working => StatusTone.Working,
+            StatusMessage.Reported reported => ToneOf(reported.Outcome),
+            StatusMessage.BranchKept kept => ToneOf(kept.Removal),
+            StatusMessage.Followed followed => ToneOf(followed.Then),
             _ => StatusTone.Notice,
         };
     }

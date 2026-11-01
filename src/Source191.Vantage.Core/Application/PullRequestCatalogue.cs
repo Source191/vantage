@@ -68,7 +68,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            // Nothing awaits a refresh started by a row, so a failure is kept as an answer the footer can explain.
+            // Nothing awaits a refresh started by a row, so a failure is kept as an answer the status line can explain.
             answers[key] = new Answer(new PullRequestListing.Unavailable(PullRequestGap.Failed), Host: null, clock.GetUtcNow());
         }
         finally

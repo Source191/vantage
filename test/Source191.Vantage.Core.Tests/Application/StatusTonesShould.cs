@@ -8,7 +8,7 @@ using Source191.Vantage.Domain;
 namespace Source191.Vantage.Core.Tests.Application;
 
 /// <summary>
-/// The tone each status line message starts with: its glyph and colour, and the tone chosen for every footer and
+/// The tone each status line message starts with: its glyph and colour, and the tone chosen for every status message and
 /// outcome case. A new case needs a line in the tables here.
 /// </summary>
 public sealed class StatusTonesShould
@@ -150,92 +150,92 @@ public sealed class StatusTonesShould
         Wording.ToneOf(new ResumeSessionsOutcome(2, 2, [new ResumeNote("fix-123", null)])).ShouldBe(StatusTone.Notice);
     }
 
-    // Footers, each built with the placeholders below; the placeholder outcome is a success.
+    // Status messages, each built with the placeholders below; the placeholder outcome is a success.
 
-    private static readonly Dictionary<Type, StatusTone> FooterTones = new()
+    private static readonly Dictionary<Type, StatusTone> StatusMessageTones = new()
     {
-        [typeof(Footer.Blank)] = StatusTone.Hint,
-        [typeof(Footer.NoSessionSelected)] = StatusTone.Notice,
-        [typeof(Footer.RunsInOwnTerminal)] = StatusTone.Notice,
-        [typeof(Footer.NeverSentAMessage)] = StatusTone.Notice,
-        [typeof(Footer.NoEmptyTerminals)] = StatusTone.Notice,
-        [typeof(Footer.NoMessagesToRename)] = StatusTone.Notice,
-        [typeof(Footer.WorkingSoRenameWaits)] = StatusTone.Notice,
-        [typeof(Footer.RenameCancelled)] = StatusTone.Hint,
-        [typeof(Footer.InvalidName)] = StatusTone.Notice,
-        [typeof(Footer.AlreadyUnderVantage)] = StatusTone.Notice,
-        [typeof(Footer.WorkingSoAdoptWaits)] = StatusTone.Notice,
-        [typeof(Footer.NoWorktreeSelected)] = StatusTone.Notice,
-        [typeof(Footer.NotRemoved)] = StatusTone.Notice,
-        [typeof(Footer.ForceCancelled)] = StatusTone.Hint,
-        [typeof(Footer.NothingTyped)] = StatusTone.Notice,
-        [typeof(Footer.TypedWrongName)] = StatusTone.Notice,
-        [typeof(Footer.NothingToPrune)] = StatusTone.Notice,
-        [typeof(Footer.LeftoverFolder)] = StatusTone.Notice,
-        [typeof(Footer.NoSessionIn)] = StatusTone.Notice,
-        [typeof(Footer.NoPullRequest)] = StatusTone.Notice,
-        [typeof(Footer.NothingToMeasure)] = StatusTone.Notice,
-        [typeof(Footer.NoSolution)] = StatusTone.Notice,
-        [typeof(Footer.Kept)] = StatusTone.Hint,
-        [typeof(Footer.NothingChosenToResume)] = StatusTone.Hint,
-        [typeof(Footer.UpToDate)] = StatusTone.Success,
-        [typeof(Footer.UpdateCheckOff)] = StatusTone.Notice,
-        [typeof(Footer.NoDialogFor)] = StatusTone.Failure,
-        [typeof(Footer.Working)] = StatusTone.Working,
-        [typeof(Footer.Reported)] = StatusTone.Success,
-        [typeof(Footer.BranchKept)] = StatusTone.Success,
-        [typeof(Footer.Followed)] = StatusTone.Success,
-        [typeof(Footer.Failed)] = StatusTone.Failure,
-        [typeof(Footer.SettingHint)] = StatusTone.Hint,
-        [typeof(Footer.SetupAdvice)] = StatusTone.Hint,
-        [typeof(Footer.NoPathHere)] = StatusTone.Notice,
-        [typeof(Footer.NoSettingSelected)] = StatusTone.Notice,
+        [typeof(StatusMessage.Blank)] = StatusTone.Hint,
+        [typeof(StatusMessage.NoSessionSelected)] = StatusTone.Notice,
+        [typeof(StatusMessage.RunsInOwnTerminal)] = StatusTone.Notice,
+        [typeof(StatusMessage.NeverSentAMessage)] = StatusTone.Notice,
+        [typeof(StatusMessage.NoEmptyTerminals)] = StatusTone.Notice,
+        [typeof(StatusMessage.NoMessagesToRename)] = StatusTone.Notice,
+        [typeof(StatusMessage.WorkingSoRenameWaits)] = StatusTone.Notice,
+        [typeof(StatusMessage.RenameCancelled)] = StatusTone.Hint,
+        [typeof(StatusMessage.InvalidName)] = StatusTone.Notice,
+        [typeof(StatusMessage.AlreadyUnderVantage)] = StatusTone.Notice,
+        [typeof(StatusMessage.WorkingSoAdoptWaits)] = StatusTone.Notice,
+        [typeof(StatusMessage.NoWorktreeSelected)] = StatusTone.Notice,
+        [typeof(StatusMessage.NotRemoved)] = StatusTone.Notice,
+        [typeof(StatusMessage.ForceCancelled)] = StatusTone.Hint,
+        [typeof(StatusMessage.NothingTyped)] = StatusTone.Notice,
+        [typeof(StatusMessage.TypedWrongName)] = StatusTone.Notice,
+        [typeof(StatusMessage.NothingToPrune)] = StatusTone.Notice,
+        [typeof(StatusMessage.LeftoverFolder)] = StatusTone.Notice,
+        [typeof(StatusMessage.NoSessionIn)] = StatusTone.Notice,
+        [typeof(StatusMessage.NoPullRequest)] = StatusTone.Notice,
+        [typeof(StatusMessage.NothingToMeasure)] = StatusTone.Notice,
+        [typeof(StatusMessage.NoSolution)] = StatusTone.Notice,
+        [typeof(StatusMessage.Kept)] = StatusTone.Hint,
+        [typeof(StatusMessage.NothingChosenToResume)] = StatusTone.Hint,
+        [typeof(StatusMessage.UpToDate)] = StatusTone.Success,
+        [typeof(StatusMessage.UpdateCheckOff)] = StatusTone.Notice,
+        [typeof(StatusMessage.NoDialogFor)] = StatusTone.Failure,
+        [typeof(StatusMessage.Working)] = StatusTone.Working,
+        [typeof(StatusMessage.Reported)] = StatusTone.Success,
+        [typeof(StatusMessage.BranchKept)] = StatusTone.Success,
+        [typeof(StatusMessage.Followed)] = StatusTone.Success,
+        [typeof(StatusMessage.Failed)] = StatusTone.Failure,
+        [typeof(StatusMessage.SettingHint)] = StatusTone.Hint,
+        [typeof(StatusMessage.SetupAdvice)] = StatusTone.Hint,
+        [typeof(StatusMessage.NoPathHere)] = StatusTone.Notice,
+        [typeof(StatusMessage.NoSettingSelected)] = StatusTone.Notice,
     };
 
-    public static TheoryData<Type> FooterCases => [.. typeof(Footer).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(Footer)))];
+    public static TheoryData<Type> StatusMessageCases => [.. typeof(StatusMessage).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(StatusMessage)))];
 
-    public static TheoryData<Type, StatusTone> FooterTable => [.. FooterTones.Select(entry => (entry.Key, entry.Value))];
+    public static TheoryData<Type, StatusTone> StatusMessageTable => [.. StatusMessageTones.Select(entry => (entry.Key, entry.Value))];
 
     [Theory]
-    [MemberData(nameof(FooterCases))]
-    public void ChooseAToneForEveryFooterCase(Type type)
+    [MemberData(nameof(StatusMessageCases))]
+    public void ChooseAToneForEveryStatusMessageCase(Type type)
     {
-        FooterTones.ShouldContainKey(type, $"{type.Name} has no tone in this test's table: choose one, and an arm in Wording.ToneOf");
+        StatusMessageTones.ShouldContainKey(type, $"{type.Name} has no tone in this test's table: choose one, and an arm in Wording.ToneOf");
     }
 
     [Theory]
-    [MemberData(nameof(FooterTable))]
-    public void GiveEachFooterItsTone(Type type, StatusTone tone)
+    [MemberData(nameof(StatusMessageTable))]
+    public void GiveEachStatusMessageItsTone(Type type, StatusTone tone)
     {
-        Wording.ToneOf((Footer)Built(type)).ShouldBe(tone);
+        Wording.ToneOf((StatusMessage)Built(type)).ShouldBe(tone);
     }
 
     [Fact]
     public void MarkAReportWithItsOutcomesTone()
     {
-        Wording.ToneOf(new Footer.Reported(new ClipboardBusy())).ShouldBe(StatusTone.Notice);
-        Wording.ToneOf(new Footer.Reported(new StartSessionOutcome.Failed("no claude"))).ShouldBe(StatusTone.Failure);
+        Wording.ToneOf(new StatusMessage.Reported(new ClipboardBusy())).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new StatusMessage.Reported(new StartSessionOutcome.Failed("no claude"))).ShouldBe(StatusTone.Failure);
     }
 
     [Fact]
     public void MarkAKeptBranchWithItsRemovalsTone()
     {
-        Wording.ToneOf(new Footer.BranchKept(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedByVantage: true))).ShouldBe(StatusTone.Success);
-        Wording.ToneOf(new Footer.BranchKept(new DeleteSessionOutcome.WorktreeInUse("fix-123", "Northwind.Orders-fix-123"))).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new StatusMessage.BranchKept(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedByVantage: true))).ShouldBe(StatusTone.Success);
+        Wording.ToneOf(new StatusMessage.BranchKept(new DeleteSessionOutcome.WorktreeInUse("fix-123", "Northwind.Orders-fix-123"))).ShouldBe(StatusTone.Notice);
     }
 
     [Fact]
     public void MarkAResultAndWhatFollowedWithWhatFollowed()
     {
-        Wording.ToneOf(new Footer.Followed(new RemoveWorktreeOutcome.InUse("Northwind.Orders-fix-123"), new DeleteBranchOutcome())).ShouldBe(StatusTone.Success);
-        Wording.ToneOf(new Footer.Followed(new DeleteBranchOutcome(), new ClipboardBusy())).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new StatusMessage.Followed(new RemoveWorktreeOutcome.InUse("Northwind.Orders-fix-123"), new DeleteBranchOutcome())).ShouldBe(StatusTone.Success);
+        Wording.ToneOf(new StatusMessage.Followed(new DeleteBranchOutcome(), new ClipboardBusy())).ShouldBe(StatusTone.Notice);
     }
 
     [Fact]
     public void MarkAFailedPullRequestLookUpAsAFailure()
     {
-        Wording.ToneOf(new Footer.NoPullRequest("fix-123", PullRequestGap.Failed, PullRequestHost.GitHub)).ShouldBe(StatusTone.Failure);
-        Wording.ToneOf(new Footer.NoPullRequest("fix-123", PullRequestGap.NoPullRequest, PullRequestHost.GitHub)).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new StatusMessage.NoPullRequest("fix-123", PullRequestGap.Failed, PullRequestHost.GitHub)).ShouldBe(StatusTone.Failure);
+        Wording.ToneOf(new StatusMessage.NoPullRequest("fix-123", PullRequestGap.NoPullRequest, PullRequestHost.GitHub)).ShouldBe(StatusTone.Notice);
     }
 
     private static object Built(Type type)

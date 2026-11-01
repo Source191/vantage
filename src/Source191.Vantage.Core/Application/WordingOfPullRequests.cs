@@ -31,7 +31,7 @@ public static partial class Wording
         PullRequestState.Abandoned => "abandoned",
     };
 
-    private static string Describe(Footer.NoPullRequest none) => none.Gap switch
+    private static string Describe(StatusMessage.NoPullRequest none) => none.Gap switch
     {
         PullRequestGap.NoBranch => $"{none.RowName} has no branch, so it has no pull request.",
         PullRequestGap.NoRemote => $"{none.RowName}'s repository has no origin remote to look up pull requests on.",

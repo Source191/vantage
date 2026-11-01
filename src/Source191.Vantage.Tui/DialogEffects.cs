@@ -46,22 +46,22 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             return;
         }
 
-        context.ShowFooter(new Footer.NoDialogFor(effect.GetType().Name));
+        context.ShowMessage(new StatusMessage.NoDialogFor(effect.GetType().Name));
     }
 
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>
-    private static Footer AskAboutBranch(IEffectContext context, Outcome removal, BranchToConfirm branch, bool createdByVantage)
+    private static StatusMessage AskAboutBranch(IEffectContext context, Outcome removal, BranchToConfirm branch, bool createdByVantage)
     {
         int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.DeleteBranch, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch.Value, createdByVantage), "Delete branch", "Keep");
         if (answer != 0)
         {
-            return new Footer.BranchKept(removal);
+            return new StatusMessage.BranchKept(removal);
         }
 
         DeleteBranch deleteBranch = new(branch);
-        context.Dispatch(deleteBranch, deleted => new Footer.Followed(removal, deleted));
+        context.Dispatch(deleteBranch, deleted => new StatusMessage.Followed(removal, deleted));
 
-        return new Footer.Working(deleteBranch);
+        return new StatusMessage.Working(deleteBranch);
     }
 
     private static void Rename(IEffectContext context, BackgroundSession session)
@@ -76,7 +76,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.CloseEmpty, "Close empty terminal sessions", question, "Close", "Keep");
         if (answer != 0)
         {
-            context.ShowFooter(new Footer.Kept());
+            context.ShowMessage(new StatusMessage.Kept());
             return;
         }
 
@@ -91,7 +91,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         List<SessionRow> toResume = [.. plan.Automatic, .. chosen];
         if (toResume.Count == 0)
         {
-            context.ShowFooter(new Footer.NothingChosenToResume());
+            context.ShowMessage(new StatusMessage.NothingChosenToResume());
             return;
         }
 
@@ -120,7 +120,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         UpdateStatus status = updates.Status;
         if (status is not UpdateStatus.Available available)
         {
-            context.ShowFooter(UpdateVantage.Refusal(status) ?? new Footer.UpToDate());
+            context.ShowMessage(UpdateVantage.Refusal(status) ?? new StatusMessage.UpToDate());
             return;
         }
 
@@ -133,7 +133,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         context.Dispatch(new StartUpdate(available.Newest), outcome =>
         {
             context.Reduce(new UpdateTabOpened());
-            return new Footer.Reported(outcome);
+            return new StatusMessage.Reported(outcome);
         });
     }
 
@@ -148,7 +148,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         context.Dispatch(new StartSession(wizard.Plan));
     }
 
-    /// <summary>A setting's dialog over the settings saved now; a save is dispatched, so the footer confirms it and the refresh after it uses the new values.</summary>
+    /// <summary>A setting's dialog over the settings saved now; a save is dispatched, so the status line confirms it and the refresh after it uses the new values.</summary>
     private void EditSettings(IEffectContext context, SettingsScope scope)
     {
         Settings? saved = SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, scope, folders.DirectoryExists);
@@ -170,27 +170,27 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         }
 
         context.RunInBackground(
-            new Footer.Working(deletion),
+            new StatusMessage.Working(deletion),
             token => deleteSession.DeleteAsync(session, forced: false, token),
             outcome => outcome is DeleteSessionOutcome.BranchNotMerged unmerged
                 ? AskAboutBranch(context, outcome, unmerged.Branch, createdByVantage: true)
-                : new Footer.Reported(outcome));
+                : new StatusMessage.Reported(outcome));
     }
 
     private void Remove(IEffectContext context, RemoveWorktree remove)
     {
         context.RunInBackground(
-            new Footer.Working(remove),
+            new StatusMessage.Working(remove),
             token => removeWorktree.RemoveAsync(remove.Row, remove.Forced, token),
             outcome => outcome is RemoveWorktreeOutcome.BranchKept kept
                 ? AskAboutBranch(context, outcome, kept.Branch, kept.CreatedByVantage)
-                : new Footer.Reported(outcome));
+                : new StatusMessage.Reported(outcome));
     }
 
     /// <summary>Builds the report off the UI thread; back on it, the dialog shows it, and opening or copying is dispatched.</summary>
-    private void ReportProblem(IEffectContext context, ShowProblemReport show) => context.RunInBackground(new Footer.Working(show), _ => reports.BuildAsync(), report => AskAboutReport(context, report));
+    private void ReportProblem(IEffectContext context, ShowProblemReport show) => context.RunInBackground(new StatusMessage.Working(show), _ => reports.BuildAsync(), report => AskAboutReport(context, report));
 
-    private Footer AskAboutReport(IEffectContext context, ProblemReport report)
+    private StatusMessage AskAboutReport(IEffectContext context, ProblemReport report)
     {
         ProblemReportEffect answer = ProblemReportDialog.Show(context.App, context.Diagnostics, report, reports.DefaultTitle);
 
@@ -198,24 +198,24 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         {
             ProblemReportEffect.Open open => Dispatched(context, new OpenProblemReport(open.Title, report)),
             ProblemReportEffect.Copy copy => Dispatched(context, new CopyProblemReport(copy.Title, report)),
-            _ => Footer.None,
+            _ => StatusMessage.None,
         };
     }
 
-    private static Footer.Working Dispatched(IEffectContext context, ViewEffect effect)
+    private static StatusMessage.Working Dispatched(IEffectContext context, ViewEffect effect)
     {
         context.Dispatch(effect);
 
-        return new Footer.Working(effect);
+        return new StatusMessage.Working(effect);
     }
     /// <summary>Looks off the UI thread; back on it, one solution opens, none says so, and several are asked about.</summary>
     /// <summary>Measures the session's tree off the UI thread (a snapshot of the whole table), then shows the breakdown; a process gone since the listing reads as nothing to measure.</summary>
     private void ShowMemoryOf(IEffectContext context, ShowMemory show)
     {
         context.RunInBackground(
-            new Footer.Working(show),
+            new StatusMessage.Working(show),
             _ => Task.FromResult(Measure(show)),
-            breakdown => breakdown is null ? new Footer.NothingToMeasure(show.Session.Name) : ShowBreakdown(context, breakdown));
+            breakdown => breakdown is null ? new StatusMessage.NothingToMeasure(show.Session.Name) : ShowBreakdown(context, breakdown));
     }
 
     private MemoryBreakdown? Measure(ShowMemory show)
@@ -225,40 +225,40 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         return tree is null ? null : MemoryBreakdown.Of(show.Session.Name, tree);
     }
 
-    private static Footer ShowBreakdown(IEffectContext context, MemoryBreakdown breakdown)
+    private static StatusMessage ShowBreakdown(IEffectContext context, MemoryBreakdown breakdown)
     {
         MemoryDialog.Show(context.App, context.Diagnostics, Wording.MemoryDialogTitle(breakdown.SessionName), Wording.MemoryBreakdownLines(breakdown));
 
-        return Footer.None;
+        return StatusMessage.None;
     }
 
     private void OpenSolutionOf(IEffectContext context, FindSolution find)
     {
         context.RunInBackground(
-            new Footer.Working(find),
+            new StatusMessage.Working(find),
             _ => Task.FromResult(solutions.Find(find.Folder, find.RepositoryName)),
             search => search switch
             {
                 SolutionSearch.One one => Open(context, one.File),
                 SolutionSearch.Several several => ChooseSolution(context, find, several.Files),
-                _ => new Footer.NoSolution(find.Folder.Name),
+                _ => new StatusMessage.NoSolution(find.Folder.Name),
             });
     }
 
-    private static Footer ChooseSolution(IEffectContext context, FindSolution find, IReadOnlyList<string> files)
+    private static StatusMessage ChooseSolution(IEffectContext context, FindSolution find, IReadOnlyList<string> files)
     {
         int? answer = ChooseSolutionDialog.Show(context.App, context.Diagnostics, find.Folder, files);
 
         return answer is int chosen && chosen < files.Count
             ? Open(context, files[chosen])
-            : Footer.None;
+            : StatusMessage.None;
     }
 
-    private static Footer.Working Open(IEffectContext context, string file)
+    private static StatusMessage.Working Open(IEffectContext context, string file)
     {
         OpenSolution open = new(file);
         context.Dispatch(open);
 
-        return new Footer.Working(open);
+        return new StatusMessage.Working(open);
     }
 }

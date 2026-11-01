@@ -65,7 +65,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public KeyBar Bar(SessionsViewState state, bool updateKnown) => Wording.SessionsBar(state, updateKnown);
 
-    public SessionsViewState WithFooter(SessionsViewState state, Footer footer) => state with { Footer = footer };
+    public SessionsViewState WithMessage(SessionsViewState state, StatusMessage message) => state with { Message = message };
 
     public (SessionsViewState State, IReadOnlyList<ViewEffect> Effects) Reduce(SessionsViewState state, ViewInput input)
     {

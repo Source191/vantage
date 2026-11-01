@@ -31,12 +31,12 @@ public sealed record WorktreesViewState(
     RowFilter Filter,
     bool FilterEditing,
     string? Banner,
-    Footer Footer,
+    StatusMessage Message,
     bool Loaded = false)
     : IListViewState<WorktreeRow>
 {
     /// <summary>Nothing scanned yet: the first scan has not arrived, so the screen shows that it is scanning rather than an empty table.</summary>
-    public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Footer: Footer.None);
+    public static readonly WorktreesViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: null, Message: StatusMessage.None);
 
     private static readonly ListPolicy<WorktreeRow> Policy = new(
         KeyOf: row => row.Path.Key,
@@ -55,7 +55,7 @@ public sealed record WorktreesViewState(
     public WorktreesViewState With(ListSelection<WorktreeRow> list) => this with { Rows = list.Rows, SelectedPath = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 
     /// <summary>The last message only: the selected row's health is the detail pane's.</summary>
-    public Footer Shown => Footer;
+    public StatusMessage Shown => Message;
 
     public TableTitle Title => List.Title("worktree", row => row.FolderName);
 }
@@ -69,11 +69,11 @@ public static class WorktreesView
         {
             WorktreeRowsLoaded loaded => Unchanged(state.With(state.List.Load(loaded.Rows)) with { Banner = null }),
             LoadFailed failed => Unchanged(state with { Banner = failed.Message }),
-            MessageDismissed dismissed when ReferenceEquals(state.Footer, dismissed.Message) => Unchanged(state with { Footer = Footer.None }),
+            MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             ForceConfirmed confirmed => Force(state, confirmed),
             UpdateTabOpened => Effect(state, new Quit()),
-            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Footer = Footer.None }),
+            KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Message = StatusMessage.None }),
             KeyPressed pressed => Act(state, pressed.Key),
             _ => Unchanged(state),
         };
@@ -84,12 +84,12 @@ public static class WorktreesView
         return key switch
         {
             // Moving on or filtering clears the last message, so the status line goes until there is something new to say.
-            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Footer = Footer.None }),
-            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Footer = Footer.None }),
+            { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
+            { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Escape } => Effect(state, new SelectTab(ConsoleTab.Sessions)),
             { Name: KeyName.Enter } => RowAction(state, JumpToSession),
-            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Footer = Footer.None }),
+            { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'd' } => RowAction(state, row => Remove(row, forced: false)),
             { Name: KeyName.Character, Character: 'D' } => RowAction(state, row => Remove(row, forced: true)),
             { Name: KeyName.Character, Character: 'P' } => RowAction(state, Prune),
@@ -108,34 +108,34 @@ public static class WorktreesView
         };
     }
 
-    /// <summary>Either an effect to run or a footer explaining why nothing happens.</summary>
-    private static WorktreesViewUpdate RowAction(WorktreesViewState state, Func<WorktreeRow, (ViewEffect? Effect, Footer Footer)> decide)
+    /// <summary>Either an effect to run or a status message explaining why nothing happens.</summary>
+    private static WorktreesViewUpdate RowAction(WorktreesViewState state, Func<WorktreeRow, (ViewEffect? Effect, StatusMessage Message)> decide)
     {
         WorktreeRow? row = state.Selected;
         if (row is null)
         {
-            return Unchanged(state with { Footer = new Footer.NoWorktreeSelected() });
+            return Unchanged(state with { Message = new StatusMessage.NoWorktreeSelected() });
         }
 
-        (ViewEffect? effect, Footer footer) = decide(row);
+        (ViewEffect? effect, StatusMessage message) = decide(row);
 
         return effect is null
-            ? Unchanged(state with { Footer = footer })
-            : Effect(state with { Footer = footer }, effect);
+            ? Unchanged(state with { Message = message })
+            : Effect(state with { Message = message }, effect);
     }
 
-    private static (ViewEffect?, Footer) Remove(WorktreeRow row, bool forced)
+    private static (ViewEffect?, StatusMessage) Remove(WorktreeRow row, bool forced)
     {
         RemovalDecision decision = RemovalDecision.For(row.Facts(), forced);
         if (decision.Outcome == RemovalOutcome.Refused)
         {
-            return (null, new Footer.NotRemoved(decision.Reason, OfferForce: !forced && decision.CanBeForced));
+            return (null, new StatusMessage.NotRemoved(decision.Reason, OfferForce: !forced && decision.CanBeForced));
         }
 
         // The folder name is what the dialog says it deletes, so that is the text to type; a branch name would be a second thing to look up.
         return forced
-            ? (new ConfirmForceRemove(row, row.FolderName), Footer.None)
-            : (new RemoveWorktree(row, Forced: false), Footer.None);
+            ? (new ConfirmForceRemove(row, row.FolderName), StatusMessage.None)
+            : (new RemoveWorktree(row, Forced: false), StatusMessage.None);
     }
 
     /// <summary>The typed text must match exactly; anything else says what was typed so a near miss is obvious.</summary>
@@ -143,50 +143,50 @@ public static class WorktreesView
     {
         return confirmed.Typed switch
         {
-            null => Unchanged(state with { Footer = new Footer.ForceCancelled() }),
-            "" => Unchanged(state with { Footer = new Footer.NothingTyped() }),
+            null => Unchanged(state with { Message = new StatusMessage.ForceCancelled() }),
+            "" => Unchanged(state with { Message = new StatusMessage.NothingTyped() }),
             string typed when !string.Equals(typed, confirmed.ConfirmationText, StringComparison.Ordinal) =>
-                Unchanged(state with { Footer = new Footer.TypedWrongName(typed, confirmed.ConfirmationText) }),
+                Unchanged(state with { Message = new StatusMessage.TypedWrongName(typed, confirmed.ConfirmationText) }),
             _ => Forced(state, new RemoveWorktree(confirmed.Row, Forced: true)),
         };
     }
 
-    private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove) => Effect(state with { Footer = new Footer.Working(remove) }, remove);
+    private static WorktreesViewUpdate Forced(WorktreesViewState state, RemoveWorktree remove) => Effect(state with { Message = new StatusMessage.Working(remove) }, remove);
 
-    private static (ViewEffect?, Footer) PullRequestOf(WorktreeRow row) => row.PullRequest switch
+    private static (ViewEffect?, StatusMessage) PullRequestOf(WorktreeRow row) => row.PullRequest switch
     {
-        PullRequestLookup.Found found => (new OpenPullRequest(found.PullRequest), Footer.None),
-        PullRequestLookup.Missing missing => (null, new Footer.NoPullRequest(row.FolderName, missing.Gap, missing.Host)),
-        _ => (null, Footer.None),
+        PullRequestLookup.Found found => (new OpenPullRequest(found.PullRequest), StatusMessage.None),
+        PullRequestLookup.Missing missing => (null, new StatusMessage.NoPullRequest(row.FolderName, missing.Gap, missing.Host)),
+        _ => (null, StatusMessage.None),
     };
 
-    private static (ViewEffect?, Footer) Prune(WorktreeRow row)
+    private static (ViewEffect?, StatusMessage) Prune(WorktreeRow row)
     {
         return row.OwnerExists
-            ? (new PruneRepository(row.Repository), Footer.None)
-            : (null, new Footer.NothingToPrune(row.RepositoryName));
+            ? (new PruneRepository(row.Repository), StatusMessage.None)
+            : (null, new StatusMessage.NothingToPrune(row.RepositoryName));
     }
 
     /// <summary>A real worktree is one git still has: ok, locked, or elsewhere (registered with a repository outside the roots).</summary>
-    private static (ViewEffect?, Footer) InRealWorktree(WorktreeRow row, ViewEffect effect)
+    private static (ViewEffect?, StatusMessage) InRealWorktree(WorktreeRow row, ViewEffect effect)
     {
         return row.Health.Kind is WorktreeHealthKind.Ok or WorktreeHealthKind.Locked or WorktreeHealthKind.Elsewhere && row.FolderExists
-            ? (effect, Footer.None)
-            : (null, new Footer.LeftoverFolder(row.FolderName));
+            ? (effect, StatusMessage.None)
+            : (null, new StatusMessage.LeftoverFolder(row.FolderName));
     }
 
     /// <summary>The folder keys need a folder on disc; a leftover whose folder is gone is refused as the start and shell keys refuse it.</summary>
-    private static (ViewEffect?, Footer) WithFolder(WorktreeRow row, ViewEffect effect)
+    private static (ViewEffect?, StatusMessage) WithFolder(WorktreeRow row, ViewEffect effect)
     {
         return row.FolderExists
-            ? (effect, Footer.None)
-            : (null, new Footer.LeftoverFolder(row.FolderName));
+            ? (effect, StatusMessage.None)
+            : (null, new StatusMessage.LeftoverFolder(row.FolderName));
     }
-    private static (ViewEffect?, Footer) JumpToSession(WorktreeRow row)
+    private static (ViewEffect?, StatusMessage) JumpToSession(WorktreeRow row)
     {
         return row.SessionId is null
-            ? (null, new Footer.NoSessionIn(row.FolderName))
-            : (new JumpToSession(row.SessionId), Footer.None);
+            ? (null, new StatusMessage.NoSessionIn(row.FolderName))
+            : (new JumpToSession(row.SessionId), StatusMessage.None);
     }
 
     private static WorktreesViewUpdate Unchanged(WorktreesViewState state) => new(state, []);

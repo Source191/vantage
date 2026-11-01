@@ -17,12 +17,12 @@ public sealed class UpdateVantageShould
     [Fact]
     public void SayUpToDateOtherwise()
     {
-        UpdateVantage.Refusal(new UpdateStatus.UpToDate()).ShouldBe(new Footer.UpToDate());
+        UpdateVantage.Refusal(new UpdateStatus.UpToDate()).ShouldBe(new StatusMessage.UpToDate());
     }
 
     [Fact]
     public void SayTheCheckIsOff()
     {
-        UpdateVantage.Refusal(new UpdateStatus.Off()).ShouldBe(new Footer.UpdateCheckOff());
+        UpdateVantage.Refusal(new UpdateStatus.Off()).ShouldBe(new StatusMessage.UpdateCheckOff());
     }
 }

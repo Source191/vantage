@@ -22,7 +22,7 @@ public sealed record ProcessSlow(ChildCommand Command, int ExitCode, TimeSpan Du
 
 public sealed record ProcessFailedToStart(ChildCommand Command, ExceptionSummary Failure) : DiagnosticEvent;
 
-/// <summary>A failure caught where it was turned into a footer, a load failure or a crash; <paramref name="What"/> is what was running, when there was one thing.</summary>
+/// <summary>A failure caught where it was turned into a status message, a load failure or a crash; <paramref name="What"/> is what was running, when there was one thing.</summary>
 public sealed record Failed(FailureSite Site, CodeName? What, ExceptionSummary Failure) : DiagnosticEvent;
 
 /// <summary>A Terminal.Gui warning or error, with none of Terminal.Gui's words: its messages can quote input it failed to parse.</summary>

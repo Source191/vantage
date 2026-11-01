@@ -74,7 +74,7 @@ When the newest recorded release is higher than the running version by semantic 
 
 #### Scenario: No update known
 - **WHEN** the user presses `U` and no newer release is recorded, or the check is off
-- **THEN** no dialog opens and the footer says that Vantage is up to date or that the check is off
+- **THEN** no dialog opens and the status line says that Vantage is up to date or that the check is off
 
 ### Requirement: An environment variable turns the check off
 When the environment variable `VANTAGE_NO_UPDATE_CHECK` is set to any value with a non-whitespace character, Vantage SHALL make no update request, SHALL NOT write `update-check.json`, and SHALL show no update notice, whatever the `checkForUpdates` setting says. The hand-off harness SHALL set it on every Vantage process it starts.
