@@ -99,7 +99,7 @@ async Task<int> StartHereAsync(HereName name, string prompt, CancellationToken c
     TerminalConsole hereConsole = new(Console.Out, Wording.TabTitle);
     HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, hereConsole), hereConsole, Console.Out, Console.Error);
 
-    return await runner.RunAsync(Directory.GetCurrentDirectory(), name is HereName.Typed typed ? typed.Text : null, prompt, cancellationToken);
+    return await runner.RunAsync(Directory.GetCurrentDirectory(), name, prompt, cancellationToken);
 }
 
 async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
