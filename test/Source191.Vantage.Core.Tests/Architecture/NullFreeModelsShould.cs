@@ -1,3 +1,7 @@
+using Source191.Vantage.Application;
+using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -28,6 +32,23 @@ public sealed class NullFreeModelsShould
         NullableMembersOf(typeof(IHouseShapes)).ShouldBeEmpty();
         NullableMembersOf(typeof(IBareTryParse)).ShouldBe(["TryParse(text)"]);
     }
+
+    [Fact]
+    public void FindTheModelTypes()
+    {
+        Type[] types = [.. ModelTypes];
+
+        types.ShouldContain(typeof(SessionName));
+        types.ShouldContain(typeof(IGit));
+        types.ShouldContain(typeof(CurrentSettings));
+        types.ShouldContain(typeof(SessionsView));
+        types.ShouldContain(typeof(Head.OnBranch));
+        types.Select(type => type.FullName).ShouldNotContain("Source191.Vantage.Application.Views.RowDecision");
+        types.ShouldAllBe(type => type.IsVisible);
+    }
+
+    private static IEnumerable<Type> ModelTypes => typeof(SessionName).Assembly.GetTypes()
+        .Where(type => type.Namespace == "Source191.Vantage.Domain");
 
     private static IEnumerable<string> NullableMembersOf(Type type)
     {
