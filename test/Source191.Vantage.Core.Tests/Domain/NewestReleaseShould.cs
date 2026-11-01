@@ -7,7 +7,7 @@ public sealed class NewestReleaseShould
     [Fact]
     public void ReadARecordedVersionAsFound()
     {
-        NewestRelease.Recorded("0.10.0").ShouldBe(new NewestRelease.Found(new ReleaseVersion(0, 10, 0, null)));
+        NewestRelease.Recorded("0.10.0").ShouldBe(new NewestRelease.Found(new ReleaseVersion(0, 10, 0, "")));
     }
 
     [Fact]
