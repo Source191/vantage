@@ -84,6 +84,18 @@ public sealed class ClaudeContractShould
         }
     }
 
+    /// <summary>Vantage skips a row whose session id is not letters, digits and hyphens, a letter or digit first; a CLI that changed its ids would hide every row.</summary>
+    [Fact]
+    public async Task ListOnlySessionIdsInTheShapeVantageAccepts()
+    {
+        ProcessResult listing = await runner.RunAsync(new ProcessRequest(ClaudeContract.Executable(), ["agents", "--json", "--all"], WorkingFolder.Inherit), Cancellation);
+        using JsonDocument rows = JsonDocument.Parse(listing.StandardOutput);
+
+        string[] ids = [.. rows.RootElement.EnumerateArray().Where(row => row.TryGetProperty("sessionId", out _)).Select(row => row.GetProperty("sessionId").GetString() ?? string.Empty)];
+
+        ids.Where(id => !SessionId.TryParse(id, out _)).ShouldBeEmpty("every listed session id must have the shape SessionId accepts");
+    }
+
     [Fact]
     public async Task StartWithAnEightCharacterJobIdAndTheMiddleDotDecodedCorrectly()
     {
