@@ -30,7 +30,7 @@ public static partial class Wording
     private const string NotInARepository = "not in a repository";
 
     /// <summary>A session's facts in four rows, the folder and its changes two columns wide; its state and pull request are in the row.</summary>
-    public static DetailContent Detail(SessionDetail detail, DateTimeOffset now)
+    public static DetailContent Detail(SessionDetail detail, DateTimeOffset now, TimeZoneInfo zone)
     {
         ArgumentNullException.ThrowIfNull(detail);
         SessionRow row = detail.Row;
@@ -54,7 +54,7 @@ public static partial class Wording
     }
 
     /// <summary>A worktree's facts in four rows, its health and changes across the pane, and its unpushed commits or changed files beneath.</summary>
-    public static DetailContent Detail(WorktreeDetail detail, DateTimeOffset now)
+    public static DetailContent Detail(WorktreeDetail detail, DateTimeOffset now, TimeZoneInfo zone)
     {
         ArgumentNullException.ThrowIfNull(detail);
         WorktreeRow row = detail.Row;

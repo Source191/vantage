@@ -24,7 +24,7 @@ public sealed class SessionDetails(DetailLoader loader, TimeProvider clock) : ID
     public object KeyOf(SessionRow row) => row?.Session.SessionId ?? throw new ArgumentNullException(nameof(row));
 
     public async Task<DetailContent> ReadAsync(SessionRow row, CancellationToken cancellationToken) =>
-        Wording.Detail(await loader.SessionAsync(row, cancellationToken), clock.GetUtcNow());
+        Wording.Detail(await loader.SessionAsync(row, cancellationToken), clock.GetUtcNow(), TimeZoneInfo.Utc);
 }
 
 /// <summary>The Worktrees tab's pane: a worktree's facts and up to five of its unpushed commits or changed files, keyed by its folder.</summary>
@@ -39,5 +39,5 @@ public sealed class WorktreeDetails(DetailLoader loader, TimeProvider clock) : I
     public object KeyOf(WorktreeRow row) => row?.Path ?? throw new ArgumentNullException(nameof(row));
 
     public async Task<DetailContent> ReadAsync(WorktreeRow row, CancellationToken cancellationToken) =>
-        Wording.Detail(await loader.WorktreeAsync(row, Wording.DetailListedItems, cancellationToken), clock.GetUtcNow());
+        Wording.Detail(await loader.WorktreeAsync(row, Wording.DetailListedItems, cancellationToken), clock.GetUtcNow(), TimeZoneInfo.Utc);
 }
