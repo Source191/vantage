@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -17,6 +18,15 @@ public sealed class NullFreeModelsShould
         NullableMembersOf(typeof(ProbeRecord)).ShouldBe(["Maybe"]);
     }
 
+    [Fact]
+    public void ExemptTheHouseShapes()
+    {
+        NullableMembersOf(typeof(IHouseShapes)).ShouldBeEmpty();
+        NullableMembersOf(typeof(IBareTryParse)).ShouldBe(["TryParse(text)"]);
+    }
+
+    private static readonly string[] EqualityNames = ["Equals", "CompareTo", "op_Equality", "op_Inequality"];
+
     private const BindingFlags Declared = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
     private static IEnumerable<string> NullableMembersOf(Type type)
@@ -26,7 +36,7 @@ public sealed class NullFreeModelsShould
             .Where(property => !IsGenerated(property) && IsNullable(context.Create(property)))
             .Select(property => property.Name)];
         IEnumerable<string> methods = type.GetMethods(Declared)
-            .Where(method => !method.IsSpecialName && !IsGenerated(method))
+            .Where(method => !IsAccessor(method) && !IsGenerated(method) && !IsHouseShape(context, method))
             .SelectMany(method => NullableReturnOf(context, method).Concat(NullableParametersOf(context, method, method.Name)));
         IEnumerable<string> constructors = type.GetConstructors(Declared)
             .SelectMany(constructor => NullableParametersOf(context, constructor, "new"))
@@ -60,6 +70,35 @@ public sealed class NullFreeModelsShould
             || (info.ElementType is { } element && IsNullable(element));
     }
 
+    private static bool IsAccessor(MethodInfo method)
+    {
+        return method.IsSpecialName && !method.Name.StartsWith("op_", StringComparison.Ordinal);
+    }
+
+    private static bool IsHouseShape(NullabilityInfoContext context, MethodInfo method)
+    {
+        return EqualityNames.Contains(method.Name) || IsTryParse(context, method);
+    }
+
+    private static bool IsTryParse(NullabilityInfoContext context, MethodInfo method)
+    {
+        ParameterInfo[] parameters = method.GetParameters();
+
+        return method.IsStatic
+            && method.Name == "TryParse"
+            && parameters is [{ ParameterType: Type text } first, ..]
+            && text == typeof(string)
+            && IsNullable(context.Create(first))
+            && parameters.Any(IsOutUntilParsed);
+    }
+
+    private static bool IsOutUntilParsed(ParameterInfo parameter)
+    {
+        return parameter.IsOut
+            && (parameter.GetCustomAttribute<MaybeNullWhenAttribute>() is { ReturnValue: false }
+                || parameter.GetCustomAttribute<NotNullWhenAttribute>() is { ReturnValue: true });
+    }
+
     private static bool IsGenerated(MemberInfo member)
     {
         return member.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false);
@@ -87,4 +126,18 @@ public sealed class NullFreeModelsShould
     }
 
     private sealed record ProbeRecord(string Sure, string? Maybe);
+
+    private interface IHouseShapes
+    {
+        static abstract bool TryParse(string? text, [MaybeNullWhen(false)] out IHouseShapes value);
+
+        bool Equals(IHouseShapes? other);
+
+        int CompareTo(IHouseShapes? other);
+    }
+
+    private interface IBareTryParse
+    {
+        static abstract bool TryParse(string? text, out IBareTryParse value);
+    }
 }
