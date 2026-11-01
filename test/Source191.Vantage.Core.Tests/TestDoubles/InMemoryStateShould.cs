@@ -17,7 +17,7 @@ public sealed class InMemoryStateShould
         await state.WriteTabAsync(pending);
         await state.WriteTabAsync(pending.ClaimedBy(4242, Noon));
 
-        (await state.ReadTabsAsync()).Single().ProcessId.ShouldBe(4242);
+        (await state.ReadTabsAsync()).Single().Claim.ShouldBe(new TabClaim.Claimed(4242, Noon));
         await state.RemoveTabAsync(pending.Id);
         (await state.ReadTabsAsync()).ShouldBeEmpty();
     }
