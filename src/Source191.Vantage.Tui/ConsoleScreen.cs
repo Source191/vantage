@@ -210,6 +210,7 @@ public sealed class ConsoleScreen(
             ShowCounts(Active.Counts);
             ShowFrameTitle(Active.FrameTitle);
             ShowBar(Active.Bar(screen.context.UpdateKnown()));
+            Announce(screen.context.TakeAnnouncement());
             ShowStatus(Active.Status, Active.Running);
             Window.SetNeedsDraw();
         }
@@ -473,6 +474,14 @@ public sealed class ConsoleScreen(
             LayOutStatus(running ? Math.Max(lines.Count, 1) : lines.Count);
         }
 
+        /// <summary>A newly found release, said once in the shown tab's status line the first time the frame is drawn after the update check found it.</summary>
+        private void Announce(StatusMessage announcement)
+        {
+            if (announcement is not StatusMessage.Blank)
+            {
+                Active.ShowMessage(announcement);
+            }
+        }
         /// <summary>The close mark after the message's last word, on its last row; none while an action runs or when there is no message.</summary>
         private void ShowClose(StatusMessage message, bool running, IReadOnlyList<string> lines)
         {

@@ -108,7 +108,7 @@ internal static class ConsoleComposition
 
         Heartbeat heartbeat = new(TimeProvider.System, parts.Counts.Stalls, parts.Log);
 
-        return new ScreenContext(Wording.TabTitle, header.Rows, () => updates.Status is UpdateStatus.Available, clipboard, parts.Log, heartbeat);
+        return new ScreenContext(Wording.TabTitle, header.Rows, () => updates.Status is UpdateStatus.Available, updates.TakeAnnouncement, clipboard, parts.Log, heartbeat);
     }
 
     private static ConsoleLoads Loads(
