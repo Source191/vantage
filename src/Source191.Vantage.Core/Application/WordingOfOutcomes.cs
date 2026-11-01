@@ -167,7 +167,7 @@ public static partial class Wording
         return outcome switch
         {
             OpenInEditorOutcome.Opened opened => $"Opened {opened.FolderName} in {EditorName(opened.Editor)}.",
-            OpenInEditorOutcome.EditorNotFound missing => $"Could not find {EditorName(missing.Editor)}; press , to choose another editor in settings.",
+            OpenInEditorOutcome.EditorNotFound missing => $"Could not find {EditorName(missing.Editor)}; choose another under Open folder with on the Config tab (3).",
             OpenInEditorOutcome.FolderMissing gone => $"{gone.FolderName} no longer exists, so nothing was opened.",
             _ => outcome.ToString(),
         };
@@ -194,7 +194,7 @@ public static partial class Wording
             RenameSessionOutcome.NoMessages empty => $"{empty.Name} has no messages yet, so it cannot be renamed; send it something first.",
             RenameSessionOutcome.Renamed { TabMoved: true } renamed => $"Renamed {renamed.OldName} to {renamed.NewName} and moved its tab; it restarts idle and keeps its conversation.",
             RenameSessionOutcome.Renamed renamed => $"Renamed {renamed.OldName} to {renamed.NewName}; it restarts idle and keeps its conversation.",
-            RenameSessionOutcome.Restored { TabClosed: true } restored => $"Could not rename {restored.OldName}: {restored.Failure}; it is back under its old name and its tab is closed: o opens a new one.",
+            RenameSessionOutcome.Restored { TabClosed: true } restored => $"Could not rename {restored.OldName}: {restored.Failure}; it is back under its old name and its tab is closed: Enter opens a new one.",
             RenameSessionOutcome.Restored restored => $"Could not rename {restored.OldName}: {restored.Failure}; it is back under its old name.",
             RenameSessionOutcome.Unsupervised lost =>
                 $"Could not rename {lost.OldName}: {lost.Failure}; resume it with claude --bg --resume {lost.SessionId} ({lost.RestoreFailure}).",
