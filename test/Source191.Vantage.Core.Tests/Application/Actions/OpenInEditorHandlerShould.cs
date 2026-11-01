@@ -65,6 +65,6 @@ public sealed class OpenInEditorHandlerShould
 
     private static CurrentSettings CurrentWith(EditorChoice editor)
     {
-        return TestSettings.Current(Source191.Vantage.Domain.Settings.Resolve([FolderPath.From(@"C:\Users\me\source\repos")], worktreeRoot: null, editor, defaultBase: null, TestSettings.Home));
+        return TestSettings.Current(Source191.Vantage.Domain.Settings.Resolve([FolderPath.From(@"C:\Users\me\source\repos")], new WorktreeRootChoice.BesideFirstRoot(), editor, WorktreeBase.RemoteDefault, TestSettings.Home));
     }
 }

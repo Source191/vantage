@@ -112,7 +112,7 @@ public sealed class WordingOfScreensShould
 
     private static string Text(IReadOnlyList<TextPart> row) => string.Concat(row.Select(part => part.Text));
 
-    private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => FolderPath.From(root))], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me"));
+    private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => FolderPath.From(root))], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, FolderPath.From(@"C:\Users\me"));
 
     [Fact]
     public void DescribeTableTitles()
