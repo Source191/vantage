@@ -32,13 +32,12 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
             return;
         }
 
-        IReadOnlyList<string>? versions = await packages.ListAsync(PackageId, cancellationToken);
-        if (versions is null)
+        if (await packages.ListAsync(PackageId, cancellationToken) is not VersionListing.Listed listed)
         {
             return;
         }
 
-        NewestRelease found = UpdateCheckRule.Newest(versions);
+        NewestRelease found = UpdateCheckRule.Newest(listed.Versions);
         await records.WriteUpdateCheckAsync(new UpdateCheckRecord(now, RecordedText(found)));
         newest.Replace(found);
     }

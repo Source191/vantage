@@ -4,8 +4,8 @@ namespace Source191.Vantage.Ports;
 public interface IPackageVersions
 {
     /// <summary>
-    /// Every listed version of <paramref name="packageId"/> as the registry writes it, or null when the request fails,
-    /// times out or answers something unreadable: the caller treats null as "nothing learned" and never shows why.
+    /// Every listed version of <paramref name="packageId"/> as the registry writes it, or <see cref="VersionListing.NothingLearned"/>
+    /// when the request fails, times out or answers something unreadable; the caller never shows why.
     /// </summary>
-    Task<IReadOnlyList<string>?> ListAsync(string packageId, CancellationToken cancellationToken);
+    Task<VersionListing> ListAsync(string packageId, CancellationToken cancellationToken);
 }

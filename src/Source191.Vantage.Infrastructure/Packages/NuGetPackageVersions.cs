@@ -7,7 +7,7 @@ namespace Source191.Vantage.Adapters.Packages;
 
 /// <summary>
 /// nuget.org's flat-container index for a package (<c>{"versions": [...]}</c>, every listed version, no key needed):
-/// one anonymous request with a 3 second timeout and a <c>Vantage/&lt;version&gt;</c> user agent. Any failure answers null.
+/// one anonymous request with a 3 second timeout and a <c>Vantage/&lt;version&gt;</c> user agent. Any failure, or a reply without its versions, answers <see cref="VersionListing.NothingLearned"/>.
 /// </summary>
 public sealed class NuGetPackageVersions(ToolVersion version, HttpMessageHandler handler) : IPackageVersions, IDisposable
 {
@@ -17,7 +17,7 @@ public sealed class NuGetPackageVersions(ToolVersion version, HttpMessageHandler
 
     private readonly HttpClient client = ClientFor(version ?? throw new ArgumentNullException(nameof(version)), handler);
 
-    public async Task<IReadOnlyList<string>?> ListAsync(string packageId, CancellationToken cancellationToken)
+    public async Task<VersionListing> ListAsync(string packageId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(packageId);
         try
@@ -25,25 +25,25 @@ public sealed class NuGetPackageVersions(ToolVersion version, HttpMessageHandler
             using HttpResponseMessage response = await client.GetAsync(new Uri($"{packageId.ToLowerInvariant()}/index.json", UriKind.Relative), cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                return null;
+                return new VersionListing.NothingLearned();
             }
 
             await using Stream body = await response.Content.ReadAsStreamAsync(cancellationToken);
             VersionIndex? index = await JsonSerializer.DeserializeAsync<VersionIndex>(body, JsonSerializerOptions.Web, cancellationToken);
 
-            return index?.Versions;
+            return index?.Versions is IReadOnlyList<string> versions ? new VersionListing.Listed(versions) : new VersionListing.NothingLearned();
         }
         catch (HttpRequestException)
         {
-            return null;
+            return new VersionListing.NothingLearned();
         }
         catch (TaskCanceledException)
         {
-            return null;
+            return new VersionListing.NothingLearned();
         }
         catch (JsonException)
         {
-            return null;
+            return new VersionListing.NothingLearned();
         }
     }
 
