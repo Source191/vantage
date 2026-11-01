@@ -15,4 +15,30 @@ public sealed class RequiredProgramsShould
 
         programs.ShouldBe(new RequiredPrograms.Found(Claude, Git));
     }
+
+    [Fact]
+    public void RefuseABatchFile()
+    {
+        const string batchFile = @"C:\Users\me\AppData\Roaming\npm\claude.cmd";
+
+        RequiredPrograms programs = RequiredPrograms.Check(new ClaudeLocation.BatchFileOnly(batchFile), new ProgramLocation.Found(Git));
+
+        programs.ShouldBe(new RequiredPrograms.Missing(Wording.ClaudeIsABatchFile(batchFile)));
+    }
+
+    [Fact]
+    public void SayClaudeCodeIsMissing()
+    {
+        RequiredPrograms programs = RequiredPrograms.Check(new ClaudeLocation.Missing(), new ProgramLocation.Found(Git));
+
+        programs.ShouldBe(new RequiredPrograms.Missing(Wording.ClaudeNotFound));
+    }
+
+    [Fact]
+    public void SayGitIsMissing()
+    {
+        RequiredPrograms programs = RequiredPrograms.Check(new ClaudeLocation.Found(Claude), new ProgramLocation.Missing());
+
+        programs.ShouldBe(new RequiredPrograms.Missing(Wording.GitNotFound));
+    }
 }
