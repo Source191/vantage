@@ -54,7 +54,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
     }
 
     /// <summary>The private working set of the session's process tree; nothing for a session without a process or whose process has gone.</summary>
-    private MemorySize? MemoryOf(Session session, IReadOnlyList<ProcessFacts> processTable)
+    private SessionMemory MemoryOf(Session session, IReadOnlyList<ProcessFacts> processTable)
     {
         int? processId = session switch
         {
@@ -63,7 +63,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
             _ => throw new UnreachableException(),
         };
 
-        return processId is int root && ProcessTree.Under(root, processTable, processes.UsageOf) is ProcessTreeLookup.Found found ? found.Tree.Total : null;
+        return processId is int root && ProcessTree.Under(root, processTable, processes.UsageOf) is ProcessTreeLookup.Found found ? new SessionMemory.Measured(found.Tree.Total) : new SessionMemory.NothingToMeasure();
     }
 
     /// <summary>Each session with a live Vantage tab and that tab's colour; stale registrations are removed on the way.</summary>
