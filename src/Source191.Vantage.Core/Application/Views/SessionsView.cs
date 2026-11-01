@@ -15,8 +15,8 @@ public sealed record SessionRow(Session Session, string Repository, Head Head, L
     /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
     public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
 
-    /// <summary>What the session's process and everything it started use; null for a session with no process, or whose process has gone.</summary>
-    public MemorySize? Memory { get; init; }
+    /// <summary>What the session's process and everything it started use; nothing to measure for a session with no process, or whose process has gone.</summary>
+    public SessionMemory Memory { get; init; } = new SessionMemory.NothingToMeasure();
 
     /// <summary>The main checkout the session's folder belongs to; null outside a repository, which is how REPOSITORY knows to show the folder's label.</summary>
     public FolderPath? Checkout { get; init; }

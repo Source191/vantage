@@ -12,8 +12,8 @@ public sealed class JsonFileStoreShould : IDisposable
     private static readonly Guid SessionTabId = Guid.Parse("0b8d2a1c-9e3f-4b5a-8c7d-6e5f4a3b2c1d");
     private static readonly Guid OwnTabId = Guid.Parse("1c9e3f4b-5a8c-7d6e-5f4a-3b2c1d0b8d2a");
 
-    private static readonly TabRegistration SessionTab = new(SessionTabId, new TabOwner.ForSession(SessionId.From("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3")), TabPalette.Default[2], Noon, 4242, Noon.AddSeconds(5));
-    private static readonly TabRegistration OwnTab = new(OwnTabId, TabOwner.Vantage, TabPalette.Default[4], Noon, 5151, Noon.AddSeconds(1));
+    private static readonly TabRegistration SessionTab = new(SessionTabId, new TabOwner.ForSession(SessionId.From("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3")), TabPalette.Default[2], Noon, new TabClaim.Claimed(4242, Noon.AddSeconds(5)));
+    private static readonly TabRegistration OwnTab = new(OwnTabId, TabOwner.Vantage, TabPalette.Default[4], Noon, new TabClaim.Claimed(5151, Noon.AddSeconds(1)));
 
     /// <summary>A session's tab file exactly as the store wrote it before ids were typed: the owner is the session id string.</summary>
     private const string SessionTabJson = """
@@ -44,6 +44,23 @@ public sealed class JsonFileStoreShould : IDisposable
           "processStartedAt": "2026-10-23T12:00:01+00:00"
         }
         """;
+
+    /// <summary>A session's tab file as the store writes it before the tab's shell claims it: no process yet.</summary>
+    private const string PendingTabJson = """
+        {
+          "id": "0b8d2a1c-9e3f-4b5a-8c7d-6e5f4a3b2c1d",
+          "sessionId": "1a4d2d86-8e87-44fe-a9f7-61d47d481ae3",
+          "colour": {
+            "name": "Yellow",
+            "hex": "#FFB900"
+          },
+          "createdAt": "2026-10-23T12:00:00+00:00",
+          "processId": null,
+          "processStartedAt": null
+        }
+        """;
+
+    private static readonly TabRegistration PendingTab = SessionTab with { Claim = new TabClaim.Pending() };
 
     /// <summary>created.json exactly as the store wrote it before paths became FolderPath: plain strings.</summary>
     private const string CreatedJson = """
@@ -102,6 +119,35 @@ public sealed class JsonFileStoreShould : IDisposable
 
         (await File.ReadAllTextAsync(Path.Combine(folder, "tabs", $"{SessionTabId:N}.json"), TestContext.Current.CancellationToken)).ReplaceLineEndings("\n").ShouldBe(SessionTabJson.ReplaceLineEndings("\n"));
         (await File.ReadAllTextAsync(Path.Combine(folder, "tabs", $"{OwnTabId:N}.json"), TestContext.Current.CancellationToken)).ReplaceLineEndings("\n").ShouldBe(OwnTabJson.ReplaceLineEndings("\n"));
+    }
+
+    [Fact]
+    public async Task ReadAPendingTabFileWrittenByTheCurrentVersion()
+    {
+        Directory.CreateDirectory(Path.Combine(folder, "tabs"));
+        await File.WriteAllTextAsync(Path.Combine(folder, "tabs", "0b8d2a1c9e3f4b5a8c7d6e5f4a3b2c1d.json"), PendingTabJson, TestContext.Current.CancellationToken);
+
+        TabRegistration read = (await Store.ReadTabsAsync()).Single();
+
+        read.ShouldBe(PendingTab);
+        read.Claim.ShouldBe(new TabClaim.Pending());
+    }
+
+    [Fact]
+    public async Task ReadATabFileHoldingAProcessWithoutItsStartTimeAsPending()
+    {
+        Directory.CreateDirectory(Path.Combine(folder, "tabs"));
+        await File.WriteAllTextAsync(Path.Combine(folder, "tabs", "0b8d2a1c9e3f4b5a8c7d6e5f4a3b2c1d.json"), PendingTabJson.Replace("\"processId\": null", "\"processId\": 4242", StringComparison.Ordinal), TestContext.Current.CancellationToken);
+
+        (await Store.ReadTabsAsync()).Single().Claim.ShouldBe(new TabClaim.Pending());
+    }
+
+    [Fact]
+    public async Task WriteTheTabFileItAlwaysHas()
+    {
+        await Store.WriteTabAsync(PendingTab);
+
+        (await File.ReadAllTextAsync(Path.Combine(folder, "tabs", $"{SessionTabId:N}.json"), TestContext.Current.CancellationToken)).ReplaceLineEndings("\n").ShouldBe(PendingTabJson.ReplaceLineEndings("\n"));
     }
 
     [Fact]

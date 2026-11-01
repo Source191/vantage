@@ -1,7 +1,6 @@
 using Source191.Vantage.Domain;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 
 namespace Source191.Vantage.Adapters.State;
 
@@ -25,22 +24,4 @@ public sealed class TabOwnerJsonConverter : JsonConverter<TabOwner>
         TabOwner.ForSession session => session.Id.Value,
         _ => Vantage,
     });
-}
-
-/// <summary>Keeps the JSON names state files were written with when a field was renamed in code.</summary>
-public static class StateFileNames
-{
-    /// <summary>A tab registration's owner was its session id; files keep the "sessionId" key.</summary>
-    public static void KeepTabOwnerAsSessionId(JsonTypeInfo info)
-    {
-        if (info.Type != typeof(TabRegistration))
-        {
-            return;
-        }
-
-        foreach (JsonPropertyInfo property in info.Properties.Where(property => property.Name == "owner"))
-        {
-            property.Name = "sessionId";
-        }
-    }
 }

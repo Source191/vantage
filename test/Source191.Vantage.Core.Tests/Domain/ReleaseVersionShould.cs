@@ -63,13 +63,19 @@ public sealed class ReleaseVersionShould
     [InlineData("0.4.10-ci.12")]
     public void KnowAPrerelease(string text)
     {
-        ReleaseVersions.Version(text).IsPrerelease.ShouldBeTrue();
+        ReleaseVersion prerelease = ReleaseVersions.Version(text);
+
+        prerelease.IsPrerelease.ShouldBeTrue();
+        prerelease.Prerelease.ShouldBe(text[(text.IndexOf('-', StringComparison.Ordinal) + 1)..]);
     }
 
     [Fact]
     public void KnowARelease()
     {
-        ReleaseVersions.Version("0.10.0").IsPrerelease.ShouldBeFalse();
+        ReleaseVersion release = ReleaseVersions.Version("0.10.0");
+
+        release.IsPrerelease.ShouldBeFalse();
+        release.Prerelease.ShouldBeEmpty();
     }
 
     [Theory]
@@ -88,11 +94,11 @@ public sealed class ReleaseVersionShould
     }
 
     [Theory]
-    [InlineData("0.10.0", 0, 10, 0, null)]
-    [InlineData("2.1.310", 2, 1, 310, null)]
+    [InlineData("0.10.0", 0, 10, 0, "")]
+    [InlineData("2.1.310", 2, 1, 310, "")]
     [InlineData("0.19.0-preview.6", 0, 19, 0, "preview.6")]
-    [InlineData(" 1.0.0+3f2a9c1d ", 1, 0, 0, null)]
-    public void ReadAVersion(string text, int major, int minor, int patch, string? prerelease)
+    [InlineData(" 1.0.0+3f2a9c1d ", 1, 0, 0, "")]
+    public void ReadAVersion(string text, int major, int minor, int patch, string prerelease)
     {
         ReleaseVersion.TryParse(text, out ReleaseVersion? version).ShouldBeTrue();
         version.ShouldBe(new ReleaseVersion(major, minor, patch, prerelease));
@@ -103,12 +109,13 @@ public sealed class ReleaseVersionShould
     {
         string[] texts = ["0.10.0", "unknown", "0.9.0-rc.1", "1.0", "0.11.0"];
 
-        ReleaseVersion.Parsed(texts).ShouldBe([new ReleaseVersion(0, 10, 0, null), new ReleaseVersion(0, 9, 0, "rc.1"), new ReleaseVersion(0, 11, 0, null)]);
+        ReleaseVersion.Parsed(texts).ShouldBe([new ReleaseVersion(0, 10, 0, ""), new ReleaseVersion(0, 9, 0, "rc.1"), new ReleaseVersion(0, 11, 0, "")]);
     }
 
     [Fact]
     public void WriteItselfAsItWasRead()
     {
         ReleaseVersions.Version("0.10.0-rc.1").ToString().ShouldBe("0.10.0-rc.1");
+        ReleaseVersions.Version("0.10.0").ToString().ShouldBe("0.10.0");
     }
 }

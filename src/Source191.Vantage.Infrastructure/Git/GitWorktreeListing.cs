@@ -24,8 +24,8 @@ public static class GitWorktreeListing
         string path = string.Empty;
         string commit = string.Empty;
         Head head = new Head.Unknown();
-        string? lockReason = null;
-        string? prunableReason = null;
+        WorktreeLock locked = new WorktreeLock.Unlocked();
+        bool prunable = false;
 
         foreach (string line in block.Split('\n', StringSplitOptions.RemoveEmptyEntries))
         {
@@ -45,17 +45,17 @@ public static class GitWorktreeListing
                     head = new Head.Detached();
                     break;
                 case "locked":
-                    lockReason = value;
+                    locked = new WorktreeLock.Locked(value);
                     break;
                 case "prunable":
-                    prunableReason = value;
+                    prunable = true;
                     break;
                 default:
                     break;
             }
         }
 
-        return new GitWorktreeEntry(path, commit, head, isMain, lockReason, prunableReason);
+        return new GitWorktreeEntry(path, commit, head, isMain, locked, prunable);
     }
 
     /// <summary>The branch a "branch" line names, without its refs/heads/ prefix; Unknown when that is not a branch name.</summary>

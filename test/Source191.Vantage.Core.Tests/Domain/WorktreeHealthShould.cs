@@ -7,9 +7,9 @@ public sealed class WorktreeHealthShould
     private static readonly WorktreeObservation Registered = new(
         RegisteredWithGit: true,
         FolderExists: true,
-        LockReason: null,
+        Lock: new WorktreeLock.Unlocked(),
         UnderClaudeWorktrees: false,
-        GitFileTargetExists: true,
+        GitFile: new GitPointer.TargetExists(),
         EmptyLeftoverFolder: false);
 
     [Fact]
@@ -24,7 +24,7 @@ public sealed class WorktreeHealthShould
     [Fact]
     public void BeLockedWithTheReasonGitGives()
     {
-        WorktreeHealth health = WorktreeHealth.From(Registered with { LockReason = "maintenance" });
+        WorktreeHealth health = WorktreeHealth.From(Registered with { Lock = new WorktreeLock.Locked("maintenance") });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Locked);
         health.Reason.ShouldBe(new HealthReason.Locked("maintenance"));
@@ -33,7 +33,7 @@ public sealed class WorktreeHealthShould
     [Fact]
     public void BeLockedEvenWhenGitGivesNoReason()
     {
-        WorktreeHealth health = WorktreeHealth.From(Registered with { LockReason = string.Empty });
+        WorktreeHealth health = WorktreeHealth.From(Registered with { Lock = new WorktreeLock.Locked(string.Empty) });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Locked);
     }
@@ -50,7 +50,7 @@ public sealed class WorktreeHealthShould
     [Fact]
     public void BeBrokenWhenAFolderPointsAtARegistrationThatNoLongerExists()
     {
-        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = false });
+        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFile = new GitPointer.TargetGone() });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Broken);
         health.Reason.ShouldBe(new HealthReason.RegistrationGone());
@@ -59,7 +59,7 @@ public sealed class WorktreeHealthShould
     [Fact]
     public void BeOrphanForAFolderUnderClaudeWorktreesThatGitNoLongerLists()
     {
-        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, UnderClaudeWorktrees = true, GitFileTargetExists = null });
+        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, UnderClaudeWorktrees = true, GitFile = new GitPointer.NoGitFile() });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Orphan);
         health.Reason.ShouldBe(new HealthReason.UnderClaudeWorktrees());
@@ -68,7 +68,7 @@ public sealed class WorktreeHealthShould
     [Fact]
     public void BeEmptyForALeftoverFolderWithNothingInIt()
     {
-        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = null, EmptyLeftoverFolder = true });
+        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFile = new GitPointer.NoGitFile(), EmptyLeftoverFolder = true });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Empty);
         health.Reason.ShouldBe(new HealthReason.EmptyLeftover());
@@ -79,24 +79,25 @@ public sealed class WorktreeHealthShould
     {
         FolderPath ledger = FolderPath.From(@"D:\other\Northwind.Ledger");
 
-        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = true, OwnerRepository = ledger });
+        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFile = new GitPointer.RegisteredElsewhere(ledger) });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Elsewhere);
         health.Reason.ShouldBe(new HealthReason.RepositoryOutsideRoots(ledger));
     }
 
     [Fact]
-    public void StayBrokenWhenTheRegistrationIsGoneWhateverTheOwner()
+    public void BeOrphanWhenTheRegistrationExistsButNoOwningRepositoryCanBeNamed()
     {
-        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = false, OwnerRepository = FolderPath.From(@"D:\other\Northwind.Ledger") });
+        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFile = new GitPointer.TargetExists() });
 
-        health.Kind.ShouldBe(WorktreeHealthKind.Broken);
+        health.Kind.ShouldBe(WorktreeHealthKind.Orphan);
+        health.Reason.ShouldBe(new HealthReason.NotRegistered());
     }
 
     [Fact]
     public void BeOrphanForAnyOtherFolderGitDoesNotRegister()
     {
-        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFileTargetExists = null });
+        WorktreeHealth health = WorktreeHealth.From(Registered with { RegisteredWithGit = false, GitFile = new GitPointer.NoGitFile() });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Orphan);
         health.Reason.ShouldBe(new HealthReason.NotRegistered());

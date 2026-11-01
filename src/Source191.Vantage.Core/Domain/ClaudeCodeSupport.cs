@@ -14,7 +14,7 @@ public abstract record ClaudeCodeVersion
 /// <summary>The oldest Claude Code CLI Vantage supports: the version its CLI facts were verified against.</summary>
 public static class ClaudeCodeSupport
 {
-    public static readonly ReleaseVersion Minimum = new(2, 1, 309, null);
+    public static readonly ReleaseVersion Minimum = new(2, 1, 309, string.Empty);
 
     /// <summary>Only a version Vantage can read and compare is warned about; a false alarm is worse than none.</summary>
     public static ClaudeCodeVersion Check(string? reported)

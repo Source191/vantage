@@ -15,8 +15,8 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void DescribeASessionAtAPermissionPrompt()
     {
-        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = MemorySize.FromMegabytes(903) };
-        row = row with { Session = row.Session with { WaitingFor = "permission prompt" } };
+        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = new SessionMemory.Measured(MemorySize.FromMegabytes(903)) };
+        row = row with { Session = row.Session with { WaitingFor = new WaitingReason.Given("permission prompt") } };
         SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, Now.AddHours(-2))));
 
         DetailContent content = Wording.Detail(detail, Now);
@@ -39,7 +39,9 @@ public sealed class WordingOfDetailShould
     {
         SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { HasTranscript = false };
 
-        Text(Wording.Detail(Detail(row), Now))[0].ShouldBe("Waiting a first prompt");
+        DetailLine waiting = Wording.Detail(Detail(row), Now).Facts[0][0];
+
+        (waiting.Text, waiting.Tone).ShouldBe(("a first prompt", TextTone.Amber));
     }
 
     [Fact]
