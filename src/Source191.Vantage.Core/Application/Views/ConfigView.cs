@@ -15,7 +15,7 @@ public sealed record ConfigViewUpdate(ConfigViewState State, IReadOnlyList<ViewE
 
 public sealed record ConfigViewState(
     IReadOnlyList<ConfigRow> Rows,
-    string? SelectedKey,
+    SelectionKey SelectedKey,
     RowFilter Filter,
     bool FilterEditing,
     LoadBanner Banner,
@@ -23,7 +23,7 @@ public sealed record ConfigViewState(
     bool Loaded = false)
     : IListViewState<ConfigRow>
 {
-    public static readonly ConfigViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: new LoadBanner.None(), Message: StatusMessage.None);
+    public static readonly ConfigViewState Empty = new([], new SelectionKey.None(), new RowFilter(string.Empty), FilterEditing: false, Banner: new LoadBanner.None(), Message: StatusMessage.None);
 
     private static readonly ListPolicy<ConfigRow> Policy = new(
         KeyOf: row => row.Key,
@@ -31,7 +31,7 @@ public sealed record ConfigViewState(
         Order: rows => rows,
         KeyComparison: StringComparison.Ordinal);
 
-    public ListSelection<ConfigRow> List => new(Policy, Rows, SelectedKey, Filter, FilterEditing, Loaded);
+    public ListSelection<ConfigRow> List => Policy.List(Rows, SelectedKey, Filter, FilterEditing, Loaded);
 
     public ConfigRow? Selected => List.Selected;
 
@@ -44,7 +44,7 @@ public sealed record ConfigViewState(
 
     public TableTitle Title => List.Title("row", Wording.ConfigSetting);
 
-    public ConfigViewState With(ListSelection<ConfigRow> list) => this with { Rows = list.Rows, SelectedKey = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
+    public ConfigViewState With(ListSelection<ConfigRow> list) => this with { Rows = list.Rows, SelectedKey = list.Selection, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 }
 
 /// <summary>The Config tab as a pure function of state and input, as <see cref="WorktreesView"/> is for its tab.</summary>

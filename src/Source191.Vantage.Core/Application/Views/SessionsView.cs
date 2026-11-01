@@ -117,7 +117,7 @@ public sealed record ViewUpdate(SessionsViewState State, IReadOnlyList<ViewEffec
 
 public sealed record SessionsViewState(
     IReadOnlyList<SessionRow> Rows,
-    string? SelectedSessionId,
+    SelectionKey SelectedSessionId,
     RowFilter Filter,
     bool FilterEditing,
     LoadBanner Banner,
@@ -126,7 +126,7 @@ public sealed record SessionsViewState(
     : IListViewState<SessionRow>
 {
     /// <summary>Nothing listed yet: the first listing has not arrived, so the screen shows that it is waiting rather than an empty table.</summary>
-    public static readonly SessionsViewState Empty = new([], null, new RowFilter(string.Empty), FilterEditing: false, Banner: new LoadBanner.None(), Message: StatusMessage.None);
+    public static readonly SessionsViewState Empty = new([], new SelectionKey.None(), new RowFilter(string.Empty), FilterEditing: false, Banner: new LoadBanner.None(), Message: StatusMessage.None);
 
     /// <summary>The automated runs the last listing held, for the counts; kept when a listing fails, as the rows are.</summary>
     public AutomatedRuns AutomatedRuns { get; init; } = AutomatedRuns.None;
@@ -138,7 +138,7 @@ public sealed record SessionsViewState(
         KeyComparison: StringComparison.Ordinal);
 
     /// <summary>The rows, selection, filter and loaded flag as the shared list component, built from this state's fields.</summary>
-    public ListSelection<SessionRow> List => new(Policy, Rows, SelectedSessionId, Filter, FilterEditing, Loaded);
+    public ListSelection<SessionRow> List => Policy.List(Rows, SelectedSessionId, Filter, FilterEditing, Loaded);
 
     public IReadOnlyList<SessionRow> VisibleRows => List.Visible;
 
@@ -151,7 +151,7 @@ public sealed record SessionsViewState(
     public StatusMessage Shown => Message;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>
-    public SessionsViewState With(ListSelection<SessionRow> list) => this with { Rows = list.Rows, SelectedSessionId = list.SelectedKey, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
+    public SessionsViewState With(ListSelection<SessionRow> list) => this with { Rows = list.Rows, SelectedSessionId = list.Selection, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 
     private static IEnumerable<SessionRow> ByAttention(IEnumerable<SessionRow> rows)
     {
