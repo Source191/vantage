@@ -56,7 +56,7 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
         WorktreeHealth health = await inspector.HealthAsync(created.Repository, created.Path, cancellationToken);
         WorktreeCounts counts = health.Kind == WorktreeHealthKind.Ok
             ? await inspector.CountAsync(created.Path, cancellationToken)
-            : new WorktreeCounts(0, 0, null);
+            : new WorktreeCounts(0, 0, new LastCommit.Unknown());
 
         return new WorktreeRow(created.Repository, created.Path, new Head.OnBranch(created.Branch), health, counts.DirtyFiles, counts.UnpushedCommits, counts.LastCommitAt, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: folders.DirectoryExists(created.Path.Value));
     }

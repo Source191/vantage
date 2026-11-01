@@ -8,5 +8,5 @@ public static class UpdateCheckOptOut
 {
     public const string VariableName = "VANTAGE_NO_UPDATE_CHECK";
 
-    public static bool Applies(string? value) => !string.IsNullOrWhiteSpace(value);
+    public static bool Applies(string value) => !string.IsNullOrWhiteSpace(value);
 }

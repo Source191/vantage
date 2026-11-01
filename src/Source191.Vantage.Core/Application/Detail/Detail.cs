@@ -1,5 +1,4 @@
 using Source191.Vantage.Application.Views;
-using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Detail;
@@ -19,12 +18,12 @@ public abstract record DetailFact<T>
 public sealed record MergeState(string Into, bool Merged);
 
 /// <summary>Everything the pane shows for a selected session beyond the row itself.</summary>
-public sealed record SessionDetail(SessionRow Row, DateTimeOffset? LastPromptedAt, DetailFact<WorktreeCounts> Counts);
+public sealed record SessionDetail(SessionRow Row, LastPrompt LastPromptedAt, DetailFact<WorktreeCounts> Counts);
 
 /// <summary>Everything the pane shows for a selected worktree beyond the row itself.</summary>
 public sealed record WorktreeDetail(
     WorktreeRow Row,
-    CreatedWorktree? Created,
+    WorktreeOrigin Created,
     DetailFact<MergeState> Merge,
     DetailFact<IReadOnlyList<UnpushedCommit>> Commits,
     DetailFact<IReadOnlyList<string>> ChangedFiles);
