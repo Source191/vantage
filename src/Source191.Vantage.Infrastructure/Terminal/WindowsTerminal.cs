@@ -1,3 +1,4 @@
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.Diagnostics;
 using System.Text;
@@ -64,5 +65,5 @@ public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment 
         }
     }
 
-    public Task<bool> FocusTabAsync(int? terminalProcessId, string title, CancellationToken cancellationToken) => Task.Run(() => UiAutomationTabs.Select(terminalProcessId, title), cancellationToken);
+    public Task<bool> FocusTabAsync(TerminalWindow window, string title, CancellationToken cancellationToken) => Task.Run(() => UiAutomationTabs.Select(window, title), cancellationToken);
 }
