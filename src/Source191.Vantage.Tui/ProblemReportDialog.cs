@@ -52,7 +52,7 @@ internal static class ProblemReportDialog
             }
 
             binding = true;
-            problem.Text = state.Problem is ReportTitleProblem refused ? Wording.Describe(refused) : " ";
+            problem.Text = state.Problem is ReportTitleProblemLine.Shows shows ? Wording.Describe(shows.Problem) : " ";
             binding = false;
         }
 
