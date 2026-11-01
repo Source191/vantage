@@ -6,11 +6,9 @@ namespace Source191.Vantage.Adapters.Terminal;
 /// <summary>The console Vantage runs in, titled with the given text, through <see cref="ConsoleRecovery"/> and <see cref="TabEscapes"/>.</summary>
 public sealed class TerminalConsole(TextWriter console, string title) : ITerminalConsole
 {
-    public void ShowOwnTab(TabColour? colour)
-    {
-        string label = TabEscapes.Title(title) + (colour is null ? string.Empty : TabEscapes.Background(colour));
-        ConsoleRecovery.WriteSequence(console, label);
-    }
+    public void ShowOwnTab(TabColour colour) => ConsoleRecovery.WriteSequence(console, TabEscapes.Title(title) + TabEscapes.Background(colour));
+
+    public void ShowOwnTab() => ConsoleRecovery.WriteSequence(console, TabEscapes.Title(title));
 
     public void ClearOwnTab() => ConsoleRecovery.WriteSequence(console, TabEscapes.ClearTitle + TabEscapes.ResetBackground);
 

@@ -1,7 +1,6 @@
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
-using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.Diagnostics;
 
@@ -24,8 +23,7 @@ public sealed class ScreenLoop(
 
     public async Task<int> RunAsync(int processId, CancellationToken cancellationToken)
     {
-        TabColour? ownColour = await ownTab.ClaimAsync(processId);
-        console.ShowOwnTab(ownColour);
+        ShowOwnTab(await ownTab.ClaimAsync(processId));
         UpdateCheckTask = CheckForUpdatesAsync(cancellationToken);
 
         ConsoleExit exit = screen.Run(ConsoleState.Empty);
@@ -37,6 +35,21 @@ public sealed class ScreenLoop(
         console.ClearOwnTab();
 
         return 0;
+    }
+
+    private void ShowOwnTab(OwnTabClaim claim)
+    {
+        switch (claim)
+        {
+            case OwnTabClaim.Claimed claimed:
+                console.ShowOwnTab(claimed.Colour);
+                break;
+            case OwnTabClaim.Unregistered:
+                console.ShowOwnTab();
+                break;
+            default:
+                throw new UnreachableException();
+        }
     }
 
     private async Task CheckForUpdatesAsync(CancellationToken cancellationToken)
