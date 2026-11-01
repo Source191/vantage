@@ -22,7 +22,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step and
   Verified: both lines read against design.md; the idiom line also says "reference type" (design.md's second risk) and that `NullFreeModelsShould` keeps it in Core while review keeps `Infrastructure` and `Tui`; no em dash.
 - [x] 3.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` by one preview step above main at the time. Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
   Verified: 0.20.0-preview.8 to 0.20.0-preview.9 (the stack decides the step); `Assert-VersionBumped.ps1 -Base main -Head HEAD` passes.
-- [ ] 3.3 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate standardise-maybe-null-when --strict` all pass. Record the counts here.
+- [x] 3.3 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate standardise-maybe-null-when --strict` all pass. Record the counts here.
+  Verified: build 0 warnings; solution tests 2326 total, 2317 passed, 9 skipped (the opt-in contract facts), 0 failed (Core 1956); format clean; validate passes.
 
 ## Workflow follow-up
 
