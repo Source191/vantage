@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Source191.Vantage.Application.Views;
 
@@ -53,11 +54,11 @@ public static class ConsoleView
 /// <summary>The keys every tab shares for moving between tabs: 1, 2 and 3 choose one, Left and Right step through them.</summary>
 public static class TabKeys
 {
-    public static ViewEffect? For(Key key)
+    /// <summary>The effect of a tab key; false for a key that is not one.</summary>
+    public static bool TryFor(Key key, [NotNullWhen(true)] out ViewEffect? effect)
     {
         ArgumentNullException.ThrowIfNull(key);
-
-        return key switch
+        effect = key switch
         {
             { Name: KeyName.Left } => new PreviousTab(),
             { Name: KeyName.Right } => new NextTab(),
@@ -66,5 +67,7 @@ public static class TabKeys
             { Name: KeyName.Character, Character: '3' } => new SelectTab(ConsoleTab.Config),
             _ => null,
         };
+
+        return effect is not null;
     }
 }

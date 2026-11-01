@@ -8,9 +8,10 @@ namespace Source191.Vantage.Application.Diagnostics;
 /// </summary>
 public static class Attempt
 {
-    public static async Task<T> RunAsync<T>(DiagnosticLog log, FailureSite site, CodeName? what, Func<Task<T>> action, Func<Exception, T> onFailure)
+    public static async Task<T> RunAsync<T>(DiagnosticLog log, FailureSite site, CodeName what, Func<Task<T>> action, Func<Exception, T> onFailure)
     {
         ArgumentNullException.ThrowIfNull(log);
+        ArgumentNullException.ThrowIfNull(what);
         ArgumentNullException.ThrowIfNull(action);
         ArgumentNullException.ThrowIfNull(onFailure);
         try

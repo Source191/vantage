@@ -237,7 +237,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         row.DirtyFiles.ShouldBe(5);
         row.UnpushedCommits.ShouldBe(2);
-        row.LastCommitAt.ShouldNotBeNull();
+        row.LastCommitAt.ShouldBeOfType<LastCommit.Made>();
     }
 
     [Fact]

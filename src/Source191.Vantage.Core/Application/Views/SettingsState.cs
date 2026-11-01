@@ -27,7 +27,7 @@ public sealed record SettingsState(SettingsText Text, SettingsProblemLine Proble
     };
 
     /// <summary>Where the folder picker opens: the folder holding the first root typed that is a full path, or the worktree root typed (the folder itself when it has no parent); nothing when there is none.</summary>
-    public FolderPath? BrowseFrom => FolderTyped() is FolderPath typed ? typed.Parent ?? typed : null;
+    public BrowseStart BrowseFrom => FolderTyped() is FolderPath typed ? new BrowseStart.At(typed.Parent ?? typed) : new BrowseStart.NoFolderTyped();
 
     /// <summary>The executable and arguments fields show only for a custom editor.</summary>
     public bool ShowsCustomEditor => Text.Preset == EditorPreset.Custom;
