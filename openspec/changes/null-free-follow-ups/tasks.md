@@ -5,7 +5,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 ## 1. Domain and settings
 
 - [x] 1.1 `SettingsShould` and `SettingsFileShould` resolve the same defaults through `WorktreeRootChoice` and plain values (`Resolve([], new WorktreeRootChoice.BesideFirstRoot(), ..., Settings.BaseWhenUnset, Home)`), and the five `Settings.Resolve` entries leave `Kept`: red, then `Domain\WorktreeRootChoice.cs`, `Settings.Resolve` without nullables and `SettingsFile.From` meeting config.json's missing properties green. Verify every defaulting fact passes with unchanged expectations.
-- [ ] 1.2 `ToolVersionShould` and `UpdateCheckOptOutShould` lose their null rows and the two entries leave `Kept`: red, then `FromInformational(string)`, `Applies(string)` and `Program.cs`'s `?? string.Empty` green. Verify the empty and blank rows still answer "unknown" and false.
+- [x] 1.2 `ToolVersionShould` and `UpdateCheckOptOutShould` lose their null rows and the two entries leave `Kept`: red, then `FromInformational(string)`, `Applies(string)` and `Program.cs`'s `?? string.Empty` green. Verify the empty and blank rows still answer "unknown" and false.
 
 ## 2. Application: worktrees and sessions
 
