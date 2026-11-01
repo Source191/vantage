@@ -114,6 +114,29 @@ public sealed class EditorLocatorShould
         (await Locate(folders, EditorPreset.Rider)).ShouldBe(new ProgramLocation.Found(@"C:\Program Files\JetBrains\JetBrains Rider 2025.10\bin\rider64.exe"));
     }
 
+    [Theory]
+    [InlineData("Rider")]
+    [InlineData("JetBrains Rider 2025.3")]
+    public async Task FindRiderInTheUserProgramsFolder(string folder)
+    {
+        string rider = $@"C:\Users\me\AppData\Local\Programs\{folder}\bin\rider64.exe";
+        FakeFolders folders = new FakeFolders().WithFile(rider).WithFile(@"C:\Users\me\AppData\Local\Programs\Microsoft VS Code\Code.exe");
+
+        (await Locate(folders, EditorPreset.Rider)).ShouldBe(new ProgramLocation.Found(rider));
+    }
+
+    [Fact]
+    public async Task ChooseTheNewestRiderAcrossEveryInstallFolder()
+    {
+        FakeFolders folders = new FakeFolders()
+            .WithFile(@"C:\Program Files\JetBrains\JetBrains Rider 2025.2\bin\rider64.exe")
+            .WithFile(@"C:\Users\me\AppData\Local\JetBrains\Toolbox\apps\Rider\ch-0\251.1\bin\rider64.exe")
+            .WithFile(@"C:\Users\me\AppData\Local\Programs\Rider 2025.9\bin\rider64.exe")
+            .WithFile(@"C:\Users\me\AppData\Local\Programs\Rider 2025.10\bin\rider64.exe");
+
+        (await Locate(folders, EditorPreset.Rider)).ShouldBe(new ProgramLocation.Found(@"C:\Users\me\AppData\Local\Programs\Rider 2025.10\bin\rider64.exe"));
+    }
+
     [Fact]
     public async Task RankToolboxBuildsByNumber()
     {
