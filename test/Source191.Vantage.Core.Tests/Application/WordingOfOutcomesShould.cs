@@ -180,8 +180,15 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void AddANoteForEachSessionThatDidNotResume()
     {
-        Wording.Describe(new ResumeSessionsOutcome(1, 3, [new ResumeNote.NeverSentAMessage("repos-f6"), new ResumeNote.Failed("fix-123", "boom")]))
-            .ShouldBe("Resumed 1 of 3. Notes: repos-f6: never sent a message, so there is nothing to resume; d deletes it; fix-123: boom");
+        Wording.Describe(new ResumeSessionsOutcome(1, 3, [new ResumeNote.NeverSentAMessage("repos-f6"), new ResumeNote.Failed("fix-123", "boom", SessionId.From("sess-1"))]))
+            .ShouldBe("Resumed 1 of 3. Notes: repos-f6: never sent a message, so there is nothing to resume; d deletes it; fix-123: boom; resume it with claude --bg --resume sess-1");
+    }
+
+    [Fact]
+    public void GiveTheCommandThatBringsBackASessionWhoseResumeFailed()
+    {
+        Wording.Describe(new ResumeSessionsOutcome(0, 1, [new ResumeNote.Failed("fix-123", "Workspace not trusted", SessionId.From("sess-1"))]))
+            .ShouldBe("Resumed 0 of 1. Notes: fix-123: Workspace not trusted; resume it with claude --bg --resume sess-1");
     }
 
     [Fact]

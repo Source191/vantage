@@ -41,6 +41,7 @@ public sealed class ResumeSessionsHandlerShould
         Outcome message = await Handler.HandleAsync(new ResumeSessions([withTranscript, stub]), CancellationToken.None);
 
         processes.CapturedRequests.Count(request => request.Arguments.Contains("--resume")).ShouldBe(1);
+        processes.CapturedRequests.Count(request => request.Arguments.Contains("rm")).ShouldBe(1, "a session with no transcript keeps its job, since it could not come back");
         ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
         (resume.Resumed, resume.Chosen).ShouldBe((1, 2));
         resume.Notes.ShouldBe([new ResumeNote.NeverSentAMessage("repos-f6")]);
@@ -61,6 +62,34 @@ public sealed class ResumeSessionsHandlerShould
         resumes.Select(request => request.Arguments[2]).ShouldBe(["sess-1", "sess-2"]);
         resumes.Select(request => request.Arguments[^1]).ShouldAllBe(name => name == "fix-123", "the display name survives the resume");
         message.ShouldBeOfType<ResumeSessionsOutcome>().Resumed.ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task RemoveEachJobBeforeResumingIt()
+    {
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
+        transcripts.WithMessages("sess-1").WithMessages("sess-2");
+        BackgroundSession first = Job(Repository, DisplayState.Failed);
+        BackgroundSession second = Job(Worktree, DisplayState.Stopped) with { SessionId = SessionId.From("sess-2"), JobId = JobId.From("c429a96e"), Name = "fix-124" };
+
+        await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
+
+        processes.CapturedRequests.Where(request => request.FileName == Claude).Select(request => string.Join(' ', request.Arguments)).ShouldBe(
+            ["rm 81cdb0f9", "--bg --resume sess-1 -n fix-123", "rm c429a96e", "--bg --resume sess-2 -n fix-124"],
+            "a listed job resumed with flags starts a copy, so it is removed first and the session id continues");
+    }
+
+    [Fact]
+    public async Task NameTheSessionIdWhenAResumeFailsAfterTheRemoval()
+    {
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(1, string.Empty, "Workspace not trusted"));
+        transcripts.WithMessages("sess-1");
+
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([Job(Repository, DisplayState.Failed)]), CancellationToken.None);
+
+        ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
+        resume.Resumed.ShouldBe(0);
+        resume.Notes.ShouldBe([new ResumeNote.Failed("fix-123", "Workspace not trusted", SessionId.From("sess-1"))], "the job is gone, so the note carries what brings the session back");
     }
 
     [Fact]

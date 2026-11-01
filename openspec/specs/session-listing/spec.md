@@ -17,7 +17,7 @@ Vantage SHALL obtain the session list by running the Claude Code CLI's JSON list
 - **THEN** the view keeps the rows it last showed, displays an error banner naming the failure, and does not exit
 
 ### Requirement: Session state is shown in six display states
-Vantage SHALL map each session's process presence, status, waitingFor and state fields to exactly one of: working, needs input, idle, completed, failed, stopped. A row without a process identifier is stopped or failed, never working.
+Vantage SHALL map each session's process presence, status, waitingFor and state fields to exactly one of: working, needs input, idle, completed, failed, stopped. A row without a process identifier is stopped or failed, never working. A background session with a process identifier and no status yet is starting up, and SHALL show the word starting in the working state.
 
 #### Scenario: Busy session
 - **WHEN** a session reports status busy and state working
@@ -38,6 +38,10 @@ Vantage SHALL map each session's process presence, status, waitingFor and state 
 #### Scenario: Deliberately stopped session
 - **WHEN** a session row has no process identifier and no status, and its state is done or blocked
 - **THEN** its row shows stopped
+
+#### Scenario: Background session starting up
+- **WHEN** a background session reports a process identifier, no status and state blocked
+- **THEN** its row shows starting in the working colour and glyph, never "/blocked"
 
 #### Scenario: Unknown combination
 - **WHEN** a session reports a status or state Vantage does not recognise
@@ -300,7 +304,7 @@ A process's memory SHALL be its private working set, the figure Task Manager's M
 - **THEN** the session's figure is the sum of the others
 
 ### Requirement: The header summarises sessions by state
-The table's title beside the tabs SHALL count the sessions listed, and the counts beside the tabs SHALL show one glyph, count and state word per state present, needs input first; with no session listed the title SHALL read 0 sessions and no counts SHALL show.
+The table's title beside the tabs SHALL count the sessions listed, and the counts beside the tabs SHALL show one glyph, count and state word per state present, needs input first; with no session listed the title SHALL read 0 sessions and no counts SHALL show. Sessions starting up SHALL be counted with the working ones under the word working.
 
 #### Scenario: Mixed states
 - **WHEN** nine sessions are listed, four of them stopped and the rest needing input
@@ -313,6 +317,10 @@ The table's title beside the tabs SHALL count the sessions listed, and the count
 #### Scenario: No sessions
 - **WHEN** no session is listed
 - **THEN** the title reads 0 sessions and no counts show
+
+#### Scenario: Starting and working together
+- **WHEN** one session is starting up and one is working, the starting one first in the table
+- **THEN** the counts read ● 2 working
 
 ### Requirement: Long names never hide columns
 The sessions table SHALL give REPOSITORY the width its other columns leave and SHALL fit every column on a 120-column terminal; a REPOSITORY value too long for its width SHALL lose its middle, marked with an ellipsis. NAME SHALL keep its cap and ellipsis, the row SHALL keep the full values for every key that uses them, and < and > SHALL scroll the table on a narrower terminal, Left and Right being the tab keys. The key bar SHALL show every key that applies within 120 columns, with its words.

@@ -149,7 +149,7 @@ public static partial class Wording
     private static string CountedState(DisplayStateKind kind, List<SessionRow> rows) => kind switch
     {
         DisplayStateKind.NeedsInput => rows.Count == 1 ? "needs input" : "need input",
-        DisplayStateKind.Working => rows[0].Session.State.Label,
+        DisplayStateKind.Working => DisplayState.Working.Label,
         DisplayStateKind.Idle => rows[0].Session.State.Label,
         DisplayStateKind.Completed => rows[0].Session.State.Label,
         DisplayStateKind.Failed => rows[0].Session.State.Label,
