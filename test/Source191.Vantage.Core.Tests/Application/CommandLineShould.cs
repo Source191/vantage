@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.TerminalSetup;
 
 namespace Source191.Vantage.Core.Tests.Application;
@@ -12,6 +13,7 @@ public sealed class CommandLineShould : IDisposable
 {
     private readonly List<string> calls = [];
     private readonly List<TerminalSetupRequest> setups = [];
+    private readonly List<(HereName Name, string Prompt)> heres = [];
     private readonly StringWriter output = new();
     private readonly StringWriter error = new();
 
@@ -19,7 +21,11 @@ public sealed class CommandLineShould : IDisposable
     {
         CommandActions actions = new(
             OpenConsole: _ => Record("console"),
-            StartHere: (name, prompt, _) => Record($"here name={name ?? "(none)"} prompt={prompt ?? "(none)"}"),
+            StartHere: (name, prompt, _) =>
+            {
+                heres.Add((name, prompt));
+                return Record($"here name={Describe(name)} prompt={(prompt.Length == 0 ? "(none)" : prompt)}");
+            },
             SetUpTerminal: (request, _) =>
             {
                 setups.Add(request);
@@ -29,6 +35,13 @@ public sealed class CommandLineShould : IDisposable
 
         return CommandLine.InvokeAsync(CommandLine.Build(actions), arguments, output, error);
     }
+
+    private static string Describe(HereName name) => name switch
+    {
+        HereName.FolderName => "(folder)",
+        HereName.Typed typed => typed.Text,
+        _ => throw new System.Diagnostics.UnreachableException(),
+    };
 
     private Task<int> Record(string call)
     {
@@ -48,9 +61,9 @@ public sealed class CommandLineShould : IDisposable
 
     [Theory]
     [InlineData(new[] { "here", "fix-tests", "-p", "Fix them" }, "here name=fix-tests prompt=Fix them")]
-    [InlineData(new[] { "here" }, "here name=(none) prompt=(none)")]
+    [InlineData(new[] { "here" }, "here name=(folder) prompt=(none)")]
     [InlineData(new[] { "here", "fix-tests", "--prompt=Fix them" }, "here name=fix-tests prompt=Fix them")]
-    [InlineData(new[] { "here", "-p:Fix them" }, "here name=(none) prompt=Fix them")]
+    [InlineData(new[] { "here", "-p:Fix them" }, "here name=(folder) prompt=Fix them")]
     [InlineData(new[] { "here", "--", "-experiment" }, "here name=-experiment prompt=(none)")]
     [InlineData(new[] { "here", "help" }, "here name=help prompt=(none)")]
     public async Task StartHereWithTheNameAndPromptGiven(string[] arguments, string call)
@@ -59,6 +72,26 @@ public sealed class CommandLineShould : IDisposable
 
         exitCode.ShouldBe(0);
         calls.ShouldBe([call]);
+    }
+
+    [Fact]
+    public async Task HandHereItsNameOrTheFolderName()
+    {
+        await InvokeAsync("here");
+        await InvokeAsync("here", "fix-tests");
+        await InvokeAsync("here", "");
+
+        heres.Select(here => here.Name).ShouldBe([new HereName.FolderName(), new HereName.Typed("fix-tests"), new HereName.Typed("")], "an empty name is typed, and refused later as blank");
+    }
+
+    [Fact]
+    public async Task HandHereThePromptTypedOrNothing()
+    {
+        await InvokeAsync("here");
+        await InvokeAsync("here", "-p", "Fix them");
+        await InvokeAsync("here", "-p", "");
+
+        heres.Select(here => here.Prompt).ShouldBe(["", "Fix them", ""], "a prompt left off is empty, as the wizard's empty box is");
     }
 
     [Theory]
