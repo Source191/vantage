@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using System.Buffers;
 
 namespace Source191.Vantage.Domain;
 
@@ -10,10 +10,9 @@ namespace Source191.Vantage.Domain;
 /// line again</see>: a double quote toggles quoting, an ampersand, a pipe, an angle bracket or a caret outside quotes starts
 /// a command, and %NAME% expands everywhere. Only letters, digits, space, dot, underscore, hyphen and slash go through.
 /// </summary>
-public static partial class BatchFileArgument
+public static class BatchFileArgument
 {
-    public static bool IsSafe(string text) => Plain().IsMatch(text);
+    private static readonly SearchValues<char> Plain = SearchValues.Create("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ._/-");
 
-    [GeneratedRegex("^[A-Za-z0-9 ._/-]+$")]
-    private static partial Regex Plain();
+    public static bool IsSafe(string text) => text.Length > 0 && !text.AsSpan().ContainsAnyExcept(Plain);
 }
