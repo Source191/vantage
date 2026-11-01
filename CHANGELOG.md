@@ -51,6 +51,7 @@ What changes in each release of Vantage, written for the people who use it. The 
 
 ### Fixed
 
+- A session just stopped or deleted no longer comes back for a few seconds, rows that arrive while a dialog is open are kept when it closes, the spinner keeps turning until every action has reported and stays through a filter typed before the first listing, Esc clears the status message with the filter, and a child program that has not answered after 60 seconds is ended and reported instead of running on (#184)
 - R continues each session in its own row instead of leaving a duplicate, and a session just started or resumed shows as starting rather than /blocked (#162)
 - Times in the detail pane and the Config tab are shown in the local time zone; Rider's newest install is chosen by version number; changed files with non-ASCII names are listed as typed (#159)
 - Ignored files with non-ASCII names, spaces or apostrophes are copied into a new worktree (#82)
