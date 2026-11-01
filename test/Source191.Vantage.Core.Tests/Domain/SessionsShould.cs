@@ -59,6 +59,7 @@ public sealed class SessionsShould
             Name: name,
             WorkingDirectory: FolderPath.From(@"C:\repos\Northwind.Orders"),
             StartedAt: startedAt,
-            State: state);
+            State: state,
+            Process: new JobProcess.None());
     }
 }
