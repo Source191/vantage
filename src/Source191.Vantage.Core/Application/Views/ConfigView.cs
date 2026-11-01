@@ -1,5 +1,6 @@
 using Source191.Vantage.Domain;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Source191.Vantage.Application.Views;
 
@@ -26,7 +27,7 @@ public sealed record ConfigViewState(
 
     private static readonly ListPolicy<ConfigRow> Policy = new(
         KeyOf: row => row.Key,
-        FilterFields: row => [Wording.ConfigSetting(row), .. FilterText.Of(ConfigView.PathOf(row))],
+        FilterFields: row => [Wording.ConfigSetting(row), ConfigView.TryPathOf(row, out string? path) ? path : string.Empty],
         Order: rows => rows,
         KeyComparison: StringComparison.Ordinal);
 
@@ -66,16 +67,18 @@ public static class ConfigView
         };
     }
 
-    /// <summary>The row's value when it is a path (a root, the worktree root, a setup file), else null.</summary>
-    public static string? PathOf(ConfigRow row)
+    /// <summary>Whether the row's value is a path (a root, the worktree root, a setup file), and the path when it is.</summary>
+    public static bool TryPathOf(ConfigRow row, [NotNullWhen(true)] out string? path)
     {
-        return row switch
+        path = row switch
         {
             ConfigRow.RepositoryRoot root => root.Path.Value,
             ConfigRow.WorktreeRoot worktreeRoot => worktreeRoot.Path.Value,
             ConfigRow.Setup { State: SetupState.At at } => at.Path,
             _ => null,
         };
+
+        return path is not null;
     }
 
     private static ConfigViewUpdate Act(ConfigViewState state, Key key)
@@ -126,7 +129,7 @@ public static class ConfigView
         };
     }
 
-    private static RowDecision WithPath(ConfigRow row, Func<string, ViewEffect> effect) => PathOf(row) is string path ? new RowDecision.Act(effect(path)) : new RowDecision.Explain(new StatusMessage.NoPathHere());
+    private static RowDecision WithPath(ConfigRow row, Func<string, ViewEffect> effect) => TryPathOf(row, out string? path) ? new RowDecision.Act(effect(path)) : new RowDecision.Explain(new StatusMessage.NoPathHere());
 
     /// <summary>A setup row's path is a file, so the folder holding it is the one to open; a root is a folder already.</summary>
     private static FolderPath FolderOf(ConfigRow row, string path) => row is ConfigRow.Setup && FolderPath.From(path).Parent is FolderPath parent ? parent : FolderPath.From(path);
