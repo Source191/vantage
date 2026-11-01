@@ -22,7 +22,7 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
 
 - [x] 4.1 `CLAUDE.md`'s code rules gain the rule (one top-level type per file, named after it without arity; nested types stay nested; a partial type's files start with its name) and name `OneTypePerFileShould` beside `LayeringShould`, `TextValuesShould`, `DiagnosticEventsShould` and `NullFreeModelsShould`; the sentence about a handler's outcome record in its own file stays. Verify by reading it against design.md and checking no em dash was introduced.
 - [x] 4.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview above `main`. Verify `.github\scripts\Assert-VersionBumped.ps1` passes locally against `main`. (0.20.0-preview.7, the next above its base `v-harden`; checked against `v-harden`.)
-- [ ] 4.3 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate one-type-per-file --strict` all pass. Record the totals here.
+- [x] 4.3 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate one-type-per-file --strict` all pass. Record the totals here. (1 November 2026 on `v-one`: build 0 warnings; 2326 tests, 2317 passed, 9 skipped (the Claude Code contract tests), 0 failed; format clean; validate passes.)
 
 ## Workflow follow-up
 
