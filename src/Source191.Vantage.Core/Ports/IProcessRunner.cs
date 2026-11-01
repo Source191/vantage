@@ -1,9 +1,5 @@
 namespace Source191.Vantage.Ports;
 
-public sealed record ProcessRequest(string FileName, IReadOnlyList<string> Arguments, WorkingFolder WorkingDirectory);
-
-public sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError);
-
 /// <summary>
 /// The boundary to child processes. Captured runs return their output; interactive runs hand the
 /// terminal to the child and return only its exit code.

@@ -55,9 +55,3 @@ public sealed class ProblemReport
 
     private static string LeftOut(int dropped) => dropped == 1 ? "\n(1 line left out to fit the page address)" : $"\n({dropped} lines left out to fit the page address)";
 }
-
-/// <summary>One line of a report and its place in the order lines are left out; <see cref="Never"/> is always kept.</summary>
-internal sealed record ReportLine(string Text, int Drop)
-{
-    public const int Never = int.MaxValue;
-}

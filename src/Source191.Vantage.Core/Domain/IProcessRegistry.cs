@@ -1,14 +1,5 @@
 namespace Source191.Vantage.Domain;
 
-/// <summary>A process's parent: its identifier and executable name without extension (for example WindowsTerminal, pwsh).</summary>
-public sealed record ProcessParent(int ProcessId, string Name);
-
-/// <summary>A process as the operating system's table lists it: its id, its parent's id and its executable name without the extension.</summary>
-public sealed record ProcessFacts(int ProcessId, int ParentId, string Name);
-
-/// <summary>What one running process uses: when it started (UTC), its private working set, and the command line it was started with.</summary>
-public sealed record ProcessUsage(DateTimeOffset StartedAt, MemorySize PrivateMemory, string CommandLine);
-
 /// <summary>
 /// The operating system's view of running processes. Implemented at the boundary; faked in tests.
 /// </summary>

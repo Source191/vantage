@@ -36,5 +36,3 @@ public sealed class ProcessCounts
         public ProcessTally With(TimeSpan duration) => new(Runs + 1, duration > Longest ? duration : Longest);
     }
 }
-
-public sealed record ProcessCount(ChildCommand Command, int ExitCode, int Runs, TimeSpan Longest);

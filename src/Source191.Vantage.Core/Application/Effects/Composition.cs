@@ -1,28 +1,8 @@
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Launch;
-using Source191.Vantage.Domain;
-using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Effects;
-
-/// <summary>The ports the background effect handlers are built from.</summary>
-public sealed record EffectPorts(
-    IClaudeCli Claude,
-    IGit Git,
-    IProcessRegistry Processes,
-    ITranscripts Transcripts,
-    IWindowsTerminal Terminal,
-    ITabRegistry Tabs,
-    TimeProvider Clock,
-    IClipboard Clipboard,
-    IDesktop Desktop,
-    IEditorLocator Editors,
-    IFolders Folders,
-    ICrashFile CrashFile);
-
-/// <summary>This Vantage's process, which the update tab waits for, and the folder that tab starts in.</summary>
-public sealed record VantageProcess(int ProcessId, FolderPath Home);
 
 /// <summary>
 /// Every background effect's handler, registered in one place: <c>Program.cs</c> builds the real dispatcher here and

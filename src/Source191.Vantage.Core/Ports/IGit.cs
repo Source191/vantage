@@ -59,6 +59,3 @@ public interface IGit
     /// <summary>Repository-relative paths, with forward slashes, of every file git ignores in the checkout. Throws <see cref="GitException"/> when git fails.</summary>
     Task<IReadOnlyList<string>> ListIgnoredFilesAsync(string repository, CancellationToken cancellationToken);
 }
-
-/// <summary>A commit no remote has: its short hash, when it was committed and its subject line.</summary>
-public sealed record UnpushedCommit(string Hash, DateTimeOffset At, string Subject);

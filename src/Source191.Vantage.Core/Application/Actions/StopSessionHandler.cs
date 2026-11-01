@@ -14,6 +14,3 @@ public sealed class StopSessionHandler(IClaudeCli claude, SessionTabs tabs) : IE
         return new StopSessionOutcome(effect.Session.Name, closure == TabClosure.Closed);
     }
 }
-
-/// <summary>The session was stopped; it stays listed and can be resumed. TabClosed when a Vantage tab showing it was closed too.</summary>
-public sealed record StopSessionOutcome(string Name, bool TabClosed) : Outcome;

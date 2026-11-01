@@ -1,7 +1,5 @@
 namespace Source191.Vantage.Domain;
 
-public sealed record TabColour(string Name, string Hex);
-
 /// <summary>
 /// The ordered tab colours, arranged so that the first six (Vantage's own green and the first five session tabs)
 /// stay apart for protanopia and deuteranopia as well as for normal colour vision.

@@ -27,10 +27,3 @@ public sealed class SessionTabs(ITabRegistry tabs, IProcessRegistry processes, T
         return closure;
     }
 }
-
-/// <summary>Whether closing a session's tabs ended a live one.</summary>
-public enum TabClosure
-{
-    Closed,
-    NoTab,
-}

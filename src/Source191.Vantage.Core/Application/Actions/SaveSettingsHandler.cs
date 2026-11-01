@@ -13,6 +13,3 @@ public sealed class SaveSettingsHandler(CurrentSettings settings) : IEffectHandl
         return new SaveSettingsOutcome();
     }
 }
-
-/// <summary>The settings were written and apply from the next scan, wizard and header on.</summary>
-public sealed record SaveSettingsOutcome : Outcome;
