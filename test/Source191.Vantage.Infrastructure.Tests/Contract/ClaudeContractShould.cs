@@ -30,9 +30,9 @@ public sealed class ClaudeContractShould
     {
         ClaudeCli cli = new(runner, ClaudeContract.Executable());
 
-        string? version = await cli.VersionAsync(Cancellation);
+        ClaudeVersionReport.Printed version = (await cli.VersionAsync(Cancellation)).ShouldBeOfType<ClaudeVersionReport.Printed>();
 
-        ReleaseVersion.TryParse(version, out _).ShouldBeTrue($"claude --version gave \"{version}\"");
+        ReleaseVersion.TryParse(version.Text, out _).ShouldBeTrue($"claude --version gave \"{version.Text}\"");
     }
 
     [Fact]
