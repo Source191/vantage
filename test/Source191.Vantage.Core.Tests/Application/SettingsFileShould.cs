@@ -56,6 +56,22 @@ public sealed class SettingsFileShould
     }
 
     [Fact]
+    public void ReadAnUndefinedBaseAsTheDefault()
+    {
+        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], (WorktreeBase)7, WorktreeRoot: null, Editor: null), Home);
+
+        settings.DefaultBase.ShouldBe(WorktreeBase.RemoteDefault);
+    }
+
+    [Fact]
+    public void ReadAnUndefinedPlaceAsTheDefault()
+    {
+        Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], DefaultBase: null, WorktreeRoot: null, Editor: null, DefaultPlace: (LaunchMode)7), Home);
+
+        settings.DefaultPlace.ShouldBe(LaunchMode.NewWorktree);
+    }
+
+    [Fact]
     public void ReadAndWriteTheDefaultPlace()
     {
         Settings settings = SettingsFile.From(new VantageConfig([@"D:\work"], DefaultBase: null, WorktreeRoot: null, Editor: null, DefaultPlace: LaunchMode.CurrentBranch), Home);
