@@ -178,7 +178,7 @@ public sealed class StatusTonesShould
         [typeof(StatusMessage.NothingToMeasure)] = StatusTone.Notice,
         [typeof(StatusMessage.NoSolution)] = StatusTone.Notice,
         [typeof(StatusMessage.Kept)] = StatusTone.Hint,
-        [typeof(StatusMessage.NothingChosenToResume)] = StatusTone.Hint,
+        [typeof(StatusMessage.NothingToResume)] = StatusTone.Hint,
         [typeof(StatusMessage.UpToDate)] = StatusTone.Success,
         [typeof(StatusMessage.UpdateCheckOff)] = StatusTone.Notice,
         [typeof(StatusMessage.NoDialogFor)] = StatusTone.Failure,

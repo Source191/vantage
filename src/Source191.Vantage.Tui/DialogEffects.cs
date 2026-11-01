@@ -95,7 +95,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         List<SessionRow> toResume = [.. plan.Automatic, .. chosen];
         if (toResume.Count == 0)
         {
-            context.ShowMessage(new StatusMessage.NothingChosenToResume());
+            context.ShowMessage(new StatusMessage.NothingToResume());
             return;
         }
 

@@ -307,7 +307,7 @@ public sealed class WordingShould
     [Fact]
     public void SayNothingWasChosenToResume()
     {
-        Wording.Describe(new StatusMessage.NothingChosenToResume()).ShouldBe("Nothing to resume.");
+        Wording.Describe(new StatusMessage.NothingToResume()).ShouldBe("Nothing to resume.");
     }
 
     [Fact]
