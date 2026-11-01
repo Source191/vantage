@@ -96,7 +96,7 @@ public sealed class OpenTabHandlerShould
         Outcome outcome = await Handler.HandleAsync(new OpenTabForSession(Job(), new LiveTab.Open(TabPalette.Default[0])), CancellationToken.None);
 
         terminal.Opened.ShouldBeEmpty();
-        terminal.Focused.Single().ShouldBe((777, "Refund retry policy"));
+        terminal.Focused.Single().ShouldBe((new TerminalWindow.Owning(777), "Refund retry policy"));
         outcome.ShouldBe(new OpenTabOutcome.SwitchedTo("Refund retry policy"));
     }
 
@@ -145,7 +145,7 @@ public sealed class OpenTabHandlerShould
 
         await Handler.HandleAsync(new OpenTabForSession(Job(), new LiveTab.Open(TabPalette.Default[0])), CancellationToken.None);
 
-        terminal.Focused.Single().ShouldBe(((int?)null, "Refund retry policy"));
+        terminal.Focused.Single().ShouldBe((new TerminalWindow.Any(), "Refund retry policy"));
     }
 
     [Fact]
