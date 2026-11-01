@@ -90,6 +90,7 @@ public sealed class NullFreeModelsShould
         new(typeof(TerminalGuiBridge), "BeginScope", "ILogger's signature, from Microsoft.Extensions.Logging"),
         new(typeof(TerminalGuiBridge), "Log(exception)", "ILogger's signature, from Microsoft.Extensions.Logging"),
         new(typeof(TerminalGuiBridge), "Log(formatter)", "ILogger's signature, from Microsoft.Extensions.Logging"),
+        new(typeof(SessionName), "Value", "deliberately stale: a text value's Value is never null"),
     ];
     private static readonly string[] ModelNamespaces = ["Source191.Vantage.Domain", "Source191.Vantage.Ports", "Source191.Vantage.Application"];
 
@@ -133,6 +134,17 @@ public sealed class NullFreeModelsShould
             .Select(found => found.Name);
 
         unexplained.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void KeepNoStaleEntry()
+    {
+        IEnumerable<string> stale = Kept
+            .Where(kept => !ModelTypes.Contains(kept.Type) || !NullableMembersOf(kept.Type).Contains(kept.Member))
+            .Select(kept => kept.Name);
+
+        stale.ShouldBeEmpty();
+        Kept.ShouldAllBe(kept => !string.IsNullOrWhiteSpace(kept.Reason));
     }
 
     private static IEnumerable<Type> ModelTypes => typeof(SessionName).Assembly.GetTypes()
