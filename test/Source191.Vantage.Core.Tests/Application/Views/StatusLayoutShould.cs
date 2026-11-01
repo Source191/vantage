@@ -47,7 +47,8 @@ public sealed class StatusLayoutShould
     [Fact]
     public void ClearASuccessAfterTenSeconds()
     {
-        StatusLayout.ClearsAfter(StatusTone.Success).ShouldBe(TimeSpan.FromSeconds(10));
+        StatusLayout.ClearsBySelf(StatusTone.Success).ShouldBeTrue();
+        StatusLayout.SuccessShownFor.ShouldBe(TimeSpan.FromSeconds(10));
     }
 
     [Theory]
@@ -57,7 +58,7 @@ public sealed class StatusLayoutShould
     [InlineData(StatusTone.Hint)]
     public void KeepEveryOtherToneUntilItIsCleared(StatusTone tone)
     {
-        StatusLayout.ClearsAfter(tone).ShouldBeNull();
+        StatusLayout.ClearsBySelf(tone).ShouldBeFalse();
     }
 
     [Fact]
