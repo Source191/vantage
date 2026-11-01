@@ -24,14 +24,9 @@ public sealed class WorktreeInspector(IGit git)
         IReadOnlyList<GitWorktreeEntry> entries = await git.ListWorktreesAsync(repository.Value, cancellationToken);
         GitWorktreeEntry? entry = entries.FirstOrDefault(candidate => FolderPath.TryParse(candidate.Path, out FolderPath? path) && path.Equals(worktree));
 
-        if (entry is null)
-        {
-            return WorktreeHealth.From(new WorktreeObservation(true, false, new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), false));
-        }
-
-        WorktreeLock locked = entry.LockReason is string reason ? new WorktreeLock.Locked(reason) : new WorktreeLock.Unlocked();
-
-        return WorktreeHealth.From(new WorktreeObservation(true, entry.PrunableReason is null, locked, false, new GitPointer.NoGitFile(), false));
+        return entry is null
+            ? WorktreeHealth.From(new WorktreeObservation(true, false, new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), false))
+            : WorktreeHealth.From(new WorktreeObservation(true, !entry.IsPrunable, entry.Lock, false, new GitPointer.NoGitFile(), false));
     }
 
     /// <summary>Merged into the remote default branch, or into HEAD when the repository has none.</summary>

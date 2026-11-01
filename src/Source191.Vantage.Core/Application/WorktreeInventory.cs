@@ -115,8 +115,8 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             }
 
             registered.Add(path);
-            bool folderExists = entry.PrunableReason is null && folders.DirectoryExists(path.Value);
-            WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.LockReason is string reason ? new WorktreeLock.Locked(reason) : new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), false));
+            bool folderExists = !entry.IsPrunable && folders.DirectoryExists(path.Value);
+            WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.Lock, false, new GitPointer.NoGitFile(), false));
             rows.Add(folderExists
                 ? await InspectedAsync(repository, path, entry, health, cancellationToken)
                 : new WorktreeRow(repository, path, entry.Head, health, 0, 0, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: false));
