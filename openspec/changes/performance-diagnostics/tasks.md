@@ -57,7 +57,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
   Not needed: 5.1 observed (and read from the assembly) that timeouts keep running under a modal dialog, so the first beat after a dialog is judged like any other and no restart is wanted. `Heartbeat` has no `Restart`; its summary says why.
 - [x] 5.7 `DiagnosticLineShould.RenderTheStallCountsEvenWithNone`: `stalls ui thread: 0 stalls` and `stalls ui thread: 3 stalls, median 180 ms, p95 820 ms, longest 820 ms`; `PerformanceCounts` now carries the real `StallCounts`. Verify the facts pass.
   Done: the stall line ends every set of counts, so `DiagnosticLogShould`, `CrashRecorderShould` (now with one stall) and `PeriodicCountsShould` expect it. Core suite: 2,089 passed.
-- [ ] 5.8 `ConsoleScreen` adds one `app.AddTimeout(Heartbeat.Interval, ...)` that calls `Beat()`, removed with the other timers. Verify the hand-off check (`dotnet run --project tools\HeadlessTerminal -- check`) and the smoke check of the packed tool both exit 0.
+- [x] 5.8 `ConsoleScreen` adds one `app.AddTimeout(Heartbeat.Interval, ...)` that calls `Beat()`, removed with the other timers. Verify the hand-off check (`dotnet run --project tools\HeadlessTerminal -- check`) and the smoke check of the packed tool both exit 0.
+  Done: the `Heartbeat` reaches the screen in `ScreenContext`, built in `ConsoleComposition` over the shared `StallCounts`; `Every` now takes an interval, so the refresh timers and the heartbeat share it and `StopTimers` removes all three. Hand-off check (Release build, Claude variables cleared) exited 0 on 1 November 2026. The smoke check of the packed tool is CI's `check` job (an unattended local smoke would act on the owner's repositories).
 - [ ] 5.9 README "What Vantage records": a UI thread bullet (stalls over 100 ms counted, over 500 ms a line, sleep ignored). Verify by reading against the spec delta.
 
 ## 6. The guide, the version and the whole-solution check

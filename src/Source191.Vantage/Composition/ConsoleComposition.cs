@@ -106,7 +106,9 @@ internal static class ConsoleComposition
         ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionReport);
         HeaderSettingsRow header = new(parts.Version, claudeCode, updates, parts.ProcessRegistry, Environment.ProcessId);
 
-        return new ScreenContext(Wording.TabTitle, header.Rows, () => updates.Status is UpdateStatus.Available, clipboard, parts.Log);
+        Heartbeat heartbeat = new(TimeProvider.System, parts.Counts.Stalls, parts.Log);
+
+        return new ScreenContext(Wording.TabTitle, header.Rows, () => updates.Status is UpdateStatus.Available, clipboard, parts.Log, heartbeat);
     }
 
     private static ConsoleLoads Loads(
