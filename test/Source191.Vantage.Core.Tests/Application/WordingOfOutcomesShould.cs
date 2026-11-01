@@ -375,7 +375,13 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASolutionWasOpened()
     {
-        Wording.Describe(new OpenedSolution("Northwind.Orders.slnx")).ShouldBe("Opened Northwind.Orders.slnx.");
+        Wording.Describe(new OpenSolutionOutcome.Opened("Northwind.Orders.slnx")).ShouldBe("Opened Northwind.Orders.slnx.");
+    }
+
+    [Fact]
+    public void SayNoApplicationOpensTheSolutionsType()
+    {
+        Wording.Describe(new OpenSolutionOutcome.NoApplication(".slnx")).ShouldBe("No application opens .slnx files; install one, or choose one in Windows' Default apps.");
     }
 
     [Fact]
