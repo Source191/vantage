@@ -1,4 +1,5 @@
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -13,7 +14,15 @@ public abstract record RequiredPrograms
         ArgumentNullException.ThrowIfNull(claude);
         ArgumentNullException.ThrowIfNull(git);
 
-        return new Found(((ClaudeLocation.Found)claude).Path, ((ProgramLocation.Found)git).Path);
+        // Claude Code's problem is said before git's, as the console has always said it.
+        return (claude, git) switch
+        {
+            (ClaudeLocation.BatchFileOnly batchFile, _) => new Missing(Wording.ClaudeIsABatchFile(batchFile.Path)),
+            (ClaudeLocation.Missing, _) => new Missing(Wording.ClaudeNotFound),
+            (ClaudeLocation.Found, ProgramLocation.Missing) => new Missing(Wording.GitNotFound),
+            (ClaudeLocation.Found foundClaude, ProgramLocation.Found foundGit) => new Found(foundClaude.Path, foundGit.Path),
+            _ => throw new UnreachableException(),
+        };
     }
 
     public sealed record Found(string Claude, string Git) : RequiredPrograms;

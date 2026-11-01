@@ -6,7 +6,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
 
 - [x] 1.1 `RequiredProgramsShould.FindBothPrograms`: `RequiredPrograms.Check(new ClaudeLocation.Found(claude), new ProgramLocation.Found(git))` answers `Found` with both paths. Red (the type does not exist), then green with the abstract record, its nested `Found(string Claude, string Git)` and `Missing(string Sentence)`, and `Check`, in `src\Source191.Vantage.Core\Application\RequiredPrograms.cs`. Verify the fact passes and `NullFreeModelsShould` and `SealedTypesShould` stay green.
   Red was a build failure (no type), so it is folded into the green commit; Core.Tests 1957 passed, the architecture facts among them.
-- [ ] 1.2 `RequiredProgramsShould.RefuseABatchFile`, `SayClaudeCodeIsMissing` and `SayGitIsMissing`: `Missing` with `Wording.ClaudeIsABatchFile(path)`, `Wording.ClaudeNotFound` and `Wording.GitNotFound`. Red, then green. Verify the facts pass.
+- [x] 1.2 `RequiredProgramsShould.RefuseABatchFile`, `SayClaudeCodeIsMissing` and `SayGitIsMissing`: `Missing` with `Wording.ClaudeIsABatchFile(path)`, `Wording.ClaudeNotFound` and `Wording.GitNotFound`. Red, then green. Verify the facts pass.
+  Red: three facts failed on the naive casts; green: a switch naming every `ClaudeLocation` case, discard arm `UnreachableException`; Core.Tests 1960 passed.
 - [ ] 1.3 `RequiredProgramsShould.PutClaudeCodeFirstWhenBothAreMissing`: a missing Claude Code and a missing git answer Claude Code's sentence, as `Program.cs` does today. Verify the fact passes (green at once is acceptable; say so in the commit).
 
 ## 2. The start event
