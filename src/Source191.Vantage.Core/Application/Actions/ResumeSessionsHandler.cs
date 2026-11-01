@@ -11,7 +11,7 @@ namespace Source191.Vantage.Application.Actions;
 /// on disc), as rename does, and the resume continues the same session id in the same row. A session with no
 /// transcript keeps its job, since nothing could bring it back.
 /// </summary>
-public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transcripts) : IEffectHandler<ResumeSessions>
+public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transcripts, OpenTabHandler openTab) : IEffectHandler<ResumeSessions>
 {
     /// <summary>Failed sessions resume at once; stopped ones are offered as a checklist, because a deliberate stop looks the same.</summary>
     public static ResumePlan Plan(IReadOnlyList<SessionRow> rows)
@@ -39,11 +39,14 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
             ResumeResult result = SessionName.TryParse(session.Name, out SessionName? name)
                 ? await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken)
                 : await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, cancellationToken);
-            continued += result.Continued ? 1 : 0;
             if (!result.Continued)
             {
                 notes.Add(new ResumeNote.Failed(session.Name, result.Message, session.SessionId));
+                continue;
             }
+
+            continued++;
+            await openTab.OpenAsync(session, cancellationToken);
         }
 
         return new ResumeSessionsOutcome(continued, effect.Sessions.Count, notes);
