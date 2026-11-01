@@ -15,7 +15,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
   Done: `ProcessCount` carries one `DurationFigures` (runs, median, 95th percentile, longest) rather than four loose members; red folded into green, as the record's shape changed. All four `ProcessCountsShould` facts pass.
 - [x] 2.4 `DiagnosticLineShould.RenderACountWithItsWriteTimeAndTypicalFigures`: `counts claude agents exit 0: 120 runs, median 1650 ms, p95 2100 ms, longest 4900 ms` after the UTC time. Red, then `DiagnosticLine.Render(ProcessCounts, DateTimeOffset)` green; `DiagnosticLog.WriteCounts`, `CrashRecorder` and `ProblemReports` pass the time from their clock. Verify `DiagnosticLogShould`, `CrashRecorderShould` and the problem report facts pass with their expected lines updated.
   Done: the line reads `counts claude agents --json exit 0: ...`, because `ChildCommand` already keeps `--json` as one of claude's listed words; the design's example left it out. `CrashRecorder` and `ProblemReports` take a `TimeProvider` (the tool passes `TimeProvider.System`). All 2,430 runnable facts at the solution pass.
-- [ ] 2.5 README "What Vantage records": the child programs bullet names the median and 95th percentile and the time on each count line. Verify by reading against the spec delta.
+- [x] 2.5 README "What Vantage records": the child programs bullet names the median and 95th percentile and the time on each count line. Verify by reading against the spec delta.
+  Done: the README now has one "What it records" bullet under Security and privacy (docs-for-going-live merged the old list), so the counts are named there; read against the spec delta.
 
 ## 3. Refreshes are timed
 
