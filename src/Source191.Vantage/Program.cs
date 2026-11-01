@@ -147,7 +147,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     ProblemReports reports = new(log, processCounts, crashFile, start, settings);
     DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders), reports, processRegistry);
 
-    ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionText);
+    ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionText is string text ? new ClaudeVersionReport.Printed(text) : new ClaudeVersionReport.NotRead());
     ScreenContext context = new(tabTitle, _ => [Wording.SettingsRow(version, claudeCode, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero)], () => updates.Status is UpdateStatus.Available, clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SetupFactsReader setup = new(terminalFragment, ClaudeSettings.ForCurrentUser(), store, store.ConfigFile, logSetting);
