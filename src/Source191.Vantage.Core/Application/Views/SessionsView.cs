@@ -68,10 +68,13 @@ public abstract record ViewEffect;
 
 public sealed record AttachToSession(JobId JobId) : ViewEffect, ILeavesScreen;
 
-/// <summary>The TUI asks for a new name, then raises <see cref="RenameConfirmed"/> with what was typed (null when cancelled).</summary>
+/// <summary>The TUI asks for a new name, then raises <see cref="RenameConfirmed"/> with what was typed, or <see cref="RenameCancelled"/>.</summary>
 public sealed record AskForNewName(BackgroundSession Session) : ViewEffect, IDialogEffect;
 
-public sealed record RenameConfirmed(BackgroundSession Session, string? Name) : ViewInput;
+public sealed record RenameConfirmed(BackgroundSession Session, string Name) : ViewInput;
+
+/// <summary>The new name dialog was closed without an answer.</summary>
+public sealed record RenameCancelled(BackgroundSession Session) : ViewInput;
 
 /// <summary>Rename by swapping the job for one resumed under the new name; the session id and conversation stay.</summary>
 public sealed record RenameSession(BackgroundSession Session, SessionName NewName) : ViewEffect;
@@ -162,6 +165,7 @@ public static class SessionsView
             MessageDismissed dismissed when ReferenceEquals(state.Message, dismissed.Message) => Unchanged(state with { Message = StatusMessage.None }),
             MessageDismissed => Unchanged(state),
             RenameConfirmed confirmed => RenameWith(state, confirmed),
+            RenameCancelled => Unchanged(state with { Message = new StatusMessage.RenameCancelled() }),
             UpdateTabOpened => Effect(state, new Quit()),
             SelectSession select => Unchanged(state.With(state.List.Select(select.SessionId.Value))),
             KeyPressed pressed when state.FilterEditing => Unchanged(state.With(state.List.EditFilter(pressed.Key)) with { Message = StatusMessage.None }),
@@ -295,11 +299,6 @@ public static class SessionsView
 
     private static ViewUpdate RenameWith(SessionsViewState state, RenameConfirmed confirmed)
     {
-        if (confirmed.Name is null)
-        {
-            return Unchanged(state with { Message = new StatusMessage.RenameCancelled() });
-        }
-
         return SessionName.Validate(confirmed.Name.Trim()) switch
         {
             SessionNameValidation.Valid valid => Renamed(state, new RenameSession(confirmed.Session, valid.Name)),

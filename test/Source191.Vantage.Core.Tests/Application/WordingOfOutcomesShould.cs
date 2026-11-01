@@ -2,6 +2,7 @@ using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
+using Source191.Vantage.Core.Tests.Application.Actions;
 using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Core.Tests.Application;
@@ -179,7 +180,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void AddANoteForEachSessionThatDidNotResume()
     {
-        Wording.Describe(new ResumeSessionsOutcome(1, 3, [new ResumeNote("repos-f6", Failure: null), new ResumeNote("fix-123", "boom")]))
+        Wording.Describe(new ResumeSessionsOutcome(1, 3, [new ResumeNote.NeverSentAMessage("repos-f6"), new ResumeNote.Failed("fix-123", "boom")]))
             .ShouldBe("Resumed 1 of 3. Notes: repos-f6: never sent a message, so there is nothing to resume; d deletes it; fix-123: boom");
     }
 
@@ -406,21 +407,28 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayWhereVantageHereStartedTheSession()
     {
-        Wording.Here(new LaunchOutcome(LaunchOutcomeKind.Started, JobId.From("81cdb0f9"), "backgrounded"), "fix-tests", @"C:\repos\Northwind.Orders")
+        Wording.Here(new LaunchOutcome.Listed(JobId.From("81cdb0f9"), SessionTestData.Job(@"C:\repos\Northwind.Orders")), "fix-tests", @"C:\repos\Northwind.Orders")
+            .ShouldBe(@"Started fix-tests (81cdb0f9) in C:\repos\Northwind.Orders.");
+    }
+
+    [Fact]
+    public void SayWhereVantageHereStartedTheSessionBeforeItIsListed()
+    {
+        Wording.Here(new LaunchOutcome.NotListedYet(JobId.From("81cdb0f9")), "fix-tests", @"C:\repos\Northwind.Orders")
             .ShouldBe(@"Started fix-tests (81cdb0f9) in C:\repos\Northwind.Orders.");
     }
 
     [Fact]
     public void TellVantageHereToTrustTheFolderFirst()
     {
-        Wording.Here(new LaunchOutcome(LaunchOutcomeKind.WorkspaceNotTrusted, JobId: null, "Workspace not trusted"), "fix-tests", @"C:\repos\Northwind.Orders")
+        Wording.Here(new LaunchOutcome.WorkspaceNotTrusted(), "fix-tests", @"C:\repos\Northwind.Orders")
             .ShouldBe(@"Could not start: C:\repos\Northwind.Orders is not trusted yet. Run claude here once and accept the prompt.");
     }
 
     [Fact]
     public void SayWhyVantageHereCouldNotStart()
     {
-        Wording.Here(new LaunchOutcome(LaunchOutcomeKind.Failed, JobId: null, "something broke"), "fix-tests", @"C:\repos\Northwind.Orders")
+        Wording.Here(new LaunchOutcome.Failed("something broke"), "fix-tests", @"C:\repos\Northwind.Orders")
             .ShouldBe("Could not start: something broke");
     }
 

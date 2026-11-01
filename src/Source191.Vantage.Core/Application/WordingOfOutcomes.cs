@@ -2,6 +2,7 @@ using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -152,11 +153,12 @@ public static partial class Wording
     /// <summary>What <c>vantage here</c> prints after the start: where it started, or why it could not.</summary>
     public static string Here(LaunchOutcome outcome, string name, string directory)
     {
-        return outcome.Kind switch
+        return outcome switch
         {
-            LaunchOutcomeKind.Started => $"Started {name} ({outcome.JobId}) in {directory}.",
-            LaunchOutcomeKind.WorkspaceNotTrusted => $"Could not start: {directory} is not trusted yet. Run claude here once and accept the prompt.",
-            LaunchOutcomeKind.Failed => $"Could not start: {outcome.Message}",
+            LaunchOutcome.Started started => $"Started {name} ({started.JobId}) in {directory}.",
+            LaunchOutcome.WorkspaceNotTrusted => $"Could not start: {directory} is not trusted yet. Run claude here once and accept the prompt.",
+            LaunchOutcome.Failed failed => $"Could not start: {failed.Message}",
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -230,9 +232,12 @@ public static partial class Wording
 
     private static string Describe(ResumeSessionsOutcome outcome)
     {
-        IEnumerable<string> notes = outcome.Notes.Select(note => note.Failure is null
-            ? $"{note.Name}: never sent a message, so there is nothing to resume; d deletes it"
-            : $"{note.Name}: {note.Failure}");
+        IEnumerable<string> notes = outcome.Notes.Select(note => note switch
+        {
+            ResumeNote.NeverSentAMessage => $"{note.Name}: never sent a message, so there is nothing to resume; d deletes it",
+            ResumeNote.Failed failed => $"{note.Name}: {failed.Failure}",
+            _ => throw new UnreachableException(),
+        });
         string suffix = outcome.Notes.Count == 0 ? string.Empty : $" Notes: {string.Join("; ", notes)}";
 
         return $"Resumed {outcome.Resumed} of {outcome.Chosen}.{suffix}";

@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Source191.Vantage.Domain;
 
 /// <summary>The editors Vantage knows by name, and Custom for an executable the user names.</summary>
@@ -44,15 +46,15 @@ public sealed record EditorChoice
         return new EditorChoice(preset, string.Empty, []);
     }
 
-    /// <summary>For a custom command already checked by <see cref="Problem"/>; typed text goes through <see cref="Settings.Validate"/>.</summary>
+    /// <summary>For a custom command already checked by <see cref="Validate"/>; typed text goes through <see cref="Settings.Validate"/>.</summary>
     public static EditorChoice Custom(string executable, IReadOnlyList<string> arguments)
     {
-        if (Problem(executable, arguments) is SettingsProblem problem)
+        return Validate(executable, arguments) switch
         {
-            throw new ArgumentException($"'{executable}' is not a usable custom editor: {problem}.", nameof(executable));
-        }
-
-        return new EditorChoice(EditorPreset.Custom, executable.Trim(), arguments);
+            EditorChoiceValidation.Valid valid => valid.Editor,
+            EditorChoiceValidation.Refused refused => throw new ArgumentException($"'{executable}' is not a usable custom editor: {refused.Problem}.", nameof(executable)),
+            _ => throw new UnreachableException(),
+        };
     }
 
     /// <summary>The editor as config.json holds it: a missing or unusable one reads as VS Code, and a preset ignores any command beside it.</summary>
@@ -61,27 +63,30 @@ public sealed record EditorChoice
         return preset switch
         {
             null => VsCode,
-            EditorPreset.Custom when executable is string path && arguments is { } list && Problem(path, list) is null => Custom(path, list),
+            EditorPreset.Custom when executable is string path && arguments is { } list && Validate(path, list) is EditorChoiceValidation.Valid valid => valid.Editor,
             EditorPreset.Custom => VsCode,
             EditorPreset known => Of(known),
         };
     }
 
     /// <summary>
-    /// Why a custom command cannot be used, or null: no executable, not a full path (Windows would look for a bare name in
-    /// the folder Vantage was started from), a batch file (cmd.exe would parse the folder path), or no placeholder.
+    /// A custom command checked against the rules: the editor, or the first reason it cannot be used: no executable, not a
+    /// full path (Windows would look for a bare name in the folder Vantage was started from), a batch file (cmd.exe would
+    /// parse the folder path), or no placeholder.
     /// </summary>
-    public static SettingsProblem? Problem(string executable, IReadOnlyList<string> arguments)
+    public static EditorChoiceValidation Validate(string executable, IReadOnlyList<string> arguments)
     {
+        ArgumentNullException.ThrowIfNull(executable);
+        ArgumentNullException.ThrowIfNull(arguments);
         string trimmed = executable.Trim();
 
         return trimmed switch
         {
-            "" => new SettingsProblem.NoExecutable(),
-            _ when !Path.IsPathFullyQualified(trimmed) => new SettingsProblem.ExecutableNotFullPath(),
-            _ when IsBatchFile(trimmed) => new SettingsProblem.BatchFileExecutable(),
-            _ when !arguments.Any(argument => argument.Contains(FolderPlaceholder, StringComparison.Ordinal)) => new SettingsProblem.NoFolderPlaceholder(),
-            _ => null,
+            "" => Refused(new SettingsProblem.NoExecutable()),
+            _ when !Path.IsPathFullyQualified(trimmed) => Refused(new SettingsProblem.ExecutableNotFullPath()),
+            _ when IsBatchFile(trimmed) => Refused(new SettingsProblem.BatchFileExecutable()),
+            _ when !arguments.Any(argument => argument.Contains(FolderPlaceholder, StringComparison.Ordinal)) => Refused(new SettingsProblem.NoFolderPlaceholder()),
+            _ => new EditorChoiceValidation.Valid(new EditorChoice(EditorPreset.Custom, trimmed, arguments)),
         };
     }
 
@@ -95,9 +100,19 @@ public sealed record EditorChoice
 
     public override int GetHashCode() => HashCode.Combine(Preset, Executable, Arguments.Count);
 
+    private static EditorChoiceValidation.Refused Refused(SettingsProblem problem) => new(problem);
+
     private static bool IsBatchFile(string executable)
     {
         return executable.EndsWith(".cmd", StringComparison.OrdinalIgnoreCase)
             || executable.EndsWith(".bat", StringComparison.OrdinalIgnoreCase);
     }
+}
+
+/// <summary>A custom editor's command checked against the rules: the editor, or the first reason it cannot be used.</summary>
+public abstract record EditorChoiceValidation
+{
+    public sealed record Valid(EditorChoice Editor) : EditorChoiceValidation;
+
+    public sealed record Refused(SettingsProblem Problem) : EditorChoiceValidation;
 }

@@ -56,6 +56,25 @@ public sealed class EditorChoiceShould
         EditorChoice.FromFile(EditorPreset.Custom, @"C:\Tools\edit.cmd", ["{folder}"]).ShouldBe(EditorChoice.VsCode);
     }
 
+    [Fact]
+    public void RefuseACustomCommandWithTheFirstProblem()
+    {
+        EditorChoice.Validate("  ", ["-n"]).ShouldBe(new EditorChoiceValidation.Refused(new SettingsProblem.NoExecutable()));
+        EditorChoice.Validate("subl.cmd", ["-n"]).ShouldBe(new EditorChoiceValidation.Refused(new SettingsProblem.ExecutableNotFullPath()));
+        EditorChoice.Validate(@"C:\Tools\edit.cmd", ["-n"]).ShouldBe(new EditorChoiceValidation.Refused(new SettingsProblem.BatchFileExecutable()));
+        EditorChoice.Validate(@"C:\Tools\subl.exe", ["-n"]).ShouldBe(new EditorChoiceValidation.Refused(new SettingsProblem.NoFolderPlaceholder()));
+    }
+
+    [Fact]
+    public void AcceptACustomCommandAsValid()
+    {
+        EditorChoice editor = EditorChoice.Validate(@" C:\Tools\subl.exe ", ["-n", "{folder}"]).ShouldBeOfType<EditorChoiceValidation.Valid>().Editor;
+
+        editor.Preset.ShouldBe(EditorPreset.Custom);
+        editor.Executable.ShouldBe(@"C:\Tools\subl.exe");
+        editor.Arguments.ShouldBe(["-n", "{folder}"]);
+    }
+
     [Theory]
     [InlineData(EditorPreset.VsCode)]
     [InlineData(EditorPreset.VisualStudio)]

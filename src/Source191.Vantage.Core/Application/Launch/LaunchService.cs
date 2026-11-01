@@ -1,17 +1,27 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Launch;
 
-public enum LaunchOutcomeKind
+/// <summary>What carrying out a launch plan came to.</summary>
+public abstract record LaunchOutcome
 {
-    Started,
-    WorkspaceNotTrusted,
-    Failed,
-}
+    /// <summary>The session started under this job id, whether or not the supervisor lists it yet.</summary>
+    public abstract record Started(JobId JobId) : LaunchOutcome;
 
-/// <summary>The listed session is null when the supervisor had not listed the new job by the time the start returned.</summary>
-public sealed record LaunchOutcome(LaunchOutcomeKind Kind, JobId? JobId, string Message, BackgroundSession? Session = null);
+    /// <summary>The supervisor listed the new job by the time the start returned.</summary>
+    public sealed record Listed(JobId JobId, BackgroundSession Session) : Started(JobId);
+
+    /// <summary>The supervisor had not listed the new job by the time the start returned.</summary>
+    public sealed record NotListedYet(JobId JobId) : Started(JobId);
+
+    /// <summary>The folder's repository has not been trusted interactively yet.</summary>
+    public sealed record WorkspaceNotTrusted : LaunchOutcome;
+
+    /// <summary>Git could not create the worktree, or the CLI could not start the session; the message says why.</summary>
+    public sealed record Failed(string Message) : LaunchOutcome;
+}
 
 /// <summary>
 /// Carries out a launch plan: creates the planned worktree when one is wanted, copies the include files,
@@ -30,21 +40,26 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
         }
         catch (GitException failure)
         {
-            return new LaunchOutcome(LaunchOutcomeKind.Failed, JobId: null, failure.Message);
+            return new LaunchOutcome.Failed(failure.Message);
         }
 
         StartResult start = await claude.StartBackgroundAsync(plan.Directory.Value, plan.Name, plan.OpeningPrompt, cancellationToken);
-        if (start.Outcome != StartOutcome.Started || start.JobId is null)
+
+        return start switch
         {
-            LaunchOutcomeKind kind = start.Outcome == StartOutcome.WorkspaceNotTrusted ? LaunchOutcomeKind.WorkspaceNotTrusted : LaunchOutcomeKind.Failed;
+            StartResult.Started started => await StartedAsync(plan, started.JobId, cancellationToken),
+            StartResult.WorkspaceNotTrusted => new LaunchOutcome.WorkspaceNotTrusted(),
+            StartResult.Failed failed => new LaunchOutcome.Failed(failed.Message),
+            _ => throw new UnreachableException(),
+        };
+    }
 
-            return new LaunchOutcome(kind, JobId: null, start.Message);
-        }
-
+    private async Task<LaunchOutcome.Started> StartedAsync(LaunchPlan plan, JobId jobId, CancellationToken cancellationToken)
+    {
         await recent.RecordRecentRepositoryAsync(plan.Repository.Path.Value);
-        BackgroundSession? started = JobId.TryParse(start.JobId, out JobId? jobId) ? await ListedSessionAsync(jobId, cancellationToken) : null;
+        BackgroundSession? listed = await ListedSessionAsync(jobId, cancellationToken);
 
-        return new LaunchOutcome(LaunchOutcomeKind.Started, jobId, start.Message, started);
+        return listed is null ? new LaunchOutcome.NotListedYet(jobId) : new LaunchOutcome.Listed(jobId, listed);
     }
 
     private async Task CreateWorktreeAsync(LaunchPlan plan, PlannedWorktree worktree, CancellationToken cancellationToken)

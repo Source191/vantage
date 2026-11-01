@@ -24,7 +24,7 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
         {
             if (!transcripts.HasMessages(session.SessionId.Value))
             {
-                notes.Add(new ResumeNote(session.Name, Failure: null));
+                notes.Add(new ResumeNote.NeverSentAMessage(session.Name));
                 continue;
             }
 
@@ -34,7 +34,7 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
             continued += result.Continued ? 1 : 0;
             if (!result.Continued)
             {
-                notes.Add(new ResumeNote(session.Name, result.Message));
+                notes.Add(new ResumeNote.Failed(session.Name, result.Message));
             }
         }
 
@@ -45,5 +45,12 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
 /// <summary>How many of the chosen sessions resumed, and a note for each that did not.</summary>
 public sealed record ResumeSessionsOutcome(int Resumed, int Chosen, IReadOnlyList<ResumeNote> Notes) : Outcome;
 
-/// <summary>A session that did not resume: the CLI's failure, or null when it was never sent a message.</summary>
-public sealed record ResumeNote(string Name, string? Failure);
+/// <summary>A session that did not resume, and why.</summary>
+public abstract record ResumeNote(string Name)
+{
+    /// <summary>The session has no transcript, so there is nothing to resume.</summary>
+    public sealed record NeverSentAMessage(string Name) : ResumeNote(Name);
+
+    /// <summary>The CLI refused the resume with this message.</summary>
+    public sealed record Failed(string Name, string Failure) : ResumeNote(Name);
+}

@@ -1,5 +1,6 @@
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.Diagnostics;
 
@@ -24,18 +25,30 @@ public sealed class HereCommandRunner(IFolders folders, LaunchService launches, 
     private async Task<int> LaunchAsync(LaunchPlan plan, string directory, CancellationToken cancellationToken)
     {
         LaunchOutcome outcome = await launches.LaunchAsync(plan, cancellationToken);
-        switch (outcome.Kind)
+        string said = Wording.Here(outcome, plan.Name.Value, directory);
+
+        return outcome switch
         {
-            case LaunchOutcomeKind.Started when outcome.JobId is not null:
-                await output.WriteLineAsync(Wording.Here(outcome, plan.Name.Value, directory));
-                await effects.RunAsync(new AttachToSession(outcome.JobId), cancellationToken);
-                console.RecoverAfterChild();
-                return 0;
-            default:
-                // Not trusted or failed: Wording says which.
-                await error.WriteLineAsync(Wording.Here(outcome, plan.Name.Value, directory));
-                return 1;
-        }
+            LaunchOutcome.Started started => await AttachAsync(said, started.JobId, cancellationToken),
+            LaunchOutcome.WorkspaceNotTrusted or LaunchOutcome.Failed => await NotStartedAsync(said),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    /// <summary>Listed yet or not, the session is attached to in this tab.</summary>
+    private async Task<int> AttachAsync(string said, JobId jobId, CancellationToken cancellationToken)
+    {
+        await output.WriteLineAsync(said);
+        await effects.RunAsync(new AttachToSession(jobId), cancellationToken);
+        console.RecoverAfterChild();
+        return 0;
+    }
+
+    /// <summary>Not trusted or failed: Wording says which.</summary>
+    private async Task<int> NotStartedAsync(string said)
+    {
+        await error.WriteLineAsync(said);
+        return 1;
     }
 
     private async Task<int> RefuseAsync(LaunchProblem problem)

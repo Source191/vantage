@@ -298,7 +298,7 @@ public sealed class SessionsViewShould
         ViewUpdate renamed = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "fix the tests"));
         ViewUpdate blank = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "   "));
         ViewUpdate semicolon = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, "fix a;b"));
-        ViewUpdate cancelled = SessionsView.Reduce(Loaded, new RenameConfirmed(WaitingJob, null));
+        ViewUpdate cancelled = SessionsView.Reduce(Loaded, new RenameCancelled(WaitingJob));
 
         renamed.Effects.ShouldBe([new RenameSession(WaitingJob, SessionName.From("fix the tests"))]);
         renamed.State.Message.ShouldBe(new StatusMessage.Working(new RenameSession(WaitingJob, SessionName.From("fix the tests"))));

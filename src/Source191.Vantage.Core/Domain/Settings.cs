@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Source191.Vantage.Domain;
 
 /// <summary>
@@ -64,15 +66,13 @@ public sealed record Settings
             roots.Add(root);
         }
 
-        SettingsProblem? problem = roots switch
+        return roots switch
         {
-            [] => new SettingsProblem.NoRoots(),
-            _ when roots.FirstOrDefault(root => !folderExists(root.Value)) is FolderPath missing => new SettingsProblem.RootMissing(missing),
-            _ when roots.Where((root, index) => roots.Take(index).Contains(root)).FirstOrDefault() is FolderPath repeated => new SettingsProblem.RootAlreadyListed(repeated),
-            _ => null,
+            [] => Refused(new SettingsProblem.NoRoots()),
+            _ when roots.FirstOrDefault(root => !folderExists(root.Value)) is FolderPath missing => Refused(new SettingsProblem.RootMissing(missing)),
+            _ when roots.Where((root, index) => roots.Take(index).Contains(root)).FirstOrDefault() is FolderPath repeated => Refused(new SettingsProblem.RootAlreadyListed(repeated)),
+            _ => Validated(text, roots),
         };
-
-        return problem is null ? Validated(text, roots) : Refused(problem);
     }
 
     /// <summary>The settings as the dialog shows them: roots one per line and the custom arguments on one line.</summary>
@@ -119,9 +119,12 @@ public sealed record Settings
 
         IReadOnlyList<string> arguments = CommandArguments.Split(text.Arguments);
 
-        return EditorChoice.Problem(text.Executable, arguments) is SettingsProblem problem
-            ? Refused(problem)
-            : new SettingsValidation.Valid(new Settings(roots, worktreeRoot, EditorChoice.Custom(text.Executable, arguments), text.Base, text.CheckForUpdates, text.Place));
+        return EditorChoice.Validate(text.Executable, arguments) switch
+        {
+            EditorChoiceValidation.Valid valid => new SettingsValidation.Valid(new Settings(roots, worktreeRoot, valid.Editor, text.Base, text.CheckForUpdates, text.Place)),
+            EditorChoiceValidation.Refused refused => Refused(refused.Problem),
+            _ => throw new UnreachableException(),
+        };
     }
 
     private static SettingsValidation.Refused Refused(SettingsProblem problem) => new(problem);

@@ -7,6 +7,7 @@ using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.Collections.Frozen;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Tui;
 
@@ -52,8 +53,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>
     private static StatusMessage AskAboutBranch(IEffectContext context, Outcome removal, BranchToConfirm branch, bool createdByVantage)
     {
-        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.DeleteBranch, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch.Value, createdByVantage), "Delete branch", "Keep");
-        if (answer != 0)
+        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.DeleteBranch, "Delete branch", Wording.DeleteBranchQuestion(branch.Branch.Value, createdByVantage), "Delete branch", "Keep"))
         {
             return new StatusMessage.BranchKept(removal);
         }
@@ -66,15 +66,19 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static void Rename(IEffectContext context, BackgroundSession session)
     {
-        string? typed = NameDialog.Show(context.App, context.Diagnostics, DialogName.Rename, "Rename session", Wording.RenamePrompt(session.Name), session.Name);
-        context.Reduce(new RenameConfirmed(session, typed));
+        ViewInput answered = NameDialog.Show(context.App, context.Diagnostics, DialogName.Rename, "Rename session", Wording.RenamePrompt(session.Name), session.Name) switch
+        {
+            TypedAnswer.Typed typed => new RenameConfirmed(session, typed.Text),
+            TypedAnswer.Cancelled => new RenameCancelled(session),
+            _ => throw new UnreachableException(),
+        };
+        context.Reduce(answered);
     }
 
     private static void ConfirmCloseEmpty(IEffectContext context, CloseEmptyTerminals close)
     {
         string question = Wording.CloseEmptyQuestion([.. close.Sessions.Select(session => session.Name)]);
-        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.CloseEmpty, "Close empty terminal sessions", question, "Close", "Keep");
-        if (answer != 0)
+        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.CloseEmpty, "Close empty terminal sessions", question, "Close", "Keep"))
         {
             context.ShowMessage(new StatusMessage.Kept());
             return;
@@ -100,7 +104,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static void ConfirmForce(IEffectContext context, ConfirmForceRemove confirm)
     {
-        string? typed = TypedConfirmationDialog.Show(
+        TypedAnswer answer = TypedConfirmationDialog.Show(
             context.App,
             context.Diagnostics,
             DialogName.ForceRemove,
@@ -108,7 +112,13 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             Wording.ForceRemoveWarning,
             confirm.ConfirmationText,
             "folder name");
-        context.Reduce(new ForceConfirmed(confirm.Row, confirm.ConfirmationText, typed));
+        ViewInput answered = answer switch
+        {
+            TypedAnswer.Typed typed => new ForceConfirmed(confirm.Row, confirm.ConfirmationText, typed.Text),
+            TypedAnswer.Cancelled => new ForceCancelled(confirm.Row),
+            _ => throw new UnreachableException(),
+        };
+        context.Reduce(answered);
     }
 
     /// <summary>
@@ -117,20 +127,27 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// </summary>
     private void ConfirmUpdate(IEffectContext context)
     {
-        UpdateStatus status = updates.Status;
-        if (status is not UpdateStatus.Available available)
+        switch (UpdateVantage.Decide(updates.Status))
         {
-            context.ShowMessage(UpdateVantage.Refusal(status) ?? new StatusMessage.UpToDate());
+            case UpdateDecision.Ask ask:
+                AskToUpdate(context, ask.Newest);
+                break;
+            case UpdateDecision.Refuse refuse:
+                context.ShowMessage(refuse.Message);
+                break;
+            default:
+                throw new UnreachableException();
+        }
+    }
+
+    private static void AskToUpdate(IEffectContext context, ReleaseVersion newest)
+    {
+        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.Update, "Update Vantage", Wording.UpdateQuestion(newest), "Update", "Cancel"))
+        {
             return;
         }
 
-        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.Update, "Update Vantage", Wording.UpdateQuestion(available.Newest), "Update", "Cancel");
-        if (answer != 0)
-        {
-            return;
-        }
-
-        context.Dispatch(new StartUpdate(available.Newest), outcome =>
+        context.Dispatch(new StartUpdate(newest), outcome =>
         {
             context.Reduce(new UpdateTabOpened());
             return new StatusMessage.Reported(outcome);
@@ -139,32 +156,37 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private void StartSession(IEffectContext context, FolderPath? fixedDirectory)
     {
-        WizardResult? wizard = LaunchWizardDialog.Show(context.App, context.Diagnostics, catalogue, recent, folders, settings.Value, fixedDirectory);
-        if (wizard is null)
+        switch (LaunchWizardDialog.Show(context.App, context.Diagnostics, catalogue, recent, folders, settings.Value, fixedDirectory))
         {
-            return;
+            case WizardEffect.Launch launch:
+                context.Dispatch(new StartSession(launch.Plan));
+                break;
+            case WizardEffect.Close:
+                break;
+            default:
+                throw new UnreachableException();
         }
-
-        context.Dispatch(new StartSession(wizard.Plan));
     }
 
     /// <summary>A setting's dialog over the settings saved now; a save is dispatched, so the status line confirms it and the refresh after it uses the new values.</summary>
     private void EditSettings(IEffectContext context, SettingsScope scope)
     {
-        Settings? saved = SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, scope, folders.DirectoryExists);
-        if (saved is null)
+        switch (SettingsDialog.Show(context.App, context.Diagnostics, settings.Value, scope, folders.DirectoryExists))
         {
-            return;
+            case SettingsEffect.Save save:
+                context.Dispatch(new SaveSettings(save.Settings));
+                break;
+            case SettingsEffect.Close:
+                break;
+            default:
+                throw new UnreachableException();
         }
-
-        context.Dispatch(new SaveSettings(saved));
     }
 
     private void ConfirmDelete(IEffectContext context, DeleteSession deletion)
     {
         BackgroundSession session = deletion.Session;
-        int? answer = Confirm.Query(context.App, context.Diagnostics, DialogName.DeleteSession, "Delete session", Wording.DeleteSessionQuestion(session.Name), "Delete", "Cancel");
-        if (answer != 0)
+        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.DeleteSession, "Delete session", Wording.DeleteSessionQuestion(session.Name), "Delete", "Cancel"))
         {
             return;
         }
@@ -208,21 +230,19 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
         return new StatusMessage.Working(effect);
     }
-    /// <summary>Looks off the UI thread; back on it, one solution opens, none says so, and several are asked about.</summary>
+
     /// <summary>Measures the session's tree off the UI thread (a snapshot of the whole table), then shows the breakdown; a process gone since the listing reads as nothing to measure.</summary>
     private void ShowMemoryOf(IEffectContext context, ShowMemory show)
     {
         context.RunInBackground(
             new StatusMessage.Working(show),
-            _ => Task.FromResult(Measure(show)),
-            breakdown => breakdown is null ? new StatusMessage.NothingToMeasure(show.Session.Name) : ShowBreakdown(context, breakdown));
-    }
-
-    private MemoryBreakdown? Measure(ShowMemory show)
-    {
-        ProcessTree? tree = ProcessTree.Under(show.ProcessId, processes.Snapshot(), processes.UsageOf);
-
-        return tree is null ? null : MemoryBreakdown.Of(show.Session.Name, tree);
+            _ => Task.FromResult(ProcessTree.Under(show.ProcessId, processes.Snapshot(), processes.UsageOf)),
+            lookup => lookup switch
+            {
+                ProcessTreeLookup.Found found => ShowBreakdown(context, MemoryBreakdown.Of(show.Session.Name, found.Tree)),
+                ProcessTreeLookup.NotMeasurable => new StatusMessage.NothingToMeasure(show.Session.Name),
+                _ => throw new UnreachableException(),
+            });
     }
 
     private static StatusMessage ShowBreakdown(IEffectContext context, MemoryBreakdown breakdown)
@@ -232,6 +252,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         return StatusMessage.None;
     }
 
+    /// <summary>Looks off the UI thread; back on it, one solution opens, none says so, and several are asked about.</summary>
     private void OpenSolutionOf(IEffectContext context, FindSolution find)
     {
         context.RunInBackground(
@@ -247,11 +268,12 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     private static StatusMessage ChooseSolution(IEffectContext context, FindSolution find, IReadOnlyList<string> files)
     {
-        int? answer = ChooseSolutionDialog.Show(context.App, context.Diagnostics, find.Folder, files);
-
-        return answer is int chosen && chosen < files.Count
-            ? Open(context, files[chosen])
-            : StatusMessage.None;
+        return ChooseSolutionDialog.Show(context.App, context.Diagnostics, find.Folder, files) switch
+        {
+            SolutionChoice.Chosen chosen => Open(context, chosen.File),
+            SolutionChoice.NoneChosen => StatusMessage.None,
+            _ => throw new UnreachableException(),
+        };
     }
 
     private static StatusMessage.Working Open(IEffectContext context, string file)
