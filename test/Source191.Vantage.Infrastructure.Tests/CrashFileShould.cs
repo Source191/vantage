@@ -1,4 +1,5 @@
 using Source191.Vantage.Adapters.Diagnostics;
+using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Infrastructure.Tests;
 
@@ -37,23 +38,39 @@ public sealed class CrashFileShould : IDisposable
     }
 
     [Fact]
+    public async Task ReadACrashAsRecorded()
+    {
+        CrashFile file = new(folder);
+        file.Write("2026-10-29T12:00:00.000Z view Sessions\n2026-10-29T12:00:01.000Z failed Crash: InvalidOperationException\n");
+
+        (await file.ReadAsync()).ShouldBe(new LastCrash.Recorded("2026-10-29T12:00:00.000Z view Sessions\n2026-10-29T12:00:01.000Z failed Crash: InvalidOperationException\n"));
+    }
+
+    [Fact]
     public async Task ReadAndRemoveTheCrash()
     {
         CrashFile file = new(folder);
         file.Write("crash\n");
 
-        (await file.ReadAsync()).ShouldBe("crash\n");
+        (await file.ReadAsync()).ShouldBe(new LastCrash.Recorded("crash\n"));
         await file.RemoveAsync();
 
-        (await file.ReadAsync()).ShouldBeNull();
+        (await file.ReadAsync()).ShouldBe(new LastCrash.None());
     }
 
     [Fact]
-    public async Task AnswerNullAndRemoveQuietlyWithoutACrash()
+    public async Task ReadNoCrashAsNone()
     {
         CrashFile file = new(folder);
 
-        (await file.ReadAsync()).ShouldBeNull();
+        (await file.ReadAsync()).ShouldBe(new LastCrash.None());
+    }
+
+    [Fact]
+    public async Task RemoveQuietlyWithoutACrash()
+    {
+        CrashFile file = new(folder);
+
         await Should.NotThrowAsync(file.RemoveAsync);
     }
 }
