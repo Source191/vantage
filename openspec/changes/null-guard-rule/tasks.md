@@ -18,7 +18,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 3. The rule in words, and the whole build
 
-- [ ] 3.1 `CLAUDE.md`'s code rules gain the sentence in proposal.md, and the layering sentence names `NullFreeModelsShould` beside `LayeringShould`, `TextValuesShould` and `DiagnosticEventsShould`. Verify by reading both against design.md and checking no em dash was introduced.
+- [x] 3.1 `CLAUDE.md`'s code rules gain the sentence in proposal.md, and the layering sentence names `NullFreeModelsShould` beside `LayeringShould`, `TextValuesShould` and `DiagnosticEventsShould`. Verify by reading both against design.md and checking no em dash was introduced.
 - [ ] 3.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate null-guard-rule` all pass; `git diff --stat origin/main` shows nothing under `src\` (no version raise needed).
 
 ## Workflow follow-up
