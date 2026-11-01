@@ -25,7 +25,7 @@ public sealed class ParsingShould
         StaticMethodsNamed("TryParse").Concat(StaticMethodsNamed("Parse"))
             .Select(parser => parser.Type)
             .Distinct()
-            .ShouldBe(["BranchName", "FolderPath", "JobId", "ReleaseVersion", "RemoteRepository", "ReportTitle", "SessionId", "SessionName", "WorktreeSlug"], ignoreOrder: true);
+            .ShouldBe(["BranchName", "FolderPath", "JobId", "ReleaseNotes", "ReleaseVersion", "RemoteRepository", "ReportTitle", "SessionId", "SessionName", "WorktreeSlug"], ignoreOrder: true);
     }
 
     [Fact]

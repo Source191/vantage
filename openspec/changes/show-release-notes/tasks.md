@@ -11,11 +11,11 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 2. Release notes as a Domain value
 
-- [ ] 2.1 `ReleaseNotesShould.ReadTheSectionsOfAChangelog`: a Northwind changelog with Unreleased, 0.21.0 and 0.20.0 parses into two version sections with their entries under their headings. Red, then `Domain\ReleaseNotes` with `TryParse(string?, out ReleaseNotes)`, the house shape for text from outside Vantage. Verify the fact, `NullFreeModelsShould` and `SealedTypesShould` pass.
-- [ ] 2.2 `ReleaseNotesShould.AnswerFalseForTextWithNoVersionSection` (the current link-only release notes, an empty string, null). Verify the fact passes.
-- [ ] 2.3 `ReleaseNotesShould.ChooseTheStableSectionsBetweenTwoVersionsNewestFirst`: `Between(0.19.0, 0.21.0)` gives 0.21.0 then 0.20.0, never Unreleased, 0.19.0 or a prerelease heading. Verify the fact passes.
-- [ ] 2.4 `ReleaseNotesShould.LeaveOutInternalEntries`. Verify the fact passes.
-- [ ] 2.5 `ReleaseNotesShould.DropControlCharactersFromEachLine`: an entry holding `\u001b]2;owned\u0007` keeps its visible text without ESC or BEL. Verify the fact passes.
+- [x] 2.1 `ReleaseNotesShould.ReadTheSectionsOfAChangelog`: a Northwind changelog with Unreleased, 0.21.0 and 0.20.0 parses into two version sections with their entries under their headings. Red, then `Domain\ReleaseNotes` with `TryParse(string?, out ReleaseNotes)`, the house shape for text from outside Vantage. Verify the fact, `NullFreeModelsShould` and `SealedTypesShould` pass.
+- [x] 2.2 `ReleaseNotesShould.AnswerFalseForTextWithNoVersionSection` (the current link-only release notes, an empty string, null). Verify the fact passes.
+- [x] 2.3 `ReleaseNotesShould.ChooseTheStableSectionsBetweenTwoVersionsNewestFirst`: `Between(0.19.0, 0.21.0)` gives 0.21.0 then 0.20.0, never Unreleased, 0.19.0 or a prerelease heading. Verify the fact passes.
+- [x] 2.4 `ReleaseNotesShould.LeaveOutInternalEntries`. Verify the fact passes.
+- [x] 2.5 `ReleaseNotesShould.DropControlCharactersFromEachLine`: an entry holding `\u001b]2;owned\u0007` keeps its visible text without ESC or BEL. Verify the fact passes.
 - [ ] 2.6 `ReleaseNotesShould.SkipLinesItDoesNotUnderstand` (prose, a table row, a heading of an unknown kind). Verify the fact passes and a Stryker run scoped with `--mutate "**/Domain/ReleaseNotes.cs"` leaves no surviving mutant that changes which entries are shown.
 
 ## 3. Reading and recording the notes
