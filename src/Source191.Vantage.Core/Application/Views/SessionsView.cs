@@ -4,13 +4,21 @@ using System.Diagnostics;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>
-/// A listed session with what git, the state store and the transcript folder add to it. Head is Unknown outside a
+/// A listed session with what git, the state store and the transcript folder add to it. Location says whether it runs
+/// in a repository (and which main checkout) or outside one; Repository is the name either gives. Head is Unknown outside a
 /// repository or when git did not name a branch. Tab says whether a live Vantage tab shows the session, and in which
 /// colour. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then,
 /// so every caller must say which it is.
 /// </summary>
-public sealed record SessionRow(Session Session, string Repository, Head Head, LiveTab Tab, bool HasTranscript)
+public sealed record SessionRow(Session Session, SessionLocation Location, Head Head, LiveTab Tab, bool HasTranscript)
 {
+    /// <summary>The repository's name, or the folder's outside a repository: what REPOSITORY, the filter and the folder keys read.</summary>
+    public string Repository => Location switch
+    {
+        SessionLocation.Outside outside => outside.Folder,
+        SessionLocation.InRepository inRepository => inRepository.Name,
+        _ => throw new UnreachableException(),
+    };
 
     /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
     public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
@@ -18,8 +26,7 @@ public sealed record SessionRow(Session Session, string Repository, Head Head, L
     /// <summary>What the session's process and everything it started use; nothing to measure for a session with no process, or whose process has gone.</summary>
     public SessionMemory Memory { get; init; } = new SessionMemory.NothingToMeasure();
 
-    /// <summary>The main checkout the session's folder belongs to; null outside a repository, which is how REPOSITORY knows to show the folder's label.</summary>
-    public FolderPath? Checkout { get; init; }
+    public FolderPath? Checkout => Location is SessionLocation.InRepository inRepository ? inRepository.Checkout : null;
 }
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>

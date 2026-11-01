@@ -85,7 +85,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void NameATerminalSessionsOwnTerminal()
     {
-        SessionRow row = Row(DisplayState.Idle, process: new JobProcess.None()) with { Session = new InteractiveSession(SessionId.From("82db48ec-63de-49db-9831-b8147075dc3a"), "repos-93", Worktree, Now, DisplayState.Idle, ProcessId: 51432), Checkout = null };
+        SessionRow row = Row(DisplayState.Idle, process: new JobProcess.None()) with { Session = new InteractiveSession(SessionId.From("82db48ec-63de-49db-9831-b8147075dc3a"), "repos-93", Worktree, Now, DisplayState.Idle, ProcessId: 51432), Location = new SessionLocation.Outside("Northwind.Orders") };
 
         string[] lines = Text(Wording.Detail(Detail(row), Now));
 
@@ -202,7 +202,7 @@ public sealed class WordingOfDetailShould
     {
         BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "fix-123", folder ?? Worktree, Now.AddMinutes(-5), state, process);
 
-        return new SessionRow(session, "Northwind.Orders", new Head.OnBranch(BranchName.From("fix-123")), new LiveTab.None(), HasTranscript: true) { Checkout = Repository };
+        return new SessionRow(session, new SessionLocation.InRepository("Northwind.Orders", Repository), new Head.OnBranch(BranchName.From("fix-123")), new LiveTab.None(), HasTranscript: true);
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
