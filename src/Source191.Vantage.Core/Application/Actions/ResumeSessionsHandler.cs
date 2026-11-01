@@ -28,9 +28,10 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
                 continue;
             }
 
-            // The port resumes under a name or under none: a listed name SessionName refuses resumes unnamed, so the bool is not needed.
-            _ = SessionName.TryParse(session.Name, out SessionName? name);
-            ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken);
+            // A listed name SessionName refuses is resumed unnamed.
+            ResumeResult result = SessionName.TryParse(session.Name, out SessionName? name)
+                ? await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken)
+                : await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, cancellationToken);
             continued += result.Continued ? 1 : 0;
             if (!result.Continued)
             {

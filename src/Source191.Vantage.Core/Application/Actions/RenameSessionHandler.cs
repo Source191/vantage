@@ -36,9 +36,10 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
             return new RenameSessionOutcome.Renamed(session.Name, newName.Value, TabMoved: tabClosed);
         }
 
-        // The port resumes under a name or under none: a listed name SessionName refuses resumes unnamed, so the bool is not needed.
-        _ = SessionName.TryParse(session.Name, out SessionName? name);
-        ResumeResult restored = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken);
+        // A listed name SessionName refuses is restored unnamed.
+        ResumeResult restored = SessionName.TryParse(session.Name, out SessionName? name)
+            ? await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken)
+            : await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, cancellationToken);
 
         return restored.Continued
             ? new RenameSessionOutcome.Restored(session.Name, renamed.Message, tabClosed)

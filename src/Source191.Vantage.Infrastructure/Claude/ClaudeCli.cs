@@ -49,14 +49,14 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
 
     public Task RemoveAsync(string jobId, CancellationToken cancellationToken) => processes.RunAsync(Request(["rm", jobId], WorkingFolder.Inherit), cancellationToken);
 
-    public async Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, SessionName? name, CancellationToken cancellationToken)
-    {
-        List<string> arguments = ["--bg", "--resume", sessionId];
-        if (name is not null)
-        {
-            arguments.AddRange(["-n", name.Value]);
-        }
+    public Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, SessionName name, CancellationToken cancellationToken) =>
+        ResumeAsync(["--bg", "--resume", sessionId, "-n", name.Value], directory, cancellationToken);
 
+    public Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, CancellationToken cancellationToken) =>
+        ResumeAsync(["--bg", "--resume", sessionId], directory, cancellationToken);
+
+    private async Task<ResumeResult> ResumeAsync(IReadOnlyList<string> arguments, string directory, CancellationToken cancellationToken)
+    {
         ProcessResult result = await processes.RunAsync(Request(arguments, new WorkingFolder.At(directory)), cancellationToken);
         if (result.ExitCode != 0)
         {
