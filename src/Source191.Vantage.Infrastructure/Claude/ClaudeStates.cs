@@ -3,8 +3,9 @@ using Source191.Vantage.Domain;
 namespace Source191.Vantage.Adapters.Claude;
 
 /// <summary>
-/// The Claude CLI's vocabulary, read where it arrives. The listing's documented states are working, blocked, done,
-/// failed and stopped; status (busy, waiting, idle) says what the process is doing right now and wins while it is alive.
+/// The Claude CLI's vocabulary, read where it arrives. The listing's
+/// <see href="https://code.claude.com/docs/en/agent-view">documented states</see> are working, blocked, done, failed
+/// and stopped; status (busy, waiting, idle) says what the process is doing right now and wins while it is alive.
 /// </summary>
 public static class ClaudeStates
 {
