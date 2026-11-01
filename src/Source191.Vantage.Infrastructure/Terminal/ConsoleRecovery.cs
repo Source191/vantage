@@ -49,7 +49,10 @@ public static partial class ConsoleRecovery
         EnableEscapeSequencesOnOutput();
         console.Write(ResetSequence);
         console.Flush();
+        // Synchronous by design: it runs between a child's exit and the console's next read, with no caller to await.
+#pragma warning disable RS0030
         Thread.Sleep(SettleTime);
+#pragma warning restore RS0030
         DiscardPendingInput();
     }
 
