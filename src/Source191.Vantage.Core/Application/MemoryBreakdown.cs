@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -18,10 +19,18 @@ public sealed record MemoryBreakdown(string SessionName, MemorySize ClaudeCode, 
         IReadOnlyList<MemoryShare> programs =
         [
             .. tree.Children
-                .Select(child => new MemoryShare(ProgramLabel.From(child.Process.Name, child.Usage is ProcessMeasure.Measured measured ? measured.Usage.CommandLine : string.Empty), child.Total))
+                .Select(child => new MemoryShare(ProgramLabel.From(child.Process.Name, CommandLineOf(child.Usage)), child.Total))
                 .OrderByDescending(share => share.Memory),
         ];
 
-        return new MemoryBreakdown(sessionName, tree.Usage is ProcessMeasure.Measured root ? root.Usage.PrivateMemory : MemorySize.Zero, programs, tree.Total, tree.Count);
+        return new MemoryBreakdown(sessionName, tree.Own, programs, tree.Total, tree.Count);
     }
+
+    /// <summary>The command line a program is labelled from; empty for one that refused to be measured, so it is labelled by its name alone.</summary>
+    private static string CommandLineOf(ProcessMeasure measure) => measure switch
+    {
+        ProcessMeasure.Measured measured => measured.Usage.CommandLine,
+        ProcessMeasure.Unmeasured => string.Empty,
+        _ => throw new UnreachableException(),
+    };
 }
