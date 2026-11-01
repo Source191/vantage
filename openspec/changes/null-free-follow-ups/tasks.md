@@ -19,7 +19,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 - [x] 3.1 `SessionsViewShould` and `WorktreesViewShould` read `new LoadBanner.Failed(...)` and `new LoadBanner.None()`, with the four `Banner` entries out of `Kept`: red, then `Application\Views\LoadBanner.cs`, the three states and `TableBody` green. Verify the view facts pass.
 - [x] 3.2 `ListSelectionShould.AnswerItsKeyAsASelectionKey` and `BuildASelectionFromASelectionKey`, with the three selection key entries out of `Kept`: red, then `Application\Views\SelectionKey.cs`, `ListSelection.Selection`, `ListPolicy.List` and the three states green. Verify `WorktreesViewShould`'s selected-row facts pass.
 - [x] 3.3 `SettingsViewShould`'s browse facts read `new BrowseStart.At(...)` and `new BrowseStart.NoFolderTyped()`, with `SettingsState.BrowseFrom` out of `Kept`: red, then `Application\Views\BrowseStart.cs`, `SettingsState` and `SettingsDialog` green. Verify the facts pass.
-- [ ] 3.4 `TabKeysShould` (the five tab keys and a key that is not one) and `TabKeys.For` out of `Kept`: red, then `TabKeys.TryFor` and the three reducers green. Verify the view facts for the tab keys pass.
+- [x] 3.4 `TabKeysShould` (the five tab keys and a key that is not one) and `TabKeys.For` out of `Kept`: red, then `TabKeys.TryFor` and the three reducers green. Verify the view facts for the tab keys pass.
 
 ## 4. Version and the whole build
 

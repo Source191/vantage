@@ -98,7 +98,7 @@ public static class ConfigView
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
             { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
             { Name: KeyName.Character, Character: '!' } => Effect(state, new ShowProblemReport()),
-            _ when TabKeys.For(key) is ViewEffect tab => Effect(state, tab),
+            _ when TabKeys.TryFor(key, out ViewEffect? tab) => Effect(state, tab),
             _ => Unchanged(state),
         };
     }
