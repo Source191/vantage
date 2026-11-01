@@ -33,7 +33,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
 
 - [x] 4.1 `ConsoleLoadsShould.RefreshTheSessionsWithTheirAutomatedRuns`: `LoadSessionsAsync` answers `RowsLoaded` with a row per listed session and the listing's automated runs measured, as `SessionRowEnricher.Measure` reports them. Red, then green with `ConsoleLoads(LatestSessions, SessionRowEnricher, WorktreeInventory, SetupFactsReader, CurrentSettings)` in `src\Source191.Vantage.Core\Application\ConsoleLoads.cs`. Verify the fact passes.
   Red was a build failure (no type), folded into green. Deviation: the green step writes all four members, because Sonar's S1144 fails the build for a guarded field no member reads yet, so 4.2 and 4.3 are green at once; Core.Tests 1972 passed.
-- [ ] 4.2 `ConsoleLoadsShould.ScanWithTheLatestListingsSessions`: after one `LoadSessionsAsync`, `ScanWorktreesAsync` answers `WorktreeRowsLoaded` with the listed session on its worktree's row, and the fake CLI saw one listing in all. Red, then green. Verify the fact passes.
+- [x] 4.2 `ConsoleLoadsShould.ScanWithTheLatestListingsSessions`: after one `LoadSessionsAsync`, `ScanWorktreesAsync` answers `WorktreeRowsLoaded` with the listed session on its worktree's row, and the fake CLI saw one listing in all. Red, then green. Verify the fact passes.
+  Green at once (see 4.1); the session sits in a linked worktree, since git's main worktree is not a Worktrees row; Core.Tests 1973 passed.
 - [ ] 4.3 `ConsoleLoadsShould.ReadTheConfigRowsWithTheSetupFacts` (`ReadConfigAsync` answers `ConfigRowsLoaded` equal to `ConfigRows.For(settings, facts)`) and `ShowTheConfigRowsAsReadingFirst` (`ConfigRowsWhileReading()` equals `ConfigRows.For(settings, SetupFacts.Reading)`, and follows a saved setting). Red, then green. Verify the facts pass.
 
 ## 5. The wiring
