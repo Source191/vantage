@@ -140,6 +140,16 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
+    public void ExplainAWorktreeWhoseGitFileIsGoneAndForceItOnlyByItsTypedName()
+    {
+        WorktreeRow gitFileGone = Row(@"C:\repos\Northwind.Orders-fix-4", On("fix-4"), WorktreeHealthKind.Broken, new HealthReason.GitFileGone()) with { LeftoverFileCount = 12 };
+        WorktreesViewState onIt = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([gitFileGone]));
+
+        WorktreesView.Reduce(onIt, new KeyPressed(Key.Of('d'))).State.Message.ShouldBe(new StatusMessage.NotRemoved(new RemovalReason.LeftoverFilesWouldBeLost(12, AtLeast: false), OfferForce: true));
+        WorktreesView.Reduce(onIt, new KeyPressed(Key.Of('D'))).Effects.ShouldBe([new ConfirmForceRemove(gitFileGone, ConfirmationText: "Northwind.Orders-fix-4")]);
+    }
+
+    [Fact]
     public void PruneWithCapitalPUnlessTheRepositoryHasGone()
     {
         WorktreesViewState onGone = Press(Loaded, [.. Enumerable.Repeat(Key.Down, 6)]);
