@@ -49,6 +49,7 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
         {
             NewestRelease.Found found => found.Version.ToString(),
             NewestRelease.None => null,
+            NewestRelease.Unreadable unreadable => unreadable.Text,
             _ => throw new UnreachableException(),
         };
     }
