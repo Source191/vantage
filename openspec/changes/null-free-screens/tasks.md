@@ -26,7 +26,7 @@ Each Core task is one red-green-refactor cycle with a commit per step, the test 
 
 - [x] 3.1 `KeyHelpShould.PutAHelpOnlyKeyOffTheBar` (`KeyHelp.HelpOnly("1", ...)` has an empty `Hint` and `OnBar` false) and `KeepABarKeyOnTheBar`: red. Then green: `KeyHelp(string Key, string Hint, string Line, string Tip)`, `HelpOnly` and `OnBar`, with `TabKeyHelp`'s seven keys built by `HelpOnly`. Verify that the two facts, `WordingOfKeysAndColumnsShould` and the help facts pass with every expected text unchanged.
 - [x] 3.2 `WordingOfConsole`'s three bars take plain key lists and a `BarWord` override list in place of `(string Key, string? Word)` tuples (refactor step: no new fact). Verify that `WordingOfKeyBarShould` passes unchanged, including `"d Close tab"` and its tip, and that `Select-String -Path src\Source191.Vantage.Core\Application\WordingOfConsole.cs -Pattern 'string\?'` finds nothing.
-- [ ] 3.3 `CLAUDE.md`'s code rules describe `Hint` as the key bar's word, empty for a key only the help lists (`KeyHelp.HelpOnly`), in place of "null for a key only the help lists". Verify by reading the sentence against `KeyHelp.cs`.
+- [x] 3.3 `CLAUDE.md`'s code rules describe `Hint` as the key bar's word, empty for a key only the help lists (`KeyHelp.HelpOnly`), in place of "null for a key only the help lists". Verify by reading the sentence against `KeyHelp.cs`.
 
 ## 4. The detail pane
 
