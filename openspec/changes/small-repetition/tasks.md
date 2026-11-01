@@ -1,0 +1,65 @@
+# Tasks
+
+Each task is one red-green-refactor cycle or smaller, with a commit per step; the test is named before the code, and a task that only moves or reworded code says so. Verify with `dotnet build -c Debug` (warnings are errors) and `dotnet test --project test\Source191.Vantage.Core.Tests -c Debug --no-build` unless a task says otherwise; adapter and tool tasks run their own project's tests. New facts use the fakes in `test\Source191.Vantage.TestDoubles`, Northwind fixtures and `C:\Users\me` paths. Each group is one commit's worth of work, or two.
+
+## 1. The layout rule
+
+- [ ] 1.1 Add `dotnet_style_allow_multiple_blank_lines_experimental = false` and `dotnet_diagnostic.IDE2000.severity = warning` to `.editorconfig` under the C# formatting rules, then `dotnet format style --diagnostics IDE2000` over the solution, which removes every double blank line under `src` (`WorktreeInventory.cs:236`, `WhereLabel.cs:92`, `WorktreeRow.cs:31-32`, `SessionsViewState.cs:34`, `TableBody.cs:258`, the three screen definitions) and `test`. By hand, the missing blank line before a doc comment at `ListSelection.cs:34` and before `namespace` at `GitWorktreeListing.cs:3`. Verify `dotnet build -c Debug` passes with the rule on and `dotnet format --verify-no-changes` is clean.
+
+## 2. Domain
+
+- [ ] 2.1 `TabRegistrationsShould.KeepTheRegistrationsOwnedByASession` (new file in `test\Source191.Vantage.Core.Tests\Domain`): two registrations for `sess-1`, one for `sess-2` and Vantage's own; `For(SessionId.From("sess-1"))` answers the two, in order. Red, then green with `TabRegistrations.For(SessionId)` in `src\Source191.Vantage.Core\Domain\TabRegistrations.cs`. Verify the fact passes.
+- [ ] 2.2 `TabPaletteShould.NameEachColourAndBuildTheOrderFromThem`: `TabPalette.Green` is the member named Green, `TabPalette.Last` equals `Default[^1]`, and `Default` holds each named member once in the pinned order. Red, then green with the named static members and `Default` built from them in `Domain\TabPalette.cs`. Verify the fact and the existing order fact pass.
+- [ ] 2.3 D-17: delete `SessionId.cs:14` (`IsSessionId` refuses blank text already, and `SessionIdShould.RejectTextThatIsNotTheCliShapeOfAnId`'s theory has `""` and `"   "` but no null, so no case changes its exception), reword `BranchName.cs:5` to say the rule is Vantage's minimal one because branch text comes from slugs and git's own output, where git's `check-ref-format` refuses far more. Verify `SessionIdShould` and `BranchNameShould` pass unchanged.
+
+## 3. Application: diagnostics
+
+- [ ] 3.1 `DiagnosticLineShould.RecogniseACrashLineWithOrWithoutWhat` (a crash rendered with `null` and with `CodeName.For(typeof(ScreenLoop))` is a crash line; a `Load` failure and a `view Sessions` line are not). Red, then green with `DiagnosticLine.IsCrashLine(string)` matching the `failed` word and `FailureSite.Crash` through constants the `Failed` arm shares. Verify the fact passes.
+- [ ] 3.2 `ProblemReports.CrashLines` uses `IsCrashLine` and `CrashMarker` goes; `ProblemReportsShould` and `ProblemReportHandlersShould` build their crash lines with `DiagnosticLine.Render(new TimedEvent(...))`, and `DiagnosticsPrivacyShould.cs:76` and `ProblemReportShould.cs:48` assert `IsCrashLine` (that fixture's line carries a stack frame, which a summary of an unthrown exception cannot give, so its literal stays); `CrashFileShould` keeps its literals. Verify those five test files pass and `ProblemReportsShould` still keeps a crash line at its never-dropped band.
+- [ ] 3.3 `AttemptShould.RecordOnlyTheFailuresTheFilterHandles`: a `GitException` under `exception is GitException` is recorded and answered; an `OperationCanceledException` propagates unrecorded. Red, then green with the `handles` overload of `Attempt.RunAsync`, the existing overload delegating with `_ => true`. Verify the facts pass.
+- [ ] 3.4 `OncePerFolderShould.RecordTheFirstFailurePerFolderAndAnswerEveryTime` and `RecordAnotherFolderOnItsOwn`: two failures in `C:\Users\me\source\repos\Northwind.Orders` leave one `Failed(Load, CodeName, summary)` in the log and two answers; a second folder adds its own. Red, then green with `Application\Diagnostics\OncePerFolder.cs` over a `ConcurrentDictionary<FolderPath, byte>`. Verify the facts pass and `DiagnosticEventsShould` stays green.
+- [ ] 3.5 `WorktreeInventoryLeftoversShould.RecordAnUnreadableRepositoryOnce`: `git worktree list` failing (a non-zero `FakeProcessRunner` result, so `GitCli` throws `GitException`) on two scans leaves one `Failed` with `CodeName.For(typeof(WorktreeInventory))` and still answers the other rows; a cancelled scan propagates. Red, then green with `WorktreeInventory(IGit, IFolders, CurrentSettings, PullRequestCatalogue, DiagnosticLog)` routing `RegisteredRowsAsync` and `InspectedAsync` through two `OncePerFolder` gates. Update `WorktreeInventoryShould` (Infrastructure.Tests), `WorktreeInventoryLeftoversShould.cs:149, 161` and `Program.cs:145` (or `ConsoleComposition`). Verify both test projects pass.
+- [ ] 3.6 `DetailLoaderShould.RecordAFailedReadOnceAndAnswerUnavailable`: a git read that throws leaves one `Failed` with `CodeName.For(typeof(DetailLoader))` across two reads of the same row and answers `Unavailable`; `OriginAsync`'s catch is routed the same way. Red, then green with `DetailLoader(IGit, ICreatedWorktrees, SessionActivity, DiagnosticLog)`; update `Program.cs:158`. Verify the facts pass and `DiagnosticsPrivacyShould` stays green.
+- [ ] 3.7 `SetupFactsReaderShould.RecordAnUnreadablePiece`: a `FakeClaudeSettings` with `FailTheReadWith` set to an `IOException` answers `Unreadable` and leaves one `Failed` with `CodeName.For(typeof(SetupFactsReader))`. Red, then green with `Guarded` calling the filtered `Attempt.RunAsync`; `SetupFactsReader` takes a `DiagnosticLog`; update the six `SetupFactsReaderShould` sites and `Program.cs:154`. Verify the facts pass.
+- [ ] 3.8 Rename `RecordedProcessRunner.Started<T>` to `GuardingStart<T>` (a refactor under `RecordedProcessRunnerShould`). Verify the build and the facts pass.
+
+## 4. Application: tidies
+
+- [ ] 4.1 `OpenTabHandler.OpenAsync` reads the store once, removing `For(id)` and taking `live` from the same read minus them; `SwitchToTabAsync`, `RenameSessionHandler.cs:25` and `SessionTabs.cs:16` call `For` (a refactor under `OpenTabHandlerShould.ReleaseTheEarlierColour`, `RenameSessionHandlerShould` and `SessionTabsShould`). Verify those facts pass.
+- [ ] 4.2 `FolderLabelsShould.UseTheRepositoryRootsAndTheWorktreeRoot` and `FollowASavedConfiguration`, rewritten over `TestSettings.Current(...)` and `CurrentSettings.SaveAsync`. Red, then green with `FolderLabels(CurrentSettings settings, FolderPath home)` computing the list per call; update `Program.cs:153` (or `ConsoleComposition`). Verify the facts pass.
+- [ ] 4.3 `StartUpdateHandlerShould.OpenTheUpdateTabAndReportIt` builds the handler with a `VantageProcess`. Red (the constructor does not exist), then green with `StartUpdateHandler(IWindowsTerminal, TabScripts, VantageProcess)` and `Composition.cs:37` passing `vantage`. Verify the fact and `EffectDispatcherShould` pass.
+- [ ] 4.4 `Wording.ConfigBar(bool updateKnown)` and `WorktreesBar(bool updateKnown)`: drop the unused `state` and its guard; `ConfigScreenDefinition.Bar` and `WorktreesScreenDefinition.Bar` pass only `updateKnown`; the six calls in `WordingOfKeyBarShould` follow. Verify `WordingOfKeyBarShould` and `WordingShould` pass.
+- [ ] 4.5 `TabScriptsShould.BuildTheTrustScript` pins `TabPalette.Green` and `BuildTheShellScript` pins `TabPalette.Last`; `OwnTab.cs:12` and `TabScripts.cs:12, 15` use the members; `OwnTabShould`, `TerminalConsoleShould`, `JsonFileStoreShould`, `ScreenLoopShould`, `SessionRowEnricherShould` and `TabColourSelectionShould` replace `Single(colour => colour.Name == "Green")` with `TabPalette.Green`. Verify those facts pass.
+- [ ] 4.6 A-24 in `WorktreeInventory.ScanAsync`: a nested `FolderKind` enum, `Classify(FolderPath child)` and a switch statement naming all four members (no discard); `SessionRowEnricher.cs:35` becomes an `if` and `:17` a `using System.Collections.Concurrent` (refactors under `WorktreeInventoryLeftoversShould` and `SessionRowEnricherShould`). Verify those facts pass and the statement has a `case` per member and no `default` (a switch statement gets no CS8509, so the reader checks it).
+- [ ] 4.7 V-12 in Application: `RowDecision.cs:9` says what `Explain` means now (run nothing and show the message), `SettingsScope.cs:27` reads `row.GetType().Name`, `ConfigView.FolderOf` builds `FolderPath.From(path)` once (refactors under `ConfigViewShould` and `SettingsViewShould`). Verify those facts pass.
+
+## 5. Adapters
+
+- [ ] 5.1 `GitHubPullRequestsShould.SkipARowMissingAProperty` and `AzureDevOpsPullRequestsShould.SkipARowMissingAProperty`: a listing of one whole row and one without `state` (`status`) answers `Listed` with the whole row. Red (today `Failed`), then green with `PullRequests\PullRequestListingJson.Rows` reading properties with `TryGetProperty` (so the `KeyNotFoundException` arm of the shared catch goes) and `PullRequests\CliListing.RunAsync`, both adapters reduced to their arguments, `Row`, `State` and `Gap`. Verify `dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build` passes with both adapter suites green.
+- [ ] 5.2 `Desktop`'s class summary states both contracts: `OpenAsync` fails inside the task after waiting for the PowerShell child; `StartAsync` is synchronous, throws at the call site when the program cannot start and has nothing to cancel; the comment at `Desktop.cs:22` moves up. Verify by reading `DesktopShould` against the summary and that the build passes.
+- [ ] 5.3 `GitWorktreeListingShould.ReadABlockWithNoWorktreeLineAsAnEmptyPath` (a block of `HEAD` and `branch` only gives `Path == string.Empty`, which `WorktreeInventory.cs:115` refuses). Green at once; then drop `GitWorktreeListing.cs:53-54`'s `default: break;`. Verify the build passes without Sonar S131; if S131 fires, keep the line and record why here.
+- [ ] 5.4 `ClaudeSettings.Serialise` writes the newline as a byte after the writer is disposed and answers `stream.ToArray()` (a refactor under `ClaudeSettingsShould`, whose facts at lines 100, 111, 119 and 129 pin the newline kept and not added). Verify those facts pass.
+
+## 6. Tui
+
+- [ ] 6.1 `IScreenDefinition.cs:39` says the title is fixed; `ConsoleScreen.cs:51`'s `shown` moves into `Frame` beside `active`, and `Show` reads it there. Verify the build passes; the tabs are covered by the smoke check in CI's `check` job.
+- [ ] 6.2 `Tui\DialogButtons.cs` (internal static) takes `Handled` and `Button` from `WizardControls.cs:160-173`; `WizardControls.WhenEnterInSelectors`, `LaunchWizardDialog`, `SettingsDialog` and `ProblemReportDialog` call it. Verify the build passes and `OneTypePerFileShould` and `SealedTypesShould` stay green.
+
+## 7. Tools
+
+- [ ] 7.1 `EscapeSequencesShould` (new, in `tools\HeadlessTerminal.Tests`): `StripVantagesTabReset` over `TabEscapes.ResetBackground` leaves nothing; `StripCsiWithPrivateAndIntermediateBytes`, `StripOscAndDcsToBelOrStringTerminator`, `LeaveAnUnterminatedSequenceToTheEnd`. Add the `Source191.Vantage.Infrastructure` project reference to `HeadlessTerminal.Tests.csproj` and record it in `tools\HeadlessTerminal.Tests\README.md`. Red, then green with `EscapeSequences.EndOf(ReadOnlySpan<char>, int)` and `Strip` over it; the `Csi` and `OscOrDcs` regexes go. Verify `dotnet test --project tools\HeadlessTerminal.Tests -c Debug --no-build` passes.
+- [ ] 7.2 `ScreenReplayShould.KeepTheTextAfterTheTabReset` (`TabEscapes.ResetBackground` followed by `done` places `done`). Red, then green with `ScreenReplay.Escape` and `ControlSequence` over `EndOf` (final at `end - 1`, intermediates stripped before the numbers) and `IsFinal` gone; `CaptureMarker.ScreenText.FindAfter` walks with `EndOf` and `EscapeSequence()` goes, `TitleSequence()` stays. Verify `ScreenReplayShould`, `CaptureMarkerShould`, `MarkerCountShould` and `HandoffCaptureShould` pass.
+- [ ] 7.3 `TerminalQueries` becomes `partial` with six `[GeneratedRegex]` methods and no `MatchTimeout` (a refactor under `TerminalQueriesShould`). Verify the facts pass.
+
+## 8. Version
+
+- [ ] 8.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one preview step above `main` when implemented (0.20.0-preview.9 if nothing lands first); a refactor, so patch-level. Verify `.github\scripts\Assert-VersionBumped.ps1` passes locally against `main`.
+
+## 9. Whole-solution check
+
+- [ ] 9.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate small-repetition --strict` all pass. Record the totals here.
+
+## Workflow follow-up
+
+- Archive the change in the pull request that completes it; `skip_specs` means no spec sync.
+- Push and open the implementation pull request only when the owner asks; rebase on `tidy-composition-root` if it has merged, moving the `Program.cs` edits of 3.5 to 3.7 and 4.2 into `ConsoleComposition`.
