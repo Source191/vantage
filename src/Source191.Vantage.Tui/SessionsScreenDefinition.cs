@@ -2,6 +2,7 @@ using Source191.Vantage.Application;
 using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 using Terminal.Gui.Drawing;
 
 namespace Source191.Vantage.Tui;
@@ -84,9 +85,12 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
     }
 
     /// <summary>The repository alone, its middle elided when too long; outside a repository the folder's label, cut at its end. The place and branch are the pane's.</summary>
-    private WhereLabel Repository(SessionRow row) => row.Checkout is null
-        ? new WhereLabel.Outside(folders.For(row.Session.WorkingDirectory))
-        : new WhereLabel.Inside(row.Repository, string.Empty);
+    private WhereLabel Repository(SessionRow row) => row.Location switch
+    {
+        SessionLocation.Outside => new WhereLabel.Outside(folders.For(row.Session.WorkingDirectory)),
+        SessionLocation.InRepository inRepository => new WhereLabel.Inside(inRepository.Name, string.Empty),
+        _ => throw new UnreachableException(),
+    };
 
     /// <summary>A filled cell while a Vantage tab shows the session, a hollow block for a session started outside Vantage in its own tab, nothing otherwise.</summary>
     private static string Swatch(SessionRow row)
