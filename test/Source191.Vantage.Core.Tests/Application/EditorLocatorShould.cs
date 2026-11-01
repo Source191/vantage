@@ -23,7 +23,7 @@ public sealed class EditorLocatorShould
     {
         FakeFolders folders = new FakeFolders().WithFile(@"D:\Tools\VSCode\bin\code.cmd").WithFile(@"D:\Tools\VSCode\Code.exe");
 
-        (await Locate(folders, EditorPreset.VsCode)).ShouldBe(@"D:\Tools\VSCode\Code.exe");
+        (await Locate(folders, EditorPreset.VsCode)).ShouldBe(new ProgramLocation.Found(@"D:\Tools\VSCode\Code.exe"));
     }
 
     [Fact]
@@ -31,7 +31,7 @@ public sealed class EditorLocatorShould
     {
         FakeFolders folders = new FakeFolders().WithFile($@"{Install}\Code.exe");
 
-        (await Locate(folders, EditorPreset.VsCode)).ShouldBe($@"{Install}\Code.exe");
+        (await Locate(folders, EditorPreset.VsCode)).ShouldBe(new ProgramLocation.Found($@"{Install}\Code.exe"));
     }
 
     [Fact]
@@ -39,16 +39,16 @@ public sealed class EditorLocatorShould
     {
         FakeFolders folders = new FakeFolders().WithFile(@"C:\Program Files\Microsoft VS Code\Code.exe");
 
-        (await Locate(folders, EditorPreset.VsCode)).ShouldBe(@"C:\Program Files\Microsoft VS Code\Code.exe");
+        (await Locate(folders, EditorPreset.VsCode)).ShouldBe(new ProgramLocation.Found(@"C:\Program Files\Microsoft VS Code\Code.exe"));
     }
 
     [Fact]
-    public async Task AnswerNullWhenNotInstalled()
+    public async Task AnswerMissingWhenNotInstalled()
     {
         EditorPreset[] presets = [EditorPreset.VsCode, EditorPreset.VisualStudio, EditorPreset.Rider, EditorPreset.Custom];
         foreach (EditorPreset preset in presets)
         {
-            (await Locate(new FakeFolders(), preset)).ShouldBeNull(preset.ToString());
+            (await Locate(new FakeFolders(), preset)).ShouldBe(new ProgramLocation.Missing(), preset.ToString());
         }
     }
 
@@ -57,7 +57,7 @@ public sealed class EditorLocatorShould
     {
         FakeFolders folders = new FakeFolders().WithFile(@"D:\Tools\VSCode\bin\code.cmd");
 
-        (await Locate(folders, EditorPreset.VsCode)).ShouldBeNull();
+        (await Locate(folders, EditorPreset.VsCode)).ShouldBe(new ProgramLocation.Missing());
     }
 
     [Fact]
@@ -68,18 +68,18 @@ public sealed class EditorLocatorShould
         FakeFolders folders = new FakeFolders().WithFile(vswhere).WithFile(devenv);
         processes.AnswerAll(new ProcessResult(0, devenv + "\r\n", string.Empty));
 
-        (await Locate(folders, EditorPreset.VisualStudio)).ShouldBe(devenv);
+        (await Locate(folders, EditorPreset.VisualStudio)).ShouldBe(new ProgramLocation.Found(devenv));
         processes.CapturedRequests.Single().FileName.ShouldBe(vswhere);
         processes.CapturedRequests.Single().Arguments.ShouldBe(["-latest", "-property", "productPath"]);
     }
 
     [Fact]
-    public async Task AnswerNullWhenVswhereNamesNothingThatExists()
+    public async Task AnswerMissingWhenVswhereNamesNothingThatExists()
     {
         FakeFolders folders = new FakeFolders().WithFile(@"C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe");
         processes.AnswerAll(new ProcessResult(0, @"C:\Gone\devenv.exe", string.Empty));
 
-        (await Locate(folders, EditorPreset.VisualStudio)).ShouldBeNull();
+        (await Locate(folders, EditorPreset.VisualStudio)).ShouldBe(new ProgramLocation.Missing());
     }
 
     [Fact]
@@ -90,9 +90,9 @@ public sealed class EditorLocatorShould
             .WithFile(@"C:\Program Files\JetBrains\JetBrains Rider 2025.2\bin\rider64.exe")
             .WithFile(@"C:\Users\me\AppData\Local\JetBrains\Toolbox\apps\Rider\ch-0\251.1\bin\rider64.exe");
 
-        (await Locate(folders, EditorPreset.Rider)).ShouldBe(@"C:\Users\me\AppData\Local\JetBrains\Toolbox\apps\Rider\ch-0\251.1\bin\rider64.exe");
+        (await Locate(folders, EditorPreset.Rider)).ShouldBe(new ProgramLocation.Found(@"C:\Users\me\AppData\Local\JetBrains\Toolbox\apps\Rider\ch-0\251.1\bin\rider64.exe"));
         (await Locate(new FakeFolders().WithFile(@"C:\Program Files\JetBrains\JetBrains Rider 2025.2\bin\rider64.exe").WithFile(@"C:\Program Files\JetBrains\JetBrains Rider 2024.3\bin\rider64.exe"), EditorPreset.Rider))
-            .ShouldBe(@"C:\Program Files\JetBrains\JetBrains Rider 2025.2\bin\rider64.exe");
+            .ShouldBe(new ProgramLocation.Found(@"C:\Program Files\JetBrains\JetBrains Rider 2025.2\bin\rider64.exe"));
     }
 
     [Fact]
@@ -102,17 +102,17 @@ public sealed class EditorLocatorShould
             .WithFile(@"C:\Program Files\JetBrains\JetBrains Rider 2025.9\bin\rider64.exe")
             .WithFile(@"C:\Program Files\JetBrains\JetBrains Rider 2025.10\bin\rider64.exe");
 
-        (await Locate(folders, EditorPreset.Rider)).ShouldBe(@"C:\Program Files\JetBrains\JetBrains Rider 2025.10\bin\rider64.exe");
+        (await Locate(folders, EditorPreset.Rider)).ShouldBe(new ProgramLocation.Found(@"C:\Program Files\JetBrains\JetBrains Rider 2025.10\bin\rider64.exe"));
     }
 
 
     [Fact]
     public async Task AnswerExplorerFromTheWindowsFolder()
     {
-        (await Locate(new FakeFolders(), EditorPreset.Explorer)).ShouldBe(@"C:\Windows\explorer.exe");
+        (await Locate(new FakeFolders(), EditorPreset.Explorer)).ShouldBe(new ProgramLocation.Found(@"C:\Windows\explorer.exe"));
     }
 
-    private Task<string?> Locate(FakeFolders folders, EditorPreset preset)
+    private Task<ProgramLocation> Locate(FakeFolders folders, EditorPreset preset)
     {
         return new EditorLocator(folders, processes, Where).LocateAsync(preset, CancellationToken.None);
     }
