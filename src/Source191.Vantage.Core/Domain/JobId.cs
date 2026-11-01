@@ -28,7 +28,10 @@ public sealed record JobId : ITextValue<JobId>
         return value is not null;
     }
 
-    /// <summary>The job id the CLI gives the session: its id's first eight characters; false when those are not hex.</summary>
+    /// <summary>
+    /// The job id the CLI gives the session: its id's first eight characters; false when the id is shorter or those are
+    /// not hex.
+    /// </summary>
     public static bool TryParse(SessionId session, [MaybeNullWhen(false)] out JobId value) => TryParse(session.Value.Length >= Length ? session.Value[..Length] : null, out value);
 
     public override string ToString() => Value;

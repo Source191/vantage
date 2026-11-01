@@ -5,7 +5,7 @@ public static class UpdateCheckRule
 {
     public static readonly TimeSpan Interval = TimeSpan.FromHours(24);
 
-    /// <summary>Never checked: only a release build with the check on, at once.</summary>
+    /// <summary>With no previous check: only a release build with the check on, and straight away.</summary>
     public static bool ShouldCheck(ToolVersion running, bool enabled) => enabled && ReleaseOf(running) is not null;
 
     /// <summary>Only a release build with the check on, and only when it last checked a day or more ago.</summary>

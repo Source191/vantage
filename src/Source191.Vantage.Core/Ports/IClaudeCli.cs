@@ -4,7 +4,7 @@ namespace Source191.Vantage.Ports;
 
 /// <summary>
 /// The <see href="https://code.claude.com/docs/en/cli-reference">documented Claude Code CLI surface</see> Vantage
-/// depends on. Nothing else about Claude Code is touched.
+/// depends on. The files Vantage reads, such as transcripts and settings.json, have their own ports.
 /// </summary>
 public interface IClaudeCli
 {

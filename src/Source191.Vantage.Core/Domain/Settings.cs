@@ -65,7 +65,8 @@ public sealed record Settings
 
     /// <summary>
     /// Checks what the settings dialog holds, in the order its fields read: the roots (one per line, each a full path
-    /// that exists), the worktree root (a full path, created when first used), then a custom editor's command.
+    /// that exists, none listed twice), the worktree root (a full path, created when first used), then a custom editor's
+    /// command.
     /// </summary>
     public static SettingsValidation Validate(SettingsText text, Func<string, bool> folderExists)
     {

@@ -5,8 +5,8 @@ namespace Source191.Vantage.Domain;
 
 /// <summary>
 /// The part of a worktree's folder and branch that comes from a session name: lower case, each run of anything but
-/// letters and digits a hyphen, and no hyphen at either end. Derived rather than parsed, so a name with no letters or
-/// digits has none.
+/// ASCII letters and digits a hyphen, and no hyphen at either end. Derived rather than parsed, so a name with no ASCII
+/// letters or digits has none.
 /// </summary>
 public sealed partial record WorktreeSlug : ITextValue<WorktreeSlug>
 {

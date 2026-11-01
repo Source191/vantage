@@ -2,9 +2,9 @@ namespace Source191.Vantage.Ports;
 
 /// <summary>
 /// The git commands Vantage needs. Every call names the directory it runs in; nothing depends on the current directory.
-/// The convention: the commands (list, add, remove, prune, count, delete) throw <see cref="GitException"/> when git
-/// fails or answers with something unreadable; the queries that return a nullable answer null instead; IsMerged
-/// answers false.
+/// The convention: every method but IsMerged and the nullable queries throws <see cref="GitException"/> when git fails
+/// or answers with something unreadable; the queries that return a nullable answer null instead; IsMerged answers
+/// false.
 /// </summary>
 public interface IGit
 {

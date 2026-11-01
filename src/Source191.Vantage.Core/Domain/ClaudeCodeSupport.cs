@@ -2,7 +2,10 @@ using System.Diagnostics;
 
 namespace Source191.Vantage.Domain;
 
-/// <summary>The oldest Claude Code CLI Vantage supports: the version its CLI facts were verified against.</summary>
+/// <summary>
+/// The oldest Claude Code CLI Vantage supports. The CLI facts Vantage relies on were verified on a later version, which
+/// <c>.claude\rules\claude-code.md</c> records with its date.
+/// </summary>
 public static class ClaudeCodeSupport
 {
     public static readonly ReleaseVersion Minimum = new(2, 1, 309, string.Empty);
