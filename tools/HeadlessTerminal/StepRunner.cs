@@ -3,15 +3,6 @@ using System.Text.Json;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
-/// <summary>One step of a marker-led script: wait up to <paramref name="Timeout"/> for the marker, then send the keys.</summary>
-public sealed record SmokeStep(CaptureMarker Marker, string Keys, TimeSpan Timeout);
-
-/// <summary>How long to let the program settle after a marker before sending keys, and how long it has to exit after the last step.</summary>
-public sealed record StepTimings(TimeSpan Settle, TimeSpan Grace)
-{
-    public static readonly StepTimings Default = new(TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(6));
-}
-
 /// <summary>
 /// Runs a program in a pseudo-console and works through the steps: each waits for its marker after the previous
 /// step's match, settles, then sends its keys. Exit 0 when every marker appeared and the program exited by itself within

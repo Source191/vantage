@@ -2,9 +2,6 @@ using System.Text.RegularExpressions;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
-/// <summary>A reply the pretend terminal owes the program, and how long to hold it back.</summary>
-public sealed record TerminalReply(string Text, int DelayMs);
-
 /// <summary>
 /// Answers terminal queries the way Windows Terminal 1.25 would:
 /// <see href="https://sw.kovidgoyal.net/kitty/keyboard-protocol/">kitty keyboard flags</see>,
