@@ -757,11 +757,12 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void SayTheConfigTabKeyInEveryHelpAndNoSettingsKey()
+    public void SayTheTabArrowsInEveryHelpAndNoSettingsKey()
     {
         foreach (string help in new[] { Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe"), Wording.WorktreesHelp, Wording.ConfigHelp })
         {
-            help.ShouldContain("the Config tab");
+            help.ShouldContain("the tab to the right");
+            help.ShouldNotContain("the Config tab");
             help.ShouldNotContain("edit roots, worktree root and editor");
         }
     }

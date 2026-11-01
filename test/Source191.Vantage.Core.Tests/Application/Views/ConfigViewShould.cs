@@ -122,9 +122,7 @@ public sealed class ConfigViewShould
     [Fact]
     public void ChooseATabWithTheTabKeys()
     {
-        ConfigView.Reduce(Loaded, new KeyPressed(Key.Of('1'))).Effects.ShouldBe([new SelectTab(ConsoleTab.Sessions)]);
-        ConfigView.Reduce(Loaded, new KeyPressed(Key.Of('2'))).Effects.ShouldBe([new SelectTab(ConsoleTab.Worktrees)]);
-        ConfigView.Reduce(Loaded, new KeyPressed(Key.Of('3'))).Effects.ShouldBe([new SelectTab(ConsoleTab.Config)]);
+        ConfigView.Reduce(Loaded, new KeyPressed(Key.Of('2'))).Effects.OfType<SelectTab>().ShouldBeEmpty();
         ConfigView.Reduce(Loaded, new KeyPressed(Key.Left)).Effects.ShouldBe([new PreviousTab()]);
         ConfigView.Reduce(Loaded, new KeyPressed(Key.Right)).Effects.ShouldBe([new NextTab()]);
         ConfigView.Reduce(Loaded, new KeyPressed(Key.Escape)).Effects.ShouldBe([new SelectTab(ConsoleTab.Sessions)]);
