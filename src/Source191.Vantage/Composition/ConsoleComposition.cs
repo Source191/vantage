@@ -52,7 +52,8 @@ internal static class ConsoleComposition
         ConsoleScreen consoleScreen = Screen(parts, launch, loads, context, dialogs, dispatcher, folderLabels);
         OwnTab ownTab = new(parts.Store, parts.ProcessRegistry, TimeProvider.System);
         TerminalConsole console = new(Console.Out, Wording.TabTitle);
-        ScreenLoop loop = new(consoleScreen, ownTab, console, updates, parts.Log);
+        WhatsNewOnStart whatsNew = new(parts.Version, parts.Store, new PackagedReleaseNotes(AppContext.BaseDirectory), parts.Log);
+        ScreenLoop loop = new(consoleScreen, ownTab, console, updates, whatsNew, parts.Log);
 
         return await loop.RunAsync(Environment.ProcessId, cancellationToken);
     }

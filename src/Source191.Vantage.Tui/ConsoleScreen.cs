@@ -50,7 +50,7 @@ public sealed class ConsoleScreen(
     private readonly FolderLabels folders = folders;
     private ConsoleTab? shown;
 
-    public ConsoleExit Run(ConsoleState initial)
+    public ConsoleExit Run(ConsoleState initial, WhatsNewAtStart opening)
     {
         using IApplication app = Terminal.Gui.App.Application.Create().Init();
         // Windows Terminal renders 24-bit colour; without this the driver falls back to 16 colours and the palette shifts
@@ -58,6 +58,12 @@ public sealed class ConsoleScreen(
         if (app.Driver is not null)
         {
             app.Driver.Force16Colors = false;
+        }
+
+        // Before the frame and its timers exist, so no key reaches a tab while it is open and nothing waits on the UI thread behind it.
+        if (opening is WhatsNewAtStart.Show show)
+        {
+            WhatsNewDialog.ShowAfterUpdate(app, context.Diagnostics, Wording.WhatsNewAfterUpdateTitle(show.Running), Wording.WhatsNewAfterUpdate(show.Sections));
         }
 
         using Frame frame = new(this, app, initial);
