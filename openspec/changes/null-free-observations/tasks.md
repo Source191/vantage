@@ -29,7 +29,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 5. Version and the whole build
 
-- [ ] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to one step above main (projected `0.19.0-preview.7`). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
+- [x] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to one step above main (projected `0.19.0-preview.7`). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`. Raised to `0.19.0-preview.9`, one step above the base branch `v-null-free-rows` (the projected numbers are two behind); `Assert-VersionBumped.ps1 -Base v-null-free-rows -Head HEAD` passes.
 - [ ] 5.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` pass; the smoke check (`dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>`) passes against a locally packed tool; `Get-ChildItem src\Source191.Vantage.Core\Domain -Filter *.cs | Select-String -Pattern 'string\? LockReason|GitFileTargetExists|OwnerRepository|ProcessUsage\? Usage|string\? WaitingFor|string\? Prerelease'` finds nothing; `openspec validate null-free-observations` passes.
 
 ## Workflow follow-up
