@@ -1,4 +1,5 @@
 using Source191.Vantage.Adapters.Processes;
+using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application;
@@ -16,7 +17,7 @@ public sealed class ProgramLocatorShould
     {
         FakeFolders folders = new FakeFolders().WithFile(@"C:\Program Files\Git\cmd\git.exe").WithFile(@"C:\Program Files\GitHub CLI\git.exe");
 
-        new ProgramLocator(folders, PathFolders).Locate("git").ShouldBe(@"C:\Program Files\Git\cmd\git.exe");
+        new ProgramLocator(folders, PathFolders).Locate("git").ShouldBe(new ProgramLocation.Found(@"C:\Program Files\Git\cmd\git.exe"));
     }
 
     [Fact]
@@ -24,7 +25,7 @@ public sealed class ProgramLocatorShould
     {
         FakeFolders folders = new FakeFolders().WithFile(@"C:\Windows\System32\wt.exe");
 
-        new ProgramLocator(folders, PathFolders).Locate("wt.exe").ShouldBe(@"C:\Windows\System32\wt.exe");
+        new ProgramLocator(folders, PathFolders).Locate("wt.exe").ShouldBe(new ProgramLocation.Found(@"C:\Windows\System32\wt.exe"));
     }
 
     [Fact]
@@ -32,8 +33,8 @@ public sealed class ProgramLocatorShould
     {
         FakeFolders folders = new FakeFolders().WithFile(@"C:\Program Files\GitHub CLI\gh.cmd").WithFile(@"C:\Program Files\GitHub CLI\gh.bat");
 
-        new ProgramLocator(folders, PathFolders).Locate("gh").ShouldBeNull();
-        new ProgramLocator(folders, PathFolders).Locate("gh.cmd").ShouldBeNull();
+        new ProgramLocator(folders, PathFolders).Locate("gh").ShouldBe(new ProgramLocation.Missing());
+        new ProgramLocator(folders, PathFolders).Locate("gh.cmd").ShouldBe(new ProgramLocation.Missing());
     }
 
     [Fact]
@@ -41,12 +42,12 @@ public sealed class ProgramLocatorShould
     {
         FakeFolders folders = new FakeFolders().WithFile(@"C:\Users\me\source\repos\Planted\git.exe");
 
-        new ProgramLocator(folders, PathFolders).Locate("git").ShouldBeNull();
+        new ProgramLocator(folders, PathFolders).Locate("git").ShouldBe(new ProgramLocation.Missing());
     }
 
     [Fact]
-    public void AnswerNullForAProgramThatIsNotInstalled()
+    public void AnswerMissingForAProgramThatIsNotInstalled()
     {
-        new ProgramLocator(new FakeFolders(), PathFolders).Locate("pwsh").ShouldBeNull();
+        new ProgramLocator(new FakeFolders(), PathFolders).Locate("pwsh").ShouldBe(new ProgramLocation.Missing());
     }
 }
