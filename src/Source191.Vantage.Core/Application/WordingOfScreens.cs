@@ -175,6 +175,12 @@ public static partial class Wording
         WorktreeHealthKind.Elsewhere => "↗",
     };
 
+    /// <summary>The HEALTH cell: the health's glyph and its word, in the row's colour.</summary>
+    public static string HealthCell(WorktreeHealthKind kind) => $"{HealthGlyph(kind)} {HealthWord(kind)}";
+
+    /// <summary>A health's word, the one the HEALTH cell, the counts and the pane's Health line all use.</summary>
+    private static string HealthWord(WorktreeHealthKind kind) => kind.ToString().ToLowerInvariant();
+
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =
     [
         new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
