@@ -3,6 +3,7 @@ using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application.Actions;
@@ -62,6 +63,17 @@ public sealed class OpenInEditorHandlerShould
 
         desktop.Started.ShouldBeEmpty();
         outcome.ShouldBe(new OpenInEditorOutcome.EditorNotFound(custom));
+    }
+
+    [Fact]
+    public async Task ReportAnEditorThatWouldNotStart()
+    {
+        desktop.StartFailure = new ProgramNotStartedException("Access is denied.");
+        OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(EditorChoice.VsCode));
+
+        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(FolderPath.From(Orders)), CancellationToken.None);
+
+        outcome.ShouldBe(new OpenInEditorOutcome.EditorNotStarted(EditorChoice.VsCode, "Access is denied."));
     }
 
     [Fact]
