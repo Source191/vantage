@@ -19,10 +19,10 @@ public static class SettingsFile
             roots,
             worktreeRoot,
             Editor(config.Editor),
-            config.DefaultBase ?? Settings.BaseWhenUnset,
+            DefinedOr(config.DefaultBase, Settings.BaseWhenUnset),
             home,
             config.CheckForUpdates ?? Settings.ChecksForUpdatesWhenUnset,
-            config.DefaultPlace ?? Settings.PlaceWhenUnset);
+            DefinedOr(config.DefaultPlace, Settings.PlaceWhenUnset));
     }
 
     public static VantageConfig ToConfig(Settings settings)
@@ -35,6 +35,9 @@ public static class SettingsFile
 
         return new VantageConfig([.. settings.RepositoryRoots.Select(root => root.Value)], settings.DefaultBase, settings.WorktreeRoot.Value, setting, settings.CheckForUpdates, settings.DefaultPlace);
     }
+
+    private static TEnum DefinedOr<TEnum>(TEnum? value, TEnum fallback)
+        where TEnum : struct, Enum => value is TEnum named && Enum.IsDefined(named) ? named : fallback;
 
     private static EditorChoice Editor(EditorSetting? setting)
     {

@@ -9,21 +9,23 @@ using System.Text.Json.Serialization;
 namespace Source191.Vantage.Adapters.State;
 
 /// <summary>
-/// The only state Vantage owns, under one folder: tab registrations, recent repositories
-/// (one file each, so two Vantage processes writing at once cannot lose each other's records), worktrees Vantage
-/// created, config, the last update check and the last version run. A missing or corrupt file reads as empty. The single-file recent.json of earlier
-/// versions is imported once and removed; the descriptions\ folder and sessions.json of earlier versions are no longer read.
+/// The only state Vantage owns, under one folder: tab registrations, recent repositories and worktrees Vantage
+/// created (one file each, so two Vantage processes writing at once cannot lose each other's records), config, the
+/// last update check and the last version run. A missing, corrupt or unreadable file reads as empty. Every write goes
+/// beside the file and is moved over it. The single-file recent.json and created.json of earlier versions are
+/// imported once and removed; the descriptions\ folder and sessions.json of earlier versions are no longer read.
 /// </summary>
 public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig, IUpdateCheckRecords, ILastRunVersion
 {
     private const int RecentLimit = 10;
 
-    // Enums are written as their names, so config.json keeps reading "RemoteDefault" and "Head"; paths, branch names
-    // and tab owners are written as the plain strings earlier versions wrote.
+    // Enums are written as their names, so config.json keeps reading "RemoteDefault" and "Head", and a number where a
+    // name belongs is a corrupt file rather than an undefined value; paths, branch names and tab owners are written as
+    // the plain strings earlier versions wrote.
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
-        Converters = { new JsonStringEnumConverter(), new TextValueJsonConverter<FolderPath>(), new TextValueJsonConverter<BranchName>(), new TabOwnerJsonConverter() },
+        Converters = { new JsonStringEnumConverter(allowIntegerValues: false), new TextValueJsonConverter<FolderPath>(), new TextValueJsonConverter<BranchName>(), new TabOwnerJsonConverter() },
     };
 
     private string TabsFolder => Path.Combine(folder, "tabs");
@@ -32,7 +34,9 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
     private string LegacyRecentFile => Path.Combine(folder, "recent.json");
 
-    private string CreatedFile => Path.Combine(folder, "created.json");
+    private string CreatedFolder => Path.Combine(folder, "created");
+
+    private string LegacyCreatedFile => Path.Combine(folder, "created.json");
 
     /// <summary>The settings file, which the Config tab names.</summary>
     public string ConfigFile => Path.Combine(folder, "config.json");
@@ -67,20 +71,23 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         await TrimRecentAsync();
     }
 
-    public async Task<IReadOnlyList<CreatedWorktree>> ReadCreatedWorktreesAsync() => await ReadJsonAsync<List<CreatedWorktree>>(CreatedFile) ?? [];
+    public async Task<IReadOnlyList<CreatedWorktree>> ReadCreatedWorktreesAsync()
+    {
+        await ImportLegacyCreatedAsync();
+
+        return await ReadAllAsync<CreatedWorktree>(CreatedFolder);
+    }
 
     public async Task RecordCreatedWorktreeAsync(CreatedWorktree worktree)
     {
-        IReadOnlyList<CreatedWorktree> existing = await ReadCreatedWorktreesAsync();
-
-        await WriteJsonAsync(CreatedFile, existing.Where(created => created.Path != worktree.Path).Append(worktree).ToList());
+        await ImportLegacyCreatedAsync();
+        await WriteJsonAsync(CreatedFile(worktree.Path), worktree);
     }
 
     public async Task ForgetCreatedWorktreeAsync(FolderPath path)
     {
-        IReadOnlyList<CreatedWorktree> existing = await ReadCreatedWorktreesAsync();
-
-        await WriteJsonAsync(CreatedFile, existing.Where(created => created.Path != path).ToList());
+        await ImportLegacyCreatedAsync();
+        TryDelete(CreatedFile(path));
     }
 
     public async Task<VantageConfig> ReadConfigAsync() => await ReadJsonAsync<VantageConfig>(ConfigFile) ?? VantageConfig.Missing;
@@ -145,6 +152,25 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         TryDelete(LegacyRecentFile);
     }
 
+    private string CreatedFile(FolderPath path) => Path.Combine(CreatedFolder, $"{FileKey(path.Value.ToUpperInvariant())}.json");
+
+    /// <summary>The old single list becomes one file each; a worktree already recorded under the new layout is newer, so it is kept.</summary>
+    private async Task ImportLegacyCreatedAsync()
+    {
+        List<CreatedWorktree>? legacy = await ReadJsonAsync<List<CreatedWorktree>>(LegacyCreatedFile);
+        if (legacy is null)
+        {
+            return;
+        }
+
+        foreach (CreatedWorktree worktree in legacy.Where(worktree => !File.Exists(CreatedFile(worktree.Path))))
+        {
+            await WriteJsonAsync(CreatedFile(worktree.Path), worktree);
+        }
+
+        TryDelete(LegacyCreatedFile);
+    }
+
     private async Task TrimRecentAsync()
     {
         IReadOnlyList<RecentRepository> recent = await ReadAllAsync<RecentRepository>(RecentFolder);
@@ -196,20 +222,16 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
             return await JsonSerializer.DeserializeAsync<T>(stream, Options);
         }
-        catch (IOException)
-        {
-            return null;
-        }
-        catch (JsonException)
+        catch (Exception exception) when (exception is IOException or JsonException or UnauthorizedAccessException)
         {
             return null;
         }
     }
 
     /// <summary>
-    /// Writes one record, allowing readers in while it does: Windows refuses to rename over a file another process
-    /// has open, so an atomic replace is not available, and a reader that catches the record half-written treats it as
-    /// absent until the next refresh instead.
+    /// Writes one record beside its file and moves it over, so a crash, a kill or a full disc leaves the previous file
+    /// and no reader sees a half-written one. Readers open with delete sharing, which is what lets the move replace a
+    /// file another Vantage process has open. The temporary name is unique because a tab file has two writers.
     /// </summary>
     private static async Task WriteJsonAsync<T>(string file, T value)
     {
@@ -218,8 +240,38 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
             Directory.CreateDirectory(folder);
         }
 
-        await using FileStream stream = new(file, FileMode.Create, FileAccess.Write, FileShare.Read);
-        await JsonSerializer.SerializeAsync(stream, value, Options);
+        string temporary = $"{file}.{Guid.NewGuid():N}.tmp";
+        try
+        {
+            await using (FileStream stream = new(temporary, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await JsonSerializer.SerializeAsync(stream, value, Options);
+            }
+
+            ReplaceOrMove(temporary, file);
+        }
+        catch
+        {
+            TryDelete(temporary);
+
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// File.Move with overwrite is refused over a file another process holds open even with delete sharing, where
+    /// File.Replace is not, so an existing file is replaced and only a missing one is moved into place.
+    /// </summary>
+    private static void ReplaceOrMove(string temporary, string file)
+    {
+        try
+        {
+            File.Replace(temporary, file, destinationBackupFileName: null);
+        }
+        catch (FileNotFoundException)
+        {
+            File.Move(temporary, file);
+        }
     }
 
     /// <summary>A file another process is reading or has already removed is not an error; it will be gone soon enough.</summary>

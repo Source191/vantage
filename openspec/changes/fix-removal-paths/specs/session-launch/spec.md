@@ -16,7 +16,7 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 - **THEN** no session starts, the worktree stays on disc and in Vantage's records, and the status line says the session could not start and why
 
 ### Requirement: Vantage records what it created
-Vantage SHALL record each worktree and branch it created and each launched repository in its own state folder, and SHALL keep every record when two Vantage processes write at the same time. A new worktree SHALL be recorded as soon as git has created it, before its include files are copied, so a worktree that exists is never one Vantage does not know it made.
+Vantage SHALL record each worktree and branch it created and each launched repository in its own state folder, and SHALL keep every record when two Vantage processes write at the same time. A new worktree SHALL be recorded as soon as git has created it, before its include files are copied, so a worktree that exists is never one Vantage does not know it made. A list of created worktrees saved by an earlier version SHALL be read once, kept as records and removed.
 
 #### Scenario: Worktree recorded
 - **WHEN** the wizard creates a worktree
@@ -29,6 +29,22 @@ Vantage SHALL record each worktree and branch it created and each launched repos
 #### Scenario: Two processes record at once
 - **WHEN** `vantage here` records a recent repository while the console records another recent repository and a created worktree
 - **THEN** all three records are present on the next read
+
+#### Scenario: Two processes record created worktrees at once
+- **WHEN** `vantage here` records the worktree it created at C:\Users\me\source\worktrees\Northwind.Orders-fix-123 while the console records the one it created at C:\Users\me\source\worktrees\Northwind.Billing-invoice-pdf
+- **THEN** both worktrees are recorded as created by Vantage on the next read
+
+#### Scenario: A worktree is forgotten while another is recorded
+- **WHEN** the console removes the worktree Northwind.Orders-fix-123 and forgets it while `vantage here` records the worktree Northwind.Billing-invoice-pdf it has just created
+- **THEN** Northwind.Billing-invoice-pdf is recorded as created by Vantage, Northwind.Orders-fix-123 is not, and every other created worktree is still recorded
+
+#### Scenario: The same worktree recorded again
+- **WHEN** a worktree already recorded at C:\Users\me\source\worktrees\Northwind.Orders-fix-123 is recorded again under the spelling c:\users\me\source\worktrees\northwind.orders-fix-123
+- **THEN** one record holds that worktree, with the newer branch and creation time
+
+#### Scenario: The old created list is imported once
+- **WHEN** the state folder holds a `created.json` list written by an earlier version and Vantage reads, records or forgets a created worktree
+- **THEN** each worktree in the list is a record of its own, the list file is gone, and a worktree forgotten straight after is not revived by a later read
 
 #### Scenario: Existing state is kept
 - **WHEN** Vantage starts with recent repositories and created worktrees saved by an earlier version
