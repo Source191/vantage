@@ -35,8 +35,8 @@ TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser(Path.Combine
 ProgramLocator programs = ProgramLocator.ForCurrentUser();
 
 // The diagnostic log is always kept in memory; VANTAGE_LOG=<file> also writes it to that file.
-string? logPath = Environment.GetEnvironmentVariable("VANTAGE_LOG");
-DiagnosticLog log = new(TimeProvider.System, string.IsNullOrWhiteSpace(logPath) ? [] : [new DiagnosticFile(logPath)]);
+DiagnosticLogSetting logSetting = DiagnosticLogSetting.Read(Environment.GetEnvironmentVariable("VANTAGE_LOG"));
+DiagnosticLog log = new(TimeProvider.System, logSetting is DiagnosticLogSetting.File logFile ? [new DiagnosticFile(logFile.Path)] : []);
 Terminal.Gui.App.Logging.Logger = new TerminalGuiBridge(log);
 ProcessCounts processCounts = new();
 RecordedProcessRunner processes = new(new ProcessRunner(), log, processCounts, TimeProvider.System);
@@ -150,7 +150,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionText);
     ScreenContext context = new(tabTitle, _ => [Wording.SettingsRow(version, claudeCode, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero)], () => updates.Status is UpdateStatus.Available, clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
-    SetupFactsReader setup = new(terminalFragment, ClaudeSettings.ForCurrentUser(), store, store.ConfigFile, logPath);
+    SetupFactsReader setup = new(terminalFragment, ClaudeSettings.ForCurrentUser(), store, store.ConfigFile, logSetting);
     // The Sessions tab's listing is held for the worktrees scan, which waits for the first and runs none of its own.
     LatestSessions latestSessions = new(claude);
     RunningLoads scans = new();
