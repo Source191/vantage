@@ -52,7 +52,8 @@ public sealed class ConsoleScreen(
     public ConsoleExit Run(ConsoleState initial)
     {
         using IApplication app = Terminal.Gui.App.Application.Create().Init();
-        // Windows Terminal renders 24-bit colour; without this the driver falls back to 16 colours and the palette shifts.
+        // Windows Terminal renders 24-bit colour; without this the driver falls back to 16 colours and the palette shifts
+        // (https://learn.microsoft.com/windows/console/console-virtual-terminal-sequences).
         if (app.Driver is not null)
         {
             app.Driver.Force16Colors = false;
@@ -121,7 +122,8 @@ public sealed class ConsoleScreen(
             active = initial.Active;
             ScreenContext context = screen.context;
 
-            // Terminal.Gui writes the top-level's Title to the terminal (OSC 0) on every run, so this is what the tab shows.
+            // Terminal.Gui writes the top-level's Title to the terminal (OSC 0) on every run, so this is what the tab shows
+            // (https://learn.microsoft.com/windows/console/console-virtual-terminal-sequences).
             Window = new Window { BorderStyle = LineStyle.None, Title = context.Title };
             Window.SetScheme(Palette.Plain(Palette.White));
 

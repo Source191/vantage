@@ -5,7 +5,13 @@ using System.Runtime.Versioning;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
-/// <summary>The handful of kernel32 calls a ConPTY host needs: pipes, the pseudo-console, process creation and waiting.</summary>
+/// <summary>
+/// The handful of kernel32 calls a
+/// <see href="https://learn.microsoft.com/windows/console/creating-a-pseudoconsole-session">ConPTY host</see> needs:
+/// pipes, the <see href="https://learn.microsoft.com/windows/console/createpseudoconsole">pseudo-console</see>,
+/// <see href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">process
+/// creation</see> and waiting.
+/// </summary>
 [SupportedOSPlatform("windows")]
 internal static partial class NativeMethods
 {

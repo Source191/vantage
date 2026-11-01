@@ -1,7 +1,8 @@
 namespace Source191.Vantage.HeadlessTerminal;
 
 /// <summary>
-/// HeadlessTerminal drives a console program inside a Windows pseudo-console (ConPTY) with scripted keystrokes and
+/// HeadlessTerminal drives a console program inside a Windows pseudo-console
+/// (<see href="https://learn.microsoft.com/windows/console/creating-a-pseudoconsole-session">ConPTY</see>) with scripted keystrokes and
 /// captures everything it writes, replays a capture as a screen, counts markers in one, and runs the hand-off and smoke checks.
 /// <code>
 ///   dotnet run --project tools\HeadlessTerminal -- check [exe] [repository]

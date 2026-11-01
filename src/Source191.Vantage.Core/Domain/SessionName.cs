@@ -20,7 +20,8 @@ public abstract record SessionNameValidation
 /// A session's name. Three doors share one rule: the constructor for text already known to be a valid name,
 /// <see cref="Validate"/> for typed text, which says why it refuses, and <see cref="TryParse"/> for a listing's name.
 /// Only a blank name is refused: a semicolon or a double quote is kept as typed, and the terminal adapter escapes what
-/// wt.exe would otherwise split a tab's title on.
+/// <see href="https://learn.microsoft.com/windows/terminal/command-line-arguments">wt.exe would otherwise split a tab's
+/// title on</see>.
 /// </summary>
 public sealed record SessionName : ITextValue<SessionName>
 {

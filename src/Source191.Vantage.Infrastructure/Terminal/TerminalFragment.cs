@@ -7,8 +7,9 @@ using System.Text.Json.Nodes;
 namespace Source191.Vantage.Adapters.Terminal;
 
 /// <summary>
-/// Vantage's Windows Terminal JSON fragment at <c>&lt;Fragments root&gt;\Vantage\vantage.json</c>. Windows Terminal reads
-/// every fragment at start-up and adds the profiles in it; the user's own settings file is never opened. Written as
+/// Vantage's <see href="https://learn.microsoft.com/windows/terminal/json-fragment-extensions">Windows Terminal JSON
+/// fragment</see> at <c>&lt;Fragments root&gt;\Vantage\vantage.json</c>. Windows Terminal reads every fragment at
+/// start-up and adds the profiles in it; the user's own settings file is never opened. Written as
 /// UTF-8 without a byte order mark, as fragments must be.
 /// The icon source is the tool's own icon, which a build without one simply lacks.
 /// </summary>
@@ -77,7 +78,8 @@ public sealed class TerminalFragment(string fragmentsRoot, string iconSource) : 
             ["commandline"] = commandLine,
             ["bellStyle"] = new JsonArray([.. TerminalProfiles.BellStyle.Select(style => (JsonNode?)JsonValue.Create(style))]),
         };
-        // Windows Terminal's own sound is its default, so it is written by leaving bellSound out.
+        // Windows Terminal's own sound is its default, so it is written by leaving bellSound out
+        // (https://learn.microsoft.com/windows/terminal/customize-settings/profile-advanced).
         if (sound is BellSound.File file)
         {
             profile["bellSound"] = file.Path;

@@ -13,13 +13,17 @@ public sealed record TerminalProfiles(string VantageExecutable, BellSound Vantag
 
     public const string SessionCommandLine = "pwsh.exe -NoLogo";
 
-    /// <summary>Sound, flash the window, flash the taskbar.</summary>
+    /// <summary>
+    /// <see href="https://learn.microsoft.com/windows/terminal/customize-settings/profile-advanced">Sound, flash the window,
+    /// flash the taskbar</see>.
+    /// </summary>
     public static IReadOnlyList<string> BellStyle { get; } = ["audible", "window", "taskbar"];
 }
 
 /// <summary>
-/// The Windows Terminal JSON fragment that carries Vantage's profiles: a file Windows Terminal reads at start-up and
-/// that the user's own settings file never sees. Implemented over System.IO at the boundary and faked in tests.
+/// The <see href="https://learn.microsoft.com/windows/terminal/json-fragment-extensions">Windows Terminal JSON
+/// fragment</see> that carries Vantage's profiles: a file Windows Terminal reads at start-up and that the user's own
+/// settings file never sees. Implemented over System.IO at the boundary and faked in tests.
 /// </summary>
 public interface ITerminalFragment
 {

@@ -6,7 +6,9 @@ using System.Runtime.InteropServices;
 namespace Source191.Vantage.Adapters.Terminal;
 
 /// <summary>
-/// Selects a Windows Terminal tab by its title through UI Automation, because the terminal's own command line can
+/// Selects a Windows Terminal tab by its title through
+/// <see href="https://learn.microsoft.com/windows/win32/winauto/entry-uiauto-win32">UI Automation</see>, because the
+/// <see href="https://learn.microsoft.com/windows/terminal/command-line-arguments">terminal's own command line</see> can
 /// only focus a tab by index. Vantage titles the tabs it opens with the session name and suppresses title changes,
 /// so the title is the key. Searches the window of a known terminal process, or every Windows Terminal window.
 /// </summary>

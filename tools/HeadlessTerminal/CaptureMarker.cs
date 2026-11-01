@@ -4,7 +4,8 @@ using System.Text.RegularExpressions;
 namespace Source191.Vantage.HeadlessTerminal;
 
 /// <summary>
-/// What a smoke step waits for in the raw capture: a terminal title the program set (OSC 0 or OSC 2, matched whole),
+/// What a smoke step waits for in the raw capture: a terminal title the program set
+/// (<see href="https://learn.microsoft.com/windows/console/console-virtual-terminal-sequences">OSC 0 or OSC 2</see>, matched whole),
 /// text it drew (matched with the escape sequences between its characters stripped), or nothing.
 /// </summary>
 public abstract partial record CaptureMarker

@@ -5,7 +5,11 @@ using System.Text;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
-/// <summary>A child process attached to a ConPTY pseudo-console: its input pipe, its output pipe and its exit state.</summary>
+/// <summary>
+/// A child process attached to a
+/// <see href="https://learn.microsoft.com/windows/console/creating-a-pseudoconsole-session">ConPTY pseudo-console</see>:
+/// its input pipe, its output pipe and its exit state.
+/// </summary>
 [SupportedOSPlatform("windows")]
 public sealed class PseudoConsole : IDisposable
 {
@@ -43,14 +47,16 @@ public sealed class PseudoConsole : IDisposable
             throw new InvalidOperationException($"CreatePseudoConsole failed with 0x{created:X8}");
         }
 
-        // The pseudo-console duplicated its ends of the pipes; the originals must go so reads end when it closes.
+        // The pseudo-console duplicated its ends of the pipes; the originals must go so reads end when it closes
+        // (https://learn.microsoft.com/windows/console/createpseudoconsole).
         NativeMethods.CloseHandle(inputRead);
         NativeMethods.CloseHandle(outputWrite);
 
         IntPtr attributeList = AttributeListFor(pseudoConsole);
         NativeMethods.StartupInfoEx startup = new()
         {
-            // UseStandardHandles with null handles: without it a child inherits the driver's own stdout when that is piped, and its output bypasses the pseudo-console.
+            // UseStandardHandles with null handles: without it a child inherits the driver's own stdout when that is piped, and its output bypasses the pseudo-console
+            // (STARTF_USESTDHANDLES, https://learn.microsoft.com/windows/win32/api/processthreadsapi/ns-processthreadsapi-startupinfow).
             StartupInfo = new NativeMethods.StartupInfo { Size = Marshal.SizeOf<NativeMethods.StartupInfoEx>(), Flags = NativeMethods.UseStandardHandles },
             AttributeList = attributeList,
         };
@@ -89,7 +95,10 @@ public sealed class PseudoConsole : IDisposable
         }
     }
 
-    /// <summary>Closes the pseudo-console, which ends the output stream; the process handles stay until Dispose.</summary>
+    /// <summary>
+    /// <see href="https://learn.microsoft.com/windows/console/closepseudoconsole">Closes the pseudo-console</see>, which ends
+    /// the output stream; the process handles stay until Dispose.
+    /// </summary>
     public void Close()
     {
         if (!closed)

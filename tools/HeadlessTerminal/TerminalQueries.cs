@@ -6,8 +6,11 @@ namespace Source191.Vantage.HeadlessTerminal;
 public sealed record TerminalReply(string Text, int DelayMs);
 
 /// <summary>
-/// Answers terminal queries the way Windows Terminal 1.25 would: kitty keyboard flags, primary and secondary device
-/// attributes, XTVERSION, cursor position and background colour. The XTVERSION reply can be delayed so it lands
+/// Answers terminal queries the way Windows Terminal 1.25 would:
+/// <see href="https://sw.kovidgoyal.net/kitty/keyboard-protocol/">kitty keyboard flags</see>,
+/// <see href="https://learn.microsoft.com/windows/console/console-virtual-terminal-sequences">primary</see> and
+/// <see href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html">secondary device attributes, XTVERSION</see>,
+/// cursor position and background colour. The XTVERSION reply can be delayed so it lands
 /// after the program has exited, which is what happens to Vantage after a detach.
 /// </summary>
 public sealed class TerminalQueries(int xtversionDelayMs)
