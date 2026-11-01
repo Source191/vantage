@@ -230,11 +230,21 @@ public static partial class Wording
     /// <summary>What the update tab says when dotnet tool update fails, under dotnet's own message.</summary>
     public static string UpdateFailedHint => "Vantage: the update failed. Quit every Vantage that is still open, then press U in Vantage again.";
 
-    public static string WizardTitle(WizardState wizard) => wizard.FixedChoice is null ? "New session" : $"New session in {wizard.FixedChoice.Name}";
+    public static string WizardTitle(WizardState wizard) => wizard.Origin switch
+    {
+        WizardOrigin.Anywhere => "New session",
+        WizardOrigin.Fixed pinned => $"New session in {pinned.Choice.Name}",
+        _ => throw new UnreachableException(),
+    };
 
     public static string WizardChosenCaption(WizardState wizard) => wizard.ShowsChooser ? "Repository" : "Directory";
 
-    public static string WizardChosen(WizardState wizard) => wizard.Chosen is RepositoryPick.Picked picked ? picked.Choice.Name : "(none)";
+    public static string WizardChosen(WizardState wizard) => wizard.Chosen switch
+    {
+        RepositoryPick.Picked picked => picked.Choice.Name,
+        RepositoryPick.None => "(none)",
+        _ => throw new UnreachableException(),
+    };
 
     public static string WizardHint(WizardState wizard)
     {
