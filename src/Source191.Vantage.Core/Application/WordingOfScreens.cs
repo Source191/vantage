@@ -161,7 +161,7 @@ public static partial class Wording
         DisplayStateKind.Completed => "✓",
         DisplayStateKind.Failed => "✗",
         DisplayStateKind.Stopped => "■",
-        DisplayStateKind.Unknown => "■",
+        DisplayStateKind.Unknown => "?",
     };
 
     /// <summary>The glyph before a worktree health's word, so the health reads without its colour: a closed enum, so a new kind fails the build here.</summary>
