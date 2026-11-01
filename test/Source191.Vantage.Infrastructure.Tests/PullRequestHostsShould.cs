@@ -46,14 +46,22 @@ public sealed class PullRequestHostsShould : IDisposable
     [Fact]
     public void FindAzOnlyInFullPathFolders()
     {
-        string relative = Path.Combine(folder, "relative");
+        string relativeName = "vantage-az-relative-" + Guid.NewGuid().ToString("N");
+        string relative = Path.Combine(Environment.CurrentDirectory, relativeName);
         string full = Path.Combine(folder, "full");
         Directory.CreateDirectory(relative);
         Directory.CreateDirectory(full);
         File.WriteAllText(Path.Combine(relative, "az.cmd"), "@echo off");
         File.WriteAllText(Path.Combine(full, "az.cmd"), "@echo off");
 
-        AzureCliExecutable.Locate([Path.GetRelativePath(Environment.CurrentDirectory, relative), full]).ShouldBe(new ProgramLocation.Found(Path.Combine(full, "az.cmd")));
+        try
+        {
+            AzureCliExecutable.Locate([relativeName, full]).ShouldBe(new ProgramLocation.Found(Path.Combine(full, "az.cmd")), "a relative PATH entry is never searched, even when it holds az.cmd");
+        }
+        finally
+        {
+            Directory.Delete(relative, recursive: true);
+        }
     }
 
     public void Dispose()
