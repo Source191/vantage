@@ -29,12 +29,14 @@ public sealed class UpdateCheckRuleShould
     public void NeverCheckAPrereleaseOrAnUnknownVersion(string running)
     {
         UpdateCheckRule.ShouldCheck(new ToolVersion(running), enabled: true).ShouldBeFalse();
+        UpdateCheckRule.ShouldCheck(new ToolVersion(running), enabled: true, Now.AddDays(-3), Now).ShouldBeFalse();
     }
 
     [Fact]
     public void NeverCheckWhenTurnedOff()
     {
         UpdateCheckRule.ShouldCheck(Release, enabled: false).ShouldBeFalse();
+        UpdateCheckRule.ShouldCheck(Release, enabled: false, Now.AddDays(-3), Now).ShouldBeFalse();
     }
 
     [Fact]
