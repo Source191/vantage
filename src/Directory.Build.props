@@ -1,0 +1,15 @@
+<Project>
+
+	<!--
+		The root Directory.Build.props is imported first, because MSBuild stops at the first such file it finds walking up
+		and would otherwise skip the root's analysers and warnings-as-errors for everything under src.
+		Banned APIs apply to the packaged tool only: the test projects use TimeProvider.System and DateTimeOffset.UtcNow legitimately.
+	-->
+	<Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="5.6.0" PrivateAssets="all" />
+		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt" />
+	</ItemGroup>
+
+</Project>
