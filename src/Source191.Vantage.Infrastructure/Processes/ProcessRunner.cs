@@ -34,6 +34,14 @@ public sealed class ProcessRunner : IProcessRunner
         return process.ExitCode;
     }
 
+    /// <summary>The empty string is ProcessStartInfo's own "start in this process's folder".</summary>
+    private static string FolderOf(WorkingFolder folder) => folder switch
+    {
+        WorkingFolder.Inherited => string.Empty,
+        WorkingFolder.At at => at.Path,
+        _ => throw new UnreachableException(),
+    };
+
     internal static ProcessStartInfo StartInfo(ProcessRequest request, bool capture)
     {
         // Redirected streams decode with the console code page unless told otherwise; Claude Code prints UTF-8
@@ -48,7 +56,7 @@ public sealed class ProcessRunner : IProcessRunner
             RedirectStandardError = capture,
             StandardOutputEncoding = capture ? Encoding.UTF8 : null,
             StandardErrorEncoding = capture ? Encoding.UTF8 : null,
-            WorkingDirectory = request.WorkingDirectory is WorkingFolder.At at ? at.Path : string.Empty,
+            WorkingDirectory = FolderOf(request.WorkingDirectory),
         };
         foreach (string argument in request.Arguments)
         {
