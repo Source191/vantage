@@ -71,7 +71,7 @@ public static partial class Wording
 
     /// <summary>The listing's reason, a first prompt for a session that needs input and has never had one, or null when it waits for nothing.</summary>
     private static string? WaitingFor(SessionRow row) =>
-        row.Session.WaitingFor ?? (row.Session.State.Kind == DisplayStateKind.NeedsInput && !row.HasTranscript ? "a first prompt" : null);
+        (row.Session.WaitingFor is WaitingReason.Given given ? given.Text : null) ?? (row.Session.State.Kind == DisplayStateKind.NeedsInput && !row.HasTranscript ? "a first prompt" : null);
 
     /// <summary>Where in its repository the session runs: the main checkout, a path inside it, or a linked worktree's slug (its folder's name without the repository's).</summary>
     private static string PlaceOf(SessionRow row)
