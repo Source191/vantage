@@ -25,8 +25,20 @@ public sealed class WorktreeInspectorShould
 
         WorktreeCounts counts = await Inspector.CountAsync(Worktree, CancellationToken.None);
 
-        counts.ShouldBe(new WorktreeCounts(DirtyFiles: 2, UnpushedCommits: 3, LastCommitAt: new DateTimeOffset(2026, 10, 23, 12, 0, 0, TimeSpan.Zero)));
+        counts.ShouldBe(new WorktreeCounts(DirtyFiles: 2, UnpushedCommits: 3, LastCommitAt: new LastCommit.Made(new DateTimeOffset(2026, 10, 23, 12, 0, 0, TimeSpan.Zero))));
         processes.CapturedRequests.ShouldAllBe(request => request.WorkingDirectory == new WorkingFolder.At(Worktree.Value));
+    }
+
+    [Fact]
+    public async Task AnswerAnUnknownLastCommitWhenGitHasNone()
+    {
+        processes
+            .Answer(request => request.Arguments.Contains("rev-list"), new ProcessResult(0, "0\n", string.Empty))
+            .Answer(request => request.Arguments.Contains("log"), new ProcessResult(128, string.Empty, "fatal: your current branch does not have any commits yet"));
+
+        WorktreeCounts counts = await Inspector.CountAsync(Worktree, CancellationToken.None);
+
+        counts.LastCommitAt.ShouldBe(new LastCommit.Unknown());
     }
 
     [Fact]

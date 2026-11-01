@@ -35,8 +35,8 @@ public sealed class DetailLoaderShould
         SessionDetail detail = await Loader().SessionAsync(row, CancellationToken.None);
 
         detail.Row.ShouldBe(row);
-        detail.Counts.ShouldBe(new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new DateTimeOffset(2026, 10, 30, 11, 0, 0, TimeSpan.Zero))));
-        detail.LastPromptedAt.ShouldBeNull();
+        detail.Counts.ShouldBe(new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, new LastCommit.Made(new DateTimeOffset(2026, 10, 30, 11, 0, 0, TimeSpan.Zero)))));
+        detail.LastPromptedAt.ShouldBe(new LastPrompt.NotSeen());
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public sealed class DetailLoaderShould
 
         SessionDetail detail = await Loader(activity).SessionAsync(working, CancellationToken.None);
 
-        detail.LastPromptedAt.ShouldBe(Noon.AddMinutes(3));
+        detail.LastPromptedAt.ShouldBe(new LastPrompt.Seen(Noon.AddMinutes(3)));
     }
 
     [Fact]
@@ -87,7 +87,7 @@ public sealed class DetailLoaderShould
 
         WorktreeDetail detail = await Loader().WorktreeAsync(WorktreeRowOf(unpushed: 12, dirty: 0), listRows: 4, CancellationToken.None);
 
-        detail.Created!.CreatedAt.ShouldBe(new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero));
+        detail.Created.ShouldBeOfType<WorktreeOrigin.CreatedByVantage>().Record.CreatedAt.ShouldBe(new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero));
         detail.Merge.ShouldBe(new DetailFact<MergeState>.Known(new MergeState("origin/main", Merged: false)));
         detail.Commits.ShouldBeOfType<DetailFact<IReadOnlyList<UnpushedCommit>>.Known>().Value.Single().Subject.ShouldBe("Split the invoice totals");
         detail.ChangedFiles.ShouldBeOfType<DetailFact<IReadOnlyList<string>>.NotApplicable>();
@@ -101,7 +101,7 @@ public sealed class DetailLoaderShould
 
         WorktreeDetail detail = await Loader().WorktreeAsync(WorktreeRowOf(unpushed: 0, dirty: 2), listRows: 4, CancellationToken.None);
 
-        detail.Created.ShouldBeNull();
+        detail.Created.ShouldBe(new WorktreeOrigin.NotByVantage());
         detail.ChangedFiles.ShouldBe(new DetailFact<IReadOnlyList<string>>.Known(["Invoice.cs", "Totals.cs"]), new ListOfStringsComparer());
         detail.Commits.ShouldBeOfType<DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable>();
     }
@@ -136,7 +136,7 @@ public sealed class DetailLoaderShould
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
-        new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Noon, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+        new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, new LastCommit.Made(Noon), new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
 
     /// <summary>Records compare lists by reference, so a known list is compared by its items.</summary>
     private sealed class ListOfStringsComparer : IEqualityComparer<DetailFact<IReadOnlyList<string>>>
