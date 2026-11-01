@@ -1,0 +1,52 @@
+# Tasks
+
+Each task is one red-green-refactor cycle or smaller, with a commit per step; the test is named before the code. Groups 1 and 2 add Domain shapes beside the ones they replace, groups 3 to 5 rework the adapter against the real process table, group 6 moves the port and the handlers onto the new shapes and deletes what they replaced, each group carrying its own docs. Verify with `dotnet build -c Debug` (warnings are errors) and `dotnet test --project test\Source191.Vantage.Core.Tests -c Debug --no-build` unless a task says otherwise; the adapter tasks run `dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build`, which reads the real process table. New facts use `FakeProcessRegistry`, Northwind fixtures and `Noon`. Rebase onto `fix-removal-paths` first if it has merged.
+
+## 1. The confirmed process
+
+- [ ] 1.1 `ConfirmedProcessShould.ConfirmAProcessStartedNoLaterThanTheSessionPlusFiveSeconds`, `RefuseAProcessStartedLaterThanThat` and `RefuseAProcessWhoseStartCannotBeRead` (the three cases of `ProcessIdentityShould`, asserting the `out` value's `Id` and `StartedAt` on success). Red (the type does not exist), then green with `src\Source191.Vantage.Core\Domain\ConfirmedProcess.cs`: the sealed record, its private constructor, `Id`, `StartedAt` and `TryConfirm`. Verify the facts pass and `SealedTypesShould`, `TextValuesShould` and `NullFreeModelsShould` stay green once the `Kept` list gains `ConfirmedProcess.TryConfirm(processStartedAt)` with `ProcessIdentity`'s reason.
+- [ ] 1.2 `ConfirmedProcessShould.ConfirmAClaimOnlyWhenTheStartTimeIsExactlyTheRecordedOne` (equal passes; one tick later, one tick earlier and null refuse). Red, then green with `TryConfirmClaim`. Verify the facts pass and `Kept` has its nullable parameter.
+- [ ] 1.3 `ConfirmedProcessShould.ConfirmAParentStartedNoLaterThanItsConfirmedChild` and `RefuseAParentYoungerThanItsChildOrWhoseStartCannotBeRead`. Red, then green with `TryConfirmParent(int parentId, DateTimeOffset? parentStartedAt, ConfirmedProcess child, out ConfirmedProcess?)`. Verify the facts pass and `Kept` gains `TryConfirmParent(parentStartedAt)`; `ProcessIdentity` and its test are left in place until 6.3.
+
+## 2. The claim and the walk
+
+- [ ] 2.1 `TabRegistrationShould.AnswerTheShellOfALiveClaimedTab`, `AnswerNoShellWhilePending` and `AnswerNoShellWhenTheProcessIdWasReused`. Red, then green with `TabRegistration.TryConfirmShell(IProcessRegistry processes, out ConfirmedProcess? shell)` (no clock: only the pending arm needs one) through `ConfirmedProcess.TryConfirmClaim`, and `IsLive(now, processes)` rewritten as pending-within-grace or `TryConfirmShell`. Verify the new facts and the seven existing `TabRegistrationShould` liveness facts pass.
+- [ ] 2.2 `TerminalTabShould` over a confirmed root: re-express the seven existing facts to call `ShellOf(ConfirmedProcess, processes)` and `TerminalOf(ConfirmedProcess, processes)`, with the shell asserted by `Id` and `StartedAt`, plus `StopAtAParentYoungerThanItsChild` asserting that no `ConfirmedProcess` is answered for it. Red, then green with the two overloads added beside the `int` ones (which keep no direct fact from here to 6.2; the handler tests cover them), the walk starting from the root's `StartedAt` and minting each parent with `TryConfirmParent`. Verify the facts pass and `NullFreeModelsShould` is green with the `ShellOf` reason reworded ("the walk from a confirmed process may end before a shell").
+- [ ] 2.3 `TabRegistrationShould.AnswerAnyWindowWhenTheClaimedProcessIdWasReused`. Red, then green with `OwningTerminal` confirming the claim through `TryConfirmShell` and walking with the new `TerminalOf`. Verify the fact and `FindTheOwningTerminalWhateverItsCaseAndUpToEightStepsAway` pass.
+
+## 3. The interop in its own file
+
+- [ ] 3.1 Move the constants, the four structs, `ExecutableName` and every `[LibraryImport]` from `ProcessRegistry.cs` into `src\Source191.Vantage.Infrastructure\Processes\ProcessRegistryNative.cs` (the same `partial class`), verbatim. Verify the build, `OneTypePerFileShould` and the whole `ProcessRegistryIntegrationShould` class pass.
+- [ ] 3.2 Replace `IntPtr`/`UIntPtr` with `nint`/`nuint` in both files (`ToInt64()` and `ToUInt64()` become casts, `IntPtr.Zero` becomes `nint.Zero` or `0`), as `Terminal\ConsoleRecovery.cs` has them. Verify the build and the Infrastructure tests pass.
+
+## 4. One limited-handle path
+
+- [ ] 4.1 `ProcessRegistryIntegrationShould.ReadTwoHundredStartTimesWithinASecond` (the `StartTimeOf` twin of `MeasureTwoHundredTimesWithinASecond`). Red on the current `GetProcessById` path (about four seconds), then green with the private `Opened<T>(int processId, Func<nint, T> query, T whenGone)` and `StartTimeOf` reading `GetProcessTimes` through it, a non-zero exit time answering null. Verify the new fact, `ReportTheStartTimeOfARunningProcessInUtc`, `ReportNothingForAProtectedProcessInsteadOfThrowing` and `ReportNothingForAProcessThatDoesNotExist` pass.
+- [ ] 4.2 `ProcessRegistryIntegrationShould.ReportNothingForAProtectedProcessInsteadOfThrowing` extended with `registry.ParentOf(4)`, and `NameThisProcessAsTheParentOfAChildItStarted` kept as the pin. Then `ParentOf` through `Opened`: `NtQueryInformationProcess(ProcessBasicInformation)` on the limited handle, the parent named by a second `Opened` with the new `QueryFullProcessImageNameW` import and `Path.GetFileNameWithoutExtension` (shared with `ReadEntries` as one private `NameOf`). Verify the Infrastructure tests pass and `WithProcess` now has the `Action` form only, keeping the `AggregateException` catch if `fix-removal-paths` has landed.
+- [ ] 4.3 `.claude\rules\windows.md`: the process-facts paragraph says every read opens its own limited handle and `GetProcessById` is used only to end a process, and records that `ProcessBasicInformation` and `QueryFullProcessImageNameW` answer through `PROCESS_QUERY_LIMITED_INFORMATION`, with the date and Windows build they were verified on by 4.1 and 4.2. Verify by reading the paragraph against the code and checking no em dash was introduced.
+
+## 5. The command line stays in the adapter
+
+- [ ] 5.1 `ProcessRegistryIntegrationShould.MeasureAChildItStarted` asserts `usage.Label.ShouldBe("ping")` with `StartSleeper` running `cmd.exe /c ping.exe -n 30 127.0.0.1 > nul` (the `Snapshot` fact still names the child `cmd`). Red (no `Label`), then green with `ProcessUsage(DateTimeOffset StartedAt, MemorySize PrivateMemory, string Label)` in Domain and `UsageOf` calling `ProgramLabel.From(NameOf(handle), CommandLineOf(handle))`; `FakeProcessRegistry.Using` takes `label`. Verify the Infrastructure tests pass and `ProgramLabelShould` is unchanged.
+- [ ] 5.2 `MemoryBreakdownShould`: the fixtures give labels (`@azure-devops/mcp`, `mcp-grafana`, `pwsh`) in place of command lines and the expectations stay. Red (no `Label` read), then green with `MemoryBreakdown.Of` reading `measured.Usage.Label` and keeping `child.Process.Name` for an unmeasured child; `CommandLineOf` deleted. Verify `MemoryBreakdownShould`, `ProcessTreeShould`, `SessionRowEnricherShould` and `DiagnosticsPrivacyShould` pass.
+- [ ] 5.3 `CLAUDE.md`'s and `.claude\rules\security.md`'s command-line bullets say the label is made in `ProcessRegistry.UsageOf` and the command line never leaves it. Verify by reading both against `UsageOf`.
+
+## 6. The port ends only a confirmed process
+
+- [ ] 6.1 `IProcessRegistry.Terminate(ConfirmedProcess process)` and `EndCleanly(ConfirmedProcess process)`, with the summaries naming `ConfirmedProcess` and `TabRegistration.TryConfirmShell`; `ProcessRegistry` and `FakeProcessRegistry` read `.Id` (`Terminated` and `EndedCleanly` stay `List<int>`); `AdoptSessionHandler` and `CloseEmptyTerminalsHandler` confirm with `ConfirmedProcess.TryConfirm` (their summaries' `<see cref="ProcessIdentity"/>` at `AdoptSessionHandler.cs:14` and `CloseEmptyTerminalsHandler.cs:12` become `ConfirmedProcess`, since an unresolved cref is a warning and warnings are errors), pass the confirmed claude to `Terminate` and `ShellOf`'s answer to `EndCleanly` (through `ShellAbove` if `fix-removal-paths` has landed, including `EndCleanly` on the confirmed claude when it is the tab's root); `SessionTabs` ends what `TryConfirmShell` answers. A compile-driven step: the pins are `AdoptSessionHandlerShould` and `CloseEmptyTerminalsHandlerShould` (`reused.Terminated.ShouldBeEmpty()`, `Terminated.ShouldBe([4242])`, `EndedCleanly.ShouldBe([4000])`) and `SessionTabsShould`, unchanged. Verify the build and the whole Core test suite pass.
+- [ ] 6.2 Delete the `int` overloads of `TerminalTab.ShellOf` and `TerminalOf`. Verify the build and `TerminalTabShould`, `OpenTabHandlerShould` and `TabRegistrationShould` pass.
+- [ ] 6.3 Delete `Domain\ProcessIdentity.cs` and `ProcessIdentityShould.cs`, then remove their `Kept` entry. Verify the Core test project first fails to compile on `typeof(ProcessIdentity)` in `NullFreeModelsShould.Kept` (the red here is the compiler, not a fact), then builds and `KeepNoStaleEntry` is green, and `dotnet test -c Debug --no-build` at the solution passes.
+- [ ] 6.4 Docs: `CLAUDE.md`'s and `.claude\rules\security.md`'s identity bullets say a process is ended only as a `ConfirmedProcess`, which only its three doors mint (the listing's, the claim's and the walk's rules named); both rule files' path globs replace `**/ProcessIdentity*.cs` with `**/ConfirmedProcess*.cs`. Verify by reading each against `ConfirmedProcess.cs` and `IProcessRegistry.cs` and checking no em dash was introduced.
+
+## 7. Version
+
+- [ ] 7.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one preview step above `main` when implemented (0.20.0-preview.9 if nothing lands first); patch-level, a refactor. Verify `.github\scripts\Assert-VersionBumped.ps1` passes locally against `main`.
+
+## 8. Whole-solution check
+
+- [ ] 8.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate process-registry-one-path --strict` all pass. Record the totals here.
+
+## Workflow follow-up
+
+- Archive the change in the pull request that completes it; `skip_specs` means no spec sync.
+- Push and open the implementation pull request only when the owner asks; the manual checks in `CONTRIBUTING.md` for pull requests that touch tabs apply, because `d`, `C` and `b` end tab shells through the retyped port.
