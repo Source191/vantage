@@ -36,7 +36,7 @@ Vantage SHALL record a diagnostic event when it starts (its version, the Claude 
 - **THEN** the log gains no event for those refreshes, and the refresh counts hold about 720 runs of the sessions listing and of the sessions enrichment
 
 ### Requirement: Child programs are counted
-Vantage SHALL count every child program it runs by program (git, claude, gh, az, pwsh, wt, vswhere, dotnet, or another program), its subcommand when the leading arguments are words on Vantage's fixed list for that program, and its exit code, keeping the number of runs, the median and 95th percentile duration of the latest 1,000 runs, and the longest duration. A run that fails to start or takes longer than 5 seconds SHALL also be recorded as a line. The counts SHALL be part of the crash file and SHALL be written to the `VANTAGE_LOG` file when Vantage exits.
+Vantage SHALL count every child program it runs by program (git, claude, gh, az, pwsh, wt, vswhere, dotnet, or another program), its subcommand when the leading arguments are words on Vantage's fixed list for that program, and its exit code, keeping the number of runs, the median and 95th percentile duration of the latest 1,000 runs, and the longest duration. A run that fails to start or takes longer than 5 seconds SHALL also be recorded as a line.
 
 #### Scenario: Worktree lists are read
 - **WHEN** a scan runs `git worktree list --porcelain` in three repositories and each exits 0
