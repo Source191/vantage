@@ -87,6 +87,17 @@ public sealed class GitCliIntegrationShould : IDisposable
     }
 
     [Fact]
+    public async Task ListAChangedFileByItsOwnName()
+    {
+        await CreateRepositoryWithOneCommitAsync();
+        await File.WriteAllTextAsync(Path.Combine(Repository, "naïve.txt"), "new", TestContext.Current.CancellationToken);
+
+        IReadOnlyList<string> files = await git.ChangedFilesAsync(Repository, 5, TestContext.Current.CancellationToken);
+
+        files.ShouldBe(["naïve.txt"]);
+    }
+
+    [Fact]
     public async Task PruneARegistrationWhoseFolderWasDeletedByHand()
     {
         await CreateRepositoryWithOneCommitAsync();
