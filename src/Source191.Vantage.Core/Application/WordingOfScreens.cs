@@ -85,9 +85,6 @@ public static partial class Wording
     /// <summary>The keys every tab shares for moving between tabs and scrolling a table too wide for the terminal; only the help lists them.</summary>
     private static readonly KeyHelp[] TabKeyHelp =
     [
-        KeyHelp.HelpOnly("1", "the Sessions tab", tip: "Show the Sessions tab: every Claude Code session on this machine."),
-        KeyHelp.HelpOnly("2", "the Worktrees tab", tip: "Show the Worktrees tab: every worktree under your roots."),
-        KeyHelp.HelpOnly("3", "the Config tab", tip: "Show the Config tab: the settings and how Vantage is set up."),
         KeyHelp.HelpOnly("←", "the tab to the left", tip: "Show the tab to the left of this one."),
         KeyHelp.HelpOnly("→", "the tab to the right", tip: "Show the tab to the right of this one."),
         KeyHelp.HelpOnly("<", "scroll the columns left", tip: "Scroll a table too wide for the terminal to the left."),
