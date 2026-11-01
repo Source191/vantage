@@ -288,9 +288,7 @@ public sealed class NullFreeModelsShould
 
     private static bool IsOutUntilParsed(ParameterInfo parameter)
     {
-        return parameter.IsOut
-            && (parameter.GetCustomAttribute<MaybeNullWhenAttribute>() is { ReturnValue: false }
-                || parameter.GetCustomAttribute<NotNullWhenAttribute>() is { ReturnValue: true });
+        return parameter.IsOut && parameter.GetCustomAttribute<MaybeNullWhenAttribute>() is { ReturnValue: false };
     }
 
     private static bool IsGenerated(MemberInfo member)
