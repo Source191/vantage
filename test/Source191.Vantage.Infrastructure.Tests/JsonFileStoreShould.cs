@@ -45,6 +45,23 @@ public sealed class JsonFileStoreShould : IDisposable
         }
         """;
 
+    /// <summary>A session's tab file as the store writes it before the tab's shell claims it: no process yet.</summary>
+    private const string PendingTabJson = """
+        {
+          "id": "0b8d2a1c-9e3f-4b5a-8c7d-6e5f4a3b2c1d",
+          "sessionId": "1a4d2d86-8e87-44fe-a9f7-61d47d481ae3",
+          "colour": {
+            "name": "Yellow",
+            "hex": "#FFB900"
+          },
+          "createdAt": "2026-10-23T12:00:00+00:00",
+          "processId": null,
+          "processStartedAt": null
+        }
+        """;
+
+    private static readonly TabRegistration PendingTab = SessionTab with { Claim = new TabClaim.Pending() };
+
     /// <summary>created.json exactly as the store wrote it before paths became FolderPath: plain strings.</summary>
     private const string CreatedJson = """
         [
@@ -102,6 +119,26 @@ public sealed class JsonFileStoreShould : IDisposable
 
         (await File.ReadAllTextAsync(Path.Combine(folder, "tabs", $"{SessionTabId:N}.json"), TestContext.Current.CancellationToken)).ReplaceLineEndings("\n").ShouldBe(SessionTabJson.ReplaceLineEndings("\n"));
         (await File.ReadAllTextAsync(Path.Combine(folder, "tabs", $"{OwnTabId:N}.json"), TestContext.Current.CancellationToken)).ReplaceLineEndings("\n").ShouldBe(OwnTabJson.ReplaceLineEndings("\n"));
+    }
+
+    [Fact]
+    public async Task ReadAPendingTabFileWrittenByTheCurrentVersion()
+    {
+        Directory.CreateDirectory(Path.Combine(folder, "tabs"));
+        await File.WriteAllTextAsync(Path.Combine(folder, "tabs", "0b8d2a1c9e3f4b5a8c7d6e5f4a3b2c1d.json"), PendingTabJson, TestContext.Current.CancellationToken);
+
+        TabRegistration read = (await Store.ReadTabsAsync()).Single();
+
+        read.ShouldBe(PendingTab);
+        read.Claim.ShouldBe(new TabClaim.Pending());
+    }
+
+    [Fact]
+    public async Task WriteTheTabFileItAlwaysHas()
+    {
+        await Store.WriteTabAsync(PendingTab);
+
+        (await File.ReadAllTextAsync(Path.Combine(folder, "tabs", $"{SessionTabId:N}.json"), TestContext.Current.CancellationToken)).ReplaceLineEndings("\n").ShouldBe(PendingTabJson.ReplaceLineEndings("\n"));
     }
 
     [Fact]
