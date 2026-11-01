@@ -1,6 +1,7 @@
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics.CodeAnalysis;
 using IOPath = System.IO.Path;
 
 namespace Source191.Vantage.Application;
@@ -166,14 +167,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             }
 
             string gitFile = IOPath.Combine(folder.Value, ".git");
-            string? target = folders.FileExists(gitFile) ? GitDirOf(gitFile) : null;
-            bool? targetExists = folders.FileExists(gitFile) ? target is not null && folders.DirectoryExists(target) : null;
-            GitPointer pointer = targetExists switch
-            {
-                true => new GitPointer.TargetExists(),
-                false => new GitPointer.TargetGone(),
-                null => new GitPointer.NoGitFile(),
-            };
+            GitPointer pointer = folders.FileExists(gitFile) ? TargetOf(GitDirOf(gitFile)) : new GitPointer.NoGitFile();
             WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), UnderClaudeWorktrees: true, pointer, false);
             yield return Leftover(repository, folder, observation, ownerExists: true);
         }
@@ -186,17 +180,11 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
     /// </summary>
     private WorktreeRow BrokenWorktree(FolderPath folder)
     {
-        string? gitDir = GitDirOf(IOPath.Combine(folder.Value, ".git"));
-        FolderPath? registeredWith = OwnerOf(gitDir);
-        FolderPath owner = registeredWith ?? folder.Parent ?? folder;
+        string gitDir = GitDirOf(IOPath.Combine(folder.Value, ".git"));
+        FolderPath owner = TryOwnerOf(gitDir, out FolderPath? registeredWith) ? registeredWith : folder.Parent ?? folder;
         bool ownerExists = folders.DirectoryExists(IOPath.Combine(owner.Value, ".git"));
-        bool targetExists = gitDir is not null && folders.DirectoryExists(gitDir);
-        GitPointer pointer = (targetExists, registeredWith, ownerExists) switch
-        {
-            (false, _, _) => new GitPointer.TargetGone(),
-            (true, FolderPath registeredOwner, true) => new GitPointer.RegisteredElsewhere(registeredOwner),
-            _ => new GitPointer.TargetExists(),
-        };
+        GitPointer target = TargetOf(gitDir);
+        GitPointer pointer = target is GitPointer.TargetExists && registeredWith is not null && ownerExists ? new GitPointer.RegisteredElsewhere(owner) : target;
         WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), false, pointer, false);
 
         return Leftover(owner, folder, observation, ownerExists);
@@ -204,18 +192,27 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
 
     private WorktreeRow Leftover(FolderPath repository, FolderPath folder, WorktreeObservation observation, bool ownerExists) => new(repository, folder, new Head.Unknown(), WorktreeHealth.From(observation), 0, 0, null, new WorktreeSession.None(), CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder.Value));
 
-    private string? GitDirOf(string gitFile)
-    {
-        string? line = folders.Lines(gitFile).FirstOrDefault(candidate => candidate.StartsWith(GitDirPrefix, StringComparison.Ordinal));
+    /// <summary>Whether the registration a .git file points at still exists; never names an owner.</summary>
+    private GitPointer TargetOf(string gitDir) => folders.DirectoryExists(gitDir) ? new GitPointer.TargetExists() : new GitPointer.TargetGone();
 
-        return line is null ? null : IOPath.GetFullPath(line[GitDirPrefix.Length..].Trim().Replace('/', IOPath.DirectorySeparatorChar));
-    }
+    /// <summary>The full path of the registration folder a .git file's gitdir line names; empty, which no folder is, when it names none.</summary>
+    private string GitDirOf(string gitFile) => folders.Lines(gitFile)
+        .Where(candidate => candidate.StartsWith(GitDirPrefix, StringComparison.Ordinal))
+        .Select(line => IOPath.GetFullPath(line[GitDirPrefix.Length..].Trim().Replace('/', IOPath.DirectorySeparatorChar)))
+        .DefaultIfEmpty(string.Empty)
+        .First();
 
-    private static FolderPath? OwnerOf(string? gitDir)
+    /// <summary>The repository a registration folder sits in, read from its <c>.git\worktrees\</c> segment.</summary>
+    private static bool TryOwnerOf(string gitDir, [MaybeNullWhen(false)] out FolderPath owner)
     {
-        return gitDir is string gitFolder
-            && gitFolder.IndexOf(WorktreesSegment, StringComparison.OrdinalIgnoreCase) is int at and >= 0
-            && FolderPath.TryParse(gitFolder[..at], out FolderPath? owner) ? owner : null;
+        int at = gitDir.IndexOf(WorktreesSegment, StringComparison.OrdinalIgnoreCase);
+        if (at < 0)
+        {
+            owner = null;
+            return false;
+        }
+
+        return FolderPath.TryParse(gitDir[..at], out owner);
     }
 
     private bool IsEmptyLeftover(FolderPath folder)
