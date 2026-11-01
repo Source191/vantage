@@ -62,4 +62,18 @@ public sealed class ResumeSessionsHandlerShould
         resumes.Select(request => request.Arguments[^1]).ShouldAllBe(name => name == "fix-123", "the display name survives the resume");
         message.ShouldBeOfType<ResumeSessionsOutcome>().Resumed.ShouldBe(2);
     }
+
+    [Fact]
+    public async Task ResumeEachSessionUnderItsListedNameOrUnnamed()
+    {
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
+        transcripts.WithMessages("sess-1").WithMessages("sess-2");
+        BackgroundSession named = Job(Repository, DisplayState.Failed);
+        BackgroundSession blank = named with { SessionId = SessionId.From("sess-2"), Name = " " };
+
+        await Handler.HandleAsync(new ResumeSessions([named, blank]), CancellationToken.None);
+
+        processes.CapturedRequests.Where(request => request.Arguments.Contains("--resume")).Select(request => string.Join(" ", request.Arguments))
+            .ShouldBe(["--bg --resume sess-1 -n fix-123", "--bg --resume sess-2"], "a listed name SessionName refuses is resumed without -n");
+    }
 }
