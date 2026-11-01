@@ -101,7 +101,7 @@ public sealed class WordingOfDetailShould
         WorktreeRow row = WorktreeRowOf(unpushed: 12, dirty: 0);
         WorktreeDetail detail = new(
             row,
-            new CreatedWorktree(Worktree, BranchName.From("fix-123"), Repository, new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero)),
+            new WorktreeOrigin.CreatedByVantage(new CreatedWorktree(Worktree, BranchName.From("fix-123"), Repository, new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero))),
             new DetailFact<MergeState>.Known(new MergeState("origin/main", Merged: false)),
             new DetailFact<IReadOnlyList<UnpushedCommit>>.Known(commits),
             new DetailFact<IReadOnlyList<string>>.NotApplicable());
@@ -134,7 +134,7 @@ public sealed class WordingOfDetailShould
     {
         WorktreeDetail detail = new(
             WorktreeRowOf(unpushed: 0, dirty: 2),
-            Created: null,
+            new WorktreeOrigin.NotByVantage(),
             new DetailFact<MergeState>.Unavailable(),
             new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(),
             new DetailFact<IReadOnlyList<string>>.Known(["Invoice.cs", "Totals.cs"]));
@@ -150,7 +150,7 @@ public sealed class WordingOfDetailShould
     public void GiveABrokenLeftoversReasonAndUnavailableGitLines()
     {
         WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Health = new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()), Head = new Head.Unknown(), FolderExists = false };
-        WorktreeDetail detail = new(row, Created: null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.Unavailable(), new DetailFact<IReadOnlyList<string>>.Unavailable());
+        WorktreeDetail detail = new(row, new WorktreeOrigin.NotByVantage(), new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.Unavailable(), new DetailFact<IReadOnlyList<string>>.Unavailable());
 
         DetailContent content = Wording.Detail(detail, Now);
         string[] lines = Text(content);
@@ -177,7 +177,7 @@ public sealed class WordingOfDetailShould
         foreach (Head head in new Head[] { new Head.Detached(), new Head.Unknown() })
         {
             WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Head = head };
-            WorktreeDetail detail = new(row, Created: null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
+            WorktreeDetail detail = new(row, new WorktreeOrigin.NotByVantage(), new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
 
             Rows(Wording.Detail(detail, Now))[1].ShouldBe(["Branch none", "PR none"]);
         }

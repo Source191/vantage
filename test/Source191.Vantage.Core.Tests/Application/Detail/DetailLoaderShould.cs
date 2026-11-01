@@ -87,7 +87,7 @@ public sealed class DetailLoaderShould
 
         WorktreeDetail detail = await Loader().WorktreeAsync(WorktreeRowOf(unpushed: 12, dirty: 0), listRows: 4, CancellationToken.None);
 
-        detail.Created!.CreatedAt.ShouldBe(new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero));
+        detail.Created.ShouldBeOfType<WorktreeOrigin.CreatedByVantage>().Record.CreatedAt.ShouldBe(new DateTimeOffset(2026, 10, 23, 9, 14, 0, TimeSpan.Zero));
         detail.Merge.ShouldBe(new DetailFact<MergeState>.Known(new MergeState("origin/main", Merged: false)));
         detail.Commits.ShouldBeOfType<DetailFact<IReadOnlyList<UnpushedCommit>>.Known>().Value.Single().Subject.ShouldBe("Split the invoice totals");
         detail.ChangedFiles.ShouldBeOfType<DetailFact<IReadOnlyList<string>>.NotApplicable>();
@@ -101,7 +101,7 @@ public sealed class DetailLoaderShould
 
         WorktreeDetail detail = await Loader().WorktreeAsync(WorktreeRowOf(unpushed: 0, dirty: 2), listRows: 4, CancellationToken.None);
 
-        detail.Created.ShouldBeNull();
+        detail.Created.ShouldBe(new WorktreeOrigin.NotByVantage());
         detail.ChangedFiles.ShouldBe(new DetailFact<IReadOnlyList<string>>.Known(["Invoice.cs", "Totals.cs"]), new ListOfStringsComparer());
         detail.Commits.ShouldBeOfType<DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable>();
     }
