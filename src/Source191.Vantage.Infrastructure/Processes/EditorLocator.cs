@@ -1,6 +1,5 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
-using System.Globalization;
 
 namespace Source191.Vantage.Adapters.Processes;
 
@@ -61,7 +60,7 @@ public sealed class EditorLocator(IFolders folders, IProcessRunner processes, Ed
         return installs
             .Select(install => Path.Combine(install, "bin", "rider64.exe"))
             .Where(folders.FileExists)
-            .OrderByDescending(file => file, StringComparer.Create(CultureInfo.InvariantCulture, CompareOptions.NumericOrdering | CompareOptions.IgnoreCase))
+            .OrderByDescending(file => file, Comparer<string>.Create(NumberAwareOrder.Compare))
             .FirstOrDefault();
     }
 

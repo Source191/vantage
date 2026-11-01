@@ -9,7 +9,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 ## 2. Rider by number
 
 - [x] 2.1 `NumberAwareOrderShould`: `2025.10` after `2025.9`, `253.100` after `253.99`, leading zeros equal by value (`007` and `7` tie on the run, the shorter string first), letters compared without case, digits beside letters (`a9` before `a10`, `a10` before `b1`), and the full Rider paths from the settings spec's two scenarios. Red, then `Domain\NumberAwareOrder` green. Verify the facts pass.
-- [ ] 2.2 `EditorLocator.NewestRider` orders by `NumberAwareOrder` in place of the `NumericOrdering` comparer; `RankRiderBuildsByNumberNotByText` goes green and a new `RankToolboxBuildsByNumber` (253.99 and 253.100 in one channel) passes. Verify both facts pass and `EditorLocator.cs` no longer names `CultureInfo`.
+- [x] 2.2 `EditorLocator.NewestRider` orders by `NumberAwareOrder` in place of the `NumericOrdering` comparer; `RankRiderBuildsByNumberNotByText` goes green and a new `RankToolboxBuildsByNumber` (253.99 and 253.100 in one channel) passes. Verify both facts pass and `EditorLocator.cs` no longer names `CultureInfo`.
 
 ## 3. Changed files by name
 
