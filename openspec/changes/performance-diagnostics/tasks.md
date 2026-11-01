@@ -41,7 +41,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 - [ ] 4.3 `Program.cs` starts `PeriodicCounts` only when `DiagnosticLogSetting` is `File` and disposes it before the exit write. Verify with `tools\install-local.ps1`, then a console run with `VANTAGE_LOG` set for 11 minutes shows a stamped set of count lines in the file before quitting.
   Done, moved: since tidy-composition-root (#177) the exit write is `CrashRecorder.GuardAsync`'s, around `ConsoleComposition.RunAsync`, so `RunAsync` starts it (`using`, only for `DiagnosticLogSetting.File`) and disposes it as it returns, before that write. Only the console writes periodically; `vantage here` keeps its exit write only. The tool builds.
   Owed: the owner runs `tools\install-local.ps1`, then `$env:VANTAGE_LOG = "$env:TEMP\vantage-perf.log"; vantage` for 11 minutes and quits; the file should hold one set of count lines stamped about 10 minutes in, then the exit set. Not run here: an unattended run must not replace the installed tool or touch the real `%LOCALAPPDATA%\Vantage`.
-- [ ] 4.4 README "What Vantage records" and the troubleshooting entry for `VANTAGE_LOG`: the counts are written every 10 minutes as well as at exit. Verify by reading against the spec delta.
+- [x] 4.4 README "What Vantage records" and the troubleshooting entry for `VANTAGE_LOG`: the counts are written every 10 minutes as well as at exit. Verify by reading against the spec delta.
+  Done: read against the spec delta ("Counts are written while Vantage runs", the crash file's counts).
 
 ## 5. The UI thread is watched
 
