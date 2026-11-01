@@ -4,7 +4,9 @@ namespace Source191.Vantage.Domain;
 
 /// <summary>
 /// The colour Windows Terminal shows for a coloured tab while another tab is selected: the tab's colour at alpha 77
-/// (its own 30 %) over the dark theme's tab row, measured on Windows Terminal 1.25.
+/// (its own 30 %, set in
+/// <see href="https://github.com/microsoft/terminal/blob/v1.25.2733.0/src/cascadia/TerminalApp/Tab.cpp#L2387">Tab.cpp</see>)
+/// over the dark theme's tab row, measured on Windows Terminal 1.25.
 /// </summary>
 public static class TabShade
 {
