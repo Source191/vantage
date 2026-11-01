@@ -17,6 +17,8 @@ public sealed class NullFreeModelsShould
 {
     private const BindingFlags Declared = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
+    private static readonly AllowedNullable[] Kept = [];
+
     private static readonly string[] ModelNamespaces = ["Source191.Vantage.Domain", "Source191.Vantage.Ports", "Source191.Vantage.Application"];
 
     private static readonly string[] EqualityNames = ["Equals", "CompareTo", "op_Equality", "op_Inequality"];
@@ -47,6 +49,17 @@ public sealed class NullFreeModelsShould
         types.ShouldContain(typeof(Head.OnBranch));
         types.Select(type => type.FullName).ShouldNotContain("Source191.Vantage.Application.Views.RowDecision");
         types.ShouldAllBe(type => type.IsVisible);
+    }
+
+    [Fact]
+    public void HoldNoNullableMember()
+    {
+        IEnumerable<string> unexplained = ModelTypes
+            .SelectMany(type => NullableMembersOf(type).Select(member => new AllowedNullable(type, member, string.Empty)))
+            .Where(found => !Kept.Any(kept => kept.Type == found.Type && kept.Member == found.Member))
+            .Select(found => found.Name);
+
+        unexplained.ShouldBeEmpty();
     }
 
     private static IEnumerable<Type> ModelTypes => typeof(SessionName).Assembly.GetTypes()
@@ -125,6 +138,16 @@ public sealed class NullFreeModelsShould
     private static bool IsGenerated(MemberInfo member)
     {
         return member.IsDefined(typeof(CompilerGeneratedAttribute), inherit: false);
+    }
+
+    private sealed record AllowedNullable(Type Type, string Member, string Reason)
+    {
+        public string Name => $"{NameOf(Type)}.{Member}";
+
+        private static string NameOf(Type type)
+        {
+            return type.DeclaringType is { } outer ? $"{NameOf(outer)}.{type.Name}" : type.Name;
+        }
     }
 
     private interface IProbe
