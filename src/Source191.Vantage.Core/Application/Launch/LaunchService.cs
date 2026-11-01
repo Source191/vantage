@@ -19,7 +19,7 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
                 await CreateWorktreeAsync(plan, fresh.Worktree, cancellationToken);
             }
         }
-        catch (GitException failure)
+        catch (Exception failure) when (failure is GitException or IOException or UnauthorizedAccessException)
         {
             return new LaunchOutcome.Failed(failure.Message);
         }
@@ -51,8 +51,8 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
             : "HEAD";
 
         await git.AddWorktreeAsync(repository.Value, worktree.Path.Value, worktree.Branch.Value, baseRef, cancellationToken);
-        await copier.CopyAsync(repository.Value, worktree.Path.Value, cancellationToken);
         await created.RecordCreatedWorktreeAsync(new CreatedWorktree(worktree.Path, worktree.Branch, repository, clock.GetUtcNow()));
+        await copier.CopyAsync(repository.Value, worktree.Path.Value, cancellationToken);
     }
 
     /// <summary>The new session as the supervisor lists it, which is where its full session id comes from.</summary>

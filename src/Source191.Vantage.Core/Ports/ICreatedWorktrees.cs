@@ -7,6 +7,7 @@ public interface ICreatedWorktrees
 {
     Task<IReadOnlyList<CreatedWorktree>> ReadCreatedWorktreesAsync();
 
+    /// <summary>Throws <see cref="IOException"/> or <see cref="UnauthorizedAccessException"/> when the file system refuses the write.</summary>
     Task RecordCreatedWorktreeAsync(CreatedWorktree worktree);
 
     Task ForgetCreatedWorktreeAsync(FolderPath path);

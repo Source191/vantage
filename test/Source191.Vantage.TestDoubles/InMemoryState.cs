@@ -17,6 +17,7 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
     private UpdateCheckRecord updateCheck = new UpdateCheckRecord.Never();
     private VantageConfig config = VantageConfig.Missing;
     private LastRun lastRun = new LastRun.Never();
+    private Exception? nextRecordFailure;
 
     public Task<IReadOnlyList<TabRegistration>> ReadTabsAsync()
     {
@@ -57,8 +58,20 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
         return Task.FromResult<IReadOnlyList<CreatedWorktree>>([.. created]);
     }
 
+    /// <summary>Makes the next <c>RecordCreatedWorktreeAsync</c> throw the exception, as a state file the file system refuses would.</summary>
+    public void FailNextCreatedWorktreeRecord(Exception exception)
+    {
+        nextRecordFailure = exception;
+    }
+
     public Task RecordCreatedWorktreeAsync(CreatedWorktree worktree)
     {
+        if (nextRecordFailure is Exception failure)
+        {
+            nextRecordFailure = null;
+            return Task.FromException(failure);
+        }
+
         created.RemoveAll(existing => existing.Path == worktree.Path);
         created.Add(worktree);
         return Task.CompletedTask;

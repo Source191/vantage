@@ -17,6 +17,6 @@ public abstract record LaunchOutcome
     /// <summary>The folder's repository has not been trusted interactively yet.</summary>
     public sealed record WorkspaceNotTrusted : LaunchOutcome;
 
-    /// <summary>Git could not create the worktree, or the CLI could not start the session; the message says why.</summary>
+    /// <summary>Git could not create the worktree, the file system refused the include copy or the record of the worktree, or the CLI could not start the session; the message says why.</summary>
     public sealed record Failed(string Message) : LaunchOutcome;
 }
