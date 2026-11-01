@@ -69,6 +69,15 @@ public sealed class WordingOfKeysAndColumnsShould
     }
 
     [Fact]
+    public void PlaceTheSetupUnderItsHeadingInTheSettingHelp()
+    {
+        string setting = Wording.ConfigColumns.Single(column => column.Name == "SETTING").Meaning;
+
+        setting.ShouldContain("under the Setup heading");
+        setting.ShouldNotContain("grey");
+    }
+
+    [Fact]
     public void NameTheUnknownStateInTheStateHelp()
     {
         Wording.SessionsColumns.Single(column => column.Name == "STATE").Meaning.ShouldContain("? unknown (grey)");
