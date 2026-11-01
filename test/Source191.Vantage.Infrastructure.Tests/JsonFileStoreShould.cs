@@ -78,6 +78,16 @@ public sealed class JsonFileStoreShould : IDisposable
         ]
         """;
 
+    /// <summary>One file under created\ exactly as the store writes it: the object of one element of CreatedJson.</summary>
+    private const string CreatedRecordJson = """
+        {
+          "path": "C:\\Users\\me\\source\\repos\\Northwind.Orders-fix-123",
+          "branch": "fix-123",
+          "repository": "C:\\Users\\me\\source\\repos\\Northwind.Orders",
+          "createdAt": "2026-10-23T12:00:00+00:00"
+        }
+        """;
+
     /// <summary>config.json exactly as the store wrote it before a missing file read as VantageConfig.Missing: every member named.</summary>
     private const string ConfigJson = """
         {
@@ -382,7 +392,46 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task ReadFilesWrittenByTheCurrentVersion()
+    public async Task KeepCreatedWorktreesWrittenByTwoWriters()
+    {
+        JsonFileStore console = Store;
+        JsonFileStore here = new(folder, new FakeTimeProvider(Noon.AddSeconds(1)));
+        CreatedWorktree first = new(FolderPath.From(@"C:\repos\A-fix"), BranchName.From("fix"), FolderPath.From(@"C:\repos\A"), Noon);
+        CreatedWorktree second = new(FolderPath.From(@"C:\repos\B-feat"), BranchName.From("feat"), FolderPath.From(@"C:\repos\B"), Noon);
+
+        await Task.WhenAll(console.RecordCreatedWorktreeAsync(first), here.RecordCreatedWorktreeAsync(second));
+
+        (await Store.ReadCreatedWorktreesAsync()).ShouldBe([first, second], ignoreOrder: true);
+        Directory.EnumerateFiles(Path.Combine(folder, "created")).Count().ShouldBe(2);
+    }
+
+    [Fact]
+    public async Task ReplaceACreatedWorktreeRecordedUnderAnotherSpelling()
+    {
+        CreatedWorktree first = new(FolderPath.From(@"C:\repos\A-fix"), BranchName.From("fix"), FolderPath.From(@"C:\repos\A"), Noon);
+        CreatedWorktree later = new(FolderPath.From(@"c:\repos\a-fix"), BranchName.From("fix"), FolderPath.From(@"C:\repos\A"), Noon.AddHours(1));
+
+        await Store.RecordCreatedWorktreeAsync(first);
+        await Store.RecordCreatedWorktreeAsync(later);
+
+        (await Store.ReadCreatedWorktreesAsync()).ShouldBe([later]);
+    }
+
+    [Fact]
+    public async Task ForgetACreatedWorktreeWhileAnotherProcessRecordsOne()
+    {
+        CreatedWorktree forgotten = new(FolderPath.From(@"C:\repos\A-fix"), BranchName.From("fix"), FolderPath.From(@"C:\repos\A"), Noon);
+        CreatedWorktree recorded = new(FolderPath.From(@"C:\repos\B-feat"), BranchName.From("feat"), FolderPath.From(@"C:\repos\B"), Noon);
+        await Store.RecordCreatedWorktreeAsync(forgotten);
+        JsonFileStore here = new(folder, clock);
+
+        await Task.WhenAll(Store.ForgetCreatedWorktreeAsync(forgotten.Path), here.RecordCreatedWorktreeAsync(recorded));
+
+        (await Store.ReadCreatedWorktreesAsync()).ShouldBe([recorded]);
+    }
+
+    [Fact]
+    public async Task ImportTheLegacyCreatedFile()
     {
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "created.json"), CreatedJson, TestContext.Current.CancellationToken);
@@ -390,25 +439,40 @@ public sealed class JsonFileStoreShould : IDisposable
         CreatedWorktree created = (await Store.ReadCreatedWorktreesAsync()).Single();
 
         created.ShouldBe(new CreatedWorktree(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders-fix-123"), BranchName.From("fix-123"), FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), Noon));
+        File.Exists(Path.Combine(folder, "created.json")).ShouldBeFalse();
+        Directory.EnumerateFiles(Path.Combine(folder, "created")).Count().ShouldBe(1);
     }
 
     [Fact]
-    public async Task WriteFilesTheCurrentVersionCanRead()
+    public async Task ForgetAnImportedCreatedWorktreeForGood()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "created.json"), CreatedJson, TestContext.Current.CancellationToken);
+
+        await Store.ForgetCreatedWorktreeAsync(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders-fix-123"));
+
+        (await Store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
+        File.Exists(Path.Combine(folder, "created.json")).ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task WriteACreatedWorktreeFileTheCurrentVersionCanRead()
     {
         await Store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders-fix-123"), BranchName.From("fix-123"), FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), Noon));
 
-        string written = await File.ReadAllTextAsync(Path.Combine(folder, "created.json"), TestContext.Current.CancellationToken);
+        string written = await File.ReadAllTextAsync(Directory.EnumerateFiles(Path.Combine(folder, "created")).Single(), TestContext.Current.CancellationToken);
 
-        written.ReplaceLineEndings("\n").ShouldBe(CreatedJson.ReplaceLineEndings("\n"));
+        written.ReplaceLineEndings("\n").ShouldBe(CreatedRecordJson.ReplaceLineEndings("\n"));
     }
 
     [Fact]
     public async Task TreatACreatedFileHoldingARelativePathAsCorrupt()
     {
-        Directory.CreateDirectory(folder);
-        await File.WriteAllTextAsync(Path.Combine(folder, "created.json"), CreatedJson.Replace(@"C:\\Users\\me\\source\\repos\\Northwind.Orders-fix-123", @"Northwind.Orders-fix-123", StringComparison.Ordinal), TestContext.Current.CancellationToken);
+        CreatedWorktree good = new(FolderPath.From(@"C:\repos\A-fix"), BranchName.From("fix"), FolderPath.From(@"C:\repos\A"), Noon);
+        await Store.RecordCreatedWorktreeAsync(good);
+        await File.WriteAllTextAsync(Path.Combine(folder, "created", "relative.json"), CreatedRecordJson.Replace(@"C:\\Users\\me\\source\\repos\\Northwind.Orders-fix-123", @"Northwind.Orders-fix-123", StringComparison.Ordinal), TestContext.Current.CancellationToken);
 
-        (await Store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
+        (await Store.ReadCreatedWorktreesAsync()).ShouldBe([good]);
     }
 
     [Fact]
