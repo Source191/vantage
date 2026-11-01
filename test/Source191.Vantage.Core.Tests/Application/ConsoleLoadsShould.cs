@@ -72,6 +72,30 @@ public sealed class ConsoleLoadsShould : IDisposable
         claudeRuns.CapturedRequests.Count(request => request.Arguments.Contains("agents")).ShouldBe(1, "the scan runs no listing of its own");
     }
 
+    [Fact]
+    public async Task ReadTheConfigRowsWithTheSetupFacts()
+    {
+        SetupFacts nothingSetUp = new(new SetupState.At(SettingsFile), new SetupState.NotSetUp(), new SetupState.NotSetUp(), new SetupState.Disabled(), new SetupState.Never());
+
+        ViewInput read = await Loads().ReadConfigAsync(TestContext.Current.CancellationToken);
+
+        read.ShouldBeOfType<ConfigRowsLoaded>().Rows.ShouldBe(ConfigRows.For(settings.Value, nothingSetUp));
+    }
+
+    [Fact]
+    public async Task ShowTheConfigRowsAsReadingFirst()
+    {
+        ConsoleLoads loads = Loads();
+
+        IReadOnlyList<ConfigRow> before = loads.ConfigRowsWhileReading();
+        await settings.SaveAsync(settings.Value.WithUpdateCheckToggled());
+        IReadOnlyList<ConfigRow> after = loads.ConfigRowsWhileReading();
+
+        before.ShouldBe(ConfigRows.For(TestSettings.For(Root), SetupFacts.Reading));
+        after.ShouldBe(ConfigRows.For(TestSettings.For(Root).WithUpdateCheckToggled(), SetupFacts.Reading));
+        after.ShouldNotBe(before);
+    }
+
     private ConsoleLoads Loads()
     {
         GitCli git = new(gitRuns, "git");

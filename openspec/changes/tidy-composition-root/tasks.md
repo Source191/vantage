@@ -35,7 +35,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
   Red was a build failure (no type), folded into green. Deviation: the green step writes all four members, because Sonar's S1144 fails the build for a guarded field no member reads yet, so 4.2 and 4.3 are green at once; Core.Tests 1972 passed.
 - [x] 4.2 `ConsoleLoadsShould.ScanWithTheLatestListingsSessions`: after one `LoadSessionsAsync`, `ScanWorktreesAsync` answers `WorktreeRowsLoaded` with the listed session on its worktree's row, and the fake CLI saw one listing in all. Red, then green. Verify the fact passes.
   Green at once (see 4.1); the session sits in a linked worktree, since git's main worktree is not a Worktrees row; Core.Tests 1973 passed.
-- [ ] 4.3 `ConsoleLoadsShould.ReadTheConfigRowsWithTheSetupFacts` (`ReadConfigAsync` answers `ConfigRowsLoaded` equal to `ConfigRows.For(settings, facts)`) and `ShowTheConfigRowsAsReadingFirst` (`ConfigRowsWhileReading()` equals `ConfigRows.For(settings, SetupFacts.Reading)`, and follows a saved setting). Red, then green. Verify the facts pass.
+- [x] 4.3 `ConsoleLoadsShould.ReadTheConfigRowsWithTheSetupFacts` (`ReadConfigAsync` answers `ConfigRowsLoaded` equal to `ConfigRows.For(settings, facts)`) and `ShowTheConfigRowsAsReadingFirst` (`ConfigRowsWhileReading()` equals `ConfigRows.For(settings, SetupFacts.Reading)`, and follows a saved setting). Red, then green. Verify the facts pass.
+  Green at once (see 4.1); the expected setup facts are written out, not read through the reader under test; Core.Tests 1975 passed.
 
 ## 5. The wiring
 
