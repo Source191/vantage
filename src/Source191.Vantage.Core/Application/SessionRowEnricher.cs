@@ -26,18 +26,13 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         foreach (Session session in sessions)
         {
             Location location = await LocateAsync(session.WorkingDirectory, cancellationToken);
-            SessionRow row = new(
-                session,
-                location.Repository,
-                location.Branch,
-                liveTabs.ContainsKey(session.SessionId),
-                transcripts.HasMessages(session.SessionId.Value))
+            Head head = location.Branch is BranchName current ? new Head.OnBranch(current) : new Head.Unknown();
+            LiveTab tab = liveTabs.TryGetValue(session.SessionId, out TabColour? colour) ? new LiveTab.Open(colour) : new LiveTab.None();
+            SessionRow row = new(session, location.Repository, head, tab, transcripts.HasMessages(session.SessionId.Value))
             {
                 Memory = MemoryOf(session, processTable),
                 Checkout = location.Checkout,
-                TabColour = liveTabs.GetValueOrDefault(session.SessionId),
             };
-            Head head = location.Branch is BranchName current ? new Head.OnBranch(current) : new Head.Unknown();
             rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, head) });
             branches.AddRange(location is { Checkout: FolderPath checkout, Branch: BranchName branch } ? [(checkout, branch)] : []);
         }

@@ -271,7 +271,7 @@ public sealed class SessionsViewShould
     [Fact]
     public void SwitchToTheLiveTabThatShowsTheSessionOnEnter()
     {
-        SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([Waiting with { HasLiveTab = true }]));
+        SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([Waiting with { Tab = new LiveTab.Open(TabPalette.Default[0]) }]));
 
         ViewUpdate update = SessionsView.Reduce(withTab, new KeyPressed(Key.Enter));
 
@@ -282,7 +282,7 @@ public sealed class SessionsViewShould
     [Fact]
     public void DoNothingOnOBecauseEnterOpensTheTab()
     {
-        SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([Waiting with { HasLiveTab = true }]));
+        SessionsViewState withTab = Reduce(Loaded, new RowsLoaded([Waiting with { Tab = new LiveTab.Open(TabPalette.Default[0]) }]));
 
         ViewUpdate update = SessionsView.Reduce(withTab, new KeyPressed(Key.Of('o')));
 
@@ -588,7 +588,7 @@ public sealed class SessionsViewShould
     /// <summary>The session in its repository's folder, on main.</summary>
     private static SessionRow Row(Session session)
     {
-        return new SessionRow(session, session.WorkingDirectory.Name, BranchName.From("main"), HasLiveTab: false, HasTranscript: true);
+        return new SessionRow(session, session.WorkingDirectory.Name, new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
     }
 
     private static BackgroundSession Job(string name, DisplayState state, string repository, string jobId)

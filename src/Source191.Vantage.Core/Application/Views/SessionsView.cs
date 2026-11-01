@@ -3,9 +3,23 @@ using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
-/// <summary>A listed session with what git, the state store and the transcript folder add to it. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then, so every caller must say which it is.</summary>
-public sealed record SessionRow(Session Session, string Repository, BranchName? Branch, bool HasLiveTab, bool HasTranscript)
+/// <summary>
+/// A listed session with what git, the state store and the transcript folder add to it. Head is Unknown outside a
+/// repository or when git did not name a branch. Tab says whether a live Vantage tab shows the session, and in which
+/// colour. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then,
+/// so every caller must say which it is.
+/// </summary>
+public sealed record SessionRow(Session Session, string Repository, Head Head, LiveTab Tab, bool HasTranscript)
 {
+    /// <summary>The branch while the callers still read one; goes once each matches the head.</summary>
+    public BranchName? Branch => Head is Head.OnBranch on ? on.Branch : null;
+
+    /// <summary>Whether a live tab shows the session, while the callers still read it; goes once each matches the tab.</summary>
+    public bool HasLiveTab => Tab is LiveTab.Open;
+
+    /// <summary>The live tab's colour while the callers still read it; goes once each matches the tab.</summary>
+    public TabColour? TabColour => Tab is LiveTab.Open open ? open.Colour : null;
+
     /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
     public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
 
@@ -14,9 +28,6 @@ public sealed record SessionRow(Session Session, string Repository, BranchName? 
 
     /// <summary>The main checkout the session's folder belongs to; null outside a repository, which is how REPOSITORY knows to show the folder's label.</summary>
     public FolderPath? Checkout { get; init; }
-
-    /// <summary>The colour of the live Vantage tab showing the session; null when no tab does.</summary>
-    public TabColour? TabColour { get; init; }
 }
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
@@ -124,7 +135,7 @@ public sealed record SessionsViewState(
 
     private static readonly ListPolicy<SessionRow> Policy = new(
         KeyOf: row => row.Session.SessionId.Value,
-        FilterFields: row => row.Branch is BranchName branch ? [row.Session.Name, row.Repository, branch.Value] : [row.Session.Name, row.Repository],
+        FilterFields: row => [row.Session.Name, row.Repository, .. FilterText.Of(row.Head)],
         Order: ByAttention,
         KeyComparison: StringComparison.Ordinal);
 
