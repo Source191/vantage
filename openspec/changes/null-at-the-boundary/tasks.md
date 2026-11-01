@@ -51,7 +51,7 @@ Each task is one red-green-refactor cycle with a commit per step, or a refactor 
 
 ## 8. The diagnostic log setting
 
-- [ ] 8.1 `DiagnosticLogSettingShould.ReadAPathAsAFile` and `ReadNothingOrBlankAsOff`: red, then `Application\Diagnostics\DiagnosticLogSetting.cs` (`Off`, `File(string Path)`, `Read(string? variable)`) green. Verify both facts pass.
+- [x] 8.1 `DiagnosticLogSettingShould.ReadAPathAsAFile` and `ReadNothingOrBlankAsOff`: red, then `Application\Diagnostics\DiagnosticLogSetting.cs` (`Off`, `File(string Path)`, `Read(string? variable)`) green. Verify both facts pass.
 - [ ] 8.2 `SetupFactsReaderShould`'s log facts build the reader with `Off` and `File(path)` and expect `Disabled` and `At(path)`: red, then `SetupFactsReader` taking `DiagnosticLogSetting` green; `Program.cs` reads the variable once into it for both the diagnostic log and the reader. Verify `SetupFactsReaderShould` passes and `Program.cs` calls `GetEnvironmentVariable("VANTAGE_LOG")` once.
 
 ## 9. Docs, version and the whole build
