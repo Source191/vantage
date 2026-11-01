@@ -1,6 +1,5 @@
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
-using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.Diagnostics;
 
@@ -58,18 +57,10 @@ public sealed class SetupFactsReader(ITerminalFragment fragment, IClaudeSettings
 
     private async Task<SetupState> LastUpdateCheckAsync()
     {
-        UpdateCheckRecord record = await updateChecks.ReadUpdateCheckAsync();
-
-        return record is UpdateCheckRecord.Checked last ? new SetupState.Checked(last.CheckedAt, TextOf(last.Newest)) : new SetupState.Never();
-    }
-
-    private static string? TextOf(NewestRelease newest)
-    {
-        return newest switch
+        return await updateChecks.ReadUpdateCheckAsync() switch
         {
-            NewestRelease.Found found => found.Version.ToString(),
-            NewestRelease.None => null,
-            NewestRelease.Unreadable unreadable => unreadable.Text,
+            UpdateCheckRecord.Checked last => new SetupState.Checked(last.CheckedAt, last.Newest),
+            UpdateCheckRecord.Never => new SetupState.Never(),
             _ => throw new UnreachableException(),
         };
     }
