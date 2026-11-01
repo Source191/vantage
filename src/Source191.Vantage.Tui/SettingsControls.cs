@@ -106,7 +106,7 @@ internal sealed class SettingsControls
     /// Relabels the editor choices with what the dialog's look found. Setting <c>OptionSelector.Labels</c> would dispose and
     /// rebuild every option and lose the focus, so each option's own title changes instead (<c>terminal-gui.md</c>).
     /// </summary>
-    private void ShowPresets(PresetSearch search)
+    public void ShowPresets(PresetSearch search)
     {
         foreach ((CheckBox option, EditorPreset preset) in Editor.SubViews.OfType<CheckBox>().Zip(Enum.GetValues<EditorPreset>()))
         {

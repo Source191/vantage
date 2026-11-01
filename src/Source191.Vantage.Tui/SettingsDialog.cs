@@ -122,6 +122,15 @@ internal static class SettingsDialog
             binding = false;
         }
 
+        // The look's answer only relabels the choices: pushing the whole state would move focus back to a field the user has Tabbed away from.
+        void Relabel(IReadOnlySet<EditorPreset> missing)
+        {
+            state = SettingsView.Reduce(state, new SettingsInput.PresetsLocated(missing)).State;
+            binding = true;
+            controls.ShowPresets(state.Presets);
+            binding = false;
+        }
+
         // Started off the UI thread and never awaited; the answer is applied on the UI thread only while the dialog is open.
         async Task LookForPresetsAsync()
         {
@@ -135,7 +144,7 @@ internal static class SettingsDialog
             {
                 if (open)
                 {
-                    Apply(new SettingsInput.PresetsLocated(missing));
+                    Relabel(missing);
                 }
             });
         }
