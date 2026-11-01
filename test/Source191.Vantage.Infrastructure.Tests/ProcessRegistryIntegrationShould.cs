@@ -128,6 +128,17 @@ public sealed class ProcessRegistryIntegrationShould
         child.ExitCode.ShouldBe(0);
     }
 
+    [Fact]
+    public void EndATreeWhoseChildHasAlreadyGoneWithoutThrowing()
+    {
+        ProcessStartInfo start = new("cmd.exe", ["/c", "cmd /c exit 0 & ping -n 30 127.0.0.1 > nul"]) { UseShellExecute = false, CreateNoWindow = true };
+        using Process parent = Process.Start(start) ?? throw new InvalidOperationException("cmd did not start");
+
+        Should.NotThrow(() => registry.Terminate(parent.Id));
+
+        parent.WaitForExit(TimeSpan.FromSeconds(5)).ShouldBeTrue();
+    }
+
     private static Process StartSleeper()
     {
         ProcessStartInfo start = new("cmd.exe", ["/c", "ping -n 30 127.0.0.1 > nul"]) { UseShellExecute = false, CreateNoWindow = true };

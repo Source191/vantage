@@ -36,7 +36,7 @@ public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees
         }
 
         await createdWorktrees.ForgetCreatedWorktreeAsync(row.Path);
-        return (decision.Branch, BranchToDealWith(row)) switch
+        return (decision.Branch, row.Head) switch
         {
             (BranchAction.Delete, Head.OnBranch merged) => await DeleteBranchAsync(row, merged.Branch, cancellationToken),
             (BranchAction.Ask, Head.OnBranch kept) => new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository, kept.Branch), createdByVantage),
@@ -44,14 +44,6 @@ public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees
             _ => throw new UnreachableException(),
         };
     }
-
-    /// <summary>The row's head when it is on a branch; otherwise the folder name stands in when it is a branch name, as the removal rules assume.</summary>
-    private static Head BranchToDealWith(WorktreeRow row) => row.Head switch
-    {
-        Head.OnBranch => row.Head,
-        Head.Detached or Head.Unknown => BranchName.TryParse(row.FolderName, out BranchName? folderBranch) ? new Head.OnBranch(folderBranch) : row.Head,
-        _ => throw new UnreachableException(),
-    };
 
     private async Task<RemoveWorktreeOutcome> DeleteBranchAsync(WorktreeRow row, BranchName branch, CancellationToken cancellationToken)
     {
@@ -67,7 +59,15 @@ public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees
             return new RemoveWorktreeOutcome.Refused(new RemovalReason.OutsideTheRoots(row.Path));
         }
 
-        folders.DeleteTree(row.Path.Value);
+        try
+        {
+            folders.DeleteTree(row.Path.Value);
+        }
+        catch (Exception failure) when (failure is IOException or UnauthorizedAccessException)
+        {
+            return new RemoveWorktreeOutcome.InUse(row.FolderName);
+        }
+
         if (!decision.PruneRegistration || !row.OwnerExists)
         {
             return new RemoveWorktreeOutcome.DeletedFolder(row.FolderName);

@@ -7,6 +7,7 @@ public sealed class FakeFolders : IFolders
 {
     private readonly HashSet<string> directories = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, string> files = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> heldOpen = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Declares a folder and every folder above it.</summary>
     public FakeFolders WithDirectory(string path)
@@ -26,6 +27,14 @@ public sealed class FakeFolders : IFolders
         string full = Normalise(path);
         WithDirectory(Path.GetDirectoryName(full)!);
         files[full] = contents;
+
+        return this;
+    }
+
+    /// <summary>Makes <c>DeleteTree</c> of the folder throw an <see cref="IOException"/>, as a folder a program holds open does.</summary>
+    public FakeFolders HeldOpen(string path)
+    {
+        heldOpen.Add(Normalise(path));
 
         return this;
     }
@@ -75,6 +84,11 @@ public sealed class FakeFolders : IFolders
     public void DeleteTree(string path)
     {
         string full = Normalise(path);
+        if (heldOpen.Contains(full))
+        {
+            throw new IOException($"The process cannot access the file '{full}' because it is being used by another process.");
+        }
+
         string prefix = full + Path.DirectorySeparatorChar;
         directories.RemoveWhere(directory => string.Equals(directory, full, StringComparison.OrdinalIgnoreCase) || directory.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
         foreach (string file in files.Keys.Where(file => file.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToList())

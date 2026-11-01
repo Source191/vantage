@@ -206,6 +206,10 @@ public sealed partial class ProcessRegistry : IProcessRegistry
 
             action(process);
         }
+        catch (AggregateException)
+        {
+            // Process.Kill(entireProcessTree: true) throws this when a descendant has already gone or cannot be ended; what could be ended was.
+        }
         catch (ArgumentException)
         {
             // The process has gone.

@@ -28,8 +28,8 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
             return new AdoptSessionOutcome.ProcessGone(session.Name);
         }
 
-        // The tab's shell, unless claude was the tab's root process itself and ending it closes the tab already.
-        int? shell = TerminalTab.ShellOf(session.ProcessId, processes) is int root && root != session.ProcessId ? root : null;
+        // The tab's shell, found while claude is alive. When claude is the tab's root process, killing it leaves the tab open.
+        TabShell shell = TerminalTab.ShellAbove(session.ProcessId, processes);
         processes.Terminate(session.ProcessId);
         // A listed name SessionName refuses is resumed unnamed.
         ResumeResult result = SessionName.TryParse(session.Name, out SessionName? name)
@@ -41,11 +41,13 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
             return new AdoptSessionOutcome.Failed(session.Name, result.Message);
         }
 
-        if (shell is int tab)
+        if (shell is not TabShell.Above above)
         {
-            processes.EndCleanly(tab);
+            return new AdoptSessionOutcome.Moved(session.Name, TabClosed: false);
         }
 
-        return new AdoptSessionOutcome.Moved(session.Name, TabClosed: shell is not null);
+        processes.EndCleanly(above.ProcessId);
+
+        return new AdoptSessionOutcome.Moved(session.Name, TabClosed: true);
     }
 }

@@ -28,11 +28,44 @@ public sealed class RemoveWorktreeHandlerShould
     }
 
     [Fact]
-    public async Task KeepTheFolderNameAsTheBranchOfADetachedWorktree()
+    public async Task RemoveADetachedWorktreeWithoutAskingAboutAnyBranch()
     {
         RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok, head: new Head.Detached()), forced: false, CancellationToken.None);
 
-        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("Northwind.Orders-fix-123")), CreatedByVantage: false));
+        outcome.ShouldBe(new RemoveWorktreeOutcome.Removed("Northwind.Orders-fix-123"));
+        GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("branch"));
+    }
+
+    [Fact]
+    public async Task RemoveAWorktreeWhoseHeadGitDidNotName()
+    {
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok, head: new Head.Unknown()), forced: false, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.Removed("Northwind.Orders-fix-123"));
+        GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("branch"));
+    }
+
+    [Fact]
+    public async Task ReportALeftoverFolderHeldOpenAsInUse()
+    {
+        string folder = Path.Combine(Root, "Northwind.Orders-stale");
+        folders.WithDirectory(folder).HeldOpen(folder);
+
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Broken, folder, head: new Head.Unknown()), forced: false, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.InUse("Northwind.Orders-stale"));
+        GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("prune"));
+    }
+
+    [Fact]
+    public async Task StillRefuseAFolderOutsideTheRootsThatIsHeldOpen()
+    {
+        const string archive = @"D:\Northwind.Archive";
+        folders.WithDirectory(archive).HeldOpen(archive);
+
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Broken, archive, head: new Head.Unknown()), forced: false, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.Refused(new RemovalReason.OutsideTheRoots(FolderPath.From(archive))));
     }
 
     [Fact]

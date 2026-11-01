@@ -23,6 +23,12 @@ public abstract record RemovalReason
     /// <summary>A live worktree of a repository outside the roots: not a leftover, so never deleted as one.</summary>
     public sealed record RepositoryOutsideRoots : RemovalReason;
 
+    /// <summary>The worktree's repository folder no longer exists, so git cannot be asked about the worktree.</summary>
+    public sealed record RepositoryGone(FolderPath Repository) : RemovalReason;
+
+    /// <summary>Git failed while the worktree was inspected; the message is git's own, shown only to report what failed.</summary>
+    public sealed record GitFailed(string Message) : RemovalReason;
+
     /// <summary>A leftover folder that is not under a repository root or the worktree root: never deleted, not even when forced.</summary>
     public sealed record OutsideTheRoots(FolderPath Folder) : RemovalReason;
 }

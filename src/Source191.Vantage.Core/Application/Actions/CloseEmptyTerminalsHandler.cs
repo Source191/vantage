@@ -2,6 +2,7 @@ using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Actions;
 
@@ -33,18 +34,25 @@ public sealed class CloseEmptyTerminalsHandler(IProcessRegistry processes, ITran
                 continue;
             }
 
-            int? shell = TerminalTab.ShellOf(session.ProcessId, processes);
-            processes.Terminate(session.ProcessId);
-            if (shell is null)
+            switch (TerminalTab.ShellAbove(session.ProcessId, processes))
             {
-                ended.Add(session.Name);
-                continue;
+                case TabShell.Above above:
+                    processes.Terminate(session.ProcessId);
+                    processes.EndCleanly(above.ProcessId);
+                    closed.Add(session.Name);
+                    break;
+                case TabShell.TheProcess:
+                    processes.EndCleanly(session.ProcessId);
+                    closed.Add(session.Name);
+                    break;
+                case TabShell.None:
+                    processes.Terminate(session.ProcessId);
+                    ended.Add(session.Name);
+                    break;
+                default:
+                    throw new UnreachableException();
             }
-
-            processes.EndCleanly(shell.Value);
-            closed.Add(session.Name);
         }
-
         return Task.FromResult<Outcome>(new CloseEmptyTerminalsOutcome(closed, ended, skipped, gone));
     }
 }

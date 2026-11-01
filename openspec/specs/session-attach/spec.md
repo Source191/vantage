@@ -97,7 +97,7 @@ Stop and delete SHALL act on the session's ID taken from the listing, never on i
 - **THEN** the session is stopped, the tab closes, and the status line says both
 
 ### Requirement: Delete offers to remove the session's worktree
-Deleting a session SHALL first end its Vantage-opened tab and wait for the tab's shell to exit. When the session's working directory is a worktree Vantage created, delete SHALL then offer to remove that worktree under the worktree-management safety rules.
+Deleting a session SHALL first end its Vantage-opened tab and wait for the tab's shell to exit. When the session's working directory is a worktree Vantage created, delete SHALL then offer to remove that worktree under the worktree-management safety rules. When that worktree's repository no longer exists, or git cannot inspect the worktree, the session SHALL still be deleted, the worktree SHALL be kept untouched and the status line SHALL say why, in Vantage's words.
 
 #### Scenario: Clean worktree
 - **WHEN** the user deletes a session in a Vantage-created worktree that has no changes and no unpushed commits
@@ -118,6 +118,14 @@ Deleting a session SHALL first end its Vantage-opened tab and wait for the tab's
 #### Scenario: Folder still in use
 - **WHEN** the user deletes a session while a PowerShell tab opened from the worktrees view sits in its worktree
 - **THEN** the session is deleted, the status line says the worktree folder is still in use by a tab or program and names it, and pressing remove on it in the worktrees view after closing that tab deletes what is left
+
+#### Scenario: The worktree's repository has gone
+- **WHEN** the user deletes a session in the Vantage-created worktree C:\Users\me\source\worktrees\Northwind.Orders-fix-123 and its repository C:\Users\me\source\repos\Northwind.Orders has been deleted since the worktree was created
+- **THEN** the session is deleted, git is not asked anything, the folder and its files are kept, and the status line says the worktree was kept because its repository C:\Users\me\source\repos\Northwind.Orders no longer exists and that the Worktrees tab removes it
+
+#### Scenario: Git fails while the worktree is inspected
+- **WHEN** the user deletes a session in a Vantage-created worktree and git fails while listing the repository's worktrees
+- **THEN** the session is deleted, nothing is removed or deleted, and the status line says the worktree was kept because git could not inspect it, giving git's reason, with no "Failed:" line
 
 ### Requirement: Rename without attaching
 The rename key SHALL ask for a new name in a dialog and then, because the CLI has no rename verb and resuming a listed background job with new flags starts a copy, SHALL remove the job and resume it by session ID under the new name, which keeps the session ID and its conversation.
@@ -158,7 +166,7 @@ The adopt key on an interactive session that is idle or waiting and has at least
 - **THEN** nothing is ended or resumed, and the status line says the session's process is no longer its own and to refresh
 
 ### Requirement: Empty terminal sessions can be closed
-For an interactive session that has never been sent a message, the delete key SHALL end its claude process and then end the Windows Terminal tab's shell with exit code 0 so the tab closes; the close-empty key SHALL do the same for every such session after a confirmation naming them; a session not inside a Windows Terminal tab is only ended.
+For an interactive session that has never been sent a message, the delete key SHALL end its claude process and then end the Windows Terminal tab's shell with exit code 0 so the tab closes; the close-empty key SHALL do the same for every such session after a confirmation naming them; a session not inside a Windows Terminal tab is only ended. When claude is itself the tab's root process, it SHALL be ended with exit code 0 so the tab closes, and SHALL be counted among the tabs closed.
 
 #### Scenario: Close every empty tab
 - **WHEN** two interactive sessions have never been sent a message and the user presses the close-empty key and confirms
@@ -171,6 +179,10 @@ For an interactive session that has never been sent a message, the delete key SH
 #### Scenario: A tab whose process id was reused
 - **WHEN** the user confirms close-empty while one of the named sessions' process ids now belongs to a process that started after that session did
 - **THEN** that process and its tab are left alone, the other sessions are closed, and the status line names the one left alone
+
+#### Scenario: Claude is the tab's root process
+- **WHEN** the user confirms close-empty on an interactive session with no messages whose claude process was started directly by Windows Terminal, as a profile's command line
+- **THEN** that claude is ended with exit code 0 and nothing else is ended, its tab closes, and the status line counts it among the tabs closed
 
 ### Requirement: Sessions with nothing to resume are refused
 Open-in-tab, rename and resume SHALL be refused for a session that has no process and no transcript, because Claude writes a session's transcript only on its first message, and the status line SHALL say that delete removes it.

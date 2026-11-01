@@ -554,6 +554,20 @@ public sealed class WordingShould
         Wording.Describe(new RemovalReason.OutsideTheRoots(FolderPath.From(@"D:\Northwind.Archive"))).ShouldBe(@"D:\Northwind.Archive is outside the repository roots and the worktree root, so it is not deleted");
     }
 
+    [Fact]
+    public void SayARepositoryThatHasGoneCanBeRemovedFromTheWorktreesTab()
+    {
+        Wording.Describe(new RemovalReason.RepositoryGone(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders")))
+            .ShouldBe(@"its repository C:\Users\me\source\repos\Northwind.Orders no longer exists; remove it from the Worktrees tab");
+    }
+
+    [Fact]
+    public void SayGitCouldNotInspectTheWorktree()
+    {
+        Wording.Describe(new RemovalReason.GitFailed("fatal: not a git repository"))
+            .ShouldBe("git could not inspect it: fatal: not a git repository; check it on the Worktrees tab");
+    }
+
     public static TheoryData<Type> HealthReasons => [.. typeof(HealthReason).GetNestedTypes().Where(type => type.IsAssignableTo(typeof(HealthReason)))];
 
     [Theory]

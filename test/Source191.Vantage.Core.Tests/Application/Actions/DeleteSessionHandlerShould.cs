@@ -16,7 +16,7 @@ public sealed class DeleteSessionHandlerShould
     private readonly FakeProcessRunner processes = Processes();
     private readonly InMemoryState store = new();
     private readonly FakeProcessRegistry registry = new();
-    private readonly FakeFolders folders = new FakeFolders().WithDirectory(Worktree);
+    private readonly FakeFolders folders = new FakeFolders().WithDirectory(Repository).WithDirectory(Worktree);
 
     private DeleteSessionHandler Handler => new(new ClaudeCli(processes, Claude), new GitCli(processes, "git"), store, new SessionTabs(store, registry, new FakeTimeProvider(Noon)), folders, TestSettings.Current(@"C:\repos"));
 
@@ -41,6 +41,36 @@ public sealed class DeleteSessionHandlerShould
         processes.CapturedRequests.Single(request => request.Arguments.Contains("branch")).Arguments.ShouldBe(["branch", "-d", "fix-123"]);
         (await store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();
         outcome.ShouldBe(new DeleteSessionOutcome.RemovedWorktreeAndBranch("fix-123", BranchName.From("fix-123")));
+    }
+
+    [Fact]
+    public async Task KeepTheWorktreeWhenItsRepositoryHasGone()
+    {
+        FakeFolders worktreeOnly = new FakeFolders().WithDirectory(Worktree);
+        DeleteSessionHandler handler = new(new ClaudeCli(processes, Claude), new GitCli(processes, "git"), store, new SessionTabs(store, registry, new FakeTimeProvider(Noon)), worktreeOnly, TestSettings.Current(@"C:\repos"));
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Noon));
+
+        DeleteSessionOutcome outcome = await handler.DeleteAsync(Job(Worktree), forced: false, CancellationToken.None);
+
+        outcome.ShouldBe(new DeleteSessionOutcome.KeptWorktree("fix-123", new RemovalReason.RepositoryGone(FolderPath.From(Repository))));
+        processes.CapturedRequests.Single(request => request.FileName == Claude).Arguments.ShouldBe(["rm", "81cdb0f9"]);
+        processes.CapturedRequests.ShouldNotContain(request => request.FileName == "git");
+        worktreeOnly.DirectoryExists(Worktree).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task KeepTheWorktreeWhenGitFailsToInspectIt()
+    {
+        await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Noon));
+        processes.Answer(request => request.Arguments.Contains("--porcelain") && request.Arguments.Contains("list"), new ProcessResult(128, string.Empty, "fatal: not a git repository"));
+
+        DeleteSessionOutcome outcome = await Handler.DeleteAsync(Job(Worktree), forced: false, CancellationToken.None);
+
+        RemovalReason.GitFailed reason = outcome.ShouldBeOfType<DeleteSessionOutcome.KeptWorktree>().Reason.ShouldBeOfType<RemovalReason.GitFailed>();
+        reason.Message.ShouldContain("not a git repository");
+        processes.CapturedRequests.Single(request => request.FileName == Claude).Arguments.ShouldBe(["rm", "81cdb0f9"]);
+        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("remove") || request.Arguments.Contains("prune"));
+        folders.DirectoryExists(Worktree).ShouldBeTrue();
     }
 
     [Fact]

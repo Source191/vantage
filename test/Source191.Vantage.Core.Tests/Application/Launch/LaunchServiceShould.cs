@@ -34,6 +34,11 @@ public sealed class LaunchServiceShould
         }
     }
 
+    private LaunchService ServiceWith(FakeWorktreeIncludeCopier copier)
+    {
+        return new LaunchService(new ClaudeCli(processes, Claude), new GitCli(processes, "git"), Store, Store, copier, new FakeTimeProvider(Noon));
+    }
+
     private static readonly PlannedWorktree FlakyTests = new(FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"), BranchName.From("fix-flaky-tests"));
 
     private static LaunchPlan CurrentBranch => new(
@@ -55,6 +60,41 @@ public sealed class LaunchServiceShould
         ProcessRequest start = processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg"));
         start.WorkingDirectory.ShouldBe(new WorkingFolder.At(@"C:\repos\Northwind.Orders"));
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
+    }
+
+    [Fact]
+    public async Task RecordTheWorktreeBeforeCopyingIncludes()
+    {
+        int recordedWhenCopying = -1;
+        FakeWorktreeIncludeCopier copier = new FakeWorktreeIncludeCopier().WhenCopying(() => recordedWhenCopying = Store.ReadCreatedWorktreesAsync().Result.Count);
+
+        await ServiceWith(copier).LaunchAsync(NewWorktree, CancellationToken.None);
+
+        copier.Calls.ShouldHaveSingleItem();
+        recordedWhenCopying.ShouldBe(1);
+    }
+
+    [Fact]
+    public async Task ReportAFailedIncludeCopyAndKeepTheWorktreeRecorded()
+    {
+        FakeWorktreeIncludeCopier copier = new FakeWorktreeIncludeCopier().Throwing(new IOException("The process cannot access the file"));
+
+        LaunchOutcome outcome = await ServiceWith(copier).LaunchAsync(NewWorktree, CancellationToken.None);
+
+        outcome.ShouldBeOfType<LaunchOutcome.Failed>().Message.ShouldContain("The process cannot access the file");
+        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("--bg"));
+        (await Store.ReadCreatedWorktreesAsync()).Single().Path.ShouldBe(FlakyTests.Path);
+    }
+
+    [Fact]
+    public async Task ReportAFailedRecordAsAFailure()
+    {
+        Store.FailNextCreatedWorktreeRecord(new UnauthorizedAccessException("Access to the path is denied"));
+
+        LaunchOutcome outcome = await ServiceWith(new FakeWorktreeIncludeCopier()).LaunchAsync(NewWorktree, CancellationToken.None);
+
+        outcome.ShouldBeOfType<LaunchOutcome.Failed>().Message.ShouldContain("Access to the path is denied");
+        processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("--bg"));
     }
 
     [Fact]
