@@ -13,7 +13,7 @@ public sealed class ClaudeCodeSupportShould
     [Fact]
     public void AnswerBelowMinimumForAnOlderVersion()
     {
-        ClaudeCodeSupport.Check("2.1.302").ShouldBe(new ClaudeCodeVersion.BelowMinimum(new ReleaseVersion(2, 1, 302, null), new ReleaseVersion(2, 1, 309, null)));
+        ClaudeCodeSupport.Check("2.1.302").ShouldBe(new ClaudeCodeVersion.BelowMinimum(new ReleaseVersion(2, 1, 302, ""), new ReleaseVersion(2, 1, 309, "")));
     }
 
     [Theory]
