@@ -40,52 +40,52 @@ public sealed class ClaudeCliShould
     {
         processes.AnswerAll(new ProcessResult(0, "2.1.310 (Claude Code)\n", string.Empty));
 
-        string? version = await Cli.VersionAsync(CancellationToken.None);
+        ClaudeVersionReport version = await Cli.VersionAsync(CancellationToken.None);
 
-        version.ShouldBe("2.1.310");
+        version.ShouldBe(new ClaudeVersionReport.Printed("2.1.310"));
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe(Executable),
             request => request.Arguments.ShouldBe(["--version"]));
     }
 
     [Fact]
-    public async Task AnswerNullWhenVersionFails()
+    public async Task AnswerNotReadWhenVersionFails()
     {
         processes.AnswerAll(new ProcessResult(1, string.Empty, "boom"));
 
-        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBe(new ClaudeVersionReport.NotRead());
     }
 
     [Fact]
-    public async Task AnswerNullWhenNoVersionIsPrinted()
+    public async Task AnswerNotReadWhenNoVersionIsPrinted()
     {
         processes.AnswerAll(new ProcessResult(0, "Claude Code\n", string.Empty));
 
-        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBe(new ClaudeVersionReport.NotRead());
     }
 
     [Fact]
-    public async Task AnswerNullWhenTheProgramCannotBeStarted()
+    public async Task AnswerNotReadWhenTheProgramCannotBeStarted()
     {
         processes.Fail(new System.ComponentModel.Win32Exception("The system cannot find the file specified"));
 
-        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBe(new ClaudeVersionReport.NotRead());
     }
 
     [Fact]
-    public async Task AnswerNullWhenTheRunIsCancelled()
+    public async Task AnswerNotReadWhenTheRunIsCancelled()
     {
         processes.Fail(new OperationCanceledException());
 
-        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBe(new ClaudeVersionReport.NotRead());
     }
 
     [Fact]
-    public async Task AnswerNullWhenTheRunFailsToReadItsOutput()
+    public async Task AnswerNotReadWhenTheRunFailsToReadItsOutput()
     {
         processes.Fail(new IOException("The pipe has been ended"));
 
-        (await Cli.VersionAsync(CancellationToken.None)).ShouldBeNull();
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBe(new ClaudeVersionReport.NotRead());
     }
 
     [Fact]
