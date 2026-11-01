@@ -107,7 +107,7 @@ public sealed record ListSelection<TRow>(
             : selected;
     }
 
-    private ListSelection<TRow> Reselect() => Selected is not null ? this : Load(Rows);
+    private ListSelection<TRow> Reselect() => Selected is not null ? this : Load(Rows) with { Loaded = Loaded };
 
     private int IndexOfSelected() => Math.Max(Visible.ToList().FindIndex(IsSelected), 0);
 

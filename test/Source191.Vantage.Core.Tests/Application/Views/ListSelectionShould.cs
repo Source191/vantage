@@ -71,6 +71,17 @@ public sealed class ListSelectionShould
     }
 
     [Fact]
+    public void KeepUnloadedWhenAFilterIsEditedBeforeTheFirstLoad()
+    {
+        ListSelection<string> typing = Alphabetical.EmptyList().StartFilter();
+
+        typing.EditFilter(Key.Of('a')).Loaded.ShouldBeFalse();
+        typing.EditFilter(Key.Backspace).Loaded.ShouldBeFalse();
+        typing.ClearFilter().Loaded.ShouldBeFalse();
+        Loaded.StartFilter().EditFilter(Key.Of('p')).Loaded.ShouldBeTrue();
+    }
+
+    [Fact]
     public void MoveWithinBounds()
     {
         Loaded.Move(-1).Selected.ShouldBe("apple");

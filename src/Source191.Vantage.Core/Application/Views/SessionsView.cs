@@ -29,7 +29,7 @@ public static class SessionsView
             // Moving on or filtering clears the last message, so the status line goes until there is something new to say.
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
-            { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
+            { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Enter } => Open(state),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),

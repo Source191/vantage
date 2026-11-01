@@ -204,6 +204,11 @@ public sealed class ConfigViewShould
 
         Press(advised, Key.Of('/')).Message.ShouldBe(StatusMessage.None);
         Press(Press(advised, Key.Of('/')) with { Message = new StatusMessage.Kept() }, Key.Of('w')).Message.ShouldBe(StatusMessage.None);
+
+        ConfigViewState filtered = Press(advised, Key.Of('/'), Key.Of('w'), Key.Enter) with { Message = new StatusMessage.Kept() };
+        ConfigViewState cleared = Press(filtered, Key.Escape);
+        cleared.Filter.Text.ShouldBeEmpty();
+        cleared.Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]
