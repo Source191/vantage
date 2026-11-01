@@ -4,8 +4,8 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 1. The palette's order
 
-- [ ] 1.1 `TabPaletteShould.OrderTheColoursSoTheFirstSixStayApartForRedGreenColourBlindness`: the names in order are Red, Blue, Green, Teal, Pink, Brown, Purple, Orange, Lime, Grey, Yellow, with each hex value as today. Red, then `Domain\TabPalette.Default` reordered and its summary reworded (design decision 1) green. Verify the fact passes.
-- [ ] 1.2 Fix the facts that named a colour by index: `OwnTabShould`'s `Green` becomes the palette's colour named Green, and the `OpenTabHandlerShould`, `RenameSessionHandlerShould`, `SessionTabsShould` and `TabColourSelectionShould` facts that assume a colour at an index are checked against the new order. Add `TabColourSelectionShould.GiveFiveSessionTabsBesideVantagesGreenFiveDistinctColours` for the session-attach scenario (red, blue, teal, pink, brown). Verify the whole Core suite passes.
+- [x] 1.1 `TabPaletteShould.OrderTheColoursSoTheFirstSixStayApartForRedGreenColourBlindness`: the names in order are Red, Blue, Green, Teal, Pink, Brown, Purple, Orange, Lime, Grey, Yellow, with each hex value as today. Red, then `Domain\TabPalette.Default` reordered and its summary reworded (design decision 1) green. Verify the fact passes.
+- [x] 1.2 Fix the facts that named a colour by index: `OwnTabShould`'s `Green` becomes the palette's colour named Green, and the `OpenTabHandlerShould`, `RenameSessionHandlerShould`, `SessionTabsShould` and `TabColourSelectionShould` facts that assume a colour at an index are checked against the new order. Add `TabColourSelectionShould.GiveFiveSessionTabsBesideVantagesGreenFiveDistinctColours` for the session-attach scenario (red, blue, teal, pink, brown). Verify the whole Core suite passes.
 
 ## 2. Rows the selection steps over
 

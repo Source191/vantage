@@ -62,4 +62,20 @@ public sealed class TabColourSelectionShould
         choice.Colour.Name.ShouldBe("Red");
         choice.Reused.ShouldBeFalse();
     }
+
+    [Fact]
+    public void GiveFiveSessionTabsBesideVantagesGreenFiveDistinctColours()
+    {
+        List<TabColour> inUse = [TabPalette.Default.Single(colour => colour.Name == "Green")];
+        List<string> given = [];
+
+        for (int tab = 0; tab < 5; tab++)
+        {
+            ColourChoice choice = selection.Choose(inUse);
+            inUse.Add(choice.Colour);
+            given.Add(choice.Colour.Name);
+        }
+
+        given.ShouldBe(["Red", "Blue", "Teal", "Pink", "Brown"]);
+    }
 }
