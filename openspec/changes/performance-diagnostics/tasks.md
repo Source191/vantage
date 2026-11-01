@@ -35,8 +35,9 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 4. Counts are written while Vantage runs
 
-- [ ] 4.1 `PeriodicCountsShould.WriteTheCountsEveryTenMinutes`: with a `RecordingSink` and a `FakeTimeProvider` advanced 25 minutes, the sink holds two sets of count lines stamped at 10 and 20 minutes, and `DiagnosticLog.Snapshot` holds no count line. Red, then `PeriodicCounts` on `TimeProvider.CreateTimer` green. Verify the fact passes.
-- [ ] 4.2 `PeriodicCountsShould.StopWritingOnceDisposed`: advancing past 10 minutes after `Dispose` writes nothing. Verify the fact passes.
+- [x] 4.1 `PeriodicCountsShould.WriteTheCountsEveryTenMinutes`: with a `RecordingSink` and a `FakeTimeProvider` advanced 25 minutes, the sink holds two sets of count lines stamped at 10 and 20 minutes, and `DiagnosticLog.Snapshot` holds no count line. Red, then `PeriodicCounts` on `TimeProvider.CreateTimer` green. Verify the fact passes.
+  Done: red folded into green (a new type); the clock is advanced a minute at a time so each write is stamped at its own due time.
+- [x] 4.2 `PeriodicCountsShould.StopWritingOnceDisposed`: advancing past 10 minutes after `Dispose` writes nothing. Verify the fact passes.
 - [ ] 4.3 `Program.cs` starts `PeriodicCounts` only when `DiagnosticLogSetting` is `File` and disposes it before the exit write. Verify with `tools\install-local.ps1`, then a console run with `VANTAGE_LOG` set for 11 minutes shows a stamped set of count lines in the file before quitting.
 - [ ] 4.4 README "What Vantage records" and the troubleshooting entry for `VANTAGE_LOG`: the counts are written every 10 minutes as well as at exit. Verify by reading against the spec delta.
 
