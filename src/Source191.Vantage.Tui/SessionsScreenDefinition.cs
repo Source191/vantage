@@ -52,7 +52,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         return (column, row) switch
         {
             (TabColumn, { Session: InteractiveSession }) => new CellPaint(Palette.Grey),
-            (TabColumn, { HasLiveTab: true, TabColour: TabColour colour }) when Color.TryParse(TabShade.Unselected(colour), out Color? parsed) => new CellPaint(parsed.Value, Always: true),
+            (TabColumn, { Tab: LiveTab.Open { Colour: TabColour colour } }) when Color.TryParse(TabShade.Unselected(colour), out Color? parsed) => new CellPaint(parsed.Value, Always: true),
             _ => null,
         };
     }
@@ -85,8 +85,8 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     /// <summary>The repository alone, its middle elided when too long; outside a repository the folder's label, cut at its end. The place and branch are the pane's.</summary>
     private WhereLabel Repository(SessionRow row) => row.Checkout is null
-        ? new WhereLabel(null, folders.For(row.Session.WorkingDirectory), null)
-        : new WhereLabel(row.Repository, string.Empty, null);
+        ? new WhereLabel.Outside(folders.For(row.Session.WorkingDirectory))
+        : new WhereLabel.Inside(row.Repository, string.Empty);
 
     /// <summary>A filled cell while a Vantage tab shows the session, a hollow block for a session started outside Vantage in its own tab, nothing otherwise.</summary>
     private static string Swatch(SessionRow row)
@@ -94,7 +94,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         return row switch
         {
             { Session: InteractiveSession } => Wording.TerminalSwatch,
-            { HasLiveTab: true } => TabBlock,
+            { Tab: LiveTab.Open } => TabBlock,
             _ => string.Empty,
         };
     }

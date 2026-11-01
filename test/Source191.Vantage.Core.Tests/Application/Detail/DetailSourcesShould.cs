@@ -23,7 +23,7 @@ public sealed class DetailSourcesShould
     {
         SessionDetails source = new(Loader(), clock);
         BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon.AddMinutes(-5), DisplayState.Stopped, ProcessId: null);
-        SessionRow row = new(session, "Northwind.Billing", BranchName.From("invoice-pdf"), HasLiveTab: false, HasTranscript: true);
+        SessionRow row = new(session, "Northwind.Billing", new Head.OnBranch(BranchName.From("invoice-pdf")), new LiveTab.None(), HasTranscript: true);
 
         DetailContent content = await source.ReadAsync(row, CancellationToken.None);
 
@@ -37,7 +37,7 @@ public sealed class DetailSourcesShould
     public async Task WordAWorktreesDetailKeyedByItsFolderWithRoomForItsListing()
     {
         WorktreeDetails source = new(Loader(), clock);
-        WorktreeRow row = new(Repository, Worktree, BranchName.From("invoice-pdf"), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 12, Noon, SessionId: null, SessionName: null, LeftoverFileCount: 0, OwnerExists: false, FolderExists: true);
+        WorktreeRow row = new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), 0, 12, Noon, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: false, FolderExists: true);
 
         DetailContent content = await source.ReadAsync(row, CancellationToken.None);
 

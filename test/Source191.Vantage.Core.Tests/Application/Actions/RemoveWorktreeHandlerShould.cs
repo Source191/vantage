@@ -28,6 +28,14 @@ public sealed class RemoveWorktreeHandlerShould
     }
 
     [Fact]
+    public async Task KeepTheFolderNameAsTheBranchOfADetachedWorktree()
+    {
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok, head: new Head.Detached()), forced: false, CancellationToken.None);
+
+        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("Northwind.Orders-fix-123")), CreatedByVantage: false));
+    }
+
+    [Fact]
     public async Task ReportAWorktreeStillInUse()
     {
         processes.Answer(request => request.Arguments.Contains("remove"), new ProcessResult(255, string.Empty, "error: failed to delete 'C:/repos/Northwind.Orders-fix-123': Permission denied\n"));
@@ -105,7 +113,7 @@ public sealed class RemoveWorktreeHandlerShould
         folders.WithFile(Path.Combine(folder, "pack.idx"));
         processes.AnswerInTurn(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/a\nHEAD a\nbranch refs/heads/main\n\nworktree C:/b\nHEAD b\nbranch refs/heads/x\n", string.Empty), new ProcessResult(0, "worktree C:/a\nHEAD a\nbranch refs/heads/main\n", string.Empty));
 
-        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Broken, folder, branch: null), forced: false, CancellationToken.None);
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Broken, folder, head: new Head.Unknown()), forced: false, CancellationToken.None);
 
         folders.DirectoryExists(folder).ShouldBeFalse();
         GitCalls(processes).ShouldContain(request => request.Arguments.Contains("prune"));
@@ -118,7 +126,7 @@ public sealed class RemoveWorktreeHandlerShould
         string folder = Path.Combine(Root, "fix-service-tests");
         folders.WithDirectory(folder);
 
-        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Orphan, folder, branch: null), forced: false, CancellationToken.None);
+        RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Orphan, folder, head: new Head.Unknown()), forced: false, CancellationToken.None);
 
         folders.DirectoryExists(folder).ShouldBeFalse();
         GitCalls(processes).ShouldBeEmpty();

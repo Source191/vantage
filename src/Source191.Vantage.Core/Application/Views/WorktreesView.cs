@@ -44,7 +44,7 @@ public sealed record WorktreesViewState(
 
     private static readonly ListPolicy<WorktreeRow> Policy = new(
         KeyOf: row => row.Path.Key,
-        FilterFields: row => [row.RepositoryName, row.FolderName, row.Branch?.Value, row.Health.Kind.ToString()],
+        FilterFields: row => [row.RepositoryName, row.FolderName, .. FilterText.Of(row.Head), row.Health.Kind.ToString()],
         Order: rows => rows.OrderBy(row => row.Repository.Key, StringComparer.Ordinal).ThenBy(row => row.FolderName, StringComparer.OrdinalIgnoreCase),
         KeyComparison: StringComparison.Ordinal);
 
@@ -190,9 +190,9 @@ public static class WorktreesView
 
     private static RowDecision JumpToSession(WorktreeRow row)
     {
-        return row.SessionId is null
-            ? new RowDecision.Explain(new StatusMessage.NoSessionIn(row.FolderName))
-            : new RowDecision.Act(new JumpToSession(row.SessionId));
+        return row.Session is WorktreeSession.Running running
+            ? new RowDecision.Act(new JumpToSession(running.Id))
+            : new RowDecision.Explain(new StatusMessage.NoSessionIn(row.FolderName));
     }
 
     private static WorktreesViewUpdate Unchanged(WorktreesViewState state) => new(state, []);

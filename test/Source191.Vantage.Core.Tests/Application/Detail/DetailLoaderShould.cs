@@ -109,7 +109,7 @@ public sealed class DetailLoaderShould
     [Fact]
     public async Task MarkTheGitLinesOfALeftoverUnavailable()
     {
-        WorktreeRow leftover = WorktreeRowOf(unpushed: 0, dirty: 0) with { FolderExists = false, OwnerExists = false, Branch = null };
+        WorktreeRow leftover = WorktreeRowOf(unpushed: 0, dirty: 0) with { FolderExists = false, OwnerExists = false, Head = new Head.Unknown() };
 
         WorktreeDetail detail = await Loader().WorktreeAsync(leftover, listRows: 4, CancellationToken.None);
 
@@ -118,15 +118,25 @@ public sealed class DetailLoaderShould
         detail.ChangedFiles.ShouldBeOfType<DetailFact<IReadOnlyList<string>>.Unavailable>();
     }
 
+    [Fact]
+    public async Task AskForNoMergeStateOfAWorktreeOnADetachedHead()
+    {
+        WorktreeRow detached = WorktreeRowOf(unpushed: 0, dirty: 0) with { Head = new Head.Detached() };
+
+        WorktreeDetail detail = await Loader().WorktreeAsync(detached, listRows: 4, CancellationToken.None);
+
+        detail.Merge.ShouldBeOfType<DetailFact<MergeState>.NotApplicable>();
+    }
+
     private static SessionRow Row(int? processId)
     {
         BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon, DisplayState.Working, processId);
 
-        return new SessionRow(session, "Northwind.Billing", BranchName.From("invoice-pdf"), HasLiveTab: false, HasTranscript: true) { Checkout = Repository };
+        return new SessionRow(session, "Northwind.Billing", new Head.OnBranch(BranchName.From("invoice-pdf")), new LiveTab.None(), HasTranscript: true) { Checkout = Repository };
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
-        new(Repository, Worktree, BranchName.From("invoice-pdf"), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Noon, SessionId: null, SessionName: null, LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+        new(Repository, Worktree, new Head.OnBranch(BranchName.From("invoice-pdf")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Noon, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
 
     /// <summary>Records compare lists by reference, so a known list is compared by its items.</summary>
     private sealed class ListOfStringsComparer : IEqualityComparer<DetailFact<IReadOnlyList<string>>>

@@ -166,7 +166,7 @@ public sealed class SessionRowEnricherShould : IDisposable
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         row.Repository.ShouldBe("Northwind.Orders");
-        row.Branch.ShouldBe(BranchName.From("feature/x"));
+        row.Head.ShouldBe(new Head.OnBranch(BranchName.From("feature/x")));
     }
 
     [Fact]
@@ -178,7 +178,20 @@ public sealed class SessionRowEnricherShould : IDisposable
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         row.Repository.ShouldBe("Northwind.Orders");
-        row.Branch.ShouldBe(BranchName.From("fix"));
+        row.Head.ShouldBe(new Head.OnBranch(BranchName.From("fix")));
+    }
+
+    [Fact]
+    public async Task KnowNoBranchOfASessionWhoseRepositoryNamesNone()
+    {
+        AnswerGit(@"C:\repos\Northwind.Orders-spike", root: "C:/repos/Northwind.Orders-spike", commonDir: "C:/repos/Northwind.Orders/.git", branch: string.Empty);
+        Session session = Session(@"C:\repos\Northwind.Orders-spike");
+
+        SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
+
+        row.Repository.ShouldBe("Northwind.Orders");
+        row.Head.ShouldBe(new Head.Unknown());
+        row.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
     }
 
     [Fact]
@@ -189,7 +202,7 @@ public sealed class SessionRowEnricherShould : IDisposable
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
         row.Repository.ShouldBe("repos");
-        row.Branch.ShouldBeNull();
+        row.Head.ShouldBe(new Head.Unknown());
         row.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
     }
 
@@ -205,7 +218,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
-        row.HasLiveTab.ShouldBeTrue();
+        row.Tab.ShouldBe(new LiveTab.Open(TabPalette.Default[0]));
         (await store.ReadTabsAsync()).Count.ShouldBe(1, "the stale registration is removed on read");
     }
 
@@ -218,7 +231,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
-        row.HasLiveTab.ShouldBeFalse();
+        row.Tab.ShouldBe(new LiveTab.None());
         (await store.ReadTabsAsync()).ShouldHaveSingleItem("Vantage's own live tab is kept");
     }
 
@@ -251,7 +264,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         IReadOnlyList<SessionRow>[] results = await Task.WhenAll(Enumerable.Range(0, 8).Select(_ => enricher.EnrichAsync(sessions, CancellationToken.None)));
 
-        results.ShouldAllBe(rows => rows.Count == 20 && rows.All(row => row.Repository == "Northwind.Orders" && row.Branch == BranchName.From("main")));
+        results.ShouldAllBe(rows => rows.Count == 20 && rows.All(row => row.Repository == "Northwind.Orders" && row.Head == new Head.OnBranch(BranchName.From("main"))));
     }
 
     [Fact]
@@ -266,9 +279,9 @@ public sealed class SessionRowEnricherShould : IDisposable
         IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([inWorktree, outside], CancellationToken.None);
 
         rows[0].Checkout.ShouldBe(FolderPath.From(@"C:\repos\Northwind.Orders"));
-        rows[0].TabColour.ShouldBe(TabPalette.Default[2]);
+        rows[0].Tab.ShouldBe(new LiveTab.Open(TabPalette.Default[2]));
         rows[1].Checkout.ShouldBeNull();
-        rows[1].TabColour.ShouldBeNull();
+        rows[1].Tab.ShouldBe(new LiveTab.None());
     }
 
     private void AnswerGit(string directory, string root, string commonDir, string branch)

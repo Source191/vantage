@@ -5,7 +5,7 @@ namespace Source191.Vantage.Application.Views;
 /// <summary>How one view identifies, filters and orders its rows; a static per view, held by the selection it governs.</summary>
 public sealed record ListPolicy<TRow>(
     Func<TRow, string> KeyOf,
-    Func<TRow, IReadOnlyList<string?>> FilterFields,
+    Func<TRow, IReadOnlyList<string>> FilterFields,
     Func<IEnumerable<TRow>, IEnumerable<TRow>> Order,
     StringComparison KeyComparison)
 {

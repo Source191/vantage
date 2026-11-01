@@ -56,13 +56,25 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         rows.AddRange(candidates.Where(candidate => !registered.Contains(candidate)).Select(BrokenWorktree));
 
         // Never awaited: the rows show what the catalogue already holds, and the next rescan picks up what lands.
-        _ = pullRequests.RefreshStaleAsync(rows.Where(row => row.Branch is not null).Select(row => (row.Repository, row.Branch!)));
+        _ = pullRequests.RefreshStaleAsync(BranchesOf(rows));
 
-        return [.. rows.Select(row => WithPullRequest(WithLiveSession(row, LiveSessionIn(row.Path, sessions))))];
+        return [.. rows.Select(row => WithPullRequest(row with { Session = LiveSessionIn(row.Path, sessions) }))];
     }
 
-    /// <summary>A leftover has no branch, so it keeps the row's default of no branch to look up.</summary>
-    private WorktreeRow WithPullRequest(WorktreeRow row) => row.Branch is null ? row : row with { PullRequest = pullRequests.Find(row.Repository, row.Branch) };
+    /// <summary>Each row's repository and branch, for the rows whose head is on one.</summary>
+    private static IEnumerable<(FolderPath Checkout, BranchName Branch)> BranchesOf(IEnumerable<WorktreeRow> rows)
+    {
+        foreach (WorktreeRow row in rows)
+        {
+            if (row.Head is Head.OnBranch on)
+            {
+                yield return (row.Repository, on.Branch);
+            }
+        }
+    }
+
+    /// <summary>A leftover's head is Unknown, so the catalogue answers no branch to look up, as the row's default does.</summary>
+    private WorktreeRow WithPullRequest(WorktreeRow row) => row with { PullRequest = pullRequests.Find(row.Repository, row.Head) };
 
     /// <summary>The paths among folder listings that are full paths; anything else is skipped.</summary>
     private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Parsed<FolderPath>();
@@ -107,7 +119,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.LockReason, false, null, false));
             rows.Add(folderExists
                 ? await InspectedAsync(repository, path, entry, health, cancellationToken)
-                : new WorktreeRow(repository, path, entry.Branch, health, 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: false));
+                : new WorktreeRow(repository, path, entry.Head, health, 0, 0, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: false));
         }
 
         return rows;
@@ -122,20 +134,19 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             return new WorktreeRow(
                 repository,
                 path,
-                entry.Branch,
+                entry.Head,
                 health,
                 counts.DirtyFiles,
                 counts.UnpushedCommits,
                 counts.LastCommitAt,
-                SessionId: null,
-                SessionName: null,
+                new WorktreeSession.None(),
                 LeftoverFileCount: 0,
                 OwnerExists: true,
                 FolderExists: true);
         }
         catch (GitException)
         {
-            return new WorktreeRow(repository, path, entry.Branch, health, 0, 0, null, null, null, 0, OwnerExists: true, FolderExists: true);
+            return new WorktreeRow(repository, path, entry.Head, health, 0, 0, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: true);
         }
     }
 
@@ -179,7 +190,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         return Leftover(owner, folder, observation, ownerExists);
     }
 
-    private WorktreeRow Leftover(FolderPath repository, FolderPath folder, WorktreeObservation observation, bool ownerExists) => new(repository, folder, null, WorktreeHealth.From(observation), 0, 0, null, null, null, CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder.Value));
+    private WorktreeRow Leftover(FolderPath repository, FolderPath folder, WorktreeObservation observation, bool ownerExists) => new(repository, folder, new Head.Unknown(), WorktreeHealth.From(observation), 0, 0, null, new WorktreeSession.None(), CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder.Value));
 
     private string? GitDirOf(string gitFile)
     {
@@ -219,12 +230,14 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             .Count();
     }
 
-    private static Session? LiveSessionIn(FolderPath worktree, IReadOnlyList<Session> sessions)
+    /// <summary>The first session with a process working in the worktree or a folder inside it.</summary>
+    private static WorktreeSession LiveSessionIn(FolderPath worktree, IReadOnlyList<Session> sessions)
     {
         return sessions
             .Where(session => session is InteractiveSession or BackgroundSession { ProcessId: not null })
-            .FirstOrDefault(session => session.WorkingDirectory.IsUnder(worktree));
+            .Where(session => session.WorkingDirectory.IsUnder(worktree))
+            .Select(WorktreeSession (session) => new WorktreeSession.Running(session.SessionId, session.Name))
+            .DefaultIfEmpty(new WorktreeSession.None())
+            .First();
     }
-
-    private static WorktreeRow WithLiveSession(WorktreeRow row, Session? live) => row with { SessionId = live?.SessionId, SessionName = live?.Name };
 }

@@ -9,44 +9,50 @@ public sealed class WhereLabelShould
     [Fact]
     public void NameTheRepositoryAndTheSlugOfAWorktreeVantageMade()
     {
-        WhereLabel.For("Northwind.Orders", "Northwind.Orders-fix-123", "fix-123", inRepository: true).Text.ShouldBe("Northwind.Orders › fix-123");
+        WhereLabel.For("Northwind.Orders", "Northwind.Orders-fix-123", inRepository: true).Text.ShouldBe("Northwind.Orders › fix-123");
     }
 
     [Fact]
-    public void AddTheBranchWhenItDiffersFromTheSlug()
+    public void NameTheMainCheckoutByItsRepositoryAlone()
     {
-        WhereLabel.For("Northwind.Orders", "Northwind.Orders-fix-123", "hotfix/orders", inRepository: true).Text.ShouldBe("Northwind.Orders › fix-123 (hotfix/orders)");
-    }
-
-    [Fact]
-    public void NameTheMainCheckoutWithItsBranch()
-    {
-        WhereLabel.For("Northwind.Orders", "Northwind.Orders", "main", inRepository: true).Text.ShouldBe("Northwind.Orders (main)");
-        WhereLabel.For("Northwind.Orders", "Northwind.Orders", null, inRepository: true).Text.ShouldBe("Northwind.Orders");
+        WhereLabel.For("Northwind.Orders", "Northwind.Orders", inRepository: true).Text.ShouldBe("Northwind.Orders");
     }
 
     [Fact]
     public void NameAFolderInsideTheRepository()
     {
-        WhereLabel.For("Northwind.Orders", @"Northwind.Orders\src\Api", "main", inRepository: true).Text.ShouldBe("Northwind.Orders › src\\Api (main)");
+        WhereLabel.For("Northwind.Orders", @"Northwind.Orders\src\Api", inRepository: true).Text.ShouldBe("Northwind.Orders › src\\Api");
     }
 
     [Fact]
     public void NameAHandMadeFolderByItsLabel()
     {
-        WhereLabel.For("Northwind.Orders", "spike", "spike", inRepository: true).Text.ShouldBe("Northwind.Orders › spike");
+        WhereLabel.For("Northwind.Orders", "spike", inRepository: true).Text.ShouldBe("Northwind.Orders › spike");
     }
 
     [Fact]
     public void ShowTheLabelAloneOutsideARepository()
     {
-        WhereLabel.For("notes", @"~\scratch\notes", null, inRepository: false).Text.ShouldBe(@"~\scratch\notes");
+        WhereLabel.For("notes", @"~\scratch\notes", inRepository: false).Text.ShouldBe(@"~\scratch\notes");
+    }
+
+    [Fact]
+    public void BeInsideARepositoryWithItsPlaceAndOutsideOneWithTheFolderLabel()
+    {
+        WhereLabel.For("Northwind.Orders", "Northwind.Orders-fix-123", inRepository: true).ShouldBe(new WhereLabel.Inside("Northwind.Orders", "fix-123"));
+        WhereLabel.For("notes", @"~\scratch\notes", inRepository: false).ShouldBe(new WhereLabel.Outside(@"~\scratch\notes"));
+    }
+
+    [Fact]
+    public void CutTheLabelOutsideARepositoryAtItsEnd()
+    {
+        new WhereLabel.Outside(@"~\scratch\notes").Fit(8).ShouldBe(@"~\scrat…");
     }
 
     [Fact]
     public void ElideTheRepositoryFirst()
     {
-        WhereLabel label = WhereLabel.For(LongRepository, $"{LongRepository}-fix-123", "fix-123", inRepository: true);
+        WhereLabel label = WhereLabel.For(LongRepository, $"{LongRepository}-fix-123", inRepository: true);
 
         string fitted = label.Fit(57);
 

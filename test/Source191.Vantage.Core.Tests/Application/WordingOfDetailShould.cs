@@ -15,7 +15,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void DescribeASessionAtAPermissionPrompt()
     {
-        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { HasLiveTab = true, TabColour = new TabColour("Yellow", "#FFB900"), Memory = MemorySize.FromMegabytes(903) };
+        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = MemorySize.FromMegabytes(903) };
         row = row with { Session = row.Session with { WaitingFor = "permission prompt" } };
         SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, Now.AddHours(-2))));
 
@@ -147,7 +147,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void GiveABrokenLeftoversReasonAndUnavailableGitLines()
     {
-        WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Health = new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()), Branch = null, FolderExists = false };
+        WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Health = new WorktreeHealth(WorktreeHealthKind.Broken, new HealthReason.FolderGone()), Head = new Head.Unknown(), FolderExists = false };
         WorktreeDetail detail = new(row, Created: null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.Unavailable(), new DetailFact<IReadOnlyList<string>>.Unavailable());
 
         DetailContent content = Wording.Detail(detail, Now);
@@ -157,6 +157,28 @@ public sealed class WordingOfDetailShould
         content.Facts[0][0].Tone.ShouldBe(TextTone.Red);
         lines.ShouldContain("Branch none");
         lines[^1].ShouldBe("Git unavailable");
+    }
+
+    [Fact]
+    public void SayNoBranchAndNoTabForASessionOnNoBranch()
+    {
+        SessionRow detached = Row(DisplayState.Idle, processId: 4242) with { Head = new Head.Detached() };
+        SessionRow unknown = Row(DisplayState.Idle, processId: 4242) with { Head = new Head.Unknown() };
+
+        Rows(Wording.Detail(Detail(detached), Now))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
+        Rows(Wording.Detail(Detail(unknown), Now))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
+    }
+
+    [Fact]
+    public void SayNoBranchForAWorktreeOnNoBranch()
+    {
+        foreach (Head head in new Head[] { new Head.Detached(), new Head.Unknown() })
+        {
+            WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Head = head };
+            WorktreeDetail detail = new(row, Created: null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
+
+            Rows(Wording.Detail(detail, Now))[1].ShouldBe(["Branch none", "PR none"]);
+        }
     }
 
     [Fact]
@@ -178,9 +200,9 @@ public sealed class WordingOfDetailShould
     {
         BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "fix-123", folder ?? Worktree, Now.AddMinutes(-5), state, processId);
 
-        return new SessionRow(session, "Northwind.Orders", BranchName.From("fix-123"), HasLiveTab: false, HasTranscript: true) { Checkout = Repository };
+        return new SessionRow(session, "Northwind.Orders", new Head.OnBranch(BranchName.From("fix-123")), new LiveTab.None(), HasTranscript: true) { Checkout = Repository };
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
-        new(Repository, Worktree, BranchName.From("fix-123"), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Now, SessionId: null, SessionName: null, LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
+        new(Repository, Worktree, new Head.OnBranch(BranchName.From("fix-123")), new WorktreeHealth(WorktreeHealthKind.Ok, new HealthReason.None()), dirty, unpushed, Now, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: true);
 }

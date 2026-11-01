@@ -3,9 +3,15 @@ using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Views;
 
-/// <summary>A listed session with what git, the state store and the transcript folder add to it. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then, so every caller must say which it is.</summary>
-public sealed record SessionRow(Session Session, string Repository, BranchName? Branch, bool HasLiveTab, bool HasTranscript)
+/// <summary>
+/// A listed session with what git, the state store and the transcript folder add to it. Head is Unknown outside a
+/// repository or when git did not name a branch. Tab says whether a live Vantage tab shows the session, and in which
+/// colour. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then,
+/// so every caller must say which it is.
+/// </summary>
+public sealed record SessionRow(Session Session, string Repository, Head Head, LiveTab Tab, bool HasTranscript)
 {
+
     /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
     public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
 
@@ -14,9 +20,6 @@ public sealed record SessionRow(Session Session, string Repository, BranchName? 
 
     /// <summary>The main checkout the session's folder belongs to; null outside a repository, which is how REPOSITORY knows to show the folder's label.</summary>
     public FolderPath? Checkout { get; init; }
-
-    /// <summary>The colour of the live Vantage tab showing the session; null when no tab does.</summary>
-    public TabColour? TabColour { get; init; }
 }
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
@@ -80,7 +83,7 @@ public sealed record RenameCancelled(BackgroundSession Session) : ViewInput;
 public sealed record RenameSession(BackgroundSession Session, SessionName NewName) : ViewEffect;
 
 /// <summary>Open the job in its own tab, or switch to the tab that already shows it.</summary>
-public sealed record OpenTabForSession(BackgroundSession Session, bool HasLiveTab) : ViewEffect;
+public sealed record OpenTabForSession(BackgroundSession Session, LiveTab Tab) : ViewEffect;
 
 public sealed record StopSession(BackgroundSession Session) : ViewEffect;
 
@@ -124,7 +127,7 @@ public sealed record SessionsViewState(
 
     private static readonly ListPolicy<SessionRow> Policy = new(
         KeyOf: row => row.Session.SessionId.Value,
-        FilterFields: row => [row.Session.Name, row.Repository, row.Branch?.Value],
+        FilterFields: row => [row.Session.Name, row.Repository, .. FilterText.Of(row.Head)],
         Order: ByAttention,
         KeyComparison: StringComparison.Ordinal);
 
@@ -182,7 +185,7 @@ public static class SessionsView
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } => Unchanged(state.With(state.List.ClearFilter())),
-            { Name: KeyName.Enter } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.HasLiveTab), Attachment.InOwnTab),
+            { Name: KeyName.Enter } => SessionAction(state, (row, session) => new OpenTabForSession(session, row.Tab), Attachment.InOwnTab),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'r' } => Rename(state),
             { Name: KeyName.Character, Character: 'x' } => SessionAction(state, (_, session) => new StopSession(session), Attachment.None),

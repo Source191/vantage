@@ -54,16 +54,33 @@ public sealed class GitWorktreeListingShould
     }
 
     [Fact]
-    public void StripTheRefsHeadsPrefixFromBranches()
+    public void ReadABranchLineAsOnBranch()
     {
-        Entries[1].Branch.ShouldBe(BranchName.From("release/event-contract-nested-objects"));
+        Entries[1].Head.ShouldBe(new Head.OnBranch(BranchName.From("release/event-contract-nested-objects")));
+        Entries[1].Commit.ShouldStartWith("ab1044d");
     }
 
     [Fact]
-    public void LeaveTheBranchNullForADetachedHead()
+    public void ReadADetachedLineAsDetached()
     {
-        Entries[2].Branch.ShouldBeNull();
-        Entries[2].Head.ShouldStartWith("70bcf2c");
+        Entries[2].Head.ShouldBe(new Head.Detached());
+        Entries[2].Commit.ShouldStartWith("70bcf2c");
+    }
+
+    [Fact]
+    public void ReadABranchItCannotNameAsUnknown()
+    {
+        const string listing = """
+            worktree C:/Users/me/source/repos/Northwind.Billing.git
+            bare
+
+            worktree C:/Users/me/source/repos/Northwind.Billing-odd
+            HEAD 1234567000000000000000000000000000000000
+            branch refs/heads/odd name
+
+            """;
+
+        GitWorktreeListing.Parse(listing).Select(entry => entry.Head).ShouldBe([new Head.Unknown(), new Head.Unknown()]);
     }
 
     [Fact]

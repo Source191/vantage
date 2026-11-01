@@ -29,7 +29,7 @@ public sealed class DetailLoader(IGit git, ICreatedWorktrees created, SessionAct
     {
         ArgumentNullException.ThrowIfNull(row);
         CreatedWorktree? record = await CreatedRecordAsync(row);
-        DetailFact<MergeState> merge = row.Branch is BranchName branch && row.OwnerExists
+        DetailFact<MergeState> merge = row.Head is Head.OnBranch { Branch: BranchName branch } && row.OwnerExists
             ? await Read(() => inspector.MergeStateAsync(row.Repository, branch, cancellationToken))
             : new DetailFact<MergeState>.NotApplicable();
         if (!row.FolderExists)

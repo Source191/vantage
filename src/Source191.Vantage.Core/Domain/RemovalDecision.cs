@@ -30,7 +30,7 @@ public sealed record RemovalDecision(
     {
         return facts switch
         {
-            { LiveSessionName: not null } => Refused(new RemovalReason.LiveSession(facts.LiveSessionName), canBeForced: false),
+            { Session: WorktreeSession.Running running } => Refused(new RemovalReason.LiveSession(running.Name), canBeForced: false),
             { Health: WorktreeHealthKind.Locked } => Refused(new RemovalReason.Locked(), canBeForced: false),
             { Health: WorktreeHealthKind.Elsewhere } => Refused(new RemovalReason.RepositoryOutsideRoots(), canBeForced: false),
             { Health: WorktreeHealthKind.Empty } => DeleteFolder(forced, prune: false),
