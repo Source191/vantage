@@ -2,6 +2,7 @@ using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Actions;
 
@@ -15,9 +16,12 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
 
     public async Task<Outcome> HandleAsync(OpenTabForSession effect, CancellationToken cancellationToken)
     {
-        return effect.HasLiveTab
-            ? await SwitchToTabAsync(effect.Session, cancellationToken)
-            : await OpenAsync(effect.Session, cancellationToken);
+        return effect.Tab switch
+        {
+            LiveTab.Open => await SwitchToTabAsync(effect.Session, cancellationToken),
+            LiveTab.None => await OpenAsync(effect.Session, cancellationToken),
+            _ => throw new UnreachableException(),
+        };
     }
 
     /// <summary>Opens a tab for a session, a listed row or one the wizard has just started, after forgetting any earlier tab registered for it, so that tab's colour is free again.</summary>
