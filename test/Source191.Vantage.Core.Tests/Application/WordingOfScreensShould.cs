@@ -56,6 +56,18 @@ public sealed class WordingOfScreensShould
         Wording.HealthGlyph(kind).ShouldBe(glyph);
     }
 
+    [Theory]
+    [InlineData(WorktreeHealthKind.Ok, "✓ ok")]
+    [InlineData(WorktreeHealthKind.Locked, "◆ locked")]
+    [InlineData(WorktreeHealthKind.Orphan, "△ orphan")]
+    [InlineData(WorktreeHealthKind.Broken, "✗ broken")]
+    [InlineData(WorktreeHealthKind.Empty, "□ empty")]
+    [InlineData(WorktreeHealthKind.Elsewhere, "↗ elsewhere")]
+    public void WriteTheHealthCellAsGlyphAndWord(WorktreeHealthKind kind, string cell)
+    {
+        Wording.HealthCell(kind).ShouldBe(cell);
+    }
+
     [Fact]
     public void GiveNoTwoHealthsTheSameGlyph()
     {
