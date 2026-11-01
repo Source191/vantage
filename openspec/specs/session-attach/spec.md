@@ -120,15 +120,23 @@ Deleting a session SHALL first end its Vantage-opened tab and wait for the tab's
 - **THEN** the session is deleted, the status line says the worktree folder is still in use by a tab or program and names it, and pressing remove on it in the worktrees view after closing that tab deletes what is left
 
 ### Requirement: Resume sessions after a reboot without reviving deliberate stops
-The resume-all key SHALL run the CLI's background resume for every session in the failed state, SHALL present sessions in the stopped state as a checklist with none preselected because a deliberate stop also shows as stopped, and SHALL show on each row whether the CLI continued the session or started a copy.
+The resume-all key SHALL resume every session in the failed state, SHALL present sessions in the stopped state as a checklist with none preselected because a deliberate stop also shows as stopped, and, because resuming a listed background job starts a copy, SHALL remove each chosen job and resume it by session ID under its name, which keeps the session ID, its conversation and its row. A resume that fails after the removal SHALL be reported with the session ID and the command that resumes it.
 
 #### Scenario: Resume after restart
 - **WHEN** three sessions show failed after a reboot and the user presses resume-all
-- **THEN** the background resume command runs for each of the three and their rows return to idle or working on the next refresh
+- **THEN** each job is removed and resumed by session ID, and the same three rows, with the same session IDs, return to idle or working on the next refresh
 
 #### Scenario: Stopped sessions are opt-in
 - **WHEN** two sessions show stopped when the user presses resume-all
 - **THEN** they are listed with unticked boxes and only the ones the user ticks are resumed
+
+#### Scenario: No duplicate after a resume
+- **WHEN** the user resumes a stopped session named fix-123 with session ID sess-1
+- **THEN** the next refresh lists exactly one row named fix-123, with session ID sess-1, and no stopped copy of it
+
+#### Scenario: Resume fails after the job was removed
+- **WHEN** the user resumes a failed session named fix-123 with session ID sess-1 and the resume command fails with "Workspace not trusted"
+- **THEN** the status line names fix-123, gives the failure, and says to resume it with claude --bg --resume sess-1
 
 ### Requirement: Rename without attaching
 The rename key SHALL ask for a new name in a dialog and then, because the CLI has no rename verb and resuming a listed background job with new flags starts a copy, SHALL remove the job and resume it by session ID under the new name, which keeps the session ID and its conversation.
