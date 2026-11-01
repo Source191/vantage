@@ -133,7 +133,7 @@ public sealed class ConsoleScreen(
             tabs.SetScheme(Palette.Plain(Palette.Grey));
             sessions = new TableBody<SessionsViewState, SessionRow>(new SessionsScreenDefinition(screen.notifier, screen.activity, screen.claudeExecutable, screen.folders, new SessionDetails(screen.details, screen.clock)), screen.dialogs, screen.dispatcher, screen.loadSessions, screen.clock, context, app, this, initial.Sessions);
             worktrees = new TableBody<WorktreesViewState, WorktreeRow>(new WorktreesScreenDefinition(screen.folders, new WorktreeDetails(screen.details, screen.clock)), screen.dialogs, screen.dispatcher, screen.scanWorktrees, screen.clock, context, app, this, initial.Worktrees);
-            config = new TableBody<ConfigViewState, ConfigRow>(new ConfigScreenDefinition(), screen.dialogs, screen.dispatcher, screen.readConfig, screen.clock, context, app, this, initial.Config);
+            config = new TableBody<ConfigViewState, ConfigRow>(new ConfigScreenDefinition(screen.clock), screen.dialogs, screen.dispatcher, screen.readConfig, screen.clock, context, app, this, initial.Config);
             tabs.Add(sessions.View, worktrees.View, config.View);
             Array.ForEach([sessions.View, worktrees.View, config.View], view => view.SetScheme(Palette.TabFrame()));
             ReleaseNavigationKeys(tabs, sessions.View, worktrees.View, config.View);
