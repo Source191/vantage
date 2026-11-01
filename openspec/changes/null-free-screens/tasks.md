@@ -33,7 +33,7 @@ Each Core task is one red-green-refactor cycle with a commit per step, the test 
 - [x] 4.1 `DetailLayoutShould.LayOutNothingForTheEmptyContent` (`DetailLayout.Rows(DetailContent.Empty, 60, 5)` holds no text): red. Then green: `DetailContent.Empty`. `DetailPane` holds a `DetailContent` starting at `Empty` and writes an empty divider title for it. Verify that the fact passes and `DetailPane.cs` has no `DetailContent?`.
 - [x] 4.2 `IScreenDefinition.Detail` answers `TableDetail<TRow>` (`None` for Config, `Pane(source)` for Sessions and Worktrees). `TableBody` holds one private `DetailPart` (`NoPane`, `Pane(source, requests, view)`) in place of `detail`, `requests` and `pane`; it adds the pane only for `Pane`, shows `DetailContent.Empty` when the selection clears, and matches `DetailPart.Pane` once in `AskForDetail`. Verify the build, that `TableBody.cs` and `IScreenDefinition.cs` have no nullable detail member, and that the Config grid of 1.1 is unchanged.
 - [x] 4.3 `TableBody.ReadAsync` answers a private `DetailRead` (`Read(content)`, `Dropped`), `Attempt.RunAsync` falls back to `Dropped`, and `detailKey` uses the private `AskAgain` sentinel. Verify the build, and that `TableBody.cs` has no `DetailContent?` and no `object?`.
-- [ ] 4.4 `CLAUDE.md`'s description of a definition's `Detail` ("null on Config") names `TableDetail<TRow>.None`. Verify by reading it against `IScreenDefinition.cs`.
+- [x] 4.4 `CLAUDE.md`'s description of a definition's `Detail` ("null on Config") names `TableDetail<TRow>.None`. Verify by reading it against `IScreenDefinition.cs`.
 
 ## 5. Tui state
 
