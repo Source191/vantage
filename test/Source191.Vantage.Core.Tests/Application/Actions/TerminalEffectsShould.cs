@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Views;
@@ -25,11 +26,12 @@ public sealed class TerminalEffectsShould
     }
 
     [Fact]
-    public async Task IgnoreEffectsThatDoNotNeedTheTerminal()
+    public async Task RemoveTheHintWhenTheAttachThrows()
     {
-        await Effects.RunAsync(new Quit(), CancellationToken.None);
+        processes.OnInteractive = _ => throw new Win32Exception("The system cannot find the file specified");
 
-        processes.InteractiveRequests.ShouldBeEmpty();
-        console.Events.ShouldBeEmpty();
+        await Should.ThrowAsync<Win32Exception>(() => Effects.RunAsync(new AttachToSession(JobId.From("81cdb0f9")), CancellationToken.None));
+
+        console.Events[^1].ShouldBe("return hint removed");
     }
 }
