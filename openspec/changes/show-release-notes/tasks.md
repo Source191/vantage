@@ -42,11 +42,16 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 4. The check fetches notes and announces once
 
-- [ ] 4.1 `UpdateCheckShould.RecordTheNotesOfANewerRelease`: running 0.19.0, finding 0.21.0, the fake answers notes, the record holds them. Verify the fact passes.
-- [ ] 4.2 `UpdateCheckShould.AskForNoNotesWhenAlreadyNewest` (the fake records no notes request). Verify the fact passes.
-- [ ] 4.3 `UpdateCheckShould.AskForTheNotesAgainWhenTheRecordHasNone` on the next due check, and keep offering the update meanwhile. Verify the fact passes.
-- [ ] 4.4 `UpdateCheckShould.AnnounceANewlyFoundReleaseOnce`: record 0.20.0, found 0.21.0 gives one announcement, taken once; record 0.21.0, found 0.21.0 gives none; no record and found 0.21.0 gives one. Verify the facts pass.
-- [ ] 4.5 `WordingShould` and `StatusTonesShould`: `StatusMessage.NewerReleaseFound` reads "Vantage 0.21.0 is available: press U to see what changed." in the Info tone. Verify the facts pass.
+- [x] 4.1 `UpdateCheckShould.RecordTheNotesOfANewerRelease`: running 0.19.0, finding 0.21.0, the fake answers notes, the record holds them. Verify the fact passes.
+  Done with the suite's own versions (running 0.9.0, finding 0.10.0), and `KeepOfferingTheUpdateWhenItsNotesCannotBeRead`; `UpdateCheck.Notes` answers the recorded notes, held with the newest release in one `SharedSnapshot` so they are replaced together.
+- [x] 4.2 `UpdateCheckShould.AskForNoNotesWhenAlreadyNewest` (the fake records no notes request). Verify the fact passes.
+  Done: the record then holds `ReleaseNotes.None`.
+- [x] 4.3 `UpdateCheckShould.AskForTheNotesAgainWhenTheRecordHasNone` on the next due check, and keep offering the update meanwhile. Verify the fact passes.
+  Done, with `KeepTheRecordedNotesOfTheSameRelease` (a due check with notes recorded asks for none) and `OfferTheRecordedNotesAtStart`.
+- [x] 4.4 `UpdateCheckShould.AnnounceANewlyFoundReleaseOnce`: record 0.20.0, found 0.21.0 gives one announcement, taken once; record 0.21.0, found 0.21.0 gives none; no record and found 0.21.0 gives one. Verify the facts pass.
+  Done as `AnnounceANewlyFoundReleaseOnce`, `AnnounceAReleaseFoundOnTheFirstCheck`, `NotAnnounceAReleaseAlreadyRecorded`, `NotAnnounceAReleaseRecordedWithinADay` and `NotAnnounceTheRunningVersion`; `UpdateCheck.TakeAnnouncement` answers the message once, then `StatusMessage.None`.
+- [x] 4.5 `WordingShould` and `StatusTonesShould`: `StatusMessage.NewerReleaseFound` reads "Vantage 0.21.0 is available: press U to see what changed." in the Info tone. Verify the facts pass.
+  Done in the Notice tone (the orange !, which stays until closed): `StatusTone` has no Info member, and Notice is the tone of the other update messages that are not a success. Core suite 2,118 passed.
 - [ ] 4.6 The screen shows the announcement in the status line when it next reads the update status (the test chosen in design.md's decision; a `ConsoleView` or `ScreenLoop` fact). Verify the fact passes.
 - [ ] 4.7 `WordingOfScreensShould`: the header's notice is its own `TextPart` in `TextTone.Amber`, the words unchanged. Red, then the header parts and the Tui drawing. Verify the facts pass and the existing header facts still read the same text.
 

@@ -75,6 +75,9 @@ public abstract record StatusMessage
     /// <summary>The update key found no newer release.</summary>
     public sealed record UpToDate : StatusMessage;
 
+    /// <summary>The update check has just found a release newer than the running one and than the one it had recorded; said once.</summary>
+    public sealed record NewerReleaseFound(ReleaseVersion Version) : StatusMessage;
+
     /// <summary>The update key on a build that never checks: the setting is off, or it is a development build.</summary>
     public sealed record UpdateCheckOff : StatusMessage;
 

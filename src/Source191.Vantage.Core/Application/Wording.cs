@@ -398,6 +398,7 @@ public static partial class Wording
             StatusMessage.NothingToMeasure stopped => $"{stopped.Name} has no process to measure; it is stopped.",
             StatusMessage.NoPullRequest none => Describe(none),
             StatusMessage.UpToDate => "Vantage is up to date.",
+            StatusMessage.NewerReleaseFound found => $"Vantage {found.Version} is available: press U to see what changed.",
             StatusMessage.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",
             StatusMessage.Kept => "Kept.",
             StatusMessage.NothingToResume => "Nothing to resume.",
