@@ -40,7 +40,7 @@ public static partial class Wording
             [
                 WaitingLine(WaitingFor(row)),
                 new("Started", TimeAgo(session.StartedAt, now)),
-                new("Prompted", detail.LastPromptedAt is DateTimeOffset prompted ? TimeAgo(prompted, now) : "not seen since Vantage started"),
+                new("Prompted", detail.LastPromptedAt is LastPrompt.Seen prompted ? TimeAgo(prompted.At, now) : "not seen since Vantage started"),
             ],
             [new("Folder", session.WorkingDirectory.Value, Span: 2), new("Session", session.SessionId.Value)],
             [new("Worktree", PlaceOf(row)), new("Branch", HeadLine(row.Head)), new("Tab", TabLine(row))],

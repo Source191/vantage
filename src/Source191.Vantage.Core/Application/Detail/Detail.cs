@@ -19,7 +19,7 @@ public abstract record DetailFact<T>
 public sealed record MergeState(string Into, bool Merged);
 
 /// <summary>Everything the pane shows for a selected session beyond the row itself.</summary>
-public sealed record SessionDetail(SessionRow Row, DateTimeOffset? LastPromptedAt, DetailFact<WorktreeCounts> Counts);
+public sealed record SessionDetail(SessionRow Row, LastPrompt LastPromptedAt, DetailFact<WorktreeCounts> Counts);
 
 /// <summary>Everything the pane shows for a selected worktree beyond the row itself.</summary>
 public sealed record WorktreeDetail(

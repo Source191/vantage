@@ -73,7 +73,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void GiveTheLastPromptAndAStoppedSessionsMemory()
     {
-        SessionDetail detail = new(Row(DisplayState.Stopped, process: new JobProcess.None()), Now.AddMinutes(-4), new DetailFact<WorktreeCounts>.Unavailable());
+        SessionDetail detail = new(Row(DisplayState.Stopped, process: new JobProcess.None()), new LastPrompt.Seen(Now.AddMinutes(-4)), new DetailFact<WorktreeCounts>.Unavailable());
 
         string[] lines = Text(Wording.Detail(detail, Now));
 
