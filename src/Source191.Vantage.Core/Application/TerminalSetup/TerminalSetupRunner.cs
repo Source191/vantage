@@ -30,7 +30,7 @@ public sealed class TerminalSetupRunner(
 
     public async Task<int> RunAsync(TerminalSetupRequest request, CancellationToken cancellationToken)
     {
-        if (request.Remove && (request.Sound is not null || request.SessionSound is not null))
+        if (request.Remove && (request.Sound is SoundArgument.Given || request.SessionSound is SoundArgument.Given))
         {
             await ReportProblemAsync(new TerminalSetupProblem.RemoveWithSound());
             return 2;
@@ -40,7 +40,7 @@ public sealed class TerminalSetupRunner(
     }
 
     /// <summary>Windows Terminal does not share our working directory, so a sound is written as a full path.</summary>
-    private static string? FullPath(string? sound) => string.IsNullOrWhiteSpace(sound) ? sound : Path.GetFullPath(sound);
+    private static SoundArgument FullPath(SoundArgument sound) => sound is SoundArgument.Given given && !string.IsNullOrWhiteSpace(given.Path) ? new SoundArgument.Given(Path.GetFullPath(given.Path)) : sound;
 
     private async Task<int> RemoveAsync(CancellationToken cancellationToken)
     {
@@ -84,13 +84,13 @@ public sealed class TerminalSetupRunner(
 
     private TerminalSetupProblem? CheckSounds(TerminalSetupRequest request) => CheckSound(request.Sound) ?? CheckSound(request.SessionSound);
 
-    private TerminalSetupProblem? CheckSound(string? sound)
+    private TerminalSetupProblem? CheckSound(SoundArgument sound)
     {
         return sound switch
         {
-            null => null,
-            _ when !folders.FileExists(sound) => new TerminalSetupProblem.SoundNotFound(sound),
-            _ when !string.Equals(Path.GetExtension(sound), ".wav", StringComparison.OrdinalIgnoreCase) => new TerminalSetupProblem.SoundNotWav(sound),
+            SoundArgument.Omitted => null,
+            SoundArgument.Given given when !folders.FileExists(given.Path) => new TerminalSetupProblem.SoundNotFound(given.Path),
+            SoundArgument.Given given when !string.Equals(Path.GetExtension(given.Path), ".wav", StringComparison.OrdinalIgnoreCase) => new TerminalSetupProblem.SoundNotWav(given.Path),
             _ => null,
         };
     }
@@ -103,11 +103,11 @@ public sealed class TerminalSetupRunner(
         return new TerminalProfiles(vantageExecutable, vantageSound, sessionSound);
     }
 
-    private async Task<string?> SoundOrDefaultAsync(string? given, string defaultFile, string profileName)
+    private async Task<string?> SoundOrDefaultAsync(SoundArgument sound, string defaultFile, string profileName)
     {
-        if (given is not null)
+        if (sound is SoundArgument.Given given)
         {
-            return given;
+            return given.Path;
         }
 
         string defaultSound = Path.Combine(windowsMediaFolder, defaultFile);
