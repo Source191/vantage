@@ -11,16 +11,16 @@ public static class DiagnosticLine
     public static string Render(TimedEvent timed)
     {
         ArgumentNullException.ThrowIfNull(timed);
-        string at = timed.At.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
 
-        return $"{at} {Body(timed.Event)}";
+        return $"{Stamp(timed.At)} {Body(timed.Event)}";
     }
 
-    public static IReadOnlyList<string> Render(ProcessCounts counts)
+    /// <summary>The child program counts, one line per program, subcommand and exit code, each with the time it was written.</summary>
+    public static IReadOnlyList<string> Render(ProcessCounts counts, DateTimeOffset at)
     {
         ArgumentNullException.ThrowIfNull(counts);
 
-        return [.. counts.Snapshot().Select(count => $"counts {count.Command} exit {count.ExitCode}: {Runs(count.Durations.Runs)}, longest {Milliseconds(count.Durations.Longest)}")];
+        return [.. counts.Snapshot().Select(count => $"{Stamp(at)} counts {count.Command} exit {count.ExitCode}: {Figures(count.Durations, "run", "runs")}")];
     }
 
     /// <summary>The start facts without the time, as a problem report's environment line shows them.</summary>
@@ -45,7 +45,17 @@ public static class DiagnosticLine
         _ => throw new ArgumentOutOfRangeException(nameof(diagnostic), diagnostic.GetType().Name, "A diagnostic event has no line."),
     };
 
-    private static string Milliseconds(TimeSpan duration) => $"{(long)duration.TotalMilliseconds} ms";
+    private static string Stamp(DateTimeOffset at) => at.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);
 
-    private static string Runs(int runs) => runs == 1 ? "1 run" : $"{runs} runs";
+    /// <summary>The number of runs, then the typical and longest durations when there were any.</summary>
+    private static string Figures(DurationFigures figures, string one, string many)
+    {
+        string runs = figures.Runs == 1 ? $"1 {one}" : $"{figures.Runs.ToString(CultureInfo.InvariantCulture)} {many}";
+
+        return figures.Runs == 0
+            ? runs
+            : $"{runs}, median {Milliseconds(figures.Median)}, p95 {Milliseconds(figures.NinetyFifth)}, longest {Milliseconds(figures.Longest)}";
+    }
+
+    private static string Milliseconds(TimeSpan duration) => $"{((long)duration.TotalMilliseconds).ToString(CultureInfo.InvariantCulture)} ms";
 }

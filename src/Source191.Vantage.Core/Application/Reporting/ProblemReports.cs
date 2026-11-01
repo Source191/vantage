@@ -10,7 +10,7 @@ namespace Source191.Vantage.Application.Reporting;
 /// settings (the editor preset, whether update checks are on, how many roots), the last crash, the diagnostic log and
 /// the child program counts. No path, name or typed text is read here.
 /// </summary>
-public sealed class ProblemReports(DiagnosticLog log, ProcessCounts counts, ICrashFile crashFile, Started start, CurrentSettings settings)
+public sealed class ProblemReports(DiagnosticLog log, ProcessCounts counts, ICrashFile crashFile, Started start, CurrentSettings settings, TimeProvider clock)
 {
     private const int CrashBand = 0;
     private const int OrdinaryBand = 100_000;
@@ -56,7 +56,7 @@ public sealed class ProblemReports(DiagnosticLog log, ProcessCounts counts, ICra
         .Select((timed, index) => new ReportLine(DiagnosticLine.Render(timed), (timed.Event is Failed or ProcessFailedToStart ? FailureBand : OrdinaryBand) + index));
 
     private IEnumerable<ReportLine> CountLines() => counts.Snapshot()
-        .Zip(DiagnosticLine.Render(counts))
+        .Zip(DiagnosticLine.Render(counts, clock.GetUtcNow()))
         .Select((pair, index) => new ReportLine(pair.Second, (pair.First.ExitCode == 0 ? ExitZeroBand : FailureBand + 50_000) + index));
 
     private static ReportLine Kept(string text) => new(text, ReportLine.Never);

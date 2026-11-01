@@ -86,7 +86,7 @@ internal static class ConsoleComposition
     private static DialogEffects Dialogs(
         SharedParts parts, LaunchParts launch, CurrentSettings settings, Folders folders, UpdateCheck updates, Started start)
     {
-        ProblemReports reports = new(parts.Log, parts.ProcessCounts, parts.CrashFile, start, settings);
+        ProblemReports reports = new(parts.Log, parts.ProcessCounts, parts.CrashFile, start, settings, TimeProvider.System);
         SessionTabs sessionTabs = new(parts.Store, parts.ProcessRegistry, TimeProvider.System);
         DeleteSessionHandler deleteSession = new(launch.Claude, launch.Git, parts.Store, sessionTabs, folders, settings);
         RemoveWorktreeHandler removeWorktree = new(launch.Git, parts.Store, folders, settings);

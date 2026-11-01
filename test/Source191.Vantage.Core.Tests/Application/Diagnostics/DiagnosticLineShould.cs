@@ -86,6 +86,21 @@ public sealed class DiagnosticLineShould
         Body(reported).ShouldBe("terminal.gui Error: GitException");
     }
 
+    [Fact]
+    public void RenderACountWithItsWriteTimeAndTypicalFigures()
+    {
+        ProcessCounts counts = new();
+        ChildCommand agents = ChildCommand.For(new ProcessRequest(@"C:\Users\me\.local\bin\claude.exe", ["agents", "--json"], WorkingFolder.Inherit));
+        foreach (int milliseconds in Enumerable.Repeat(1650, 95).Concat(Enumerable.Repeat(2100, 24)))
+        {
+            counts.Add(agents, 0, TimeSpan.FromMilliseconds(milliseconds));
+        }
+
+        counts.Add(agents, 0, TimeSpan.FromMilliseconds(4900));
+
+        DiagnosticLine.Render(counts, At).ShouldBe(["2026-10-29T14:03:12.345Z counts claude agents --json exit 0: 120 runs, median 1650 ms, p95 2100 ms, longest 4900 ms"]);
+    }
+
     private static string Body(DiagnosticEvent diagnostic)
     {
         return DiagnosticLine.Render(new TimedEvent(At, diagnostic))["2026-10-29T14:03:12.345Z ".Length..];

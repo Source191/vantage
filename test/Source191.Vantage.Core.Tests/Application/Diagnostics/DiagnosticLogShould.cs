@@ -78,7 +78,7 @@ public sealed class DiagnosticLogShould
 
         log.WriteCounts(counts);
 
-        sink.Lines.ShouldBe(["counts git worktree list exit 0: 1 run, longest 41 ms"]);
+        sink.Lines.ShouldBe(["2026-10-29T12:00:00.000Z counts git worktree list exit 0: 1 run, median 41 ms, p95 41 ms, longest 41 ms"]);
         log.Snapshot().ShouldBeEmpty();
     }
 }

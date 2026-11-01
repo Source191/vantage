@@ -97,6 +97,6 @@ public sealed class ProblemReportShould
 
     private ProblemReports Reports()
     {
-        return new ProblemReports(log, counts, crashFile, Start, TestSettings.Current(@"C:\Users\me\source\repos"));
+        return new ProblemReports(log, counts, crashFile, Start, TestSettings.Current(@"C:\Users\me\source\repos"), clock);
     }
 }

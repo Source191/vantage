@@ -1000,7 +1000,7 @@ public sealed class WordingShould
     [Fact]
     public async Task SayWhatTheProblemReportIsDoing()
     {
-        ProblemReport report = await new ProblemReports(new DiagnosticLog(TimeProvider.System, []), new ProcessCounts(), new FakeCrashFile(), new Started(new ToolVersion("0.18.0"), null, new Version(10, 0), new Version(10, 0), 120, 36), TestSettings.Current(@"C:\Users\me\source\repos")).BuildAsync();
+        ProblemReport report = await new ProblemReports(new DiagnosticLog(TimeProvider.System, []), new ProcessCounts(), new FakeCrashFile(), new Started(new ToolVersion("0.18.0"), null, new Version(10, 0), new Version(10, 0), 120, 36), TestSettings.Current(@"C:\Users\me\source\repos"), TimeProvider.System).BuildAsync();
 
         Wording.Working(new ShowProblemReport()).ShouldBe("Gathering the diagnostics...");
         Wording.Working(new OpenProblemReport(ReportTitle.From("x"), report)).ShouldBe("Opening the problem report in your browser...");

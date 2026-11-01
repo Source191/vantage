@@ -42,7 +42,7 @@ public sealed class DiagnosticLog(TimeProvider clock, IReadOnlyList<IDiagnosticS
     {
         lock (gate)
         {
-            Write(DiagnosticLine.Render(counts));
+            Write(DiagnosticLine.Render(counts, clock.GetUtcNow()));
         }
     }
 

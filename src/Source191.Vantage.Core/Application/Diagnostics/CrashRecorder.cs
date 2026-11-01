@@ -7,7 +7,7 @@ namespace Source191.Vantage.Application.Diagnostics;
 /// itself go to the crash file, and the exception carries on so the command line reports it. A normal return
 /// writes the counts to the log's sinks instead. Nothing here may hide the original exception.
 /// </summary>
-public sealed class CrashRecorder(DiagnosticLog log, ProcessCounts counts, ICrashFile crashFile)
+public sealed class CrashRecorder(DiagnosticLog log, ProcessCounts counts, ICrashFile crashFile, TimeProvider clock)
 {
     public async Task<int> GuardAsync(Func<Task<int>> action)
     {
@@ -31,7 +31,7 @@ public sealed class CrashRecorder(DiagnosticLog log, ProcessCounts counts, ICras
     {
         ArgumentNullException.ThrowIfNull(exception);
         log.Record(new Failed(FailureSite.Crash, null, ExceptionSummary.From(exception)));
-        string text = string.Join('\n', [.. log.Snapshot().Select(DiagnosticLine.Render), .. DiagnosticLine.Render(counts)]) + "\n";
+        string text = string.Join('\n', [.. log.Snapshot().Select(DiagnosticLine.Render), .. DiagnosticLine.Render(counts, clock.GetUtcNow())]) + "\n";
         try
         {
             crashFile.Write(text);

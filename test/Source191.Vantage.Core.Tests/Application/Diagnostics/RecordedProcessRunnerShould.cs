@@ -11,6 +11,8 @@ public sealed class RecordedProcessRunnerShould
     private static readonly ProcessRequest WorktreeList = new("git", ["worktree", "list", "--porcelain"], new WorkingFolder.At(@"C:\Users\me\source\repos\Northwind.Orders"));
     private static readonly ProcessRequest Agents = new(@"C:\Users\me\.local\bin\claude.exe", ["agents", "--json", "--all"], WorkingFolder.Inherit);
 
+    private static readonly DateTimeOffset Written = new(2026, 11, 1, 10, 0, 0, TimeSpan.Zero);
+
     private readonly FakeTimeProvider clock = new(new DateTimeOffset(2026, 10, 29, 12, 0, 0, TimeSpan.Zero));
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, "worktree C:/Users/me", string.Empty));
     private readonly ProcessCounts counts = new();
@@ -39,7 +41,7 @@ public sealed class RecordedProcessRunnerShould
         ProcessResult result = await runner.RunAsync(WorktreeList, CancellationToken.None);
 
         result.StandardOutput.ShouldBe("worktree C:/Users/me");
-        DiagnosticLine.Render(counts).ShouldBe(["counts git worktree list exit 0: 1 run, longest 41 ms"]);
+        DiagnosticLine.Render(counts, Written).ShouldBe(["2026-11-01T10:00:00.000Z counts git worktree list exit 0: 1 run, median 41 ms, p95 41 ms, longest 41 ms"]);
         log.Snapshot().ShouldBeEmpty();
     }
 
@@ -66,7 +68,7 @@ public sealed class RecordedProcessRunnerShould
         ProcessFailedToStart failed = log.Snapshot().Single().Event.ShouldBeOfType<ProcessFailedToStart>();
         failed.Command.ShouldBe(ChildCommand.For(WorktreeList));
         DiagnosticLine.Render(log.Snapshot().Single()).ShouldNotContain(@"C:\Users\me");
-        DiagnosticLine.Render(counts).ShouldBeEmpty();
+        DiagnosticLine.Render(counts, Written).ShouldBeEmpty();
     }
 
     [Fact]
@@ -89,7 +91,7 @@ public sealed class RecordedProcessRunnerShould
         int exitCode = await runner.RunInteractiveAsync(new ProcessRequest("claude", ["attach", "81cdb0f9"], WorkingFolder.Inherit), CancellationToken.None);
 
         exitCode.ShouldBe(130);
-        DiagnosticLine.Render(counts).ShouldBe(["counts claude attach exit 130: 1 run, longest 7200000 ms"]);
+        DiagnosticLine.Render(counts, Written).ShouldBe(["2026-11-01T10:00:00.000Z counts claude attach exit 130: 1 run, median 7200000 ms, p95 7200000 ms, longest 7200000 ms"]);
         log.Snapshot().ShouldBeEmpty();
     }
 

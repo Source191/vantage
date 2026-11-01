@@ -7,6 +7,7 @@ namespace Source191.Vantage.Core.Tests.Application.Diagnostics;
 
 public sealed class CrashRecorderShould
 {
+    private readonly FakeTimeProvider clock = new(new DateTimeOffset(2026, 10, 29, 12, 0, 0, TimeSpan.Zero));
     private readonly RecordingSink sink = new();
     private readonly ProcessCounts counts = new();
     private readonly FakeCrashFile crashFile = new();
@@ -15,8 +16,8 @@ public sealed class CrashRecorderShould
 
     public CrashRecorderShould()
     {
-        log = new DiagnosticLog(new FakeTimeProvider(new DateTimeOffset(2026, 10, 29, 12, 0, 0, TimeSpan.Zero)), [sink]);
-        recorder = new CrashRecorder(log, counts, crashFile);
+        log = new DiagnosticLog(clock, [sink]);
+        recorder = new CrashRecorder(log, counts, crashFile, clock);
         counts.Add(ChildCommand.For(new ProcessRequest("git", ["status"], WorkingFolder.Inherit)), 0, TimeSpan.FromMilliseconds(12));
     }
 
@@ -31,7 +32,7 @@ public sealed class CrashRecorderShould
         thrown.ShouldBeSameAs(crash);
         IReadOnlyList<TimedEvent> recorded = log.Snapshot();
         recorded.Select(timed => timed.Event).ShouldBe([new ViewShown(ViewKind.Sessions), new Failed(FailureSite.Crash, null, ExceptionSummary.From(crash))]);
-        crashFile.Written.ShouldBe(string.Join('\n', [.. recorded.Select(DiagnosticLine.Render), "counts git status exit 0: 1 run, longest 12 ms"]) + "\n");
+        crashFile.Written.ShouldBe(string.Join('\n', [.. recorded.Select(DiagnosticLine.Render), "2026-10-29T12:00:00.000Z counts git status exit 0: 1 run, median 12 ms, p95 12 ms, longest 12 ms"]) + "\n");
         crashFile.Written!.ShouldNotContain("Northwind");
     }
 
@@ -42,7 +43,7 @@ public sealed class CrashRecorderShould
 
         exitCode.ShouldBe(3);
         crashFile.Written.ShouldBeNull();
-        sink.Lines.ShouldBe(["counts git status exit 0: 1 run, longest 12 ms"]);
+        sink.Lines.ShouldBe(["2026-10-29T12:00:00.000Z counts git status exit 0: 1 run, median 12 ms, p95 12 ms, longest 12 ms"]);
     }
 
     [Fact]

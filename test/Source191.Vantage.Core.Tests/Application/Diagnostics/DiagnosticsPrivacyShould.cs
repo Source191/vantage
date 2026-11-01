@@ -74,8 +74,8 @@ public sealed class DiagnosticsPrivacyShould
         lines.ShouldContain(line => line.Contains("failed Effect RemoveWorktree: GitException", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Load SessionsViewState: InvalidOperationException", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Crash: InvalidOperationException", StringComparison.Ordinal));
-        DiagnosticLine.Render(counts).ShouldContain("counts git worktree remove exit 128: 1 run, longest 0 ms");
-        string everything = string.Join('\n', [.. lines, crashFile.Written ?? string.Empty, .. DiagnosticLine.Render(counts)]);
+        DiagnosticLine.Render(counts, Noon).ShouldContain("2026-10-29T12:00:00.000Z counts git worktree remove exit 128: 1 run, median 0 ms, p95 0 ms, longest 0 ms");
+        string everything = string.Join('\n', [.. lines, crashFile.Written ?? string.Empty, .. DiagnosticLine.Render(counts, Noon)]);
         Seeded.Where(value => everything.Contains(value, StringComparison.OrdinalIgnoreCase)).ShouldBeEmpty();
     }
 
@@ -85,7 +85,7 @@ public sealed class DiagnosticsPrivacyShould
         await RunTheDailyFlowsAsync();
         ReportTitle title = ReportTitle.From("Northwind.Orders secret title");
         Started start = new(new ToolVersion("0.17.0-preview.6"), new Version(2, 1, 312), new Version(10, 0, 26100), new Version(10, 0, 14), 120, 36);
-        ProblemReport report = await new ProblemReports(log, counts, crashFile, start, TestSettings.Current(Repository)).BuildAsync();
+        ProblemReport report = await new ProblemReports(log, counts, crashFile, start, TestSettings.Current(Repository), clock).BuildAsync();
         FakeDesktop desktop = new();
         EffectDispatcher dispatcher = new EffectDispatcher(log, clock).Register(new OpenProblemReportHandler(desktop, crashFile));
 
@@ -104,7 +104,7 @@ public sealed class DiagnosticsPrivacyShould
     {
         ClaudeCli claude = new(processes, Claude);
         GitCli git = new(processes, "git");
-        CrashRecorder crashes = new(log, counts, crashFile);
+        CrashRecorder crashes = new(log, counts, crashFile, clock);
 
         SessionListing listing = await LoadTheSessionsAsync(claude);
         await OpenATabAsync(claude, git, listing);

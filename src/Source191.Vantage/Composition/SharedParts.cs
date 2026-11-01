@@ -43,7 +43,7 @@ internal sealed record SharedParts(
         ProcessCounts processCounts = new();
         RecordedProcessRunner processes = new(new ProcessRunner(), log, processCounts, TimeProvider.System);
         CrashFile crashFile = new(stateFolder);
-        CrashRecorder crashes = new(log, processCounts, crashFile);
+        CrashRecorder crashes = new(log, processCounts, crashFile, TimeProvider.System);
 
         return new SharedParts(store, processRegistry, version, vantageExecutable, terminalFragment, programs, logSetting, log, processCounts, processes, crashFile, crashes);
     }

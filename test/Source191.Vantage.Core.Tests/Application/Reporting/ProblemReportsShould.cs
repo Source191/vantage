@@ -30,7 +30,7 @@ public sealed class ProblemReportsShould
         counts.Add(ChildCommand.For(new ProcessRequest("git", ["status"], WorkingFolder.Inherit)), 0, TimeSpan.FromMilliseconds(12));
         CurrentSettings settings = TestSettings.Current(@"C:\Users\me\source\repos", @"D:\work");
 
-        ProblemReport report = await new ProblemReports(log, counts, crashFile, Start, settings).BuildAsync();
+        ProblemReport report = await new ProblemReports(log, counts, crashFile, Start, settings, clock).BuildAsync();
 
         report.HasCrash.ShouldBeTrue();
         report.Text.ShouldBe(string.Join('\n',
@@ -46,13 +46,13 @@ public sealed class ProblemReportsShould
             "2026-10-29T12:00:00.000Z view Worktrees",
             string.Empty,
             "Child program counts",
-            "counts git status exit 0: 1 run, longest 12 ms"));
+            "2026-10-29T12:00:00.000Z counts git status exit 0: 1 run, median 12 ms, p95 12 ms, longest 12 ms"));
     }
 
     [Fact]
     public async Task LeaveOutTheCrashHeadingWithoutACrash()
     {
-        ProblemReport report = await new ProblemReports(log, counts, crashFile, Start, TestSettings.Current(@"C:\Users\me\source\repos")).BuildAsync();
+        ProblemReport report = await new ProblemReports(log, counts, crashFile, Start, TestSettings.Current(@"C:\Users\me\source\repos"), clock).BuildAsync();
 
         report.HasCrash.ShouldBeFalse();
         report.Text.ShouldNotContain("Last crash");
