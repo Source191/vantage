@@ -59,7 +59,7 @@ public sealed class SmokeScriptShould
             Key(Wording.SessionsKeys, "New session"), Escape,
             Key(Wording.SessionsKeys, "Report"), Escape,
             "3", Key(Wording.ConfigKeys, "Edit"), F3, Escape, Escape,
-            Key(Wording.ConfigKeys, "Filter") + "Open folder with", "\r", Key(Wording.ConfigKeys, "Edit"), Down + Down + Down + Down + " " + F3, Escape, Escape,
+            Key(Wording.ConfigKeys, "Filter") + "with", "\r", Key(Wording.ConfigKeys, "Edit"), Down + Down + Down + Down + " " + F3, Escape, Escape,
             "2", string.Empty,
             Key(Wording.WorktreesKeys, "Help"), Escape,
             Key(Wording.WorktreesKeys, "Filter") + Worktree, "\r",

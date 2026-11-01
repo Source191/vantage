@@ -47,8 +47,9 @@ public static class SmokeScript
             new SmokeStep(Opened(DialogName.Settings), Browse, Usual),
             new SmokeStep(Opened(DialogName.FolderPicker), escape, Usual),
             new SmokeStep(Opened(DialogName.Settings), escape, Usual),
-            // The filter finds the Open folder with row whatever the roots are; in its dialog Custom is the last choice, and F3 opens the file picker only while it is chosen.
-            new SmokeStep(closed, KeyFor(config, "Filter") + Wording.ConfigSetting(new ConfigRow.OpenFolderWith(EditorChoice.VsCode)), Usual),
+            // The filter finds the Open folder with row whatever the roots are, by the last word of its name alone, since no step yet proves a typed space reaches the filter;
+            // in its dialog Custom is the last choice, and F3 opens the file picker only while it is chosen.
+            new SmokeStep(closed, KeyFor(config, "Filter") + Wording.ConfigSetting(new ConfigRow.OpenFolderWith(EditorChoice.VsCode)).Split(' ')[^1], Usual),
             new SmokeStep(CaptureMarker.Nothing, Sequence("enter"), Usual),
             new SmokeStep(CaptureMarker.Nothing, KeyFor(config, "Edit"), Usual),
             new SmokeStep(Opened(DialogName.Settings), string.Concat(Enumerable.Repeat(Down, Enum.GetValues<EditorPreset>().Length - 1)) + " " + Browse, Usual),

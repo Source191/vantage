@@ -33,7 +33,7 @@ What each check does and how CI runs it. The commands, and when each check is du
 
 ## Smoke check of the packed tool
 
-- `smoke <exe> <worktree-folder>` opens and cancels the Keys help, the wizard, the problem report, the first repository root's dialog on the Config tab and its folder picker (F3), the worktrees view, its help, force remove, the fixed-folder wizard (`n`) and the solution chooser (`s`) on an idle linked worktree holding two solutions, then quits; exit 0 passes, 1 is a blocked UI thread, 2 no exe, 4 a step whose marker never appeared (named in the output).
+- `smoke <exe> <worktree-folder>` opens and cancels the Keys help, the wizard, the problem report, the first repository root's dialog on the Config tab and its folder picker (F3), the Open folder with dialog (found by filtering for `with`) with Custom chosen and its file picker (F3), the worktrees view, its help, force remove, the fixed-folder wizard (`n`) and the solution chooser (`s`) on an idle linked worktree holding two solutions, then quits; exit 0 passes, 1 is a blocked UI thread, 2 no exe, 4 a step whose marker never appeared (named in the output).
 - Its steps take their keys (by hint) and markers (dialog tab titles, a column only each view has, and the worktrees title's ", selected: " as the scan-finished signal, since the WORKTREE cell reads `repository › slug` and never the folder name) from `Wording`, so a new dialog is one step in `SmokeScript`.
 - The `check` job installs the Claude Code CLI (signed out: `claude agents --json` prints `[]`), seeds `~\source\repos\Northwind.Smoke` with the linked worktree `Northwind.Smoke-smoke`, installs the packed nupkg into a temporary `--tool-path` and runs it, so it is the one test of the bits users install.
 
