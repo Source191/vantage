@@ -10,16 +10,17 @@ public static class StatusLayout
 
     private const string Ellipsis = "…";
 
-    private static readonly TimeSpan SuccessShownFor = TimeSpan.FromSeconds(10);
+    /// <summary>How long a success stays before it clears by itself.</summary>
+    public static readonly TimeSpan SuccessShownFor = TimeSpan.FromSeconds(10);
 
-    /// <summary>How long a message of this tone stays before it clears by itself: a success for ten seconds, everything else until it is cleared.</summary>
-    public static TimeSpan? ClearsAfter(StatusTone tone) => tone switch
+    /// <summary>Whether a message of this tone clears by itself, after <see cref="SuccessShownFor"/>: a success does, everything else stays until it is cleared.</summary>
+    public static bool ClearsBySelf(StatusTone tone) => tone switch
     {
-        StatusTone.Success => SuccessShownFor,
-        StatusTone.Notice => null,
-        StatusTone.Failure => null,
-        StatusTone.Working => null,
-        StatusTone.Hint => null,
+        StatusTone.Success => true,
+        StatusTone.Notice => false,
+        StatusTone.Failure => false,
+        StatusTone.Working => false,
+        StatusTone.Hint => false,
     };
 
     /// <summary>Whether the message has a close mark: not while an action runs, and not for no message or Config's description of the selected row, which are not messages.</summary>

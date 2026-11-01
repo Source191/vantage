@@ -457,9 +457,9 @@ public sealed class ConsoleScreen(
             }
 
             ShowClose(message, running, lines);
-            if (newMessage && !running && StatusLayout.ClearsAfter(tone) is TimeSpan after)
+            if (newMessage && !running && StatusLayout.ClearsBySelf(tone))
             {
-                ClearLater(Active, message, after);
+                ClearLater(Active, message, StatusLayout.SuccessShownFor);
             }
 
             LayOutStatus(running ? Math.Max(lines.Count, 1) : lines.Count);
