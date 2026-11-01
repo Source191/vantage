@@ -127,7 +127,7 @@ public sealed class DiagnosticsPrivacyShould
     {
         BackgroundSession session = listing.Sessions.OfType<BackgroundSession>().Single();
 
-        Outcome outcome = await Dispatcher(claude, git).DispatchAsync(new OpenTabForSession(session, HasLiveTab: false), CancellationToken.None);
+        Outcome outcome = await Dispatcher(claude, git).DispatchAsync(new OpenTabForSession(session, new LiveTab.None()), CancellationToken.None);
 
         outcome.ShouldBeOfType<OpenTabOutcome.Opened>();
     }

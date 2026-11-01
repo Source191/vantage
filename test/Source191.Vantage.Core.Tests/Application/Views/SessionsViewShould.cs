@@ -159,7 +159,7 @@ public sealed class SessionsViewShould
     {
         ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Enter));
 
-        update.Effects.ShouldBe([new OpenTabForSession(WaitingJob, HasLiveTab: false)]);
+        update.Effects.ShouldBe([new OpenTabForSession(WaitingJob, new LiveTab.None())]);
     }
 
     [Fact]
@@ -275,7 +275,7 @@ public sealed class SessionsViewShould
 
         ViewUpdate update = SessionsView.Reduce(withTab, new KeyPressed(Key.Enter));
 
-        update.Effects.ShouldBe([new OpenTabForSession(WaitingJob, HasLiveTab: true)]);
+        update.Effects.ShouldBe([new OpenTabForSession(WaitingJob, new LiveTab.Open(TabPalette.Default[0]))]);
         update.State.Message.ShouldBe(StatusMessage.None);
     }
 
