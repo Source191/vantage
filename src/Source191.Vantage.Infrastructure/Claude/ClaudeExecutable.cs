@@ -25,9 +25,9 @@ public static class ClaudeExecutable
             return new ClaudeLocation.Found(native);
         }
 
-        if (new ProgramLocator(folders, pathFolders).Locate("claude") is string executable)
+        if (new ProgramLocator(folders, pathFolders).Locate("claude") is ProgramLocation.Found executable)
         {
-            return new ClaudeLocation.Found(executable);
+            return new ClaudeLocation.Found(executable.Path);
         }
 
         string? batchFile = pathFolders
