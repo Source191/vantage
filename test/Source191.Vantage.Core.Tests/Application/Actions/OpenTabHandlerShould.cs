@@ -23,7 +23,7 @@ public sealed class OpenTabHandlerShould
 
     private OpenTabHandler Handler => new(Store, registry, terminal, new FakeTimeProvider(Noon), new TabScripts(Claude, Vantage));
 
-    private static BackgroundSession Job() => new(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "Refund retry policy", FolderPath.From(@"C:\repos\Northwind.Orders"), Noon, DisplayState.Working);
+    private static BackgroundSession Job() => new(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "Refund retry policy", FolderPath.From(@"C:\repos\Northwind.Orders"), Noon, DisplayState.Working, new JobProcess.None());
 
     [Fact]
     public async Task OpenATabTitledWithTheSessionNameThatClaimsItselfThenAttaches()

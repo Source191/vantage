@@ -79,7 +79,7 @@ public sealed class WorktreeInventoryShould : IDisposable
 
         return processId is int running
             ? new InteractiveSession(id, name, FolderPath.From(directory), Noon, DisplayState.Idle, running)
-            : new BackgroundSession(id, JobId.From("81cdb0f9"), name, FolderPath.From(directory), Noon, DisplayState.Stopped);
+            : new BackgroundSession(id, JobId.From("81cdb0f9"), name, FolderPath.From(directory), Noon, DisplayState.Stopped, new JobProcess.None());
     }
 
     public void Dispose()

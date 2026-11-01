@@ -82,7 +82,7 @@ public sealed class SessionRowEnricherShould : IDisposable
     {
         registry.InTree(100, "claude", 1).Using(100, Noon.AddMinutes(-10), MemorySize.FromMegabytes(296))
             .InTree(200, "cmd", 100).Using(200, Noon.AddMinutes(-9), MemorySize.FromMegabytes(607));
-        BackgroundSession running = Session(@"C:\repos\Northwind.Orders") with { ProcessId = 100 };
+        BackgroundSession running = Session(@"C:\repos\Northwind.Orders") with { Process = new JobProcess.Running(100) };
 
         IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([running], CancellationToken.None);
 
@@ -122,7 +122,7 @@ public sealed class SessionRowEnricherShould : IDisposable
     {
         registry.InTree(100, "claude", 1).Using(100, Noon.AddMinutes(-10), MemorySize.FromMegabytes(296));
         BackgroundSession stopped = Session(@"C:\repos\Northwind.Orders");
-        BackgroundSession gone = Session(@"C:\repos\Northwind.Orders") with { ProcessId = 101 };
+        BackgroundSession gone = Session(@"C:\repos\Northwind.Orders") with { Process = new JobProcess.Running(101) };
         InteractiveSession terminal = new(SessionId.From("terminal"), "plain", FolderPath.From(@"C:\repos\Northwind.Orders"), Noon, DisplayState.Idle, ProcessId: 100);
 
         IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([stopped, gone, terminal], CancellationToken.None);
@@ -136,8 +136,8 @@ public sealed class SessionRowEnricherShould : IDisposable
     public async Task TakeOneSnapshotOfTheProcessTablePerRefresh()
     {
         registry.InTree(100, "claude", 1).Using(100, Noon, MemorySize.FromMegabytes(1)).InTree(101, "claude", 1).Using(101, Noon, MemorySize.FromMegabytes(2));
-        BackgroundSession first = Session(@"C:\repos\Northwind.Orders") with { ProcessId = 100 };
-        BackgroundSession second = Session(@"C:\repos\Northwind.Orders") with { ProcessId = 101 };
+        BackgroundSession first = Session(@"C:\repos\Northwind.Orders") with { Process = new JobProcess.Running(100) };
+        BackgroundSession second = Session(@"C:\repos\Northwind.Orders") with { Process = new JobProcess.Running(101) };
 
         await Enricher.EnrichAsync([first, second], CancellationToken.None);
 
@@ -293,7 +293,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
     private static BackgroundSession Session(string workingDirectory)
     {
-        return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From("81cdb0f9"), "name", FolderPath.From(workingDirectory), Noon, DisplayState.Working);
+        return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From("81cdb0f9"), "name", FolderPath.From(workingDirectory), Noon, DisplayState.Working, new JobProcess.None());
     }
 
     private static AutomatedRun Run(int processId)
