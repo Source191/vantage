@@ -26,7 +26,8 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
         UpdateCheckRecord? record = await records.ReadUpdateCheckAsync();
         newest.Replace(record?.Newest is string text ? NewestRelease.Recorded(text) : new NewestRelease.None());
         DateTimeOffset now = clock.GetUtcNow();
-        if (!UpdateCheckRule.ShouldCheck(running, enabled(), record?.CheckedAt, now))
+        bool due = record is null ? UpdateCheckRule.ShouldCheck(running, enabled()) : UpdateCheckRule.ShouldCheck(running, enabled(), record.CheckedAt, now);
+        if (!due)
         {
             return;
         }

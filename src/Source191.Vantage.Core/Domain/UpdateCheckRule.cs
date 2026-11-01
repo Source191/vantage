@@ -16,13 +16,11 @@ public static class UpdateCheckRule
 {
     public static readonly TimeSpan Interval = TimeSpan.FromHours(24);
 
-    /// <summary>Only a release build with the check on, and only when it has never checked or last checked a day or more ago.</summary>
-    public static bool ShouldCheck(ToolVersion running, bool enabled, DateTimeOffset? lastCheckedAt, DateTimeOffset now)
-    {
-        return enabled
-            && ReleaseOf(running) is not null
-            && (lastCheckedAt is null || now - lastCheckedAt.Value >= Interval);
-    }
+    /// <summary>Never checked: only a release build with the check on, at once.</summary>
+    public static bool ShouldCheck(ToolVersion running, bool enabled) => enabled && ReleaseOf(running) is not null;
+
+    /// <summary>Only a release build with the check on, and only when it last checked a day or more ago.</summary>
+    public static bool ShouldCheck(ToolVersion running, bool enabled, DateTimeOffset lastCheckedAt, DateTimeOffset now) => ShouldCheck(running, enabled) && now - lastCheckedAt >= Interval;
 
     /// <summary>The highest release in the list, or none; prereleases and text that is not a version are skipped.</summary>
     public static NewestRelease Newest(IEnumerable<string> versions)
