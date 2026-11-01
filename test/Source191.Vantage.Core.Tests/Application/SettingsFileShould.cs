@@ -21,6 +21,12 @@ public sealed class SettingsFileShould
     }
 
     [Fact]
+    public void RefuseANullConfig()
+    {
+        Should.Throw<ArgumentNullException>(() => SettingsFile.From(null!, Home)).ParamName.ShouldBe("config");
+    }
+
+    [Fact]
     public void CheckForUpdatesWhenTheFileSaysNothing()
     {
         SettingsFile.From(VantageConfig.Missing, Home).CheckForUpdates.ShouldBeTrue();

@@ -80,7 +80,7 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         await WriteJsonAsync(CreatedFile, existing.Where(created => created.Path != path).ToList());
     }
 
-    public Task<VantageConfig?> ReadConfigAsync() => ReadJsonAsync<VantageConfig>(ConfigFile);
+    public async Task<VantageConfig> ReadConfigAsync() => await ReadJsonAsync<VantageConfig>(ConfigFile) ?? VantageConfig.Missing;
 
     public Task WriteConfigAsync(VantageConfig config) => WriteJsonAsync(ConfigFile, config);
 
