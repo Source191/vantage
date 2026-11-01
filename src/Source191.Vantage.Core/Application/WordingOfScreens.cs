@@ -83,13 +83,13 @@ public static partial class Wording
     /// <summary>The keys every tab shares for moving between tabs and scrolling a table too wide for the terminal; only the help lists them.</summary>
     private static readonly KeyHelp[] TabKeyHelp =
     [
-        new("1", Hint: null, "the Sessions tab", Tip: "Show the Sessions tab: every Claude Code session on this machine."),
-        new("2", Hint: null, "the Worktrees tab", Tip: "Show the Worktrees tab: every worktree under your roots."),
-        new("3", Hint: null, "the Config tab", Tip: "Show the Config tab: the settings and how Vantage is set up."),
-        new("←", Hint: null, "the tab to the left", Tip: "Show the tab to the left of this one."),
-        new("→", Hint: null, "the tab to the right", Tip: "Show the tab to the right of this one."),
-        new("<", Hint: null, "scroll the columns left", Tip: "Scroll a table too wide for the terminal to the left."),
-        new(">", Hint: null, "scroll the columns right", Tip: "Scroll a table too wide for the terminal to the right."),
+        KeyHelp.HelpOnly("1", "the Sessions tab", tip: "Show the Sessions tab: every Claude Code session on this machine."),
+        KeyHelp.HelpOnly("2", "the Worktrees tab", tip: "Show the Worktrees tab: every worktree under your roots."),
+        KeyHelp.HelpOnly("3", "the Config tab", tip: "Show the Config tab: the settings and how Vantage is set up."),
+        KeyHelp.HelpOnly("←", "the tab to the left", tip: "Show the tab to the left of this one."),
+        KeyHelp.HelpOnly("→", "the tab to the right", tip: "Show the tab to the right of this one."),
+        KeyHelp.HelpOnly("<", "scroll the columns left", tip: "Scroll a table too wide for the terminal to the left."),
+        KeyHelp.HelpOnly(">", "scroll the columns right", tip: "Scroll a table too wide for the terminal to the right."),
     ];
 
     public static IReadOnlyList<KeyHelp> SessionsKeys { get; } =
