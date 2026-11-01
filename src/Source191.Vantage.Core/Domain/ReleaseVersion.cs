@@ -8,17 +8,17 @@ namespace Source191.Vantage.Domain;
 /// after <c>+</c> is dropped. Text from outside Vantage (nuget.org's list, the update-check record) goes through
 /// <see cref="TryParse"/>, which answers false for anything else.
 /// </summary>
-public sealed record ReleaseVersion(int Major, int Minor, int Patch, string? Prerelease) : IComparable<ReleaseVersion>
+public sealed record ReleaseVersion(int Major, int Minor, int Patch, string Prerelease) : IComparable<ReleaseVersion>
 {
-    public bool IsPrerelease => Prerelease is not null;
+    public bool IsPrerelease => Prerelease.Length > 0;
 
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out ReleaseVersion version)
     {
         string withoutMetadata = (text ?? string.Empty).Split('+')[0].Trim();
         int dash = withoutMetadata.IndexOf('-', StringComparison.Ordinal);
         string core = dash < 0 ? withoutMetadata : withoutMetadata[..dash];
-        string? prerelease = dash < 0 ? null : withoutMetadata[(dash + 1)..];
-        if (prerelease is not { Length: 0 }
+        string prerelease = dash < 0 ? string.Empty : withoutMetadata[(dash + 1)..];
+        if ((dash < 0 || prerelease.Length > 0)
             && core.Split('.') is [string major, string minor, string patch]
             && Number(major) is int majorNumber
             && Number(minor) is int minorNumber
@@ -66,19 +66,19 @@ public sealed record ReleaseVersion(int Major, int Minor, int Patch, string? Pre
         return byNumbers != 0 ? byNumbers : ComparePrerelease(Prerelease, other.Prerelease);
     }
 
-    public override string ToString() => Prerelease is null ? $"{Major}.{Minor}.{Patch}" : $"{Major}.{Minor}.{Patch}-{Prerelease}";
+    public override string ToString() => Prerelease.Length == 0 ? $"{Major}.{Minor}.{Patch}" : $"{Major}.{Minor}.{Patch}-{Prerelease}";
 
     /// <summary>Digits only: <see cref="NumberStyles.None"/> refuses a sign, spaces and an empty identifier.</summary>
     private static int? Number(string text) => int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out int number) ? number : null;
 
     /// <summary>A release outranks any prerelease of the same numbers; prereleases compare identifier by identifier.</summary>
-    private static int ComparePrerelease(string? mine, string? theirs)
+    private static int ComparePrerelease(string mine, string theirs)
     {
-        return (mine, theirs) switch
+        return (mine.Length, theirs.Length) switch
         {
-            (null, null) => 0,
-            (null, _) => 1,
-            (_, null) => -1,
+            (0, 0) => 0,
+            (0, _) => 1,
+            (_, 0) => -1,
             _ => CompareIdentifiers(mine.Split('.'), theirs.Split('.')),
         };
     }
