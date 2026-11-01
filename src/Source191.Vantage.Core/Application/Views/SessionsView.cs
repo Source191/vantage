@@ -232,7 +232,7 @@ public static class SessionsView
         }
 
         // Attaching to a session with no process resumes it from its transcript; a session never sent a message has none.
-        if (attachment != Attachment.None && session.ProcessId is null && !row.HasTranscript)
+        if (attachment != Attachment.None && session.Process is JobProcess.None && !row.HasTranscript)
         {
             return Unchanged(state with { Message = new StatusMessage.NeverSentAMessage(row.Session.Name) });
         }
@@ -267,7 +267,7 @@ public static class SessionsView
         return state.Selected switch
         {
             null => Unchanged(state with { Message = new StatusMessage.NoSessionSelected() }),
-            { Session: BackgroundSession { ProcessId: int processId } session } => Effect(state with { Message = StatusMessage.None }, new ShowMemory(session, processId)),
+            { Session: BackgroundSession { Process: JobProcess.Running running } session } => Effect(state with { Message = StatusMessage.None }, new ShowMemory(session, running.Id)),
             { Session: InteractiveSession session } => Effect(state with { Message = StatusMessage.None }, new ShowMemory(session, session.ProcessId)),
             SessionRow row => Unchanged(state with { Message = new StatusMessage.NothingToMeasure(row.Session.Name) }),
         };
@@ -293,7 +293,7 @@ public static class SessionsView
 
         return (row.HasTranscript, session) switch
         {
-            (false, { ProcessId: null }) => Unchanged(state with { Message = new StatusMessage.NeverSentAMessage(session.Name) }),
+            (false, { Process: JobProcess.None }) => Unchanged(state with { Message = new StatusMessage.NeverSentAMessage(session.Name) }),
             (false, _) => Unchanged(state with { Message = new StatusMessage.NoMessagesToRename(session.Name) }),
             (_, { State.Kind: DisplayStateKind.Working }) => Unchanged(state with { Message = new StatusMessage.WorkingSoRenameWaits(session.Name) }),
             _ => Effect(state with { Message = StatusMessage.None }, new AskForNewName(session)),
