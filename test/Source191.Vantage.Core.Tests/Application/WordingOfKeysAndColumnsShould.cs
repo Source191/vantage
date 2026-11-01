@@ -209,7 +209,7 @@ public sealed class WordingOfKeysAndColumnsShould
             <      scroll the columns left                        >      scroll the columns right
 
             Columns
-            SETTING  a setting Vantage keeps in config.json, or, in grey, setup it reads but does not change
+            SETTING  a setting Vantage keeps in config.json, or, under the Setup heading, setup it reads but does not change
             VALUE    its value; a setup row that needs attention says what to run
             """.ReplaceLineEndings("\n"));
     }
