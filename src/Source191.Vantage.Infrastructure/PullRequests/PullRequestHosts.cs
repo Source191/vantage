@@ -1,3 +1,4 @@
+using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 
@@ -25,7 +26,7 @@ public static class AzureCliExecutable
     public static ProgramLocation Locate(IReadOnlyList<string> pathFolders)
     {
         ArgumentNullException.ThrowIfNull(pathFolders);
-        string? found = pathFolders
+        string? found = PathFolders.Searchable(pathFolders)
             .Select(folder => Path.Combine(folder, "az.cmd"))
             .FirstOrDefault(File.Exists);
 
