@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
@@ -17,7 +18,7 @@ public sealed class SetupFactsReaderShould
         InMemoryState state = new();
         DateTimeOffset nine = new(2026, 10, 30, 9, 12, 0, TimeSpan.Zero);
         await state.WriteUpdateCheckAsync(new UpdateCheckRecord(nine, "0.18.0"));
-        SetupFactsReader reader = new(fragment, new FakeClaudeSettings(new NotificationChannelState.Configured("terminal_bell")), state, SettingsFile, LogFile);
+        SetupFactsReader reader = new(fragment, new FakeClaudeSettings(new NotificationChannelState.Configured("terminal_bell")), state, SettingsFile, new DiagnosticLogSetting.File(LogFile));
 
         SetupFacts facts = await reader.ReadAsync(TestContext.Current.CancellationToken);
 
@@ -27,7 +28,7 @@ public sealed class SetupFactsReaderShould
     [Fact]
     public async Task ReadNothingSetUp()
     {
-        SetupFactsReader reader = new(new FakeTerminalFragment(), new FakeClaudeSettings(new NotificationChannelState.Unset()), new InMemoryState(), SettingsFile, logPath: null);
+        SetupFactsReader reader = new(new FakeTerminalFragment(), new FakeClaudeSettings(new NotificationChannelState.Unset()), new InMemoryState(), SettingsFile, new DiagnosticLogSetting.Off());
 
         SetupFacts facts = await reader.ReadAsync(TestContext.Current.CancellationToken);
 
@@ -37,7 +38,7 @@ public sealed class SetupFactsReaderShould
     [Fact]
     public async Task CallAMissingClaudeSettingsFileNotSetUp()
     {
-        SetupFactsReader reader = new(new FakeTerminalFragment(), new FakeClaudeSettings(new NotificationChannelState.Missing()), new InMemoryState(), SettingsFile, logPath: "  ");
+        SetupFactsReader reader = new(new FakeTerminalFragment(), new FakeClaudeSettings(new NotificationChannelState.Missing()), new InMemoryState(), SettingsFile, DiagnosticLogSetting.Read("  "));
 
         SetupFacts facts = await reader.ReadAsync(TestContext.Current.CancellationToken);
 
@@ -48,7 +49,7 @@ public sealed class SetupFactsReaderShould
     [Fact]
     public async Task NameAnotherChannel()
     {
-        SetupFactsReader reader = new(new FakeTerminalFragment(), new FakeClaudeSettings(new NotificationChannelState.Configured("iterm2")), new InMemoryState(), SettingsFile, logPath: null);
+        SetupFactsReader reader = new(new FakeTerminalFragment(), new FakeClaudeSettings(new NotificationChannelState.Configured("iterm2")), new InMemoryState(), SettingsFile, new DiagnosticLogSetting.Off());
 
         (await reader.ReadAsync(TestContext.Current.CancellationToken)).ClaudeBell.ShouldBe(new SetupState.OtherChannel("iterm2"));
     }
@@ -56,7 +57,7 @@ public sealed class SetupFactsReaderShould
     [Fact]
     public async Task KeepTheOtherFactsWhenClaudesSettingsAreUnreadable()
     {
-        SetupFactsReader reader = new(new FakeTerminalFragment().Installed(), new FakeClaudeSettings(new NotificationChannelState.Unreadable("not JSON")), new InMemoryState(), SettingsFile, logPath: null);
+        SetupFactsReader reader = new(new FakeTerminalFragment().Installed(), new FakeClaudeSettings(new NotificationChannelState.Unreadable("not JSON")), new InMemoryState(), SettingsFile, new DiagnosticLogSetting.Off());
 
         SetupFacts facts = await reader.ReadAsync(TestContext.Current.CancellationToken);
 
@@ -68,7 +69,7 @@ public sealed class SetupFactsReaderShould
     public async Task KeepTheOtherFactsWhenAReadThrows()
     {
         FakeClaudeSettings claude = new() { FailTheReadWith = new IOException("locked") };
-        SetupFactsReader reader = new(new FakeTerminalFragment().Installed(), claude, new InMemoryState(), SettingsFile, logPath: null);
+        SetupFactsReader reader = new(new FakeTerminalFragment().Installed(), claude, new InMemoryState(), SettingsFile, new DiagnosticLogSetting.Off());
 
         SetupFacts facts = await reader.ReadAsync(TestContext.Current.CancellationToken);
 
