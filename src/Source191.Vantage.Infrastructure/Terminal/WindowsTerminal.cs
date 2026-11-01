@@ -11,13 +11,13 @@ namespace Source191.Vantage.Adapters.Terminal;
 /// </summary>
 public static class WindowsTerminalArguments
 {
-    /// <summary>The arguments for a new tab; a profile name adds <c>--profile</c>, null leaves the tab in the default profile.</summary>
-    public static IReadOnlyList<string> ForTab(TabLaunch launch, string? profile)
+    /// <summary>The arguments for a new tab; the profile's arguments are <c>--profile</c> and its name, or none for the default profile.</summary>
+    public static IReadOnlyList<string> ForTab(TabLaunch launch, IReadOnlyList<string> profile)
     {
         string[] arguments =
         [
             "-w", "0", "new-tab",
-            .. profile is null ? (string[])[] : ["--profile", profile],
+            .. profile,
             "--title", launch.Title,
             "--tabColor", launch.Colour.Hex,
             "--suppressApplicationTitle",
@@ -55,7 +55,7 @@ public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment 
             _ => throw new UnreachableException(),
         };
 
-        string? profile = fragment.Exists ? TerminalProfiles.SessionProfileName : null;
+        string[] profile = fragment.Exists ? ["--profile", TerminalProfiles.SessionProfileName] : [];
         ProcessRequest request = new(executable, WindowsTerminalArguments.ForTab(launch, profile), new WorkingFolder.At(launch.StartingDirectory.Value));
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
