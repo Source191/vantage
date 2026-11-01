@@ -250,6 +250,7 @@ public static partial class Wording
         return outcome switch
         {
             DeleteSessionOutcome.Deleted deleted => $"{Gone(deleted, deleted.Name)}.",
+            DeleteSessionOutcome.KeptWorktree { Reason: RemovalReason.LeftoverFilesWouldBeLost } kept => $"{Gone(kept, kept.Name)}; kept its worktree because {Describe(kept.Reason)}; force remove (D) on the Worktrees tab deletes it.",
             DeleteSessionOutcome.KeptWorktree kept => $"{Gone(kept, kept.Name)}; kept its worktree because {Describe(kept.Reason)}.",
             DeleteSessionOutcome.RemovedWorktreeAndBranch removed => $"{Gone(removed, removed.Name)}{(removed.TabClosed ? "," : string.Empty)} and removed the worktree and branch {removed.Branch}.",
             DeleteSessionOutcome.BranchNotMerged unmerged => $"{Gone(unmerged, unmerged.Name)}{(unmerged.TabClosed ? "," : string.Empty)} and removed the worktree; branch {unmerged.Branch.Branch} is not merged.",
