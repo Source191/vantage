@@ -17,7 +17,7 @@ internal sealed class ConfigScreenDefinition(TimeProvider clock) : IScreenDefini
     /// <summary>The Config tab has no pane: a setting's row says all there is.</summary>
     public TableDetail<ConfigRow> Detail => new TableDetail<ConfigRow>.None();
 
-    /// <summary>What the setting does or the setup is for, the same words the status line gives the selected row.</summary>
+    /// <summary>What the setting does or the setup is for, shown only as the row's tooltip.</summary>
     public string RowTip(ConfigRow row) => Wording.ConfigDescription(row);
 
 

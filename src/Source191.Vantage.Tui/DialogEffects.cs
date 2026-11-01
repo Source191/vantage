@@ -12,7 +12,7 @@ using System.Diagnostics;
 namespace Source191.Vantage.Tui;
 
 /// <summary>
-/// Every effect that needs a dialog, for both views. Each flow asks its question, then hands the answer back through
+/// Every effect that needs a dialog, for every tab. Each flow asks its question, then hands the answer back through
 /// the reducer or dispatches the effect it settles on; the work itself is always a handler's.
 /// </summary>
 public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentRepositories recent, IFolders folders, CurrentSettings settings, SolutionFinder solutions, UpdateCheck updates, DeleteSessionHandler deleteSession, RemoveWorktreeHandler removeWorktree, ProblemReports reports, IProcessRegistry processes)

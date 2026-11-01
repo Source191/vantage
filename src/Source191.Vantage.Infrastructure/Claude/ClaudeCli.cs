@@ -5,6 +5,10 @@ using System.Text.RegularExpressions;
 
 namespace Source191.Vantage.Adapters.Claude;
 
+/// <summary>
+/// The Claude CLI adapter: runs claude by its full path for the listing, the version, a <c>--bg</c> start and resume,
+/// attach, stop and rm, and reads the CLI's words in its answers (the version, the job id, an untrusted workspace) here.
+/// </summary>
 public sealed partial class ClaudeCli(IProcessRunner processes, string executable) : IClaudeCli
 {
     public async Task<SessionListing> ListSessionsAsync(CancellationToken cancellationToken)

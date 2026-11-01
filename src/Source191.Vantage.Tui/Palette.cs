@@ -61,8 +61,8 @@ internal static class Palette
     public static Scheme Highlight() => Pair(new Color(0, 0, 0), Cyan);
 
     /// <summary>
-    /// Both tabs' frames: grey lines, and the title of the tab shown (the focused one) in bold cyan. A frame drawn in each
-    /// tab's own colour broke at the joins `Tabs` shares between tabs, so only the title marks the active tab.
+    /// Every tab's frame: grey lines, and the title of the tab shown (the focused one) in bold cyan. A frame drawn in each
+    /// tab's own colour broke at the joins <c>Tabs</c> shares between tabs, so only the title marks the active tab.
     /// </summary>
     public static Scheme TabFrame()
     {
@@ -78,9 +78,9 @@ internal static class Palette
     private static readonly Color SelectionText = new(51, 51, 51);
 
     /// <summary>
-    /// The selected table row, bold dark grey on bright cyan, with the given foreground for a cell that keeps its own
-    /// colour there (the TAB block). Such a table draws the selected row with the Active role, which Terminal.Gui otherwise
-    /// derives from Normal as a lighter shade, so every role is set to the exact colours.
+    /// The selected table row, bold dark grey on bright cyan. A table that cannot take focus draws the selected row with
+    /// the Active role, which Terminal.Gui otherwise derives from Normal as a lighter shade, so every role is set to the
+    /// exact colours.
     /// </summary>
     public static Scheme SelectedRow() => SelectedRow(SelectionText);
 

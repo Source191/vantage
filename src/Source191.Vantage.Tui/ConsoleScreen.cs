@@ -75,7 +75,7 @@ public sealed class ConsoleScreen(
         return frame.Exit;
     }
 
-    /// <summary>One run's views and state: the window, the icon and settings rows, the two tabs, the counts and title beside them, the key bar and the timers.</summary>
+    /// <summary>One run's views and state: the window, the icon and settings row, the three tabs, the counts and title beside them, the key bar and the timers.</summary>
     private sealed class Frame : ITabHost, IDisposable
     {
         private const string Separator = " · ";
@@ -243,7 +243,8 @@ public sealed class ConsoleScreen(
         /// <summary>
         /// Shows a tab: selects it in the strip (ignoring the change event that raises), records it, rescans the worktrees
         /// each time their tab is shown unless a scan is already running (the start-up scan, when the tab is shown first),
-        /// and tells every tab which is shown so the hidden ones keep their spinners still.
+        /// reads the setup each time the Config tab is shown (<see cref="ReadConfig"/>), and tells every tab which is shown
+        /// so the hidden ones keep their spinners still.
         /// </summary>
         private void Show(ConsoleTab tab)
         {
@@ -289,7 +290,7 @@ public sealed class ConsoleScreen(
         }
 
         /// <summary>
-        /// `Tabs` binds the arrow and paging keys to moving between tabs, so Up and Down switched tabs instead of moving
+        /// <c>Tabs</c> binds the arrow and paging keys to moving between tabs, so Up and Down switched tabs instead of moving
         /// the selection; without those bindings the keys reach the window and go to the active tab's reducer.
         /// </summary>
         private static void ReleaseNavigationKeys(params View[] views)
@@ -323,7 +324,7 @@ public sealed class ConsoleScreen(
             }
         }
 
-        /// <summary>The icon shows where the terminal draws images, and the two settings rows start after it; elsewhere they start at the left edge.</summary>
+        /// <summary>The icon shows where the terminal draws images, and the settings row starts after it; elsewhere it starts at the left edge.</summary>
         private void ShowSettings()
         {
             int indent = app.Driver?.SixelSupport is { IsSupported: true, Resolution: System.Drawing.Size cell } ? VantageIcon.Fit(icon, cell) : VantageIcon.Hide(icon);
@@ -470,7 +471,7 @@ public sealed class ConsoleScreen(
             LayOutStatus(running ? Math.Max(lines.Count, 1) : lines.Count);
         }
 
-        /// <summary>The close mark after the message's last word, on its last row; none while an action runs or for a standing description.</summary>
+        /// <summary>The close mark after the message's last word, on its last row; none while an action runs or when there is no message.</summary>
         private void ShowClose(StatusMessage message, bool running, IReadOnlyList<string> lines)
         {
             statusClose.Visible = lines.Count > 0 && StatusLayout.Closes(message, running);
