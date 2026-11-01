@@ -329,7 +329,7 @@ The console SHALL start one worktrees scan as it opens, whichever tab is shown, 
 - **THEN** the worktrees have been scanned exactly once
 
 #### Scenario: Opened during the first scan
-- **WHEN** the user presses 2 before the start-up scan has returned
+- **WHEN** the user shows the Worktrees tab before the start-up scan has returned
 - **THEN** the Worktrees tab waits for that scan, and no second scan starts
 
 #### Scenario: A slow scan
@@ -337,7 +337,7 @@ The console SHALL start one worktrees scan as it opens, whichever tab is shown, 
 - **THEN** the 15-second timer starts no other scan until it returns
 
 #### Scenario: Shown again
-- **WHEN** the user leaves the Worktrees tab, runs `git worktree remove` on one of its worktrees in a shell and presses 2
+- **WHEN** the user leaves the Worktrees tab, runs `git worktree remove` on one of its worktrees in a shell and shows the Worktrees tab again
 - **THEN** the tab shows its earlier rows at once and drops the removed worktree when the rescan returns
 
 #### Scenario: The sessions listing failed

@@ -41,7 +41,7 @@ public static class SmokeScript
             new SmokeStep(Opened(DialogName.NewSession), escape, Usual),
             new SmokeStep(closed, KeyFor(sessions, "Report"), Usual),
             new SmokeStep(Opened(DialogName.ProblemReport), escape, Usual),
-            new SmokeStep(closed, TabKey(sessions, ConsoleTab.Config), Usual),
+            new SmokeStep(closed, TabKeys(sessions, ConsoleTab.Sessions, ConsoleTab.Config), Usual),
             // The Config tab opens on the first repository root, and Enter edits the roots in a setting's dialog, where F3 opens the folder picker.
             new SmokeStep(configView, KeyFor(config, "Edit"), Usual),
             new SmokeStep(Opened(DialogName.Settings), Browse, Usual),
@@ -55,7 +55,7 @@ public static class SmokeScript
             new SmokeStep(Opened(DialogName.Settings), string.Concat(Enumerable.Repeat(Down, Enum.GetValues<EditorPreset>().Length - 1)) + " " + Browse, Usual),
             new SmokeStep(Opened(DialogName.FilePicker), escape, Usual),
             new SmokeStep(Opened(DialogName.Settings), escape, Usual),
-            new SmokeStep(closed, TabKey(config, ConsoleTab.Worktrees), Usual),
+            new SmokeStep(closed, TabKeys(config, ConsoleTab.Config, ConsoleTab.Worktrees), Usual),
             new SmokeStep(worktreesView, string.Empty, Usual),
             // The scan has finished once the table's title names a selection; keys typed into the filter before then are lost.
             // The WORKTREE cell reads "repository › slug", so the folder name itself is not on screen until the title or the filter shows it.
@@ -71,8 +71,8 @@ public static class SmokeScript
             // The worktree holds two solutions, neither named after its repository, so s asks which one.
             new SmokeStep(closed, KeyFor(worktrees, "Open solution"), Usual),
             new SmokeStep(Opened(DialogName.OpenSolution), escape, Usual),
-            // Esc would only clear the filter typed above, so the tab key goes back.
-            new SmokeStep(closed, TabKey(worktrees, ConsoleTab.Sessions), Usual),
+            // Esc would only clear the filter typed above, so Left goes back.
+            new SmokeStep(closed, TabKeys(worktrees, ConsoleTab.Worktrees, ConsoleTab.Sessions), Usual),
             new SmokeStep(sessionsView, KeyFor(sessions, "Quit"), Usual),
         ];
     }
@@ -109,7 +109,7 @@ public static class SmokeScript
             new SmokeStep(sessionsView, KeyFor(Wording.SessionsKeys, "Quit"), Slow),
         ];
     }
-    /// <summary>What a terminal sends for the first key with this hint; the help's names esc and enter become their sequences.</summary>
+    /// <summary>What a terminal sends for the first key with this hint; the help's names esc and enter, and its arrows, become their sequences.</summary>
     public static string KeyFor(IReadOnlyList<KeyHelp> keys, string hint)
     {
         KeyHelp help = keys.FirstOrDefault(key => key.Hint == hint)
@@ -118,12 +118,14 @@ public static class SmokeScript
         return Sequence(help.Key);
     }
 
-    /// <summary>The key that chooses a tab, which has no bar hint: the one the help says shows that tab.</summary>
-    public static string TabKey(IReadOnlyList<KeyHelp> keys, ConsoleTab tab)
+    /// <summary>The keys that step from one tab to another, which have no bar hint: the help's arrow to the right or left, once for each tab between them.</summary>
+    public static string TabKeys(IReadOnlyList<KeyHelp> keys, ConsoleTab from, ConsoleTab to)
     {
-        string line = $"the {Wording.TabTitleFor(tab)} tab";
+        int steps = (int)to - (int)from;
+        string line = steps > 0 ? "the tab to the right" : "the tab to the left";
+        string arrow = Sequence(keys.First(key => key.Line == line).Key);
 
-        return Sequence(keys.First(key => key.Line == line).Key);
+        return string.Concat(Enumerable.Repeat(arrow, Math.Abs(steps)));
     }
 
     /// <summary>What a terminal sends for a key as the help names it.</summary>
@@ -131,6 +133,8 @@ public static class SmokeScript
     {
         "esc" => "\u001b",
         "enter" => "\r",
+        "→" => "\u001b[C",
+        "←" => "\u001b[D",
         _ => key,
     };
 
