@@ -130,6 +130,7 @@ public sealed class RemovalDecisionShould
     [Theory]
     [InlineData(WorktreeHealthKind.Orphan)]
     [InlineData(WorktreeHealthKind.Broken)]
+    [InlineData(WorktreeHealthKind.Empty)]
     public void RefuseALeftoverFolderThatStillHasFilesInIt(WorktreeHealthKind health)
     {
         RemovalDecision decision = RemovalDecision.For(Clean with { Health = health, LeftoverFileCount = 12 }, forced: false);
