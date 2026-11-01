@@ -37,8 +37,8 @@ public sealed class DiagnosticLog(TimeProvider clock, IReadOnlyList<IDiagnosticS
         }
     }
 
-    /// <summary>Writes the child program counts to the sinks without keeping them as events, as Vantage does when it exits.</summary>
-    public void WriteCounts(ProcessCounts counts)
+    /// <summary>Writes every count to the sinks without keeping them as events, as Vantage does every 10 minutes and when it exits.</summary>
+    public void WriteCounts(PerformanceCounts counts)
     {
         lock (gate)
         {

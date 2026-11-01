@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -7,21 +8,23 @@ namespace Source191.Vantage.Application;
 /// <summary>
 /// The console's loads: a Sessions refresh, a Worktrees scan and a Config read, each a <see cref="ViewInput"/> for its
 /// tab, and the Config rows shown while the setup is being read. The scan reads the Sessions tab's latest listing and
-/// runs none of its own.
+/// runs none of its own. The listing, the enrichment and the scan are each timed as a refresh part; the scan's wait for the
+/// first listing is not part of its time.
 /// </summary>
-public sealed class ConsoleLoads(LatestSessions sessions, SessionRowEnricher enricher, WorktreeInventory inventory, SetupFactsReader setup, CurrentSettings settings)
+public sealed class ConsoleLoads(LatestSessions sessions, SessionRowEnricher enricher, WorktreeInventory inventory, SetupFactsReader setup, CurrentSettings settings, RefreshCounts refreshes)
 {
     private readonly LatestSessions sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
     private readonly SessionRowEnricher enricher = enricher ?? throw new ArgumentNullException(nameof(enricher));
     private readonly WorktreeInventory inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
     private readonly SetupFactsReader setup = setup ?? throw new ArgumentNullException(nameof(setup));
     private readonly CurrentSettings settings = settings ?? throw new ArgumentNullException(nameof(settings));
+    private readonly RefreshCounts refreshes = refreshes ?? throw new ArgumentNullException(nameof(refreshes));
 
     /// <summary>The Sessions tab's rows and the automated runs of the same listing.</summary>
     public async Task<ViewInput> LoadSessionsAsync(CancellationToken cancellationToken)
     {
-        SessionListing listing = await sessions.ListAsync(cancellationToken);
-        IReadOnlyList<SessionRow> rows = await enricher.EnrichAsync(listing.Sessions, cancellationToken);
+        SessionListing listing = await refreshes.TimeAsync(RefreshPart.SessionsListing, () => sessions.ListAsync(cancellationToken));
+        IReadOnlyList<SessionRow> rows = await refreshes.TimeAsync(RefreshPart.SessionsEnrichment, () => enricher.EnrichAsync(listing.Sessions, cancellationToken));
 
         return new RowsLoaded(rows) { AutomatedRuns = enricher.Measure(listing.AutomatedRuns) };
     }
@@ -31,7 +34,7 @@ public sealed class ConsoleLoads(LatestSessions sessions, SessionRowEnricher enr
     {
         IReadOnlyList<Session> listed = await sessions.SessionsAsync(cancellationToken);
 
-        return new WorktreeRowsLoaded(await inventory.ScanAsync(listed, cancellationToken));
+        return new WorktreeRowsLoaded(await refreshes.TimeAsync(RefreshPart.WorktreesScan, () => inventory.ScanAsync(listed, cancellationToken)));
     }
 
     /// <summary>The Config tab's rows with the setup read now.</summary>

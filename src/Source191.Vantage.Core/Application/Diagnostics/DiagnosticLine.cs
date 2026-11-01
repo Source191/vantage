@@ -23,6 +23,15 @@ public static class DiagnosticLine
         return [.. counts.Snapshot().Select(count => $"{Stamp(at)} counts {count.Command} exit {count.ExitCode}: {Figures(count.Durations, "run", "runs")}")];
     }
 
+    /// <summary>Every count, each line with the time it was written: the child programs, then each refresh part that has run.</summary>
+    public static IReadOnlyList<string> Render(PerformanceCounts counts, DateTimeOffset at)
+    {
+        ArgumentNullException.ThrowIfNull(counts);
+        IEnumerable<string> refreshes = counts.Refreshes.Snapshot().Select(count => $"{Stamp(at)} refreshes {Name(count.Part)}: {Figures(count.Durations, "run", "runs")}");
+
+        return [.. Render(counts.Processes, at), .. refreshes];
+    }
+
     /// <summary>The start facts without the time, as a problem report's environment line shows them.</summary>
     public static string Environment(Started started)
     {

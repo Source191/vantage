@@ -76,9 +76,37 @@ public sealed class DiagnosticLogShould
         ProcessCounts counts = new();
         counts.Add(ChildCommand.For(new Ports.ProcessRequest("git", ["worktree", "list", "--porcelain"], WorkingFolder.Inherit)), 0, TimeSpan.FromMilliseconds(41));
 
-        log.WriteCounts(counts);
+        log.WriteCounts(new PerformanceCounts(counts, new RefreshCounts(clock, log), new StallCounts()));
 
         sink.Lines.ShouldBe(["2026-10-29T12:00:00.000Z counts git worktree list exit 0: 1 run, median 41 ms, p95 41 ms, longest 41 ms"]);
         log.Snapshot().ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task WriteEveryRefreshPartsCount()
+    {
+        RecordingSink sink = new();
+        DiagnosticLog log = new(clock, [sink]);
+        RefreshCounts refreshes = new(clock, log);
+        await refreshes.TimeAsync(RefreshPart.SessionsListing, () => Taking(TimeSpan.FromMilliseconds(1700)));
+        await refreshes.TimeAsync(RefreshPart.SessionsListing, () => Taking(TimeSpan.FromMilliseconds(2200)));
+        await refreshes.TimeAsync(RefreshPart.WorktreesScan, () => Taking(TimeSpan.FromMilliseconds(800)));
+        clock.Advance(TimeSpan.FromMinutes(10));
+
+        log.WriteCounts(new PerformanceCounts(new ProcessCounts(), refreshes, new StallCounts()));
+
+        sink.Lines.ShouldBe([
+            "2026-10-29T12:10:04.700Z refreshes sessions listing: 2 runs, median 1700 ms, p95 2200 ms, longest 2200 ms",
+            "2026-10-29T12:10:04.700Z refreshes worktrees scan: 1 run, median 800 ms, p95 800 ms, longest 800 ms",
+        ]);
+        log.Snapshot().ShouldBeEmpty();
+    }
+
+    private async Task<int> Taking(TimeSpan duration)
+    {
+        await Task.Yield();
+        clock.Advance(duration);
+
+        return 0;
     }
 }

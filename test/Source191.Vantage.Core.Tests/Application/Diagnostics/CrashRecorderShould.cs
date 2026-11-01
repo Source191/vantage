@@ -12,12 +12,15 @@ public sealed class CrashRecorderShould
     private readonly ProcessCounts counts = new();
     private readonly FakeCrashFile crashFile = new();
     private readonly DiagnosticLog log;
+    private readonly RefreshCounts refreshes;
     private readonly CrashRecorder recorder;
 
     public CrashRecorderShould()
     {
         log = new DiagnosticLog(clock, [sink]);
-        recorder = new CrashRecorder(log, counts, crashFile, clock);
+        refreshes = new RefreshCounts(clock, log);
+        recorder = new CrashRecorder(log, new PerformanceCounts(counts, refreshes, new StallCounts()), crashFile, clock);
+        refreshes.Add(RefreshPart.WorktreesScan, TimeSpan.FromMilliseconds(800));
         counts.Add(ChildCommand.For(new ProcessRequest("git", ["status"], WorkingFolder.Inherit)), 0, TimeSpan.FromMilliseconds(12));
     }
 
@@ -32,7 +35,7 @@ public sealed class CrashRecorderShould
         thrown.ShouldBeSameAs(crash);
         IReadOnlyList<TimedEvent> recorded = log.Snapshot();
         recorded.Select(timed => timed.Event).ShouldBe([new ViewShown(ViewKind.Sessions), new Failed(FailureSite.Crash, null, ExceptionSummary.From(crash))]);
-        crashFile.Written.ShouldBe(string.Join('\n', [.. recorded.Select(DiagnosticLine.Render), "2026-10-29T12:00:00.000Z counts git status exit 0: 1 run, median 12 ms, p95 12 ms, longest 12 ms"]) + "\n");
+        crashFile.Written.ShouldBe(string.Join('\n', [.. recorded.Select(DiagnosticLine.Render), "2026-10-29T12:00:00.000Z counts git status exit 0: 1 run, median 12 ms, p95 12 ms, longest 12 ms", "2026-10-29T12:00:00.000Z refreshes worktrees scan: 1 run, median 800 ms, p95 800 ms, longest 800 ms"]) + "\n");
         crashFile.Written!.ShouldNotContain("Northwind");
     }
 
@@ -43,7 +46,7 @@ public sealed class CrashRecorderShould
 
         exitCode.ShouldBe(3);
         crashFile.Written.ShouldBeNull();
-        sink.Lines.ShouldBe(["2026-10-29T12:00:00.000Z counts git status exit 0: 1 run, median 12 ms, p95 12 ms, longest 12 ms"]);
+        sink.Lines.ShouldBe(["2026-10-29T12:00:00.000Z counts git status exit 0: 1 run, median 12 ms, p95 12 ms, longest 12 ms", "2026-10-29T12:00:00.000Z refreshes worktrees scan: 1 run, median 800 ms, p95 800 ms, longest 800 ms"]);
     }
 
     [Fact]
