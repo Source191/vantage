@@ -8,7 +8,7 @@ namespace Source191.Vantage.Core.Tests.Application.Actions;
 public sealed class OwnTabShould
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
-    private static readonly TabColour Green = TabPalette.Default[4];
+    private static readonly TabColour Green = TabPalette.Default.Single(colour => colour.Name == "Green");
 
     private readonly FakeProcessRegistry registry = new();
 

@@ -48,7 +48,7 @@ public sealed class TabColourSelectionShould
     [Fact]
     public void PreferAColourWhenItIsFree()
     {
-        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default[0]], preferred: TabPalette.Default[4]);
+        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default[0]], preferred: TabPalette.Default.Single(colour => colour.Name == "Green"));
 
         choice.Colour.Name.ShouldBe("Green");
         choice.Reused.ShouldBeFalse();
@@ -57,7 +57,7 @@ public sealed class TabColourSelectionShould
     [Fact]
     public void FallBackToTheFirstFreeColourWhenThePreferredOneIsInUse()
     {
-        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default[4]], preferred: TabPalette.Default[4]);
+        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default.Single(colour => colour.Name == "Green")], preferred: TabPalette.Default.Single(colour => colour.Name == "Green"));
 
         choice.Colour.Name.ShouldBe("Red");
         choice.Reused.ShouldBeFalse();
