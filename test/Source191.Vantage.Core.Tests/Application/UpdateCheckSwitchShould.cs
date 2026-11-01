@@ -34,5 +34,18 @@ public sealed class UpdateCheckSwitchShould
         updateSwitch.IsOn().ShouldBeFalse();
     }
 
+    [Fact]
+    public async Task FollowASaveWithoutARestart()
+    {
+        CurrentSettings settings = await SettingsAsync();
+        UpdateCheckSwitch updateSwitch = new(settings, string.Empty);
+
+        bool before = updateSwitch.IsOn();
+        await settings.SaveAsync(settings.Value.WithUpdateCheckToggled());
+
+        before.ShouldBeTrue();
+        updateSwitch.IsOn().ShouldBeFalse();
+    }
+
     private Task<CurrentSettings> SettingsAsync() => CurrentSettings.LoadAsync(store, TestSettings.Home);
 }
