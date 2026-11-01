@@ -148,7 +148,7 @@ public sealed record Settings
 }
 
 /// <summary>The settings dialog's fields as typed, before any rule is applied.</summary>
-public sealed record SettingsText(string Roots, string WorktreeRoot, EditorPreset Preset, string Executable, string Arguments, WorktreeBase Base, bool CheckForUpdates = true, LaunchMode Place = LaunchMode.NewWorktree);
+public sealed record SettingsText(string Roots, string WorktreeRoot, EditorPreset Preset, string Executable, string Arguments, WorktreeBase Base, bool CheckForUpdates = Settings.ChecksForUpdatesWhenUnset, LaunchMode Place = Settings.PlaceWhenUnset);
 
 /// <summary>Why typed settings are refused, as a fact; <c>Wording</c> says it.</summary>
 public abstract record SettingsProblem
