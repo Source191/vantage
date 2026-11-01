@@ -207,6 +207,19 @@ public sealed class SessionRowEnricherShould : IDisposable
     }
 
     [Fact]
+    public async Task KeepTheRootTextWhenGitNamesAnUnreadableRoot()
+    {
+        AnswerGit(@"C:\repos\Northwind.Orders", root: "repos/Northwind.Orders", commonDir: "Northwind.Orders/.git", branch: "main");
+        Session session = Session(@"C:\repos\Northwind.Orders");
+
+        SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
+
+        row.Repository.ShouldBe(@"repos\Northwind.Orders");
+        row.Head.ShouldBe(new Head.OnBranch(BranchName.From("main")));
+        row.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
+    }
+
+    [Fact]
     public async Task MarkASessionWithALiveVantageTab()
     {
         Session session = Session(@"C:\repos\Northwind.Orders");
