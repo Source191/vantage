@@ -95,7 +95,7 @@ public sealed class WordingOfOutcomesShould
     public void SayAFailedRenameWasPutBack()
     {
         Wording.Describe(new RenameSessionOutcome.Restored("fix-123", "boom", TabClosed: false)).ShouldBe("Could not rename fix-123: boom; it is back under its old name.");
-        Wording.Describe(new RenameSessionOutcome.Restored("fix-123", "boom", TabClosed: true)).ShouldBe("Could not rename fix-123: boom; it is back under its old name and its tab is closed: o opens a new one.");
+        Wording.Describe(new RenameSessionOutcome.Restored("fix-123", "boom", TabClosed: true)).ShouldBe("Could not rename fix-123: boom; it is back under its old name and its tab is closed: Enter opens a new one.");
     }
 
     [Fact]
@@ -353,7 +353,7 @@ public sealed class WordingOfOutcomesShould
     public void SayWhichEditorCouldNotBeFound()
     {
         Wording.Describe(new OpenInEditorOutcome.EditorNotFound(EditorChoice.Of(EditorPreset.Rider)))
-            .ShouldBe("Could not find Rider; press , to choose another editor in settings.");
+            .ShouldBe("Could not find Rider; choose another under Open folder with on the Config tab (3).");
     }
 
     [Fact]
