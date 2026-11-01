@@ -58,6 +58,7 @@ dotnet run --project tools\HeadlessTerminal -- check               # the hand-of
 - **The smoke check:** `dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>` opens and cancels every dialog and view of a packed tool, then quits; exit 0 passes.
 - **Claude Code contract tests:** they start real sessions, so an ordinary `dotnet test` skips them. Run them from a trusted repository with `$env:VANTAGE_CLAUDE_CONTRACT = 1; dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug -- --filter-trait "Category=ClaudeContract"`. A difference in the CLI's help leaves `<name>.received.txt` beside the snapshot; see [the nightly contract check](#the-nightly-claude-code-contract-check).
 - **Mutation testing:** from `test\Source191.Vantage.Core.Tests`, run `dotnet stryker --test-runner mtp --project Source191.Vantage.Core.csproj --mutate "**/Domain/*.cs"`. Use `--test-runner mtp` (xunit.v3 scores 0 % under the VSTest bridge) and globs like that one, never solution-relative paths.
+- **Performance:** [docs/performance-monitoring.md](docs/performance-monitoring.md) explains how to watch Vantage over a working day with `VANTAGE_LOG`, `dotnet-counters`, `dotnet-trace` and the Windows Performance Recorder, and how to read the results before changing anything for speed.
 
 ## Trying your build
 
