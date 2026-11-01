@@ -42,6 +42,11 @@ public sealed class RecordedProcessRunner(IProcessRunner inner, DiagnosticLog lo
         {
             return await run();
         }
+        catch (ProcessTimedOutException exception)
+        {
+            log.Record(new ProcessTimedOut(command, exception.Limit));
+            throw;
+        }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             log.Record(new ProcessFailedToStart(command, ExceptionSummary.From(exception)));

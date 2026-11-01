@@ -103,6 +103,14 @@ public sealed class DiagnosticLineShould
     }
 
     [Fact]
+    public void RenderARunThatTimedOut()
+    {
+        ChildCommand agents = ChildCommand.For(new ProcessRequest(@"C:\Users\me\.local\bin\claude.exe", ["agents", "--json"], WorkingFolder.Inherit));
+
+        Body(new ProcessTimedOut(agents, TimeSpan.FromSeconds(60))).ShouldBe("timed out claude agents --json after 60000 ms");
+    }
+
+    [Fact]
     public void RenderAStall()
     {
         Body(new UiThreadStalled(TimeSpan.FromMilliseconds(820))).ShouldBe("stalled ui thread for 820 ms");
