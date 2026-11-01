@@ -24,7 +24,7 @@ public interface IClaudeCli
 {
     Task<SessionListing> ListSessionsAsync(CancellationToken cancellationToken);
 
-    Task<StartResult> StartBackgroundAsync(string directory, SessionName name, string? openingPrompt, CancellationToken cancellationToken);
+    Task<StartResult> StartBackgroundAsync(string directory, SessionName name, OpeningPrompt openingPrompt, CancellationToken cancellationToken);
 
     Task<int> AttachAsync(string jobId, CancellationToken cancellationToken);
 

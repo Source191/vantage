@@ -465,7 +465,7 @@ public sealed class WordingShould
     {
         LaunchPlan plan = new(
             FolderPath.From(Sessions.Repository), SessionName.From("Fix flaky tests"), Worktree: null,
-            ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", FolderPath.From(Sessions.Repository), IsRepository: true));
+            ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, new OpeningPrompt.None(), new RepositoryChoice("Northwind.Orders", FolderPath.From(Sessions.Repository), IsRepository: true));
 
         Wording.Working(new StartSession(plan)).ShouldBe("Starting Fix flaky tests...");
     }

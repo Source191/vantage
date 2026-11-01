@@ -18,7 +18,7 @@ public sealed record LaunchPlan(
     PlannedWorktree? Worktree,
     bool ReuseExistingWorktree,
     WorktreeBase Base,
-    string? OpeningPrompt,
+    OpeningPrompt OpeningPrompt,
     RepositoryChoice Repository);
 
 /// <summary>Why a launch request is refused, as a fact; <see cref="Wording"/> says it, in the wizard and from vantage here.</summary>
@@ -56,8 +56,8 @@ public static class LaunchPlanBuilder
 
     private static LaunchPlanResult Build(LaunchRequest request, SessionName name, FolderPath worktreeRoot, Func<string, bool> folderExists)
     {
-        string? prompt = Blank(request.OpeningPromptText) ? null : request.OpeningPromptText.Trim();
-        if (prompt is not null && prompt.StartsWith('-'))
+        OpeningPrompt prompt = Blank(request.OpeningPromptText) ? new OpeningPrompt.None() : new OpeningPrompt.Text(request.OpeningPromptText.Trim());
+        if (prompt is OpeningPrompt.Text { Words: string text } && text.StartsWith('-'))
         {
             return new LaunchPlanResult.Refused(new LaunchProblem.PromptLooksLikeAnOption());
         }
