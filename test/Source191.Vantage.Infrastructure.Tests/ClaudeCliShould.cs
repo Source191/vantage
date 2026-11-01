@@ -93,7 +93,7 @@ public sealed class ClaudeCliShould
     {
         processes.AnswerAll(new ProcessResult(0, StartedOutput, string.Empty));
 
-        StartResult result = await Cli.StartBackgroundAsync(Directory, name, openingPrompt: null, CancellationToken.None);
+        StartResult result = await Cli.StartBackgroundAsync(Directory, name, new OpeningPrompt.None(), CancellationToken.None);
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.WorkingDirectory.ShouldBe(Directory),
@@ -108,7 +108,7 @@ public sealed class ClaudeCliShould
     {
         processes.AnswerAll(new ProcessResult(0, StartedOutput, string.Empty));
 
-        await Cli.StartBackgroundAsync(Directory, name, "Fix the flaky test", CancellationToken.None);
+        await Cli.StartBackgroundAsync(Directory, name, new OpeningPrompt.Text("Fix the flaky test"), CancellationToken.None);
 
         processes.CapturedRequests.Single().Arguments.ShouldBe(["--bg", "-n", "Refund retry policy", "Fix the flaky test"]);
     }
@@ -118,7 +118,7 @@ public sealed class ClaudeCliShould
     {
         processes.AnswerAll(new ProcessResult(1, string.Empty, "Workspace not trusted. Run `claude` in C:\\repos\\Northwind.Orders once and accept the trust prompt, then retry."));
 
-        StartResult result = await Cli.StartBackgroundAsync(Directory, name, openingPrompt: null, CancellationToken.None);
+        StartResult result = await Cli.StartBackgroundAsync(Directory, name, new OpeningPrompt.None(), CancellationToken.None);
 
         result.ShouldBeOfType<StartResult.WorkspaceNotTrusted>().Message.ShouldStartWith("Workspace not trusted.");
     }
@@ -128,7 +128,7 @@ public sealed class ClaudeCliShould
     {
         processes.AnswerAll(new ProcessResult(1, string.Empty, "Couldn't start the background service"));
 
-        StartResult result = await Cli.StartBackgroundAsync(Directory, name, openingPrompt: null, CancellationToken.None);
+        StartResult result = await Cli.StartBackgroundAsync(Directory, name, new OpeningPrompt.None(), CancellationToken.None);
 
         result.ShouldBeOfType<StartResult.Failed>().Message.ShouldContain("background service");
     }

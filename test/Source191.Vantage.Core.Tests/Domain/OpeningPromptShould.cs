@@ -9,7 +9,7 @@ public sealed class OpeningPromptShould
     {
         OpeningPrompt prompt = new OpeningPrompt.Text("Fix the failing tests");
 
-        prompt.ShouldBeOfType<OpeningPrompt.Text>().Value.ShouldBe("Fix the failing tests");
+        prompt.ShouldBeOfType<OpeningPrompt.Text>().Words.ShouldBe("Fix the failing tests");
         prompt.ShouldNotBe(new OpeningPrompt.None());
         new OpeningPrompt.None().ShouldBe(new OpeningPrompt.None());
     }

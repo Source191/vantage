@@ -215,7 +215,7 @@ public sealed class WizardViewShould
             plan => plan.Worktree.ShouldNotBeNull(),
             plan => plan.ReuseExistingWorktree.ShouldBeFalse(),
             plan => plan.Base.ShouldBe(WorktreeBase.Head),
-            plan => plan.OpeningPrompt.ShouldBe("Read the README"));
+            plan => plan.OpeningPrompt.ShouldBe(new OpeningPrompt.Text("Read the README")));
     }
 
     [Fact]
