@@ -20,7 +20,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 4. Field contrast
 
-- [ ] 4.1 Set `Tui\Palette.FieldBackground` to `new(96, 96, 96)`. A constant (design decision 2); verify by build, by the 5.04:1 and 3.11:1 figures in design.md, and by opening the rename dialog in a `tools\install-local.ps1` build, tabbing to Cancel and seeing the name field still drawn as a field.
+- [x] 4.1 Set `Tui\Palette.FieldBackground` to `new(96, 96, 96)`; `Tui\PaletteShould` computes both WCAG ratios. (owed: the rename dialog look in an installed build, see PR) A constant (design decision 2); verify by build, by the 5.04:1 and 3.11:1 figures in design.md, and by opening the rename dialog in a `tools\install-local.ps1` build, tabbing to Cancel and seeing the name field still drawn as a field.
 
 ## 5. Release
 
