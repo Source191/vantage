@@ -23,7 +23,7 @@ public sealed class SetupFactsReaderShould
 
         SetupFacts facts = await reader.ReadAsync(TestContext.Current.CancellationToken);
 
-        facts.ShouldBe(new SetupFacts(new SetupState.At(SettingsFile), new SetupState.At(fragment.Location), new SetupState.Enabled(), new SetupState.At(LogFile), new SetupState.Checked(nine, "0.18.0")));
+        facts.ShouldBe(new SetupFacts(new SetupState.At(SettingsFile), new SetupState.At(fragment.Location), new SetupState.Enabled(), new SetupState.At(LogFile), new SetupState.Checked(nine, new NewestRelease.Found(ReleaseVersions.Version("0.18.0")))));
     }
 
     [Fact]

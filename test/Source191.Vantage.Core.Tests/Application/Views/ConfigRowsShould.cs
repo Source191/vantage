@@ -15,7 +15,7 @@ public sealed class ConfigRowsShould
         new SetupState.At(Fragment),
         new SetupState.Enabled(),
         new SetupState.Disabled(),
-        new SetupState.Checked(new DateTimeOffset(2026, 10, 30, 9, 12, 0, TimeSpan.Zero), "0.18.0"));
+        new SetupState.Checked(new DateTimeOffset(2026, 10, 30, 9, 12, 0, TimeSpan.Zero), new NewestRelease.Found(ReleaseVersions.Version("0.18.0"))));
 
     [Fact]
     public void ListTheDefaultSettingsFirstInTheirOrder()
