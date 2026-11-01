@@ -37,8 +37,9 @@ jobs:
           fetch-depth: 2
           persist-credentials: false
 
-      # Dependabot never raises Version, so for its pull requests that touch the tool this raises it one step on the
-      # pull request's own branch and pushes the commit with DEPENDABOT_BUMP_TOKEN, a fine-grained personal access token
+      # Dependabot never raises Version or writes a changelog line, so for its pull requests that touch the tool this raises
+      # Version one step and adds the pull request's title under Unreleased, Internal, on the pull request's own branch,
+      # and pushes the commit with DEPENDABOT_BUMP_TOKEN, a fine-grained personal access token
       # (Contents read and write on this repository) held as a Dependabot secret: the only secrets a Dependabot run can
       # read, and a push made with GITHUB_TOKEN would start no new run. That push starts the run branch protection
       # reads; this one skips its own version check and carries on. With the secret empty (a person pushed to the
@@ -62,6 +63,8 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
           HEAD_REF: ${{ github.head_ref }}
           REPOSITORY: ${{ github.repository }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           $ErrorActionPreference = 'Stop'
           .github/scripts/Assert-VersionBumped.ps1 -Base "origin/$env:BASE_REF" -Head HEAD *> $null
@@ -71,12 +74,13 @@ jobs:
           }
 
           if ([string]::IsNullOrEmpty($env:BUMP_TOKEN)) {
-              Write-Host '::notice::DEPENDABOT_BUMP_TOKEN is not available to this run, so Version was not raised: run .github/scripts/Step-Version.ps1 and push.'
+              Write-Host '::notice::DEPENDABOT_BUMP_TOKEN is not available to this run, so Version was not raised: run .github/scripts/Step-Version.ps1 and .github/scripts/Add-InternalChangelogEntry.ps1, and push.'
               exit 0
           }
 
           $version = .github/scripts/Step-Version.ps1
-          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit --quiet --all --message "Raise Version to $version for the dependency update"
+          .github/scripts/Add-InternalChangelogEntry.ps1 -Text "$env:PR_TITLE (#$env:PR_NUMBER)"
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit --quiet --all --message "Raise Version to $version and add the changelog line for the dependency update"
           if ($LASTEXITCODE -ne 0) {
               throw "git commit failed with exit code $LASTEXITCODE."
           }
@@ -98,6 +102,14 @@ jobs:
         if: github.event_name == 'pull_request' && steps.bump.outputs.pushed != 'true'
         shell: pwsh
         run: .github/scripts/Assert-VersionBumped.ps1 -Base HEAD^1 -Head HEAD
+
+      # The same comparison for CHANGELOG.md, the release notes the package carries: a change to the packaged tool adds a
+      # line under Unreleased, a change that raises Version to a stable version turns Unreleased into that version's
+      # section, and the file stays under nuget.org's 35,000 characters (CONTRIBUTING.md, Pull requests).
+      - name: Check the changelog was updated
+        if: github.event_name == 'pull_request' && steps.bump.outputs.pushed != 'true'
+        shell: pwsh
+        run: .github/scripts/Assert-ChangelogUpdated.ps1 -Base HEAD^1 -Head HEAD
 
       # A pull request that changes only documentation (openspec\, or .md files outside .github\) passes here
       # without building: nothing it changes is compiled, tested or run. Every later step checks the output, so the

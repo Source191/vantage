@@ -11,10 +11,10 @@ namespace Source191.Vantage.Adapters.State;
 /// <summary>
 /// The only state Vantage owns, under one folder: tab registrations, recent repositories
 /// (one file each, so two Vantage processes writing at once cannot lose each other's records), worktrees Vantage
-/// created, config, and the last update check. A missing or corrupt file reads as empty. The single-file recent.json of earlier
+/// created, config, the last update check and the last version run. A missing or corrupt file reads as empty. The single-file recent.json of earlier
 /// versions is imported once and removed; the descriptions\ folder and sessions.json of earlier versions are no longer read.
 /// </summary>
-public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig, IUpdateCheckRecords
+public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig, IUpdateCheckRecords, ILastRunVersion
 {
     private const int RecentLimit = 10;
 
@@ -38,6 +38,8 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     public string ConfigFile => Path.Combine(folder, "config.json");
 
     private string UpdateCheckPath => Path.Combine(folder, "update-check.json");
+
+    private string LastRunPath => Path.Combine(folder, "last-run.json");
 
     public async Task<IReadOnlyList<TabRegistration>> ReadTabsAsync() => [.. (await ReadAllAsync<TabFile>(TabsFolder)).Select(file => file.ToRegistration())];
 
@@ -89,11 +91,25 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     {
         UpdateCheckFile? file = await ReadJsonAsync<UpdateCheckFile>(UpdateCheckPath);
 
-        return file is null ? new UpdateCheckRecord.Never() : new UpdateCheckRecord.Checked(file.CheckedAt, NewestOf(file.Newest));
+        return file is null ? new UpdateCheckRecord.Never() : new UpdateCheckRecord.Checked(file.CheckedAt, NewestOf(file.Newest), NotesOf(file.Notes));
     }
 
-    public Task WriteUpdateCheckAsync(UpdateCheckRecord.Checked record) => WriteJsonAsync(UpdateCheckPath, new UpdateCheckFile(record.CheckedAt, RecordedText(record.Newest)));
+    public Task WriteUpdateCheckAsync(UpdateCheckRecord.Checked record) => WriteJsonAsync(UpdateCheckPath, new UpdateCheckFile(record.CheckedAt, RecordedText(record.Newest), RecordedNotes(record.NewestNotes)));
 
+    public async Task<LastRun> ReadLastRunAsync()
+    {
+        LastRunFile? file = await ReadJsonAsync<LastRunFile>(LastRunPath);
+
+        return ReleaseVersion.TryParse(file?.Version, out ReleaseVersion? version) ? new LastRun.Ran(version) : new LastRun.Never();
+    }
+
+    public Task WriteLastRunAsync(ReleaseVersion version) => WriteJsonAsync(LastRunPath, new LastRunFile(version.ToString()));
+
+    /// <summary>The notes as the file keeps them, the text read from nuget.org; text that is not a changelog, or none, is no notes.</summary>
+    private static ReleaseNotes NotesOf(string? text) => ReleaseNotes.TryParse(text, out ReleaseNotes? notes) ? notes : ReleaseNotes.None;
+
+    /// <summary>No notes are left out of the file, which then reads as every earlier version wrote it.</summary>
+    private static string? RecordedNotes(ReleaseNotes notes) => notes.Text.Length == 0 ? null : notes.Text;
     /// <summary>The newest release the file names: a version as Found, any other text as Unreadable, and no text as None.</summary>
     private static NewestRelease NewestOf(string? text) => text is string recorded ? NewestRelease.Recorded(recorded) : new NewestRelease.None();
 
@@ -221,6 +237,9 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
     private sealed record RecentRepository(string Path, DateTimeOffset UsedAt);
 
-    /// <summary>update-check.json as written, <c>{"checkedAt": ..., "newest": "0.10.0"}</c> or <c>"newest": null</c>: the same file every earlier version wrote.</summary>
-    private sealed record UpdateCheckFile(DateTimeOffset CheckedAt, string? Newest);
+    /// <summary>update-check.json as written, <c>{"checkedAt": ..., "newest": "0.10.0"}</c> or <c>"newest": null</c>, and <c>"notes"</c> (the newest release's notes as read) only when there are some, so without them it is the same file every earlier version wrote.</summary>
+    private sealed record UpdateCheckFile(DateTimeOffset CheckedAt, string? Newest, [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Notes = null);
+
+    /// <summary>last-run.json, <c>{"version": "0.21.0"}</c>: the released version that last ran.</summary>
+    private sealed record LastRunFile(string? Version);
 }

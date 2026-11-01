@@ -42,6 +42,12 @@ public sealed class DiagnosticLineShould
     }
 
     [Fact]
+    public void RenderPackagedNotesThatCouldNotBeRead()
+    {
+        Body(new PackagedNotesUnreadable(new ToolVersion("0.21.0"))).ShouldBe("no readable release notes in the package of 0.21.0");
+    }
+
+    [Fact]
     public void RenderADialog()
     {
         Body(new DialogShown(DialogName.Settings)).ShouldBe("dialog Settings");

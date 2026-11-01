@@ -526,6 +526,72 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
+    public async Task KeepTheNewestReleasesNotes()
+    {
+        ReleaseNotes.TryParse("## 0.21.0\n### Added\n- A key that opens the Northwind order (#171)", out ReleaseNotes? notes).ShouldBeTrue();
+        UpdateCheckRecord.Checked record = new(Noon, new NewestRelease.Found(new ReleaseVersion(0, 21, 0, "")), notes);
+
+        await Store.WriteUpdateCheckAsync(record);
+
+        UpdateCheckRecord.Checked read = (await Store.ReadUpdateCheckAsync()).ShouldBeOfType<UpdateCheckRecord.Checked>();
+        read.ShouldBe(record);
+        read.NewestNotes.Sections.Single().Entries.Single().Text.ShouldBe("A key that opens the Northwind order (#171)");
+    }
+
+    [Fact]
+    public async Task ReadAnUpdateCheckFileWithoutNotesAsHavingNone()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "update-check.json"), UpdateCheckJson("\"0.21.0\""), TestContext.Current.CancellationToken);
+
+        UpdateCheckRecord.Checked read = (await Store.ReadUpdateCheckAsync()).ShouldBeOfType<UpdateCheckRecord.Checked>();
+
+        read.NewestNotes.ShouldBe(ReleaseNotes.None);
+    }
+
+    [Fact]
+    public async Task ReadNotesThatAreNotAChangelogAsNone()
+    {
+        Directory.CreateDirectory(folder);
+        string json = """
+            {
+              "checkedAt": "2026-10-23T12:00:00+00:00",
+              "newest": "0.21.0",
+              "notes": "Release notes: https://github.com/Source191/vantage/releases/tag/v0.21.0"
+            }
+            """;
+        await File.WriteAllTextAsync(Path.Combine(folder, "update-check.json"), json, TestContext.Current.CancellationToken);
+
+        UpdateCheckRecord.Checked read = (await Store.ReadUpdateCheckAsync()).ShouldBeOfType<UpdateCheckRecord.Checked>();
+
+        read.NewestNotes.ShouldBe(ReleaseNotes.None);
+    }
+
+    [Fact]
+    public async Task RecordTheLastVersionRun()
+    {
+        (await Store.ReadLastRunAsync()).ShouldBe(new LastRun.Never());
+
+        await Store.WriteLastRunAsync(new ReleaseVersion(0, 21, 0, ""));
+
+        (await Store.ReadLastRunAsync()).ShouldBe(new LastRun.Ran(new ReleaseVersion(0, 21, 0, "")));
+        string written = await File.ReadAllTextAsync(Path.Combine(folder, "last-run.json"), TestContext.Current.CancellationToken);
+        written.ReplaceLineEndings("\n").ShouldBe("{\n  \"version\": \"0.21.0\"\n}");
+    }
+
+    [Theory]
+    [InlineData("{ not json")]
+    [InlineData("{ \"version\": \"rubbish\" }")]
+    [InlineData("{ \"version\": null }")]
+    [InlineData("{}")]
+    public async Task ReadAnUnreadableLastRunAsNever(string json)
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "last-run.json"), json, TestContext.Current.CancellationToken);
+
+        (await Store.ReadLastRunAsync()).ShouldBe(new LastRun.Never());
+    }
+    [Fact]
     public async Task ReadAMissingOrCorruptUpdateCheckAsNever()
     {
         (await Store.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Never());

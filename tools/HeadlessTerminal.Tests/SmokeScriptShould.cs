@@ -103,6 +103,26 @@ public sealed class SmokeScriptShould
     }
 
     [Fact]
+    public void OpenWhatsNewWithTheUpdateKeyAndCloseItWithEsc()
+    {
+        IReadOnlyList<SmokeStep> steps = SmokeScript.WhatsNewBeforeUpdate();
+
+        steps.Select(step => step.Keys).ShouldBe([Key(Wording.SessionsKeys, "Update"), Escape, Key(Wording.SessionsKeys, "Quit")]);
+        steps[1].Marker.ShouldBe(new CaptureMarker.Title(Wording.TabTitleDuring(DialogName.WhatsNew)));
+        steps[2].Marker.ShouldBe(new CaptureMarker.Title(Wording.TabTitle));
+    }
+
+    [Fact]
+    public void WaitForWhatsNewBeforeTheConsoleOnTheFirstStartOfANewVersion()
+    {
+        IReadOnlyList<SmokeStep> steps = SmokeScript.WhatsNewOnStart();
+
+        steps[0].Marker.ShouldBe(new CaptureMarker.Title(Wording.TabTitleDuring(DialogName.WhatsNew)));
+        steps[0].Keys.ShouldBe(Escape);
+        steps[1].Marker.ShouldBeOfType<CaptureMarker.ScreenText>().Text.ShouldBeOneOf([.. Wording.SessionsColumns.Select(column => column.Name)]);
+        steps[1].Keys.ShouldBe(Key(Wording.SessionsKeys, "Quit"));
+    }
+    [Fact]
     public void TranslateTheNamedKeysToWhatATerminalSends()
     {
         SmokeScript.KeyFor([new KeyHelp("esc", "Back", "back", Tip: "Go back.")], "Back").ShouldBe(Escape);

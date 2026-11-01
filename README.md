@@ -115,7 +115,7 @@ Keys that work on every tab:
 | <, > | Scroll a table too wide for the terminal, one column at a time |
 | / | Filter the rows; Enter keeps the filter, Esc clears it |
 | ? | Help: every key, every column and the detail pane's lines for this tab |
-| U | Update Vantage when a newer release is known (see [Updates](#updates)) |
+| U | Show what changed in a newer release and update Vantage (see [Updates](#updates)) |
 | ! | Report a problem (see [Reporting a problem](#reporting-a-problem)) |
 | q | Quit. Quitting Vantage never stops a session |
 
@@ -364,11 +364,19 @@ To set a bell by hand instead: Windows Terminal, Settings, a profile, Advanced: 
 
 ## Updates
 
-A dotnet global tool never updates itself, so Vantage looks for you: once a day at most, in the background as it opens, it asks nuget.org for the newest release of `Source191.Vantage`, and the settings row says when there is one. A slow or failed check shows nothing and delays nothing. Prerelease versions are not offered, and a prerelease build never checks.
+A dotnet global tool never updates itself, so Vantage looks for you: once a day at most, in the background as it opens, it asks nuget.org for the newest release of `Source191.Vantage`, and the settings row says when there is one, in amber (`0.21.0 available, U to update`). The first time the check finds a release, the status line also says so once: "Vantage 0.21.0 is available: press U to see what changed." A slow or failed check shows nothing and delays nothing. Prerelease versions are not offered, and a prerelease build never checks.
 
-`U` asks "Quit Vantage and update to 0.19.0?". On yes, Vantage opens a tab titled "Update Vantage" and quits; the tab waits for it to exit, runs `dotnet tool update -g Source191.Vantage` against nuget.org and starts Vantage again. If the update fails, usually because another Vantage is still open, the tab stays open with dotnet's message: quit every Vantage and try again. Background sessions keep running throughout.
+`U` opens a What's new dialog, "Update Vantage 0.19.0 to 0.21.0": every release since the one you run, newest first, its changes under Added, Changed, Fixed, Removed and Security, each with its pull request number. Tab moves into the list to scroll it. Its buttons:
 
-The check is one anonymous HTTPS request for the public list of the package's versions, with a `Vantage/<version>` user agent and nothing else that identifies you. Turn it off with Check for updates on the [Config tab](#the-config-tab), or set the environment variable `VANTAGE_NO_UPDATE_CHECK` to any value.
+- **Update now:** Vantage opens a tab titled "Update Vantage" and quits, as below.
+- **Release page:** opens the release's page on GitHub in your browser; the dialog stays open.
+- **Later** (or Enter as it opens, or Esc): closes the dialog and changes nothing.
+
+When the notes could not be read, the dialog says so and still offers all three. After Update now, the update tab waits for Vantage to exit; it runs `dotnet tool update -g Source191.Vantage` against nuget.org and starts Vantage again. If the update fails, usually because another Vantage is still open, the tab stays open with dotnet's message: quit every Vantage and try again. Background sessions keep running throughout.
+
+The first time the new version starts, a "What's new in 0.21.0" dialog lists what changed since the version you ran before, from the notes inside the installed tool, before the console takes a key; Close or Esc goes on to the console, and it never shows again for that version. It is not shown on the first ever start, by a prerelease build, or when the notes cannot be read. The notes are the project's [CHANGELOG.md](https://github.com/Source191/vantage/blob/main/CHANGELOG.md).
+
+The check is one anonymous HTTPS request for the public list of the package's versions, with a `Vantage/<version>` user agent and nothing else that identifies you. Only when it finds a release newer than yours does it make a second request of the same kind, for that release's public package description on nuget.org, which carries its notes; the notes are shown as plain text and nothing in them is ever opened. Turn it off with Check for updates on the [Config tab](#the-config-tab), or set the environment variable `VANTAGE_NO_UPDATE_CHECK` to any value.
 
 ## Reporting a problem
 
@@ -384,7 +392,8 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 | File or folder | Contents |
 | --- | --- |
 | `config.json` | Your settings (see [The Config tab](#the-config-tab)) |
-| `update-check.json` | When Vantage last asked nuget.org, and the newest release it found |
+| `update-check.json` | When Vantage last asked nuget.org, the newest release it found and, when that is newer than yours, its notes |
+| `last-run.json` | The released version that last ran, so What's new shows once after an update |
 | `recent\` | The repositories you used most recently, one file each, so the wizard can list them first |
 | `created.json` | The worktrees Vantage created, which decides whether their branches are deleted with them |
 | `tabs\` | One file per tab Vantage opened, so Enter switches to it instead of opening another |

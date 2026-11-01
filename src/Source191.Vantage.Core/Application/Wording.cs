@@ -231,6 +231,7 @@ public static partial class Wording
             ShowMemory show => $"Measuring {show.Session.Name}...",
             OpenSolution solution => $"Opening {Path.GetFileName(solution.File)}...",
             OpenPullRequest open => $"Opening {PullRequestNumber(open.PullRequest.Host, open.PullRequest.Number)}...",
+            OpenReleasePage page => $"Opening the {page.Version} release page...",
             SaveSettings => "Saving settings...",
             StartUpdate update => $"Opening a tab to update to {update.Newest}...",
             ShowProblemReport => "Gathering the diagnostics...",
@@ -239,9 +240,6 @@ public static partial class Wording
             _ => "Working...",
         };
     }
-
-    /// <summary>The update key's question, once a newer release is known.</summary>
-    public static string UpdateQuestion(ReleaseVersion newest) => $"Quit Vantage and update to {newest}?\nBackground sessions keep running.";
 
     /// <summary>What the update tab says when dotnet tool update fails, under dotnet's own message.</summary>
     public static string UpdateFailedHint => "Vantage: the update failed. Quit every Vantage that is still open, then press U in Vantage again.";
@@ -398,6 +396,7 @@ public static partial class Wording
             StatusMessage.NothingToMeasure stopped => $"{stopped.Name} has no process to measure; it is stopped.",
             StatusMessage.NoPullRequest none => Describe(none),
             StatusMessage.UpToDate => "Vantage is up to date.",
+            StatusMessage.NewerReleaseFound found => $"Vantage {found.Version} is available: press U to see what changed.",
             StatusMessage.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",
             StatusMessage.Kept => "Kept.",
             StatusMessage.NothingToResume => "Nothing to resume.",

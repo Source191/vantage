@@ -281,15 +281,16 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void SayTheUpdateCheckIsOff()
+    public void AnnounceANewlyFoundReleaseOnceWithTheKeyThatShowsWhatChanged()
     {
-        Wording.Describe(new StatusMessage.UpdateCheckOff()).ShouldBe("The update check is off, or this is a development build; nothing to update to.");
+        Wording.Describe(new StatusMessage.NewerReleaseFound(ReleaseVersions.Version("0.21.0"))).ShouldBe("Vantage 0.21.0 is available: press U to see what changed.");
+        Wording.ToneOf(new StatusMessage.NewerReleaseFound(ReleaseVersions.Version("0.21.0"))).ShouldBe(StatusTone.Notice);
     }
 
     [Fact]
-    public void AskBeforeUpdating()
+    public void SayTheUpdateCheckIsOff()
     {
-        Wording.UpdateQuestion(ReleaseVersions.Version("0.10.0")).ShouldBe("Quit Vantage and update to 0.10.0?\nBackground sessions keep running.");
+        Wording.Describe(new StatusMessage.UpdateCheckOff()).ShouldBe("The update check is off, or this is a development build; nothing to update to.");
     }
 
     [Fact]
@@ -653,6 +654,7 @@ public sealed class WordingShould
             _ when type == typeof(int) => 2,
             _ when type == typeof(bool) => true,
             _ when type == typeof(WorktreeHealthKind) => WorktreeHealthKind.Locked,
+            _ when type == typeof(ReleaseVersion) => ReleaseVersions.Version("0.21.0"),
             _ when type == typeof(RemovalReason) => new RemovalReason.Locked(),
             _ when type == typeof(HealthReason) => new HealthReason.FolderGone(),
             _ when type == typeof(NameProblem) => NameProblem.Missing,

@@ -31,6 +31,7 @@ public static class Composition
             .Register(new CopyProblemReportHandler(ports.Clipboard))
             .Register(new OpenSolutionHandler(ports.Desktop))
             .Register(new OpenPullRequestHandler(ports.Desktop))
+            .Register(new OpenReleasePageHandler(ports.Desktop))
             .Register(new OpenInEditorHandler(ports.Editors, ports.Desktop, ports.Folders, settings))
             .Register(new SaveSettingsHandler(settings))
             .Register(new ToggleUpdateCheckHandler(settings))

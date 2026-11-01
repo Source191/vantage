@@ -45,6 +45,24 @@ public sealed class WordingOfOutcomesShould
     }
 
     [Fact]
+    public void SayTheReleasePageOpened()
+    {
+        Wording.Describe(new OpenReleasePageOutcome.Opened("0.21.0")).ShouldBe("Opened the 0.21.0 release page in the browser.");
+    }
+
+    [Fact]
+    public void SayWhyTheReleasePageDidNotOpen()
+    {
+        Wording.Describe(new OpenReleasePageOutcome.NotOpened("0.21.0", "PowerShell 7 (pwsh.exe) was not found on the PATH, so nothing can be opened."))
+            .ShouldBe("The 0.21.0 release page did not open: PowerShell 7 (pwsh.exe) was not found on the PATH, so nothing can be opened.");
+    }
+
+    [Fact]
+    public void SayTheReleasePageIsOpening()
+    {
+        Wording.Working(new Source191.Vantage.Application.Views.OpenReleasePage(ReleaseVersions.Version("0.21.0"))).ShouldBe("Opening the 0.21.0 release page...");
+    }
+    [Fact]
     public void SayTheUpdateStarted()
     {
         Wording.Describe(new UpdateStartedOutcome("0.10.0")).ShouldBe("Updating to 0.10.0 in a new tab; Vantage starts again there when it is done.");

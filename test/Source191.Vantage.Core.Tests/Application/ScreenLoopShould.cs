@@ -14,18 +14,60 @@ public sealed class ScreenLoopShould : IDisposable
 {
     private static readonly DateTimeOffset Noon = new(2026, 10, 23, 12, 0, 0, TimeSpan.Zero);
     private static readonly ToolVersion Running = new("0.9.0");
+    private const string Changelog = "## 0.9.0\n### Added\n- A key that opens the Northwind order (#171)\n";
 
     private readonly FakeProcessRegistry registry = new FakeProcessRegistry().Running(100, Noon);
     private readonly FakeTerminalConsole console = new();
     private readonly DiagnosticLog log = new(new FakeTimeProvider(Noon), []);
     private readonly StringWriter terminal = new();
 
-    private ScreenLoop Loop(ScriptedConsoleScreen screen, UpdateCheck? updates = null)
+    private ScreenLoop Loop(ScriptedConsoleScreen screen, UpdateCheck? updates = null, WhatsNewOnStart? whatsNew = null)
     {
         OwnTab ownTab = new(new InMemoryState(), registry, new FakeTimeProvider(Noon));
         UpdateCheck checkTurnedOff = new(Running, () => false, new InMemoryState(), new FakePackageVersions([]), new FakeTimeProvider(Noon));
+        WhatsNewOnStart firstEverStart = new(Running, new InMemoryState(), new FakePackagedReleaseNotes(Changelog), log);
 
-        return new ScreenLoop(screen, ownTab, console, updates ?? checkTurnedOff, log);
+        return new ScreenLoop(screen, ownTab, console, updates ?? checkTurnedOff, whatsNew ?? firstEverStart, log);
+    }
+
+    [Fact]
+    public async Task HandTheScreenWhatsNewToShowBeforeAnyKey()
+    {
+        InMemoryState state = new();
+        await state.WriteLastRunAsync(ReleaseVersions.Version("0.8.0"));
+        ScriptedConsoleScreen screen = new(state => new ConsoleExit(state, new Quit()));
+        WhatsNewOnStart whatsNew = new(Running, state, new FakePackagedReleaseNotes(Changelog), log);
+
+        await Loop(screen, whatsNew: whatsNew).RunAsync(processId: 100, CancellationToken.None);
+
+        WhatsNewAtStart.Show show = screen.Openings.Single().ShouldBeOfType<WhatsNewAtStart.Show>();
+        show.Running.ShouldBe(ReleaseVersions.Version("0.9.0"));
+        show.Sections.Select(section => section.Version.ToString()).ShouldBe(["0.9.0"]);
+    }
+
+    [Fact]
+    public async Task HandTheScreenNothingOnAFirstEverStart()
+    {
+        ScriptedConsoleScreen screen = new(state => new ConsoleExit(state, new Quit()));
+
+        await Loop(screen).RunAsync(processId: 100, CancellationToken.None);
+
+        screen.Openings.Single().ShouldBe(WhatsNewAtStart.Nothing);
+    }
+
+    [Fact]
+    public async Task LogAFailedWhatsNewAndOpenTheConsole()
+    {
+        ScriptedConsoleScreen screen = new(state => new ConsoleExit(state, new Quit()));
+        WhatsNewOnStart whatsNew = new(Running, new UnreadableLastRun(), new FakePackagedReleaseNotes(Changelog), log);
+
+        int exitCode = await Loop(screen, whatsNew: whatsNew).RunAsync(processId: 100, CancellationToken.None);
+
+        exitCode.ShouldBe(0);
+        screen.Openings.Single().ShouldBe(WhatsNewAtStart.Nothing);
+        Failed failed = log.Snapshot().Select(timed => timed.Event).OfType<Failed>().Single();
+        failed.Site.ShouldBe(FailureSite.WhatsNew);
+        failed.What.ShouldBe(CodeName.For(typeof(WhatsNewOnStart)));
     }
 
     [Fact]
@@ -124,6 +166,19 @@ public sealed class ScreenLoopShould : IDisposable
         terminal.Dispose();
     }
 
+    /// <summary>A last-run record that cannot be read, as when the state folder is locked.</summary>
+    private sealed class UnreadableLastRun : ILastRunVersion
+    {
+        public Task<LastRun> ReadLastRunAsync()
+        {
+            throw new IOException(@"C:\Users\me\AppData\Local\Vantage\last-run.json is in use.");
+        }
+
+        public Task WriteLastRunAsync(ReleaseVersion version)
+        {
+            return Task.CompletedTask;
+        }
+    }
     /// <summary>An update-check record that reads but cannot be written, as when the state folder is read-only.</summary>
     private sealed class UnwritableRecords(DateTimeOffset checkedAt) : IUpdateCheckRecords
     {

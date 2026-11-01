@@ -106,15 +106,16 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     }
 
     /// <summary>
-    /// Asks before updating; on a yes the handler opens the update tab, then the screen leaves with Quit so this process
-    /// releases its files. A failure to open the tab keeps Vantage open and says why.
+    /// Shows what changed since the running version; on Update now the handler opens the update tab, then the screen leaves
+    /// with Quit so this process releases its files. A failure to open the tab keeps Vantage open and says why. Release
+    /// page opens the newest release's GitHub page and leaves the dialog open.
     /// </summary>
     private void ConfirmUpdate(IEffectContext context)
     {
-        switch (UpdateVantage.Decide(updates.Status))
+        switch (UpdateVantage.Decide(updates.Status, updates.Notes))
         {
             case UpdateDecision.Ask ask:
-                AskToUpdate(context, ask.Newest);
+                AskToUpdate(context, ask);
                 break;
             case UpdateDecision.Refuse refuse:
                 context.ShowMessage(refuse.Message);
@@ -124,14 +125,15 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         }
     }
 
-    private static void AskToUpdate(IEffectContext context, ReleaseVersion newest)
+    private static void AskToUpdate(IEffectContext context, UpdateDecision.Ask ask)
     {
-        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.Update, "Update Vantage", Wording.UpdateQuestion(newest), "Update", "Cancel"))
+        string title = Wording.WhatsNewBeforeUpdateTitle(ask.Current, ask.Newest);
+        if (!WhatsNewDialog.AskBeforeUpdate(context.App, context.Diagnostics, title, Wording.WhatsNewBeforeUpdate(ask.Sections), () => context.Dispatch(new OpenReleasePage(ask.Newest))))
         {
             return;
         }
 
-        context.Dispatch(new StartUpdate(newest), outcome =>
+        context.Dispatch(new StartUpdate(ask.Newest), outcome =>
         {
             context.Reduce(new UpdateTabOpened());
             return new StatusMessage.Reported(outcome);

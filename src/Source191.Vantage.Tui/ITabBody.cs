@@ -34,6 +34,9 @@ internal interface ITabBody
     /// <summary>An input for the tab's reducer that is not a key, such as the status line's close mark or a success's time running out.</summary>
     void Reduce(ViewInput input);
 
+    /// <summary>Shows a message the console was handed rather than the tab's reducer, such as a newly found release.</summary>
+    void ShowMessage(StatusMessage message);
+
     void TriggerLoad();
 
     void Redraw();

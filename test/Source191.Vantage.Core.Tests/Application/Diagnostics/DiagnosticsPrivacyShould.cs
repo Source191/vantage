@@ -104,6 +104,36 @@ public sealed class DiagnosticsPrivacyShould
         sink.Lines.ShouldAllBe(line => !line.Contains("secret title", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task RecordNoReleaseNoteText()
+    {
+        string changelog = $"## 0.10.0\n### Added\n- The Northwind order key opens {Name} in {Worktree} (#171)\n### Internal\n- {Prompt} (#170)\n";
+        FakePackageVersions packages = new(["0.9.0", "0.10.0"]);
+        packages.Notes["0.10.0"] = changelog;
+        InMemoryState state = new();
+        UpdateCheck updates = new(new ToolVersion("0.9.0"), () => true, state, packages, clock);
+        await updates.RunAsync(CancellationToken.None);
+        await state.WriteLastRunAsync(ReleaseVersion("0.9.0"));
+        WhatsNewAtStart shown = await new WhatsNewOnStart(new ToolVersion("0.10.0"), state, new FakePackagedReleaseNotes(changelog), log).DecideAsync();
+        await state.WriteLastRunAsync(ReleaseVersion("0.9.0"));
+        await new WhatsNewOnStart(new ToolVersion("0.10.0"), state, new FakePackagedReleaseNotes($"{Name}: {Prompt}"), log).DecideAsync();
+        EffectDispatcher dispatcher = new EffectDispatcher(log, clock).Register(new OpenReleasePageHandler(new FakeDesktop()));
+        await dispatcher.DispatchAsync(new OpenReleasePage(ReleaseVersion("0.10.0")), CancellationToken.None);
+
+        updates.Notes.Sections.ShouldNotBeEmpty("the check read the Northwind notes");
+        shown.ShouldBeOfType<WhatsNewAtStart.Show>();
+        sink.Lines.ShouldContain(line => line.Contains("no readable release notes in the package of 0.10.0", StringComparison.Ordinal));
+        sink.Lines.ShouldContain(line => line.Contains("effect OpenReleasePage -> OpenReleasePageOutcome.Opened", StringComparison.Ordinal));
+        string everything = string.Join('\n', sink.Lines);
+        Seeded.Where(value => everything.Contains(value, StringComparison.OrdinalIgnoreCase)).ShouldBeEmpty();
+    }
+
+    private static ReleaseVersion ReleaseVersion(string text)
+    {
+        Source191.Vantage.Domain.ReleaseVersion.TryParse(text, out ReleaseVersion? version).ShouldBeTrue();
+
+        return version;
+    }
     private async Task RunTheDailyFlowsAsync()
     {
         ClaudeCli claude = new(processes, Claude);
