@@ -20,7 +20,7 @@ internal static class KeyMapping
     ];
 
     /// <summary>Whether the reducers know this key (a named key, or a printable character), and the key they know it as.</summary>
-    public static bool TryFrom(GuiKey key, [NotNullWhen(true)] out Key? mapped)
+    public static bool TryFrom(GuiKey key, [MaybeNullWhen(false)] out Key mapped)
     {
         foreach ((GuiKey gui, Key named) in Named)
         {
