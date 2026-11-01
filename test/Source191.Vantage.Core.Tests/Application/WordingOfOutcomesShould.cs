@@ -29,6 +29,21 @@ public sealed class WordingOfOutcomesShould
         Wording.Describe(outcome).ShouldNotBe(outcome.ToString(), $"{type.Name} has no arm in Wording.Describe");
     }
 
+    /// <summary>The comma key opened the settings dialog until the Config tab replaced it; no outcome may still send the user there.</summary>
+    [Theory]
+    [MemberData(nameof(OutcomeCases))]
+    public void NeverOfferTheCommaKey(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        Outcome outcome = (Outcome)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+
+        string words = Wording.Describe(outcome);
+
+        words.ShouldNotContain("press ,", Case.Insensitive);
+        words.ShouldNotContain(" , ");
+        words.ShouldNotContain("in settings", Case.Insensitive);
+    }
+
     [Fact]
     public void SayTheUpdateStarted()
     {
