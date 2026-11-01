@@ -134,6 +134,15 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
+    public async Task ReadATabFileHoldingAProcessWithoutItsStartTimeAsPending()
+    {
+        Directory.CreateDirectory(Path.Combine(folder, "tabs"));
+        await File.WriteAllTextAsync(Path.Combine(folder, "tabs", "0b8d2a1c9e3f4b5a8c7d6e5f4a3b2c1d.json"), PendingTabJson.Replace("\"processId\": null", "\"processId\": 4242", StringComparison.Ordinal), TestContext.Current.CancellationToken);
+
+        (await Store.ReadTabsAsync()).Single().Claim.ShouldBe(new TabClaim.Pending());
+    }
+
+    [Fact]
     public async Task WriteTheTabFileItAlwaysHas()
     {
         await Store.WriteTabAsync(PendingTab);
