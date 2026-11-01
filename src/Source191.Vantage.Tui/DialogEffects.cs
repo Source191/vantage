@@ -111,7 +111,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// </summary>
     private void ConfirmUpdate(IEffectContext context)
     {
-        switch (UpdateVantage.Decide(updates.Status))
+        switch (UpdateVantage.Decide(updates.Status, updates.Notes))
         {
             case UpdateDecision.Ask ask:
                 AskToUpdate(context, ask.Newest);

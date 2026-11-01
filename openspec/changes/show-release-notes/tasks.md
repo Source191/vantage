@@ -59,7 +59,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 5. The What's new dialogue
 
-- [ ] 5.1 `UpdateVantageShould.AskWithTheNotesBetweenTheRunningAndNewestVersions`: `Decide` gives `Ask(0.21.0, sections 0.21.0 and 0.20.0)`; with no notes recorded, `Ask` with no sections. Verify the facts pass.
+- [x] 5.1 `UpdateVantageShould.AskWithTheNotesBetweenTheRunningAndNewestVersions`: `Decide` gives `Ask(0.21.0, sections 0.21.0 and 0.20.0)`; with no notes recorded, `Ask` with no sections. Verify the facts pass.
+  Done as `AskWithTheNotesBetweenTheRunningAndNewestVersions` and `AskWithNoSectionsWhenNoNotesAreRecorded`; `Ask` carries the running version as well (`Ask(Current, Newest, Sections)`), which the dialog's title names, and `DialogEffects` passes `UpdateCheck.Notes`.
 - [ ] 5.2 `ReleasePageShould.BuildTheUrlFromTheVersionAlone`: `https://github.com/Source191/vantage/releases/tag/v0.21.0`. Verify the fact passes.
 - [ ] 5.3 `OpenReleasePageHandlerShould.OpenTheReleasePageOnTheDesktop`: the fake desktop records the URL and the handler returns `ReleasePageOpenedOutcome`; a desktop that throws gives the failed outcome. Red, then `Application\Views\OpenReleasePage`, `Application\Actions\OpenReleasePageHandler`, its outcome record and its line in `Composition.Handlers`, with words in `WordingOfOutcomes` and its tone in `Wording.ToneOf`. Verify the facts, `EffectDispatcherShould` and `StatusTonesShould` pass.
 - [ ] 5.4 `WordingShould`: the dialogue's titles ("Update Vantage 0.19.0 to 0.21.0", "What's new in 0.21.0"), its buttons, a section heading per version, the "notes could not be read" line, and an entry line ending with its pull request number. Verify the facts pass.
