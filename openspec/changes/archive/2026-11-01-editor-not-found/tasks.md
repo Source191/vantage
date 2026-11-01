@@ -53,3 +53,4 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 ## Workflow follow-up
 
 - Archive the change in the pull request that completes it, so `openspec\specs\folder-actions` and `openspec\specs\settings` describe the new behaviour.
+  Archived here; `openspec validate --specs --strict` then failed two requirements over 500 characters, so the merged folder-actions editor requirement says "preset or Custom" and the settings requirement drops its "such as Cursor" (the Cursor scenario keeps the example), in the delta and the spec alike.
