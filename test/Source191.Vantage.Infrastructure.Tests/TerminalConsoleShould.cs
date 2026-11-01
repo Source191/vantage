@@ -13,7 +13,7 @@ public sealed class TerminalConsoleShould : IDisposable
         TerminalConsole console = new(writer, "Vantage");
 
         console.ShowOwnTab(TabPalette.Default[4]);
-        console.ShowOwnTab(null);
+        console.ShowOwnTab();
         console.ClearOwnTab();
 
         writer.ToString().ShouldBe(
@@ -39,7 +39,7 @@ public sealed class TerminalConsoleShould : IDisposable
     {
         TerminalConsole console = new(writer, "Northwind title");
 
-        console.ShowOwnTab(null);
+        console.ShowOwnTab();
 
         writer.ToString().ShouldBe(TabEscapes.Title("Northwind title"));
     }

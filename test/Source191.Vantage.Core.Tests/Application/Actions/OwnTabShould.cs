@@ -21,9 +21,9 @@ public sealed class OwnTabShould
     {
         registry.Running(100, Noon.AddSeconds(-3));
 
-        TabColour? colour = await Tab.ClaimAsync(processId: 100);
+        OwnTabClaim claim = await Tab.ClaimAsync(processId: 100);
 
-        colour.ShouldBe(Green);
+        claim.ShouldBe(new OwnTabClaim.Claimed(Green));
         TabRegistration own = (await Store.ReadTabsAsync()).Single();
         own.Owner.ShouldBe(TabOwner.Vantage);
         own.Colour.ShouldBe(Green);
@@ -36,17 +36,17 @@ public sealed class OwnTabShould
         registry.Running(100, Noon);
         await Store.WriteTabAsync(TabRegistration.Pending(new TabOwner.ForSession(SessionId.From("sess-1")), Green, Noon));
 
-        TabColour? colour = await Tab.ClaimAsync(processId: 100);
+        OwnTabClaim claim = await Tab.ClaimAsync(processId: 100);
 
-        colour.ShouldBe(TabPalette.Default[0]);
+        claim.ShouldBe(new OwnTabClaim.Claimed(TabPalette.Default[0]));
     }
 
     [Fact]
     public async Task ClaimNothingWhenItsProcessIsUnknown()
     {
-        TabColour? colour = await Tab.ClaimAsync(processId: 100);
+        OwnTabClaim claim = await Tab.ClaimAsync(processId: 100);
 
-        colour.ShouldBeNull();
+        claim.ShouldBe(new OwnTabClaim.Unregistered());
         (await Store.ReadTabsAsync()).ShouldBeEmpty();
     }
 }
