@@ -32,8 +32,11 @@ public interface IClaudeCli
 
     Task RemoveAsync(string jobId, CancellationToken cancellationToken);
 
-    /// <summary>Continues a saved conversation under the supervisor; the display name is kept when one is given.</summary>
-    Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, SessionName? name, CancellationToken cancellationToken);
+    /// <summary>Continues a saved conversation under the supervisor under the display name given.</summary>
+    Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, SessionName name, CancellationToken cancellationToken);
+
+    /// <summary>Continues a saved conversation under the supervisor with no display name, for a listed name that is not a session name.</summary>
+    Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, CancellationToken cancellationToken);
 
     /// <summary>The Claude Code version, such as "2.1.310"; null when the CLI cannot be run, is cancelled or prints none.</summary>
     Task<string?> VersionAsync(CancellationToken cancellationToken);
