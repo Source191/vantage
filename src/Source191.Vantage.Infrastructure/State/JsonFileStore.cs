@@ -18,12 +18,13 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 {
     private const int RecentLimit = 10;
 
-    // Enums are written as their names, so config.json keeps reading "RemoteDefault" and "Head"; paths, branch names
-    // and tab owners are written as the plain strings earlier versions wrote.
+    // Enums are written as their names, so config.json keeps reading "RemoteDefault" and "Head", and a number where a
+    // name belongs is a corrupt file rather than an undefined value; paths, branch names and tab owners are written as
+    // the plain strings earlier versions wrote.
     private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
-        Converters = { new JsonStringEnumConverter(), new TextValueJsonConverter<FolderPath>(), new TextValueJsonConverter<BranchName>(), new TabOwnerJsonConverter() },
+        Converters = { new JsonStringEnumConverter(allowIntegerValues: false), new TextValueJsonConverter<FolderPath>(), new TextValueJsonConverter<BranchName>(), new TabOwnerJsonConverter() },
     };
 
     private string TabsFolder => Path.Combine(folder, "tabs");
@@ -196,11 +197,7 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
             return await JsonSerializer.DeserializeAsync<T>(stream, Options);
         }
-        catch (IOException)
-        {
-            return null;
-        }
-        catch (JsonException)
+        catch (Exception exception) when (exception is IOException or JsonException or UnauthorizedAccessException)
         {
             return null;
         }
