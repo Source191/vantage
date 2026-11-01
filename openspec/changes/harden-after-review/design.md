@@ -52,6 +52,6 @@ See proposal.md for the findings. The facts the design rests on, each read in th
 
 ## Migration Plan
 
-- Version: a minor step in the implementing pull request (`0.20.0-preview.1` unless main has moved); no state file changes.
+- Version: `0.20.0-preview.6`, the next preview in the stack. The minor step this change asks for is already taken: the 0.20.0 line is the minor step over the last released 0.19 line and is still in preview. No state file changes.
 - After the merge: `gh api -X PUT repos/Source191/vantage/immutable-releases`, then confirm with `gh api repos/Source191/vantage/immutable-releases` that it answers enabled, and that the next release's `immutable` is true.
 - Rollback is the previous release; nothing persists.
