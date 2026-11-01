@@ -29,6 +29,14 @@ public sealed record ProcessTree(ProcessFacts Process, ProcessMeasure Usage, IRe
 
     public int Count => 1 + Children.Sum(child => child.Count);
 
+    /// <summary>What this member uses by itself, without its children; nothing when it refused to be measured.</summary>
+    public MemorySize Own => Usage switch
+    {
+        ProcessMeasure.Measured measured => measured.Usage.PrivateMemory,
+        ProcessMeasure.Unmeasured => MemorySize.Zero,
+        _ => throw new UnreachableException(),
+    };
+
     /// <summary>
     /// Windows reuses identifiers, so a process whose recorded parent is this one may be older than it: an orphan of
     /// the identifier's previous owner. A child is kept only when it started after the nearest measured ancestor.
@@ -56,13 +64,6 @@ public sealed record ProcessTree(ProcessFacts Process, ProcessMeasure Usage, IRe
     {
         ProcessMeasure.Measured measured => measured.Usage.StartedAt,
         ProcessMeasure.Unmeasured => ancestorStartedAt,
-        _ => throw new UnreachableException(),
-    };
-
-    private MemorySize Own => Usage switch
-    {
-        ProcessMeasure.Measured measured => measured.Usage.PrivateMemory,
-        ProcessMeasure.Unmeasured => MemorySize.Zero,
         _ => throw new UnreachableException(),
     };
 }
