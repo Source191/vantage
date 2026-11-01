@@ -80,7 +80,7 @@ public sealed class AdoptSessionHandlerShould
     [Fact]
     public async Task CloseTheOldTabAfterAContinuedResume()
     {
-        processTable.InTree(1, "WindowsTerminal", 0).InTree(4000, "pwsh", 1).InTree(4242, "claude", 4000);
+        processTable.InTree(1, "WindowsTerminal", 0, Noon.AddHours(-1)).InTree(4000, "pwsh", 1, Noon.AddMinutes(-1)).InTree(4242, "claude", 4000);
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · repos-31", string.Empty));
 
         Outcome message = await Handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-31", 4242)), CancellationToken.None);
@@ -93,7 +93,7 @@ public sealed class AdoptSessionHandlerShould
     [Fact]
     public async Task KeepTheOldShellWhenTheResumeFails()
     {
-        processTable.InTree(1, "WindowsTerminal", 0).InTree(4000, "pwsh", 1).InTree(4242, "claude", 4000);
+        processTable.InTree(1, "WindowsTerminal", 0, Noon.AddHours(-1)).InTree(4000, "pwsh", 1, Noon.AddMinutes(-1)).InTree(4242, "claude", 4000);
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(1, string.Empty, "source session not found"));
 
         Outcome message = await Handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-31", 4242)), CancellationToken.None);
