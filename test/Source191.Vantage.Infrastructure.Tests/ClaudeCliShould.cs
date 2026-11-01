@@ -201,7 +201,7 @@ public sealed class ClaudeCliShould
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Directory)),
             request => request.Arguments.ShouldBe(["--bg", "--resume", "81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6"]));
-        result.Continued.ShouldBeTrue();
+        result.ShouldBeOfType<ResumeResult.Continued>();
     }
 
     [Fact]
