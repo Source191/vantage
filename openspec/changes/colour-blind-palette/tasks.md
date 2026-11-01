@@ -16,7 +16,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 - [x] 3.1 `ConfigRowsShould.HeadTheSetupRows`: `ConfigRows.For` places one `ConfigRow.Heading` between Check for updates and Settings file, with a key stable across a save. Red, then green. Verify the fact passes.
 - [x] 3.2 `WordingOfConfigShould`: `ConfigSetting` of the heading is Setup and `ConfigValue` empty; `ConfigCounts` with one root and all setup in place reads 6 settings; `ConfigColumns`' SETTING meaning says "under the Setup heading" and no longer names grey. Red, then green. Verify the facts pass.
 - [x] 3.3 `ConfigViewShould`: the config-tab delta's scenarios (Down from Check for updates selects Settings file, Up from Settings file selects Check for updates, filtering by bell shows only Claude bell, the title counts 11 rows) through `ConfigView.Reduce`, the policy's `Selectable` refusing `ConfigRow.Heading`. Red, then green. Verify the facts pass.
-- [ ] 3.4 `ConfigScreenDefinition.RowColour` draws the heading in `Palette.Orange` and setup rows grey as now. Rendering only; verify by a `grid` replay of a headless `drive` capture of the Config tab at 120 x 36 showing Setup between Check for updates and Settings file, and the selection stepping over it on Down.
+- [x] 3.4 `ConfigScreenDefinition.RowColour` draws the heading in `Palette.Orange` and setup rows grey as now, pinned by `ConfigScreenDefinitionShould.DrawTheSetupHeadingInOrangeAndTheSetupGrey`. (owed: the grid replay below, a visual check, see PR) Rendering only; verify by a `grid` replay of a headless `drive` capture of the Config tab at 120 x 36 showing Setup between Check for updates and Settings file, and the selection stepping over it on Down.
 
 ## 4. Field contrast
 

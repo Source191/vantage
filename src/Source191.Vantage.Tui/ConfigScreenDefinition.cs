@@ -4,7 +4,7 @@ using Terminal.Gui.Drawing;
 
 namespace Source191.Vantage.Tui;
 
-/// <summary>The Config tab as the shared table screen shows it: a setting or a piece of setup per row, the setup in grey.</summary>
+/// <summary>The Config tab as the shared table screen shows it: a setting or a piece of setup per row, the setup grey under an orange Setup heading.</summary>
 internal sealed class ConfigScreenDefinition(TimeProvider clock) : IScreenDefinition<ConfigViewState, ConfigRow>
 {
     private const string Ellipsis = "…";
@@ -42,7 +42,12 @@ internal sealed class ConfigScreenDefinition(TimeProvider clock) : IScreenDefini
 
     public CellPaint CellPaint(ConfigRow row, int column) => new CellPaint.None();
 
-    public Color RowColour(ConfigRow row) => row is ConfigRow.Setup ? Palette.Grey : Palette.White;
+    public Color RowColour(ConfigRow row) => row switch
+    {
+        ConfigRow.Heading => Palette.Orange,
+        ConfigRow.Setup => Palette.Grey,
+        _ => Palette.White,
+    };
 
     public string TabTitle(ConfigViewState state) => Wording.TabTitleFor(ConsoleTab.Config);
 
