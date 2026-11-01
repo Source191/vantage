@@ -25,12 +25,12 @@ public sealed class GitHubPullRequestsShould
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, Recorded, string.Empty));
 
-    private GitHubPullRequests Hosts => new(processes, Gh);
+    private GitHubPullRequests Hosts => new(processes, new ProgramLocation.Found(Gh));
 
     [Fact]
-    public async Task ReportCliMissingWithoutGh()
+    public async Task AnswerCliMissingWhenGhIsMissing()
     {
-        GitHubPullRequests hosts = new(processes, null);
+        GitHubPullRequests hosts = new(processes, new ProgramLocation.Missing());
 
         (await hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.CliMissing));
         processes.CapturedRequests.ShouldBeEmpty();
