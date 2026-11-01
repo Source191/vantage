@@ -15,7 +15,7 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
     private readonly List<string> recent = [];
     private readonly List<CreatedWorktree> created = [];
     private UpdateCheckRecord? updateCheck;
-    private VantageConfig? config;
+    private VantageConfig config = VantageConfig.Missing;
 
     public Task<IReadOnlyList<TabRegistration>> ReadTabsAsync()
     {
@@ -69,7 +69,7 @@ public sealed class InMemoryState : ITabRegistry, IRecentRepositories, ICreatedW
         return Task.CompletedTask;
     }
 
-    public Task<VantageConfig?> ReadConfigAsync()
+    public Task<VantageConfig> ReadConfigAsync()
     {
         return Task.FromResult(config);
     }

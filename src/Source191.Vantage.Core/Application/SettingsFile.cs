@@ -9,12 +9,13 @@ namespace Source191.Vantage.Application;
 /// </summary>
 public static class SettingsFile
 {
-    public static Settings From(VantageConfig? config, FolderPath home)
+    public static Settings From(VantageConfig config, FolderPath home)
     {
-        IReadOnlyList<FolderPath> roots = [.. (config?.RepositoryRoots ?? []).Parsed<FolderPath>()];
-        FolderPath? worktreeRoot = FolderPath.TryParse(config?.WorktreeRoot, out FolderPath? parsed) ? parsed : null;
+        ArgumentNullException.ThrowIfNull(config);
+        IReadOnlyList<FolderPath> roots = [.. (config.RepositoryRoots ?? []).Parsed<FolderPath>()];
+        FolderPath? worktreeRoot = FolderPath.TryParse(config.WorktreeRoot, out FolderPath? parsed) ? parsed : null;
 
-        return Settings.Resolve(roots, worktreeRoot, Editor(config?.Editor), config?.DefaultBase, home, config?.CheckForUpdates, config?.DefaultPlace);
+        return Settings.Resolve(roots, worktreeRoot, Editor(config.Editor), config.DefaultBase, home, config.CheckForUpdates, config.DefaultPlace);
     }
 
     public static VantageConfig ToConfig(Settings settings)
