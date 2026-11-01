@@ -69,6 +69,11 @@ public sealed class WordingOfKeysAndColumnsShould
     }
 
     [Fact]
+    public void NameTheUnknownStateInTheStateHelp()
+    {
+        Wording.SessionsColumns.Single(column => column.Name == "STATE").Meaning.ShouldContain("? unknown (grey)");
+    }
+    [Fact]
     public void ListEveryHealthGlyphInTheHelp()
     {
         string health = Wording.WorktreesColumns.Single(column => column.Name == "HEALTH").Meaning;
@@ -119,7 +124,7 @@ public sealed class WordingOfKeysAndColumnsShould
             TAB         a block in the tab's colour, faded as the tab looks from Vantage's own tab,
                         while a Vantage tab shows the session; ▯ grey for a plain claude in its own terminal
             STATE       ◐ needs input (amber), ● working (cyan), ○ idle (white),
-                        ✓ completed (green), ✗ failed (red), ■ stopped (grey)
+                        ✓ completed (green), ✗ failed (red), ■ stopped (grey), ? unknown (grey)
             REPOSITORY  the repository it runs in, or the folder's label outside a repository
             PR          its pull request: #123 on GitHub (open, draft, merged, closed),
                         !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
