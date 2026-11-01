@@ -155,7 +155,7 @@ public static partial class Wording
 
     private static string HealthLine(WorktreeHealth health)
     {
-        string kind = health.Kind.ToString().ToLowerInvariant();
+        string kind = HealthWord(health.Kind);
 
         return health.Reason is HealthReason.None ? kind : $"{kind}: {Describe(health.Reason)}";
     }

@@ -99,7 +99,7 @@ public static partial class Wording
         IEnumerable<TextPart> byHealth = Enum.GetValues<WorktreeHealthKind>()
             .Select(kind => (Kind: kind, Count: rows.Count(row => row.Health.Kind == kind)))
             .Where(group => group.Count > 0)
-            .Select(group => new TextPart($"{group.Count} {group.Kind.ToString().ToLowerInvariant()}", ToneOf(group.Kind)));
+            .Select(group => new TextPart($"{group.Count} {HealthWord(group.Kind)}", ToneOf(group.Kind)));
         int dirty = rows.Count(row => row.DirtyFiles > 0);
         int unpushed = rows.Count(row => row.UnpushedCommits > 0);
         IEnumerable<TextPart> atRisk =

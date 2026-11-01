@@ -35,7 +35,7 @@ internal static class TypedConfirmationDialog
         Label caption = new() { X = 1, Y = 4, Text = "Ctrl+C copies it (or F2). Below: paste or type it, then Enter:" };
         TextField input = new() { X = 1, Y = 5, Width = Dim.Fill(1) };
         // The box must be visible before anything is typed, so it gets its own grey background (cyan once focused).
-        Attribute box = new(Palette.White, Palette.Grey);
+        Attribute box = new(Palette.White, Palette.FieldBackground);
         input.SetScheme(new Scheme { Normal = box, Focus = Palette.Highlight().Normal, HotNormal = box, HotFocus = Palette.Highlight().Normal, Editable = box, Disabled = box });
         Label problem = new() { X = 1, Y = 6, Width = Dim.Fill(1), Height = 1, Text = " " };
         problem.SetScheme(Palette.Plain(Palette.Red));

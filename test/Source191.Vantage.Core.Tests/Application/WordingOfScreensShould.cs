@@ -38,10 +38,42 @@ public sealed class WordingOfScreensShould
     [InlineData(DisplayStateKind.Completed, "✓")]
     [InlineData(DisplayStateKind.Failed, "✗")]
     [InlineData(DisplayStateKind.Stopped, "■")]
-    [InlineData(DisplayStateKind.Unknown, "■")]
+    [InlineData(DisplayStateKind.Unknown, "?")]
     public void GiveEveryStateAGlyph(DisplayStateKind kind, string glyph)
     {
         Wording.StateGlyph(kind).ShouldBe(glyph);
+    }
+
+    [Theory]
+    [InlineData(WorktreeHealthKind.Ok, "✓")]
+    [InlineData(WorktreeHealthKind.Locked, "◆")]
+    [InlineData(WorktreeHealthKind.Orphan, "△")]
+    [InlineData(WorktreeHealthKind.Broken, "✗")]
+    [InlineData(WorktreeHealthKind.Empty, "□")]
+    [InlineData(WorktreeHealthKind.Elsewhere, "↗")]
+    public void GiveEveryHealthItsOwnGlyph(WorktreeHealthKind kind, string glyph)
+    {
+        Wording.HealthGlyph(kind).ShouldBe(glyph);
+    }
+
+    [Theory]
+    [InlineData(WorktreeHealthKind.Ok, "✓ ok")]
+    [InlineData(WorktreeHealthKind.Locked, "◆ locked")]
+    [InlineData(WorktreeHealthKind.Orphan, "△ orphan")]
+    [InlineData(WorktreeHealthKind.Broken, "✗ broken")]
+    [InlineData(WorktreeHealthKind.Empty, "□ empty")]
+    [InlineData(WorktreeHealthKind.Elsewhere, "↗ elsewhere")]
+    public void WriteTheHealthCellAsGlyphAndWord(WorktreeHealthKind kind, string cell)
+    {
+        Wording.HealthCell(kind).ShouldBe(cell);
+    }
+
+    [Fact]
+    public void GiveNoTwoHealthsTheSameGlyph()
+    {
+        WorktreeHealthKind[] kinds = Enum.GetValues<WorktreeHealthKind>();
+
+        kinds.Select(Wording.HealthGlyph).Distinct().Count().ShouldBe(kinds.Length);
     }
 
     [Fact]

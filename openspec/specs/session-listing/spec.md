@@ -142,11 +142,15 @@ The sessions view SHALL be the Sessions tab of the console: under the settings r
 - **THEN** a status line under the settings row, above the tabs, says the folder was copied, and it goes when the user presses Down
 
 ### Requirement: States are colour coded
-Each state SHALL be shown as a glyph and its word in its own colour: ◐ needs input amber, ● working cyan, ○ idle white, ✓ completed green, ✗ failed red, ■ stopped and unknown grey; and rows that are completed, failed or stopped SHALL be dimmed.
+Each state SHALL be shown as a glyph and its word in its own colour, each state with a glyph of its own: ◐ needs input amber, ● working cyan, ○ idle white, ✓ completed green, ✗ failed red, ■ stopped grey and ? unknown grey, an unknown state's word being the status and state Claude Code listed; and each row SHALL be drawn in its state's colour, none dimmed further.
 
 #### Scenario: State colours
 - **WHEN** the table shows a working row, a needs-input row and a stopped row
-- **THEN** the working state reads ● working in cyan, the needs-input state ◐ needs input in amber, and the stopped row is dimmed grey
+- **THEN** the working state reads ● working in cyan, the needs-input state ◐ needs input in amber, and the stopped row is grey
+
+#### Scenario: Stopped and unknown apart
+- **WHEN** the table shows a stopped row and a row whose listed status and state Vantage does not know, busy/paused
+- **THEN** both rows are grey, one STATE cell reads ■ stopped and the other ? busy/paused
 
 ### Requirement: The header counts sessions needing input
 The counts beside the tabs SHALL show how many sessions are in the needs-input state, first and in amber, whenever any is.

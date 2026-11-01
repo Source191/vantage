@@ -161,14 +161,31 @@ public static partial class Wording
         DisplayStateKind.Completed => "✓",
         DisplayStateKind.Failed => "✗",
         DisplayStateKind.Stopped => "■",
-        DisplayStateKind.Unknown => "■",
+        DisplayStateKind.Unknown => "?",
     };
+
+    /// <summary>The glyph before a worktree health's word, so the health reads without its colour: a closed enum, so a new kind fails the build here.</summary>
+    public static string HealthGlyph(WorktreeHealthKind kind) => kind switch
+    {
+        WorktreeHealthKind.Ok => "✓",
+        WorktreeHealthKind.Locked => "◆",
+        WorktreeHealthKind.Orphan => "△",
+        WorktreeHealthKind.Broken => "✗",
+        WorktreeHealthKind.Empty => "□",
+        WorktreeHealthKind.Elsewhere => "↗",
+    };
+
+    /// <summary>The HEALTH cell: the health's glyph and its word, in the row's colour.</summary>
+    public static string HealthCell(WorktreeHealthKind kind) => $"{HealthGlyph(kind)} {HealthWord(kind)}";
+
+    /// <summary>A health's word, the one the HEALTH cell, the counts and the pane's Health line all use.</summary>
+    private static string HealthWord(WorktreeHealthKind kind) => kind.ToString().ToLowerInvariant();
 
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =
     [
         new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
         new("TAB", $"a block in the tab's colour, faded as the tab looks from Vantage's own tab,\nwhile a Vantage tab shows the session; {TerminalSwatch} grey for a plain claude in its own terminal"),
-        new("STATE", "◐ needs input (amber), ● working (cyan), ○ idle (white),\n✓ completed (green), ✗ failed (red), ■ stopped (grey)"),
+        new("STATE", "◐ needs input (amber), ● working (cyan), ○ idle (white),\n✓ completed (green), ✗ failed (red), ■ stopped (grey), ? unknown (grey)"),
         new("REPOSITORY", "the repository it runs in, or the folder's label outside a repository"),
         new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
         new("AGE", "time since the session started"),
@@ -176,7 +193,8 @@ public static partial class Wording
 
     public static IReadOnlyList<ColumnHelp> WorktreesColumns { get; } =
     [
-        new("WORKTREE", "the owning repository › the folder's slug, or its label when not named after it;\nwhite ok, amber locked, red broken or orphan, grey empty"),
+        new("WORKTREE", "the owning repository › the folder's slug, or its label when not named after it"),
+        new("HEALTH", "✓ ok, ◆ locked (by another tool), △ orphan (a folder git has forgotten),\n✗ broken (registration or owner gone), □ empty (a leftover folder),\n↗ elsewhere (a worktree of a repository outside the roots); the pane gives the reason"),
         new("LAST COMMIT", "time since the last commit"),
         new("SESSION", "the session running in it, if any"),
     ];

@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Core.Tests.Application;
 
@@ -62,9 +63,26 @@ public sealed class WordingOfKeysAndColumnsShould
     public void ExplainEveryColumnOfEachView()
     {
         Wording.SessionsColumns.Select(column => column.Name).ShouldBe(["NAME", "TAB", "STATE", "REPOSITORY", "PR", "AGE"]);
-        Wording.WorktreesColumns.Select(column => column.Name).ShouldBe(["WORKTREE", "LAST COMMIT", "SESSION"]);
+        Wording.WorktreesColumns.Select(column => column.Name).ShouldBe(["WORKTREE", "HEALTH", "LAST COMMIT", "SESSION"]);
         Wording.ConfigColumns.Select(column => column.Name).ShouldBe(["SETTING", "VALUE"]);
         Wording.SessionsColumns.Concat(Wording.WorktreesColumns).ShouldAllBe(column => column.Meaning.Length > 0);
+    }
+
+    [Fact]
+    public void NameTheUnknownStateInTheStateHelp()
+    {
+        Wording.SessionsColumns.Single(column => column.Name == "STATE").Meaning.ShouldContain("? unknown (grey)");
+    }
+    [Fact]
+    public void ListEveryHealthGlyphInTheHelp()
+    {
+        string health = Wording.WorktreesColumns.Single(column => column.Name == "HEALTH").Meaning;
+        string worktree = Wording.WorktreesColumns.Single(column => column.Name == "WORKTREE").Meaning;
+
+        Enum.GetValues<WorktreeHealthKind>().ShouldAllBe(kind => health.Contains(Wording.HealthCell(kind), StringComparison.Ordinal));
+        worktree.ShouldNotContain("white", Case.Insensitive);
+        worktree.ShouldNotContain("amber", Case.Insensitive);
+        worktree.ShouldNotContain("grey", Case.Insensitive);
     }
 
     [Fact]
@@ -106,7 +124,7 @@ public sealed class WordingOfKeysAndColumnsShould
             TAB         a block in the tab's colour, faded as the tab looks from Vantage's own tab,
                         while a Vantage tab shows the session; ▯ grey for a plain claude in its own terminal
             STATE       ◐ needs input (amber), ● working (cyan), ○ idle (white),
-                        ✓ completed (green), ✗ failed (red), ■ stopped (grey)
+                        ✓ completed (green), ✗ failed (red), ■ stopped (grey), ? unknown (grey)
             REPOSITORY  the repository it runs in, or the folder's label outside a repository
             PR          its pull request: #123 on GitHub (open, draft, merged, closed),
                         !123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known
@@ -147,8 +165,10 @@ public sealed class WordingOfKeysAndColumnsShould
             >      scroll the columns right
 
             Columns
-            WORKTREE     the owning repository › the folder's slug, or its label when not named after it;
-                         white ok, amber locked, red broken or orphan, grey empty
+            WORKTREE     the owning repository › the folder's slug, or its label when not named after it
+            HEALTH       ✓ ok, ◆ locked (by another tool), △ orphan (a folder git has forgotten),
+                         ✗ broken (registration or owner gone), □ empty (a leftover folder),
+                         ↗ elsewhere (a worktree of a repository outside the roots); the pane gives the reason
             LAST COMMIT  time since the last commit
             SESSION      the session running in it, if any
 
