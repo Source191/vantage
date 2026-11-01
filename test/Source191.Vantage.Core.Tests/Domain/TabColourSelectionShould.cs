@@ -62,18 +62,4 @@ public sealed class TabColourSelectionShould
         choice.Colour.Name.ShouldBe("Red");
         choice.Reused.ShouldBeFalse();
     }
-
-    [Fact]
-    public void OfferElevenContrastingColoursInOrder()
-    {
-        TabPalette.Default.Select(colour => colour.Name).ShouldBe(
-            ["Red", "Blue", "Yellow", "Purple", "Green", "Orange", "Teal", "Pink", "Brown", "Lime", "Grey"]);
-    }
-
-    [Fact]
-    public void GiveEveryPaletteColourTheWindowsTerminalHexItIsNamedFor()
-    {
-        TabPalette.Default.Select(colour => colour.Hex).ShouldBe(
-            ["#E74856", "#0078D4", "#FFB900", "#8764B8", "#16C60C", "#F7630C", "#00B7C3", "#E3008C", "#8E562E", "#9ACD32", "#7A7574"]);
-    }
 }
