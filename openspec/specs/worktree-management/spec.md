@@ -326,14 +326,14 @@ The branch, the pull request, the changed files and the unpushed commits SHALL b
 - **THEN** the row stays in the table though no cell shows the branch, and the pane reads Branch feature/refund-retry
 
 ### Requirement: The worktrees are scanned as the console opens
-The console SHALL start one worktrees scan as it opens, whichever tab is shown, and that scan SHALL wait until the first sessions listing has returned, whether it succeeded, failed or was ended at its time limit. After it, the worktrees SHALL be rescanned each time their tab is shown and every 15 seconds while it is shown, and never while it is hidden. Neither showing the tab nor the 15-second timer SHALL start a scan while another is running. A scan's rows SHALL never replace rows from a scan that started after it.
+The console SHALL start one worktrees scan as it opens, whichever tab is shown, and that scan SHALL wait until the first sessions listing has returned, whether it succeeded, failed or was ended at its time limit. After it, the worktrees SHALL be rescanned each time their tab is shown and every 15 seconds while it is shown, never while it is hidden, and never while another scan is running. A scan's rows SHALL never replace those of a later scan.
 
 #### Scenario: Never opened
 - **WHEN** the console has been open for ten minutes on the Sessions tab
 - **THEN** the worktrees have been scanned exactly once
 
 #### Scenario: Opened during the first scan
-- **WHEN** the user presses 2 before the start-up scan has returned
+- **WHEN** the user shows the Worktrees tab before the start-up scan has returned
 - **THEN** the Worktrees tab waits for that scan, and no second scan starts
 
 #### Scenario: A slow scan
@@ -341,7 +341,7 @@ The console SHALL start one worktrees scan as it opens, whichever tab is shown, 
 - **THEN** the 15-second timer starts no other scan until it returns
 
 #### Scenario: Shown again
-- **WHEN** the user leaves the Worktrees tab, runs `git worktree remove` on one of its worktrees in a shell and presses 2
+- **WHEN** the user leaves the Worktrees tab, runs `git worktree remove` on one of its worktrees in a shell and shows the Worktrees tab again
 - **THEN** the tab shows its earlier rows at once and drops the removed worktree when the rescan returns
 
 #### Scenario: The sessions listing failed

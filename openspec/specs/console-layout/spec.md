@@ -6,7 +6,7 @@ The frame the sessions and worktrees views share: two settings lines under the V
 ## Requirements
 
 ### Requirement: Sessions and worktrees are two tabs of one screen
-The console SHALL show the sessions view, the worktrees view and the Config tab as three tabs of one screen, titled Sessions, Worktrees and Config. Left and Right SHALL select the tab before and after the one shown (stopping at the ends), Esc on the Worktrees or Config tab with no filter SHALL return to Sessions, Esc on the Sessions tab with no filter SHALL do nothing, and a click on a tab's title SHALL select it. Each tab SHALL keep its rows, selection, filter and status message while another is shown.
+The console SHALL show the sessions view, the worktrees view and the Config tab as three tabs of one screen. Left and Right SHALL select the tab before and after the one shown (stopping at the ends), Esc on Worktrees or Config with no filter SHALL return to Sessions, Esc on Sessions with no filter SHALL do nothing, and a click on a tab's title SHALL select it. Each tab SHALL keep its rows, selection, filter and status message while another is shown.
 
 #### Scenario: Switch and come back
 - **WHEN** the user selects templates-sync, types a filter of "temp", presses Enter, then Right and then Left
@@ -155,7 +155,7 @@ The console SHALL run as one terminal application for every tab from start to qu
 - **THEN** the tabs change at once and the console never leaves its screen
 
 ### Requirement: The status line sits under the settings row
-The console SHALL show the shown tab's status line directly under the settings row and above the tabs, its mark in the column where the versions start, outside every tab, only while that tab has a message or any action it started is still running; the spinner SHALL turn until every running action has reported. The tabs, their counts and the table's title SHALL move down to make room and back up when it goes. Nothing SHALL be drawn under the detail pane inside a tab's frame, and the tabs' frame SHALL end directly above the key bar.
+The console SHALL show the shown tab's status line directly under the settings row and above the tabs, its mark in the column where the versions start, outside every tab, only while that tab has a message or any action it started is still running; the spinner SHALL turn until every running action has reported. The tabs, their counts and the table's title SHALL move down to make room and back up when it goes. The tabs' frame SHALL end directly above the key bar.
 
 #### Scenario: A message under the settings row
 - **WHEN** the user presses c on fix-123 in the Sessions tab
@@ -170,12 +170,16 @@ The console SHALL show the shown tab's status line directly under the settings r
 - **THEN** there is no status line and the tab strip starts on the row under the versions
 
 #### Scenario: The line follows the tab shown
-- **WHEN** the Sessions tab says a folder was copied, the Worktrees tab has no message, and the user presses 2
-- **THEN** there is no status line while the Worktrees tab is shown, and pressing 1 shows the copied message again
+- **WHEN** the Sessions tab says a folder was copied, the Worktrees tab has no message, and the user presses Right
+- **THEN** there is no status line while the Worktrees tab is shown, and pressing Left shows the copied message again
 
 #### Scenario: An action running in the Worktrees tab
 - **WHEN** the user removes a worktree
 - **THEN** the row under the versions shows a spinner before "Removing name" until the removal reports its outcome
+
+#### Scenario: Nothing under the detail pane
+- **WHEN** the status line is showing
+- **THEN** nothing is drawn under the detail pane inside the tab's frame
 
 #### Scenario: Two actions overlap
 - **WHEN** the user presses d on one worktree and, before it reports, d on another, and the first reports
