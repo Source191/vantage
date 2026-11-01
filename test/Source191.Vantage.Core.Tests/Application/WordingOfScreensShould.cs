@@ -112,7 +112,7 @@ public sealed class WordingOfScreensShould
 
     private static string Text(IReadOnlyList<TextPart> row) => string.Concat(row.Select(part => part.Text));
 
-    private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => FolderPath.From(root))], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me"));
+    private static Settings Roots(params string[] roots) => Settings.Resolve([.. roots.Select(root => FolderPath.From(root))], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, FolderPath.From(@"C:\Users\me"));
 
     [Fact]
     public void DescribeTableTitles()
@@ -183,7 +183,7 @@ public sealed class WordingOfScreensShould
 
     private static WorktreeRow WorktreeIn(WorktreeHealthKind health, int index, int dirty = 0, int unpushed = 0)
     {
-        return new WorktreeRow(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), FolderPath.From($@"C:\Users\me\source\worktrees\Northwind.Orders-fix-{index}"), new Head.OnBranch(BranchName.From($"fix-{index}")), new WorktreeHealth(health, new HealthReason.None()), dirty, unpushed, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: true);
+        return new WorktreeRow(FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), FolderPath.From($@"C:\Users\me\source\worktrees\Northwind.Orders-fix-{index}"), new Head.OnBranch(BranchName.From($"fix-{index}")), new WorktreeHealth(health, new HealthReason.None()), dirty, unpushed, new LastCommit.Unknown(), new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: true);
     }
 
     private static SessionRow SessionIn(DisplayState state, int index)

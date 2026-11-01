@@ -18,7 +18,7 @@ public sealed class SettingsShould
     [Fact]
     public void ResolveAMissingFileToEveryDefault()
     {
-        Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
+        Settings settings = Settings.Resolve(roots: [], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, Settings.BaseWhenUnset, Home);
 
         settings.RepositoryRoots.ShouldBe([FolderPath.From(Root)]);
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees"));
@@ -28,9 +28,17 @@ public sealed class SettingsShould
     }
 
     [Fact]
+    public void NameTheDefaultsForWhatAFileLeavesOut()
+    {
+        Settings.BaseWhenUnset.ShouldBe(WorktreeBase.RemoteDefault);
+        Settings.ChecksForUpdatesWhenUnset.ShouldBeTrue();
+        Settings.PlaceWhenUnset.ShouldBe(LaunchMode.NewWorktree);
+    }
+
+    [Fact]
     public void ResolveAFileFromAnEarlierVersion()
     {
-        Settings settings = Settings.Resolve([FolderPath.From(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, WorktreeBase.Head, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(@"D:\work")], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.Head, Home);
 
         settings.RepositoryRoots.ShouldBe([FolderPath.From(@"D:\work")]);
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
@@ -42,16 +50,16 @@ public sealed class SettingsShould
     [Fact]
     public void KeepADefaultPlaceThatIsGiven()
     {
-        Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home, defaultPlace: LaunchMode.CurrentBranch);
+        Settings settings = Settings.Resolve(roots: [], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home, defaultPlace: LaunchMode.CurrentBranch);
 
         settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
-        settings.ShouldNotBe(Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home));
+        settings.ShouldNotBe(Settings.Resolve(roots: [], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home));
     }
 
     [Fact]
     public void ResolveAnEmptyRootListToTheDefaultRoot()
     {
-        Settings settings = Settings.Resolve([], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
+        Settings settings = Settings.Resolve([], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home);
 
         settings.RepositoryRoots.ShouldBe([FolderPath.From(Root)]);
     }
@@ -59,7 +67,7 @@ public sealed class SettingsShould
     [Fact]
     public void PutTheWorktreeRootInsideARootWithNoParent()
     {
-        Settings settings = Settings.Resolve([FolderPath.From(@"D:\")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(@"D:\")], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home);
 
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
     }
@@ -67,7 +75,7 @@ public sealed class SettingsShould
     [Fact]
     public void KeepAWorktreeRootThatIsGiven()
     {
-        Settings settings = Settings.Resolve([FolderPath.From(Root)], FolderPath.From(@"E:\trees"), EditorChoice.VsCode, defaultBase: null, Home);
+        Settings settings = Settings.Resolve([FolderPath.From(Root)], new WorktreeRootChoice.At(FolderPath.From(@"E:\trees")), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home);
 
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"E:\trees"));
     }
@@ -75,8 +83,8 @@ public sealed class SettingsShould
     [Fact]
     public void CompareByValue()
     {
-        Settings first = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]), defaultBase: null, Home);
-        Settings second = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]), defaultBase: null, Home);
+        Settings first = Settings.Resolve([FolderPath.From(Root)], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]), WorktreeBase.RemoteDefault, Home);
+        Settings second = Settings.Resolve([FolderPath.From(Root)], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]), WorktreeBase.RemoteDefault, Home);
 
         first.ShouldBe(second);
     }
@@ -190,17 +198,17 @@ public sealed class SettingsShould
     [Fact]
     public void TurnTheUpdateCheckOffAndOn()
     {
-        Settings settings = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home);
+        Settings settings = Settings.Resolve(roots: [], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home);
 
         settings.WithUpdateCheckToggled().CheckForUpdates.ShouldBeFalse();
         settings.WithUpdateCheckToggled().WithUpdateCheckToggled().ShouldBe(settings);
-        Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home, defaultPlace: LaunchMode.CurrentBranch).WithUpdateCheckToggled().DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
+        Settings.Resolve(roots: [], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home, defaultPlace: LaunchMode.CurrentBranch).WithUpdateCheckToggled().DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
     }
 
     [Fact]
     public void GiveBackTheTextItWasTypedFrom()
     {
-        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], FolderPath.From(@"E:\trees"), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home, defaultPlace: LaunchMode.CurrentBranch);
+        Settings settings = Settings.Resolve([FolderPath.From(Root), FolderPath.From(@"D:\work")], new WorktreeRootChoice.At(FolderPath.From(@"E:\trees")), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home, defaultPlace: LaunchMode.CurrentBranch);
 
         settings.ToText().ShouldBe(new SettingsText($"{Root}\nD:\\work", @"E:\trees", EditorPreset.Custom, @"C:\Tools\subl.exe", "-n {folder}", WorktreeBase.Head, Place: LaunchMode.CurrentBranch));
     }
@@ -208,12 +216,12 @@ public sealed class SettingsShould
     [Fact]
     public void CheckForUpdatesUnlessTurnedOff()
     {
-        Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home).CheckForUpdates.ShouldBeTrue();
-        Settings off = Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home, checkForUpdates: false);
+        Settings.Resolve(roots: [], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home).CheckForUpdates.ShouldBeTrue();
+        Settings off = Settings.Resolve(roots: [], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home, checkForUpdates: false);
 
         off.CheckForUpdates.ShouldBeFalse();
         off.ToText().CheckForUpdates.ShouldBeFalse();
-        off.ShouldNotBe(Settings.Resolve(roots: null, worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, Home));
+        off.ShouldNotBe(Settings.Resolve(roots: [], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home));
     }
 
     private static SettingsProblem Refusal(SettingsText typed) => Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Refused>().Problem;
