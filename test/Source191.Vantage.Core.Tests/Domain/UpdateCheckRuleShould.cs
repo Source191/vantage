@@ -10,7 +10,7 @@ public sealed class UpdateCheckRuleShould
     [Fact]
     public void CheckWhenNeverCheckedOrADayOld()
     {
-        UpdateCheckRule.ShouldCheck(Release, enabled: true, lastCheckedAt: null, Now).ShouldBeTrue();
+        UpdateCheckRule.ShouldCheck(Release, enabled: true).ShouldBeTrue();
         UpdateCheckRule.ShouldCheck(Release, enabled: true, Now.AddHours(-24), Now).ShouldBeTrue();
         UpdateCheckRule.ShouldCheck(Release, enabled: true, Now.AddDays(-3), Now).ShouldBeTrue();
     }
@@ -28,13 +28,13 @@ public sealed class UpdateCheckRuleShould
     [InlineData("unknown")]
     public void NeverCheckAPrereleaseOrAnUnknownVersion(string running)
     {
-        UpdateCheckRule.ShouldCheck(new ToolVersion(running), enabled: true, lastCheckedAt: null, Now).ShouldBeFalse();
+        UpdateCheckRule.ShouldCheck(new ToolVersion(running), enabled: true).ShouldBeFalse();
     }
 
     [Fact]
     public void NeverCheckWhenTurnedOff()
     {
-        UpdateCheckRule.ShouldCheck(Release, enabled: false, lastCheckedAt: null, Now).ShouldBeFalse();
+        UpdateCheckRule.ShouldCheck(Release, enabled: false).ShouldBeFalse();
     }
 
     [Fact]
