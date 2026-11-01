@@ -30,9 +30,10 @@ internal sealed class WorktreesScreenDefinition(FolderLabels folders, IDetailSou
     {
         return column switch
         {
-            // The branch, changes and health are the pane's, so the WORKTREE cell names the repository and the folder's slug only.
+            // The branch and changes are the pane's, so the WORKTREE cell names the repository and the folder's slug only.
             0 => WhereLabel.For(row.RepositoryName, folders.For(row.Path), inRepository: true).Fit(width),
-            1 => row.LastCommitAt is LastCommit.Made made ? Durations.Age(now - made.At) : "-",
+            1 => Wording.HealthCell(row.Health.Kind),
+            2 => row.LastCommitAt is LastCommit.Made made ? Durations.Age(now - made.At) : "-",
             _ => row.Session is WorktreeSession.Running running ? running.Name : string.Empty,
         };
     }
