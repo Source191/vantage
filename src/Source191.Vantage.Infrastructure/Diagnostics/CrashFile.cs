@@ -16,7 +16,7 @@ public sealed class CrashFile(string folder) : ICrashFile
         File.WriteAllText(FilePath, text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
     }
 
-    public async Task<string?> ReadAsync() => File.Exists(FilePath) ? await File.ReadAllTextAsync(FilePath) : null;
+    public async Task<LastCrash> ReadAsync() => File.Exists(FilePath) ? new LastCrash.Recorded(await File.ReadAllTextAsync(FilePath)) : new LastCrash.None();
 
     public Task RemoveAsync()
     {
