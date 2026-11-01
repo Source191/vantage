@@ -353,7 +353,18 @@ public sealed class WordingOfOutcomesShould
     public void SayWhichEditorCouldNotBeFound()
     {
         Wording.Describe(new OpenInEditorOutcome.EditorNotFound(EditorChoice.Of(EditorPreset.Rider)))
-            .ShouldBe("Could not find Rider; choose another under Open folder with on the Config tab (3).");
+            .ShouldBe("Could not find Rider; choose another in Open folder with on the Config tab (3).");
+        Wording.Describe(new OpenInEditorOutcome.EditorNotFound(EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"])))
+            .ShouldBe("Could not find subl; choose another in Open folder with on the Config tab (3).");
+    }
+
+    [Fact]
+    public void SayWhichEditorWouldNotStartAndWhy()
+    {
+        Wording.Describe(new OpenInEditorOutcome.EditorNotStarted(EditorChoice.Of(EditorPreset.Rider), "Access is denied."))
+            .ShouldBe("Rider would not start: Access is denied. Choose another in Open folder with on the Config tab (3).");
+        Wording.Describe(new OpenInEditorOutcome.EditorNotStarted(EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]), "The specified executable is not a valid application for this OS platform"))
+            .ShouldBe("subl would not start: The specified executable is not a valid application for this OS platform. Choose another in Open folder with on the Config tab (3).");
     }
 
     [Fact]

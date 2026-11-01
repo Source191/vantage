@@ -117,7 +117,7 @@ public static partial class Wording
         return outcome switch
         {
             OpenInEditorOutcome.Opened => StatusTone.Success,
-            OpenInEditorOutcome.EditorNotFound => StatusTone.Failure,
+            OpenInEditorOutcome.EditorNotFound or OpenInEditorOutcome.EditorNotStarted => StatusTone.Failure,
             _ => StatusTone.Notice,
         };
     }
@@ -162,12 +162,16 @@ public static partial class Wording
         };
     }
 
+    /// <summary>Where another editor is chosen, named after any editor problem the editor key reports.</summary>
+    private const string WhereEditorsAreChosen = "in Open folder with on the Config tab (3)";
+
     private static string Describe(OpenInEditorOutcome outcome)
     {
         return outcome switch
         {
             OpenInEditorOutcome.Opened opened => $"Opened {opened.FolderName} in {EditorName(opened.Editor)}.",
-            OpenInEditorOutcome.EditorNotFound missing => $"Could not find {EditorName(missing.Editor)}; choose another under Open folder with on the Config tab (3).",
+            OpenInEditorOutcome.EditorNotFound missing => $"Could not find {EditorName(missing.Editor)}; choose another {WhereEditorsAreChosen}.",
+            OpenInEditorOutcome.EditorNotStarted refused => $"{EditorName(refused.Editor)} would not start: {refused.Reason.Trim().TrimEnd('.')}. Choose another {WhereEditorsAreChosen}.",
             OpenInEditorOutcome.FolderMissing gone => $"{gone.FolderName} no longer exists, so nothing was opened.",
             _ => outcome.ToString(),
         };

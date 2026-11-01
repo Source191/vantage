@@ -8,7 +8,8 @@ namespace Source191.Vantage.Application.Actions;
 
 /// <summary>
 /// Opens a folder in the editor chosen in settings, without waiting for it. The folder is checked first because a
-/// stopped session's folder may have been deleted and the editor would otherwise open an empty window.
+/// stopped session's folder may have been deleted and the editor would otherwise open an empty window. An editor that is
+/// missing, or that Windows will not start, is an outcome with Vantage's words rather than an exception's message.
 /// </summary>
 public sealed class OpenInEditorHandler(IEditorLocator locator, IDesktop desktop, IFolders folders, CurrentSettings settings) : IEffectHandler<OpenFolderInEditor>
 {
@@ -38,7 +39,14 @@ public sealed class OpenInEditorHandler(IEditorLocator locator, IDesktop desktop
 
     private async Task<Outcome> OpenAsync(EditorChoice editor, string executable, FolderPath folder, CancellationToken cancellationToken)
     {
-        await desktop.StartAsync(EditorCommand.For(editor, executable, folder), cancellationToken);
+        try
+        {
+            await desktop.StartAsync(EditorCommand.For(editor, executable, folder), cancellationToken);
+        }
+        catch (ProgramNotStartedException refused)
+        {
+            return new OpenInEditorOutcome.EditorNotStarted(editor, refused.Reason);
+        }
 
         return new OpenInEditorOutcome.Opened(folder.Name, editor);
     }

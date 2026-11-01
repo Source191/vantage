@@ -24,7 +24,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 - [x] 3.1 `OpenInEditorHandlerShould.ReportACustomEditorWhoseExecutableIsMissing`: a Custom editor with no file in the fake folders answers `EditorNotFound` and the fake desktop starts nothing. Red, then green. Verify the fact passes.
   Done; `StartACustomEditorFromItsOwnExecutable` now puts the file in the fake folders. Core tests: 1985 passed.
-- [ ] 3.2 `OpenInEditorHandlerShould.ReportAnEditorThatWouldNotStart`: the fake desktop throws `ProgramNotStartedException`, and the outcome is `OpenInEditorOutcome.EditorNotStarted(editor, reason)` (its own nested record). Red, then green. Verify the fact passes.
+- [x] 3.2 `OpenInEditorHandlerShould.ReportAnEditorThatWouldNotStart`: the fake desktop throws `ProgramNotStartedException`, and the outcome is `OpenInEditorOutcome.EditorNotStarted(editor, reason)` (its own nested record). Red, then green. Verify the fact passes.
+  Done; `FakeDesktop.StartFailure` added. The new case's words and tone (3.4's) came in the same green commit, since the reflection facts fail a case with none. Core tests: 1990 passed.
 - [ ] 3.3 `OpenSolutionHandlerShould.ReportATypeNoApplicationOpens`: the fake desktop throws `NoApplicationException(".slnx")`, and the outcome is the solution outcome's no-application case (the outcome becoming a closed hierarchy with `Opened`). Red, then green. Verify the fact passes.
 - [ ] 3.4 `WordingOfOutcomesShould`: `EditorNotFound` reads "Could not find Rider; choose another in Open folder with on the Config tab (3).", `EditorNotStarted` names the editor and reason and the same pointer, and the no-application case names `.slnx`; all three are Failure in `StatusTonesShould`. Red, then green. Verify the facts pass and no text mentions the `,` key (`WordingShould` fact `NeverOfferTheCommaKey` over every outcome word).
 
