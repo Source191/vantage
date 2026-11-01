@@ -90,6 +90,14 @@ public sealed class ConfigViewShould
         ConfigView.Reduce(At("setup:SettingsFile"), new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(FolderPath.From(@"C:\Users\me\AppData\Local\Vantage"))]);
     }
 
+    [Fact]
+    public void FilterTheRowsByAPath()
+    {
+        ConfigViewState filtered = Press(Loaded, Key.Slash, Key.Of('w'), Key.Of('o'), Key.Of('r'), Key.Of('k'), Key.Enter);
+
+        filtered.List.Visible.Select(row => row.Key).ShouldBe(["root:1", "worktree-root"]);
+    }
+
     [Theory]
     [InlineData('c')]
     [InlineData('e')]
