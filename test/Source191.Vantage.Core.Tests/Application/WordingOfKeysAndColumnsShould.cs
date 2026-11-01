@@ -5,7 +5,7 @@ namespace Source191.Vantage.Core.Tests.Application;
 
 public sealed class WordingOfKeysAndColumnsShould
 {
-    private static readonly string[] TabKeys = ["1 ", "2 ", "3 ", "← ", "→ ", "< ", "> "];
+    private static readonly string[] TabKeys = ["← ", "→ ", "< ", "> "];
 
     [Fact]
     public void ListEveryKeyOnceWithItsHintAndLine()
@@ -123,10 +123,8 @@ public sealed class WordingOfKeysAndColumnsShould
             f      open the folder in your editor                s      open its solution
             p      open its pull request in the browser          m      what its memory is made of
             U      update Vantage in a new tab                   !      report a problem on GitHub
-            1      the Sessions tab                              2      the Worktrees tab
-            3      the Config tab                                ←      the tab to the left
-            →      the tab to the right                          <      scroll the columns left
-            >      scroll the columns right
+            ←      the tab to the left                           →      the tab to the right
+            <      scroll the columns left                       >      scroll the columns right
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one
@@ -168,10 +166,8 @@ public sealed class WordingOfKeysAndColumnsShould
             c      copy the folder path                          f      open the folder in your editor
             s      open its solution                             p      open its pull request in the browser
             U      update Vantage in a new tab                   !      report a problem on GitHub
-            1      the Sessions tab                              2      the Worktrees tab
-            3      the Config tab                                ←      the tab to the left
-            →      the tab to the right                          <      scroll the columns left
-            >      scroll the columns right
+            ←      the tab to the left                           →      the tab to the right
+            <      scroll the columns left                       >      scroll the columns right
 
             Columns
             WORKTREE     the owning repository › the folder's slug, or its label when not named after it
@@ -203,10 +199,9 @@ public sealed class WordingOfKeysAndColumnsShould
             /      filter                                         ?      help
             q      quit                                           c      copy the path
             f      open the folder, or the one holding the file   U      update Vantage in a new tab
-            !      report a problem on GitHub                     1      the Sessions tab
-            2      the Worktrees tab                              3      the Config tab
-            ←      the tab to the left                            →      the tab to the right
-            <      scroll the columns left                        >      scroll the columns right
+            !      report a problem on GitHub                     ←      the tab to the left
+            →      the tab to the right                           <      scroll the columns left
+            >      scroll the columns right
 
             Columns
             SETTING  a setting Vantage keeps in config.json, or, under the Setup heading, setup it reads but does not change

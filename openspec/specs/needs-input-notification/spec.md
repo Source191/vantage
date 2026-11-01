@@ -21,15 +21,19 @@ Because the agent_needs_input and agent_completed hook types fire only while the
 - **THEN** Vantage stays silent, because Claude Code rings the bell in that session's own tab
 
 ### Requirement: Claude Code's own bell covers attached tabs
-The README SHALL have one Windows Terminal setup section that tells the user to set Claude Code's `preferredNotifChannel` to `terminal_bell`, which makes Claude ring the bell in the tab a session is attached in when it finishes a task or pauses for a permission prompt while the user appears away.
+The README SHALL have one short notifications section that tells the user to run `vantage setup-terminal`, which sets Claude Code's `preferredNotifChannel` to `terminal_bell` and so makes Claude ring the bell in the tab a session is attached in when it finishes a task or pauses for a permission prompt while the user appears away.
 
 #### Scenario: Attached session needs permission
 - **WHEN** a session attached in a Vantage-opened tab pauses for a permission prompt while the user is in another tab
 - **THEN** Claude Code rings the bell in that tab and Windows Terminal flags it
 
 #### Scenario: Choosing a sound by hand
-- **WHEN** the user follows the README's manual steps and picks `C:\Windows\Media\Windows Message Nudge.wav` for the Vantage profile
+- **WHEN** the user picks `C:\Windows\Media\Windows Message Nudge.wav` as the Vantage profile's bell sound in Windows Terminal's settings
 - **THEN** a bell in the Vantage tab plays that sound and bells in other profiles keep theirs
+
+#### Scenario: Reading the notifications section
+- **WHEN** the user reads the README's notifications section
+- **THEN** it names `vantage setup-terminal` as the one step that sets up both bells
 
 ### Requirement: No toasts and no hooks
 Vantage SHALL NOT raise Windows toast notifications and SHALL NOT install Claude Code hooks; attention is the terminal bell, the header's needs-input count and the amber rows.
@@ -123,13 +127,6 @@ The setup command SHALL offer to set `preferredNotifChannel` to `terminal_bell` 
 #### Scenario: Nothing installed
 - **WHEN** no fragment exists and the user runs `vantage setup-terminal --remove`
 - **THEN** nothing changes, the output says there was nothing to remove, and the command exits 0
-
-### Requirement: The README's setup section explains the bell's style and sound
-The README's Windows Terminal setup section SHALL suggest a bell style that flags the window and taskbar, SHALL explain that the bell sound is a per-profile setting and list suggested sound files shipped in `C:\Windows\Media`, and SHALL give both the setup command and the equivalent manual steps in the Windows Terminal settings.
-
-#### Scenario: Reading the setup section
-- **WHEN** the user reads the README's Windows Terminal setup section
-- **THEN** it names `vantage setup-terminal`, gives the manual steps through a profile's Advanced settings (bell notification style and bell sound), and names at least one sound file in `C:\Windows\Media`
 
 ### Requirement: The profiles' icon lives in Vantage's fragment folder
 The setup command SHALL copy the icon file into Vantage's fragment folder, so that removing the folder removes it; when the tool carries no icon file the profiles SHALL be written without an icon and setup SHALL still succeed.

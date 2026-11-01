@@ -6,10 +6,10 @@ The frame the sessions and worktrees views share: two settings lines under the V
 ## Requirements
 
 ### Requirement: Sessions and worktrees are two tabs of one screen
-The console SHALL show the sessions view, the worktrees view and the Config tab as three tabs of one screen, titled Sessions, Worktrees and Config. The 1, 2 and 3 keys SHALL select a tab, Left and Right SHALL select the tab before and after the one shown (stopping at the ends), Esc on the Worktrees or Config tab with no filter SHALL return to Sessions, and a click on a tab's title SHALL select it. Each tab SHALL keep its rows, selection, filter and status message while another is shown.
+The console SHALL show the sessions view, the worktrees view and the Config tab as three tabs of one screen, titled Sessions, Worktrees and Config. Left and Right SHALL select the tab before and after the one shown (stopping at the ends), Esc on the Worktrees or Config tab with no filter SHALL return to Sessions, and a click on a tab's title SHALL select it. Each tab SHALL keep its rows, selection, filter and status message while another is shown.
 
 #### Scenario: Switch and come back
-- **WHEN** the user selects templates-sync, types a filter of "temp", presses 2 and then 1
+- **WHEN** the user selects templates-sync, types a filter of "temp", presses Enter, then Right and then Left
 - **THEN** the Sessions tab shows at once with templates-sync still selected and the filter "temp" still set
 
 #### Scenario: Tab titles stay put
@@ -32,6 +32,10 @@ The console SHALL show the sessions view, the worktrees view and the Config tab 
 - **WHEN** the user presses w on any tab
 - **THEN** no tab changes and nothing else happens
 
+#### Scenario: The digit keys
+- **WHEN** the Sessions tab is shown and the user presses 1, 2 or 3
+- **THEN** no tab changes and nothing else happens
+
 #### Scenario: Esc on the worktrees tab
 - **WHEN** the worktrees tab is shown with no filter and the user presses Esc
 - **THEN** the Sessions tab is shown
@@ -48,11 +52,11 @@ The active tab's title SHALL be drawn in bold cyan and the other tabs' titles in
 - **THEN** its title is bold cyan, the Worktrees and Config titles grey, and the frames and the table's header box stay grey
 
 #### Scenario: Config active
-- **WHEN** the user presses 3
+- **WHEN** the Worktrees tab is shown and the user presses Right
 - **THEN** the Config title turns bold cyan and the others grey, and no frame line or join changes colour
 
 #### Scenario: Worktrees active
-- **WHEN** the user presses 2
+- **WHEN** the Sessions tab is shown and the user presses Right
 - **THEN** the Worktrees title turns bold cyan and the Sessions title grey, and no frame line or join changes colour
 
 ### Requirement: The Vantage icon heads the settings
@@ -114,7 +118,7 @@ The last two rows of the screen SHALL be a key bar of items, each a key and a wo
 
 #### Scenario: The help names the tab keys
 - **WHEN** the user presses ? on any tab
-- **THEN** the help lists 1, 2, 3, ← and → as choosing a tab and < and > as scrolling the columns, and lists neither w nor ,
+- **THEN** the help lists ← and → as choosing a tab and < and > as scrolling the columns, and lists none of 1, 2, 3, w and ,
 
 #### Scenario: The help names Enter as Open
 - **WHEN** the user presses ? on the Sessions tab
@@ -162,8 +166,8 @@ The console SHALL show the shown tab's status line directly under the settings r
 - **THEN** there is no status line and the tab strip starts on the row under the versions
 
 #### Scenario: The line follows the tab shown
-- **WHEN** the Sessions tab says a folder was copied, the Worktrees tab has no message, and the user presses 2
-- **THEN** there is no status line while the Worktrees tab is shown, and pressing 1 shows the copied message again
+- **WHEN** the Sessions tab says a folder was copied, the Worktrees tab has no message, and the user presses Right
+- **THEN** there is no status line while the Worktrees tab is shown, and pressing Left shows the copied message again
 
 #### Scenario: An action running in the Worktrees tab
 - **WHEN** the user removes a worktree

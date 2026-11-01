@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Views;
 
 namespace Source191.Vantage.HeadlessTerminal.Tests;
 
@@ -8,6 +9,8 @@ public sealed class SmokeScriptShould
     private const string Escape = "\u001b";
     private const string F3 = "\u001bOR";
     private const string Down = "\u001b[B";
+    private const string Right = "\u001b[C";
+    private const string Left = "\u001b[D";
 
     private static readonly IReadOnlyList<SmokeStep> Steps = SmokeScript.Build(Worktree);
 
@@ -58,15 +61,15 @@ public sealed class SmokeScriptShould
             Key(Wording.SessionsKeys, "Help"), Escape,
             Key(Wording.SessionsKeys, "New session"), Escape,
             Key(Wording.SessionsKeys, "Report"), Escape,
-            "3", Key(Wording.ConfigKeys, "Edit"), F3, Escape, Escape,
+            Right + Right, Key(Wording.ConfigKeys, "Edit"), F3, Escape, Escape,
             Key(Wording.ConfigKeys, "Filter") + "with", "\r", Key(Wording.ConfigKeys, "Edit"), Down + Down + Down + Down + " " + F3, Escape, Escape,
-            "2", string.Empty,
+            Left, string.Empty,
             Key(Wording.WorktreesKeys, "Help"), Escape,
             Key(Wording.WorktreesKeys, "Filter") + Worktree, "\r",
             Key(Wording.WorktreesKeys, "Force remove"), Escape,
             Key(Wording.WorktreesKeys, "New session"), Escape,
             Key(Wording.WorktreesKeys, "Open solution"), Escape,
-            "1",
+            Left,
             Key(Wording.SessionsKeys, "Quit"),
         ]);
     }
@@ -131,10 +134,11 @@ public sealed class SmokeScriptShould
     }
 
     [Fact]
-    public void ChooseATabByTheKeyTheHelpGivesIt()
+    public void StepToATabWithTheArrowsTheHelpGives()
     {
-        SmokeScript.TabKey(Wording.SessionsKeys, Source191.Vantage.Application.Views.ConsoleTab.Config).ShouldBe("3");
-        SmokeScript.TabKey(Wording.ConfigKeys, Source191.Vantage.Application.Views.ConsoleTab.Worktrees).ShouldBe("2");
+        SmokeScript.TabKeys(Wording.SessionsKeys, ConsoleTab.Sessions, ConsoleTab.Config).ShouldBe(Right + Right);
+        SmokeScript.TabKeys(Wording.ConfigKeys, ConsoleTab.Config, ConsoleTab.Worktrees).ShouldBe(Left);
+        SmokeScript.TabKeys(Wording.WorktreesKeys, ConsoleTab.Worktrees, ConsoleTab.Sessions).ShouldBe(Left);
     }
 
     [Fact]

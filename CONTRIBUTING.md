@@ -20,7 +20,7 @@ Thank you for wanting to make Vantage better. This guide holds what you need to 
 ## How to contribute
 
 - **Small fixes:** a typo, a broken link or an obvious one-line bug can go straight to a pull request.
-- **Anything larger:** open an issue first and describe the problem or the idea, so we can agree the change before you spend time on a proposal and code. A bug report is best made from Vantage itself with `!` (see the README's [Reporting a problem](README.md#reporting-a-problem)), which fills in the diagnostics.
+- **Anything larger:** open an issue first and describe the problem or the idea, so we can agree the change before you spend time on a proposal and code. A bug report is best made from Vantage itself with `!` on any tab, which fills in the diagnostics.
 - **Security problems:** never in a public issue; follow [SECURITY.md](SECURITY.md).
 - **Review:** every pull request needs the owner's approval before it can merge.
 - **Licence:** Vantage is under the [Apache License 2.0](LICENSE). By opening a pull request you agree your contribution is under the same licence (its section 5); there is no contributor licence agreement to sign.
@@ -140,7 +140,7 @@ Before asking for review, check that:
 - **The loop:** `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` pass, and the hand-off check exits 0 if you touched attach, `vantage here` or the pseudo-console.
 - **The version:** a pull request that changes the packaged tool raises `Version`; see [Versions](#versions).
 - **The changelog:** the same pull request adds its line to `CHANGELOG.md` under Unreleased; see [The changelog](#the-changelog).
-- **The documents:** the README describes any behaviour a user will notice; any newly verified fact about Claude Code, Terminal.Gui, Windows Terminal or Windows is recorded in its `.claude\rules` file with the date and version; a project's README holds any fact worth knowing about it.
+- **The documents:** the README stays a short getting-started guide, and the `?` help, tooltips and `openspec\specs` describe the behaviour a user will notice; any newly verified fact about Claude Code, Terminal.Gui, Windows Terminal or Windows is recorded in its `.claude\rules` file with the date and version; a project's README holds any fact worth knowing about it.
 - **Manual checks:** a change to how Vantage drives `wt.exe`, tabs or attach has been through the [manual checks](#manual-checks-for-tab-and-attach-changes).
 
 ## Manual checks for tab and attach changes
