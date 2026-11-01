@@ -68,6 +68,30 @@ public sealed class UpdateCheckShould
     }
 
     [Fact]
+    public async Task OfferNothingForARecordedNewestThatIsNotAVersion()
+    {
+        await state.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon.AddHours(-1), new NewestRelease.Unreadable("rubbish")));
+        UpdateCheck check = Check(Running);
+
+        await check.RunAsync(TestContext.Current.CancellationToken);
+
+        packages.Calls.ShouldBe(0);
+        check.Status.ShouldBe(new UpdateStatus.UpToDate());
+    }
+
+    [Fact]
+    public async Task RequestAtOnceWhenNeverChecked()
+    {
+        packages.Answer = new VersionListing.Listed(["0.10.0"]);
+        UpdateCheck check = Check(Running);
+
+        await check.RunAsync(TestContext.Current.CancellationToken);
+
+        packages.Calls.ShouldBe(1);
+        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Checked(Noon, new NewestRelease.Found(Newer)));
+    }
+
+    [Fact]
     public async Task RecordNothingWhenTheRequestFails()
     {
         UpdateCheckRecord.Checked old = new(Noon.AddDays(-2), new NewestRelease.Found(Newer));
