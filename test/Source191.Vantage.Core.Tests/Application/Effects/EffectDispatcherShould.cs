@@ -82,7 +82,7 @@ public sealed class EffectDispatcherShould
 
         IEnumerable<Type> background = typeof(ViewEffect).Assembly.GetTypes()
             .Where(type => !type.IsAbstract && type.IsAssignableTo(typeof(ViewEffect)))
-            .Where(type => !type.IsAssignableTo(typeof(ILeavesScreen)) && !type.IsAssignableTo(typeof(ISwitchesTab)) && !type.IsAssignableTo(typeof(IDialogEffect)));
+            .Where(type => !type.IsAssignableTo(typeof(ILeavesScreen)) && !type.IsAssignableTo(typeof(ISwitchesTab)) && !type.IsAssignableTo(typeof(IConsultsSessions)) && !type.IsAssignableTo(typeof(IDialogEffect)));
 
         background.Concat(dispatchedAfterTheirDialog)
             .Where(type => !dispatcher.Handles(type))

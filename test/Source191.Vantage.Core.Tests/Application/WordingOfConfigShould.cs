@@ -84,7 +84,6 @@ public sealed class WordingOfConfigShould
     [Fact]
     public void SayTheConfigStatusMessages()
     {
-        Wording.Describe(new StatusMessage.SettingHint(new ConfigRow.CheckForUpdates(On: true))).ShouldBe(Wording.ConfigDescription(new ConfigRow.CheckForUpdates(On: true)));
         Wording.Describe(new StatusMessage.NoPathHere()).ShouldBe("This row's value is not a path.");
     }
 

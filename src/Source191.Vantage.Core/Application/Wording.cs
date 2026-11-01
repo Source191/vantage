@@ -366,7 +366,6 @@ public static partial class Wording
         return message switch
         {
             StatusMessage.NoWorktreeSelected => "No worktree selected.",
-            StatusMessage.SettingHint hint => ConfigDescription(hint.Row),
             StatusMessage.SetupAdvice advice => Describe(advice.Item),
             StatusMessage.NoPathHere => "This row's value is not a path.",
             StatusMessage.NoSettingSelected => "No setting selected.",
@@ -378,6 +377,7 @@ public static partial class Wording
             StatusMessage.NothingToPrune prune => $"Nothing to prune: the repository {prune.RepositoryName} no longer exists.",
             StatusMessage.LeftoverFolder leftover => $"{leftover.FolderName} is a leftover folder, not a worktree.",
             StatusMessage.NoSessionIn none => $"No session is running in {none.FolderName}.",
+            StatusMessage.SessionNotListed gone => $"{gone.Name} is not in the sessions list any more; it may have ended. Try again after the next refresh.",
             StatusMessage.NoSolution none => $"No solution found in {none.FolderName} or its src folder.",
             StatusMessage.NothingToMeasure stopped => $"{stopped.Name} has no process to measure; it is stopped.",
             StatusMessage.NoPullRequest none => Describe(none),

@@ -64,28 +64,77 @@ public sealed class ConsoleViewShould
     }
 
     [Fact]
-    public void JumpToASessionOnTheSessionsTabById()
+    public void OpenAWorktreesBackgroundSessionInItsOwnTab()
     {
-        ConsoleState onWorktrees = ConsoleView.Apply(Loaded, new SelectTab(ConsoleTab.Worktrees));
+        RowDecision decision = ConsoleView.OpenSession(Loaded, new OpenWorktreeSession(SessionId.From("sess-2"), "fix-tests"));
 
-        ConsoleState jumped = ConsoleView.Apply(onWorktrees, new JumpToSession(SessionId.From("sess-2")));
-
-        jumped.Active.ShouldBe(ConsoleTab.Sessions);
-        jumped.Sessions.Selected.ShouldBe(Second);
+        decision.ShouldBe(new RowDecision.Act(new OpenTabForSession((BackgroundSession)Second.Session, Second.Tab)));
     }
 
     [Fact]
-    public void ClearAFilterThatWouldHideTheJumpedToSession()
+    public void SwitchToTheOpenTabOfAWorktreesSession()
+    {
+        SessionRow withTab = Second with { Tab = new LiveTab.Open(new TabColour("Purple", "#8E44AD")) };
+        ConsoleState state = Loaded with { Sessions = SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([First, withTab])).State };
+
+        RowDecision decision = ConsoleView.OpenSession(state, new OpenWorktreeSession(SessionId.From("sess-2"), "fix-tests"));
+
+        decision.ShouldBe(new RowDecision.Act(new OpenTabForSession((BackgroundSession)withTab.Session, withTab.Tab)));
+    }
+
+    [Fact]
+    public void PickTheWorktreesSessionByIdWhenTwoShareAName()
+    {
+        SessionRow twin = Row("sess-3", "fix-tests");
+        ConsoleState state = Loaded with { Sessions = SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([First, Second, twin])).State };
+
+        RowDecision decision = ConsoleView.OpenSession(state, new OpenWorktreeSession(SessionId.From("sess-3"), "fix-tests"));
+
+        decision.ShouldBe(new RowDecision.Act(new OpenTabForSession((BackgroundSession)twin.Session, twin.Tab)));
+    }
+
+    [Fact]
+    public void SayAWorktreesTerminalSessionRunsInItsOwnTerminal()
+    {
+        InteractiveSession terminal = new(SessionId.From("sess-4"), "repos-94", FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), Noon, DisplayState.Idle, ProcessId: 200);
+        SessionRow row = new(terminal, new SessionLocation.InRepository("Northwind.Orders", terminal.WorkingDirectory), new Head.Unknown(), new LiveTab.None(), HasTranscript: true);
+        ConsoleState state = Loaded with { Sessions = SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([First, row])).State };
+
+        RowDecision decision = ConsoleView.OpenSession(state, new OpenWorktreeSession(SessionId.From("sess-4"), "repos-94"));
+
+        decision.ShouldBe(new RowDecision.Explain(new StatusMessage.RunsInOwnTerminal("repos-94", HasTranscript: true)));
+    }
+
+    [Fact]
+    public void SayAWorktreesSessionWasNeverSentAMessage()
+    {
+        SessionRow fresh = Second with { HasTranscript = false };
+        ConsoleState state = Loaded with { Sessions = SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([First, fresh])).State };
+
+        RowDecision decision = ConsoleView.OpenSession(state, new OpenWorktreeSession(SessionId.From("sess-2"), "fix-tests"));
+
+        decision.ShouldBe(new RowDecision.Explain(new StatusMessage.NeverSentAMessage("fix-tests")));
+    }
+
+    [Fact]
+    public void SayAWorktreesSessionIsNotListed()
+    {
+        RowDecision decision = ConsoleView.OpenSession(Loaded, new OpenWorktreeSession(SessionId.From("sess-9"), "gone-away"));
+
+        decision.ShouldBe(new RowDecision.Explain(new StatusMessage.SessionNotListed("gone-away")));
+    }
+
+    [Fact]
+    public void FindAWorktreesSessionThatTheSessionsFilterHides()
     {
         SessionsViewState filtered = SessionsView.Reduce(Loaded.Sessions, new KeyPressed(Key.Slash)).State;
         filtered = SessionsView.Reduce(filtered, new KeyPressed(Key.Of('c'))).State;
         filtered = SessionsView.Reduce(filtered, new KeyPressed(Key.Enter)).State;
         ConsoleState state = Loaded with { Sessions = filtered, Active = ConsoleTab.Worktrees };
 
-        ConsoleState jumped = ConsoleView.Apply(state, new JumpToSession(SessionId.From("sess-2")));
+        RowDecision decision = ConsoleView.OpenSession(state, new OpenWorktreeSession(SessionId.From("sess-2"), "fix-tests"));
 
-        jumped.Sessions.Selected.ShouldBe(Second);
-        jumped.Sessions.VisibleRows.Count.ShouldBe(2);
+        decision.ShouldBeOfType<RowDecision.Act>("a filter on the Sessions tab does not hide a worktree's session");
     }
 
     [Fact]

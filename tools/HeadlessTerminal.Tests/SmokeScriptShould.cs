@@ -61,8 +61,8 @@ public sealed class SmokeScriptShould
             Key(Wording.WorktreesKeys, "Help"), Escape,
             Key(Wording.WorktreesKeys, "Filter") + Worktree, "\r",
             Key(Wording.WorktreesKeys, "Force remove"), Escape,
-            Key(Wording.WorktreesKeys, "Start session"), Escape,
-            Key(Wording.WorktreesKeys, "Solution"), Escape,
+            Key(Wording.WorktreesKeys, "New session"), Escape,
+            Key(Wording.WorktreesKeys, "Open solution"), Escape,
             "1",
             Key(Wording.SessionsKeys, "Quit"),
         ]);

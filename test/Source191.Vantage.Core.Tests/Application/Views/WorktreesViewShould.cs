@@ -186,9 +186,9 @@ public sealed class WorktreesViewShould
     {
         WorktreesViewState onClean = Press(Loaded, Key.Down, Key.Down);
 
-        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('s'))).Effects.ShouldBe([new StartSessionIn(Clean)]);
+        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('n'))).Effects.ShouldBe([new StartSessionIn(Clean)]);
         WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenShellTab(Clean)]);
-        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('s'))).State.Message.ShouldBe(new StatusMessage.LeftoverFolder("Northwind.Orders.worktrees"));
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('n'))).State.Message.ShouldBe(new StatusMessage.LeftoverFolder("Northwind.Orders.worktrees"));
     }
 
     [Fact]
@@ -196,7 +196,7 @@ public sealed class WorktreesViewShould
     {
         WorktreesViewState onElsewhere = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Clean, Elsewhere])) with { SelectedPath = Elsewhere.Path.Key };
 
-        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('s'))).Effects.ShouldBe([new StartSessionIn(Elsewhere)]);
+        WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('n'))).Effects.ShouldBe([new StartSessionIn(Elsewhere)]);
         WorktreesView.Reduce(onElsewhere, new KeyPressed(Key.Of('o'))).Effects.ShouldBe([new OpenShellTab(Elsewhere)]);
     }
 
@@ -211,11 +211,11 @@ public sealed class WorktreesViewShould
     }
 
     [Fact]
-    public void JumpToTheSessionInsideAWorktreeOnEnter()
+    public void OpenTheSessionInsideAWorktreeOnEnter()
     {
         WorktreesViewState onBusy = Press(Loaded, Key.Down, Key.Down, Key.Down, Key.Down);
 
-        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Enter)).Effects.ShouldBe([new JumpToSession(SessionId.From("sess-fix-3"))]);
+        WorktreesView.Reduce(onBusy, new KeyPressed(Key.Enter)).Effects.ShouldBe([new OpenWorktreeSession(SessionId.From("sess-fix-3"), "fix-the-tests")]);
         WorktreesView.Reduce(Press(Loaded, Key.Down, Key.Down), new KeyPressed(Key.Enter)).State.Message.ShouldBe(new StatusMessage.NoSessionIn("Northwind.Orders-fix-1"));
     }
 
@@ -236,6 +236,8 @@ public sealed class WorktreesViewShould
     {
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of(','))).Effects.ShouldBeEmpty();
         WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('w'))).Effects.ShouldBeEmpty();
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('e'))).Effects.ShouldBeEmpty();
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('v'))).Effects.ShouldBeEmpty();
     }
 
     [Fact]
@@ -310,7 +312,7 @@ public sealed class WorktreesViewShould
     {
         new SelectTab(ConsoleTab.Sessions).ShouldBeAssignableTo<ISwitchesTab>();
         new PreviousTab().ShouldNotBeAssignableTo<ILeavesScreen>();
-        new JumpToSession(SessionId.From("sess-1")).ShouldBeAssignableTo<ISwitchesTab>();
+        new OpenWorktreeSession(SessionId.From("sess-1"), "fix-the-tests").ShouldBeAssignableTo<IConsultsSessions>();
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
         new ConfirmForceRemove(Dirty, "x").ShouldBeAssignableTo<IDialogEffect>();
         new StartSessionIn(Clean).ShouldBeAssignableTo<IDialogEffect>();
@@ -331,14 +333,14 @@ public sealed class WorktreesViewShould
     {
         WorktreesViewState onClean = Press(Loaded, Key.Down, Key.Down);
 
-        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Clean.Path)]);
-        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('v'))).Effects.ShouldBe([new FindSolution(Clean.Path, "Northwind.Orders")]);
+        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('f'))).Effects.ShouldBe([new OpenFolderInEditor(Clean.Path)]);
+        WorktreesView.Reduce(onClean, new KeyPressed(Key.Of('s'))).Effects.ShouldBe([new FindSolution(Clean.Path, "Northwind.Orders")]);
     }
 
     [Theory]
     [InlineData('c')]
-    [InlineData('e')]
-    [InlineData('v')]
+    [InlineData('f')]
+    [InlineData('s')]
     public void RefuseAFolderKeyOnALeftoverWhoseFolderIsGone(char key)
     {
         WorktreeRow vanished = Orphan with { FolderExists = false };
@@ -355,13 +357,13 @@ public sealed class WorktreesViewShould
     {
         WorktreesViewState state = Reduce(WorktreesViewState.Empty, new WorktreeRowsLoaded([Orphan]));
 
-        WorktreesView.Reduce(state, new KeyPressed(Key.Of('e'))).Effects.ShouldBe([new OpenFolderInEditor(Orphan.Path)]);
+        WorktreesView.Reduce(state, new KeyPressed(Key.Of('f'))).Effects.ShouldBe([new OpenFolderInEditor(Orphan.Path)]);
     }
 
     [Theory]
     [InlineData('c')]
-    [InlineData('e')]
-    [InlineData('v')]
+    [InlineData('f')]
+    [InlineData('s')]
     public void SayNoWorktreeIsSelectedWhenAFolderKeyIsPressedOnAnEmptyTable(char key)
     {
         WorktreesViewUpdate update = WorktreesView.Reduce(WorktreesViewState.Empty, new KeyPressed(Key.Of(key)));
@@ -369,6 +371,8 @@ public sealed class WorktreesViewShould
         update.Effects.ShouldBeEmpty();
         update.State.Message.ShouldBe(new StatusMessage.NoWorktreeSelected());
     }
+
+
     private static WorktreesViewState Press(WorktreesViewState state, params Key[] keys)
     {
         return keys.Aggregate(state, (current, key) => WorktreesView.Reduce(current, new KeyPressed(key)).State);

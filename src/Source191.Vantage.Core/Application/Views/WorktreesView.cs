@@ -23,8 +23,8 @@ public sealed record StartSessionIn(WorktreeRow Row) : ViewEffect, IDialogEffect
 
 public sealed record OpenShellTab(WorktreeRow Row) : ViewEffect;
 
-/// <summary>Go to the sessions view with this session selected; by id, because names are not unique.</summary>
-public sealed record JumpToSession(SessionId SessionId) : ViewEffect, ISwitchesTab;
+/// <summary>Enter on a worktree: open its session's tab as the Sessions tab's Enter does; by id, because names are not unique, and the name for when it is not listed.</summary>
+public sealed record OpenWorktreeSession(SessionId SessionId, string Name) : ViewEffect, IConsultsSessions;
 
 
 public sealed record WorktreesViewUpdate(WorktreesViewState State, IReadOnlyList<ViewEffect> Effects);
@@ -93,17 +93,17 @@ public static class WorktreesView
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),
             { Name: KeyName.Escape } => Effect(state, new SelectTab(ConsoleTab.Sessions)),
-            { Name: KeyName.Enter } => RowAction(state, JumpToSession),
+            { Name: KeyName.Enter } => RowAction(state, OpenSession),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'd' } => RowAction(state, row => Remove(row, forced: false)),
             { Name: KeyName.Character, Character: 'D' } => RowAction(state, row => Remove(row, forced: true)),
             { Name: KeyName.Character, Character: 'P' } => RowAction(state, Prune),
             { Name: KeyName.Character, Character: 'p' } => RowAction(state, PullRequestOf),
-            { Name: KeyName.Character, Character: 's' } => RowAction(state, row => InRealWorktree(row, new StartSessionIn(row))),
+            { Name: KeyName.Character, Character: 'n' } => RowAction(state, row => InRealWorktree(row, new StartSessionIn(row))),
             { Name: KeyName.Character, Character: 'o' } => RowAction(state, row => InRealWorktree(row, new OpenShellTab(row))),
             { Name: KeyName.Character, Character: 'c' } => RowAction(state, row => WithFolder(row, new CopyFolderPath(row.Path))),
-            { Name: KeyName.Character, Character: 'e' } => RowAction(state, row => WithFolder(row, new OpenFolderInEditor(row.Path))),
-            { Name: KeyName.Character, Character: 'v' } => RowAction(state, row => WithFolder(row, new FindSolution(row.Path, row.RepositoryName))),
+            { Name: KeyName.Character, Character: 'f' } => RowAction(state, row => WithFolder(row, new OpenFolderInEditor(row.Path))),
+            { Name: KeyName.Character, Character: 's' } => RowAction(state, row => WithFolder(row, new FindSolution(row.Path, row.RepositoryName))),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
             { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
@@ -188,10 +188,10 @@ public static class WorktreesView
             : new RowDecision.Explain(new StatusMessage.LeftoverFolder(row.FolderName));
     }
 
-    private static RowDecision JumpToSession(WorktreeRow row)
+    private static RowDecision OpenSession(WorktreeRow row)
     {
         return row.Session is WorktreeSession.Running running
-            ? new RowDecision.Act(new JumpToSession(running.Id))
+            ? new RowDecision.Act(new OpenWorktreeSession(running.Id, running.Name))
             : new RowDecision.Explain(new StatusMessage.NoSessionIn(row.FolderName));
     }
 

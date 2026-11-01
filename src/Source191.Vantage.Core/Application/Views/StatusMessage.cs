@@ -54,6 +54,9 @@ public abstract record StatusMessage
 
     public sealed record NoSessionIn(string FolderName) : StatusMessage;
 
+    /// <summary>Enter on a worktree whose session the Sessions tab's latest listing no longer holds.</summary>
+    public sealed record SessionNotListed(string Name) : StatusMessage;
+
     /// <summary>The pull request key found none for the row: Gap says why, and Host names the CLI when the remote was read.</summary>
     public sealed record NoPullRequest(string RowName, PullRequestGap Gap, LookupHost Host) : StatusMessage;
 
@@ -91,9 +94,6 @@ public abstract record StatusMessage
 
     /// <summary>Background work threw; the message is the exception's.</summary>
     public sealed record Failed(string Message) : StatusMessage;
-
-    /// <summary>The Config tab's standing message: what the selected row's setting does, or what its setup is for.</summary>
-    public sealed record SettingHint(ConfigRow Row) : StatusMessage;
 
     /// <summary>Enter on a setup row: how that setup is changed, since the tab only reads it.</summary>
     public sealed record SetupAdvice(SetupItem Item) : StatusMessage;

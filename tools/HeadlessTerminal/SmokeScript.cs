@@ -17,7 +17,7 @@ public static class SmokeScript
     /// <summary>F3, which opens the folder picker from the repository roots dialog (its button reads <see cref="Wording.BrowseButton"/>).</summary>
     private const string Browse = "\u001bOR";
 
-    /// <param name="worktreeFolder">The folder name of an idle linked worktree under a repository root, holding two solutions: force remove is refused with no dialog while a session uses it, and v asks only when there is more than one.</param>
+    /// <param name="worktreeFolder">The folder name of an idle linked worktree under a repository root, holding two solutions: force remove is refused with no dialog while a session uses it, and s asks only when there is more than one.</param>
     public static IReadOnlyList<SmokeStep> Build(string worktreeFolder)
     {
         IReadOnlyList<KeyHelp> sessions = Wording.SessionsKeys;
@@ -53,11 +53,11 @@ public static class SmokeScript
             new SmokeStep(CaptureMarker.Nothing, Sequence("enter"), Usual),
             new SmokeStep(CaptureMarker.Nothing, KeyFor(worktrees, "Force remove"), Usual),
             new SmokeStep(Opened(DialogName.ForceRemove), escape, Usual),
-            new SmokeStep(closed, KeyFor(worktrees, "Start session"), Usual),
+            new SmokeStep(closed, KeyFor(worktrees, "New session"), Usual),
             // The fixed-folder wizard shares the new-session tab title, so its own dialog title tells it apart.
             new SmokeStep(new CaptureMarker.ScreenText($"New session in {worktreeFolder}"), escape, Usual),
-            // The worktree holds two solutions, neither named after its repository, so v asks which one.
-            new SmokeStep(closed, KeyFor(worktrees, "Solution"), Usual),
+            // The worktree holds two solutions, neither named after its repository, so s asks which one.
+            new SmokeStep(closed, KeyFor(worktrees, "Open solution"), Usual),
             new SmokeStep(Opened(DialogName.OpenSolution), escape, Usual),
             // Esc would only clear the filter typed above, so the tab key goes back.
             new SmokeStep(closed, TabKey(worktrees, ConsoleTab.Sessions), Usual),

@@ -35,12 +35,8 @@ public sealed record ConfigViewState(
 
     public ConfigRow? Selected => List.Selected;
 
-    /// <summary>The last message, else what the selected row is for.</summary>
-    public StatusMessage Shown => (Message, Selected) switch
-    {
-        (StatusMessage.Blank, ConfigRow row) => new StatusMessage.SettingHint(row),
-        _ => Message,
-    };
+    /// <summary>The last message only: what the selected row is for is its tooltip.</summary>
+    public StatusMessage Shown => Message;
 
     public TableTitle Title => List.Title("row", Wording.ConfigSetting);
 
@@ -93,7 +89,7 @@ public static class ConfigView
             { Name: KeyName.Enter } => RowAction(state, Enter),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Character, Character: 'c' } => RowAction(state, row => WithPath(row, path => new CopyFolderPath(FolderPath.From(path)))),
-            { Name: KeyName.Character, Character: 'e' } => RowAction(state, row => WithPath(row, path => new OpenFolderInEditor(FolderOf(row, path)))),
+            { Name: KeyName.Character, Character: 'f' } => RowAction(state, row => WithPath(row, path => new OpenFolderInEditor(FolderOf(row, path)))),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
             { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),

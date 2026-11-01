@@ -13,7 +13,7 @@ public sealed class WordingOfKeyBarShould
     private static readonly SessionRow EmptyTerminal = Terminal("sess-3", "repos-93", hasTranscript: false);
     private static readonly SessionRow BusyTerminal = Terminal("sess-4", "repos-94", hasTranscript: true);
 
-    private static readonly string[] SecondSessionsRow = ["c Copy path", "e Open folder", "v Solution", "p Open PR", "/ Filter", "? Help", "! Report", "q Quit"];
+    private static readonly string[] SecondSessionsRow = ["c Copy path", "f Open folder", "s Open solution", "p Open PR", "/ Filter", "? Help", "! Report", "q Quit"];
 
     [Fact]
     public void NameTheKeysForARunningBackgroundSession()
@@ -75,8 +75,8 @@ public sealed class WordingOfKeyBarShould
     {
         KeyBar bar = Wording.WorktreesBar(Loaded(WorktreesViewState.Empty), updateKnown: false);
 
-        Texts(bar.First).ShouldBe(["d Remove", "D Force remove", "P Prune", "s Start session", "o Open shell", "Enter Go to session"]);
-        Texts(bar.Second).ShouldBe(["c Copy path", "e Open folder", "v Solution", "p Open PR", "/ Filter", "? Help", "! Report", "q Quit"]);
+        Texts(bar.First).ShouldBe(["d Remove", "D Force remove", "P Prune", "n New session", "o Open shell", "Enter Open session"]);
+        Texts(bar.Second).ShouldBe(["c Copy path", "f Open folder", "s Open solution", "p Open PR", "/ Filter", "? Help", "! Report", "q Quit"]);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public sealed class WordingOfKeyBarShould
         KeyBar bar = Wording.ConfigBar(ConfigLoaded, updateKnown: false);
 
         Texts(bar.First).ShouldBe(["Enter Edit"]);
-        Texts(bar.Second).ShouldBe(["c Copy", "e Open folder", "/ Filter", "? Help", "! Report", "q Quit"]);
+        Texts(bar.Second).ShouldBe(["c Copy", "f Open folder", "/ Filter", "? Help", "! Report", "q Quit"]);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public sealed class WordingOfKeyBarShould
     {
         SessionsViewState loaded = SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded(rows)).State;
 
-        return SessionsView.Reduce(loaded, new SelectSession(selected.Session.SessionId)).State;
+        return loaded.With(loaded.List.Select(selected.Session.SessionId.Value));
     }
 
     private static WorktreesViewState Loaded(WorktreesViewState state) => WorktreesView.Reduce(state, new WorktreeRowsLoaded([])).State;
