@@ -16,7 +16,6 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
     private readonly WorktreeInspector inspector = new(git);
 
     private const string GitDirPrefix = "gitdir:";
-    private const string WorktreesSegment = ".git\\worktrees\\";
 
     public async Task<IReadOnlyList<WorktreeRow>> ScanAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {
@@ -169,53 +168,69 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             }
 
             string gitFile = IOPath.Combine(folder.Value, ".git");
-            GitPointer pointer = folders.FileExists(gitFile) ? TargetOf(GitDirOf(gitFile)) : new GitPointer.NoGitFile();
+            GitPointer pointer = folders.FileExists(gitFile) ? TargetOf(folder) : new GitPointer.NoGitFile();
             WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), UnderClaudeWorktrees: true, pointer, false, Prunable: false);
             yield return Leftover(repository, folder, observation, ownerExists: true);
         }
     }
 
     /// <summary>
-    /// A direct child of a root or the worktree root with a .git file that no repository under the roots lists: broken
-    /// when its registration is gone, elsewhere when the registration and its repository both exist (that repository
-    /// is not under the roots, so it was never asked), an orphan otherwise.
+    /// A direct child of a root or the worktree root with a .git file that no repository under the roots lists. Its
+    /// .git file names a folder that exists: a live checkout of a repository outside the roots (a linked worktree, one
+    /// of a bare repository, or a checkout made with a separate git directory), so elsewhere, never a leftover. It names
+    /// a folder that is gone, or none: broken, its registration gone.
     /// </summary>
     private WorktreeRow BrokenWorktree(FolderPath folder)
     {
-        string gitDir = GitDirOf(IOPath.Combine(folder.Value, ".git"));
-        FolderPath owner = TryOwnerOf(gitDir, out FolderPath? registeredWith) ? registeredWith : folder.Parent ?? folder;
+        if (TryGitDirOf(folder, out FolderPath? gitDir) && folders.DirectoryExists(gitDir.Value))
+        {
+            FolderPath repository = RepositoryOf(gitDir);
+            WorktreeObservation elsewhere = new(false, true, new WorktreeLock.Unlocked(), false, new GitPointer.RegisteredElsewhere(repository), false, Prunable: false);
+
+            return Leftover(repository, folder, elsewhere, ownerExists: true);
+        }
+
+        FolderPath owner = gitDir is not null && IsRegistration(gitDir) ? RepositoryOf(gitDir) : folder.Parent ?? folder;
         bool ownerExists = folders.DirectoryExists(IOPath.Combine(owner.Value, ".git"));
-        GitPointer target = TargetOf(gitDir);
-        GitPointer pointer = target is GitPointer.TargetExists && registeredWith is not null && ownerExists ? new GitPointer.RegisteredElsewhere(owner) : target;
-        WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), false, pointer, false, Prunable: false);
+        WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), false, new GitPointer.TargetGone(), false, Prunable: false);
 
         return Leftover(owner, folder, observation, ownerExists);
     }
 
+    /// <summary>
+    /// The folder the .git file's gitdir line names, a relative one read from the .git file's own folder as git does;
+    /// false when the file names none or the text is no path.
+    /// </summary>
+    private bool TryGitDirOf(FolderPath folder, [MaybeNullWhen(false)] out FolderPath gitDir)
+    {
+        string? text = folders.Lines(IOPath.Combine(folder.Value, ".git"))
+            .Where(candidate => candidate.StartsWith(GitDirPrefix, StringComparison.Ordinal))
+            .Select(line => line[GitDirPrefix.Length..].Trim().Replace(IOPath.AltDirectorySeparatorChar, IOPath.DirectorySeparatorChar))
+            .FirstOrDefault();
+
+        return FolderPath.TryParse(text is null || IOPath.IsPathFullyQualified(text) ? text : IOPath.Combine(folder.Value, text), out gitDir);
+    }
+
+    /// <summary>A registration sits at <c>&lt;git directory&gt;\worktrees\&lt;name&gt;</c>.</summary>
+    private static bool IsRegistration(FolderPath gitDir) => gitDir.Parent is FolderPath worktrees && string.Equals(worktrees.Name, "worktrees", StringComparison.OrdinalIgnoreCase) && worktrees.Parent is not null;
+
+    /// <summary>
+    /// The repository a gitdir belongs to, read from its shape: a registration's git directory is two levels up, and is
+    /// the repository itself when it is a bare one or the parent of a folder named .git; a gitdir that is no
+    /// registration is a git directory of its own (a checkout made with <c>--separate-git-dir</c>).
+    /// </summary>
+    private static FolderPath RepositoryOf(FolderPath gitDir)
+    {
+        FolderPath gitDirectory = IsRegistration(gitDir) && gitDir.Parent?.Parent is FolderPath twoUp ? twoUp : gitDir;
+
+        return string.Equals(gitDirectory.Name, ".git", StringComparison.OrdinalIgnoreCase) && gitDirectory.Parent is FolderPath repository ? repository : gitDirectory;
+    }
+
     private WorktreeRow Leftover(FolderPath repository, FolderPath folder, WorktreeObservation observation, bool ownerExists) => new(repository, folder, new Head.Unknown(), WorktreeHealth.From(observation), 0, 0, new LastCommit.Unknown(), new WorktreeSession.None(), CountLeftoverFiles(folder), ownerExists, FolderExists: folders.DirectoryExists(folder.Value));
 
-    /// <summary>Whether the registration a .git file points at still exists; never names an owner.</summary>
-    private GitPointer TargetOf(string gitDir) => folders.DirectoryExists(gitDir) ? new GitPointer.TargetExists() : new GitPointer.TargetGone();
+    /// <summary>Whether the registration a folder's .git file points at still exists; never names an owner.</summary>
+    private GitPointer TargetOf(FolderPath folder) => TryGitDirOf(folder, out FolderPath? gitDir) && folders.DirectoryExists(gitDir.Value) ? new GitPointer.TargetExists() : new GitPointer.TargetGone();
 
-    /// <summary>The full path of the registration folder a .git file's gitdir line names; empty, which no folder is, when it names none.</summary>
-    private string GitDirOf(string gitFile) => folders.Lines(gitFile)
-        .Where(candidate => candidate.StartsWith(GitDirPrefix, StringComparison.Ordinal))
-        .Select(line => IOPath.GetFullPath(line[GitDirPrefix.Length..].Trim().Replace('/', IOPath.DirectorySeparatorChar)))
-        .DefaultIfEmpty(string.Empty)
-        .First();
-
-    /// <summary>The repository a registration folder sits in, read from its <c>.git\worktrees\</c> segment.</summary>
-    private static bool TryOwnerOf(string gitDir, [MaybeNullWhen(false)] out FolderPath owner)
-    {
-        int at = gitDir.IndexOf(WorktreesSegment, StringComparison.OrdinalIgnoreCase);
-        if (at < 0)
-        {
-            owner = null;
-            return false;
-        }
-
-        return FolderPath.TryParse(gitDir[..at], out owner);
-    }
 
     private bool IsEmptyLeftover(FolderPath folder)
     {

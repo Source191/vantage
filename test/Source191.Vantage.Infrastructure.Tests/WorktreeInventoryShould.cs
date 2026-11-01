@@ -236,6 +236,7 @@ public sealed class WorktreeInventoryShould : IDisposable
     {
         string gitDirectory = Path.Combine(outside.Path, "gitdirs", "Northwind.Ledger");
         string checkout = Path.Combine(root.Path, "Northwind.Ledger");
+        Directory.CreateDirectory(Path.Combine(outside.Path, "gitdirs"));
         await outside.GitAsync(outside.Path, "init", "-q", "-b", "main", "--separate-git-dir", gitDirectory, checkout);
 
         WorktreeRow row = (await Inventory.ScanAsync([], TestContext.Current.CancellationToken)).Single();
