@@ -56,7 +56,7 @@ public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment 
         };
 
         string? profile = fragment.Exists ? TerminalProfiles.SessionProfileName : null;
-        ProcessRequest request = new(executable, WindowsTerminalArguments.ForTab(launch, profile), launch.StartingDirectory.Value);
+        ProcessRequest request = new(executable, WindowsTerminalArguments.ForTab(launch, profile), new WorkingFolder.At(launch.StartingDirectory.Value));
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
         {

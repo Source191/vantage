@@ -48,7 +48,7 @@ public sealed class ProcessRunner : IProcessRunner
             RedirectStandardError = capture,
             StandardOutputEncoding = capture ? Encoding.UTF8 : null,
             StandardErrorEncoding = capture ? Encoding.UTF8 : null,
-            WorkingDirectory = request.WorkingDirectory ?? string.Empty,
+            WorkingDirectory = request.WorkingDirectory is WorkingFolder.At at ? at.Path : string.Empty,
         };
         foreach (string argument in request.Arguments)
         {

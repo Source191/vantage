@@ -74,7 +74,7 @@ public sealed class EditorLocator(IFolders folders, IProcessRunner processes, Ed
             return null;
         }
 
-        ProcessResult result = await processes.RunAsync(new ProcessRequest(vswhere, ["-latest", "-property", "productPath"], WorkingDirectory: null), cancellationToken);
+        ProcessResult result = await processes.RunAsync(new ProcessRequest(vswhere, ["-latest", "-property", "productPath"], WorkingFolder.Inherit), cancellationToken);
         string? productPath = result.StandardOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault();
 
         return result.ExitCode == 0 && productPath is not null && folders.FileExists(productPath) ? productPath : null;

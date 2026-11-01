@@ -16,6 +16,6 @@ public static class EditorCommand
             ? [.. editor.Arguments.Select(argument => argument.Replace(EditorChoice.FolderPlaceholder, folder.Value, StringComparison.Ordinal))]
             : [folder.Value];
 
-        return new ProcessRequest(executable, arguments, WorkingDirectory: null);
+        return new ProcessRequest(executable, arguments, WorkingFolder.Inherit);
     }
 }
