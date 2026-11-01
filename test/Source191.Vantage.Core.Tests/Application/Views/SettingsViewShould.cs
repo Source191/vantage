@@ -33,7 +33,7 @@ public sealed class SettingsViewShould
 
         opened.Scope.ShouldBe(scope);
         opened.Focus.ShouldBe(field);
-        opened.Problem.ShouldBeNull();
+        opened.Problem.ShouldBe(new SettingsProblemLine.None());
         opened.Text.Roots.ShouldBe($"{Root}\n{Work}");
     }
 
@@ -75,7 +75,7 @@ public sealed class SettingsViewShould
         SettingsUpdate saved = SettingsView.Reduce(state, new SettingsInput.Save());
 
         saved.Effect.ShouldBe(new SettingsEffect.None());
-        saved.State.Problem.ShouldBe(problem);
+        saved.State.Problem.ShouldBe(new SettingsProblemLine.Shows(problem));
         saved.State.Focus.ShouldBe(field);
     }
 
@@ -118,7 +118,7 @@ public sealed class SettingsViewShould
         SettingsState state = Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.FoldersChosen([Work, @"E:\personal"]));
 
         state.Text.Roots.ShouldBe($"{Root}\n{Work}\nE:\\personal");
-        state.Problem.ShouldBeNull();
+        state.Problem.ShouldBe(new SettingsProblemLine.None());
         state.Focus.ShouldBe(SettingsField.Roots);
     }
 
@@ -146,7 +146,7 @@ public sealed class SettingsViewShould
 
         SettingsState refused = Reduce(chosen, new SettingsInput.Save());
 
-        refused.Problem.ShouldBe(new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)));
+        refused.Problem.ShouldBe(new SettingsProblemLine.Shows(new SettingsProblem.RootAlreadyListed(FolderPath.From(Root))));
         refused.Focus.ShouldBe(SettingsField.Roots);
     }
 
@@ -198,7 +198,7 @@ public sealed class SettingsViewShould
 
         SettingsUpdate saved = SettingsView.Reduce(Reduce(refused, new SettingsInput.RootsChanged(Root)), new SettingsInput.Save());
 
-        saved.State.Problem.ShouldBeNull();
+        saved.State.Problem.ShouldBe(new SettingsProblemLine.None());
         saved.Effect.ShouldBeOfType<SettingsEffect.Save>();
     }
 
