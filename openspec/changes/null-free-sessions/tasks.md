@@ -14,7 +14,7 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step and
 ## 2. Where a launch starts (LaunchPlace)
 
 - [x] 2.1 `LaunchPlanShould` expects `LaunchPlace.CurrentBranch` for the current branch, `NewWorktree` with branch `fix-123-flaky-tests` for a new worktree and `ExistingWorktree` when the folder exists (in place of `Worktree.ShouldBeNull`, `ShouldNotBeNull` and `ReuseExistingWorktree`): red, then `Application\Launch\LaunchPlace.cs` and `LaunchPlan` taking a `LaunchPlace Place` in place of `PlannedWorktree? Worktree` and `bool ReuseExistingWorktree`, chosen by `LaunchPlanBuilder`, green. Verify the facts pass and `HereCommandShould` expects `CurrentBranch`.
-- [ ] 2.2 `LaunchServiceShould`'s facts that a new worktree is created and an existing one is not keep their answers after `LaunchService` creates one only for `LaunchPlace.NewWorktree` (refactor step; its plans and `StartSessionHandlerShould`, `WordingShould` and `DiagnosticsPrivacyShould`'s follow). Verify the facts pass unchanged.
+- [x] 2.2 `LaunchServiceShould`'s facts that a new worktree is created and an existing one is not keep their answers after `LaunchService` creates one only for `LaunchPlace.NewWorktree` (refactor step; its plans and `StartSessionHandlerShould`, `WordingShould` and `DiagnosticsPrivacyShould`'s follow). Verify the facts pass unchanged.
 - [ ] 2.3 `WizardViewShould`'s launched-plan facts (lines 215 to 241 and 291) match the place's case with the same meaning. Verify they pass and `Get-ChildItem src,test -Recurse -Filter *.cs | Select-String 'ReuseExistingWorktree'` finds nothing.
 
 ## 3. Where a session runs (SessionLocation)
