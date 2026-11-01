@@ -22,7 +22,7 @@ public sealed class NullFreeModelsShould
     /// <summary>
     /// The nullables kept on purpose, each with its reason: absences that arrive from outside Vantage (git, the process
     /// table, config.json, the environment, Microsoft.Extensions.Logging) and are met where they arrive, and the list
-    /// selection, which is empty when nothing is shown. Fixing one removes its entry; <c>KeepNoStaleEntry</c> says so.
+    /// selection, which is empty when nothing is shown. Fixing one removes its entry; <see cref="KeepNoStaleEntry"/> says so.
     /// </summary>
     private static readonly AllowedNullable[] Kept =
     [
@@ -90,7 +90,6 @@ public sealed class NullFreeModelsShould
         new(typeof(TerminalGuiBridge), "BeginScope", "ILogger's signature, from Microsoft.Extensions.Logging"),
         new(typeof(TerminalGuiBridge), "Log(exception)", "ILogger's signature, from Microsoft.Extensions.Logging"),
         new(typeof(TerminalGuiBridge), "Log(formatter)", "ILogger's signature, from Microsoft.Extensions.Logging"),
-        new(typeof(SessionName), "Value", "deliberately stale: a text value's Value is never null"),
     ];
     private static readonly string[] ModelNamespaces = ["Source191.Vantage.Domain", "Source191.Vantage.Ports", "Source191.Vantage.Application"];
 
