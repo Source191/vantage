@@ -23,7 +23,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 5. Local time on the Config tab
 
-- [ ] 5.1 `WordingOfConfigShould`: the config-tab delta's two scenarios (a check this morning in summer, a check before the clocks went back) through `Wording.ConfigValue(row, now, zone)`. Red, then the zone parameter in `When` and `SetupValue` green. Verify the facts pass.
+- [x] 5.1 `WordingOfConfigShould`: the config-tab delta's two scenarios (a check this morning in summer, a check before the clocks went back) through `Wording.ConfigValue(row, now, zone)`. Red, then the zone parameter in `When` and `SetupValue` green. Verify the facts pass.
 - [ ] 5.2 `ConfigScreenDefinition` takes the `TimeProvider` and passes `clock.LocalTimeZone` to `ConfigValue`; `ConsoleScreen` hands it `screen.clock`. Wiring only, no test of its own; verify by build and by the Config tab reading the local time in a `dotnet run --project tools\HeadlessTerminal -- smoke` run against an installed local build (`tools\install-local.ps1`).
 
 ## 6. Notes for translation

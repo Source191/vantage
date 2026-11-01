@@ -48,9 +48,10 @@ public static partial class Wording
         _ => string.Empty,
     };
 
-    /// <summary>The VALUE cell; <paramref name="now"/> says whether the last update check was today.</summary>
+    /// <summary>The VALUE cell; <paramref name="now"/> in <paramref name="zone"/> says whether the last update check was today.</summary>
     public static string ConfigValue(ConfigRow row, DateTimeOffset now, TimeZoneInfo zone)
     {
+        ArgumentNullException.ThrowIfNull(zone);
         return row switch
         {
             ConfigRow.RepositoryRoot root => root.Path.Value,
@@ -59,7 +60,7 @@ public static partial class Wording
             ConfigRow.DefaultBase defaultBase => Describe(defaultBase.Base),
             ConfigRow.DefaultPlace place => Describe(place.Place),
             ConfigRow.CheckForUpdates check => check.On ? "on" : "off",
-            ConfigRow.Setup setup => SetupValue(setup.Item, setup.State, now),
+            ConfigRow.Setup setup => SetupValue(setup.Item, setup.State, now, zone),
             _ => row.ToString(),
         };
     }
@@ -135,7 +136,7 @@ public static partial class Wording
         };
     }
 
-    private static string SetupValue(SetupItem item, SetupState state, DateTimeOffset now)
+    private static string SetupValue(SetupItem item, SetupState state, DateTimeOffset now, TimeZoneInfo zone)
     {
         return (item, state) switch
         {
@@ -149,18 +150,19 @@ public static partial class Wording
             (_, SetupState.OtherChannel other) => $"{other.Channel}, not the terminal bell",
             (_, SetupState.Disabled) => "off",
             (_, SetupState.Never) => "never",
-            (_, SetupState.Checked { Newest: NewestRelease.Found found } check) => $"{When(check.When, now)}, newest {found.Version}",
-            (_, SetupState.Checked { Newest: NewestRelease.Unreadable unreadable } check) => $"{When(check.When, now)}, newest {unreadable.Text}",
-            (_, SetupState.Checked { Newest: NewestRelease.None } check) => When(check.When, now),
+            (_, SetupState.Checked { Newest: NewestRelease.Found found } check) => $"{When(check.When, now, zone)}, newest {found.Version}",
+            (_, SetupState.Checked { Newest: NewestRelease.Unreadable unreadable } check) => $"{When(check.When, now, zone)}, newest {unreadable.Text}",
+            (_, SetupState.Checked { Newest: NewestRelease.None } check) => When(check.When, now, zone),
             _ => state.ToString(),
         };
     }
 
-    private static string When(DateTimeOffset when, DateTimeOffset now)
+    /// <summary>Each moment takes the offset the zone had then, so a check from before the clocks changed keeps its own.</summary>
+    private static string When(DateTimeOffset when, DateTimeOffset now, TimeZoneInfo zone)
     {
-        DateTimeOffset at = when.ToOffset(now.Offset);
+        DateTimeOffset at = TimeZoneInfo.ConvertTime(when, zone);
 
-        return at.Date == now.Date
+        return at.Date == TimeZoneInfo.ConvertTime(now, zone).Date
             ? at.ToString("HH:mm 'today'", CultureInfo.InvariantCulture)
             : at.ToString("d MMMM yyyy HH:mm", CultureInfo.InvariantCulture);
     }
