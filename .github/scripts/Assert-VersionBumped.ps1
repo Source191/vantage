@@ -23,44 +23,8 @@ param(
 $ErrorActionPreference = 'Stop'
 $csproj = 'src/Source191.Vantage/Source191.Vantage.csproj'
 
-# What ships in the package or changes how it is compiled or restored. Everything else (README, CONTRIBUTING.md, CLAUDE.md,
-# .github, openspec, test, tools, the solution file) merges without a bump. A new folder that ships must be
-# added here; a folder ending in / matches everything under it.
-$toolPaths = @('src/', 'Directory.Build.props', 'global.json', 'nuget.config')
-
-function Test-ToolPath([string] $path) {
-    $matching = @($toolPaths | Where-Object { Test-PathMatch $path $_ })
-    return $matching.Count -gt 0
-}
-
-function Test-PathMatch([string] $path, [string] $toolPath) {
-    if ($toolPath.EndsWith('/')) {
-        return $path.StartsWith($toolPath, [StringComparison]::OrdinalIgnoreCase)
-    }
-    return $path -eq $toolPath
-}
-
-function Get-ChangedToolPath {
-    $changed = @(git diff --name-only $Base $Head)
-    if ($LASTEXITCODE -ne 0) {
-        throw "git diff $Base $Head failed with exit code $LASTEXITCODE."
-    }
-    return @($changed | Where-Object { Test-ToolPath $_ })
-}
-
-# The same regex release.yml uses: git's output comes through the console encoding, and a byte order mark
-# would break an [xml] cast.
-function Read-Version([string] $commit) {
-    $content = git show "${commit}:$csproj" | Out-String
-    if ($LASTEXITCODE -ne 0) {
-        throw "git show ${commit}:$csproj failed with exit code $LASTEXITCODE."
-    }
-    $match = [regex]::Match($content, '<Version>\s*([^<]+?)\s*</Version>')
-    if (-not $match.Success) {
-        throw "No <Version> in $csproj at $commit."
-    }
-    return $match.Groups[1].Value
-}
+# The tool paths and the version reader are shared with Assert-ChangelogUpdated.ps1.
+. (Join-Path $PSScriptRoot 'ToolPaths.ps1')
 
 function ConvertTo-Version([string] $text, [string] $commit) {
     $parsed = $null
@@ -71,14 +35,14 @@ function ConvertTo-Version([string] $text, [string] $commit) {
     exit 1
 }
 
-$changed = Get-ChangedToolPath
+$changed = Get-ChangedToolPath $Base $Head
 if ($changed.Count -eq 0) {
     Write-Host "Nothing that ships changed between $Base and ${Head}: no version bump needed."
     exit 0
 }
 
-$before = ConvertTo-Version (Read-Version $Base) $Base
-$after = ConvertTo-Version (Read-Version $Head) $Head
+$before = ConvertTo-Version (Read-ToolVersion $Base) $Base
+$after = ConvertTo-Version (Read-ToolVersion $Head) $Head
 if ($after -gt $before) {
     Write-Host "Version raised from $before to $after."
     exit 0
