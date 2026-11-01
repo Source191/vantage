@@ -1,0 +1,48 @@
+# Proposal
+
+## Why
+
+The code review of 0.20.0-preview.7 (1 November 2026, sections 3.7 and 3.8; V-06, V-07, A-06, A-12, A-13 and D-13 in its appendix) found user-facing words living outside `Application\Wording` against the rule in `CLAUDE.md`'s Wording section, and facts the Tui re-derives from text the Application already holds. Re-surveyed against `main` at 8dbf4150 (0.20.0-preview.13), the findings stand: the waiting words and failure prefixes sit on the three screen definitions (`src\Source191.Vantage.Tui\SessionsScreenDefinition.cs:27-29`, `WorktreesScreenDefinition.cs:19-21`, `ConfigScreenDefinition.cs:24-26`), six dialog titles and a dozen button labels in `DialogEffects` and the dialogs (and two fragments the first survey missed: the `"folder name"` kind word at `DialogEffects.cs:98` and the `filter: ` label at `TableBody.cs:129`), the wizard's four preview sentences in `Application\Launch\LaunchPreview.cs:15-30`, the trust tab's title and message in `Application\TabScripts.cs:37-41` and the update tab's title at `:50`, and the STATE column's words in `Domain\DisplayState.cs:5-16`. `ConsoleScreen.Click` (`ConsoleScreen.cs:585-599`) decodes a key bar item's text back into a `Key`, `WizardControls.cs:56` hard-codes the two `LaunchMode` labels that `Wording.Describe(LaunchMode)` owns, and `"terminal_bell"`, the plural helper, the preset names and the "is it today" test each exist twice. Every reviewer looking for "every sentence Vantage shows" must read five projects instead of one, and nothing mechanical catches the next sentence that strays.
+
+## What Changes
+
+- **Waiting and failure words (V-07):** `Wording.WaitingText(ConsoleTab)` and `Wording.LoadFailurePrefix(ConsoleTab)`, discard-free switches like `TabTitleFor`, with the six current texts verbatim; the three screen definitions answer them for their tab.
+- **Dialog titles and buttons (V-07):** the six titles still in `DialogEffects` ("Keys", "Delete branch", "Rename session", "Close empty terminal sessions", "Force remove", "Delete session") and every button label in `Confirm.Ask` calls, `NameDialog`, `TypedConfirmationDialog`, `HelpDialog`, `MemoryDialog`, `ChooseSolutionDialog`, `LaunchWizardDialog` and `SettingsDialog` become `Wording` members, each pinned verbatim by a `WordingShould` fact. The What's new dialog (PR #180) already takes its title and buttons from `Wording` (`WhatsNewBeforeUpdateTitle`, `WhatsNewAfterUpdateTitle`, `UpdateNowButton`, `ReleasePageButton`, `LaterButton`, `CloseButton`), so it moves nothing; `HelpDialog` and `MemoryDialog` reuse its `CloseButton`. "Update Vantage" is now only the update tab's title (`TabScripts.cs:50`), so it becomes `Wording.UpdateTabTitle`. `Wording.NothingTypedYet` says "folder name" itself, its one caller being the force-remove dialog, and `Wording.FilterBeingTyped(text, title)` words the `filter: tem_  ...` title `TableBody` composes while a filter is typed (`openspec\specs\console-layout\spec.md:86` quotes it, unchanged).
+- **Captions stay (V-07):** the static captions and under-field hints in `WizardControls`, `SettingsControls`, `NameDialog` and `TypedConfirmationDialog` are layout text, as are the glyphs (`-`, `…`) and the `" "` placeholders a Label needs; `CLAUDE.md`'s Wording section records the exception, which the archived facts-not-sentences design decided and the rule never said. Every other string literal in the Tui is a throw message, a doc comment, a resource name or a composition of `Wording` values (design.md lists them).
+- **Application sentences (A-06):** `LaunchPreview.Describe` keeps its decision and reads its four sentences from `Wording`; `TabScripts.Trust` reads its title and message from `Wording`. A Roslyn source fact fails for a string literal or interpolated string ending in `.`, `?` or `!` in `Application` outside `Wording*.cs`, `CommandLine.cs`, `Diagnostics\` and a `throw`.
+- **Keys carry their key (V-06 a):** `KeyHelp` carries the `Application.Views.Key` it stands for, its `Key` text and `HelpKey` derived from it, `KeyBarItem` passes it through and `ConsoleScreen.Click` presses it instead of decoding text.
+- **Enums shown once (V-06 b):** one `Tui\OptionSelectors` helper builds the Where, Worktree base, Default place and Open folder with selectors from `Wording.Describe` and converts index to enum one way in `WizardControls`, `SettingsControls`, `LaunchWizardDialog` and `SettingsDialog`; the Editor selector's run-time relabelling (`SettingsControls.ShowPresets`, PR #178) is untouched.
+- **One home for two glyphs (V-06):** `Wording.TabBlock` beside `Wording.TerminalSwatch`, and `Wording.Dot` (the ` · ` separator) made public for `ConsoleScreen`, whose own `Separator` constant goes.
+- **STATE words (D-13):** `DisplayState` becomes a closed hierarchy that carries no words but an unknown combination's raw CLI words; `Wording.StateWord(DisplayState)` owns "working", "needs input", "idle", "completed", "failed", "stopped" and "starting", with facts; `DisplayStateShould`'s label fact and `ClaudeStatesShould`'s "starting" assertion move with them.
+- **Repetition inside Wording (A-12):** `EditorName` reuses `Describe(EditorPreset)`, `Counted` and `Count` become one plural helper, `When` and `DayAndTime` share one `IsToday`.
+- **`terminal_bell` once (A-13):** `NotificationChannelState.TerminalBell` in Ports, read by `SetupFactsReader`, `TerminalSetupRunner`, `ClaudeSettings`, `FakeClaudeSettings` and the two Wording sentences.
+- **Docs:** `CLAUDE.md`'s Wording section gains the caption exception and the sentence fact; `console-screen.md` names `Wording.WaitingText` and `StateWord`.
+- **Version and changelog:** `Version` one preview step above `main` (0.20.0-preview.14 if nothing lands first); patch-level under semantic versioning, because no key, screen, message or file behaves differently; and one line under Unreleased in `CHANGELOG.md` (under Internal), which `Assert-ChangelogUpdated.ps1` (PR #180) requires of every pull request that changes the packaged tool.
+- `skip_specs: true`: no visible word changes; where each lives does.
+
+## Capabilities
+
+### New Capabilities
+
+None.
+
+### Modified Capabilities
+
+None: a refactor with tests and documentation, so `.openspec.yaml` declares `skip_specs: true`. The specs that quote "Listing sessions" (`openspec\specs\session-listing\spec.md:163`) and "Scanning worktrees" (`worktree-management\spec.md:131`) still hold, because the words do not change.
+
+## Impact
+
+- **Code:** `Application\Wording.cs`, `WordingOfScreens.cs`, `WordingOfConsole.cs`, `WordingOfConfig.cs`, `WordingOfDetail.cs`, `WordingOfOutcomes.cs`, `KeyHelp.cs`, `KeyBarItem.cs`, `Launch\LaunchPreview.cs`, `TabScripts.cs`, `SetupFactsReader.cs`, `TerminalSetup\TerminalSetupRunner.cs`; `Domain\DisplayState.cs`; `Ports\NotificationChannelState.cs`; `src\Source191.Vantage.Infrastructure\Claude\ClaudeSettings.cs` and `ClaudeStates.cs`; in Tui the three screen definitions, `ConsoleScreen`, `DialogEffects`, the eight dialogs and binders named above and a new `OptionSelectors.cs`. No port method, handler, reducer or effect changes.
+- **Tests:** new facts in `WordingShould` (and its `NothingTypedYet` fact at `:628` rewritten to the one real text), `WordingOfScreensShould` and the existing `KeyHelpShould`; `LaunchPreviewShould` and `TabScriptsShould` compare against the `Wording` members; `DisplayStateShould`, `ClaudeStatesShould` and `Contract\ClaudeContractShould:54` stop reading `Label`; new `OptionSelectorsShould` in `test\Source191.Vantage.Core.Tests\Tui` (beside `ConfigScreenDefinitionShould`, `DialogEffectsShould` and `PaletteShould`); new `SentenceLiteralsShould` beside `OneTypePerFileShould` in `test\Source191.Vantage.Infrastructure.Tests`, which already references Roslyn.
+- **Changes that landed since this was written:** `editor-not-found` landed in PR #178 and the design reads against it (the Editor selector relabels its options in place through `Wording.Describe(EditorPreset, PresetSearch)`); `show-release-notes` landed in PR #180 (the What's new dialog replaced the "Update Vantage" question, its words already in `WordingOfReleaseNotes.cs`, and `CHANGELOG.md` with `Assert-ChangelogUpdated.ps1`); `tidy-composition-root` landed in PR #177 (`Program.cs` and `Composition\` are untouched here); `standardise-maybe-null-when` (PR #175) and `performance-diagnostics` (PR #179) touched nothing this change cites.
+- **Changes still open that touch the same files:** `table-body-collaborators` slims `IScreenDefinition`; `columns-as-data` reshapes the definitions' `Cell` switches; `convention-nets` owns the discard arms in `SetupFactsReader.cs:54` and `TerminalSetupRunner.cs:158`. This change keeps `IScreenDefinition`'s two members, the `Cell` switches and those discard arms as they are, so the overlap is the two `TerminalBell` lines and the waiting words only.
+- **Users:** none.
+
+## Out of scope
+
+- V-06 (c), the reflection fact that presses every `KeyHelp` on a loaded state: `convention-nets`.
+- V-05, columns as data in the definitions (`columns-as-data`), and the `"NAME"`/`"AGE"` coupling in `TableBody.StyleColumns`.
+- The ellipsis glyph, declared in five places (`ConfigScreenDefinition.cs:10`, `ConsoleScreen.cs:360`, `TableBody.cs:483`, `Domain\WhereLabel.cs:11`, `Views\StatusLayout.cs:11`): a glyph with no words, and `Domain` may not read `Wording`.
+- Unifying the two hotkey-mark shapes `Wording` now holds (`BrowseButton` carries its `_`; `CloseButton` and the What's new buttons are bare and the dialog adds it): recorded in design.md, not changed.
+- Moving captions or under-field hints out of the binders, or translating anything (`.claude\rules\locale.md`).
+- Multiple Claude accounts, which is a later change.
