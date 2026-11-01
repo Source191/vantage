@@ -160,6 +160,28 @@ public sealed class WordingOfDetailShould
     }
 
     [Fact]
+    public void SayNoBranchAndNoTabForASessionOnNoBranch()
+    {
+        SessionRow detached = Row(DisplayState.Idle, processId: 4242) with { Head = new Head.Detached() };
+        SessionRow unknown = Row(DisplayState.Idle, processId: 4242) with { Head = new Head.Unknown() };
+
+        Rows(Wording.Detail(Detail(detached), Now))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
+        Rows(Wording.Detail(Detail(unknown), Now))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
+    }
+
+    [Fact]
+    public void SayNoBranchForAWorktreeOnNoBranch()
+    {
+        foreach (Head head in new Head[] { new Head.Detached(), new Head.Unknown() })
+        {
+            WorktreeRow row = WorktreeRowOf(unpushed: 0, dirty: 0) with { Head = head };
+            WorktreeDetail detail = new(row, Created: null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
+
+            Rows(Wording.Detail(detail, Now))[1].ShouldBe(["Branch none", "PR none"]);
+        }
+    }
+
+    [Fact]
     public void KeepEveryDetailToItsFactRows()
     {
         WorktreeDetail worktree = new(WorktreeRowOf(unpushed: 0, dirty: 0), null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
