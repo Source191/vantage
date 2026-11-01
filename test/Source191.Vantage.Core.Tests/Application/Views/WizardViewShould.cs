@@ -19,11 +19,11 @@ public sealed class WizardViewShould
         .WithDirectory(Path.Combine(Billing, ".git"))
         .WithDirectory(Path.Combine(Templates, ".git"));
 
-    private WizardState Opened => WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [Templates], folders, TestSettings.For(Root));
+    private WizardState Opened => WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [Templates], folders, TestSettings.For(Root), new WizardOrigin.Anywhere());
 
     private WizardState InAgents => Reduce(Opened, new WizardInput.FilterChanged("agents"));
 
-    private WizardState FixedInBilling => WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, TestSettings.For([Root], WorktreeRoot, WorktreeBase.Head), FolderPath.From(Billing));
+    private WizardState FixedInBilling => WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, TestSettings.For([Root], WorktreeRoot, WorktreeBase.Head), WizardOrigin.In(FolderPath.From(Billing)));
 
     // 1.1 Choices, filter and the list.
 
@@ -33,7 +33,7 @@ public sealed class WizardViewShould
         WizardState opened = Opened;
 
         opened.Choices.Select(choice => choice.Name).ShouldBe(["Northwind.Templates", "Northwind.Agents", "Northwind.Billing"]);
-        opened.Chosen!.Name.ShouldBe("Northwind.Templates");
+        opened.Chosen.ShouldBeOfType<RepositoryPick.Picked>().Choice.Name.ShouldBe("Northwind.Templates");
         opened.Focus.ShouldBe(WizardField.RepositoryFilter);
         opened.Problem.ShouldBe(new WizardProblem.None());
         opened.Mode.ShouldBe(LaunchMode.NewWorktree);
@@ -49,21 +49,21 @@ public sealed class WizardViewShould
 
         narrowed.Choices.Select(choice => choice.Name).ShouldBe(["Northwind.Billing"]);
         narrowed.SelectedIndex.ShouldBe(0, "a new filter selects its first choice");
-        narrowed.Chosen!.Name.ShouldBe("Northwind.Billing");
+        narrowed.Chosen.ShouldBeOfType<RepositoryPick.Picked>().Choice.Name.ShouldBe("Northwind.Billing");
         Reduce(narrowed, new WizardInput.FilterChanged("nothing matches")).ShouldSatisfyAllConditions(
             empty => empty.Choices.ShouldBeEmpty(),
             empty => empty.SelectedIndex.ShouldBeNull(),
-            empty => empty.Chosen.ShouldBeNull());
+            empty => empty.Chosen.ShouldBeOfType<RepositoryPick.None>());
     }
 
     [Fact]
     public void MoveAndPageTheListWithinBounds()
     {
-        Reduce(Opened, new WizardInput.ListMoved(1)).Chosen!.Name.ShouldBe("Northwind.Agents");
-        Reduce(Opened, new WizardInput.ListMoved(20)).Chosen!.Name.ShouldBe("Northwind.Billing", "a page past the end stops on the last choice");
-        Reduce(Opened, new WizardInput.ListMoved(-1)).Chosen!.Name.ShouldBe("Northwind.Templates", "the first choice is as far up as it goes");
-        Reduce(Opened, new WizardInput.ChoiceSelected(2)).Chosen!.Name.ShouldBe("Northwind.Billing", "the list's own selection is the choice");
-        Reduce(Opened, new WizardInput.ChoiceSelected(9)).Chosen!.Name.ShouldBe("Northwind.Templates", "an index outside the list changes nothing");
+        Reduce(Opened, new WizardInput.ListMoved(1)).Chosen.ShouldBeOfType<RepositoryPick.Picked>().Choice.Name.ShouldBe("Northwind.Agents");
+        Reduce(Opened, new WizardInput.ListMoved(20)).Chosen.ShouldBeOfType<RepositoryPick.Picked>().Choice.Name.ShouldBe("Northwind.Billing", "a page past the end stops on the last choice");
+        Reduce(Opened, new WizardInput.ListMoved(-1)).Chosen.ShouldBeOfType<RepositoryPick.Picked>().Choice.Name.ShouldBe("Northwind.Templates", "the first choice is as far up as it goes");
+        Reduce(Opened, new WizardInput.ChoiceSelected(2)).Chosen.ShouldBeOfType<RepositoryPick.Picked>().Choice.Name.ShouldBe("Northwind.Billing", "the list's own selection is the choice");
+        Reduce(Opened, new WizardInput.ChoiceSelected(9)).Chosen.ShouldBeOfType<RepositoryPick.Picked>().Choice.Name.ShouldBe("Northwind.Templates", "an index outside the list changes nothing");
     }
 
     // 1.2 Confirming the repository.
@@ -76,7 +76,7 @@ public sealed class WizardViewShould
 
         chosen.Focus.ShouldBe(WizardField.Name);
         chosen.Problem.ShouldBe(new WizardProblem.None(), "confirming clears an earlier problem");
-        chosen.Chosen!.Name.ShouldBe("Northwind.Agents");
+        chosen.Chosen.ShouldBeOfType<RepositoryPick.Picked>().Choice.Name.ShouldBe("Northwind.Agents");
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class WizardViewShould
     [Fact]
     public void TakeTheWorktreeRootAndBaseFromTheSettings()
     {
-        WizardState opened = WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, TestSettings.For([Root], WorktreeRoot, WorktreeBase.Head));
+        WizardState opened = WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, TestSettings.For([Root], WorktreeRoot, WorktreeBase.Head), new WizardOrigin.Anywhere());
 
         opened.WorktreeRoot.ShouldBe(FolderPath.From(WorktreeRoot));
         opened.Base.ShouldBe(WorktreeBase.Head);
@@ -119,7 +119,7 @@ public sealed class WizardViewShould
     {
         Settings settings = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, TestSettings.Home, defaultPlace: place);
 
-        WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, settings).Mode.ShouldBe(place);
+        WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, settings, new WizardOrigin.Anywhere()).Mode.ShouldBe(place);
     }
 
     [Theory]
@@ -129,7 +129,7 @@ public sealed class WizardViewShould
     {
         Settings settings = Settings.Resolve([FolderPath.From(Root)], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, TestSettings.Home, defaultPlace: place);
 
-        WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, settings, FolderPath.From(Billing)).Mode.ShouldBe(LaunchMode.CurrentBranch);
+        WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current(Root)), [], folders, settings, WizardOrigin.In(FolderPath.From(Billing))).Mode.ShouldBe(LaunchMode.CurrentBranch);
     }
 
     [Fact]
@@ -259,7 +259,7 @@ public sealed class WizardViewShould
         fixedInBilling.ShowsChooser.ShouldBeFalse();
         Opened.ShowsChooser.ShouldBeTrue();
         fixedInBilling.Focus.ShouldBe(WizardField.Name);
-        fixedInBilling.Chosen.ShouldBe(new RepositoryChoice("Northwind.Billing", FolderPath.From(Billing), IsRepository: true));
+        fixedInBilling.Chosen.ShouldBe(new RepositoryPick.Picked(new RepositoryChoice("Northwind.Billing", FolderPath.From(Billing), IsRepository: true)));
         fixedInBilling.Base.ShouldBe(WorktreeBase.Head, "the default base still comes from settings");
     }
 
@@ -298,7 +298,7 @@ public sealed class WizardViewShould
     {
         WizardState inList = Reduce(Opened, new WizardInput.ListMoved(1));
         inList.Focus.ShouldBe(WizardField.RepositoryList);
-        inList.Chosen!.Name.ShouldBe("Northwind.Agents");
+        inList.Chosen.ShouldBeOfType<RepositoryPick.Picked>().Choice.Name.ShouldBe("Northwind.Agents");
 
         Reduce(inList, new WizardInput.FilterChanged("t")).Focus.ShouldBe(WizardField.RepositoryFilter);
 
