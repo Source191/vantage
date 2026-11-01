@@ -23,7 +23,6 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
     {
         WriteIndented = true,
         Converters = { new JsonStringEnumConverter(), new TextValueJsonConverter<FolderPath>(), new TextValueJsonConverter<BranchName>(), new TabOwnerJsonConverter() },
-        TypeInfoResolver = new System.Text.Json.Serialization.Metadata.DefaultJsonTypeInfoResolver { Modifiers = { StateFileNames.KeepTabOwnerAsSessionId } },
     };
 
     private string TabsFolder => Path.Combine(folder, "tabs");
@@ -39,9 +38,9 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
     private string UpdateCheckFile => Path.Combine(folder, "update-check.json");
 
-    public async Task<IReadOnlyList<TabRegistration>> ReadTabsAsync() => await ReadAllAsync<TabRegistration>(TabsFolder);
+    public async Task<IReadOnlyList<TabRegistration>> ReadTabsAsync() => [.. (await ReadAllAsync<TabFile>(TabsFolder)).Select(file => file.ToRegistration())];
 
-    public Task WriteTabAsync(TabRegistration registration) => WriteJsonAsync(Path.Combine(TabsFolder, $"{registration.Id:N}.json"), registration);
+    public Task WriteTabAsync(TabRegistration registration) => WriteJsonAsync(Path.Combine(TabsFolder, $"{registration.Id:N}.json"), TabFile.From(registration));
 
     public Task RemoveTabAsync(Guid id)
     {
