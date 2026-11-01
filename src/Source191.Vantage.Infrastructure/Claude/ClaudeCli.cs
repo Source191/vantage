@@ -14,19 +14,19 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         return ClaudeAgentsListing.Parse(result.StandardOutput);
     }
 
-    public async Task<string?> VersionAsync(CancellationToken cancellationToken)
+    public async Task<ClaudeVersionReport> VersionAsync(CancellationToken cancellationToken)
     {
         try
         {
             ProcessResult result = await processes.RunAsync(Request(["--version"], WorkingFolder.Inherit), cancellationToken);
             Match version = LeadingVersion().Match(result.StandardOutput);
 
-            return result.ExitCode == 0 && version.Success ? version.Value : null;
+            return result.ExitCode == 0 && version.Success ? new ClaudeVersionReport.Printed(version.Value) : new ClaudeVersionReport.NotRead();
         }
         catch (Exception exception) when (exception is Win32Exception or InvalidOperationException or IOException or OperationCanceledException)
         {
             // A cosmetic header value: a program that cannot start, fails to answer or is given up on reads as unknown.
-            return null;
+            return new ClaudeVersionReport.NotRead();
         }
     }
 
