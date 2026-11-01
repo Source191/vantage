@@ -144,7 +144,7 @@ Keys (every key is dispatched by the tested reducer, so this table is the refere
 | d | Delete the session, after a confirmation, closing a Vantage tab showing it first, and the worktree Vantage created for it when nothing in it would be lost; asks before deleting that worktree's branch when it is not merged. A worktree whose `.git` has gone has its folder deleted and its registration pruned; one whose folder a tab or program still has open is reported as in use, by name, and a remove from the worktrees view finishes it once that is closed. On a row with the hollow `▯` swatch (a plain `claude` in its own terminal) that has never been sent a message, closes that tab instead |
 | C | Close every tab whose plain `claude` has never been sent a message, after a confirmation naming them |
 | b | Move a plain terminal session under Vantage's supervision; its old tab closes once the session has resumed (a failed resume leaves it at its prompt) |
-| R | Resume sessions that stopped with a reboot |
+| R | Resume every stopped or failed session the table shows, each in its own Vantage tab; `/` narrows it to what the filter shows, Enter resumes one, `d` removes one for good |
 | c | Copy the selected row's full folder path to the clipboard |
 | f | Open folder: open the row's folder with the program chosen under "Open folder with" on the [Config tab](#the-config-tab) (VS Code unless you chose another on the [Config tab](#the-config-tab)); works on terminal and stopped sessions too |
 | s | Open the folder's solution with Windows' default application: `*.sln` or `*.slnx` in the folder, else in its `src` folder; several open the one named after the repository, else ask which from a list of their paths; none says so in the status line |
@@ -335,7 +335,7 @@ Without options the Vantage profile plays `Windows Notify Messaging.wav` and the
 
 **A session you started with plain `claude` needs the same treatment.** Select its row (the hollow `▯` swatch) and press `b` while it is idle or waiting. Vantage ends the plain process and resumes the same conversation under the supervisor with the same name; the old tab becomes an ordinary shell. A session you have not sent anything to yet is refused, because Claude writes no transcript until the first message and there would be nothing to resume: `d` closes that tab instead.
 
-**After a reboot.** Sessions show as stopped or failed with no process. `R` resumes the failed ones and offers the stopped ones as a checklist; each resumed session continues in its own row, under the same session id, and reads starting until its job is running.
+**After a reboot.** Sessions show as stopped or failed with no process. `R` resumes every one the table shows, with no questions, and opens each in its own Vantage tab; filter with `/` first to resume fewer, press Enter on a row to resume just that one, and delete a session you stopped on purpose and do not want back with `d`. Each resumed session continues in its own row, under the same session id, and reads starting until its job is running; one never sent a message, or one the CLI refuses, is named in the status line and gets no tab.
 
 **Finish a story and clean up.** `d` on the session deletes it and, if Vantage created the worktree and it is clean and pushed, offers to remove the worktree and its merged branch. Anything with uncommitted or unpushed work is refused with the reason.
 
