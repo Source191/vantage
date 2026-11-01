@@ -342,12 +342,6 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task ReadNoConfigurationWhenNoneIsSaved()
-    {
-        (await Store.ReadConfigAsync()).ShouldBeNull();
-    }
-
-    [Fact]
     public async Task RoundTripTheConfiguration()
     {
         VantageConfig saved = new([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"D:\worktrees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"]));
@@ -364,7 +358,7 @@ public sealed class JsonFileStoreShould : IDisposable
         string configFile = Path.Combine(folder, "config.json");
         await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["D:\\work"], "defaultBase": "Head" }""", TestContext.Current.CancellationToken);
 
-        VantageConfig read = (await Store.ReadConfigAsync())!;
+        VantageConfig read = (await Store.ReadConfigAsync());
 
         read.ShouldBe(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null));
     }
@@ -386,7 +380,7 @@ public sealed class JsonFileStoreShould : IDisposable
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), """{ "repositoryRoots": ["D:\\work"] }""", TestContext.Current.CancellationToken);
 
-        (await Store.ReadConfigAsync())!.DefaultBase.ShouldBeNull();
+        (await Store.ReadConfigAsync()).DefaultBase.ShouldBeNull();
     }
 
     [Fact]
@@ -396,7 +390,7 @@ public sealed class JsonFileStoreShould : IDisposable
         string configFile = Path.Combine(folder, "config.json");
         await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["C:\\repos"], "defaultBase": "Head" }""", TestContext.Current.CancellationToken);
 
-        VantageConfig read = (await Store.ReadConfigAsync())!;
+        VantageConfig read = (await Store.ReadConfigAsync());
         await Store.WriteConfigAsync(read);
 
         read.DefaultBase.ShouldBe(WorktreeBase.Head);
@@ -410,7 +404,7 @@ public sealed class JsonFileStoreShould : IDisposable
         string configFile = Path.Combine(folder, "config.json");
         await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["C:\\repos"], "defaultPlace": "CurrentBranch" }""", TestContext.Current.CancellationToken);
 
-        VantageConfig read = (await Store.ReadConfigAsync())!;
+        VantageConfig read = (await Store.ReadConfigAsync());
         await Store.WriteConfigAsync(read);
 
         read.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
@@ -423,7 +417,7 @@ public sealed class JsonFileStoreShould : IDisposable
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), """{ "repositoryRoots": ["D:\\work"] }""", TestContext.Current.CancellationToken);
 
-        (await Store.ReadConfigAsync())!.DefaultPlace.ShouldBeNull();
+        (await Store.ReadConfigAsync()).DefaultPlace.ShouldBeNull();
     }
 
     [Fact]
@@ -462,12 +456,14 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task ReadACorruptConfigAsAbsent()
+    public async Task ReadAMissingOrCorruptConfigAsMissing()
     {
+        (await Store.ReadConfigAsync()).ShouldBe(VantageConfig.Missing);
+
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), "nope", TestContext.Current.CancellationToken);
 
-        (await Store.ReadConfigAsync()).ShouldBeNull();
+        (await Store.ReadConfigAsync()).ShouldBe(VantageConfig.Missing);
     }
 
     [Fact]
