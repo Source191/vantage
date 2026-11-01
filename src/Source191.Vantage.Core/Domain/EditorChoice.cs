@@ -71,7 +71,9 @@ public sealed record EditorChoice
 
     /// <summary>
     /// A custom command checked against the rules: the editor, or the first reason it cannot be used: no executable, not a
-    /// full path (Windows would look for a bare name in the folder Vantage was started from), a batch file (cmd.exe would
+    /// full path (<see href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">Windows
+    /// would look for a bare name in the folder Vantage was started from</see>), a batch file
+    /// (<see href="https://learn.microsoft.com/windows-server/administration/windows-commands/cmd">cmd.exe</see> would
     /// parse the folder path), or no placeholder.
     /// </summary>
     public static EditorChoiceValidation Validate(string executable, IReadOnlyList<string> arguments)

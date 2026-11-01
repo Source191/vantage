@@ -2,7 +2,11 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Core.Tests.Domain;
 
-/// <summary>What may be handed to a batch file: cmd.exe reads its command line again, so only plain text goes through.</summary>
+/// <summary>
+/// What may be handed to a batch file:
+/// <see href="https://learn.microsoft.com/windows-server/administration/windows-commands/cmd">cmd.exe reads its command
+/// line again</see>, so only plain text goes through.
+/// </summary>
 public sealed class BatchFileArgumentShould
 {
     [Theory]

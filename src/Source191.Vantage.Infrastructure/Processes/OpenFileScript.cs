@@ -3,9 +3,11 @@ using System.Text;
 namespace Source191.Vantage.Adapters.Processes;
 
 /// <summary>
-/// The PowerShell a cleaned child runs to hand a file or URL to Windows. ShellExecute starts the associated application
-/// with the environment its caller was created with, which cannot be set on a ShellExecute start, so the call is made from
-/// a child that never had the Claude Code markers. The target enters the script only as Base64 of its UTF-8 bytes, an
+/// The PowerShell a cleaned child runs to hand a file or URL to Windows.
+/// <see href="https://learn.microsoft.com/windows/win32/api/shellapi/nf-shellapi-shellexecutew">ShellExecute</see> starts
+/// the associated application with the environment its caller was created with, which
+/// <see href="https://learn.microsoft.com/dotnet/api/system.diagnostics.processstartinfo.useshellexecute">cannot be set on
+/// a ShellExecute start</see>, so the call is made from a child that never had the Claude Code markers. The target enters the script only as Base64 of its UTF-8 bytes, an
 /// alphabet with no character any shell reads specially, so no path or URL needs quoting.
 /// </summary>
 public static class OpenFileScript

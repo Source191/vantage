@@ -54,7 +54,10 @@ public sealed partial class ProcessRegistry : IProcessRegistry
         });
     }
 
-    /// <summary>One Toolhelp snapshot: every process with its parent's id, no handles opened, a few milliseconds for hundreds of processes.</summary>
+    /// <summary>
+    /// One <see href="https://learn.microsoft.com/windows/win32/api/tlhelp32/nf-tlhelp32-createtoolhelp32snapshot">Toolhelp
+    /// snapshot</see>: every process with its parent's id, no handles opened, a few milliseconds for hundreds of processes.
+    /// </summary>
     public IReadOnlyList<ProcessFacts> Snapshot()
     {
         IntPtr snapshot = CreateToolhelp32Snapshot(SnapshotOfProcesses, 0);
@@ -74,8 +77,13 @@ public sealed partial class ProcessRegistry : IProcessRegistry
     }
 
     /// <summary>
-    /// The private working set (Task Manager's Memory column, shared pages excluded), the start time and the command
-    /// line, from one limited-rights handle opened directly: <see cref="Process.GetProcessById(int)"/> walks the whole
+    /// The <see href="https://learn.microsoft.com/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex2">private
+    /// working set</see> (Task Manager's Memory column, shared pages excluded), the
+    /// <see href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes">start
+    /// time</see> and the command line, from one
+    /// <see href="https://learn.microsoft.com/windows/win32/procthread/process-security-and-access-rights">limited-rights
+    /// handle</see> <see href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocess">opened
+    /// directly</see>: <see cref="Process.GetProcessById(int)"/> walks the whole
     /// table on every call, about twenty milliseconds, and a refresh measures a few hundred processes. The command
     /// line is read for naming only and is never written anywhere.
     /// </summary>
@@ -89,7 +97,8 @@ public sealed partial class ProcessRegistry : IProcessRegistry
 
         try
         {
-            // A process that has ended but is still held open has an exit time; a running one has none.
+            // A process that has ended but is still held open has an exit time; a running one has none
+            // (https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesstimes).
             if (!GetProcessTimes(handle, out long creation, out long exit, out _, out _) || exit != 0)
             {
                 return null;
@@ -119,7 +128,12 @@ public sealed partial class ProcessRegistry : IProcessRegistry
         return entries;
     }
 
-    /// <summary>The private working set when the operating system reports it (Windows 10 2004 onwards), else the working set from the older structure, else nothing.</summary>
+    /// <summary>
+    /// The private working set when the
+    /// <see href="https://learn.microsoft.com/windows/win32/api/psapi/nf-psapi-getprocessmemoryinfo">operating system
+    /// reports it</see> (<see href="https://learn.microsoft.com/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex2">Windows
+    /// 10 2004 onwards</see>), else the working set from the older structure, else nothing.
+    /// </summary>
     private static MemorySize PrivateMemoryOf(IntPtr handle)
     {
         ProcessMemoryCountersEx2 counters = new() { Size = (uint)Marshal.SizeOf<ProcessMemoryCountersEx2>() };
@@ -137,7 +151,8 @@ public sealed partial class ProcessRegistry : IProcessRegistry
 
     private static string CommandLineOf(IntPtr handle)
     {
-        // Asked with no buffer, the call answers "length mismatch" and says how long the buffer must be.
+        // Asked with no buffer, the call answers "length mismatch" and says how long the buffer must be
+        // (https://learn.microsoft.com/windows/win32/api/winternl/nf-winternl-ntqueryinformationprocess).
         int probe = NtQueryInformationProcess(handle, ProcessCommandLineInformationClass, IntPtr.Zero, 0, out int length);
         if (probe != StatusInfoLengthMismatch || length <= 0)
         {
@@ -240,7 +255,8 @@ public sealed partial class ProcessRegistry : IProcessRegistry
     }
 
     /// <summary>
-    /// PROCESSENTRY32W's szExeFile: 260 UTF-16 units ending at the first zero. The units are ushort rather than char so
+    /// <see href="https://learn.microsoft.com/windows/win32/api/tlhelp32/ns-tlhelp32-processentry32w">PROCESSENTRY32W</see>'s
+    /// szExeFile: 260 UTF-16 units ending at the first zero. The units are ushort rather than char so
     /// the structure stays blittable, which the source-generated calls require. Internal rather than private because Sonar
     /// reads an inline array's one declared field as unused (S1144) when the type is private.
     /// </summary>

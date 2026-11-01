@@ -5,8 +5,9 @@ using Source191.Vantage.TestDoubles;
 namespace Source191.Vantage.Core.Tests.Application;
 
 /// <summary>
-/// A program is found in the PATH folders and started by its full path, so Windows never resolves a bare name against
-/// the folder Vantage was started from, and never a batch file.
+/// A program is found in the PATH folders and started by its full path, so
+/// <see href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">Windows
+/// never resolves a bare name against the folder Vantage was started from</see>, and never a batch file.
 /// </summary>
 public sealed class ProgramLocatorShould
 {

@@ -21,7 +21,8 @@ public sealed record EditorFolders(IReadOnlyList<string> PathFolders, string Loc
 /// <summary>
 /// Finds each preset's real executable. VS Code is found through the code.cmd shim on the PATH (the executable sits
 /// two folders up, beside the shim's bin folder) or its usual install folders, but the shim itself is never answered,
-/// because Windows would run it through cmd.exe. Visual Studio is the newest install vswhere names, run by its full path.
+/// because Windows would run it through cmd.exe. Visual Studio is the newest install
+/// <see href="https://github.com/microsoft/vswhere">vswhere</see> names, run by its full path.
 /// </summary>
 public sealed class EditorLocator(IFolders folders, IProcessRunner processes, EditorFolders where) : IEditorLocator
 {
