@@ -32,5 +32,5 @@ Every variant failed on input with "Input must be provided either through stdin 
 ## Risks / Trade-offs
 
 - [A later CLI ignores `--settings` hooks in print mode, or stops running SessionEnd on an input error] → the nightly run fails again, which is the contract check doing its job; the fact's doc comment names the hook so the cause is quick to find.
-- [The developer's own SessionEnd hooks still run alongside the test's] → harmless: hooks are merged and the run only lives longer, still inside the deadline.
+- [The developer's own SessionEnd hooks still run alongside the test's] → hooks are merged and the run lives longer: on the owner's machine its SessionEnd hook adds about 10 s, so the run exited at about 37 s and missed a 30 s wait begun after the listing (found while implementing, 31 October 2026). The wait for exit therefore has its own `ExitDeadline` of 60 s.
 - [No local red] → on a machine with a SessionEnd hook the fact already passes, so the proof is the manual workflow run on the runner before merging.
