@@ -19,7 +19,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     private readonly StringWriter output = new();
     private readonly StringWriter error = new();
 
-    private static readonly TerminalSetupRequest Defaults = new(Sound: null, SessionSound: null, Yes: false, Remove: false);
+    private static readonly TerminalSetupRequest Defaults = new(new SoundArgument.Omitted(), new SoundArgument.Omitted(), Yes: false, Remove: false);
 
     private Task<int> RunAsync(string answers, TerminalSetupRequest? request = null)
     {
@@ -74,7 +74,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task WriteGivenSounds()
     {
-        int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = Chimes, SessionSound = NotifyMessaging.ToUpperInvariant() });
+        int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = new SoundArgument.Given(Chimes), SessionSound = new SoundArgument.Given(NotifyMessaging.ToUpperInvariant()) });
 
         exitCode.ShouldBe(0);
         fragment.Written.Single().ShouldBe(new TerminalProfiles(Vantage, Chimes, NotifyMessaging.ToUpperInvariant()));
@@ -86,7 +86,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         string full = Path.GetFullPath("ding.wav");
         folders.WithFile(full);
 
-        int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = "ding.wav" });
+        int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = new SoundArgument.Given("ding.wav") });
 
         exitCode.ShouldBe(0);
         fragment.Written.Single().VantageSound.ShouldBe(full);
@@ -131,7 +131,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task RefuseAMissingSoundWithExitTwo()
     {
-        int exitCode = await RunAsync("y\ny\n", Defaults with { Sound = @"C:\Users\me\missing.wav" });
+        int exitCode = await RunAsync("y\ny\n", Defaults with { Sound = new SoundArgument.Given(@"C:\Users\me\missing.wav") });
 
         exitCode.ShouldBe(2);
         error.ToString().ShouldContain(Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotFound(@"C:\Users\me\missing.wav")));
@@ -143,7 +143,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task RefuseASoundThatIsNotAWavFileWithExitTwo()
     {
-        int exitCode = await RunAsync("y\ny\n", Defaults with { SessionSound = @"C:\Windows\Media\notes.txt" });
+        int exitCode = await RunAsync("y\ny\n", Defaults with { SessionSound = new SoundArgument.Given(@"C:\Windows\Media\notes.txt") });
 
         exitCode.ShouldBe(2);
         error.ToString().ShouldContain(Wording.DescribeSetupProblem(new TerminalSetupProblem.SoundNotWav(@"C:\Windows\Media\notes.txt")));
@@ -153,7 +153,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     [Fact]
     public async Task RefuseRemoveWithASoundWithExitTwo()
     {
-        int exitCode = await RunAsync(string.Empty, Defaults with { Remove = true, Sound = Chimes });
+        int exitCode = await RunAsync(string.Empty, Defaults with { Remove = true, Sound = new SoundArgument.Given(Chimes) });
 
         exitCode.ShouldBe(2);
         error.ToString().ShouldBe(Wording.DescribeSetupProblem(new TerminalSetupProblem.RemoveWithSound()) + Environment.NewLine);

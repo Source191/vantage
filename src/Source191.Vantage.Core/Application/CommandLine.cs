@@ -87,10 +87,13 @@ public static class CommandLine
         Option<bool> yes = new("--yes") { Description = "Write without asking." };
         Option<bool> remove = new("--remove") { Description = "Remove Vantage's profiles." };
         Command setup = new("setup-terminal", "Add the Vantage and Vantage session profiles to Windows Terminal, each with a bell that sounds and flashes, then offer to turn on Claude Code's terminal bell. Shows what it will write and asks first.") { sound, sessionSound, yes, remove };
-        setup.SetAction((parsed, cancellationToken) => actions.SetUpTerminal(new TerminalSetupRequest(parsed.GetValue(sound), parsed.GetValue(sessionSound), parsed.GetValue(yes), parsed.GetValue(remove)), cancellationToken));
+        setup.SetAction((parsed, cancellationToken) => actions.SetUpTerminal(new TerminalSetupRequest(SoundOf(parsed.GetValue(sound)), SoundOf(parsed.GetValue(sessionSound)), parsed.GetValue(yes), parsed.GetValue(remove)), cancellationToken));
 
         return setup;
     }
+
+    /// <summary>A sound option as typed, or omitted when the option was left off.</summary>
+    private static SoundArgument SoundOf(string? value) => value is null ? new SoundArgument.Omitted() : new SoundArgument.Given(value);
 
     private static Command ClaimTab(CommandActions actions)
     {
