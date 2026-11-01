@@ -41,4 +41,15 @@ public sealed class ProgramLabelShould
 
         ProgramLabel.From("cmd", withKey).ShouldNotContain("ctx7sk");
     }
+
+    [Theory]
+    [InlineData("uvx", "uvx --from git+https://x-access-token:secret@github.com/northwind/mcp northwind-mcp", "northwind-mcp")]
+    [InlineData("cmd", "cmd /c npx --registry https://me:secret@registry.northwind.example -y @northwind/mcp", "@northwind/mcp")]
+    [InlineData("uvx", "uvx --from=git+https://t:s@h/x northwind-mcp", "northwind-mcp")]
+    [InlineData("uvx", "uvx --with northwind-extras --python 3.13 northwind-mcp", "northwind-mcp")]
+    [InlineData("uvx", "uvx git+https://t:s@h/x", "uvx")]
+    public void NeverLabelAProgramWithAnOptionsValue(string name, string commandLine, string expected)
+    {
+        ProgramLabel.From(name, commandLine).ShouldBe(expected);
+    }
 }
