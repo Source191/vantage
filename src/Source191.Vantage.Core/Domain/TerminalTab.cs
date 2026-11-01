@@ -2,8 +2,8 @@ namespace Source191.Vantage.Domain;
 
 /// <summary>
 /// Walks up from a process to the Windows Terminal that holds it: the shell is the process whose parent is the
-/// WindowsTerminal process (any case), within eight steps. Ending that shell cleanly closes the tab. Null when the
-/// process is not inside a tab. Windows never clears a parent id and reuses ids, so a parent that started after its
+/// WindowsTerminal process (any case), within eight steps. Ending that shell cleanly closes the tab.
+/// A process not inside a tab answers <see cref="TabShell.None"/>. Windows never clears a parent id and reuses ids, so a parent that started after its
 /// child, or whose start cannot be read, is not its real parent: the walk stops there and answers no tab, so an
 /// unrelated tab's shell under a reused id is never ended.
 /// </summary>
@@ -11,7 +11,12 @@ public static class TerminalTab
 {
     private const int MaxDepth = 8;
 
-    public static int? ShellOf(int processId, IProcessRegistry processes) => Walk(processId, processes)?.Shell;
+    public static TabShell ShellAbove(int processId, IProcessRegistry processes) => Walk(processId, processes) switch
+    {
+        (int shell, _) when shell == processId => new TabShell.TheProcess(),
+        (int shell, _) => new TabShell.Above(shell),
+        null => new TabShell.None(),
+    };
 
     public static int? TerminalOf(int processId, IProcessRegistry processes) => Walk(processId, processes)?.Terminal;
 

@@ -36,7 +36,6 @@ public sealed class NullFreeModelsShould
         new(typeof(IProcessRegistry), "UsageOf", "the process has gone or cannot be measured"),
         new(typeof(ProcessIdentity), "StillTheSession(processStartedAt)", "takes IProcessRegistry.StartTimeOf's answer as it comes"),
         new(typeof(ProcessTree), "Under(usageOf)", "takes IProcessRegistry.UsageOf as it is"),
-        new(typeof(TerminalTab), "ShellOf", "the parent chain from IProcessRegistry.ParentOf may end before a shell"),
         new(typeof(TerminalTab), "TerminalOf", "the parent chain from IProcessRegistry.ParentOf may end before a terminal"),
         new(typeof(FolderPath), "Parent", "a drive's root has no parent, as Path.GetDirectoryName says"),
         new(typeof(TextValues), "Parsed(texts)", "keeps the texts from outside Vantage that parse, nulls among them"),

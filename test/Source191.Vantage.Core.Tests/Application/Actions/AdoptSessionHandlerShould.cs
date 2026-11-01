@@ -31,6 +31,19 @@ public sealed class AdoptSessionHandlerShould
     }
 
     [Fact]
+    public async Task ReportTheTabKeptWhenClaudeWasTheTabsRootProcess()
+    {
+        processTable.InTree(1, "WindowsTerminal", 0, Noon.AddHours(-1)).InTree(4242, "claude", 1);
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · repos-31", string.Empty));
+
+        Outcome message = await Handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-31", 4242)), CancellationToken.None);
+
+        processTable.Terminated.ShouldBe([4242]);
+        processTable.EndedCleanly.ShouldBeEmpty();
+        message.ShouldBe(new AdoptSessionOutcome.Moved("repos-31", TabClosed: false));
+    }
+
+    [Fact]
     public async Task ResumeAListedNameThatIsNotASessionNameUnnamed()
     {
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · repos-31", string.Empty));

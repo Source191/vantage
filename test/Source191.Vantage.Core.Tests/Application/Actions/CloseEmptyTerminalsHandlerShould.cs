@@ -41,6 +41,19 @@ public sealed class CloseEmptyTerminalsHandlerShould
     }
 
     [Fact]
+    public async Task CloseTheTabOfAClaudeThatWindowsTerminalStartedDirectlyByEndingItCleanly()
+    {
+        processTable.InTree(1, "WindowsTerminal", 0, Noon.AddHours(-1)).InTree(4242, "claude", 1);
+        CloseEmptyTerminalsHandler handler = new(processTable, new FakeTranscripts());
+
+        Outcome message = await handler.HandleAsync(new CloseEmptyTerminals([SessionTestData.Terminal("repos-f6", 4242)]), CancellationToken.None);
+
+        processTable.EndedCleanly.ShouldBe([4242]);
+        processTable.Terminated.ShouldBeEmpty();
+        message.ShouldBeOfType<CloseEmptyTerminalsOutcome>().Closed.ShouldBe(["repos-f6"]);
+    }
+
+    [Fact]
     public async Task EndClaudeAloneWhenItIsNotInsideAWindowsTerminalTab()
     {
         processTable.InTree(4242, "claude", 9);
