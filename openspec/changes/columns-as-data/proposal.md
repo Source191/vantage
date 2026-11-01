@@ -2,7 +2,7 @@
 
 ## Why
 
-`TableBody.StyleColumns` (`src\Source191.Vantage.Tui\TableBody.cs:480-489`) gives a column its 28-cell cap and its right-alignment by comparing the header text with the literals `"NAME"` and `"AGE"`, while the headers are data in `Wording.SessionsColumns` (`src\Source191.Vantage.Core\Application\WordingOfScreens.cs:184-233`): rewording either in `Wording` silently drops the cap or the alignment, and nothing on the Tui side would notice. The visible result today is that the Worktrees tab's LAST COMMIT cell shows the same kind of value as AGE (`Durations.Age`) but left-aligned, because its name differs. Every `Cell(row, column)` switch and `ElasticColumn => 3`, `0`, `1` in the three definitions is coupled to the order of the `Wording` list by hand, with no test (code review of 0.20.0-preview.7, V-05 and section 4 item 1).
+`TableBody.StyleColumns` (`src\Source191.Vantage.Tui\TableBody.cs:480-489`) gives a column its 28-cell cap and its right-alignment by comparing the header text with the literals `"NAME"` and `"AGE"`, while the headers are data in `Wording.SessionsColumns`, `WorktreesColumns` and `ConfigColumns` (`src\Source191.Vantage.Core\Application\WordingOfScreens.cs:187-195`, `:197-203` and `:232-236`): rewording either in `Wording` silently drops the cap or the alignment, and nothing on the Tui side would notice. The visible result today is that the Worktrees tab's LAST COMMIT cell shows the same kind of value as AGE (`Durations.Age`) but left-aligned, because its name differs. Every `Cell(row, column)` switch and `ElasticColumn => 3`, `0`, `1` in the three definitions is coupled to the order of the `Wording` list by hand, with no test (code review of 0.20.0-preview.7, V-05 and section 4 item 1).
 
 ## What Changes
 
@@ -31,4 +31,4 @@ None.
 - `src\Source191.Vantage.Core\Application\WordingOfScreens.cs` (a named `ColumnHelp` per column, the three lists built from them) with a fact in `WordingOfKeysAndColumnsShould`.
 - `test\Source191.Vantage.Core.Tests\Tui\ConfigScreenDefinitionShould.cs` (its `Cell` call) and two new test files beside it; `tools\HeadlessTerminal\SmokeScript.cs` is untouched, since it reads the `Wording` lists.
 - `CLAUDE.md`'s Reducers line, which describes an `IScreenDefinition` as "columns, colours, cell paint, ...": a column is now its help, its cell and its fit.
-- `Version` raised in the implementing pull request: patch, an inconsistency fixed with no new key.
+- `Version` raised in the implementing pull request (patch, an inconsistency fixed with no new key) and one line under Unreleased in `CHANGELOG.md`, under Changed, which `Assert-ChangelogUpdated.ps1` requires of every pull request that changes the packaged tool.

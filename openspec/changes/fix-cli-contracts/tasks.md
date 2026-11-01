@@ -27,7 +27,7 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 5. Version and whole-solution check
 
-- [ ] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one preview step above the one on `main` when implemented (patch, minor or major as CONTRIBUTING's Versions says; this change is fixes and text). Verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` passes.
+- [ ] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one preview step above the one on `main` when implemented (0.20.0-preview.14 if nothing lands first; patch, minor or major as CONTRIBUTING's Versions says; this change is fixes and text), and add one line under Unreleased in `CHANGELOG.md` (under `### Fixed`, `CHANGELOG.md:52`), which `Assert-ChangelogUpdated.ps1` requires, ending with the pull request's number as every entry there does: "A stop, removal or listing Claude Code refuses is reported in its own words: x keeps the tab, r, R and d resume, close and remove nothing after a refused removal, and vantage here erases its detach hint and restores the terminal when the attach fails (#N)". Verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` and `.github\scripts\Assert-ChangelogUpdated.ps1 -Base main -Head HEAD` both pass.
 - [ ] 5.2 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate fix-cli-contracts --strict` all pass; then, because attach changed, `dotnet build src\Source191.Vantage -c Release` and `dotnet run -- check` from `tools\HeadlessTerminal` exit 0. Verify by the exit codes.
 
 ## Workflow follow-up

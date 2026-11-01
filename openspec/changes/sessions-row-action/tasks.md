@@ -9,7 +9,7 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step. Mo
 
 ## 2. The shared keys
 
-- [ ] 2.1 `SharedKeysShould.AnswerTheEffectOfASharedKey` (a theory: `q` `Quit`, `?` `ShowHelp`, `U` `UpdateVantage`, `!` `ShowProblemReport`) and `AnswerNoEffectForAKeyThatIsNotShared` (`1`, `x`, Enter), shaped as `TabKeysShould`. Red (the type does not exist), then green with `SharedKeys.TryFor` in `src\Source191.Vantage.Core\Application\Views\SharedKeys.cs`, its `out` attribute the one `TabKeys.TryFor` has on `main`. Verify the facts pass.
+- [ ] 2.1 `SharedKeysShould.AnswerTheEffectOfASharedKey` (a theory: `q` `Quit`, `?` `ShowHelp`, `U` `UpdateVantage`, `!` `ShowProblemReport`) and `AnswerNoEffectForAKeyThatIsNotShared` (`1`, `x`, Enter), shaped as `TabKeysShould`. Red (the type does not exist), then green with `SharedKeys.TryFor(Key key, [MaybeNullWhen(false)] out ViewEffect effect)` in `src\Source191.Vantage.Core\Application\Views\SharedKeys.cs`, the shape `TabKeys.TryFor` has since PR #175 (`TabKeys.cs:9`). Verify the facts pass.
 - [ ] 2.2 Each view's four arms become one `_ when SharedKeys.TryFor(key, out ViewEffect? shared) => Effect(state, shared)` arm before the `TabKeys` arm. Verify `SessionsViewShould.EmitTheEffectForTheKey` (its `q`, `?`, `U`, `!` rows), `WorktreesViewShould.AskToUpdateOnCapitalU`, `GoBackToTheSessionsViewOnWOrEscapeAndQuitHelpAsUsual`, `ReportAProblemOnBang` and `ConfigViewShould.EmitTheEffectForTheKey` pass, and `grep` finds `new Quit()` in the three views only at `UpdateTabOpened`.
 
 ## 3. RowAction on Sessions
@@ -31,7 +31,7 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step. Mo
 
 ## 5. Version
 
-- [ ] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one preview step above `main` when implemented (0.20.0-preview.9 if nothing lands first); patch-level, a refactor. Verify `.github\scripts\Assert-VersionBumped.ps1` passes locally against `main`.
+- [ ] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one preview step above `main` when implemented (0.20.0-preview.14 if nothing lands first); patch-level, a refactor; and one line under Unreleased in `CHANGELOG.md` (under Internal), which `Assert-ChangelogUpdated.ps1` requires: "- One ViewUpdate record and one RowAction for every tab reducer, and the console keys q, ?, U and ! answered once in SharedKeys (#N)", with #N the implementation pull request's number, written without back ticks like the other Internal lines. Verify `.github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD` and `.github\scripts\Assert-ChangelogUpdated.ps1 -Base main -Head HEAD` both pass locally.
 
 ## 6. Whole-solution check
 

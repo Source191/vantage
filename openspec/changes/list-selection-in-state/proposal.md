@@ -10,10 +10,10 @@ The code review of 0.20.0-preview.7 (section 3.3 and V-10 part 2) found that the
 - **Pass-throughs kept:** `Selected`, `VisibleRows` (Sessions and Worktrees) and `Title` stay as one-line reads over `List`, so the reducers, `Wording` and the facts that read them do not change, and `NullFreeModelsShould`'s three kept `ViewState.Selected` entries stay true.
 - **`SelectionKey` goes:** with no state field to hold it, `SelectionKey`, `ListSelection.Selection` and `ListPolicy.List(...)` have no caller left and are deleted with their two `ListSelectionShould` facts; `ListSelection.SelectedKey` stays `string?` on `NullFreeModelsShould`'s kept list, as the review said.
 - **`IListViewState<TRow>` narrows** to `List`, `Banner`, `Message` and `Title`: `Rows` and `Loaded` are read from `List`, and `Shown`, which is `=> Message` in all three states (V-12), is replaced by `Message`.
-- **Tui reads follow:** `TableBody` reads `State.List.Loaded` and `State.Message`, `ConsoleScreen.ReadConfig` reads `config.State.List.Loaded`, and the three definitions' `Counts` read `state.List.Rows`.
+- **Tui reads follow:** `TableBody` reads `State.List.Loaded` and `State.Message`, `ConsoleScreen.ReadConfig` reads `config.State.List.Loaded`, the three definitions' `Counts` read `state.List.Rows`, and `SessionsScreenDefinition.OnInput` hands `before.List.Rows` to the notifier and the activity (the `loaded.Rows` beside it is the `RowsLoaded` input's and stays).
 - **No cached `Visible`:** `ListSelection.Visible` stays a computed property; design.md says why.
 - **Test fixtures:** `WorktreesViewShould`'s nine `with { SelectedPath = new SelectionKey.Row(...) }` sites become an `At(row)` helper over `List.Select`, as `ConfigViewShould.At` already is; `ConfigViewShould.At` and `WordingOfKeyBarShould`'s three `.With(...)` calls become `with { List = ... }`.
-- **Version:** the next preview above `main` (0.20.0-preview.9 if nothing lands first), because files under `src\` change; a refactor, so patch-level under semantic versioning.
+- **Version and changelog:** one preview step above `main` (0.20.0-preview.14 if nothing lands first), because files under `src\` change; a refactor, so patch-level under semantic versioning. The same pull request adds one line under Unreleased in `CHANGELOG.md` (under Internal), which `Assert-ChangelogUpdated.ps1` requires since PR #180.
 - `skip_specs: true`: no key, screen, title, message or state file behaves differently; the existing reducer facts pin it.
 
 ## Capabilities
@@ -28,9 +28,10 @@ None: a refactor with no behaviour change, so `.openspec.yaml` declares `skip_sp
 
 ## Impact
 
-- **Code:** `src\Source191.Vantage.Core\Application\Views\SessionsViewState.cs`, `WorktreesViewState.cs`, `ConfigViewState.cs`, `IListViewState.cs`, `ListSelection.cs`, `ListPolicy.cs`, `SelectionKey.cs` (deleted); the reducers `SessionsView.cs`, `WorktreesView.cs`, `ConfigView.cs`; `Application\WordingOfConsole.cs:90-99` and `Views\ConsoleView.cs:36` (`.Rows` reads); in Tui `TableBody.cs:139, 253`, `ConsoleScreen.cs:284`, and the `Counts` line of the three screen definitions. No port, adapter, handler, effect or `Wording` text changes.
+- **Code:** `src\Source191.Vantage.Core\Application\Views\SessionsViewState.cs`, `WorktreesViewState.cs`, `ConfigViewState.cs`, `IListViewState.cs`, `ListSelection.cs`, `ListPolicy.cs`, `SelectionKey.cs` (deleted); the reducers `SessionsView.cs`, `WorktreesView.cs`, `ConfigView.cs`; `Application\WordingOfConsole.cs:98-99` and `Views\ConsoleView.cs:36` (`.Rows` reads); in Tui `TableBody.cs:139, 253`, `ConsoleScreen.cs:291`, `SessionsScreenDefinition.cs:82-83`, and the `Counts` line of the three screen definitions (`SessionsScreenDefinition.cs:65`, `WorktreesScreenDefinition.cs:58`, `ConfigScreenDefinition.cs:54`). No port, adapter, handler, effect or `Wording` text changes. Line numbers are at `main` 8dbf4150 (0.20.0-preview.13).
 - **Tests:** `ListSelectionShould`, `SessionsViewShould`, `WorktreesViewShould`, `ConfigViewShould`, `ConsoleViewShould`, `WordingOfKeyBarShould` and `NullFreeModelsShould` keep every step green; two `ListSelectionShould` facts about `SelectionKey` are removed with the type.
 - **Other open changes:** `sessions-row-action` (the generic `ViewUpdate<TState>` and Sessions' `RowAction`) edits the same three reducers and `ViewUpdate.cs`, and `table-body-collaborators` moves the `TableBody` lines this change touches; the three are independent, and whichever lands second rebases.
+- **Docs:** `.claude\rules\console-screen.md:41` says the status line has rows "while `State.Shown` has words" and reads `State.Message` once `Shown` goes; `CHANGELOG.md` gains its Internal line.
 - **Users:** none.
 
 ## Out of scope
