@@ -19,10 +19,17 @@ public sealed record TabRegistration(
     public TabRegistration ClaimedBy(int processId, DateTimeOffset processStartedAt) => this with { Claim = new TabClaim.Claimed(processId, processStartedAt) };
 
     /// <summary>
-    /// The Windows Terminal process whose window holds this tab, found by walking up from the tab's shell. Null for a
+    /// The Windows Terminal window that holds this tab, found by walking up from the tab's shell. Any window for a
     /// pending registration or when the chain does not reach Windows Terminal within a few steps.
     /// </summary>
-    public int? OwningTerminal(IProcessRegistry processes) => Claim is TabClaim.Claimed claimed ? TerminalTab.TerminalOf(claimed.ProcessId, processes) : null;
+    public TerminalWindow OwningTerminal(IProcessRegistry processes) => Claim switch
+    {
+        TabClaim.Claimed claimed => WindowOf(TerminalTab.TerminalOf(claimed.ProcessId, processes)),
+        TabClaim.Pending => new TerminalWindow.Any(),
+        _ => throw new UnreachableException(),
+    };
+
+    private static TerminalWindow WindowOf(int? terminal) => terminal is int processId ? new TerminalWindow.Owning(processId) : new TerminalWindow.Any();
 
     public bool IsLive(DateTimeOffset now, IProcessRegistry processes) => Claim switch
     {

@@ -59,7 +59,7 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
             return await OpenAsync(session, cancellationToken);
         }
 
-        int? owner = registration.OwningTerminal(processes);
+        int? owner = registration.OwningTerminal(processes) is TerminalWindow.Owning owning ? owning.ProcessId : null;
         bool found = await terminal.FocusTabAsync(owner, session.Name, cancellationToken);
 
         return found
