@@ -485,25 +485,29 @@ public sealed class JsonFileStoreShould : IDisposable
         written.ReplaceLineEndings("\n").ShouldBe(ConfigJson.ReplaceLineEndings("\n"));
     }
 
+    /// <summary>The newest member's JSON in update-check.json and the release it stands for.</summary>
+    public static TheoryData<string, NewestRelease> RecordedNewest => new()
+    {
+        { "\"0.10.0\"", new NewestRelease.Found(new ReleaseVersion(0, 10, 0, "")) },
+        { "null", new NewestRelease.None() },
+        { "\"rubbish\"", new NewestRelease.Unreadable("rubbish") },
+    };
+
     [Theory]
-    [InlineData("\"0.10.0\"", "0.10.0")]
-    [InlineData("null", null)]
-    [InlineData("\"rubbish\"", "rubbish")]
-    public async Task ReadAnUpdateCheckFileWrittenByThePreviousVersion(string newestJson, string? newest)
+    [MemberData(nameof(RecordedNewest))]
+    public async Task ReadAnUpdateCheckFileWrittenByThePreviousVersion(string newestJson, NewestRelease newest)
     {
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "update-check.json"), UpdateCheckJson(newestJson), TestContext.Current.CancellationToken);
 
-        (await Store.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord(Noon, newest));
+        (await Store.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Checked(Noon, newest));
     }
 
     [Theory]
-    [InlineData("0.10.0", "\"0.10.0\"")]
-    [InlineData(null, "null")]
-    [InlineData("rubbish", "\"rubbish\"")]
-    public async Task WriteTheUpdateCheckFileAsBefore(string? newest, string newestJson)
+    [MemberData(nameof(RecordedNewest))]
+    public async Task WriteTheUpdateCheckFileAsBefore(string newestJson, NewestRelease newest)
     {
-        await Store.WriteUpdateCheckAsync(new UpdateCheckRecord(Noon, newest));
+        await Store.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon, newest));
 
         string written = await File.ReadAllTextAsync(Path.Combine(folder, "update-check.json"), TestContext.Current.CancellationToken);
 
@@ -513,7 +517,7 @@ public sealed class JsonFileStoreShould : IDisposable
     [Fact]
     public async Task RoundTripTheUpdateCheckRecord()
     {
-        UpdateCheckRecord record = new(Noon, "0.10.0");
+        UpdateCheckRecord.Checked record = new(Noon, new NewestRelease.Found(new ReleaseVersion(0, 10, 0, "")));
 
         await Store.WriteUpdateCheckAsync(record);
 
@@ -522,14 +526,14 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task AnswerNoUpdateCheckRecordWhenTheFileIsMissingOrCorrupt()
+    public async Task ReadAMissingOrCorruptUpdateCheckAsNever()
     {
-        (await Store.ReadUpdateCheckAsync()).ShouldBeNull();
+        (await Store.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Never());
 
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "update-check.json"), "{ not json", TestContext.Current.CancellationToken);
 
-        (await Store.ReadUpdateCheckAsync()).ShouldBeNull();
+        (await Store.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Never());
     }
 
     /// <summary>update-check.json exactly as the store wrote it before the record had named cases, with the newest member's JSON.</summary>
