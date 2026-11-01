@@ -20,6 +20,7 @@ public static class SettingsView
             SettingsInput.FoldersChosen chosen => Changed(state with { Text = state.Text with { Roots = WithLines(state.Text.Roots, chosen.Folders) } }),
             SettingsInput.WorktreeRootChanged changed => Changed(state with { Text = state.Text with { WorktreeRoot = changed.Text } }),
             SettingsInput.PresetChanged changed => Changed(state with { Text = state.Text with { Preset = changed.Preset } }),
+            SettingsInput.PresetsLocated located => Changed(state with { Presets = new PresetSearch.Looked(located.Missing) }),
             SettingsInput.ExecutableChanged changed => Changed(state with { Text = state.Text with { Executable = changed.Text } }),
             SettingsInput.ArgumentsChanged changed => Changed(state with { Text = state.Text with { Arguments = changed.Text } }),
             SettingsInput.BaseChanged changed => Changed(state with { Text = state.Text with { Base = changed.Base } }),

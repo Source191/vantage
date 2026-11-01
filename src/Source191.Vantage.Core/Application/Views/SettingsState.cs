@@ -4,10 +4,11 @@ namespace Source191.Vantage.Application.Views;
 
 /// <summary>
 /// Everything a setting's dialog shows: the saved settings as text with the value being edited as typed, the problem
-/// line (the problem that stopped the last save, or none), the focused field, the folder check the roots are validated
-/// with, and which setting the dialog edits.
+/// line (the problem that stopped the last save, or none), the focused field, the folder check the roots and the file
+/// check a custom executable are validated with, which setting the dialog edits, and what the Open folder with dialog has
+/// found of the presets.
 /// </summary>
-public sealed record SettingsState(SettingsText Text, SettingsProblemLine Problem, SettingsField Focus, Func<string, bool> FolderExists, Func<string, bool> FileExists, SettingsScope Scope)
+public sealed record SettingsState(SettingsText Text, SettingsProblemLine Problem, SettingsField Focus, Func<string, bool> FolderExists, Func<string, bool> FileExists, SettingsScope Scope, PresetSearch Presets)
 {
     /// <summary>The dialog as it opens on one setting, showing it as saved.</summary>
     public static SettingsState Open(Settings settings, SettingsScope scope, Func<string, bool> folderExists, Func<string, bool> fileExists)
@@ -15,7 +16,7 @@ public sealed record SettingsState(SettingsText Text, SettingsProblemLine Proble
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(scope);
 
-        return new SettingsState(settings.ToText(), new SettingsProblemLine.None(), scope.Field, folderExists, fileExists, scope);
+        return new SettingsState(settings.ToText(), new SettingsProblemLine.None(), scope.Field, folderExists, fileExists, scope, new PresetSearch.NotYetLooked());
     }
 
     /// <summary>Whether the dialog's Browse opens the folder picker: for several repository roots, for the one worktree root, or not at all.</summary>

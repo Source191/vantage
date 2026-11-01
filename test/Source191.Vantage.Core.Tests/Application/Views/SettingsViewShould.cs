@@ -222,6 +222,28 @@ public sealed class SettingsViewShould
     }
 
     [Fact]
+    public void MarkThePresetsNotFound()
+    {
+        SettingsState opened = Opened(new SettingsScope.Editor());
+
+        SettingsState located = Reduce(opened, new SettingsInput.PresetsLocated(new HashSet<EditorPreset> { EditorPreset.Rider }));
+
+        opened.Presets.ShouldBe(new PresetSearch.NotYetLooked());
+        located.Presets.ShouldBeOfType<PresetSearch.Looked>().Missing.ShouldBe([EditorPreset.Rider]);
+        located.Text.ShouldBe(opened.Text, "looking changes no choice");
+    }
+
+    [Fact]
+    public void SaveAPresetMarkedNotFound()
+    {
+        SettingsState located = Reduce(Opened(new SettingsScope.Editor()), new SettingsInput.PresetsLocated(new HashSet<EditorPreset> { EditorPreset.Rider }));
+
+        SettingsUpdate saved = SettingsView.Reduce(Reduce(located, new SettingsInput.PresetChanged(EditorPreset.Rider)), new SettingsInput.Save());
+
+        saved.Effect.ShouldBeOfType<SettingsEffect.Save>().Settings.Editor.ShouldBe(EditorChoice.Of(EditorPreset.Rider));
+    }
+
+    [Fact]
     public void BeIdempotentForARepeatedInput()
     {
         SettingsInput input = new SettingsInput.RootsChanged($"{Root}\n{Work}");

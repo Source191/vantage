@@ -183,6 +183,19 @@ public static partial class Wording
         };
     }
 
+    /// <summary>A preset as the Open folder with dialog lists it, marked once the dialog has looked and could not find it; Explorer and Custom are never marked.</summary>
+    public static string Describe(EditorPreset preset, PresetSearch search)
+    {
+        ArgumentNullException.ThrowIfNull(search);
+
+        return search switch
+        {
+            PresetSearch.Looked looked when preset is not (EditorPreset.Explorer or EditorPreset.Custom) && looked.Missing.Contains(preset) => $"{Describe(preset)} (not found)",
+            PresetSearch.Looked or PresetSearch.NotYetLooked => Describe(preset),
+            _ => throw new UnreachableException(),
+        };
+    }
+
     /// <summary>Why the wizard will not go on.</summary>
     public static string Describe(WizardProblem problem)
     {

@@ -743,6 +743,18 @@ public sealed class WordingShould
     }
 
     [Fact]
+    public void MarkAPresetNotFoundOnceTheDialogHasLooked()
+    {
+        PresetSearch looked = new PresetSearch.Looked(new HashSet<EditorPreset> { EditorPreset.Rider, EditorPreset.Explorer, EditorPreset.Custom });
+
+        Wording.Describe(EditorPreset.Rider, looked).ShouldBe("Rider (not found)");
+        Wording.Describe(EditorPreset.VsCode, looked).ShouldBe("VS Code");
+        Wording.Describe(EditorPreset.Explorer, looked).ShouldBe("Explorer", "Explorer is never looked for");
+        Wording.Describe(EditorPreset.Custom, looked).ShouldBe("Custom", "Custom is never marked");
+        Wording.Describe(EditorPreset.Rider, new PresetSearch.NotYetLooked()).ShouldBe("Rider");
+    }
+
+    [Fact]
     public void SayTheConfigTabKeyInEveryHelpAndNoSettingsKey()
     {
         foreach (string help in new[] { Wording.SessionsHelp(@"C:\Users\me\.local\bin\claude.exe"), Wording.WorktreesHelp, Wording.ConfigHelp })

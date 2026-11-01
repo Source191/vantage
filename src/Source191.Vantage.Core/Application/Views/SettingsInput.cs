@@ -15,6 +15,9 @@ public abstract record SettingsInput
 
     public sealed record PresetChanged(EditorPreset Preset) : SettingsInput;
 
+    /// <summary>The dialog's look for the presets has answered: these could not be found.</summary>
+    public sealed record PresetsLocated(IReadOnlySet<EditorPreset> Missing) : SettingsInput;
+
     public sealed record ExecutableChanged(string Text) : SettingsInput;
 
     public sealed record ArgumentsChanged(string Text) : SettingsInput;
