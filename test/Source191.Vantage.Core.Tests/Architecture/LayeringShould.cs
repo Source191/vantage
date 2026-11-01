@@ -52,4 +52,20 @@ public sealed class LayeringShould
             .ShouldNot().HaveDependencyOnAny($"{Root}.Application", $"{Root}.Screens", $"{Root}.Actions", $"{Root}.Launch", $"{Root}.Tui")
             .GetResult().FailingTypeNames.ShouldBeNull();
     }
+
+    [Fact]
+    public void KeepPortsFreeOfApplication()
+    {
+        Vantage.That().ResideInNamespaceStartingWith($"{Root}.Ports")
+            .ShouldNot().HaveDependencyOn($"{Root}.Application")
+            .GetResult().FailingTypeNames.ShouldBeNull();
+    }
+
+    [Fact]
+    public void KeepSystemCommandLineInsideCommandLine()
+    {
+        Vantage.That().ResideInNamespaceStartingWith(Root).And().DoNotHaveNameStartingWith("CommandLine")
+            .ShouldNot().HaveDependencyOn("System.CommandLine")
+            .GetResult().FailingTypeNames.ShouldBeNull();
+    }
 }
