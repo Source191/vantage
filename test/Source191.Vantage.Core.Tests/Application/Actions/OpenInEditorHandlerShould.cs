@@ -53,6 +53,18 @@ public sealed class OpenInEditorHandlerShould
     }
 
     [Fact]
+    public async Task ReportACustomEditorWhoseExecutableIsMissing()
+    {
+        EditorChoice custom = EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]);
+        OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(custom));
+
+        Outcome outcome = await handler.HandleAsync(new OpenFolderInEditor(FolderPath.From(Orders)), CancellationToken.None);
+
+        desktop.Started.ShouldBeEmpty();
+        outcome.ShouldBe(new OpenInEditorOutcome.EditorNotFound(custom));
+    }
+
+    [Fact]
     public async Task ReportAMissingFolder()
     {
         OpenInEditorHandler handler = new(locator, desktop, folders, CurrentWith(EditorChoice.VsCode));
