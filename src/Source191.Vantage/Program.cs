@@ -122,7 +122,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
     CurrentSettings settings = await CurrentSettings.LoadAsync(store, home);
     ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
-    WindowsTerminal terminal = new(processes, terminalFragment, PathOf(programs.Locate("wt")));
+    WindowsTerminal terminal = new(processes, terminalFragment, programs.Locate("wt"));
     Folders folders = new();
     TerminalConsole console = new(Console.Out, tabTitle);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
