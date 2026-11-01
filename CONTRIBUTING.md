@@ -89,7 +89,7 @@ Go back to the published tool with `dotnet tool update -g Source191.Vantage` (ad
 | [src\Source191.Vantage.Core](src/Source191.Vantage.Core/README.md) | Domain (rules and value objects, depends on nothing), Ports (the boundary interfaces and their records), Application (use cases in Actions and Launch, effect routing in Effects, the Views reducers, the detail pane in Detail, Diagnostics, Reporting, TerminalSetup, ScreenLoop, CommandLine, Wording) |
 | [src\Source191.Vantage.Infrastructure](src/Source191.Vantage.Infrastructure/README.md) | The adapters: git, the Claude CLI, Windows Terminal, processes, files, state, pull requests, package versions, diagnostics |
 | [src\Source191.Vantage.Tui](src/Source191.Vantage.Tui/README.md) | Terminal.Gui rendering and dialogs, nothing else |
-| [src\Source191.Vantage](src/Source191.Vantage/README.md) | Program.cs, the only composition root, packed as the tool with the other three inside |
+| [src\Source191.Vantage](src/Source191.Vantage/README.md) | Program.cs and its Composition folder, the only composition root (untested wiring), packed as the tool with the other three inside |
 | [test\Source191.Vantage.Core.Tests](test/Source191.Vantage.Core.Tests/README.md) | The fast in-memory suite, including the architecture tests |
 | [test\Source191.Vantage.Infrastructure.Tests](test/Source191.Vantage.Infrastructure.Tests/README.md) | The adapters against real git, processes and files, and the Claude Code contract tests |
 | [test\Source191.Vantage.TestDoubles](test/Source191.Vantage.TestDoubles/README.md) | The shared hand-written fakes, one per port, no test framework |
@@ -102,7 +102,7 @@ Each project's README holds what is worth knowing about it; a `.csproj` carries 
 CLAUDE.md's "Code rules" are the authority; this is their shape.
 
 - **Layers:** Domain, Ports, Application, Adapters, Tui, one namespace each, with dependencies pointing one way; `Architecture\LayeringShould` fails otherwise. Nothing outside the adapters touches files or processes, and nothing outside `Tui` touches Terminal.Gui.
-- **Test-driven:** red, green, refactor, a commit per step. No untested code except `Program.cs` and wiring.
+- **Test-driven:** red, green, refactor, a commit per step. No untested code except the tool project's wiring (`Program.cs` and its `Composition` folder).
 - **Sociable tests:** real collaborators inside the code; hand-written fakes from `TestDoubles` only at the boundaries, never a mocking library.
 - **C# style:** concrete types rather than `var`, primary constructors, sealed records and classes, collection expressions, file-scoped namespaces, target-typed `new`, `TimeProvider`, braces always, one top-level type per file, the throw helpers for guard clauses, and switch expressions that name every member of a closed enum. `.editorconfig` and the architecture tests hold these, so the build reports a lapse.
 - **Reducers:** each view (`Application\Views\*View.cs`) is a pure function of state and input returning effects; the `Tui` layer only renders and runs effects. A new key is the effect record, the reducer case and its test, a handler (`IEffectHandler<TEffect>`, one class per effect, with its outcome record and a `...HandlerShould` test) and its line in `Composition.Handlers`.
