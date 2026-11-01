@@ -33,9 +33,9 @@ public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositori
     {
         try
         {
-            if (plan.Worktree is not null && !plan.ReuseExistingWorktree)
+            if (plan.Place is LaunchPlace.NewWorktree fresh)
             {
-                await CreateWorktreeAsync(plan, plan.Worktree, cancellationToken);
+                await CreateWorktreeAsync(plan, fresh.Worktree, cancellationToken);
             }
         }
         catch (GitException failure)
