@@ -15,9 +15,9 @@ public static partial class Wording
 
     private static readonly TextPart Dot = new(" · ", TextTone.Grey);
 
-    /// <summary>The console's settings row, labels orange and values white: Vantage and Claude; the roots are on the Config tab.</summary>
+    /// <summary>The console's settings row, labels orange and values white, an available update in amber: Vantage and Claude; the roots are on the Config tab.</summary>
     public static IReadOnlyList<TextPart> SettingsRow(ToolVersion vantage, ClaudeCodeVersion claude, UpdateStatus update, MemorySize vantageMemory) =>
-        [Label("Vantage "), Value(VantageVersion(vantage, update, vantageMemory)), Dot, Label("Claude "), Value(ClaudeVersion(claude))];
+        [Label("Vantage "), .. VantageVersion(vantage, update, vantageMemory), Dot, Label("Claude "), Value(ClaudeVersion(claude))];
 
     /// <summary>The Config counts beside the tabs: how many settings, then how much setup is left to do, in amber.</summary>
     public static IReadOnlyList<TextPart> ConfigCounts(IReadOnlyList<ConfigRow> rows)

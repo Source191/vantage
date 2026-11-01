@@ -53,7 +53,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 - [x] 4.5 `WordingShould` and `StatusTonesShould`: `StatusMessage.NewerReleaseFound` reads "Vantage 0.21.0 is available: press U to see what changed." in the Info tone. Verify the facts pass.
   Done in the Notice tone (the orange !, which stays until closed): `StatusTone` has no Info member, and Notice is the tone of the other update messages that are not a success. Core suite 2,118 passed.
 - [ ] 4.6 The screen shows the announcement in the status line when it next reads the update status (the test chosen in design.md's decision; a `ConsoleView` or `ScreenLoop` fact). Verify the fact passes.
-- [ ] 4.7 `WordingOfScreensShould`: the header's notice is its own `TextPart` in `TextTone.Amber`, the words unchanged. Red, then the header parts and the Tui drawing. Verify the facts pass and the existing header facts still read the same text.
+- [x] 4.7 `WordingOfScreensShould`: the header's notice is its own `TextPart` in `TextTone.Amber`, the words unchanged. Red, then the header parts and the Tui drawing. Verify the facts pass and the existing header facts still read the same text.
+  Done as `DrawTheUpdateNoticeInAmber`: the Vantage value is split into `0.18.0 (35 MB; `, the amber notice and `)`, so `KeepTheNoticeAndTheWarningOnTheSettingsRow` still reads the same text; `ConsoleScreen` already draws each part in its tone, so the Tui needed no change.
 
 ## 5. The What's new dialogue
 
