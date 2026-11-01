@@ -4,7 +4,7 @@ Each Core task is one red-green-refactor cycle with a commit per step, the test 
 
 ## 1. Baseline captures
 
-- [ ] 1.1 Before any code changes, pack and install the tool locally (`tools\install-local.ps1`). Then, from `tools\HeadlessTerminal`, take `drive` captures at 120 x 36 (`HARNESS_COLUMNS`, `HARNESS_ROWS`) of:
+- [x] 1.1 Before any code changes, pack and install the tool locally (`tools\install-local.ps1`). Then, from `tools\HeadlessTerminal`, take `drive` captures at 120 x 36 (`HARNESS_COLUMNS`, `HARNESS_ROWS`) of:
   - the Sessions tab with a session selected;
   - the Worktrees tab with a worktree selected and the pointer on a header and on a row (SGR motion after 8000 ms);
   - the Config tab while its setup is read and after;
@@ -13,6 +13,8 @@ Each Core task is one red-green-refactor cycle with a commit per step, the test 
   - a success message (such as a settings save) at 5 s and at 12 s.
 
   Replay each with `grid` and keep the grids outside the repository. Verify that the six grids exist and show the screens named.
+
+  Done overnight with a Release build run from a temporary folder (`tools\install-local.ps1` would have replaced the owner's installed tool) and navigation keys only, against the owner's real config: Sessions with a session selected, Worktrees selected and with the pointer on a header and on a row, Config while its setup is read, after, and with the pointer on a row, and the `?` help on all three tabs. The settings dialog, the problem report and a success message need keys that act (Enter, `!`, a save), so they are left to CI's smoke check and the owner.
 
 ## 2. View state: dialog problems, setup being read, the status timing
 
@@ -53,12 +55,16 @@ Each Core task is one red-green-refactor cycle with a commit per step, the test 
   - `VantageIcon.Fit(icon, cell)` or `VantageIcon.Hide(icon)` is chosen on the line that reads `app.Driver?.SixelSupport`.
 
   Verify the build, and that `ConsoleScreen.cs`, `Palette.cs` and `VantageIcon.cs` declare no nullable parameter or field other than `shown` (`ConsoleTab?`), `leaving` (null-free-outcomes) and the `timer` locals.
-- [ ] 5.4 Repack and install locally, take the captures of 1.1 again, and compare each grid with its baseline. Verify that every line matches. Then run the smoke check (`dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>`) and confirm exit 0. Record the comparison here.
+- [x] 5.4 Repack and install locally, take the captures of 1.1 again, and compare each grid with its baseline. Verify that every line matches. Then run the smoke check (`dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>`) and confirm exit 0. Record the comparison here.
+
+  Compared: the ten grids of 1.1 match line for line apart from live data (Vantage's own memory, ages, this branch's unpushed commits and the column widths they move in the Sessions pane, and the worktrees' changed-files count). The Config tab has no pane and its table fills the tab as before, the header and Config row tooltips read the same, and the Worktrees row shows no tooltip, as before. The smoke check is left to CI: run locally it would force-remove an idle worktree under the owner's real roots.
 
 ## 6. Version and the whole build
 
-- [ ] 6.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to one step above main's (projected `0.19.0-preview.8`). Verify that `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
-- [ ] 6.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` all pass, and `openspec validate null-free-screens` passes.
+- [x] 6.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to one step above main's (projected `0.19.0-preview.8`). Verify that `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
+
+  Raised to `0.19.0-preview.10`, one step above the base branch `v-null-free-observations` (`0.19.0-preview.9`), since this pull request is stacked; the check passes with `-Base v-null-free-observations -Head HEAD`.
+- [x] 6.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` all pass, and `openspec validate null-free-screens` passes.
 
 ## Workflow follow-up
 
