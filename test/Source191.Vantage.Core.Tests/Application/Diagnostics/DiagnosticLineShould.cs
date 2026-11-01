@@ -117,6 +117,22 @@ public sealed class DiagnosticLineShould
         DiagnosticLine.Render(counts, At).ShouldBe(["2026-10-29T14:03:12.345Z counts claude agents --json exit 0: 120 runs, median 1650 ms, p95 2100 ms, longest 4900 ms"]);
     }
 
+    [Fact]
+    public void RenderTheStallCountsEvenWithNone()
+    {
+        StallCounts stalls = new();
+        PerformanceCounts counts = new(new ProcessCounts(), new RefreshCounts(TimeProvider.System, new DiagnosticLog(TimeProvider.System, [])), stalls);
+        string[] none = [.. DiagnosticLine.Render(counts, At)];
+
+        foreach (int milliseconds in (int[])[150, 180, 820])
+        {
+            stalls.Add(TimeSpan.FromMilliseconds(milliseconds));
+        }
+
+        none.ShouldBe(["2026-10-29T14:03:12.345Z stalls ui thread: 0 stalls"]);
+        DiagnosticLine.Render(counts, At).ShouldBe(["2026-10-29T14:03:12.345Z stalls ui thread: 3 stalls, median 180 ms, p95 820 ms, longest 820 ms"]);
+    }
+
     private static string Body(DiagnosticEvent diagnostic)
     {
         return DiagnosticLine.Render(new TimedEvent(At, diagnostic))["2026-10-29T14:03:12.345Z ".Length..];

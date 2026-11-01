@@ -29,7 +29,9 @@ public sealed class PeriodicCountsShould
 
         sink.Lines.ShouldBe([
             "2026-11-01T09:10:00.000Z counts git status exit 0: 1 run, median 12 ms, p95 12 ms, longest 12 ms",
+            "2026-11-01T09:10:00.000Z stalls ui thread: 0 stalls",
             "2026-11-01T09:20:00.000Z counts git status exit 0: 1 run, median 12 ms, p95 12 ms, longest 12 ms",
+            "2026-11-01T09:20:00.000Z stalls ui thread: 0 stalls",
         ]);
         log.Snapshot().ShouldBeEmpty();
     }
