@@ -5,8 +5,8 @@ public interface ICrashFile
 {
     void Write(string text);
 
-    /// <summary>The last crash's text, or null when there is none.</summary>
-    Task<string?> ReadAsync();
+    /// <summary>The last crash's text, or <see cref="LastCrash.None"/> when there is none.</summary>
+    Task<LastCrash> ReadAsync();
 
     /// <summary>Removes the crash once a report has carried it; a file that has already gone is fine.</summary>
     Task RemoveAsync();
