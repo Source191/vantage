@@ -189,6 +189,6 @@ public sealed class WordingOfKeysAndColumnsShould
     public void SayRResumesEveryShownStoppedOrFailedSessionInItsOwnTab()
     {
         Wording.SessionsKeys.Single(key => key.Key == "R").Tip
-            .ShouldBe("Resume every stopped or failed session the table shows, each in its own tab; filter with / to resume fewer, d deletes one for good.");
+            .ShouldBe("Resume each stopped or failed session shown, in its own tab; / filters which.");
     }
 }
