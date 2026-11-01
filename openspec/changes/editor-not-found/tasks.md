@@ -4,8 +4,10 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 1. Facts to check first
 
-- [ ] 1.1 Spike: from `pwsh`, run `OpenFileScript`'s start on a temporary file with an extension nothing is associated with (such as `.vantagenoapp`) and record the exception type and `NativeErrorCode` reached (1155 expected). Record the fact with its date and Windows build in `.claude\rules\windows.md`; if the code is not 1155, use the recorded one in 2.4. Verify the rule file holds the fact.
-- [ ] 1.2 Spike: in Terminal.Gui 2.5.0, `OpenDialog` with `OpenMode.File`, an `.exe` filter through `AllowedTypes`, a starting `Path` and one file chosen: confirm what `FilePaths` and `Path` answer, whether the filter hides other files, and what Esc leaves. Record it beside the folder-picker fact in `.claude\rules\terminal-gui.md`. Verify the rule file holds the fact.
+- [x] 1.1 Spike: from `pwsh`, run `OpenFileScript`'s start on a temporary file with an extension nothing is associated with (such as `.vantagenoapp`) and record the exception type and `NativeErrorCode` reached (1155 expected). Record the fact with its date and Windows build in `.claude\rules\windows.md`; if the code is not 1155, use the recorded one in 2.4. Verify the rule file holds the fact.
+  Done, and the expectation was wrong: the start does not fail. It returned without an exception and Windows opened its OpenWith picker. `AssocQueryString` (ProgID, `ASSOCF_INIT_IGNOREUNKNOWN`) answers 0x80070483 (1155) for the unassociated type and S_OK for .cmd, .bat, .txt, .sln and .slnx; recorded in `windows.md`, and 2.4 asks it instead of reading an exit code.
+- [x] 1.2 Spike: in Terminal.Gui 2.5.0, `OpenDialog` with `OpenMode.File`, an `.exe` filter through `AllowedTypes`, a starting `Path` and one file chosen: confirm what `FilePaths` and `Path` answer, whether the filter hides other files, and what Esc leaves. Record it beside the folder-picker fact in `.claude\rules\terminal-gui.md`. Verify the rule file holds the fact.
+  Done from the 2.5.0 assembly, decompiled with ilspycmd (`OpenDialog`, `FileDialog`, `FileDialogState`, `AllowedType`, `SelectorBase`); the rule says which parts were read rather than observed. `OptionSelector.Labels` rebuilds every option, so 4.3 retitles the options instead.
 
 ## 2. Domain and adapters
 
