@@ -15,7 +15,11 @@ internal static class Palette
     public static readonly Color Cyan = new(0, 183, 195);
     public static readonly Color Green = new(22, 198, 12);
     public static readonly Color Red = new(231, 72, 86);
-    public static readonly Color Grey = new(122, 117, 116);
+    /// <summary>Grey text: #868180, 5.09:1 on the background, so it meets WCAG AA wherever it is drawn as a foreground.</summary>
+    public static readonly Color Grey = new(134, 129, 128);
+
+    /// <summary>The background behind white text in a dialog's unfocused field and a list's chosen row once focus moves on.</summary>
+    public static readonly Color FieldBackground = new(122, 117, 116);
     public static readonly Color Magenta = new(227, 0, 140);
     public static readonly Color Blue = new(59, 142, 234);
     public static readonly Color White = new(230, 230, 230);
@@ -30,13 +34,13 @@ internal static class Palette
 
     /// <summary>
     /// For views that take focus: the focused field or list row is black on cyan, and a list's selected row stays
-    /// visible (white on grey) after focus moves on, so the choice can be seen from any field in the dialog.
+    /// visible (white on the field background) after focus moves on, so the choice can be seen from any field in the dialog.
     /// </summary>
     public static Scheme Focusable(Color foreground)
     {
         Attribute normal = new(foreground, Background);
         Attribute focus = new(new Color(0, 0, 0), Cyan);
-        Attribute active = new(White, Grey);
+        Attribute active = new(White, FieldBackground);
 
         return new Scheme
         {
@@ -120,6 +124,4 @@ internal static class Palette
             DisplayStateKind.Unknown => Grey,
         };
     }
-
-    public static bool IsDimmed(DisplayStateKind kind) => kind is DisplayStateKind.Completed or DisplayStateKind.Failed or DisplayStateKind.Stopped or DisplayStateKind.Unknown;
 }

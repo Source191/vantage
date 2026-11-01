@@ -22,7 +22,7 @@ internal static class NameDialog
         text.SetScheme(Palette.Plain(Palette.Amber));
         Label caption = new() { X = 1, Y = 3, Text = "New name, then Enter:" };
         TextField input = new() { X = 1, Y = 4, Width = Dim.Fill(1), Text = current };
-        Attribute box = new(Palette.White, Palette.Grey);
+        Attribute box = new(Palette.White, Palette.FieldBackground);
         input.SetScheme(new Scheme { Normal = box, Focus = Palette.Highlight().Normal, HotNormal = box, HotFocus = Palette.Highlight().Normal, Editable = box, Disabled = box });
         Label hint = new() { X = 1, Y = 5, Width = Dim.Fill(1), Height = 1, Text = "Esc keeps the current name." };
         hint.SetScheme(Palette.Plain(Palette.Grey));
