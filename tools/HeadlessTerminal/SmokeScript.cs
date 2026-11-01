@@ -77,6 +77,38 @@ public static class SmokeScript
         ];
     }
 
+    /// <summary>
+    /// The What's new dialog before an update, on a stable build that has recorded a newer release (a development build
+    /// never offers one, so CI's smoke cannot reach it): U opens it, Esc closes it, and Vantage quits. Run after
+    /// <see cref="WhatsNewOnStart"/> it also shows that a second start opens nothing first.
+    /// </summary>
+    public static IReadOnlyList<SmokeStep> WhatsNewBeforeUpdate()
+    {
+        IReadOnlyList<KeyHelp> sessions = Wording.SessionsKeys;
+        CaptureMarker sessionsView = new CaptureMarker.ScreenText(ColumnOnlyIn(Wording.SessionsColumns, Wording.WorktreesColumns));
+
+        return
+        [
+            new SmokeStep(sessionsView, KeyFor(sessions, "Update"), Slow),
+            new SmokeStep(Opened(DialogName.WhatsNew), Sequence("esc"), Usual),
+            new SmokeStep(new CaptureMarker.Title(Wording.TabTitle), KeyFor(sessions, "Quit"), Usual),
+        ];
+    }
+
+    /// <summary>
+    /// The What's new dialog on the first start of a stable build newer than the one <c>last-run.json</c> names: it opens
+    /// before the console, Esc closes it, the sessions view follows, and Vantage quits.
+    /// </summary>
+    public static IReadOnlyList<SmokeStep> WhatsNewOnStart()
+    {
+        CaptureMarker sessionsView = new CaptureMarker.ScreenText(ColumnOnlyIn(Wording.SessionsColumns, Wording.WorktreesColumns));
+
+        return
+        [
+            new SmokeStep(Opened(DialogName.WhatsNew), Sequence("esc"), Slow),
+            new SmokeStep(sessionsView, KeyFor(Wording.SessionsKeys, "Quit"), Slow),
+        ];
+    }
     /// <summary>What a terminal sends for the first key with this hint; the help's names esc and enter become their sequences.</summary>
     public static string KeyFor(IReadOnlyList<KeyHelp> keys, string hint)
     {

@@ -24,7 +24,7 @@ public sealed class WordingOfScreensShould
     [InlineData(DialogName.CloseEmpty, "Vantage (Close empty)")]
     [InlineData(DialogName.ForceRemove, "Vantage (Force remove)")]
     [InlineData(DialogName.OpenSolution, "Vantage (Open solution)")]
-    [InlineData(DialogName.Update, "Vantage (Update)")]
+    [InlineData(DialogName.WhatsNew, "Vantage (What's new)")]
     [InlineData(DialogName.Memory, "Vantage (Memory)")]
     [InlineData(DialogName.ProblemReport, "Vantage (Report a problem)")]
     public void NameEachDialogInTheTabTitle(DialogName dialog, string title)

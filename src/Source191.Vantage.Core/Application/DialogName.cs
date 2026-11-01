@@ -14,7 +14,7 @@ public enum DialogName
     CloseEmpty,
     ForceRemove,
     OpenSolution,
-    Update,
+    WhatsNew,
     Memory,
     ProblemReport,
 }

@@ -16,7 +16,10 @@ public sealed class SmokeCheck(StepRunner runner)
     /// <summary>As a user runs Vantage: inside Windows Terminal, which answers its queries.</summary>
     public static readonly DriverOptions Options = new(PretendWindowsTerminal: true, AnswerQueries: true, XtversionDelayMs: 0);
 
-    public async Task<int> RunAsync(string exe, string worktreeFolder)
+    public Task<int> RunAsync(string exe, string worktreeFolder) => RunAsync(exe, SmokeScript.Build(worktreeFolder));
+
+    /// <summary>Any script of steps, such as the What's new steps a stable build with seeded state can reach.</summary>
+    public async Task<int> RunAsync(string exe, IReadOnlyList<SmokeStep> steps)
     {
         string fullPath = Path.GetFullPath(exe);
         if (!File.Exists(fullPath))
@@ -25,7 +28,7 @@ public sealed class SmokeCheck(StepRunner runner)
             return CouldNotStart;
         }
 
-        int result = await runner.RunAsync(fullPath, SmokeScript.Build(worktreeFolder), []);
+        int result = await runner.RunAsync(fullPath, steps, []);
         await Console.Out.WriteLineAsync(result switch
         {
             0 => "Every screen and dialog opened and closed, and Vantage quit by itself.",

@@ -32,7 +32,7 @@ public static partial class Wording
         DialogName.CloseEmpty => "Close empty",
         DialogName.ForceRemove => "Force remove",
         DialogName.OpenSolution => "Open solution",
-        DialogName.Update => "Update",
+        DialogName.WhatsNew => "What's new",
         DialogName.Memory => "Memory",
         DialogName.ProblemReport => ProblemReportDialogTitle,
     };

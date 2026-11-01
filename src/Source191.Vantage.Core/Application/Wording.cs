@@ -241,9 +241,6 @@ public static partial class Wording
         };
     }
 
-    /// <summary>The update key's question, once a newer release is known.</summary>
-    public static string UpdateQuestion(ReleaseVersion newest) => $"Quit Vantage and update to {newest}?\nBackground sessions keep running.";
-
     /// <summary>What the update tab says when dotnet tool update fails, under dotnet's own message.</summary>
     public static string UpdateFailedHint => "Vantage: the update failed. Quit every Vantage that is still open, then press U in Vantage again.";
 
