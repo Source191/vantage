@@ -1,7 +1,7 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.ComponentModel;
-using System.Text.RegularExpressions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Source191.Vantage.Adapters.Claude;
 
@@ -9,7 +9,7 @@ namespace Source191.Vantage.Adapters.Claude;
 /// The Claude CLI adapter: runs claude by its full path for the listing, the version, a <c>--bg</c> start and resume,
 /// attach, stop and rm, and reads the CLI's words in its answers (the version, the job id, an untrusted workspace) here.
 /// </summary>
-public sealed partial class ClaudeCli(IProcessRunner processes, string executable) : IClaudeCli
+public sealed class ClaudeCli(IProcessRunner processes, string executable) : IClaudeCli
 {
     public async Task<SessionListing> ListSessionsAsync(CancellationToken cancellationToken)
     {
@@ -23,9 +23,9 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         try
         {
             ProcessResult result = await processes.RunAsync(Request(["--version"], WorkingFolder.Inherit), cancellationToken);
-            Match version = LeadingVersion().Match(result.StandardOutput);
+            string? word = Words(result.StandardOutput).FirstOrDefault();
 
-            return result.ExitCode == 0 && version.Success ? new ClaudeVersionReport.Printed(version.Value) : new ClaudeVersionReport.NotRead();
+            return result.ExitCode == 0 && word is not null && ReleaseVersion.TryParse(word, out _) ? new ClaudeVersionReport.Printed(word) : new ClaudeVersionReport.NotRead();
         }
         catch (Exception exception) when (exception is Win32Exception or InvalidOperationException or IOException or OperationCanceledException or ProcessTimedOutException)
         {
@@ -97,13 +97,9 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
 
     private static StartResult InterpretStart(ProcessResult result)
     {
-        Match started = BackgroundedLine().Match(result.StandardOutput);
-        if (started.Success)
+        if (TryReadJobId(result.StandardOutput, out JobId? jobId))
         {
-            // The pattern's eight hex characters are what a job id is, so this never fails; the adapter still checks the text it was given.
-            return JobId.TryParse(started.Groups["id"].Value, out JobId? jobId)
-                ? new StartResult.Started(jobId, result.StandardOutput.Trim())
-                : new StartResult.Failed(result.StandardOutput.Trim());
+            return new StartResult.Started(jobId, result.StandardOutput.Trim());
         }
 
         string message = string.IsNullOrWhiteSpace(result.StandardError) ? result.StandardOutput.Trim() : result.StandardError.Trim();
@@ -113,10 +109,17 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
             : new StartResult.Failed(message);
     }
 
-    [GeneratedRegex(@"^\s*\d+(\.\d+)+")]
-    private static partial Regex LeadingVersion();
+    // The word after "backgrounded" is the separator (a middle dot, or whatever a mis-decoded byte became), and the next is the id.
+    private static bool TryReadJobId(string output, [MaybeNullWhen(false)] out JobId jobId)
+    {
+        string[] afterKeyword = [.. Words(output).SkipWhile(word => word != "backgrounded").Skip(2).Take(1)];
+        if (afterKeyword.Length == 1)
+        {
+            return JobId.TryParse(afterKeyword[0], out jobId);
+        }
 
-    // The separator is a middle dot; matched loosely so a mis-decoded byte cannot hide a successful start.
-    [GeneratedRegex(@"backgrounded\s+\S+\s+(?<id>[0-9a-f]{8})\b")]
-    private static partial Regex BackgroundedLine();
+        jobId = null;
+        return false;
+    }
+    private static string[] Words(string text) => text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
 }
