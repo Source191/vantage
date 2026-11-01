@@ -4,7 +4,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 1. The probe
 
-- [ ] 1.1 `NullFreeModelsShould.SeeEveryKindOfNullable`: over a private nested probe type declared in the test file (a nullable and a non-nullable property, parameter and return, a `List<string?>`, an `int?`, and a positional record), the member finder reports exactly the nullable ones and none of the record's compiler-generated members. Red, then the finder (namespace filter aside) green. Verify the fact passes and fails when one probe annotation is flipped by hand.
+- [x] 1.1 `NullFreeModelsShould.SeeEveryKindOfNullable`: over a private nested probe type declared in the test file (a nullable and a non-nullable property, parameter and return, a `List<string?>`, an `int?`, and a positional record), the member finder reports exactly the nullable ones and none of the record's compiler-generated members. Red, then the finder (namespace filter aside) green. Verify the fact passes and fails when one probe annotation is flipped by hand.
 - [ ] 1.2 `NullFreeModelsShould.ExemptTheHouseShapes`: a probe with `TryParse(string?, out T)` carrying `[MaybeNullWhen(false)]`, `Equals(T?)` and `CompareTo(T?)` reports nothing. Red, then the exemptions green. Verify the fact passes and a `TryParse` without the attribute is reported.
 
 ## 2. The rule over Core
