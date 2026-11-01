@@ -35,9 +35,10 @@ public sealed class FakeFolders : IFolders
         return directories.Contains(Normalise(path));
     }
 
+    /// <summary>Blank text names no file, as File.Exists answers for it.</summary>
     public bool FileExists(string path)
     {
-        return files.ContainsKey(Normalise(path));
+        return !string.IsNullOrWhiteSpace(path) && files.ContainsKey(Normalise(path));
     }
 
     public IEnumerable<string> Directories(string path)
