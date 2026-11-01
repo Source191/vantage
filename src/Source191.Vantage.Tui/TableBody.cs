@@ -323,7 +323,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         {
             requested.Cleared();
             detailKey = null;
-            detailPane.Show(null);
+            detailPane.Show(DetailContent.Empty);
             return;
         }
 
