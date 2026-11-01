@@ -259,7 +259,9 @@ public sealed class WordingShould
     [InlineData(PullRequestGap.BranchNotGivenToAz, PullRequestHost.AzureDevOps, "fix-123's branch name holds a character the Azure CLI cannot be given, so it was not looked up.")]
     public void SayWhyThereIsNoPullRequest(PullRequestGap gap, PullRequestHost? host, string expected)
     {
-        Wording.Describe(new StatusMessage.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);
+        LookupHost lookupHost = host is PullRequestHost known ? new LookupHost.Known(known) : new LookupHost.NotRead();
+
+        Wording.Describe(new StatusMessage.NoPullRequest("fix-123", gap, lookupHost)).ShouldBe(expected);
     }
 
     [Fact]
@@ -646,7 +648,7 @@ public sealed class WordingShould
             _ when type == typeof(ViewEffect) => new Quit(),
             _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123", TabClosed: false),
             _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
-            _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
+            _ when type == typeof(LookupHost) => new LookupHost.Known(PullRequestHost.GitHub),
             _ when type == typeof(SetupItem) => SetupItem.TerminalProfiles,
             _ when type == typeof(ConfigRow) => new ConfigRow.CheckForUpdates(On: true),
             _ => throw new InvalidOperationException($"A status message field of type {type.Name} needs a placeholder."),
