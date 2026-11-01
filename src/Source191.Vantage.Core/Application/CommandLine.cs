@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.TerminalSetup;
 using System.CommandLine;
 using System.CommandLine.Help;
@@ -46,10 +47,13 @@ public static class CommandLine
         Command here = new("here", "Start a supervised Claude Code session in this folder, on its current branch, and attach to it in this tab. Ctrl+Z detaches; the session keeps running.") { name, prompt };
         here.SetAction((parsed, cancellationToken) => OptionLikeName(parsed) is string token
             ? RefuseAsync(parsed, token)
-            : actions.StartHere(parsed.GetValue(name), parsed.GetValue(prompt), cancellationToken));
+            : actions.StartHere(NameOf(parsed.GetValue(name)), parsed.GetValue(prompt) ?? string.Empty, cancellationToken));
 
         return here;
     }
+
+    /// <summary>The name as typed, or the folder's name when it was left off.</summary>
+    private static HereName NameOf(string? value) => value is null ? new HereName.FolderName() : new HereName.Typed(value);
 
     /// <summary>
     /// The name when it starts with <c>-</c> and no <c>--</c> came before it: an unknown option fills the free name slot,
