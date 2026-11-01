@@ -8,8 +8,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 2. Typical durations for child programs
 
-- [ ] 2.1 `DurationSampleShould.TakeTheMedianAndNinetyFifthPercentileByNearestRank`: ninety-nine runs of 1,600 ms and one of 4,900 ms give median 1600 ms, 95th percentile 1600 ms, longest 4900 ms and 100 runs. Red, then `Application\Diagnostics\DurationSample` green. Verify the fact passes.
-- [ ] 2.2 `DurationSampleShould.KeepTheLatestThousandButCountAndLongestOverEveryRun`: after 1,001 runs where only the first is the longest, the count is 1001, the longest is the first run's and the percentiles exclude it. Verify the fact passes.
+- [x] 2.1 `DurationSampleShould.TakeTheMedianAndNinetyFifthPercentileByNearestRank`: ninety-nine runs of 1,600 ms and one of 4,900 ms give median 1600 ms, 95th percentile 1600 ms, longest 4900 ms and 100 runs. Red, then `Application\Diagnostics\DurationSample` green. Verify the fact passes.
+- [x] 2.2 `DurationSampleShould.KeepTheLatestThousandButCountAndLongestOverEveryRun`: after 1,001 runs where only the first is the longest, the count is 1001, the longest is the first run's and the percentiles exclude it. Verify the fact passes.
 - [ ] 2.3 `ProcessCountsShould.HoldTheTypicalDurationsOfEachCommand` (the spec's "Typical and worst runs differ"): `ProcessCounts`' tally keeps a `DurationSample` and `ProcessCount` gains `Median` and `NinetyFifth`. Verify the fact and the existing `ProcessCountsShould` facts pass.
 - [ ] 2.4 `DiagnosticLineShould.RenderACountWithItsWriteTimeAndTypicalFigures`: `counts claude agents exit 0: 120 runs, median 1650 ms, p95 2100 ms, longest 4900 ms` after the UTC time. Red, then `DiagnosticLine.Render(ProcessCounts, DateTimeOffset)` green; `DiagnosticLog.WriteCounts`, `CrashRecorder` and `ProblemReports` pass the time from their clock. Verify `DiagnosticLogShould`, `CrashRecorderShould` and the problem report facts pass with their expected lines updated.
 - [ ] 2.5 README "What Vantage records": the child programs bullet names the median and 95th percentile and the time on each count line. Verify by reading against the spec delta.
