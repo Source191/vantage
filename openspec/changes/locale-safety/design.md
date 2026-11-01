@@ -62,6 +62,8 @@ Moving the test projects first makes `EditorLocatorShould.RankRiderBuildsByNumbe
 
 It records what supporting another language or culture will need: turning invariant mode off and what that wakes up, `Wording` becoming resources, culture-formatted dates and numbers, cell widths, slugs for other scripts, the az code page, git's translations, and the parts that must stay invariant (state files, diagnostics, arguments to child programs). Its wording is drafted in task 6.1.
 
+Main split `CLAUDE.md` into always-loaded rules and path-scoped `.claude\rules` files (slim-claude-md) while this change was in progress, so the section follows that layout: the rules that govern code anywhere (invariant culture, ordinal comparisons, times converted by zone, where `InvariantGlobalization` is set) are one bullet in `CLAUDE.md`'s C# idioms, and the rest is `.claude\rules\locale.md`, loaded with the files its facts are about (`Wording`, the layouts, `WorktreeSlug`, `GitCli`, `AzureDevOpsPullRequests`, the project files) and named in `CLAUDE.md`'s list of rule files.
+
 ## Risks / Trade-offs
 
 - **[A time zone id missing on a runner]:** both ids ship with every Windows 11 and Server image. → The tests fail loudly with `TimeZoneNotFoundException` rather than passing wrongly.
