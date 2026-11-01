@@ -20,6 +20,7 @@ public sealed class ProcessTreeShould
         ProcessTree tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf).ShouldBeOfType<ProcessTreeLookup.Found>().Tree;
 
         tree.Process.Name.ShouldBe("claude");
+        tree.Usage.ShouldBeOfType<ProcessMeasure.Measured>().Usage.PrivateMemory.ShouldBe(MemorySize.FromMegabytes(296));
         tree.Total.ShouldBe(MemorySize.FromMegabytes(426));
         tree.Count.ShouldBe(4);
         tree.Children.Select(child => child.Process.ProcessId).ShouldBe([200, 300]);
@@ -43,7 +44,7 @@ public sealed class ProcessTreeShould
     }
 
     [Fact]
-    public void CountAMemberThatRefusesToBeMeasuredAsNothingAndStillWalkItsChildren()
+    public void KeepAChildItCouldNotMeasureAsUnmeasured()
     {
         FakeProcessRegistry processes = new FakeProcessRegistry()
             .InTree(100, "claude", 1).Using(100, Noon, MemorySize.FromMegabytes(296))
@@ -53,7 +54,7 @@ public sealed class ProcessTreeShould
 
         ProcessTree tree = ProcessTree.Under(100, processes.Snapshot(), processes.UsageOf).ShouldBeOfType<ProcessTreeLookup.Found>().Tree;
 
-        tree.Children.Single().Usage.ShouldBeNull();
+        tree.Children.Single().Usage.ShouldBe(new ProcessMeasure.Unmeasured());
         tree.Children.Single().Children.Select(child => child.Process.ProcessId).ShouldBe([201]);
         tree.Total.ShouldBe(MemorySize.FromMegabytes(388));
         tree.Count.ShouldBe(3);
