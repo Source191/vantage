@@ -11,6 +11,7 @@ public sealed class RemoteRepositoryShould
     [InlineData("git@github.com:northwind/Northwind.Orders.git")]
     [InlineData("git@github.com:northwind/Northwind.Orders")]
     [InlineData("ssh://git@github.com/northwind/Northwind.Orders.git")]
+    [InlineData("https://northwind@github.com/northwind/Northwind.Orders.git")]
     [InlineData("  https://github.com/northwind/Northwind.Orders.git\n")]
     public void ParseGitHubHttpsAndSshRemotes(string url)
     {
