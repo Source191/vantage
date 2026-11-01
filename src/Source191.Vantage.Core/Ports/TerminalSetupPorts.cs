@@ -2,10 +2,10 @@ namespace Source191.Vantage.Ports;
 
 /// <summary>
 /// The two Windows Terminal profiles Vantage adds, named once: "Vantage" runs the installed Vantage, "Vantage session"
-/// is PowerShell and is the profile every tab Vantage opens asks for. A null sound leaves that profile on Windows
-/// Terminal's own bell sound.
+/// is PowerShell and is the profile every tab Vantage opens asks for. Each has its bell sound, a file or Windows
+/// Terminal's own.
 /// </summary>
-public sealed record TerminalProfiles(string VantageExecutable, string? VantageSound, string? SessionSound)
+public sealed record TerminalProfiles(string VantageExecutable, BellSound VantageSound, BellSound SessionSound)
 {
     public const string VantageProfileName = "Vantage";
 
