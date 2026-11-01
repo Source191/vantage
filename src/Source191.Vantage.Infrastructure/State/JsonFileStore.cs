@@ -9,10 +9,11 @@ using System.Text.Json.Serialization;
 namespace Source191.Vantage.Adapters.State;
 
 /// <summary>
-/// The only state Vantage owns, under one folder: tab registrations, recent repositories
-/// (one file each, so two Vantage processes writing at once cannot lose each other's records), worktrees Vantage
-/// created, config, the last update check and the last version run. A missing or corrupt file reads as empty. The single-file recent.json of earlier
-/// versions is imported once and removed; the descriptions\ folder and sessions.json of earlier versions are no longer read.
+/// The only state Vantage owns, under one folder: tab registrations, recent repositories and worktrees Vantage
+/// created (one file each, so two Vantage processes writing at once cannot lose each other's records), config, the
+/// last update check and the last version run. A missing, corrupt or unreadable file reads as empty. Every write goes
+/// beside the file and is moved over it. The single-file recent.json and created.json of earlier versions are
+/// imported once and removed; the descriptions\ folder and sessions.json of earlier versions are no longer read.
 /// </summary>
 public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IVantageConfig, IUpdateCheckRecords, ILastRunVersion
 {
@@ -33,7 +34,9 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
 
     private string LegacyRecentFile => Path.Combine(folder, "recent.json");
 
-    private string CreatedFile => Path.Combine(folder, "created.json");
+    private string CreatedFolder => Path.Combine(folder, "created");
+
+    private string LegacyCreatedFile => Path.Combine(folder, "created.json");
 
     /// <summary>The settings file, which the Config tab names.</summary>
     public string ConfigFile => Path.Combine(folder, "config.json");
@@ -68,20 +71,23 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         await TrimRecentAsync();
     }
 
-    public async Task<IReadOnlyList<CreatedWorktree>> ReadCreatedWorktreesAsync() => await ReadJsonAsync<List<CreatedWorktree>>(CreatedFile) ?? [];
+    public async Task<IReadOnlyList<CreatedWorktree>> ReadCreatedWorktreesAsync()
+    {
+        await ImportLegacyCreatedAsync();
+
+        return await ReadAllAsync<CreatedWorktree>(CreatedFolder);
+    }
 
     public async Task RecordCreatedWorktreeAsync(CreatedWorktree worktree)
     {
-        IReadOnlyList<CreatedWorktree> existing = await ReadCreatedWorktreesAsync();
-
-        await WriteJsonAsync(CreatedFile, existing.Where(created => created.Path != worktree.Path).Append(worktree).ToList());
+        await ImportLegacyCreatedAsync();
+        await WriteJsonAsync(CreatedFile(worktree.Path), worktree);
     }
 
     public async Task ForgetCreatedWorktreeAsync(FolderPath path)
     {
-        IReadOnlyList<CreatedWorktree> existing = await ReadCreatedWorktreesAsync();
-
-        await WriteJsonAsync(CreatedFile, existing.Where(created => created.Path != path).ToList());
+        await ImportLegacyCreatedAsync();
+        TryDelete(CreatedFile(path));
     }
 
     public async Task<VantageConfig> ReadConfigAsync() => await ReadJsonAsync<VantageConfig>(ConfigFile) ?? VantageConfig.Missing;
@@ -144,6 +150,25 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         }
 
         TryDelete(LegacyRecentFile);
+    }
+
+    private string CreatedFile(FolderPath path) => Path.Combine(CreatedFolder, $"{FileKey(path.Value.ToUpperInvariant())}.json");
+
+    /// <summary>The old single list becomes one file each; a worktree already recorded under the new layout is newer, so it is kept.</summary>
+    private async Task ImportLegacyCreatedAsync()
+    {
+        List<CreatedWorktree>? legacy = await ReadJsonAsync<List<CreatedWorktree>>(LegacyCreatedFile);
+        if (legacy is null)
+        {
+            return;
+        }
+
+        foreach (CreatedWorktree worktree in legacy.Where(worktree => !File.Exists(CreatedFile(worktree.Path))))
+        {
+            await WriteJsonAsync(CreatedFile(worktree.Path), worktree);
+        }
+
+        TryDelete(LegacyCreatedFile);
     }
 
     private async Task TrimRecentAsync()
