@@ -24,6 +24,9 @@ internal static class ConsoleComposition
 {
     public static async Task<int> RunAsync(SharedParts parts, LaunchParts launch, CancellationToken cancellationToken)
     {
+        // With VANTAGE_LOG set, the counts are also written every 10 minutes; disposed as this returns, before the crash
+        // recorder's exit write.
+        using PeriodicCounts? periodicCounts = parts.LogSetting is DiagnosticLogSetting.File ? new PeriodicCounts(TimeProvider.System, parts.Log, parts.Counts) : null;
         FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
         CurrentSettings settings = await CurrentSettings.LoadAsync(parts.Store, home);
         ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
