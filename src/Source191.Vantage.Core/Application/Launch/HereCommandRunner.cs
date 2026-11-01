@@ -12,7 +12,7 @@ namespace Source191.Vantage.Application.Launch;
 /// </summary>
 public sealed class HereCommandRunner(IFolders folders, LaunchService launches, TerminalEffects effects, ITerminalConsole console, TextWriter output, TextWriter error)
 {
-    public async Task<int> RunAsync(string directory, string? name, string? prompt, CancellationToken cancellationToken)
+    public async Task<int> RunAsync(string directory, HereName name, string prompt, CancellationToken cancellationToken)
     {
         return HereCommand.Plan(directory, name, prompt, IsRepository) switch
         {
