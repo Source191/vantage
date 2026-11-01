@@ -2,6 +2,7 @@ using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Processes;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Infrastructure.Tests;
 
@@ -22,6 +23,44 @@ public sealed class ProcessRunnerIntegrationShould
 
         result.ExitCode.ShouldBe(0);
         result.StandardOutput.Trim().ShouldBe("hello from the runner");
+    }
+
+    [Fact]
+    public async Task EndAChildThatOutlivesTheLimitAndReportIt()
+    {
+        ProcessRunner limited = new(TimeSpan.FromSeconds(1));
+        DateTime began = DateTime.Now.AddSeconds(-1);
+        ProcessRequest request = new("cmd.exe", ["/c", "ping -n 30 127.0.0.1"], WorkingFolder.Inherit);
+        Stopwatch watch = Stopwatch.StartNew();
+
+        ProcessTimedOutException timedOut = await Should.ThrowAsync<ProcessTimedOutException>(() => limited.RunAsync(request, TestContext.Current.CancellationToken));
+
+        watch.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(5));
+        timedOut.Message.ShouldBe("cmd.exe did not finish within 1 second and was ended");
+        timedOut.FileName.ShouldBe("cmd.exe");
+        timedOut.Limit.ShouldBe(TimeSpan.FromSeconds(1));
+        PingsStartedSince(began).ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task EndAChildWhenItsCallerCancels()
+    {
+        DateTime began = DateTime.Now.AddSeconds(-1);
+        ProcessRequest request = new("cmd.exe", ["/c", "ping -n 30 127.0.0.1"], WorkingFolder.Inherit);
+        using CancellationTokenSource cancel = new(TimeSpan.FromMilliseconds(200));
+        Stopwatch watch = Stopwatch.StartNew();
+
+        await Should.ThrowAsync<OperationCanceledException>(() => runner.RunAsync(request, cancel.Token));
+
+        watch.Elapsed.ShouldBeLessThan(TimeSpan.FromSeconds(5));
+        PingsStartedSince(began).ShouldBeEmpty();
+    }
+
+    private static List<Process> PingsStartedSince(DateTime began)
+    {
+        Thread.Sleep(500);
+
+        return [.. Process.GetProcessesByName("ping").Where(ping => ping.StartTime >= began)];
     }
 
     [Fact]
