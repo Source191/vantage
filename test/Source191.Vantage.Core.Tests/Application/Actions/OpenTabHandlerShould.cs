@@ -61,7 +61,7 @@ public sealed class OpenTabHandlerShould
 
         TabRegistration pending = (await Store.ReadTabsAsync()).Single();
         pending.Owner.ShouldBe(new TabOwner.ForSession(SessionId.From("sess-1")));
-        pending.ProcessId.ShouldBeNull();
+        pending.Claim.ShouldBe(new TabClaim.Pending());
         pending.CreatedAt.ShouldBe(Noon);
         terminal.Opened.Single().Script.ShouldContain(pending.Id.ToString("N"));
     }
@@ -170,7 +170,6 @@ public sealed class OpenTabHandlerShould
         await new TabClaimer(Store, registry).ClaimAsync(pending.Id, processId: 4242);
 
         TabRegistration claimed = (await Store.ReadTabsAsync()).Single();
-        claimed.ProcessId.ShouldBe(4242);
-        claimed.ProcessStartedAt.ShouldBe(Noon.AddSeconds(2));
+        claimed.Claim.ShouldBe(new TabClaim.Claimed(4242, Noon.AddSeconds(2)));
     }
 }

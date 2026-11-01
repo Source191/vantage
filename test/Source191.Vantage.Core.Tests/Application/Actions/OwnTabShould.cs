@@ -27,8 +27,7 @@ public sealed class OwnTabShould
         TabRegistration own = (await Store.ReadTabsAsync()).Single();
         own.Owner.ShouldBe(TabOwner.Vantage);
         own.Colour.ShouldBe(Green);
-        own.ProcessId.ShouldBe(100);
-        own.ProcessStartedAt.ShouldBe(Noon.AddSeconds(-3));
+        own.Claim.ShouldBe(new TabClaim.Claimed(100, Noon.AddSeconds(-3)));
     }
 
     [Fact]
