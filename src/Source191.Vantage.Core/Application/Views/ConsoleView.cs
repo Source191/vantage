@@ -3,8 +3,9 @@ using System.Diagnostics;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>
-/// The console's own rule: what a tab-switching effect does to the console state. Each view's reducer raises the
-/// effect; the console applies it, so neither reducer knows about the other's state.
+/// The console's own rules: what a tab-switching effect does to the console state, and what Enter on a worktree opens,
+/// answered from the Sessions tab's rows (<see cref="OpenSession"/>). Each view's reducer raises the effect; the console
+/// applies it, so no reducer knows about another tab's state.
 /// </summary>
 public static class ConsoleView
 {

@@ -8,7 +8,7 @@ namespace Source191.Vantage.Application.Launch;
 
 /// <summary>
 /// <c>vantage here</c> from start to finish: plan from the name and prompt the command line parsed, start the supervised session in the folder,
-/// attach in this tab, and exit 0 after a detach, 1 when the start failed, 2 for a refused name.
+/// attach in this tab, and exit 0 after a detach, 1 when the start failed, 2 for a refused name or prompt (any <see cref="LaunchProblem"/>).
 /// </summary>
 public sealed class HereCommandRunner(IFolders folders, LaunchService launches, TerminalEffects effects, ITerminalConsole console, TextWriter output, TextWriter error)
 {

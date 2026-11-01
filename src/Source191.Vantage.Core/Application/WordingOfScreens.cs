@@ -5,7 +5,7 @@ using System.Globalization;
 
 namespace Source191.Vantage.Application;
 
-/// <summary>The words around the table screens: the tab title, the header's values, the table title, the key hints and the help.</summary>
+/// <summary>The words around the table screens: the tab title, the settings row's values, the table title, the key hints and the help.</summary>
 public static partial class Wording
 {
     private const string UnknownVersion = "unknown";
@@ -13,7 +13,7 @@ public static partial class Wording
     private const string UpdateLine = "update Vantage in a new tab";
     private const string ReportLine = "report a problem on GitHub";
 
-    /// <summary>The title of Vantage's own tab outside a dialog; every writer of it uses this one value. The version is in the header.</summary>
+    /// <summary>The title of Vantage's own tab outside a dialog; every writer of it uses this one value. The version is in the settings row.</summary>
     public static string TabTitle => "Vantage";
 
     /// <summary>The tab's title while a dialog is open: Vantage and the dialog's short name, never the dialog's own title.</summary>
@@ -45,7 +45,7 @@ public static partial class Wording
         return whole < 1000 ? $"{whole} MB" : $"{(megabytes / 1024).ToString("F1", CultureInfo.InvariantCulture)} GB";
     }
 
-    /// <summary>The settings line's Claude Code value: the version as the CLI printed it, and the minimum with a prompt to update when it is older.</summary>
+    /// <summary>The settings row's Claude Code value: the version as the CLI printed it, and the minimum with a prompt to update when it is older.</summary>
     private static string ClaudeVersion(ClaudeCodeVersion claude) => claude switch
     {
         ClaudeCodeVersion.Unknown => UnknownVersion,
@@ -54,7 +54,7 @@ public static partial class Wording
         _ => throw new UnreachableException(),
     };
 
-    /// <summary>The settings line's Vantage value: the running version, its own process's memory, and the newer release with the update key when one is known.</summary>
+    /// <summary>The settings row's Vantage value: the running version, its own process's memory, and the newer release with the update key when one is known.</summary>
     private static string VantageVersion(ToolVersion vantage, UpdateStatus update, MemorySize memory)
     {
         string notice = update is UpdateStatus.Available available ? $"; {available.Newest} available, U to update" : string.Empty;

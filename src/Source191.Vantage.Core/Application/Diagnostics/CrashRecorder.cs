@@ -4,7 +4,7 @@ namespace Source191.Vantage.Application.Diagnostics;
 
 /// <summary>
 /// Leaves the diagnostic log behind when an exception ends Vantage: the events, the child program counts and the crash
-/// itself go to the crash file, and the exception carries on so the command line reports it as before. A normal return
+/// itself go to the crash file, and the exception carries on so the command line reports it. A normal return
 /// writes the counts to the log's sinks instead. Nothing here may hide the original exception.
 /// </summary>
 public sealed class CrashRecorder(DiagnosticLog log, ProcessCounts counts, ICrashFile crashFile)

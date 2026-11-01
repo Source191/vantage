@@ -22,9 +22,9 @@ public sealed class DetailLoader(IGit git, ICreatedWorktrees created, SessionAct
         return new SessionDetail(row, activity.LastPromptedAt(row.Session.SessionId), counts);
     }
 
-    /// <param name="row"></param>
+    /// <param name="row">The selected worktree row.</param>
     /// <param name="listRows">How many commits or changed files the pane has room for.</param>
-    /// <param name="cancellationToken"></param>
+    /// <param name="cancellationToken">Cancels the git reads still running.</param>
     public async Task<WorktreeDetail> WorktreeAsync(WorktreeRow row, int listRows, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(row);

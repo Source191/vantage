@@ -16,7 +16,7 @@ public abstract record DeleteSessionOutcome : Outcome
 
     public sealed record BranchNotMerged(string Name, BranchToConfirm Branch) : DeleteSessionOutcome;
 
-    /// <summary>The worktree went another way than through git with its branch: its leftover folder deleted, perhaps pruned.</summary>
+    /// <summary>The worktree was a leftover: its folder deleted, and its registration pruned when stale.</summary>
     public sealed record RemovedWorktree(string Name, RemoveWorktreeOutcome Worktree) : DeleteSessionOutcome;
 
     /// <summary>The session is deleted; its worktree folder could not be, because a tab or program still has it open.</summary>

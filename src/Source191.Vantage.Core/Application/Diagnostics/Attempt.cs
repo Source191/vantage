@@ -4,7 +4,7 @@ namespace Source191.Vantage.Application.Diagnostics;
 
 /// <summary>
 /// The one place a screen turns a failure into what it shows (a load failure, a failed status message): the failure is recorded
-/// with its summary on the way, and the screen gets the answer it built from the exception, as it did before.
+/// with its summary on the way, and the screen gets the answer it built from the exception.
 /// </summary>
 public static class Attempt
 {

@@ -36,7 +36,7 @@ public static partial class Wording
         };
     }
 
-    /// <summary>What a Config row's setting does, or what its setup is for: the status line for the selected row and the row's tooltip.</summary>
+    /// <summary>What a Config row's setting does, or what its setup is for: the row's hover tooltip only.</summary>
     public static string ConfigDescription(ConfigRow row) => row switch
     {
         ConfigRow.RepositoryRoot => "A folder Vantage searches for git repositories; Enter edits every root, one per line.",

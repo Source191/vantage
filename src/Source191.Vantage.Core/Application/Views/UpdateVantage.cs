@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>
-/// The update key, from either view. Its flow asks the update check what is known: with a newer release it asks
+/// The update key, from any tab. Its flow asks the update check what is known: with a newer release it asks
 /// before raising <see cref="StartUpdate"/>, otherwise the status line says why there is nothing to do.
 /// </summary>
 public sealed record UpdateVantage : ViewEffect, IDialogEffect

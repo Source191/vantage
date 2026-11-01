@@ -42,7 +42,7 @@ public static class ConfigView
     {
         return key switch
         {
-            // Moving on or filtering clears the last message, so the status line goes back to what the selected row is for.
+            // Moving on or filtering clears the last message; what the selected row is for is only its tooltip.
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),

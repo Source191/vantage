@@ -11,15 +11,15 @@ public abstract record StatusMessage
 {
     public static readonly StatusMessage None = new Blank();
 
-    /// <summary>No message: the view shows its standing message instead.</summary>
+    /// <summary>No message: the console shows no status line.</summary>
     public sealed record Blank : StatusMessage;
 
     public sealed record NoSessionSelected : StatusMessage;
 
-    /// <summary>A plain claude session in some tab: Vantage cannot attach to it, stop it or delete it from outside.</summary>
+    /// <summary>A plain claude session in some tab: Vantage cannot open it in a tab, stop it or delete it from outside.</summary>
     public sealed record RunsInOwnTerminal(string Name, bool HasTranscript) : StatusMessage;
 
-    /// <summary>A stopped session with no transcript: there is nothing to attach to or resume.</summary>
+    /// <summary>A stopped session with no transcript: there is nothing to open or resume.</summary>
     public sealed record NeverSentAMessage(string Name) : StatusMessage;
 
     public sealed record NoEmptyTerminals : StatusMessage;
@@ -69,7 +69,7 @@ public abstract record StatusMessage
     /// <summary>The close-empty-tabs question was answered with Keep.</summary>
     public sealed record Kept : StatusMessage;
 
-    /// <summary>The resume checklist ended with nothing to resume.</summary>
+    /// <summary>R found no stopped or failed session among the shown rows.</summary>
     public sealed record NothingToResume : StatusMessage;
 
     /// <summary>The update key found no newer release.</summary>
