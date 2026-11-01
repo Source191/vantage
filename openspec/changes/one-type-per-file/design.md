@@ -25,7 +25,7 @@ See proposal.md for why. Every file is already file-scoped (IDE0161 at warning, 
 **The split is a file-based app over the same syntax rules.** `openspec\changes\one-type-per-file\split-types.cs`, run with `dotnet run split-types.cs -- <repository root>` (a `#:package Microsoft.CodeAnalysis.CSharp` directive, .NET 10's file-based apps). For each file with more than one top-level type:
 - The type named after the file stays in it; if none is, the file is deleted after its types are written out.
 - Each other type is written to `<Name>.cs` beside it: the origin's using directives (and any `#nullable` or `#pragma` above the namespace), a blank line, the namespace line, a blank line, then the member's full text with its leading trivia (the documentation comment and attributes live there), trimmed of the blank lines between it and the previous member.
-- Line endings follow the origin (LF in the working tree under `text=auto`, CRLF on a CRLF checkout), no BOM, one final newline.
+- Line endings follow the origin (LF in the working tree under `text=auto`, CRLF on a CRLF checkout), no BOM, and a final newline only where the origin had one (the repository's files end without one, `insert_final_newline = false`).
 - It refuses to overwrite a file that exists, and stops with the list of such clashes before writing anything.
 - It also applies the four renames with `git mv`, so history follows them.
 - Partial types: moved out like any other type when their file is named for another one, which never happens today.
@@ -40,7 +40,7 @@ Its selection logic is the fact's, copied rather than shared, because a throwawa
 
 ## Risks / Trade-offs
 
-- [A type loses its documentation comment or an attribute in the move] → the member's full leading trivia moves with it; CS1591 fails the build for a public type that loses its summary, and `git diff -M --stat` plus a spot check of the attribute-bearing types (`[JsonConverter]`, `[Flags]`) confirms the rest.
+- [A type loses its documentation comment or an attribute in the move] → the member's full leading trivia moves with it; `Directory.Build.props` suppresses CS1591, so the build does not catch a lost summary: the check is that the counts of `///` lines, attribute lines and `[Fact]`/`[Theory]` lines under `src`, `test` and `tools` are the same before and after the split (they were, 2429, 2037 and 1510, on a scratch run at main c2b6d0f9), plus `git diff -M --stat` and a spot check of the `[JsonConverter]` bearers.
 - [A `#pragma` or `#if` region spans types] → none exists today above or between top-level types (checked: no `#if` or `#region` at the start of a line); the script stops on a directive inside the moved range rather than guessing.
 - [`dotnet format` removes a using that a `cref` in a comment needs] → `GenerateDocumentationFile` makes the analyser count `cref` uses, and an unresolved `cref` (CS1574) fails the build.
 - [Other branches opened after the split meet the new files] → the split is one pull request merged quickly; a branch that edits a moved type rebases onto the new file by hand, and git's rename detection follows the files that keep their name.
