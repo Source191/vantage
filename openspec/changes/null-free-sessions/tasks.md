@@ -33,7 +33,7 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step and
 ## 5. Docs, version and the whole build
 
 - [x] 5.1 `CLAUDE.md`: where it describes a session as a `BackgroundSession` (job id, maybe a process), say the process is a `JobProcess`; where it describes the wizard's fixed folder, name `WizardOrigin`. Verify by reading both sentences against the code.
-- [ ] 5.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one step above main's (projected `0.19.0-preview.11`). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
+- [x] 5.2 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` one step above main's (projected `0.19.0-preview.11`). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`. Raised to `0.19.0-preview.13`, one step above the stacked base `v-null-free-port-answers` (#146), and checked with `-Base v-null-free-port-answers -Head HEAD`: passes.
 - [ ] 5.3 Whole check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` pass; `tools\install-local.ps1` packs and installs the tool and `dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>` exits 0; `openspec validate null-free-sessions` passes. Record the results here.
 
 ## Workflow follow-up
