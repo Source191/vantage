@@ -8,7 +8,8 @@ namespace Source191.Vantage.Application.Actions;
 
 /// <summary>
 /// Opens a folder in the editor chosen in settings, without waiting for it. The folder is checked first because a
-/// stopped session's folder may have been deleted and the editor would otherwise open an empty window.
+/// stopped session's folder may have been deleted and the editor would otherwise open an empty window. An editor that is
+/// missing, or that Windows will not start, is an outcome with Vantage's words rather than an exception's message.
 /// </summary>
 public sealed class OpenInEditorHandler(IEditorLocator locator, IDesktop desktop, IFolders folders, CurrentSettings settings) : IEffectHandler<OpenFolderInEditor>
 {
@@ -22,7 +23,7 @@ public sealed class OpenInEditorHandler(IEditorLocator locator, IDesktop desktop
 
         EditorChoice editor = settings.Value.Editor;
         ProgramLocation location = editor.Preset == EditorPreset.Custom
-            ? new ProgramLocation.Found(editor.Executable)
+            ? CustomExecutable(editor)
             : await locator.LocateAsync(editor.Preset, cancellationToken);
 
         return location switch
@@ -33,9 +34,19 @@ public sealed class OpenInEditorHandler(IEditorLocator locator, IDesktop desktop
         };
     }
 
+    /// <summary>A Custom editor's executable is looked for as the key is pressed, since it may have gone since it was saved.</summary>
+    private ProgramLocation CustomExecutable(EditorChoice editor) => folders.FileExists(editor.Executable) ? new ProgramLocation.Found(editor.Executable) : new ProgramLocation.Missing();
+
     private async Task<Outcome> OpenAsync(EditorChoice editor, string executable, FolderPath folder, CancellationToken cancellationToken)
     {
-        await desktop.StartAsync(EditorCommand.For(editor, executable, folder), cancellationToken);
+        try
+        {
+            await desktop.StartAsync(EditorCommand.For(editor, executable, folder), cancellationToken);
+        }
+        catch (ProgramNotStartedException refused)
+        {
+            return new OpenInEditorOutcome.EditorNotStarted(editor, refused.Reason);
+        }
 
         return new OpenInEditorOutcome.Opened(folder.Name, editor);
     }

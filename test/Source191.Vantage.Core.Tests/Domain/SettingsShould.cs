@@ -94,7 +94,7 @@ public sealed class SettingsShould
     {
         SettingsText typed = Typed with { Roots = $"{Root}\r\n\r\n  D:\\work  \n", Base = WorktreeBase.Head, Place = LaunchMode.CurrentBranch };
 
-        Settings settings = Settings.Validate(typed, Exists(Root, @"D:\work")).ShouldBeOfType<SettingsValidation.Valid>().Settings;
+        Settings settings = Settings.Validate(typed, Exists(Root, @"D:\work"), Installed).ShouldBeOfType<SettingsValidation.Valid>().Settings;
 
         settings.RepositoryRoots.ShouldBe([FolderPath.From(Root), FolderPath.From(@"D:\work")]);
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees"));
@@ -107,7 +107,7 @@ public sealed class SettingsShould
     {
         SettingsText typed = Typed with { Preset = EditorPreset.Custom, Executable = @"C:\Tools\subl.exe", Arguments = "{folder}", Place = LaunchMode.CurrentBranch };
 
-        Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Valid>().Settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
+        Settings.Validate(typed, Exists(Root), Installed).ShouldBeOfType<SettingsValidation.Valid>().Settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
     }
 
     [Fact]
@@ -137,7 +137,7 @@ public sealed class SettingsShould
     [Fact]
     public void AcceptAWorktreeRootThatDoesNotExistYet()
     {
-        Settings.Validate(Typed with { WorktreeRoot = @"D:\worktrees" }, Exists(Root))
+        Settings.Validate(Typed with { WorktreeRoot = @"D:\worktrees" }, Exists(Root), Installed)
             .ShouldBeOfType<SettingsValidation.Valid>().Settings.WorktreeRoot.ShouldBe(FolderPath.From(@"D:\worktrees"));
     }
 
@@ -171,11 +171,17 @@ public sealed class SettingsShould
     }
 
     [Fact]
+    public void RefuseACustomEditorWhoseExecutableIsMissing()
+    {
+        Refusal(Typed with { Preset = EditorPreset.Custom, Executable = @"C:\Tools\gone.exe", Arguments = "-n {folder}" }).ShouldBe(new SettingsProblem.ExecutableMissing(@"C:\Tools\gone.exe"));
+    }
+
+    [Fact]
     public void AcceptACustomEditorWithItsArguments()
     {
         SettingsText typed = Typed with { Preset = EditorPreset.Custom, Executable = @" C:\Tools\subl.exe ", Arguments = "-n {folder}" };
 
-        Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Valid>()
+        Settings.Validate(typed, Exists(Root), Installed).ShouldBeOfType<SettingsValidation.Valid>()
             .Settings.Editor.ShouldBe(EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]));
     }
 
@@ -184,7 +190,7 @@ public sealed class SettingsShould
     {
         SettingsText typed = Typed with { Preset = EditorPreset.Rider, Executable = @"C:\Tools\edit.cmd", Arguments = "-n" };
 
-        Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Valid>().Settings.Editor.ShouldBe(EditorChoice.Of(EditorPreset.Rider));
+        Settings.Validate(typed, Exists(Root), Installed).ShouldBeOfType<SettingsValidation.Valid>().Settings.Editor.ShouldBe(EditorChoice.Of(EditorPreset.Rider));
     }
 
     [Fact]
@@ -192,7 +198,7 @@ public sealed class SettingsShould
     {
         SettingsText typed = Typed with { Roots = $"{Root}\n" + @"C:\Users\ME\source\repos\" };
 
-        Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Refused>().Problem.ShouldBe(new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)));
+        Settings.Validate(typed, Exists(Root), Installed).ShouldBeOfType<SettingsValidation.Refused>().Problem.ShouldBe(new SettingsProblem.RootAlreadyListed(FolderPath.From(Root)));
     }
 
     [Fact]
@@ -224,7 +230,9 @@ public sealed class SettingsShould
         off.ShouldNotBe(Settings.Resolve(roots: [], new WorktreeRootChoice.BesideFirstRoot(), EditorChoice.VsCode, WorktreeBase.RemoteDefault, Home));
     }
 
-    private static SettingsProblem Refusal(SettingsText typed) => Settings.Validate(typed, Exists(Root)).ShouldBeOfType<SettingsValidation.Refused>().Problem;
+    private static SettingsProblem Refusal(SettingsText typed) => Settings.Validate(typed, Exists(Root), Installed).ShouldBeOfType<SettingsValidation.Refused>().Problem;
 
     private static Func<string, bool> Exists(params string[] folders) => path => folders.Contains(path, StringComparer.OrdinalIgnoreCase);
+
+    private static bool Installed(string file) => file == @"C:\Tools\subl.exe";
 }

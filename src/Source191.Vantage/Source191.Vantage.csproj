@@ -10,7 +10,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>vantage</ToolCommandName>
     <PackageId>Source191.Vantage</PackageId>
-    <Version>0.20.0-preview.8</Version>
+    <Version>0.20.0-preview.13</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>Simon Vane</Authors>
     <Description>Mission control for Claude Code sessions: every session in one tab, still there after a reboot.</Description>
@@ -25,13 +25,14 @@
     <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\artifacts\packages</PackageOutputPath>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <PackageReleaseNotes>Release notes: https://github.com/Source191/vantage/releases/tag/v$(Version)</PackageReleaseNotes>
+    <PackageReleaseNotes>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\..\CHANGELOG.md'))</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="icon.png" Pack="true" PackagePath="\" />
     <None Include="..\..\assets\icon\vantage.ico" Link="vantage.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\THIRD-PARTY-NOTICES.txt" Pack="true" PackagePath="\" />
   </ItemGroup>
 

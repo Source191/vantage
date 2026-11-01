@@ -42,6 +42,12 @@ public sealed class DiagnosticLineShould
     }
 
     [Fact]
+    public void RenderPackagedNotesThatCouldNotBeRead()
+    {
+        Body(new PackagedNotesUnreadable(new ToolVersion("0.21.0"))).ShouldBe("no readable release notes in the package of 0.21.0");
+    }
+
+    [Fact]
     public void RenderADialog()
     {
         Body(new DialogShown(DialogName.Settings)).ShouldBe("dialog Settings");
@@ -84,6 +90,53 @@ public sealed class DiagnosticLineShould
         TerminalGuiReported reported = new(DiagnosticLevel.Error, ExceptionSummary.From(new GitException("x")));
 
         Body(reported).ShouldBe("terminal.gui Error: GitException");
+    }
+
+    [Theory]
+    [InlineData(RefreshPart.SessionsListing, "slow refresh sessions listing in 3400 ms")]
+    [InlineData(RefreshPart.SessionsEnrichment, "slow refresh sessions enrichment in 3400 ms")]
+    [InlineData(RefreshPart.WorktreesScan, "slow refresh worktrees scan in 3400 ms")]
+    [InlineData(RefreshPart.PullRequestRefresh, "slow refresh pull-request refresh in 3400 ms")]
+    public void RenderASlowRefreshByPart(RefreshPart part, string line)
+    {
+        Body(new RefreshSlow(part, TimeSpan.FromMilliseconds(3400.9))).ShouldBe(line);
+    }
+
+    [Fact]
+    public void RenderAStall()
+    {
+        Body(new UiThreadStalled(TimeSpan.FromMilliseconds(820))).ShouldBe("stalled ui thread for 820 ms");
+    }
+
+    [Fact]
+    public void RenderACountWithItsWriteTimeAndTypicalFigures()
+    {
+        ProcessCounts counts = new();
+        ChildCommand agents = ChildCommand.For(new ProcessRequest(@"C:\Users\me\.local\bin\claude.exe", ["agents", "--json"], WorkingFolder.Inherit));
+        foreach (int milliseconds in Enumerable.Repeat(1650, 95).Concat(Enumerable.Repeat(2100, 24)))
+        {
+            counts.Add(agents, 0, TimeSpan.FromMilliseconds(milliseconds));
+        }
+
+        counts.Add(agents, 0, TimeSpan.FromMilliseconds(4900));
+
+        DiagnosticLine.Render(counts, At).ShouldBe(["2026-10-29T14:03:12.345Z counts claude agents --json exit 0: 120 runs, median 1650 ms, p95 2100 ms, longest 4900 ms"]);
+    }
+
+    [Fact]
+    public void RenderTheStallCountsEvenWithNone()
+    {
+        StallCounts stalls = new();
+        PerformanceCounts counts = new(new ProcessCounts(), new RefreshCounts(TimeProvider.System, new DiagnosticLog(TimeProvider.System, [])), stalls);
+        string[] none = [.. DiagnosticLine.Render(counts, At)];
+
+        foreach (int milliseconds in (int[])[150, 180, 820])
+        {
+            stalls.Add(TimeSpan.FromMilliseconds(milliseconds));
+        }
+
+        none.ShouldBe(["2026-10-29T14:03:12.345Z stalls ui thread: 0 stalls"]);
+        DiagnosticLine.Render(counts, At).ShouldBe(["2026-10-29T14:03:12.345Z stalls ui thread: 3 stalls, median 180 ms, p95 820 ms, longest 820 ms"]);
     }
 
     private static string Body(DiagnosticEvent diagnostic)

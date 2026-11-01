@@ -50,7 +50,7 @@ public sealed class ConsoleScreen(
     private readonly FolderLabels folders = folders;
     private ConsoleTab? shown;
 
-    public ConsoleExit Run(ConsoleState initial)
+    public ConsoleExit Run(ConsoleState initial, WhatsNewAtStart opening)
     {
         using IApplication app = Terminal.Gui.App.Application.Create().Init();
         // Windows Terminal renders 24-bit colour; without this the driver falls back to 16 colours and the palette shifts
@@ -58,6 +58,12 @@ public sealed class ConsoleScreen(
         if (app.Driver is not null)
         {
             app.Driver.Force16Colors = false;
+        }
+
+        // Before the frame and its timers exist, so no key reaches a tab while it is open and nothing waits on the UI thread behind it.
+        if (opening is WhatsNewAtStart.Show show)
+        {
+            WhatsNewDialog.ShowAfterUpdate(app, context.Diagnostics, Wording.WhatsNewAfterUpdateTitle(show.Running), Wording.WhatsNewAfterUpdate(show.Sections));
         }
 
         using Frame frame = new(this, app, initial);
@@ -210,6 +216,7 @@ public sealed class ConsoleScreen(
             ShowCounts(Active.Counts);
             ShowFrameTitle(Active.FrameTitle);
             ShowBar(Active.Bar(screen.context.UpdateKnown()));
+            Announce(screen.context.TakeAnnouncement());
             ShowStatus(Active.Status, Active.Running);
             Window.SetNeedsDraw();
         }
@@ -389,27 +396,29 @@ public sealed class ConsoleScreen(
 
         /// <summary>
         /// The sessions are listed at once and on every tick, shown or not. The worktrees are scanned once at once, whichever
-        /// tab is shown (the scan waits for the first sessions listing), and on a tick only while their tab is shown.
+        /// tab is shown (the scan waits for the first sessions listing), and on a tick only while their tab is shown. The
+        /// heartbeat beats on its own timeout, which Terminal.Gui keeps running under a dialog too.
         /// </summary>
         private void StartRefreshing()
         {
-            Every(sessions, sessions.TriggerLoad);
-            Every(worktrees, () =>
+            Every(sessions.RefreshEvery, sessions.TriggerLoad);
+            Every(worktrees.RefreshEvery, () =>
             {
                 if (Active == worktrees)
                 {
                     ScanWorktrees();
                 }
             });
+            Every(Heartbeat.Interval, screen.context.Heartbeat.Beat);
             sessions.TriggerLoad();
             ScanWorktrees();
         }
 
-        private void Every(ITabBody body, Action refresh)
+        private void Every(TimeSpan interval, Action tick)
         {
-            object? timer = app.AddTimeout(body.RefreshEvery, () =>
+            object? timer = app.AddTimeout(interval, () =>
             {
-                refresh();
+                tick();
                 return true;
             });
             if (timer is not null)
@@ -471,6 +480,14 @@ public sealed class ConsoleScreen(
             LayOutStatus(running ? Math.Max(lines.Count, 1) : lines.Count);
         }
 
+        /// <summary>A newly found release, said once in the shown tab's status line the first time the frame is drawn after the update check found it.</summary>
+        private void Announce(StatusMessage announcement)
+        {
+            if (announcement is not StatusMessage.Blank)
+            {
+                Active.ShowMessage(announcement);
+            }
+        }
         /// <summary>The close mark after the message's last word, on its last row; none while an action runs or when there is no message.</summary>
         private void ShowClose(StatusMessage message, bool running, IReadOnlyList<string> lines)
         {

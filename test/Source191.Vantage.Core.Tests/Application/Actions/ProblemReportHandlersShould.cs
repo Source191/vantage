@@ -80,6 +80,6 @@ public sealed class ProblemReportHandlersShould
 
     private Task<ProblemReport> Report()
     {
-        return new ProblemReports(log, new ProcessCounts(), crashFile, Start, TestSettings.Current(@"C:\Users\me\source\repos")).BuildAsync();
+        return new ProblemReports(log, new ProcessCounts(), crashFile, Start, TestSettings.Current(@"C:\Users\me\source\repos"), TimeProvider.System).BuildAsync();
     }
 }

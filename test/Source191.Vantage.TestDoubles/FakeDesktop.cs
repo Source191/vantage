@@ -12,6 +12,9 @@ public sealed class FakeDesktop : IDesktop
     /// <summary>When set, opening throws this, as Windows does when it cannot start the associated application.</summary>
     public Exception? OpenFailure { get; set; }
 
+    /// <summary>When set, starting throws this, as Windows does when it refuses to start a program.</summary>
+    public Exception? StartFailure { get; set; }
+
     public Task OpenAsync(string file, CancellationToken cancellationToken)
     {
         if (OpenFailure is not null)
@@ -26,6 +29,11 @@ public sealed class FakeDesktop : IDesktop
 
     public Task StartAsync(ProcessRequest request, CancellationToken cancellationToken)
     {
+        if (StartFailure is not null)
+        {
+            throw StartFailure;
+        }
+
         Started.Add(request);
 
         return Task.CompletedTask;

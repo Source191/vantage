@@ -1,3 +1,4 @@
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.Collections.Concurrent;
@@ -9,9 +10,11 @@ namespace Source191.Vantage.Application;
 /// from what has already landed (Looking before the first answer), and RefreshStaleAsync starts a lookup for each
 /// branch whose answer is older than the window and has none running, keeping the old answer until the new one lands.
 /// A listed answer is kept for a minute; an unavailable one for three, so a signed-out CLI is not asked every minute
-/// per row. The origin remote is read again with each lookup, so a repository that moves host is followed.
+/// per row. The origin remote is read again with each lookup, so a repository that moves host is followed. A refresh that
+/// starts at least one lookup is timed until its last lookup lands; one with nothing stale, or that only joins lookups
+/// already running, is not, so near-zero runs do not hide the real ones.
 /// </summary>
-public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProvider clock) : IDisposable
+public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProvider clock, RefreshCounts refreshes) : IDisposable
 {
     private static readonly TimeSpan Window = TimeSpan.FromSeconds(60);
     private static readonly TimeSpan UnavailableWindow = TimeSpan.FromMinutes(3);
@@ -42,8 +45,10 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
 
     public Task RefreshStaleAsync(IEnumerable<(FolderPath Checkout, BranchName Branch)> branches)
     {
+        long began = clock.GetTimestamp();
         DateTimeOffset now = clock.GetUtcNow();
-        List<Task> started = [];
+        List<Task> lookups = [];
+        bool startedOne = false;
         foreach ((FolderPath checkout, BranchName branch) in branches.DistinctBy(pair => KeyOf(pair.Checkout, pair.Branch)))
         {
             string key = KeyOf(checkout, branch);
@@ -52,10 +57,21 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
                 continue;
             }
 
-            started.Add(running.GetOrAdd(key, _ => new Lazy<Task>(() => RefreshAsync(checkout, branch))).Value);
+            Lazy<Task> fresh = new(() => RefreshAsync(checkout, branch));
+            Lazy<Task> lookup = running.GetOrAdd(key, fresh);
+            startedOne |= ReferenceEquals(lookup, fresh);
+            lookups.Add(lookup.Value);
         }
 
-        return Task.WhenAll(started);
+        Task landed = Task.WhenAll(lookups);
+
+        return startedOne ? TimedAsync(landed, began) : landed;
+    }
+
+    private async Task TimedAsync(Task landed, long began)
+    {
+        await landed;
+        refreshes.Add(RefreshPart.PullRequestRefresh, clock.GetElapsedTime(began));
     }
 
     private static PullRequestLookup ForBranch(PullRequestListing.Listed listed, BranchName branch) =>

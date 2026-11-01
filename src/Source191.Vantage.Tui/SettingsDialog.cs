@@ -13,20 +13,24 @@ namespace Source191.Vantage.Tui;
 /// A setting's dialog: <see cref="SettingsControls"/> for one <see cref="SettingsScope"/> bound to <see cref="SettingsView"/>, which holds every rule. Each
 /// control event becomes a <see cref="SettingsInput"/>; after each reduce the state is pushed back to the controls, and
 /// the events that pushing raises are ignored. Nothing is saved here; the screen dispatches the settings it answers.
+/// The Open folder with dialog also looks for the editor presets off the UI thread as it opens and marks those it cannot
+/// find once the look answers; a dialog closed by then drops the answer.
 /// </summary>
 internal static class SettingsDialog
 {
     /// <summary>The effect the dialog ended on: <see cref="SettingsEffect.Save"/> with the settings, or <see cref="SettingsEffect.Close"/>.</summary>
-    public static SettingsEffect Show(IApplication app, DiagnosticLog log, Settings current, SettingsScope scope, Func<string, bool> folderExists)
+    public static SettingsEffect Show(IApplication app, DiagnosticLog log, Settings current, SettingsScope scope, Func<string, bool> folderExists, Func<string, bool> fileExists, EditorPresets presets)
     {
-        SettingsState state = SettingsState.Open(current, scope, folderExists);
+        SettingsState state = SettingsState.Open(current, scope, folderExists, fileExists);
         SettingsEffect result = new SettingsEffect.Close();
         bool binding = false;
+        bool open = true;
         SettingsControls controls = new(state);
         using Dialog dialog = new() { Title = Wording.SettingsDialogTitle(scope), Width = Dim.Percent(90), Height = controls.Height };
         dialog.SetScheme(Palette.Focusable(Palette.White));
         DialogTabTitle.Apply(app, log, dialog, DialogName.Settings);
         dialog.Add(controls.All);
+        Button browse = new() { Text = Wording.BrowseButton };
 
         void Apply(SettingsInput input)
         {
@@ -47,13 +51,6 @@ internal static class SettingsDialog
             Push();
         }
 
-        void Push()
-        {
-            binding = true;
-            controls.Show(state);
-            binding = false;
-        }
-
         // The texts follow their change events; reading them again at Save means no missed event can save a stale value.
         void Save()
         {
@@ -64,27 +61,94 @@ internal static class SettingsDialog
             Apply(new SettingsInput.Save());
         }
 
-        // The picker answers folders; the reducer adds them as lines and F5 checks them with the typed ones.
+        // Which picker F3 opens is read from the state as the key is pressed: the Open folder with dialog browses only while Custom is chosen.
         void Browse()
         {
-            using OpenDialog picker = new() { Title = Wording.FolderPickerTitle(scope), OpenMode = OpenMode.Directory, AllowsMultipleSelection = state.Browses == SettingsBrowse.SeveralFolders };
-            if (state.BrowseFrom is BrowseStart.At from)
-            {
-                picker.Path = from.Folder.Value;
-            }
-
-            picker.SetScheme(Palette.Focusable(Palette.White));
-            DialogTabTitle.Apply(app, log, picker, DialogName.FolderPicker);
-            app.Run(picker);
             Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
             Apply(new SettingsInput.WorktreeRootChanged(controls.WorktreeRoot.Text));
+            Apply(new SettingsInput.ExecutableChanged(controls.Executable.Text));
+            switch (state.Browses)
+            {
+                case SettingsBrowse.OneFolder or SettingsBrowse.SeveralFolders:
+                    BrowseFolders();
+                    break;
+                case SettingsBrowse.OneFile:
+                    BrowseFile();
+                    break;
+                case SettingsBrowse.No:
+                    break;
+            }
+        }
+
+        // The picker answers folders; the reducer adds them as lines and F5 checks them with the typed ones.
+        void BrowseFolders()
+        {
+            using OpenDialog picker = new() { Title = Wording.FolderPickerTitle(scope), OpenMode = OpenMode.Directory, AllowsMultipleSelection = state.Browses == SettingsBrowse.SeveralFolders };
+            Run(picker, DialogName.FolderPicker);
             Apply(new SettingsInput.FoldersChosen(picker.Canceled ? [] : picker.FilePaths));
             binding = true;
             controls.ShowFolders(state);
             binding = false;
         }
 
-        bool browses = state.Browses != SettingsBrowse.No;
+        // The picker shows folders and programs only; the file chosen replaces the executable, and F5 checks it as if typed.
+        void BrowseFile()
+        {
+            using OpenDialog picker = new() { Title = Wording.FilePickerTitle, OpenMode = OpenMode.File, AllowedTypes = [new AllowedType(Wording.ProgramFiles, ".exe")] };
+            Run(picker, DialogName.FilePicker);
+            Apply(new SettingsInput.FileChosen(picker is { Canceled: false, FilePaths: [string chosen, ..] } ? chosen : string.Empty));
+            binding = true;
+            controls.Executable.Text = state.Text.Executable;
+            binding = false;
+        }
+
+        void Run(OpenDialog picker, DialogName name)
+        {
+            if (state.BrowseFrom is BrowseStart.At from)
+            {
+                picker.Path = from.Folder.Value;
+            }
+
+            picker.SetScheme(Palette.Focusable(Palette.White));
+            DialogTabTitle.Apply(app, log, picker, name);
+            app.Run(picker);
+        }
+
+        void Push()
+        {
+            binding = true;
+            controls.Show(state);
+            browse.Visible = state.Browses != SettingsBrowse.No;
+            binding = false;
+        }
+
+        // The look's answer only relabels the choices: pushing the whole state would move focus back to a field the user has Tabbed away from.
+        void Relabel(IReadOnlySet<EditorPreset> missing)
+        {
+            state = SettingsView.Reduce(state, new SettingsInput.PresetsLocated(missing)).State;
+            binding = true;
+            controls.ShowPresets(state.Presets);
+            binding = false;
+        }
+
+        // Started off the UI thread and never awaited; the answer is applied on the UI thread only while the dialog is open.
+        async Task LookForPresetsAsync()
+        {
+            IReadOnlySet<EditorPreset> missing = await Attempt.RunAsync(
+                log,
+                FailureSite.BackgroundTask,
+                CodeName.For(typeof(EditorPresets)),
+                () => Task.Run(() => presets.MissingAsync(CancellationToken.None)),
+                _ => new HashSet<EditorPreset>()).ConfigureAwait(false);
+            app.Invoke(() =>
+            {
+                if (open)
+                {
+                    Relabel(missing);
+                }
+            });
+        }
+
         controls.WhenFocused(field => Apply(new SettingsInput.FieldFocused(field)));
         controls.Roots.ContentsChanged += (_, _) => Apply(new SettingsInput.RootsChanged(controls.Roots.Text));
         controls.WorktreeRoot.TextChanging += (_, changing) => Apply(new SettingsInput.WorktreeRootChanged(changing.Result ?? string.Empty));
@@ -97,17 +161,22 @@ internal static class SettingsDialog
         controls.WorktreeRoot.Accepting += (_, accepting) => accepting.Handled = true;
         controls.Executable.Accepting += (_, accepting) => accepting.Handled = true;
         controls.Arguments.Accepting += (_, accepting) => accepting.Handled = true;
-        dialog.KeyDown += (_, key) => key.Handled = (key == GuiKey.F5 && WizardControls.Handled(Save)) || (browses && key == GuiKey.F3 && WizardControls.Handled(Browse));
-        if (browses)
+        dialog.KeyDown += (_, key) => key.Handled = (key == GuiKey.F5 && WizardControls.Handled(Save)) || (key == GuiKey.F3 && state.Browses != SettingsBrowse.No && WizardControls.Handled(Browse));
+        if (scope is SettingsScope.Roots or SettingsScope.WorktreeRoot or SettingsScope.Editor)
         {
-            dialog.AddButton(WizardControls.Button(Wording.BrowseButton, Browse));
+            dialog.AddButton(browse);
         }
 
         dialog.AddButton(WizardControls.Button("_Save (F5)", Save));
         dialog.AddButton(WizardControls.Button("_Cancel (Esc)", () => Apply(new SettingsInput.Cancel())));
         dialog.Initialized += (_, _) => Push();
+        if (scope is SettingsScope.Editor)
+        {
+            _ = LookForPresetsAsync();
+        }
 
         app.Run(dialog);
+        open = false;
 
         return result;
     }

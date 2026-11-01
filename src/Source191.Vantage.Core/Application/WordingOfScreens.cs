@@ -26,12 +26,13 @@ public static partial class Wording
         DialogName.Rename => "Rename",
         DialogName.Settings => "Settings",
         DialogName.FolderPicker => "Browse",
+        DialogName.FilePicker => "Choose editor",
         DialogName.DeleteSession => "Delete session",
         DialogName.DeleteBranch => "Delete branch",
         DialogName.CloseEmpty => "Close empty",
         DialogName.ForceRemove => "Force remove",
         DialogName.OpenSolution => "Open solution",
-        DialogName.Update => "Update",
+        DialogName.WhatsNew => "What's new",
         DialogName.Memory => "Memory",
         DialogName.ProblemReport => ProblemReportDialogTitle,
     };
@@ -54,12 +55,14 @@ public static partial class Wording
         _ => throw new UnreachableException(),
     };
 
-    /// <summary>The settings row's Vantage value: the running version, its own process's memory, and the newer release with the update key when one is known.</summary>
-    private static string VantageVersion(ToolVersion vantage, UpdateStatus update, MemorySize memory)
+    /// <summary>The settings row's Vantage value: the running version and its own process's memory, then, in amber inside the same brackets, the newer release with the update key when one is known.</summary>
+    private static IReadOnlyList<TextPart> VantageVersion(ToolVersion vantage, UpdateStatus update, MemorySize memory)
     {
-        string notice = update is UpdateStatus.Available available ? $"; {available.Newest} available, U to update" : string.Empty;
+        string version = $"{vantage.Text} ({Memory(memory)}";
 
-        return $"{vantage.Text} ({Memory(memory)}{notice})";
+        return update is UpdateStatus.Available available
+            ? [Value($"{version}; "), new TextPart($"{available.Newest} available, U to update", TextTone.Amber), Value(")")]
+            : [Value($"{version})")];
     }
 
     /// <summary>The table's title: "7 sessions, selected: fix-123", or "2 of 7 sessions match "templates", selected: templates-sync" while a filter is set.</summary>

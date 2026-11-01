@@ -50,12 +50,15 @@ public sealed class DiagnosticsPrivacyShould
     private readonly ProcessCounts counts = new();
     private readonly FakeCrashFile crashFile = new();
     private readonly DiagnosticLog log;
+    private readonly RefreshCounts refreshes;
+    private readonly FakeProcessRunner children;
     private readonly RecordedProcessRunner processes;
 
     public DiagnosticsPrivacyShould()
     {
         log = new DiagnosticLog(clock, [sink]);
-        FakeProcessRunner children = new FakeProcessRunner()
+        refreshes = new RefreshCounts(clock, log);
+        children = new FakeProcessRunner()
             .AnswerAll(new ProcessResult(0, $"worktree {Repository}\nbranch refs/heads/{Branch}\n", string.Empty))
             .Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(0, Started, string.Empty))
             .Answer(request => request.Arguments.Contains("agents"), new ProcessResult(0, Listing, string.Empty))
@@ -74,8 +77,9 @@ public sealed class DiagnosticsPrivacyShould
         lines.ShouldContain(line => line.Contains("failed Effect RemoveWorktree: GitException", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Load SessionsViewState: InvalidOperationException", StringComparison.Ordinal));
         lines.ShouldContain(line => line.Contains("failed Crash: InvalidOperationException", StringComparison.Ordinal));
-        DiagnosticLine.Render(counts).ShouldContain("counts git worktree remove exit 128: 1 run, longest 0 ms");
-        string everything = string.Join('\n', [.. lines, crashFile.Written ?? string.Empty, .. DiagnosticLine.Render(counts)]);
+        lines.ShouldContain(line => line.Contains("slow refresh worktrees scan in ", StringComparison.Ordinal));
+        DiagnosticLine.Render(counts, Noon).ShouldContain("2026-10-29T12:00:00.000Z counts git worktree remove exit 128: 1 run, median 0 ms, p95 0 ms, longest 0 ms");
+        string everything = string.Join('\n', [.. lines, crashFile.Written ?? string.Empty, .. DiagnosticLine.Render(new PerformanceCounts(counts, refreshes, new StallCounts()), Noon)]);
         Seeded.Where(value => everything.Contains(value, StringComparison.OrdinalIgnoreCase)).ShouldBeEmpty();
     }
 
@@ -85,7 +89,7 @@ public sealed class DiagnosticsPrivacyShould
         await RunTheDailyFlowsAsync();
         ReportTitle title = ReportTitle.From("Northwind.Orders secret title");
         Started start = new(new ToolVersion("0.17.0-preview.6"), new Version(2, 1, 312), new Version(10, 0, 26100), new Version(10, 0, 14), 120, 36);
-        ProblemReport report = await new ProblemReports(log, counts, crashFile, start, TestSettings.Current(Repository)).BuildAsync();
+        ProblemReport report = await new ProblemReports(log, counts, crashFile, start, TestSettings.Current(Repository), clock).BuildAsync();
         FakeDesktop desktop = new();
         EffectDispatcher dispatcher = new EffectDispatcher(log, clock).Register(new OpenProblemReportHandler(desktop, crashFile));
 
@@ -100,16 +104,47 @@ public sealed class DiagnosticsPrivacyShould
         sink.Lines.ShouldAllBe(line => !line.Contains("secret title", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public async Task RecordNoReleaseNoteText()
+    {
+        string changelog = $"## 0.10.0\n### Added\n- The Northwind order key opens {Name} in {Worktree} (#171)\n### Internal\n- {Prompt} (#170)\n";
+        FakePackageVersions packages = new(["0.9.0", "0.10.0"]);
+        packages.Notes["0.10.0"] = changelog;
+        InMemoryState state = new();
+        UpdateCheck updates = new(new ToolVersion("0.9.0"), () => true, state, packages, clock);
+        await updates.RunAsync(CancellationToken.None);
+        await state.WriteLastRunAsync(ReleaseVersion("0.9.0"));
+        WhatsNewAtStart shown = await new WhatsNewOnStart(new ToolVersion("0.10.0"), state, new FakePackagedReleaseNotes(changelog), log).DecideAsync();
+        await state.WriteLastRunAsync(ReleaseVersion("0.9.0"));
+        await new WhatsNewOnStart(new ToolVersion("0.10.0"), state, new FakePackagedReleaseNotes($"{Name}: {Prompt}"), log).DecideAsync();
+        EffectDispatcher dispatcher = new EffectDispatcher(log, clock).Register(new OpenReleasePageHandler(new FakeDesktop()));
+        await dispatcher.DispatchAsync(new OpenReleasePage(ReleaseVersion("0.10.0")), CancellationToken.None);
+
+        updates.Notes.Sections.ShouldNotBeEmpty("the check read the Northwind notes");
+        shown.ShouldBeOfType<WhatsNewAtStart.Show>();
+        sink.Lines.ShouldContain(line => line.Contains("no readable release notes in the package of 0.10.0", StringComparison.Ordinal));
+        sink.Lines.ShouldContain(line => line.Contains("effect OpenReleasePage -> OpenReleasePageOutcome.Opened", StringComparison.Ordinal));
+        string everything = string.Join('\n', sink.Lines);
+        Seeded.Where(value => everything.Contains(value, StringComparison.OrdinalIgnoreCase)).ShouldBeEmpty();
+    }
+
+    private static ReleaseVersion ReleaseVersion(string text)
+    {
+        Source191.Vantage.Domain.ReleaseVersion.TryParse(text, out ReleaseVersion? version).ShouldBeTrue();
+
+        return version;
+    }
     private async Task RunTheDailyFlowsAsync()
     {
         ClaudeCli claude = new(processes, Claude);
         GitCli git = new(processes, "git");
-        CrashRecorder crashes = new(log, counts, crashFile);
+        CrashRecorder crashes = new(log, new PerformanceCounts(counts, refreshes, new StallCounts()), crashFile, clock);
 
         SessionListing listing = await LoadTheSessionsAsync(claude);
         await OpenATabAsync(claude, git, listing);
         await StartASessionWithAPromptAsync(claude, git);
         await RemoveADirtyWorktreeAsync(git);
+        await ScanSlowlyAsync(git);
         await FailALoadAsync();
         await Should.ThrowAsync<InvalidOperationException>(() => crashes.GuardAsync(() => throw new InvalidOperationException($"{Name} in {Worktree} stopped: {Prompt}")));
     }
@@ -161,6 +196,24 @@ public sealed class DiagnosticsPrivacyShould
         }, exception => exception.Message);
 
         message.ShouldContain("modified or untracked");
+    }
+
+    private async Task ScanSlowlyAsync(GitCli git)
+    {
+        FakeFolders folders = new FakeFolders().WithDirectory(Path.Combine(Repository, ".git", "objects")).WithDirectory(Worktree);
+        using PullRequestCatalogue pullRequests = new(git, new FakePullRequests(), clock, refreshes);
+        WorktreeInventory inventory = new(git, folders, TestSettings.Current(@"C:\Users\me\source\repos"), pullRequests);
+        children.Answer(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, $"worktree {Repository}\nHEAD a\nbranch refs/heads/main\n\nworktree {Worktree}\nHEAD b\nbranch refs/heads/{Branch}\n", string.Empty));
+        children.OnRun = _ => clock.Advance(TimeSpan.FromSeconds(4));
+        try
+        {
+            IReadOnlyList<WorktreeRow> rows = await refreshes.TimeAsync(RefreshPart.WorktreesScan, () => inventory.ScanAsync([], CancellationToken.None));
+            rows.ShouldNotBeEmpty("the scan read the Northwind fixtures");
+        }
+        finally
+        {
+            children.OnRun = _ => { };
+        }
     }
 
     private async Task FailALoadAsync()

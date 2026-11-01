@@ -15,6 +15,7 @@ Thank you for wanting to make Vantage better. This guide holds what you need to 
 - [Manual checks for tab and attach changes](#manual-checks-for-tab-and-attach-changes)
 - [Continuous integration](#continuous-integration)
 - [Versions](#versions)
+- [The changelog](#the-changelog)
 
 ## How to contribute
 
@@ -89,7 +90,7 @@ Go back to the published tool with `dotnet tool update -g Source191.Vantage` (ad
 | [src\Source191.Vantage.Core](src/Source191.Vantage.Core/README.md) | Domain (rules and value objects, depends on nothing), Ports (the boundary interfaces and their records), Application (use cases in Actions and Launch, effect routing in Effects, the Views reducers, the detail pane in Detail, Diagnostics, Reporting, TerminalSetup, ScreenLoop, CommandLine, Wording) |
 | [src\Source191.Vantage.Infrastructure](src/Source191.Vantage.Infrastructure/README.md) | The adapters: git, the Claude CLI, Windows Terminal, processes, files, state, pull requests, package versions, diagnostics |
 | [src\Source191.Vantage.Tui](src/Source191.Vantage.Tui/README.md) | Terminal.Gui rendering and dialogs, nothing else |
-| [src\Source191.Vantage](src/Source191.Vantage/README.md) | Program.cs, the only composition root, packed as the tool with the other three inside |
+| [src\Source191.Vantage](src/Source191.Vantage/README.md) | Program.cs and its Composition folder, the only composition root (untested wiring), packed as the tool with the other three inside |
 | [test\Source191.Vantage.Core.Tests](test/Source191.Vantage.Core.Tests/README.md) | The fast in-memory suite, including the architecture tests |
 | [test\Source191.Vantage.Infrastructure.Tests](test/Source191.Vantage.Infrastructure.Tests/README.md) | The adapters against real git, processes and files, and the Claude Code contract tests |
 | [test\Source191.Vantage.TestDoubles](test/Source191.Vantage.TestDoubles/README.md) | The shared hand-written fakes, one per port, no test framework |
@@ -102,7 +103,7 @@ Each project's README holds what is worth knowing about it; a `.csproj` carries 
 CLAUDE.md's "Code rules" are the authority; this is their shape.
 
 - **Layers:** Domain, Ports, Application, Adapters, Tui, one namespace each, with dependencies pointing one way; `Architecture\LayeringShould` fails otherwise. Nothing outside the adapters touches files or processes, and nothing outside `Tui` touches Terminal.Gui.
-- **Test-driven:** red, green, refactor, a commit per step. No untested code except `Program.cs` and wiring.
+- **Test-driven:** red, green, refactor, a commit per step. No untested code except the tool project's wiring (`Program.cs` and its `Composition` folder).
 - **Sociable tests:** real collaborators inside the code; hand-written fakes from `TestDoubles` only at the boundaries, never a mocking library.
 - **C# style:** concrete types rather than `var`, primary constructors, sealed records and classes, collection expressions, file-scoped namespaces, target-typed `new`, `TimeProvider`, braces always, one top-level type per file, the throw helpers for guard clauses, and switch expressions that name every member of a closed enum. `.editorconfig` and the architecture tests hold these, so the build reports a lapse.
 - **Reducers:** each view (`Application\Views\*View.cs`) is a pure function of state and input returning effects; the `Tui` layer only renders and runs effects. A new key is the effect record, the reducer case and its test, a handler (`IEffectHandler<TEffect>`, one class per effect, with its outcome record and a `...HandlerShould` test) and its line in `Composition.Handlers`.
@@ -138,6 +139,7 @@ Before asking for review, check that:
 - **The change:** its OpenSpec change has every task ticked, manual checks recorded, and is archived in this pull request (`openspec validate` passes).
 - **The loop:** `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` pass, and the hand-off check exits 0 if you touched attach, `vantage here` or the pseudo-console.
 - **The version:** a pull request that changes the packaged tool raises `Version`; see [Versions](#versions).
+- **The changelog:** the same pull request adds its line to `CHANGELOG.md` under Unreleased; see [The changelog](#the-changelog).
 - **The documents:** the README describes any behaviour a user will notice; any newly verified fact about Claude Code, Terminal.Gui, Windows Terminal or Windows is recorded in its `.claude\rules` file with the date and version; a project's README holds any fact worth knowing about it.
 - **Manual checks:** a change to how Vantage drives `wt.exe`, tabs or attach has been through the [manual checks](#manual-checks-for-tab-and-attach-changes).
 
@@ -159,8 +161,8 @@ After a Terminal.Gui update, check the dialog titles without a terminal: from `t
 
 `.github\workflows\check.yml` runs on every pull request and push to `main` on a Windows runner, and its `check` job must pass, on a branch up to date with `main`, before a pull request can merge.
 
-- **What `check` does:** checks the version bump, builds in Release, runs every test, checks whitespace, packs the tool as `<Version>-ci.<run number>` and uploads it as an artefact (see [Trying your build](#trying-your-build)), then installs that package and runs the smoke check against it.
-- **Documentation-only pull requests:** one that changes only files under `openspec\` or `.md` files outside `.github\` passes after the version check without building. Run the tests yourself if you touched the README, because `DocumentedMinimumShould` reads it.
+- **What `check` does:** checks the version bump and the changelog line, builds in Release, runs every test, checks whitespace, packs the tool as `<Version>-ci.<run number>` and uploads it as an artefact (see [Trying your build](#trying-your-build)), then installs that package and runs the smoke check against it.
+- **Documentation-only pull requests:** one that changes only files under `openspec\` or `.md` files outside `.github\` passes after the version and changelog checks without building. Run the tests yourself if you touched the README, because `DocumentedMinimumShould` reads it.
 - **The hand-off job:** a second job, `handoff`, runs the hand-off check against a real throwaway session when the repository's Claude Code token is available; it never blocks a merge.
 - **CodeQL:** `.github\workflows\codeql.yml` scans the C# and the workflows; it is not a required check.
 
@@ -180,3 +182,20 @@ Every pull request that changes the packaged tool (anything under `src\`, or `Di
 `Step-Version.ps1` raises the prerelease number when there is one, otherwise the patch. The check compares semantic versions, so 0.10.0 is above 0.9.0. Because branches must be up to date before merging, two pull requests that bump to the same version cannot both merge: the second fails until it bumps again.
 
 Releasing and publishing are the owner's; see [MAINTAINING.md](MAINTAINING.md).
+
+## The changelog
+
+`CHANGELOG.md` is the one source of release notes: the package carries it as its release notes and inside the tool, Vantage's What's new dialog shows it before an update and once after one, and a stable GitHub Release starts with its section. It is written for the people who use Vantage, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)'s shape, which Vantage reads line by line:
+
+- **Where:** every pull request that changes the packaged tool adds one line under `## Unreleased`, below one of the headings `### Added`, `### Changed`, `### Fixed`, `### Removed`, `### Security` or `### Internal`, in that order. `Assert-ChangelogUpdated.ps1` fails the pull request otherwise; a change outside the tool needs no line.
+- **How:** one line starting `- `, saying what a user will notice in words they would use, ending with the pull request's number, `(#171)`. Nothing else on the line is read as Markdown, so no links, bold or tables; control characters are dropped.
+- **Internal:** a refactor, a test, tooling or anything else nobody using Vantage can see goes under Internal, which Vantage never shows. Dependabot's pull requests get theirs from `check.yml`, which raises `Version` and runs `Add-InternalChangelogEntry.ps1` with the pull request's title.
+- **Size:** nuget.org keeps 35,000 characters of release notes, and the check fails at that size; the oldest sections then move to `docs\CHANGELOG-earlier.md`, which is not packed.
+
+```powershell
+.github\scripts\Assert-ChangelogUpdated.ps1 -Base main -Head HEAD   # the check, locally
+```
+
+### Releasing a stable version
+
+The pull request that raises `Version` to a stable version (no `-preview.N`) turns `## Unreleased` into that version's section, `## 0.21.0 - 2026-11-20`, and starts a new, empty `## Unreleased` above it; the check fails while the section is missing or Unreleased still has entries. Preview versions leave the entries under Unreleased, so the stable section collects every preview's changes.

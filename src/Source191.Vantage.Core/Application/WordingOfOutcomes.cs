@@ -26,8 +26,11 @@ public static partial class Wording
             OpenShellOutcome shell => $"Opened a shell in {shell.FolderName}.",
             FolderPathCopied copied => $"Copied {copied.Path} to the clipboard.",
             ClipboardBusy => "The clipboard is in use by another program; try again.",
-            OpenedSolution solution => $"Opened {solution.FileName}.",
+            OpenSolutionOutcome.Opened solution => $"Opened {solution.FileName}.",
+            OpenSolutionOutcome.NoApplication none => $"No application opens {none.Extension} files; install one, or choose one in Windows' Default apps.",
             OpenPullRequestOutcome opened => $"Opened {PullRequestNumber(opened.Host, opened.Number)} in the browser.",
+            OpenReleasePageOutcome.Opened page => $"Opened the {page.Version} release page in the browser.",
+            OpenReleasePageOutcome.NotOpened failed => $"The {failed.Version} release page did not open: {failed.Reason}",
             OpenInEditorOutcome editor => Describe(editor),
             OpenTabOutcome tab => Describe(tab),
             StartSessionOutcome start => Describe(start),
@@ -58,8 +61,11 @@ public static partial class Wording
             OpenShellOutcome => StatusTone.Success,
             FolderPathCopied => StatusTone.Success,
             ClipboardBusy => StatusTone.Notice,
-            OpenedSolution => StatusTone.Success,
+            OpenSolutionOutcome.Opened => StatusTone.Success,
+            OpenSolutionOutcome.NoApplication => StatusTone.Failure,
             OpenPullRequestOutcome => StatusTone.Success,
+            OpenReleasePageOutcome.Opened => StatusTone.Success,
+            OpenReleasePageOutcome.NotOpened => StatusTone.Failure,
             OpenInEditorOutcome editor => ToneOf(editor),
             OpenTabOutcome tab => ToneOf(tab),
             StartSessionOutcome start => ToneOf(start),
@@ -117,7 +123,7 @@ public static partial class Wording
         return outcome switch
         {
             OpenInEditorOutcome.Opened => StatusTone.Success,
-            OpenInEditorOutcome.EditorNotFound => StatusTone.Failure,
+            OpenInEditorOutcome.EditorNotFound or OpenInEditorOutcome.EditorNotStarted => StatusTone.Failure,
             _ => StatusTone.Notice,
         };
     }
@@ -162,12 +168,16 @@ public static partial class Wording
         };
     }
 
+    /// <summary>Where another editor is chosen, named after any editor problem the editor key reports.</summary>
+    private const string WhereEditorsAreChosen = "in Open folder with on the Config tab (3)";
+
     private static string Describe(OpenInEditorOutcome outcome)
     {
         return outcome switch
         {
             OpenInEditorOutcome.Opened opened => $"Opened {opened.FolderName} in {EditorName(opened.Editor)}.",
-            OpenInEditorOutcome.EditorNotFound missing => $"Could not find {EditorName(missing.Editor)}; choose another under Open folder with on the Config tab (3).",
+            OpenInEditorOutcome.EditorNotFound missing => $"Could not find {EditorName(missing.Editor)}; choose another {WhereEditorsAreChosen}.",
+            OpenInEditorOutcome.EditorNotStarted refused => $"{EditorName(refused.Editor)} would not start: {refused.Reason.Trim().TrimEnd('.')}. Choose another {WhereEditorsAreChosen}.",
             OpenInEditorOutcome.FolderMissing gone => $"{gone.FolderName} no longer exists, so nothing was opened.",
             _ => outcome.ToString(),
         };

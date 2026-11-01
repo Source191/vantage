@@ -115,7 +115,7 @@ Keys that work on every tab:
 | <, > | Scroll a table too wide for the terminal, one column at a time |
 | / | Filter the rows; Enter keeps the filter, Esc clears it |
 | ? | Help: every key, every column and the detail pane's lines for this tab |
-| U | Update Vantage when a newer release is known (see [Updates](#updates)) |
+| U | Show what changed in a newer release and update Vantage (see [Updates](#updates)) |
 | ! | Report a problem (see [Reporting a problem](#reporting-a-problem)) |
 | q | Quit. Quitting Vantage never stops a session |
 
@@ -148,8 +148,8 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | b | Move a plain `claude` session under Vantage's supervision; its old tab closes once the session has resumed |
 | m | Show what the session's memory is made of: Claude Code itself and each program it started (MCP servers, shells), largest first |
 | c | Copy the row's folder path |
-| f | Open the row's folder with the program chosen under "Open folder with" on the [Config tab](#the-config-tab) |
-| s | Open the folder's solution (`*.sln` or `*.slnx`, in the folder or its `src` folder) with Windows' default application; with several, the one named after the repository (`.slnx` before `.sln`), else ask which |
+| f | Open the row's folder with the program chosen under "Open folder with" on the [Config tab](#the-config-tab); when that program cannot be found or Windows will not start it, the status line says so and where to choose another |
+| s | Open the folder's solution (`*.sln` or `*.slnx`, in the folder or its `src` folder) with Windows' default application; with several, the one named after the repository (`.slnx` before `.sln`), else ask which; when Windows has no application for the type, the status line says so and nothing opens |
 | p | Open the row's pull request in your browser, or say why there is none |
 
 The key bar shows what applies to the selected row: a running background session has `Enter Open  x Stop  d Delete  r Rename  m Memory`; a stopped or failed one `Enter Open  d Delete  r Rename`; a plain `claude` session `b Adopt  m Memory`, with `d Close tab` while it has never been sent a message. `R Resume`, `C Close empty`, `n New session` and `U Update` follow when they apply; the second row is `c Copy path  f Open folder  s Open solution  p Open PR  / Filter  ? Help  ! Report  q Quit`.
@@ -240,7 +240,7 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 
 - **Repository roots:** the folders whose repositories the wizard offers and the Worktrees tab scans. Enter opens every root, one per line: add or delete lines, or Browse (F3) to pick folders, then F5 saves. Each must be a full path that exists, listed once, and at least one must stay.
 - **Worktree root:** where new worktrees go, as `<worktree root>\<repository>-<name>`; `~\source\worktrees` unless you change it. Browse (F3) picks a folder.
-- **Open folder with:** what `f` uses: VS Code, Visual Studio (the newest install), Rider, Explorer, or Custom: the full path of an executable and its arguments, with `{folder}` where the folder goes. A bare name, a relative path, or a `.cmd` or `.bat` file is refused.
+- **Open folder with:** what `f` uses: VS Code, Visual Studio (the newest install), Rider (the newest install under Program Files or from JetBrains Toolbox, including Toolbox 2's folders under `%LOCALAPPDATA%\Programs`), Explorer, or Custom: the full path of an executable and its arguments, with `{folder}` where the folder goes. A bare name, a relative path, a `.cmd` or `.bat` file, or a file that does not exist is refused; while Custom is chosen, Browse (F3) picks the executable. Once the dialog has looked, it marks each preset it cannot find, such as `Rider (not found)`; you can still choose it, ready for when it is installed.
 - **Default base:** where a new worktree's branch starts: origin's default branch as last fetched, or HEAD.
 - **Default place:** where `n` starts a session: `New worktree` or `Current branch`. `n` on a worktree and `vantage here` always use the folder's current branch.
 - **Check for updates:** whether Vantage asks nuget.org once a day for a newer release; Enter turns it on or off.
@@ -364,11 +364,19 @@ To set a bell by hand instead: Windows Terminal, Settings, a profile, Advanced: 
 
 ## Updates
 
-A dotnet global tool never updates itself, so Vantage looks for you: once a day at most, in the background as it opens, it asks nuget.org for the newest release of `Source191.Vantage`, and the settings row says when there is one. A slow or failed check shows nothing and delays nothing. Prerelease versions are not offered, and a prerelease build never checks.
+A dotnet global tool never updates itself, so Vantage looks for you: once a day at most, in the background as it opens, it asks nuget.org for the newest release of `Source191.Vantage`, and the settings row says when there is one, in amber (`0.21.0 available, U to update`). The first time the check finds a release, the status line also says so once: "Vantage 0.21.0 is available: press U to see what changed." A slow or failed check shows nothing and delays nothing. Prerelease versions are not offered, and a prerelease build never checks.
 
-`U` asks "Quit Vantage and update to 0.19.0?". On yes, Vantage opens a tab titled "Update Vantage" and quits; the tab waits for it to exit, runs `dotnet tool update -g Source191.Vantage` against nuget.org and starts Vantage again. If the update fails, usually because another Vantage is still open, the tab stays open with dotnet's message: quit every Vantage and try again. Background sessions keep running throughout.
+`U` opens a What's new dialog, "Update Vantage 0.19.0 to 0.21.0": every release since the one you run, newest first, its changes under Added, Changed, Fixed, Removed and Security, each with its pull request number. Tab moves into the list to scroll it. Its buttons:
 
-The check is one anonymous HTTPS request for the public list of the package's versions, with a `Vantage/<version>` user agent and nothing else that identifies you. Turn it off with Check for updates on the [Config tab](#the-config-tab), or set the environment variable `VANTAGE_NO_UPDATE_CHECK` to any value.
+- **Update now:** Vantage opens a tab titled "Update Vantage" and quits, as below.
+- **Release page:** opens the release's page on GitHub in your browser; the dialog stays open.
+- **Later** (or Enter as it opens, or Esc): closes the dialog and changes nothing.
+
+When the notes could not be read, the dialog says so and still offers all three. After Update now, the update tab waits for Vantage to exit; it runs `dotnet tool update -g Source191.Vantage` against nuget.org and starts Vantage again. If the update fails, usually because another Vantage is still open, the tab stays open with dotnet's message: quit every Vantage and try again. Background sessions keep running throughout.
+
+The first time the new version starts, a "What's new in 0.21.0" dialog lists what changed since the version you ran before, from the notes inside the installed tool, before the console takes a key; Close or Esc goes on to the console, and it never shows again for that version. It is not shown on the first ever start, by a prerelease build, or when the notes cannot be read. The notes are the project's [CHANGELOG.md](https://github.com/Source191/vantage/blob/main/CHANGELOG.md).
+
+The check is one anonymous HTTPS request for the public list of the package's versions, with a `Vantage/<version>` user agent and nothing else that identifies you. Only when it finds a release newer than yours does it make a second request of the same kind, for that release's public package description on nuget.org, which carries its notes; the notes are shown as plain text and nothing in them is ever opened. Turn it off with Check for updates on the [Config tab](#the-config-tab), or set the environment variable `VANTAGE_NO_UPDATE_CHECK` to any value.
 
 ## Reporting a problem
 
@@ -384,7 +392,8 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 | File or folder | Contents |
 | --- | --- |
 | `config.json` | Your settings (see [The Config tab](#the-config-tab)) |
-| `update-check.json` | When Vantage last asked nuget.org, and the newest release it found |
+| `update-check.json` | When Vantage last asked nuget.org, the newest release it found and, when that is newer than yours, its notes |
+| `last-run.json` | The released version that last ran, so What's new shows once after an update |
 | `recent\` | The repositories you used most recently, one file each, so the wizard can list them first |
 | `created.json` | The worktrees Vantage created, which decides whether their branches are deleted with them |
 | `tabs\` | One file per tab Vantage opened, so Enter switches to it instead of opening another |
@@ -397,14 +406,14 @@ Everything Vantage owns is under `%LOCALAPPDATA%\Vantage`:
 - **What runs:** Claude Code, `git`, `gh`, `az`, `wt.exe` and `pwsh.exe`, each found once as Vantage starts and run by its full path, so a program planted in the folder you started Vantage from is never run. A batch file is never given a session name, a prompt or a path.
 - **What it trusts:** every repository under your roots. Vantage runs git in them, copies the files their `.worktreeinclude` names, and opens their solutions, so keep a repository you would not open in an editor out of the roots.
 - **What it deletes:** a worktree only through git and only when nothing would be lost, unless you force it by typing its name; a leftover folder only inside your roots or the worktree root, and never one that is still a live checkout.
-- **What it records:** a diagnostic log in memory (the latest 500 events: versions, which views, dialogs and keys were used and how they went, failures as exception types and Vantage's stack frames, and counts of the programs it ran). It never holds a path, a repository, branch or session name, a prompt, a file name, program output, your user or machine name, or anything you typed. Set `VANTAGE_LOG` to a file path to have the same lines written there; a crash writes them to `last-crash.log`.
+- **What it records:** a diagnostic log in memory (the latest 500 events: versions, which views, dialogs and keys were used and how they went, failures as exception types and Vantage's stack frames), and counts of the programs it ran, each with its median, 95th percentile and longest time and stamped with the time the count was written. Each part of a refresh (the Sessions listing and its enrichment, the Worktrees scan, the pull-request lookups) is counted the same way, and one that takes over 3 seconds is also an event. A heartbeat four times a second watches the screen's thread: a beat more than 100 ms late is counted as a stall, one more than 500 ms late is also an event, and a gap over 30 seconds is taken as the machine sleeping and ignored. It never holds a path, a repository, branch or session name, a prompt, a file name, program output, your user or machine name, or anything you typed. Set `VANTAGE_LOG` to a file path to have the same lines written there, with the counts every 10 minutes and when Vantage exits; a crash writes the events and the counts to `last-crash.log`.
 - **What it sends:** nothing, except the daily update check (see [Updates](#updates)) and the report you choose to submit. It stores no credential and never edits Claude Code's trust records.
 
 To report a vulnerability, see [SECURITY.md](https://github.com/Source191/vantage/blob/main/SECURITY.md).
 
 ## Troubleshooting
 
-- **Something went wrong.** Press `!` to [report it](#reporting-a-problem) with the diagnostics filled in. To keep a log as it happens, set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage.
+- **Something went wrong.** Press `!` to [report it](#reporting-a-problem) with the diagnostics filled in. To keep a log as it happens, set `$env:VANTAGE_LOG = "$env:TEMP\vantage.log"` before starting Vantage; it also gets the counts every 10 minutes, so they survive a closed tab.
 - **"not trusted yet".** Claude Code refuses to start in a folder you have not trusted. Vantage opens a tab running `claude` there; accept the prompt, exit, and start again. Vantage never edits the trust records.
 - **No bell when a session needs you.** Run `vantage setup-terminal` (see [Notifications and Windows Terminal setup](#notifications-and-windows-terminal-setup)). Claude only rings when it thinks you are away from the terminal.
 - **Tabs opened from Vantage have no colours.** Vantage was started from inside a Claude Code session, whose environment turns colour off; start Vantage from an ordinary tab.

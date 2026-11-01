@@ -1,11 +1,12 @@
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
 /// <summary>
 /// The smoke run's steps, built from Wording so a renamed title or a rebound key needs no change here: open and cancel
-/// the Keys help, the new-session wizard and the problem report on the sessions view, the repository roots dialog and its folder picker on the Config tab, then on the worktrees view its help,
+/// the Keys help, the new-session wizard and the problem report on the sessions view, the repository roots dialog and its folder picker and the Open folder with dialog and its file picker (Custom chosen) on the Config tab, then on the worktrees view its help,
 /// the force-remove confirmation, the fixed-folder wizard and the solution chooser for the named worktree, and quit. Dialogs are recognised by the tab title each one sets,
 /// views by a column only that view has; a key is looked up by its hint, and a lost hint fails with its name.
 /// </summary>
@@ -16,6 +17,9 @@ public static class SmokeScript
 
     /// <summary>F3, which opens the folder picker from the repository roots dialog (its button reads <see cref="Wording.BrowseButton"/>).</summary>
     private const string Browse = "\u001bOR";
+
+    /// <summary>The Down arrow, which moves between the Open folder with dialog's choices.</summary>
+    private const string Down = "\u001b[B";
 
     /// <param name="worktreeFolder">The folder name of an idle linked worktree under a repository root, holding two solutions: force remove is refused with no dialog while a session uses it, and s asks only when there is more than one.</param>
     public static IReadOnlyList<SmokeStep> Build(string worktreeFolder)
@@ -43,6 +47,14 @@ public static class SmokeScript
             new SmokeStep(Opened(DialogName.Settings), Browse, Usual),
             new SmokeStep(Opened(DialogName.FolderPicker), escape, Usual),
             new SmokeStep(Opened(DialogName.Settings), escape, Usual),
+            // The filter finds the Open folder with row whatever the roots are, by the last word of its name alone, since no step yet proves a typed space reaches the filter;
+            // in its dialog Custom is the last choice, and F3 opens the file picker only while it is chosen.
+            new SmokeStep(closed, KeyFor(config, "Filter") + Wording.ConfigSetting(new ConfigRow.OpenFolderWith(EditorChoice.VsCode)).Split(' ')[^1], Usual),
+            new SmokeStep(CaptureMarker.Nothing, Sequence("enter"), Usual),
+            new SmokeStep(CaptureMarker.Nothing, KeyFor(config, "Edit"), Usual),
+            new SmokeStep(Opened(DialogName.Settings), string.Concat(Enumerable.Repeat(Down, Enum.GetValues<EditorPreset>().Length - 1)) + " " + Browse, Usual),
+            new SmokeStep(Opened(DialogName.FilePicker), escape, Usual),
+            new SmokeStep(Opened(DialogName.Settings), escape, Usual),
             new SmokeStep(closed, TabKey(config, ConsoleTab.Worktrees), Usual),
             new SmokeStep(worktreesView, string.Empty, Usual),
             // The scan has finished once the table's title names a selection; keys typed into the filter before then are lost.
@@ -65,6 +77,38 @@ public static class SmokeScript
         ];
     }
 
+    /// <summary>
+    /// The What's new dialog before an update, on a stable build that has recorded a newer release (a development build
+    /// never offers one, so CI's smoke cannot reach it): U opens it, Esc closes it, and Vantage quits. Run after
+    /// <see cref="WhatsNewOnStart"/> it also shows that a second start opens nothing first.
+    /// </summary>
+    public static IReadOnlyList<SmokeStep> WhatsNewBeforeUpdate()
+    {
+        IReadOnlyList<KeyHelp> sessions = Wording.SessionsKeys;
+        CaptureMarker sessionsView = new CaptureMarker.ScreenText(ColumnOnlyIn(Wording.SessionsColumns, Wording.WorktreesColumns));
+
+        return
+        [
+            new SmokeStep(sessionsView, KeyFor(sessions, "Update"), Slow),
+            new SmokeStep(Opened(DialogName.WhatsNew), Sequence("esc"), Usual),
+            new SmokeStep(new CaptureMarker.Title(Wording.TabTitle), KeyFor(sessions, "Quit"), Usual),
+        ];
+    }
+
+    /// <summary>
+    /// The What's new dialog on the first start of a stable build newer than the one <c>last-run.json</c> names: it opens
+    /// before the console, Esc closes it, the sessions view follows, and Vantage quits.
+    /// </summary>
+    public static IReadOnlyList<SmokeStep> WhatsNewOnStart()
+    {
+        CaptureMarker sessionsView = new CaptureMarker.ScreenText(ColumnOnlyIn(Wording.SessionsColumns, Wording.WorktreesColumns));
+
+        return
+        [
+            new SmokeStep(Opened(DialogName.WhatsNew), Sequence("esc"), Slow),
+            new SmokeStep(sessionsView, KeyFor(Wording.SessionsKeys, "Quit"), Slow),
+        ];
+    }
     /// <summary>What a terminal sends for the first key with this hint; the help's names esc and enter become their sequences.</summary>
     public static string KeyFor(IReadOnlyList<KeyHelp> keys, string hint)
     {

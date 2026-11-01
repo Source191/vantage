@@ -25,7 +25,7 @@ public static class ConfigView
     }
 
     /// <summary>Whether the row's value is a path (a root, the worktree root, a setup file), and the path when it is.</summary>
-    public static bool TryPathOf(ConfigRow row, [NotNullWhen(true)] out string? path)
+    public static bool TryPathOf(ConfigRow row, [MaybeNullWhen(false)] out string path)
     {
         path = row switch
         {

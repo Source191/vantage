@@ -281,15 +281,16 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void SayTheUpdateCheckIsOff()
+    public void AnnounceANewlyFoundReleaseOnceWithTheKeyThatShowsWhatChanged()
     {
-        Wording.Describe(new StatusMessage.UpdateCheckOff()).ShouldBe("The update check is off, or this is a development build; nothing to update to.");
+        Wording.Describe(new StatusMessage.NewerReleaseFound(ReleaseVersions.Version("0.21.0"))).ShouldBe("Vantage 0.21.0 is available: press U to see what changed.");
+        Wording.ToneOf(new StatusMessage.NewerReleaseFound(ReleaseVersions.Version("0.21.0"))).ShouldBe(StatusTone.Notice);
     }
 
     [Fact]
-    public void AskBeforeUpdating()
+    public void SayTheUpdateCheckIsOff()
     {
-        Wording.UpdateQuestion(ReleaseVersions.Version("0.10.0")).ShouldBe("Quit Vantage and update to 0.10.0?\nBackground sessions keep running.");
+        Wording.Describe(new StatusMessage.UpdateCheckOff()).ShouldBe("The update check is off, or this is a development build; nothing to update to.");
     }
 
     [Fact]
@@ -653,6 +654,7 @@ public sealed class WordingShould
             _ when type == typeof(int) => 2,
             _ when type == typeof(bool) => true,
             _ when type == typeof(WorktreeHealthKind) => WorktreeHealthKind.Locked,
+            _ when type == typeof(ReleaseVersion) => ReleaseVersions.Version("0.21.0"),
             _ when type == typeof(RemovalReason) => new RemovalReason.Locked(),
             _ when type == typeof(HealthReason) => new HealthReason.FolderGone(),
             _ when type == typeof(NameProblem) => NameProblem.Missing,
@@ -727,6 +729,7 @@ public sealed class WordingShould
         Wording.Describe(new SettingsProblem.ExecutableNotFullPath()).ShouldBe(@"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Vantage was started from.");
         Wording.Describe(new SettingsProblem.BatchFileExecutable()).ShouldBe("A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.");
         Wording.Describe(new SettingsProblem.NoFolderPlaceholder()).ShouldBe("A custom editor's arguments need {folder} where the folder goes.");
+        Wording.Describe(new SettingsProblem.ExecutableMissing(@"C:\Tools\subl.exe")).ShouldBe(@"C:\Tools\subl.exe does not exist.");
     }
 
     [Fact]
@@ -739,6 +742,18 @@ public sealed class WordingShould
     public void NameEveryEditorPreset()
     {
         Enum.GetValues<EditorPreset>().Select(Wording.Describe).ShouldBe(["VS Code", "Visual Studio", "Rider", "Explorer", "Custom"]);
+    }
+
+    [Fact]
+    public void MarkAPresetNotFoundOnceTheDialogHasLooked()
+    {
+        PresetSearch looked = new PresetSearch.Looked(new HashSet<EditorPreset> { EditorPreset.Rider, EditorPreset.Explorer, EditorPreset.Custom });
+
+        Wording.Describe(EditorPreset.Rider, looked).ShouldBe("Rider (not found)");
+        Wording.Describe(EditorPreset.VsCode, looked).ShouldBe("VS Code");
+        Wording.Describe(EditorPreset.Explorer, looked).ShouldBe("Explorer", "Explorer is never looked for");
+        Wording.Describe(EditorPreset.Custom, looked).ShouldBe("Custom", "Custom is never marked");
+        Wording.Describe(EditorPreset.Rider, new PresetSearch.NotYetLooked()).ShouldBe("Rider");
     }
 
     [Fact]
@@ -987,7 +1002,7 @@ public sealed class WordingShould
     [Fact]
     public async Task SayWhatTheProblemReportIsDoing()
     {
-        ProblemReport report = await new ProblemReports(new DiagnosticLog(TimeProvider.System, []), new ProcessCounts(), new FakeCrashFile(), new Started(new ToolVersion("0.18.0"), null, new Version(10, 0), new Version(10, 0), 120, 36), TestSettings.Current(@"C:\Users\me\source\repos")).BuildAsync();
+        ProblemReport report = await new ProblemReports(new DiagnosticLog(TimeProvider.System, []), new ProcessCounts(), new FakeCrashFile(), new Started(new ToolVersion("0.18.0"), null, new Version(10, 0), new Version(10, 0), 120, 36), TestSettings.Current(@"C:\Users\me\source\repos"), TimeProvider.System).BuildAsync();
 
         Wording.Working(new ShowProblemReport()).ShouldBe("Gathering the diagnostics...");
         Wording.Working(new OpenProblemReport(ReportTitle.From("x"), report)).ShouldBe("Opening the problem report in your browser...");

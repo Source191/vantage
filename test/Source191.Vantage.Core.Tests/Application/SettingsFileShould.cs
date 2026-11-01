@@ -108,6 +108,15 @@ public sealed class SettingsFileShould
     }
 
     [Fact]
+    public void KeepACustomEditorWhoseExecutableIsMissing()
+    {
+        EditorChoice editor = SettingsFile.From(new VantageConfig(null, null, null, new EditorSetting("Custom", @"E:\Tools\subl.exe", ["{folder}"])), Home).Editor;
+
+        editor.Preset.ShouldBe(EditorPreset.Custom, "drive E: may simply not be attached; f reports it");
+        editor.Executable.ShouldBe(@"E:\Tools\subl.exe");
+    }
+
+    [Fact]
     public void RoundTripThroughTheFileRecord()
     {
         Settings settings = Settings.Resolve([FolderPath.From(@"C:\repos"), FolderPath.From(@"D:\work")], new WorktreeRootChoice.At(FolderPath.From(@"E:\trees")), EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), WorktreeBase.Head, Home, defaultPlace: LaunchMode.CurrentBranch);

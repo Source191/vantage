@@ -69,11 +69,28 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         id: build
 
+      # A stable release's notes start with its CHANGELOG.md section, written beside the package so the artefact stays
+      # flat; a prerelease's file is empty and unused. The release job checks nothing out, so the notes travel with the package.
+      - name: Write the release notes
+        id: notes
+        if: steps.check.outputs.changed == 'true'
+        shell: pwsh
+        env:
+          VERSION: ${{ steps.check.outputs.version }}
+          PACKAGE: ${{ steps.build.outputs.package }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $notes = Join-Path (Split-Path $env:PACKAGE) 'release-notes.md'
+          .github/scripts/Write-ReleaseNotes.ps1 -Version $env:VERSION -Destination $notes
+          "path=$notes" >> $env:GITHUB_OUTPUT
+
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.check.outputs.changed == 'true'
         with:
           name: package
-          path: ${{ steps.build.outputs.package }}
+          path: |
+            ${{ steps.build.outputs.package }}
+            ${{ steps.notes.outputs.path }}
           if-no-files-found: error
 
   # Attests and publishes the package the build job made, and nothing else: it checks nothing out and runs no
@@ -118,7 +135,9 @@ jobs:
       # gh is on the runner, so no third-party action is needed for the release itself. A version with a
       # prerelease label (0.16.2-preview.1; the csproj never carries build metadata) is published as a
       # GitHub prerelease, so it never becomes the repository's Latest release. Nothing is checked out, so the
-      # repository is named.
+      # repository is named. A stable release's notes are its CHANGELOG.md section, which gh puts before the generated
+      # list (gh release create --help: notes given with the generated ones are prepended), and the list starts at the
+      # previous stable release's tag, so it covers every preview since; a prerelease keeps the generated notes alone.
       - name: Publish the release
         shell: pwsh
         env:
@@ -130,6 +149,16 @@ jobs:
           $arguments = @("v$env:VERSION", $env:PACKAGE, '--repo', $env:GITHUB_REPOSITORY, '--title', "v$env:VERSION", '--generate-notes', '--target', $env:GITHUB_SHA)
           if ($env:VERSION.Contains('-')) {
               $arguments += '--prerelease'
+          }
+          else {
+              $arguments += '--notes-file', (Join-Path (Split-Path $env:PACKAGE) 'release-notes.md')
+              $previous = gh release list --repo $env:GITHUB_REPOSITORY --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName'
+              if ($LASTEXITCODE -ne 0) {
+                  throw "gh release list failed with exit code $LASTEXITCODE."
+              }
+              if (-not [string]::IsNullOrWhiteSpace($previous)) {
+                  $arguments += '--notes-start-tag', $previous.Trim()
+              }
           }
           gh release create @arguments
           if ($LASTEXITCODE -ne 0) {

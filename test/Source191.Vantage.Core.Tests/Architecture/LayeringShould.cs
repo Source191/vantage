@@ -5,7 +5,7 @@ namespace Source191.Vantage.Core.Tests.Architecture;
 
 /// <summary>
 /// The dependency direction: Domain at the bottom, Ports above it, Application above that, and Adapters and Tui on top,
-/// with Program (the global namespace) the only place that may know everything.
+/// with the tool project (Program.cs in the global namespace and its Composition folder) the only place that may know everything.
 /// </summary>
 public sealed class LayeringShould
 {

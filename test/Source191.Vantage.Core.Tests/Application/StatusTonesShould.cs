@@ -71,10 +71,12 @@ public sealed class StatusTonesShould
         [typeof(OpenShellOutcome)] = StatusTone.Success,
         [typeof(FolderPathCopied)] = StatusTone.Success,
         [typeof(ClipboardBusy)] = StatusTone.Notice,
-        [typeof(OpenedSolution)] = StatusTone.Success,
+        [typeof(OpenSolutionOutcome.Opened)] = StatusTone.Success,
+        [typeof(OpenSolutionOutcome.NoApplication)] = StatusTone.Failure,
         [typeof(OpenPullRequestOutcome)] = StatusTone.Success,
         [typeof(OpenInEditorOutcome.Opened)] = StatusTone.Success,
         [typeof(OpenInEditorOutcome.EditorNotFound)] = StatusTone.Failure,
+        [typeof(OpenInEditorOutcome.EditorNotStarted)] = StatusTone.Failure,
         [typeof(OpenInEditorOutcome.FolderMissing)] = StatusTone.Notice,
         [typeof(OpenTabOutcome.Opened)] = StatusTone.Notice,
         [typeof(OpenTabOutcome.SwitchedTo)] = StatusTone.Success,
@@ -89,6 +91,8 @@ public sealed class StatusTonesShould
         [typeof(ProblemReportOutcome.NotOpened)] = StatusTone.Failure,
         [typeof(ProblemReportOutcome.Copied)] = StatusTone.Success,
         [typeof(UpdateStartedOutcome)] = StatusTone.Success,
+        [typeof(OpenReleasePageOutcome.Opened)] = StatusTone.Success,
+        [typeof(OpenReleasePageOutcome.NotOpened)] = StatusTone.Failure,
     };
 
     public static TheoryData<Type> OutcomeCases =>
@@ -183,6 +187,7 @@ public sealed class StatusTonesShould
         [typeof(StatusMessage.Kept)] = StatusTone.Hint,
         [typeof(StatusMessage.NothingToResume)] = StatusTone.Hint,
         [typeof(StatusMessage.UpToDate)] = StatusTone.Success,
+        [typeof(StatusMessage.NewerReleaseFound)] = StatusTone.Notice,
         [typeof(StatusMessage.UpdateCheckOff)] = StatusTone.Notice,
         [typeof(StatusMessage.NoDialogFor)] = StatusTone.Failure,
         [typeof(StatusMessage.Working)] = StatusTone.Working,
@@ -261,6 +266,7 @@ public sealed class StatusTonesShould
             _ when type == typeof(FolderPath) => FolderPath.From(@"C:\repos\Northwind.Orders"),
             _ when type == typeof(JobId) => JobId.From("81cdb0f9"),
             _ when type == typeof(SessionId) => SessionId.From("sess-1"),
+            _ when type == typeof(ReleaseVersion) => ReleaseVersions.Version("0.21.0"),
             _ when type == typeof(BranchName) => BranchName.From("fix-123"),
             _ when type == typeof(OpenTabOutcome) => new OpenTabOutcome.SwitchedTo("fix-123"),
             _ when type == typeof(RemoveWorktreeOutcome) => new RemoveWorktreeOutcome.DeletedFolder("Northwind.Orders-fix-123"),
