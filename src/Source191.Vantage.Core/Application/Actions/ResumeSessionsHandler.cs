@@ -5,7 +5,12 @@ using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Actions;
 
-/// <summary>Resumes the chosen sessions under the supervisor, each in its own directory, and says which could not be.</summary>
+/// <summary>
+/// Resumes the chosen sessions under the supervisor, each in its own directory, and says which could not be. Resuming
+/// a listed job with flags starts a copy under a new session id, so each job is removed first (its transcript stays
+/// on disc), as rename does, and the resume continues the same session id in the same row. A session with no
+/// transcript keeps its job, since nothing could bring it back.
+/// </summary>
 public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transcripts) : IEffectHandler<ResumeSessions>
 {
     /// <summary>Failed sessions resume at once; stopped ones are offered as a checklist, because a deliberate stop looks the same.</summary>

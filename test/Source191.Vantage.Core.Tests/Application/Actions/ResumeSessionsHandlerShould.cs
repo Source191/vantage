@@ -93,7 +93,8 @@ public sealed class ResumeSessionsHandlerShould
     }
 
     [Fact]
-    public async Task ResumeEachSessionUnderItsListedNameOrUnnamed()    {
+    public async Task ResumeEachSessionUnderItsListedNameOrUnnamed()
+    {
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
         transcripts.WithMessages("sess-1").WithMessages("sess-2");
         BackgroundSession named = Job(Repository, DisplayState.Failed);
