@@ -47,8 +47,6 @@ public sealed record WizardState(
     /// <summary>False for a fixed directory: the filter, the list and the worktree choices are hidden.</summary>
     public bool ShowsChooser => Origin is WizardOrigin.Anywhere;
 
-    public RepositoryChoice? FixedChoice => Origin is WizardOrigin.Fixed pinned ? pinned.Choice : null;
-
     public IReadOnlyList<RepositoryChoice> Choices => [.. AllChoices.Where(choice => choice.Matches(Filter))];
 
     public RepositoryPick Chosen => Origin switch
