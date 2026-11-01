@@ -28,6 +28,12 @@ public sealed class Desktop(IProcessRunner processes, ProgramLocation powerShell
             _ => throw new UnreachableException(),
         };
 
+        // Only a file is asked about: an address's text after its last dot is no file type.
+        if (Path.IsPathFullyQualified(file) && Path.GetExtension(file) is { Length: > 0 } extension && FileAssociations.NoneFor(extension))
+        {
+            throw new NoApplicationException(extension);
+        }
+
         ProcessRequest request = new(executable, ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(OpenFileScript.For(file))], WorkingFolder.Inherit);
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)

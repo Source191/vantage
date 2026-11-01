@@ -6,7 +6,7 @@ namespace Source191.Vantage.Ports;
 /// </summary>
 public interface IDesktop
 {
-    /// <summary>Opens a file (or a URL) with its associated application, whose environment lacks Vantage's Claude Code markers. Throws, with the reason, when nothing could be opened.</summary>
+    /// <summary>Opens a file (or a URL) with its associated application, whose environment lacks Vantage's Claude Code markers. Throws <see cref="NoApplicationException"/> when Windows has no application for a file's type, and otherwise, with the reason, when nothing could be opened.</summary>
     Task OpenAsync(string file, CancellationToken cancellationToken);
 
     /// <summary>Starts a program without waiting for it, with Vantage's Claude Code markers left out of its environment. Throws <see cref="ProgramNotStartedException"/> when Windows refuses to start it.</summary>
