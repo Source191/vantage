@@ -9,9 +9,9 @@ public sealed class SettingsFileShould
     private static readonly FolderPath Home = FolderPath.From(@"C:\Users\me");
 
     [Fact]
-    public void ResolveAMissingFileToEveryDefault()
+    public void ResolveAMissingConfigToTheDefaults()
     {
-        Settings settings = SettingsFile.From(config: null, Home);
+        Settings settings = SettingsFile.From(VantageConfig.Missing, Home);
 
         settings.RepositoryRoots.ShouldBe([FolderPath.From(@"C:\Users\me\source\repos")]);
         settings.WorktreeRoot.ShouldBe(FolderPath.From(@"C:\Users\me\source\worktrees"));
@@ -21,9 +21,15 @@ public sealed class SettingsFileShould
     }
 
     [Fact]
+    public void RefuseANullConfig()
+    {
+        Should.Throw<ArgumentNullException>(() => SettingsFile.From(null!, Home)).ParamName.ShouldBe("config");
+    }
+
+    [Fact]
     public void CheckForUpdatesWhenTheFileSaysNothing()
     {
-        SettingsFile.From(config: null, Home).CheckForUpdates.ShouldBeTrue();
+        SettingsFile.From(VantageConfig.Missing, Home).CheckForUpdates.ShouldBeTrue();
         SettingsFile.From(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null), Home).CheckForUpdates.ShouldBeTrue();
     }
 
@@ -34,7 +40,7 @@ public sealed class SettingsFileShould
 
         settings.CheckForUpdates.ShouldBeFalse();
         SettingsFile.ToConfig(settings).CheckForUpdates.ShouldBe(false);
-        SettingsFile.ToConfig(SettingsFile.From(config: null, Home)).CheckForUpdates.ShouldBe(true);
+        SettingsFile.ToConfig(SettingsFile.From(VantageConfig.Missing, Home)).CheckForUpdates.ShouldBe(true);
     }
 
     [Fact]
@@ -56,7 +62,7 @@ public sealed class SettingsFileShould
 
         settings.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
         SettingsFile.ToConfig(settings).DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
-        SettingsFile.ToConfig(SettingsFile.From(config: null, Home)).DefaultPlace.ShouldBe(LaunchMode.NewWorktree);
+        SettingsFile.ToConfig(SettingsFile.From(VantageConfig.Missing, Home)).DefaultPlace.ShouldBe(LaunchMode.NewWorktree);
     }
 
     [Fact]
@@ -115,6 +121,6 @@ public sealed class SettingsFileShould
     [Fact]
     public void WriteAPresetWithoutACommand()
     {
-        SettingsFile.ToConfig(SettingsFile.From(config: null, Home)).Editor.ShouldBe(new EditorSetting("VsCode", Executable: null, Arguments: null));
+        SettingsFile.ToConfig(SettingsFile.From(VantageConfig.Missing, Home)).Editor.ShouldBe(new EditorSetting("VsCode", Executable: null, Arguments: null));
     }
 }

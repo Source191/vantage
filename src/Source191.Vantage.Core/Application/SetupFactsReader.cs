@@ -57,8 +57,11 @@ public sealed class SetupFactsReader(ITerminalFragment fragment, IClaudeSettings
 
     private async Task<SetupState> LastUpdateCheckAsync()
     {
-        UpdateCheckRecord? record = await updateChecks.ReadUpdateCheckAsync();
-
-        return record is null ? new SetupState.Never() : new SetupState.Checked(record.CheckedAt, record.Newest);
+        return await updateChecks.ReadUpdateCheckAsync() switch
+        {
+            UpdateCheckRecord.Checked last => new SetupState.Checked(last.CheckedAt, last.Newest),
+            UpdateCheckRecord.Never => new SetupState.Never(),
+            _ => throw new UnreachableException(),
+        };
     }
 }

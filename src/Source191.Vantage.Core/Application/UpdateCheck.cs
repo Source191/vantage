@@ -23,33 +23,26 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
-        UpdateCheckRecord? record = await records.ReadUpdateCheckAsync();
-        newest.Replace(record?.Newest is string text ? NewestRelease.Recorded(text) : new NewestRelease.None());
         DateTimeOffset now = clock.GetUtcNow();
-        if (!UpdateCheckRule.ShouldCheck(running, enabled(), record?.CheckedAt, now))
+        (NewestRelease recorded, bool due) = await records.ReadUpdateCheckAsync() switch
         {
-            return;
-        }
-
-        IReadOnlyList<string>? versions = await packages.ListAsync(PackageId, cancellationToken);
-        if (versions is null)
-        {
-            return;
-        }
-
-        NewestRelease found = UpdateCheckRule.Newest(versions);
-        await records.WriteUpdateCheckAsync(new UpdateCheckRecord(now, RecordedText(found)));
-        newest.Replace(found);
-    }
-
-    /// <summary>The record keeps the newest release as text, and no text when there is none.</summary>
-    private static string? RecordedText(NewestRelease release)
-    {
-        return release switch
-        {
-            NewestRelease.Found found => found.Version.ToString(),
-            NewestRelease.None => null,
+            UpdateCheckRecord.Checked last => (last.Newest, UpdateCheckRule.ShouldCheck(running, enabled(), last.CheckedAt, now)),
+            UpdateCheckRecord.Never => (new NewestRelease.None(), UpdateCheckRule.ShouldCheck(running, enabled())),
             _ => throw new UnreachableException(),
         };
+        newest.Replace(recorded);
+        if (!due)
+        {
+            return;
+        }
+
+        if (await packages.ListAsync(PackageId, cancellationToken) is not VersionListing.Listed listed)
+        {
+            return;
+        }
+
+        NewestRelease found = UpdateCheckRule.Newest(listed.Versions);
+        await records.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(now, found));
+        newest.Replace(found);
     }
 }

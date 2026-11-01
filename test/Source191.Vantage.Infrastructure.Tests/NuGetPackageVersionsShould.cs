@@ -1,5 +1,6 @@
 using Source191.Vantage.Adapters.Packages;
 using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
 using System.Net;
 using System.Text;
 
@@ -16,44 +17,65 @@ public sealed class NuGetPackageVersionsShould
         StubHandler handler = new(_ => Json("""{ "versions": ["0.8.0", "0.9.0", "0.10.0"] }"""));
         using NuGetPackageVersions packages = new(Version, handler);
 
-        IReadOnlyList<string>? versions = await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken);
+        VersionListing listing = await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken);
 
-        versions.ShouldBe(["0.8.0", "0.9.0", "0.10.0"]);
+        listing.ShouldBeOfType<VersionListing.Listed>().Versions.ShouldBe(["0.8.0", "0.9.0", "0.10.0"]);
         HttpRequestMessage request = handler.Requests.Single();
         request.RequestUri.ShouldBe(new Uri("https://api.nuget.org/v3-flatcontainer/source191.vantage/index.json"));
         request.Headers.UserAgent.ToString().ShouldBe("Vantage/0.9.0");
     }
 
     [Fact]
-    public async Task AnswerNullWhenThePackageIsNotFound()
+    public async Task AnswerNothingLearnedWhenThePackageIsNotFound()
     {
         using NuGetPackageVersions packages = new(Version, new StubHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound)));
 
-        (await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken)).ShouldBe(new VersionListing.NothingLearned());
     }
 
     [Fact]
-    public async Task AnswerNullOnMalformedJson()
+    public async Task AnswerNothingLearnedOnMalformedJson()
     {
         using NuGetPackageVersions packages = new(Version, new StubHandler(_ => Json("{ not json")));
 
-        (await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken)).ShouldBe(new VersionListing.NothingLearned());
     }
 
     [Fact]
-    public async Task AnswerNullWhenTheRequestFails()
+    public async Task AnswerNothingLearnedWhenTheRequestFails()
     {
         using NuGetPackageVersions packages = new(Version, new StubHandler(_ => throw new HttpRequestException("no network")));
 
-        (await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken)).ShouldBe(new VersionListing.NothingLearned());
     }
 
     [Fact]
-    public async Task AnswerNullWhenTheRequestTimesOut()
+    public async Task AnswerNothingLearnedWhenTheRequestTimesOut()
     {
         using NuGetPackageVersions packages = new(Version, new StubHandler(_ => throw new TaskCanceledException("timed out", new TimeoutException())));
 
-        (await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken)).ShouldBeNull();
+        (await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken)).ShouldBe(new VersionListing.NothingLearned());
+    }
+
+    [Fact]
+    public async Task ListAnIndexWithNoVersionsAsAnEmptyListing()
+    {
+        using NuGetPackageVersions packages = new(Version, new StubHandler(_ => Json("""{ "versions": [] }""")));
+
+        VersionListing listing = await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken);
+
+        listing.ShouldBeOfType<VersionListing.Listed>().Versions.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData("{}")]
+    [InlineData("{ \"versions\": null }")]
+    [InlineData("null")]
+    public async Task AnswerNothingLearnedForAReplyWithoutVersions(string body)
+    {
+        using NuGetPackageVersions packages = new(Version, new StubHandler(_ => Json(body)));
+
+        (await packages.ListAsync("Source191.Vantage", TestContext.Current.CancellationToken)).ShouldBe(new VersionListing.NothingLearned());
     }
 
     [Fact]

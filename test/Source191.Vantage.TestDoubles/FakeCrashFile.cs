@@ -27,9 +27,9 @@ public sealed class FakeCrashFile : ICrashFile
         Written = text;
     }
 
-    public Task<string?> ReadAsync()
+    public Task<LastCrash> ReadAsync()
     {
-        return Task.FromResult(Written);
+        return Task.FromResult<LastCrash>(Written is string text ? new LastCrash.Recorded(text) : new LastCrash.None());
     }
 
     public Task RemoveAsync()

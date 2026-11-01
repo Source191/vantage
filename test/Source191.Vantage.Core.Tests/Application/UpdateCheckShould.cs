@@ -20,7 +20,7 @@ public sealed class UpdateCheckShould
     [Fact]
     public async Task OfferTheRecordedReleaseAtStart()
     {
-        await state.WriteUpdateCheckAsync(new UpdateCheckRecord(Noon.AddHours(-1), "0.10.0"));
+        await state.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon.AddHours(-1), new NewestRelease.Found(Newer)));
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
@@ -32,7 +32,7 @@ public sealed class UpdateCheckShould
     [Fact]
     public async Task RequestOnceAndRecordTheNewest()
     {
-        packages.Answer = ["0.9.0", "0.10.0", "0.11.0-rc.1"];
+        packages.Answer = new VersionListing.Listed(["0.9.0", "0.10.0", "0.11.0-rc.1"]);
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
@@ -40,25 +40,25 @@ public sealed class UpdateCheckShould
         packages.Calls.ShouldBe(1);
         packages.LastPackageId.ShouldBe("Source191.Vantage");
         check.Status.ShouldBe(new UpdateStatus.Available(Current, Newer));
-        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord(Noon, "0.10.0"));
+        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Checked(Noon, new NewestRelease.Found(Newer)));
     }
 
     [Fact]
     public async Task RecordACheckThatFoundNoRelease()
     {
-        packages.Answer = ["1.0.0-rc.1"];
+        packages.Answer = new VersionListing.Listed(["1.0.0-rc.1"]);
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
 
         check.Status.ShouldBe(new UpdateStatus.UpToDate());
-        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord(Noon, null));
+        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Checked(Noon, new NewestRelease.None()));
     }
 
     [Fact]
     public async Task NotRequestWithinADay()
     {
-        await state.WriteUpdateCheckAsync(new UpdateCheckRecord(Noon.AddHours(-23), "0.9.0"));
+        await state.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon.AddHours(-23), new NewestRelease.Found(Current)));
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
@@ -68,11 +68,35 @@ public sealed class UpdateCheckShould
     }
 
     [Fact]
+    public async Task OfferNothingForARecordedNewestThatIsNotAVersion()
+    {
+        await state.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon.AddHours(-1), new NewestRelease.Unreadable("rubbish")));
+        UpdateCheck check = Check(Running);
+
+        await check.RunAsync(TestContext.Current.CancellationToken);
+
+        packages.Calls.ShouldBe(0);
+        check.Status.ShouldBe(new UpdateStatus.UpToDate());
+    }
+
+    [Fact]
+    public async Task RequestAtOnceWhenNeverChecked()
+    {
+        packages.Answer = new VersionListing.Listed(["0.10.0"]);
+        UpdateCheck check = Check(Running);
+
+        await check.RunAsync(TestContext.Current.CancellationToken);
+
+        packages.Calls.ShouldBe(1);
+        (await state.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Checked(Noon, new NewestRelease.Found(Newer)));
+    }
+
+    [Fact]
     public async Task RecordNothingWhenTheRequestFails()
     {
-        UpdateCheckRecord old = new(Noon.AddDays(-2), "0.10.0");
+        UpdateCheckRecord.Checked old = new(Noon.AddDays(-2), new NewestRelease.Found(Newer));
         await state.WriteUpdateCheckAsync(old);
-        packages.Answer = null;
+        packages.Answer = new VersionListing.NothingLearned();
         UpdateCheck check = Check(Running);
 
         await check.RunAsync(TestContext.Current.CancellationToken);
@@ -113,7 +137,7 @@ public sealed class UpdateCheckShould
     [Fact]
     public async Task ReadTheSettingEachTimeItIsAsked()
     {
-        packages.Answer = ["0.10.0"];
+        packages.Answer = new VersionListing.Listed(["0.10.0"]);
         bool enabled = true;
         UpdateCheck check = new(Running, () => enabled, state, packages, clock);
         await check.RunAsync(TestContext.Current.CancellationToken);

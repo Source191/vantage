@@ -8,6 +8,9 @@ namespace Source191.Vantage.Ports;
 /// </summary>
 public sealed record VantageConfig(IReadOnlyList<string>? RepositoryRoots, WorktreeBase? DefaultBase, string? WorktreeRoot, EditorSetting? Editor, bool? CheckForUpdates = null, LaunchMode? DefaultPlace = null)
 {
+    /// <summary>No config.json, or one that cannot be read: every member missing, so every setting reads as its default.</summary>
+    public static readonly VantageConfig Missing = new(RepositoryRoots: null, DefaultBase: null, WorktreeRoot: null, Editor: null);
+
     public bool Equals(VantageConfig? other)
     {
         return other is not null

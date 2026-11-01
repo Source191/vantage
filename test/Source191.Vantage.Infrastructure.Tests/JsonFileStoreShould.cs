@@ -74,6 +74,27 @@ public sealed class JsonFileStoreShould : IDisposable
         ]
         """;
 
+    /// <summary>config.json exactly as the store wrote it before a missing file read as VantageConfig.Missing: every member named.</summary>
+    private const string ConfigJson = """
+        {
+          "repositoryRoots": [
+            "C:\\Users\\me\\source\\repos",
+            "D:\\work"
+          ],
+          "defaultBase": "RemoteDefault",
+          "worktreeRoot": "C:\\Users\\me\\source\\worktrees",
+          "editor": {
+            "preset": "VsCode",
+            "executable": null,
+            "arguments": null
+          },
+          "checkForUpdates": true,
+          "defaultPlace": "NewWorktree"
+        }
+        """;
+
+    private static readonly VantageConfig SavedConfig = new([@"C:\Users\me\source\repos", @"D:\work"], WorktreeBase.RemoteDefault, @"C:\Users\me\source\worktrees", new EditorSetting("VsCode", Executable: null, Arguments: null), CheckForUpdates: true, DefaultPlace: LaunchMode.NewWorktree);
+
     private readonly string folder = Path.Combine(Path.GetTempPath(), "vantage-state-" + Guid.NewGuid().ToString("N"));
     private readonly FakeTimeProvider clock = new(Noon);
 
@@ -321,12 +342,6 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task ReadNoConfigurationWhenNoneIsSaved()
-    {
-        (await Store.ReadConfigAsync()).ShouldBeNull();
-    }
-
-    [Fact]
     public async Task RoundTripTheConfiguration()
     {
         VantageConfig saved = new([@"C:\repos", @"D:\work"], WorktreeBase.Head, @"D:\worktrees", new EditorSetting("Custom", @"C:\Tools\subl.exe", ["-n", "{folder}"]));
@@ -343,7 +358,7 @@ public sealed class JsonFileStoreShould : IDisposable
         string configFile = Path.Combine(folder, "config.json");
         await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["D:\\work"], "defaultBase": "Head" }""", TestContext.Current.CancellationToken);
 
-        VantageConfig read = (await Store.ReadConfigAsync())!;
+        VantageConfig read = (await Store.ReadConfigAsync());
 
         read.ShouldBe(new VantageConfig([@"D:\work"], WorktreeBase.Head, WorktreeRoot: null, Editor: null));
     }
@@ -365,7 +380,7 @@ public sealed class JsonFileStoreShould : IDisposable
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), """{ "repositoryRoots": ["D:\\work"] }""", TestContext.Current.CancellationToken);
 
-        (await Store.ReadConfigAsync())!.DefaultBase.ShouldBeNull();
+        (await Store.ReadConfigAsync()).DefaultBase.ShouldBeNull();
     }
 
     [Fact]
@@ -375,7 +390,7 @@ public sealed class JsonFileStoreShould : IDisposable
         string configFile = Path.Combine(folder, "config.json");
         await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["C:\\repos"], "defaultBase": "Head" }""", TestContext.Current.CancellationToken);
 
-        VantageConfig read = (await Store.ReadConfigAsync())!;
+        VantageConfig read = (await Store.ReadConfigAsync());
         await Store.WriteConfigAsync(read);
 
         read.DefaultBase.ShouldBe(WorktreeBase.Head);
@@ -389,7 +404,7 @@ public sealed class JsonFileStoreShould : IDisposable
         string configFile = Path.Combine(folder, "config.json");
         await File.WriteAllTextAsync(configFile, """{ "repositoryRoots": ["C:\\repos"], "defaultPlace": "CurrentBranch" }""", TestContext.Current.CancellationToken);
 
-        VantageConfig read = (await Store.ReadConfigAsync())!;
+        VantageConfig read = (await Store.ReadConfigAsync());
         await Store.WriteConfigAsync(read);
 
         read.DefaultPlace.ShouldBe(LaunchMode.CurrentBranch);
@@ -402,7 +417,7 @@ public sealed class JsonFileStoreShould : IDisposable
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), """{ "repositoryRoots": ["D:\\work"] }""", TestContext.Current.CancellationToken);
 
-        (await Store.ReadConfigAsync())!.DefaultPlace.ShouldBeNull();
+        (await Store.ReadConfigAsync()).DefaultPlace.ShouldBeNull();
     }
 
     [Fact]
@@ -441,18 +456,68 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task ReadACorruptConfigAsAbsent()
+    public async Task ReadAMissingOrCorruptConfigAsMissing()
     {
+        (await Store.ReadConfigAsync()).ShouldBe(VantageConfig.Missing);
+
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), "nope", TestContext.Current.CancellationToken);
 
-        (await Store.ReadConfigAsync()).ShouldBeNull();
+        (await Store.ReadConfigAsync()).ShouldBe(VantageConfig.Missing);
+    }
+
+    [Fact]
+    public async Task ReadAConfigFileWrittenByThePreviousVersion()
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "config.json"), ConfigJson, TestContext.Current.CancellationToken);
+
+        (await Store.ReadConfigAsync()).ShouldBe(SavedConfig);
+    }
+
+    [Fact]
+    public async Task WriteTheConfigFileAsBefore()
+    {
+        await Store.WriteConfigAsync(SavedConfig);
+
+        string written = await File.ReadAllTextAsync(Path.Combine(folder, "config.json"), TestContext.Current.CancellationToken);
+
+        written.ReplaceLineEndings("\n").ShouldBe(ConfigJson.ReplaceLineEndings("\n"));
+    }
+
+    /// <summary>The newest member's JSON in update-check.json and the release it stands for.</summary>
+    public static TheoryData<string, NewestRelease> RecordedNewest => new()
+    {
+        { "\"0.10.0\"", new NewestRelease.Found(new ReleaseVersion(0, 10, 0, "")) },
+        { "null", new NewestRelease.None() },
+        { "\"rubbish\"", new NewestRelease.Unreadable("rubbish") },
+    };
+
+    [Theory]
+    [MemberData(nameof(RecordedNewest))]
+    public async Task ReadAnUpdateCheckFileWrittenByThePreviousVersion(string newestJson, NewestRelease newest)
+    {
+        Directory.CreateDirectory(folder);
+        await File.WriteAllTextAsync(Path.Combine(folder, "update-check.json"), UpdateCheckJson(newestJson), TestContext.Current.CancellationToken);
+
+        (await Store.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Checked(Noon, newest));
+    }
+
+    [Theory]
+    [MemberData(nameof(RecordedNewest))]
+    public async Task WriteTheUpdateCheckFileAsBefore(string newestJson, NewestRelease newest)
+    {
+        await Store.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon, newest));
+
+        string written = await File.ReadAllTextAsync(Path.Combine(folder, "update-check.json"), TestContext.Current.CancellationToken);
+
+        written.ReplaceLineEndings("\n").ShouldBe(UpdateCheckJson(newestJson).ReplaceLineEndings("\n"));
     }
 
     [Fact]
     public async Task RoundTripTheUpdateCheckRecord()
     {
-        UpdateCheckRecord record = new(Noon, "0.10.0");
+        UpdateCheckRecord.Checked record = new(Noon, new NewestRelease.Found(new ReleaseVersion(0, 10, 0, "")));
 
         await Store.WriteUpdateCheckAsync(record);
 
@@ -461,15 +526,23 @@ public sealed class JsonFileStoreShould : IDisposable
     }
 
     [Fact]
-    public async Task AnswerNoUpdateCheckRecordWhenTheFileIsMissingOrCorrupt()
+    public async Task ReadAMissingOrCorruptUpdateCheckAsNever()
     {
-        (await Store.ReadUpdateCheckAsync()).ShouldBeNull();
+        (await Store.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Never());
 
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, "update-check.json"), "{ not json", TestContext.Current.CancellationToken);
 
-        (await Store.ReadUpdateCheckAsync()).ShouldBeNull();
+        (await Store.ReadUpdateCheckAsync()).ShouldBe(new UpdateCheckRecord.Never());
     }
+
+    /// <summary>update-check.json exactly as the store wrote it before the record had named cases, with the newest member's JSON.</summary>
+    private static string UpdateCheckJson(string newestJson) => $$"""
+        {
+          "checkedAt": "2026-10-23T12:00:00+00:00",
+          "newest": {{newestJson}}
+        }
+        """;
 
     public void Dispose()
     {

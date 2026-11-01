@@ -95,7 +95,7 @@ async Task<int> StartHereAsync(HereName name, string prompt, CancellationToken c
     GitCli git = new(processes, gitExecutable);
     LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
     // here does not ask Claude Code for its version, so as not to slow the attach down.
-    RecordStart(null);
+    RecordStart(new ClaudeVersionReport.NotRead());
     TerminalConsole hereConsole = new(Console.Out, Wording.TabTitle);
     HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, hereConsole), hereConsole, Console.Out, Console.Error);
 
@@ -129,7 +129,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
 
     // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
     using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
-    Task<string?> claudeVersion = claude.VersionAsync(versionTimeout.Token);
+    Task<ClaudeVersionReport> claudeVersion = claude.VersionAsync(versionTimeout.Token);
     using PullRequestCatalogue pullRequests = new(git, new PullRequestHosts(new GitHubPullRequests(processes, programs.Locate("gh")), new AzureDevOpsPullRequests(processes, AzureCliExecutable.Locate(Environment.GetEnvironmentVariable("PATH")))), TimeProvider.System);
     SessionRowEnricher enricher = new(git, store, processRegistry, TimeProvider.System, transcripts, pullRequests);
     StateTransitionNotifier notifier = new(Console.Out);
@@ -142,12 +142,12 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     EffectPorts ports = new(claude, git, processRegistry, transcripts, terminal, store, TimeProvider.System, clipboard, new Desktop(processes, programs.Locate("pwsh")), new EditorLocator(folders, processes, EditorFolders.ForCurrentUser()), folders, crashFile);
     EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home), log);
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);
-    string? claudeVersionText = await claudeVersion;
-    Started start = RecordStart(claudeVersionText);
+    ClaudeVersionReport claudeVersionReport = await claudeVersion;
+    Started start = RecordStart(claudeVersionReport);
     ProblemReports reports = new(log, processCounts, crashFile, start, settings);
     DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders), new RemoveWorktreeHandler(git, store, folders), reports, processRegistry);
 
-    ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionText);
+    ClaudeCodeVersion claudeCode = ClaudeCodeSupport.Check(claudeVersionReport);
     ScreenContext context = new(tabTitle, _ => [Wording.SettingsRow(version, claudeCode, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero)], () => updates.Status is UpdateStatus.Available, clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SetupFactsReader setup = new(terminalFragment, ClaudeSettings.ForCurrentUser(), store, store.ConfigFile, logSetting);
@@ -207,9 +207,9 @@ async Task<string?> LocateClaudeAsync()
 }
 
 // The start facts: versions and the terminal's size, never a path or a name.
-Started RecordStart(string? claudeVersionText)
+Started RecordStart(ClaudeVersionReport claudeVersionReport)
 {
-    Version? claudeCodeVersion = ClaudeVersion.TryParse(claudeVersionText, out Version? parsed) ? parsed : null;
+    Version? claudeCodeVersion = claudeVersionReport is ClaudeVersionReport.Printed printed && ClaudeVersion.TryParse(printed.Text, out Version? parsed) ? parsed : null;
     Started start = new(version, claudeCodeVersion, Environment.OSVersion.Version, Environment.Version, Console.WindowWidth, Console.WindowHeight);
     log.Record(start);
 
