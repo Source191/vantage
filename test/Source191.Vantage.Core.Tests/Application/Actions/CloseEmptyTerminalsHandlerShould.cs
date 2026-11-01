@@ -11,6 +11,19 @@ public sealed class CloseEmptyTerminalsHandlerShould
     private readonly FakeProcessRegistry processTable = new FakeProcessRegistry().Running(4242, Noon);
 
     [Fact]
+    public async Task LeaveAnotherTabsShellWhenTheParentIdIsReused()
+    {
+        // The launching shell exited; its id now belongs to a pwsh that started later, the root of another tab.
+        processTable.InTree(1, "WindowsTerminal", 0, Noon.AddHours(-1)).InTree(4000, "pwsh", 1, Noon.AddMinutes(5)).InTree(4242, "claude", 4000);
+        CloseEmptyTerminalsHandler handler = new(processTable, new FakeTranscripts());
+
+        await handler.HandleAsync(new CloseEmptyTerminals([SessionTestData.Terminal("repos-f6", 4242)]), CancellationToken.None);
+
+        processTable.Terminated.ShouldBe([4242]);
+        processTable.EndedCleanly.ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task CloseTheTabOfATerminalSessionWithNoMessagesByEndingClaudeThenItsShellCleanly()
     {
         // WindowsTerminal (1) owns the tab's pwsh (4000), which started claude (4242); ending the shell with exit code 0 closes the tab.

@@ -101,4 +101,18 @@ public sealed class AdoptSessionHandlerShould
         processTable.EndedCleanly.ShouldBeEmpty();
         message.ShouldBeOfType<AdoptSessionOutcome.Failed>();
     }
+
+    [Fact]
+    public async Task LeaveAnotherTabsShellWhenTheParentIdIsReused()
+    {
+        // The launching shell exited; its id now belongs to a pwsh that started later, the root of another tab.
+        processTable.InTree(1, "WindowsTerminal", 0, Noon.AddHours(-1)).InTree(4000, "pwsh", 1, Noon.AddMinutes(5)).InTree(4242, "claude", 4000);
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · repos-31", string.Empty));
+
+        Outcome message = await Handler.HandleAsync(new AdoptSession(SessionTestData.Terminal("repos-31", 4242)), CancellationToken.None);
+
+        processTable.Terminated.ShouldBe([4242]);
+        processTable.EndedCleanly.ShouldBeEmpty();
+        message.ShouldBe(new AdoptSessionOutcome.Moved("repos-31", TabClosed: false));
+    }
 }
