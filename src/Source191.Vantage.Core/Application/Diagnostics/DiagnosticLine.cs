@@ -20,7 +20,7 @@ public static class DiagnosticLine
     {
         ArgumentNullException.ThrowIfNull(counts);
 
-        return [.. counts.Snapshot().Select(count => $"counts {count.Command} exit {count.ExitCode}: {Runs(count.Runs)}, longest {Milliseconds(count.Longest)}")];
+        return [.. counts.Snapshot().Select(count => $"counts {count.Command} exit {count.ExitCode}: {Runs(count.Durations.Runs)}, longest {Milliseconds(count.Durations.Longest)}")];
     }
 
     /// <summary>The start facts without the time, as a problem report's environment line shows them.</summary>

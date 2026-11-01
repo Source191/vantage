@@ -25,6 +25,22 @@ public sealed class ProcessCountsShould
     }
 
     [Fact]
+    public void HoldTheTypicalDurationsOfEachCommand()
+    {
+        ProcessCounts counts = new();
+        ChildCommand agents = ChildCommand.For(new ProcessRequest(@"C:\Users\me\.local\bin\claude.exe", ["agents", "--json"], WorkingFolder.Inherit));
+
+        foreach (int _ in Enumerable.Range(0, 99))
+        {
+            counts.Add(agents, 0, TimeSpan.FromMilliseconds(1600));
+        }
+
+        counts.Add(agents, 0, TimeSpan.FromMilliseconds(4900));
+
+        counts.Snapshot().ShouldBe([new ProcessCount(agents, 0, new DurationFigures(100, TimeSpan.FromMilliseconds(1600), TimeSpan.FromMilliseconds(1600), TimeSpan.FromMilliseconds(4900)))]);
+    }
+
+    [Fact]
     public void RenderNothingBeforeAnyRun()
     {
         DiagnosticLine.Render(new ProcessCounts()).ShouldBeEmpty();
