@@ -89,7 +89,7 @@ public sealed class WordingOfKeysAndColumnsShould
             Keys
             Enter  open in its own tab, or switch to it          n      new session
             r      rename (restarts the session)                 x      stop
-            d      delete, and its worktree if nothing is lost   R      resume after a reboot
+            d      delete, and its worktree if nothing is lost   R      resume every stopped or failed session shown, each in its own tab
             C      close tabs of unused terminal sessions        b      move a terminal session under Vantage
             /      filter                                        ?      help
             q      quit                                          c      copy the folder path
@@ -183,5 +183,12 @@ public sealed class WordingOfKeysAndColumnsShould
             SETTING  a setting Vantage keeps in config.json, or, in grey, setup it reads but does not change
             VALUE    its value; a setup row that needs attention says what to run
             """.ReplaceLineEndings("\n"));
+    }
+
+    [Fact]
+    public void SayRResumesEveryShownStoppedOrFailedSessionInItsOwnTab()
+    {
+        Wording.SessionsKeys.Single(key => key.Key == "R").Tip
+            .ShouldBe("Resume each stopped or failed session shown, in its own tab; / filters which.");
     }
 }

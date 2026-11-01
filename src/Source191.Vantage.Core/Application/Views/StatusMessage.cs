@@ -70,7 +70,7 @@ public abstract record StatusMessage
     public sealed record Kept : StatusMessage;
 
     /// <summary>The resume checklist ended with nothing to resume.</summary>
-    public sealed record NothingChosenToResume : StatusMessage;
+    public sealed record NothingToResume : StatusMessage;
 
     /// <summary>The update key found no newer release.</summary>
     public sealed record UpToDate : StatusMessage;

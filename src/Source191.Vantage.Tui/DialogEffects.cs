@@ -26,7 +26,6 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(AskForNewName)] = (_, context, effect) => Rename(context, ((AskForNewName)effect).Session),
         [typeof(CloseEmptyTerminals)] = (_, context, effect) => ConfirmCloseEmpty(context, (CloseEmptyTerminals)effect),
         [typeof(DeleteSession)] = (self, context, effect) => self.ConfirmDelete(context, (DeleteSession)effect),
-        [typeof(ResumeStoppedSessions)] = (_, context, effect) => ChooseSessionsToResume(context, ((ResumeStoppedSessions)effect).Rows),
         [typeof(ConfirmForceRemove)] = (_, context, effect) => ConfirmForce(context, (ConfirmForceRemove)effect),
         [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
         [typeof(FindSolution)] = (self, context, effect) => self.OpenSolutionOf(context, (FindSolution)effect),
@@ -85,21 +84,6 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         }
 
         context.Dispatch(close);
-    }
-
-    private static void ChooseSessionsToResume(IEffectContext context, IReadOnlyList<SessionRow> rows)
-    {
-        // The checklist lists sessions in the order the table shows them, not the order the listing returned them.
-        ResumePlan plan = ResumeSessionsHandler.Plan(rows);
-        IReadOnlyList<SessionRow> chosen = plan.ToChoose.Count == 0 ? [] : ResumeChecklistDialog.Show(context.App, context.Diagnostics, plan.ToChoose);
-        List<SessionRow> toResume = [.. plan.Automatic, .. chosen];
-        if (toResume.Count == 0)
-        {
-            context.ShowMessage(new StatusMessage.NothingChosenToResume());
-            return;
-        }
-
-        context.Dispatch(new ResumeSessions([.. toResume.Select(row => row.Session).OfType<BackgroundSession>()]));
     }
 
     private static void ConfirmForce(IEffectContext context, ConfirmForceRemove confirm)

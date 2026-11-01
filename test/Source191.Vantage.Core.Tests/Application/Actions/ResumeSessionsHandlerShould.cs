@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Claude;
+using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
@@ -13,21 +15,17 @@ public sealed class ResumeSessionsHandlerShould
 {
     private readonly FakeProcessRunner processes = Processes();
     private readonly FakeTranscripts transcripts = new();
+    private readonly InMemoryState store = new();
+    private readonly FakeWindowsTerminal terminal = new();
 
-    private ResumeSessionsHandler Handler => new(new ClaudeCli(processes, Claude), transcripts);
-
-    [Fact]
-    public void SeparateFailedSessionsFromStoppedOnesWhenPlanningAResume()
+    private ResumeSessionsHandler Handler
     {
-        SessionRow failed = Background(Repository, isWorktree: false, DisplayState.Failed);
-        SessionRow stopped = Background(Repository, isWorktree: false, DisplayState.Stopped) with { Session = Background(Repository, false).Session with { SessionId = SessionId.From("sess-2"), State = DisplayState.Stopped } };
-        SessionRow stoppedLater = stopped with { Session = stopped.Session with { SessionId = SessionId.From("sess-3"), Name = "later" } };
-        SessionRow working = Background(Repository, isWorktree: false);
+        get
+        {
+            OpenTabHandler openTab = new(store, new FakeProcessRegistry(), terminal, new FakeTimeProvider(Noon), new TabScripts(Claude, @"C:\Users\me\.dotnet\tools\vantage.exe"));
 
-        ResumePlan plan = ResumeSessionsHandler.Plan([failed, stoppedLater, stopped, working]);
-
-        plan.Automatic.ShouldBe([failed]);
-        plan.ToChoose.ShouldBe([stoppedLater, stopped], "the checklist keeps the order it was given, which is the table's order");
+            return new(new ClaudeCli(processes, Claude), transcripts, openTab);
+        }
     }
 
     [Fact]
@@ -104,5 +102,34 @@ public sealed class ResumeSessionsHandlerShould
 
         processes.CapturedRequests.Where(request => request.Arguments.Contains("--resume")).Select(request => string.Join(" ", request.Arguments))
             .ShouldBe(["--bg --resume sess-1 -n fix-123", "--bg --resume sess-2"], "a listed name SessionName refuses is resumed without -n");
+    }
+
+    [Fact]
+    public async Task OpenATabForEachSessionItResumes()
+    {
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
+        transcripts.WithMessages("sess-1").WithMessages("sess-2");
+        BackgroundSession first = Job(Repository, DisplayState.Failed);
+        BackgroundSession second = Job(Worktree, DisplayState.Stopped) with { SessionId = SessionId.From("sess-2"), JobId = JobId.From("c429a96e"), Name = "fix-124" };
+
+        await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
+
+        terminal.Opened.Select(launch => launch.StartingDirectory.Value).ShouldBe([Repository, Worktree], "the tabs open in the order the sessions were given");
+        (await store.ReadTabsAsync()).Select(tab => tab.Owner).ShouldBe([new TabOwner.ForSession(SessionId.From("sess-1")), new TabOwner.ForSession(SessionId.From("sess-2"))]);
+    }
+
+    [Fact]
+    public async Task OpenNoTabForASessionThatDidNotResume()
+    {
+        processes.Answer(request => request.Arguments.Contains("sess-2"), new ProcessResult(1, string.Empty, "Workspace not trusted"));
+        transcripts.WithMessages("sess-2");
+        BackgroundSession stub = Job(Repository, DisplayState.Stopped) with { SessionId = SessionId.From("sess-stub"), Name = "repos-f6" };
+        BackgroundSession refused = Job(Worktree, DisplayState.Failed) with { SessionId = SessionId.From("sess-2"), JobId = JobId.From("c429a96e"), Name = "fix-124" };
+
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([stub, refused]), CancellationToken.None);
+
+        terminal.Opened.ShouldBeEmpty("neither session is running again, so there is nothing to attach to");
+        (await store.ReadTabsAsync()).ShouldBeEmpty();
+        message.ShouldBeOfType<ResumeSessionsOutcome>().Notes.ShouldBe([new ResumeNote.NeverSentAMessage("repos-f6"), new ResumeNote.Failed("fix-124", "Workspace not trusted", SessionId.From("sess-2"))]);
     }
 }

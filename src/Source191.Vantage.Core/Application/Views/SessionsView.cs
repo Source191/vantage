@@ -100,8 +100,6 @@ public sealed record CloseEmptyTerminals(IReadOnlyList<InteractiveSession> Sessi
 
 public sealed record OpenLaunchWizard : ViewEffect, IDialogEffect;
 
-public sealed record ResumeStoppedSessions(IReadOnlyList<SessionRow> Rows) : ViewEffect, IDialogEffect;
-
 
 public sealed record Quit : ViewEffect, ILeavesScreen;
 
@@ -202,7 +200,7 @@ public static class SessionsView
             { Name: KeyName.Character, Character: 'p' } => OpenPullRequest(state),
             { Name: KeyName.Character, Character: 'm' } => MeasureMemory(state),
             { Name: KeyName.Character, Character: 'n' } => Effect(state, new OpenLaunchWizard()),
-            { Name: KeyName.Character, Character: 'R' } => Effect(state, new ResumeStoppedSessions(state.VisibleRows)),
+            { Name: KeyName.Character, Character: 'R' } => ResumeAll(state),
             { Name: KeyName.Character, Character: 'q' } => Effect(state, new Quit()),
             { Name: KeyName.Character, Character: '?' } => Effect(state, new ShowHelp()),
             { Name: KeyName.Character, Character: 'U' } => Effect(state, new UpdateVantage()),
@@ -241,6 +239,22 @@ public static class SessionsView
                 _ => throw new UnreachableException(),
             },
         };
+    }
+
+    /// <summary>
+    /// Every stopped or failed job the table shows, in its order, so a filter narrows what R brings back; a session
+    /// stopped on purpose and not wanted is deleted with d instead.
+    /// </summary>
+    private static ViewUpdate ResumeAll(SessionsViewState state)
+    {
+        BackgroundSession[] sessions = [.. state.VisibleRows
+            .Select(row => row.Session)
+            .OfType<BackgroundSession>()
+            .Where(session => session.State.Kind is DisplayStateKind.Stopped or DisplayStateKind.Failed)];
+
+        return sessions.Length == 0
+            ? Unchanged(state with { Message = new StatusMessage.NothingToResume() })
+            : Effect(state with { Message = StatusMessage.None }, new ResumeSessions(sessions));
     }
 
     /// <summary>A key that acts on a supervised job; a terminal session gets the status message that says why it cannot.</summary>

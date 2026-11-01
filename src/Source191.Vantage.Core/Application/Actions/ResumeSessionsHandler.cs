@@ -6,21 +6,13 @@ using Source191.Vantage.Ports;
 namespace Source191.Vantage.Application.Actions;
 
 /// <summary>
-/// Resumes the chosen sessions under the supervisor, each in its own directory, and says which could not be. Resuming
+/// Resumes the given sessions under the supervisor, each in its own directory, opens a Vantage tab for each one the CLI continues, and says which could not be. Resuming
 /// a listed job with flags starts a copy under a new session id, so each job is removed first (its transcript stays
 /// on disc), as rename does, and the resume continues the same session id in the same row. A session with no
 /// transcript keeps its job, since nothing could bring it back.
 /// </summary>
-public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transcripts) : IEffectHandler<ResumeSessions>
+public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transcripts, OpenTabHandler openTab) : IEffectHandler<ResumeSessions>
 {
-    /// <summary>Failed sessions resume at once; stopped ones are offered as a checklist, because a deliberate stop looks the same.</summary>
-    public static ResumePlan Plan(IReadOnlyList<SessionRow> rows)
-    {
-        return new ResumePlan(
-            [.. rows.Where(row => row.Session is BackgroundSession { State.Kind: DisplayStateKind.Failed })],
-            [.. rows.Where(row => row.Session is BackgroundSession { State.Kind: DisplayStateKind.Stopped })]);
-    }
-
     public async Task<Outcome> HandleAsync(ResumeSessions effect, CancellationToken cancellationToken)
     {
         int continued = 0;
@@ -39,11 +31,14 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
             ResumeResult result = SessionName.TryParse(session.Name, out SessionName? name)
                 ? await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken)
                 : await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, cancellationToken);
-            continued += result.Continued ? 1 : 0;
             if (!result.Continued)
             {
                 notes.Add(new ResumeNote.Failed(session.Name, result.Message, session.SessionId));
+                continue;
             }
+
+            continued++;
+            await openTab.OpenAsync(session, cancellationToken);
         }
 
         return new ResumeSessionsOutcome(continued, effect.Sessions.Count, notes);

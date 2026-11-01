@@ -20,7 +20,7 @@
 - **The handler opens the tabs.** `ResumeSessionsHandler` takes the composition's `OpenTabHandler` (as `RenameSessionHandler` does) and, straight after each resume the CLI continues, calls `OpenAsync(session)`, so tabs open in table order and each attach starts only once its job is running again. A refused resume or a session with no transcript gets no tab. Alternative: open the tabs only and let `claude attach` resume each session; rejected because the status line would lose the per-session result and the CLI's reason for a refusal.
 - **The outcome stays one record.** `ResumeSessionsOutcome` keeps `Resumed`, `Chosen` and `Notes`; every resumed session gets a tab, so the wording says so ("Resumed 3 of 3, each in its own tab.") without a separate count. A tab that fails to open throws out of `IWindowsTerminal`, which the dispatcher already reports as a failed effect.
 - **The dialog's remains go.** `Tui\ResumeChecklistDialog`, its `DialogEffects` entry and `DialogName.Resume` (with its word in `WordingOfScreens` and its fact in `WordingOfScreensShould`) are deleted; `EffectRoutingShould` and `DialogEffectsShould` then confirm `ResumeSessions` is routed as a background effect.
-- **Version.** A minor behaviour change to an existing key; while pre-1.0 the next preview of the current line (`0.19.0-preview.N+1`) as for the other open changes, settled against `main` when the pull request opens.
+- **Version.** A minor behaviour change to an existing key; while pre-1.0 the next preview of the current line, `0.20.0-preview.3`, stacked on `resume-continues-session` (0.20.0-preview.2).
 
 ## Risks / Trade-offs
 

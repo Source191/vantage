@@ -174,14 +174,21 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void CountTheSessionsResumed()
     {
-        Wording.Describe(new ResumeSessionsOutcome(2, 2, [])).ShouldBe("Resumed 2 of 2.");
+        Wording.Describe(new ResumeSessionsOutcome(3, 3, [])).ShouldBe("Resumed 3 of 3, each in its own tab.");
+    }
+
+    [Fact]
+    public void SayNoTabOpenedWhenNoSessionResumed()
+    {
+        Wording.Describe(new ResumeSessionsOutcome(0, 1, [new ResumeNote.NeverSentAMessage("repos-f6")]))
+            .ShouldBe("Resumed 0 of 1. Notes: repos-f6: never sent a message, so there is nothing to resume; d deletes it");
     }
 
     [Fact]
     public void AddANoteForEachSessionThatDidNotResume()
     {
         Wording.Describe(new ResumeSessionsOutcome(1, 3, [new ResumeNote.NeverSentAMessage("repos-f6"), new ResumeNote.Failed("fix-123", "boom", SessionId.From("sess-1"))]))
-            .ShouldBe("Resumed 1 of 3. Notes: repos-f6: never sent a message, so there is nothing to resume; d deletes it; fix-123: boom; resume it with claude --bg --resume sess-1");
+            .ShouldBe("Resumed 1 of 3, each in its own tab. Notes: repos-f6: never sent a message, so there is nothing to resume; d deletes it; fix-123: boom; resume it with claude --bg --resume sess-1");
     }
 
     [Fact]

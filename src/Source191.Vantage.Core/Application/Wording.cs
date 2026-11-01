@@ -384,7 +384,7 @@ public static partial class Wording
             StatusMessage.UpToDate => "Vantage is up to date.",
             StatusMessage.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",
             StatusMessage.Kept => "Kept.",
-            StatusMessage.NothingChosenToResume => "Nothing to resume.",
+            StatusMessage.NothingToResume => "Nothing to resume.",
             StatusMessage.NoDialogFor missing => $"No dialog is defined for {missing.EffectName}.",
             StatusMessage.Working working => Working(working.Effect),
             StatusMessage.Reported reported => Describe(reported.Outcome),
