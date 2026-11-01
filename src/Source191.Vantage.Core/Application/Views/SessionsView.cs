@@ -26,7 +26,6 @@ public sealed record SessionRow(Session Session, SessionLocation Location, Head 
     /// <summary>What the session's process and everything it started use; nothing to measure for a session with no process, or whose process has gone.</summary>
     public SessionMemory Memory { get; init; } = new SessionMemory.NothingToMeasure();
 
-    public FolderPath? Checkout => Location is SessionLocation.InRepository inRepository ? inRepository.Checkout : null;
 }
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
