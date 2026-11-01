@@ -20,10 +20,7 @@ public sealed record BackgroundSession(
     DateTimeOffset StartedAt,
     DisplayState State,
     JobProcess Process)
-    : Session(SessionId, Name, WorkingDirectory, StartedAt, State)
-{
-    public int? ProcessId => Process is JobProcess.Running running ? running.Id : null;
-}
+    : Session(SessionId, Name, WorkingDirectory, StartedAt, State);
 
 /// <summary>Plain claude in a tab of its own: it always has a process, and Vantage can only end it or move it under the supervisor.</summary>
 public sealed record InteractiveSession(
