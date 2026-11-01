@@ -16,33 +16,26 @@ using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Application.Reporting;
 using Source191.Vantage.Application.TerminalSetup;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Composition;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Tui;
 using System.CommandLine;
-using System.Diagnostics;
-using System.Reflection;
 
 // Composition root. Everything here is wiring; behaviour lives in the tested classes it assembles.
-string stateFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Vantage");
-JsonFileStore store = new(stateFolder, TimeProvider.System);
-ProcessRegistry processRegistry = new();
-ToolVersion version = ToolVersion.FromInformational(Assembly.GetEntryAssembly()?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? string.Empty);
-string vantageExecutable = Environment.ProcessPath ?? "vantage";
-TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser(Path.Combine(AppContext.BaseDirectory, "vantage.ico"));
-
-// Every program Vantage starts is found on the PATH once and run by its full path, never by a bare name that Windows
-// would look for in the folder Vantage was started from first
-// (https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw).
-ProgramLocator programs = ProgramLocator.ForCurrentUser();
-
-// The diagnostic log is always kept in memory; VANTAGE_LOG=<file> also writes it to that file.
-DiagnosticLogSetting logSetting = DiagnosticLogSetting.Read(Environment.GetEnvironmentVariable("VANTAGE_LOG"));
-DiagnosticLog log = new(TimeProvider.System, logSetting is DiagnosticLogSetting.File logFile ? [new DiagnosticFile(logFile.Path)] : []);
+SharedParts parts = SharedParts.ForCurrentUser();
+JsonFileStore store = parts.Store;
+ProcessRegistry processRegistry = parts.ProcessRegistry;
+ToolVersion version = parts.Version;
+string vantageExecutable = parts.VantageExecutable;
+TerminalFragment terminalFragment = parts.TerminalFragment;
+ProgramLocator programs = parts.Programs;
+DiagnosticLogSetting logSetting = parts.LogSetting;
+DiagnosticLog log = parts.Log;
 Terminal.Gui.App.Logging.Logger = new TerminalGuiBridge(log);
-ProcessCounts processCounts = new();
-RecordedProcessRunner processes = new(new ProcessRunner(), log, processCounts, TimeProvider.System);
-CrashFile crashFile = new(stateFolder);
-CrashRecorder crashes = new(log, processCounts, crashFile);
+ProcessCounts processCounts = parts.ProcessCounts;
+RecordedProcessRunner processes = parts.Processes;
+CrashFile crashFile = parts.CrashFile;
+CrashRecorder crashes = parts.Crashes;
 AppDomain.CurrentDomain.UnhandledException += (_, unhandled) =>
 {
     if (unhandled.ExceptionObject is Exception exception)
@@ -79,36 +72,35 @@ async Task<int> SetUpTerminalAsync(TerminalSetupRequest request, CancellationTok
 }
 
 Task<int> StartHereAsync(HereName name, string prompt, CancellationToken cancellationToken) =>
-    WithRequiredProgramsAsync(found => StartHereWithAsync(found, name, prompt, cancellationToken));
+    LaunchParts.RunAsync(parts, Console.Error, launch => StartHereWithAsync(launch, name, prompt, cancellationToken));
 
-async Task<int> StartHereWithAsync(RequiredPrograms.Found found, HereName name, string prompt, CancellationToken cancellationToken)
+async Task<int> StartHereWithAsync(LaunchParts launch, HereName name, string prompt, CancellationToken cancellationToken)
 {
-    ClaudeCli claude = new(processes, found.Claude);
-    GitCli git = new(processes, found.Git);
-    LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
+    ClaudeCli claude = launch.Claude;
+    LaunchService launchService = launch.Launches;
     // here does not ask Claude Code for its version, so as not to slow the attach down.
-    RecordStart(new ClaudeVersionReport.NotRead());
+    parts.RecordStart(new ClaudeVersionReport.NotRead());
     TerminalConsole hereConsole = new(Console.Out, Wording.TabTitle);
     HereCommandRunner runner = new(new Folders(), launchService, new TerminalEffects(claude, hereConsole), hereConsole, Console.Out, Console.Error);
 
     return await runner.RunAsync(Directory.GetCurrentDirectory(), name, prompt, cancellationToken);
 }
 
-Task<int> OpenConsoleAsync(CancellationToken cancellationToken) => WithRequiredProgramsAsync(found => OpenConsoleWithAsync(found, cancellationToken));
+Task<int> OpenConsoleAsync(CancellationToken cancellationToken) => LaunchParts.RunAsync(parts, Console.Error, launch => OpenConsoleWithAsync(launch, cancellationToken));
 
-async Task<int> OpenConsoleWithAsync(RequiredPrograms.Found found, CancellationToken cancellationToken)
+async Task<int> OpenConsoleWithAsync(LaunchParts launch, CancellationToken cancellationToken)
 {
-    string claudeExecutable = found.Claude;
-    ClaudeCli claude = new(processes, claudeExecutable);
+    string claudeExecutable = launch.Programs.Claude;
+    ClaudeCli claude = launch.Claude;
     string tabTitle = Wording.TabTitle;
-    GitCli git = new(processes, found.Git);
+    GitCli git = launch.Git;
     FolderPath home = FolderPath.From(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile));
     CurrentSettings settings = await CurrentSettings.LoadAsync(store, home);
     ClaudeTranscripts transcripts = ClaudeTranscripts.ForCurrentUser();
     WindowsTerminal terminal = new(processes, terminalFragment, programs.Locate("wt"), programs.Locate("pwsh"));
     Folders folders = new();
     TerminalConsole console = new(Console.Out, tabTitle);
-    LaunchService launchService = new(claude, git, store, store, new WorktreeIncludeCopier(git), TimeProvider.System);
+    LaunchService launchService = launch.Launches;
 
     // Started before the rest of start-up and awaited just before the first screen, so it overlaps it.
     using CancellationTokenSource versionTimeout = new(TimeSpan.FromSeconds(5));
@@ -126,7 +118,7 @@ async Task<int> OpenConsoleWithAsync(RequiredPrograms.Found found, CancellationT
     EffectDispatcher dispatcher = Composition.Handlers(ports, launchService, new TabScripts(claudeExecutable, vantageExecutable), settings, new VantageProcess(Environment.ProcessId, home), log);
     WorktreeInventory inventory = new(git, folders, settings, pullRequests);
     ClaudeVersionReport claudeVersionReport = await claudeVersion;
-    Started start = RecordStart(claudeVersionReport);
+    Started start = parts.RecordStart(claudeVersionReport);
     ProblemReports reports = new(log, processCounts, crashFile, start, settings);
     DialogEffects dialogs = new(new RepositoryCatalogue(folders, settings), store, folders, settings, new SolutionFinder(folders), updates, new DeleteSessionHandler(claude, git, store, new SessionTabs(store, processRegistry, TimeProvider.System), folders, settings), new RemoveWorktreeHandler(git, store, folders, settings), reports, processRegistry);
 
@@ -143,28 +135,4 @@ async Task<int> OpenConsoleWithAsync(RequiredPrograms.Found found, CancellationT
     ScreenLoop loop = new(consoleScreen, ownTab, console, updates, log);
 
     return await loop.RunAsync(Environment.ProcessId, cancellationToken);
-}
-
-// Claude Code and git, found once for the console and vantage here; the sentence and exit code 1 when either cannot be run.
-async Task<int> WithRequiredProgramsAsync(Func<RequiredPrograms.Found, Task<int>> run)
-{
-    switch (RequiredPrograms.Check(ClaudeExecutable.Locate(), programs.Locate("git")))
-    {
-        case RequiredPrograms.Found found:
-            return await run(found);
-        case RequiredPrograms.Missing missing:
-            await Console.Error.WriteLineAsync(missing.Sentence);
-            return 1;
-        default:
-            throw new UnreachableException();
-    }
-}
-
-// The start facts: versions and the terminal's size, never a path or a name.
-Started RecordStart(ClaudeVersionReport claudeVersionReport)
-{
-    Started start = Started.From(version, claudeVersionReport, Environment.OSVersion.Version, Environment.Version, Console.WindowWidth, Console.WindowHeight);
-    log.Record(start);
-
-    return start;
 }
