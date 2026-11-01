@@ -93,7 +93,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         return words.Length > 0 ? words : $"claude {subcommand} exited with code {result.ExitCode}";
     }
 
-    private ProcessRequest Request( IReadOnlyList<string> arguments, WorkingFolder folder) => new(executable, arguments, folder);
+    private ProcessRequest Request(IReadOnlyList<string> arguments, WorkingFolder folder) => new(executable, arguments, folder);
 
     private static StartResult InterpretStart(ProcessResult result)
     {

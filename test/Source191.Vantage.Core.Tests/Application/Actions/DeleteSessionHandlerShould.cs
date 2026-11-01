@@ -197,4 +197,5 @@ public sealed class DeleteSessionHandlerShould
         registry.EndedCleanly.ShouldBeEmpty();
         folders.DirectoryExists(Worktree).ShouldBeTrue();
         outcome.ShouldBe(new DeleteSessionOutcome.NotDeleted("fix-123", "Session 81cdb0f9 not found"));
-    }}
+    }
+}

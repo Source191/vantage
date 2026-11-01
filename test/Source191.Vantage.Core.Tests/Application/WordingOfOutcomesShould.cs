@@ -581,4 +581,5 @@ public sealed class WordingOfOutcomesShould
     public void SayADeleteClaudeRefused()
     {
         Wording.Describe(new DeleteSessionOutcome.NotDeleted("fix-123", "Session 81cdb0f9 not found")).ShouldBe("Could not delete fix-123: Session 81cdb0f9 not found");
-    }}
+    }
+}

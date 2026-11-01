@@ -131,4 +131,5 @@ public sealed class RenameSessionHandlerShould
         registry.EndedCleanly.ShouldBeEmpty();
         terminal.Opened.ShouldBeEmpty();
         message.ShouldBe(new RenameSessionOutcome.NotRemoved("fix-123", "Session 81cdb0f9 not found"));
-    }}
+    }
+}

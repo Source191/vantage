@@ -62,6 +62,7 @@ Facts that matter only in part of the code are path-scoped rules in `.claude\rul
 - Git's worktree facts come from `Application\WorktreeInspector`; every tab's script, title, folder and colour from `Application\TabScripts` (the only holder of the claude and vantage executable paths outside the tool project's wiring).
 - The Claude CLI's words (busy, waiting, idle, working, blocked, done, failed) are read in `Adapters\Claude\ClaudeStates`, never in `Domain`, and the `gh` and `az` words only in `Adapters\PullRequests\GitHubPullRequests` and `AzureDevOpsPullRequests`; pull requests reach the rows only through `Application\PullRequestCatalogue`, which never makes a row wait.
 - `IGit`'s commands throw `GitException` when git fails or answers with something unreadable, its nullable queries answer null, and `IsMerged` answers false; each method says which.
+- `IClaudeCli`'s `ListSessionsAsync`, `StopAsync` and `RemoveAsync` throw `ClaudeCliException` with claude's own words when claude exits with an error; the start and resume answer a result, `VersionAsync` answers `NotRead`, and each method says which.
 - A row's folder goes to other tools through `c` (copy, `IClipboard` over Terminal.Gui's clipboard), `f` (editor, `IEditorLocator` finding a preset's real executable as a `ProgramLocation`) and `s` (solution, `IDesktop` opening a file with its associated application), each an effect with a handler.
 
 ### Values, sessions and null

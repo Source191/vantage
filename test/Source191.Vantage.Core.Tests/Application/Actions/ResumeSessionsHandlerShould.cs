@@ -149,4 +149,5 @@ public sealed class ResumeSessionsHandlerShould
         ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
         (resume.Resumed, resume.Chosen).ShouldBe((1, 2));
         resume.Notes.ShouldBe([new ResumeNote.NotRemoved("fix-123", "Session 81cdb0f9 not found")]);
-    }}
+    }
+}
