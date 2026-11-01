@@ -23,8 +23,8 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 4. Version and the whole build
 
-- [ ] 4.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to `0.19.0-preview.15`. Verify `.github\scripts\Assert-VersionBumped.ps1 -Base v-link-cited-apis -Head HEAD` passes.
-- [ ] 4.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` pass; `Kept` has 42 entries; headless captures of the three tabs before and after (navigation keys only) read the same; `openspec validate null-free-follow-ups --strict` passes. The smoke check is left to CI's `check` job, because run locally it force-removes an idle worktree under the owner's real roots.
+- [x] 4.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to `0.19.0-preview.15`. Verify `.github\scripts\Assert-VersionBumped.ps1 -Base v-link-cited-apis -Head HEAD` passes. #150 merged into main while this was under way, so the branch merged `origin/main` and `Assert-VersionBumped.ps1 -Base origin/main -Head HEAD` passes (0.19.0-preview.14 to 0.19.0-preview.15).
+- [x] 4.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` pass; `Kept` has 42 entries; headless captures of the three tabs before and after (navigation keys only) read the same; `openspec validate null-free-follow-ups --strict` passes. The smoke check is left to CI's `check` job, because run locally it force-removes an idle worktree under the owner's real roots. Build clean, 2197 tests (2189 passed, 8 skipped), format clean, Kept 42. The ten grids differ only in live data (version, memory, ages, the sessions other agents started meanwhile); one Worktrees capture's Down arrived before a slow scan finished, and a second pair read the same.
 
 ## Workflow follow-up
 
