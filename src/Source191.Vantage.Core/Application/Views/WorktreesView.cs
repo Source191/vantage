@@ -46,7 +46,8 @@ public sealed record WorktreesViewState(
         KeyOf: row => row.Path.Key,
         FilterFields: row => [row.RepositoryName, row.FolderName, .. FilterText.Of(row.Head), row.Health.Kind.ToString()],
         Order: rows => rows.OrderBy(row => row.Repository.Key, StringComparer.Ordinal).ThenBy(row => row.FolderName, StringComparer.OrdinalIgnoreCase),
-        KeyComparison: StringComparison.Ordinal);
+        KeyComparison: StringComparison.Ordinal,
+        Selectable: _ => true);
 
     /// <summary>The rows, selection, filter and loaded flag as the shared list component, built from this state's fields.</summary>
     public ListSelection<WorktreeRow> List => Policy.List(Rows, SelectedPath, Filter, FilterEditing, Loaded);

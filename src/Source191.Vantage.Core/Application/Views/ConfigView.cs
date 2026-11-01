@@ -29,7 +29,8 @@ public sealed record ConfigViewState(
         KeyOf: row => row.Key,
         FilterFields: row => [Wording.ConfigSetting(row), ConfigView.TryPathOf(row, out string? path) ? path : string.Empty],
         Order: rows => rows,
-        KeyComparison: StringComparison.Ordinal);
+        KeyComparison: StringComparison.Ordinal,
+        Selectable: _ => true);
 
     public ListSelection<ConfigRow> List => Policy.List(Rows, SelectedKey, Filter, FilterEditing, Loaded);
 

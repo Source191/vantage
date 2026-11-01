@@ -7,7 +7,8 @@ public sealed record ListPolicy<TRow>(
     Func<TRow, string> KeyOf,
     Func<TRow, IReadOnlyList<string>> FilterFields,
     Func<IEnumerable<TRow>, IEnumerable<TRow>> Order,
-    StringComparison KeyComparison)
+    StringComparison KeyComparison,
+    Func<TRow, bool> Selectable)
 {
     /// <summary>A selection with no rows yet, governed by this policy.</summary>
     public ListSelection<TRow> EmptyList() => new(this, [], SelectedKey: null, RowFilter.None, FilterEditing: false, Loaded: false);
