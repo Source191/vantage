@@ -5,7 +5,7 @@ Each task is one red-green-refactor cycle with a commit per step, or a refactor 
 ## 1. Domain
 
 - [x] 1.1 `NewestReleaseShould.ReadTextThatIsNotAVersionAsUnreadable` (replacing `shared-snapshot`'s fact that read it as `None`): red, then `NewestRelease.Unreadable(string Text)` and `Recorded` answering it green; every switch over `NewestRelease` names the new case. Verify `NewestReleaseShould` and `UpdateCheckRuleShould` pass, `Offer` still answering `UpToDate` for unreadable text.
-- [ ] 1.2 `UpdateCheckRuleShould`'s `ShouldCheck` facts that passed `lastCheckedAt: null` call the overload without it and keep their answers: red, then `UpdateCheckRule.ShouldCheck(ToolVersion, bool)` and the `DateTimeOffset` overload green. Verify all seven `ShouldCheck` facts pass with the same answers.
+- [x] 1.2 `UpdateCheckRuleShould`'s `ShouldCheck` facts that passed `lastCheckedAt: null` call the overload without it and keep their answers: red, then `UpdateCheckRule.ShouldCheck(ToolVersion, bool)` and the `DateTimeOffset` overload green. Verify all seven `ShouldCheck` facts pass with the same answers.
 - [ ] 1.3 `ClaudeCodeSupportShould`'s facts pass `new ClaudeVersionReport.NotRead()` where they passed null and `Printed(text)` elsewhere, expecting the same `ClaudeCodeVersion`s: red, then `Domain\ClaudeVersionReport.cs` and `ClaudeCodeSupport.Check(ClaudeVersionReport)` green. Verify `ClaudeCodeSupportShould` passes unchanged in its expected values.
 
 ## 2. Ports and adapters
