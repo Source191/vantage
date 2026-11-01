@@ -5,9 +5,11 @@ using Terminal.Gui.Drawing;
 namespace Source191.Vantage.Tui;
 
 /// <summary>The Config tab as the shared table screen shows it: a setting or a piece of setup per row, the setup in grey.</summary>
-internal sealed class ConfigScreenDefinition : IScreenDefinition<ConfigViewState, ConfigRow>
+internal sealed class ConfigScreenDefinition(TimeProvider clock) : IScreenDefinition<ConfigViewState, ConfigRow>
 {
     private const string Ellipsis = "…";
+
+    private readonly TimeProvider clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
     /// <summary>Never used to refresh: the tab reads the setup when it is shown and after each save.</summary>
     public TimeSpan RefreshEvery => TimeSpan.FromMinutes(5);
@@ -34,7 +36,7 @@ internal sealed class ConfigScreenDefinition : IScreenDefinition<ConfigViewState
         return column switch
         {
             0 => Wording.ConfigSetting(row),
-            _ => Middle(Wording.ConfigValue(row, now), width),
+            _ => Middle(Wording.ConfigValue(row, now, clock.LocalTimeZone), width),
         };
     }
 
