@@ -31,11 +31,10 @@ public static partial class Wording
         ArgumentNullException.ThrowIfNull(detail);
         SessionRow row = detail.Row;
         Session session = row.Session;
-        string? waitingFor = WaitingFor(row);
         IReadOnlyList<IReadOnlyList<DetailLine>> facts =
         [
             [
-                new("Waiting", waitingFor ?? "nothing", waitingFor is null ? TextTone.Plain : TextTone.Amber),
+                WaitingLine(WaitingFor(row)),
                 new("Started", TimeAgo(session.StartedAt, now)),
                 new("Prompted", detail.LastPromptedAt is DateTimeOffset prompted ? TimeAgo(prompted, now) : "not seen since Vantage started"),
             ],
@@ -43,7 +42,7 @@ public static partial class Wording
             [new("Worktree", PlaceOf(row)), new("Branch", HeadLine(row.Head)), new("Tab", TabLine(row))],
             [
                 new("Changes", CountsLine(detail.Counts, now), Span: 2),
-                new("Memory", row.Memory is SessionMemory.Measured measured ? $"{Memory(measured.Size)} (m for the breakdown)" : "nothing to measure"),
+                new("Memory", MemoryLine(row.Memory)),
             ],
         ];
 
@@ -69,9 +68,27 @@ public static partial class Wording
         return new DetailContent(row.FolderName, facts, Listing(detail, now));
     }
 
-    /// <summary>The listing's reason, a first prompt for a session that needs input and has never had one, or null when it waits for nothing.</summary>
-    private static string? WaitingFor(SessionRow row) =>
-        (row.Session.WaitingFor is WaitingReason.Given given ? given.Text : null) ?? (row.Session.State.Kind == DisplayStateKind.NeedsInput && !row.HasTranscript ? "a first prompt" : null);
+    /// <summary>The listing's reason, a first prompt for a session that needs input and has never had one, or nothing.</summary>
+    private static WaitingReason WaitingFor(SessionRow row) => row switch
+    {
+        { Session.WaitingFor: WaitingReason.Given given } => given,
+        { Session.State.Kind: DisplayStateKind.NeedsInput, HasTranscript: false } => new WaitingReason.Given("a first prompt"),
+        _ => new WaitingReason.None(),
+    };
+
+    private static DetailLine WaitingLine(WaitingReason reason) => reason switch
+    {
+        WaitingReason.Given given => new("Waiting", given.Text, TextTone.Amber),
+        WaitingReason.None => new("Waiting", "nothing"),
+        _ => throw new UnreachableException(),
+    };
+
+    private static string MemoryLine(SessionMemory memory) => memory switch
+    {
+        SessionMemory.Measured measured => $"{Memory(measured.Size)} (m for the breakdown)",
+        SessionMemory.NothingToMeasure => "nothing to measure",
+        _ => throw new UnreachableException(),
+    };
 
     /// <summary>Where in its repository the session runs: the main checkout, a path inside it, or a linked worktree's slug (its folder's name without the repository's).</summary>
     private static string PlaceOf(SessionRow row)

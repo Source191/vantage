@@ -25,7 +25,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 - [x] 4.1 `MemoryBreakdownShould`: an unmeasured child is labelled from an empty command line and adds nothing, as today: red if it fails, then `MemoryBreakdown.Of` switching on `ProcessMeasure` green. Verify the facts pass with today's figures.
 - [x] 4.2 `SessionRowEnricherShould`: a session whose process is measured has `SessionMemory.Measured`, one without a process or whose process has gone `NothingToMeasure`: red, then `SessionRow.Memory` as a `SessionMemory` and `MemoryOf` building it green. Verify the facts pass.
-- [ ] 4.3 `WordingOfDetailShould`: "Memory" reads the figure with "(m for the breakdown)" or "nothing to measure", and "Waiting" reads the listing's reason in amber, "a first prompt" for a session needing input with no transcript, or "nothing" in plain: red, then `WordingOfDetail` on `SessionMemory` and `WaitingReason` green. Verify the facts pass with unchanged expected text and tones.
+- [x] 4.3 `WordingOfDetailShould`: "Memory" reads the figure with "(m for the breakdown)" or "nothing to measure", and "Waiting" reads the listing's reason in amber, "a first prompt" for a session needing input with no transcript, or "nothing" in plain: red, then `WordingOfDetail` on `SessionMemory` and `WaitingReason` green. Verify the facts pass with unchanged expected text and tones.
 
 ## 5. Version and the whole build
 
