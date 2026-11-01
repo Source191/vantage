@@ -39,10 +39,19 @@ public static class DiagnosticLine
         EffectRan ran => $"effect {ran.Effect} -> {ran.Outcome} in {Milliseconds(ran.Duration)}",
 
         ProcessSlow slow => $"slow {slow.Command} exit {slow.ExitCode} in {Milliseconds(slow.Duration)}",
+        RefreshSlow slow => $"slow refresh {Name(slow.Part)} in {Milliseconds(slow.Duration)}",
         ProcessFailedToStart failed => $"not started {failed.Command}: {failed.Failure}",
         Failed failed => failed.What is null ? $"failed {failed.Site}: {failed.Failure}" : $"failed {failed.Site} {failed.What}: {failed.Failure}",
         TerminalGuiReported reported => reported.Failure is null ? $"terminal.gui {reported.Level}" : $"terminal.gui {reported.Level}: {reported.Failure}",
         _ => throw new ArgumentOutOfRangeException(nameof(diagnostic), diagnostic.GetType().Name, "A diagnostic event has no line."),
+    };
+
+    private static string Name(RefreshPart part) => part switch
+    {
+        RefreshPart.SessionsListing => "sessions listing",
+        RefreshPart.SessionsEnrichment => "sessions enrichment",
+        RefreshPart.WorktreesScan => "worktrees scan",
+        RefreshPart.PullRequestRefresh => "pull-request refresh",
     };
 
     private static string Stamp(DateTimeOffset at) => at.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture);

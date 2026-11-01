@@ -86,6 +86,16 @@ public sealed class DiagnosticLineShould
         Body(reported).ShouldBe("terminal.gui Error: GitException");
     }
 
+    [Theory]
+    [InlineData(RefreshPart.SessionsListing, "slow refresh sessions listing in 3400 ms")]
+    [InlineData(RefreshPart.SessionsEnrichment, "slow refresh sessions enrichment in 3400 ms")]
+    [InlineData(RefreshPart.WorktreesScan, "slow refresh worktrees scan in 3400 ms")]
+    [InlineData(RefreshPart.PullRequestRefresh, "slow refresh pull-request refresh in 3400 ms")]
+    public void RenderASlowRefreshByPart(RefreshPart part, string line)
+    {
+        Body(new RefreshSlow(part, TimeSpan.FromMilliseconds(3400.9))).ShouldBe(line);
+    }
+
     [Fact]
     public void RenderACountWithItsWriteTimeAndTypicalFigures()
     {
