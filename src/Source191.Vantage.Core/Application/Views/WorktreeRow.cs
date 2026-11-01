@@ -29,8 +29,6 @@ public sealed record WorktreeRow(
 
     public string FolderName => Path.Name;
 
-    /// <summary>The branch while the callers still read one; goes once each matches the head.</summary>
-    public BranchName? Branch => Head is Head.OnBranch on ? on.Branch : null;
 
 
     /// <summary>The removal facts as far as the scan knows them; the branch flags are settled by the action. The folder name stands in for a branch the head does not name.</summary>
