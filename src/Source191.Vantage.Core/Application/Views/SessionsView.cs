@@ -256,7 +256,7 @@ public static class SessionsView
         {
             null => Unchanged(state with { Message = new StatusMessage.NoSessionSelected() }),
             { PullRequest: PullRequestLookup.Found found } => Effect(state with { Message = StatusMessage.None }, new OpenPullRequest(found.PullRequest)),
-            { PullRequest: PullRequestLookup.Missing missing } row => Unchanged(state with { Message = new StatusMessage.NoPullRequest(row.Session.Name, missing.Gap, missing.Host) }),
+            { PullRequest: PullRequestLookup.Missing missing } row => Unchanged(state with { Message = new StatusMessage.NoPullRequest(row.Session.Name, missing.Gap, missing.Host is LookupHost.Known known ? known.Host : null) }),
             _ => Unchanged(state),
         };
     }
