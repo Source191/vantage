@@ -59,7 +59,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
   Done: the stall line ends every set of counts, so `DiagnosticLogShould`, `CrashRecorderShould` (now with one stall) and `PeriodicCountsShould` expect it. Core suite: 2,089 passed.
 - [x] 5.8 `ConsoleScreen` adds one `app.AddTimeout(Heartbeat.Interval, ...)` that calls `Beat()`, removed with the other timers. Verify the hand-off check (`dotnet run --project tools\HeadlessTerminal -- check`) and the smoke check of the packed tool both exit 0.
   Done: the `Heartbeat` reaches the screen in `ScreenContext`, built in `ConsoleComposition` over the shared `StallCounts`; `Every` now takes an interval, so the refresh timers and the heartbeat share it and `StopTimers` removes all three. Hand-off check (Release build, Claude variables cleared) exited 0 on 1 November 2026. The smoke check of the packed tool is CI's `check` job (an unattended local smoke would act on the owner's repositories).
-- [ ] 5.9 README "What Vantage records": a UI thread bullet (stalls over 100 ms counted, over 500 ms a line, sleep ignored). Verify by reading against the spec delta.
+- [x] 5.9 README "What Vantage records": a UI thread bullet (stalls over 100 ms counted, over 500 ms a line, sleep ignored). Verify by reading against the spec delta.
+  Done: a sentence in the one "What it records" bullet (see 2.5), saying "the screen's thread" for a reader of the user guide; read against the spec delta.
 
 ## 6. The guide, the version and the whole-solution check
 
