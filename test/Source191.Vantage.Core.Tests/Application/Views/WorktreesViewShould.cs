@@ -264,7 +264,7 @@ public sealed class WorktreesViewShould
     [Fact]
     public void ShowALoadFailureAsABanner()
     {
-        Reduce(Loaded, new LoadFailed("git is not installed")).Banner.ShouldBe("git is not installed");
+        Reduce(Loaded, new LoadFailed("git is not installed")).Banner.ShouldBe(new LoadBanner.Failed("git is not installed"));
     }
 
     [Fact]
