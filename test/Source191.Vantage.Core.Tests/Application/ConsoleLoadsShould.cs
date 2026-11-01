@@ -1,0 +1,73 @@
+using Microsoft.Extensions.Time.Testing;
+using Source191.Vantage.Adapters.Claude;
+using Source191.Vantage.Adapters.Git;
+using Source191.Vantage.Application;
+using Source191.Vantage.Application.Diagnostics;
+using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
+using Source191.Vantage.Ports;
+using Source191.Vantage.TestDoubles;
+
+namespace Source191.Vantage.Core.Tests.Application;
+
+public sealed class ConsoleLoadsShould : IDisposable
+{
+    private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
+    private const string Root = @"C:\Users\me\source\repos";
+    private const string Repository = @"C:\Users\me\source\repos\Northwind.Orders";
+    private const string SettingsFile = @"C:\Users\me\AppData\Local\Vantage\config.json";
+
+    // A running background session in the repository, and an automated run (interactive, a process, no status).
+    private const string Listing = """
+        [{"pid":7001,"id":"81cdb0f9","cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"background","startedAt":1,"sessionId":"81cdb0f9-1111","name":"fix-orders","status":"idle","state":"blocked"},
+         {"pid":300,"cwd":"C:\\Users\\me\\source\\repos\\Northwind.Orders","kind":"interactive","startedAt":2,"sessionId":"0fe9bf3e-2222","name":"tmp-9d"}]
+        """;
+
+    private static readonly DateTimeOffset Noon = new(2026, 11, 1, 12, 0, 0, TimeSpan.Zero);
+
+    private readonly FakeProcessRunner claudeRuns = new FakeProcessRunner()
+        .Answer(request => request.Arguments.Contains("agents"), new ProcessResult(0, Listing, string.Empty));
+
+    private readonly FakeProcessRunner gitRuns = new FakeProcessRunner()
+        .AnswerAll(new ProcessResult(0, string.Empty, string.Empty))
+        .Answer(request => request.Arguments.Contains("--porcelain"), new ProcessResult(0, "worktree C:/Users/me/source/repos/Northwind.Orders\nHEAD a\nbranch refs/heads/main\n", string.Empty));
+
+    private readonly FakeFolders folders = new FakeFolders().WithDirectory(Path.Combine(Repository, ".git", "objects"));
+    private readonly FakeProcessRegistry registry = new();
+    private readonly InMemoryState store = new();
+    private readonly FakeTimeProvider clock = new(Noon);
+    private readonly CurrentSettings settings = TestSettings.Current(Root);
+    private readonly PullRequestCatalogue catalogue;
+
+    public ConsoleLoadsShould()
+    {
+        catalogue = new PullRequestCatalogue(new GitCli(new FakeProcessRunner().AnswerAll(new ProcessResult(2, string.Empty, string.Empty)), "git"), new FakePullRequests(), clock);
+    }
+
+    [Fact]
+    public async Task RefreshTheSessionsWithTheirAutomatedRuns()
+    {
+        registry.InTree(300, "claude", 1).Using(300, Noon.AddSeconds(-20), MemorySize.FromMegabytes(216));
+
+        ViewInput loaded = await Loads().LoadSessionsAsync(TestContext.Current.CancellationToken);
+
+        RowsLoaded rows = loaded.ShouldBeOfType<RowsLoaded>();
+        rows.Rows.Select(row => row.Session.Name).ShouldBe(["fix-orders"]);
+        rows.AutomatedRuns.ShouldBe(new AutomatedRuns(1, MemorySize.FromMegabytes(216)));
+    }
+
+    private ConsoleLoads Loads()
+    {
+        GitCli git = new(gitRuns, "git");
+        SessionRowEnricher enricher = new(git, store, registry, clock, new FakeTranscripts(), catalogue);
+        WorktreeInventory inventory = new(git, folders, settings, catalogue);
+        SetupFactsReader setup = new(new FakeTerminalFragment(), new FakeClaudeSettings(new NotificationChannelState.Unset()), store, SettingsFile, new DiagnosticLogSetting.Off());
+
+        return new ConsoleLoads(new LatestSessions(new ClaudeCli(claudeRuns, Claude)), enricher, inventory, setup, settings);
+    }
+
+    public void Dispose()
+    {
+        catalogue.Dispose();
+    }
+}
