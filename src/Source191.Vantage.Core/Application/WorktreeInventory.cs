@@ -40,7 +40,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
                 }
                 else if (IsEmptyLeftover(child))
                 {
-                    rows.Add(Leftover(root, child, new WorktreeObservation(false, true, null, false, null, EmptyLeftoverFolder: true), ownerExists: false));
+                    rows.Add(Leftover(root, child, new WorktreeObservation(false, true, new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), EmptyLeftoverFolder: true), ownerExists: false));
                 }
             }
         }
@@ -116,7 +116,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
 
             registered.Add(path);
             bool folderExists = entry.PrunableReason is null && folders.DirectoryExists(path.Value);
-            WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.LockReason, false, null, false));
+            WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.LockReason is string reason ? new WorktreeLock.Locked(reason) : new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), false));
             rows.Add(folderExists
                 ? await InspectedAsync(repository, path, entry, health, cancellationToken)
                 : new WorktreeRow(repository, path, entry.Head, health, 0, 0, null, new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: false));
@@ -168,7 +168,13 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             string gitFile = IOPath.Combine(folder.Value, ".git");
             string? target = folders.FileExists(gitFile) ? GitDirOf(gitFile) : null;
             bool? targetExists = folders.FileExists(gitFile) ? target is not null && folders.DirectoryExists(target) : null;
-            WorktreeObservation observation = new(false, true, null, UnderClaudeWorktrees: true, targetExists, false);
+            GitPointer pointer = targetExists switch
+            {
+                true => new GitPointer.TargetExists(),
+                false => new GitPointer.TargetGone(),
+                null => new GitPointer.NoGitFile(),
+            };
+            WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), UnderClaudeWorktrees: true, pointer, false);
             yield return Leftover(repository, folder, observation, ownerExists: true);
         }
     }
@@ -185,7 +191,13 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         FolderPath owner = registeredWith ?? folder.Parent ?? folder;
         bool ownerExists = folders.DirectoryExists(IOPath.Combine(owner.Value, ".git"));
         bool targetExists = gitDir is not null && folders.DirectoryExists(gitDir);
-        WorktreeObservation observation = new(false, true, null, false, GitFileTargetExists: targetExists, false, OwnerRepository: registeredWith is not null && ownerExists ? registeredWith : null);
+        GitPointer pointer = (targetExists, registeredWith, ownerExists) switch
+        {
+            (false, _, _) => new GitPointer.TargetGone(),
+            (true, FolderPath registeredOwner, true) => new GitPointer.RegisteredElsewhere(registeredOwner),
+            _ => new GitPointer.TargetExists(),
+        };
+        WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), false, pointer, false);
 
         return Leftover(owner, folder, observation, ownerExists);
     }
