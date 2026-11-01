@@ -60,6 +60,11 @@ public sealed record ReleaseNotes
             .Select(section => section with { Entries = [.. section.Entries.Where(entry => entry.Kind != ChangeKind.Internal)] })];
     }
 
+    /// <summary>Notes are equal when their text is, since the sections are read from it.</summary>
+    public bool Equals(ReleaseNotes? other) => other is not null && string.Equals(Text, other.Text, StringComparison.Ordinal);
+
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Text);
+
     /// <summary>The line without control characters (Unicode category Cc, which holds ESC, BEL and the carriage return).</summary>
     private static string Visible(string line) => string.Concat(line.Where(character => !char.IsControl(character)));
 
