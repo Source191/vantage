@@ -1,6 +1,7 @@
 using Source191.Vantage.Application;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Domain;
 using Terminal.Gui.App;
 using Terminal.Gui.Views;
 namespace Source191.Vantage.Tui;
@@ -26,7 +27,7 @@ internal static class ResumeChecklistDialog
         for (int index = 0; index < stopped.Count; index++)
         {
             SessionRow row = stopped[index];
-            CheckBox box = new() { X = 1, Y = 2 + index, Text = $"{row.Session.Name}  ({row.Repository}, {row.Branch?.Value ?? "-"})", Value = CheckState.UnChecked };
+            CheckBox box = new() { X = 1, Y = 2 + index, Text = $"{row.Session.Name}  ({row.Repository}, {(row.Head is Head.OnBranch on ? on.Branch.Value : "-")})", Value = CheckState.UnChecked };
             boxes.Add(box);
             dialog.Add(box);
         }
