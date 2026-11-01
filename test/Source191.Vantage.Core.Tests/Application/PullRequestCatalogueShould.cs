@@ -149,7 +149,7 @@ public sealed class PullRequestCatalogueShould : IDisposable
 
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
-        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Missing(expected));
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Missing(expected, new LookupHost.NotRead()), "no host was read");
         hosts.Calls.ShouldBeEmpty();
     }
 
@@ -160,7 +160,7 @@ public sealed class PullRequestCatalogueShould : IDisposable
 
         await catalogue.RefreshStaleAsync([(Checkout, Fix)]);
 
-        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Failed));
+        catalogue.Find(Checkout, OnFix).ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Failed, new LookupHost.NotRead()), "a lookup that failed read no host");
     }
 
     [Fact]
