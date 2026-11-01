@@ -15,7 +15,7 @@ public sealed class WindowsTerminalShould
     public async Task OpenATabByRunningWtWithTheBuiltArguments()
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
-        WindowsTerminal terminal = new(processes, new FakeTerminalFragment(), Wt);
+        WindowsTerminal terminal = new(processes, new FakeTerminalFragment(), new ProgramLocation.Found(Wt));
 
         await terminal.OpenTabAsync(Launch, CancellationToken.None);
 
@@ -28,7 +28,7 @@ public sealed class WindowsTerminalShould
     public async Task OpenTabsInTheSessionProfileWhenTheFragmentExists()
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
-        WindowsTerminal terminal = new(processes, new FakeTerminalFragment().Installed(), Wt);
+        WindowsTerminal terminal = new(processes, new FakeTerminalFragment().Installed(), new ProgramLocation.Found(Wt));
 
         await terminal.OpenTabAsync(Launch, CancellationToken.None);
 
@@ -39,7 +39,7 @@ public sealed class WindowsTerminalShould
     public async Task OpenTabsInTheDefaultProfileOtherwise()
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
-        WindowsTerminal terminal = new(processes, new FakeTerminalFragment(), Wt);
+        WindowsTerminal terminal = new(processes, new FakeTerminalFragment(), new ProgramLocation.Found(Wt));
 
         await terminal.OpenTabAsync(Launch, CancellationToken.None);
 
@@ -50,7 +50,7 @@ public sealed class WindowsTerminalShould
     public async Task ThrowWhenWindowsTerminalRefusesTheTab()
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(1, string.Empty, "bad args"));
-        WindowsTerminal terminal = new(processes, new FakeTerminalFragment(), Wt);
+        WindowsTerminal terminal = new(processes, new FakeTerminalFragment(), new ProgramLocation.Found(Wt));
 
         TerminalException exception = await Should.ThrowAsync<TerminalException>(() => terminal.OpenTabAsync(Launch, CancellationToken.None));
 
@@ -58,14 +58,14 @@ public sealed class WindowsTerminalShould
     }
 
     [Fact]
-    public async Task ThrowNamingWtWhenItIsNotOnThePath()
+    public async Task RefuseToOpenATabWithoutWt()
     {
         FakeProcessRunner processes = new();
-        WindowsTerminal terminal = new(processes, new FakeTerminalFragment(), executable: null);
+        WindowsTerminal terminal = new(processes, new FakeTerminalFragment(), new ProgramLocation.Missing());
 
         TerminalException exception = await Should.ThrowAsync<TerminalException>(() => terminal.OpenTabAsync(Launch, CancellationToken.None));
 
-        exception.Message.ShouldContain("wt.exe");
+        exception.Message.ShouldBe("Windows Terminal (wt.exe) was not found on the PATH, so no tab can be opened.");
         processes.CapturedRequests.ShouldBeEmpty();
     }
 }
