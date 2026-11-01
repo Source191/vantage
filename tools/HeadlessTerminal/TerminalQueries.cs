@@ -8,7 +8,7 @@ namespace Source191.Vantage.HeadlessTerminal;
 /// <see href="https://learn.microsoft.com/windows/console/console-virtual-terminal-sequences">primary</see> and
 /// <see href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html">secondary device attributes, XTVERSION</see>,
 /// cursor position and background colour. The XTVERSION reply can be delayed so it lands
-/// after the program has exited, which is what happens to Vantage after a detach.
+/// after the program has exited, which is what happens to <c>vantage here</c> after a detach.
 /// </summary>
 public sealed class TerminalQueries(int xtversionDelayMs)
 {

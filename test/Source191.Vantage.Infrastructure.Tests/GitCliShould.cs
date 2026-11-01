@@ -78,7 +78,7 @@ public sealed class GitCliShould
         exception.Message.ShouldContain("already checked out");
     }
 
-    /// <summary>The commands (list, add, remove, prune, count, delete): a non-zero exit is a GitException naming the command and git's words.</summary>
+    /// <summary>The commands (list worktrees, remove, prune, count, delete, list ignored files): a non-zero exit is a GitException naming the command and git's words.</summary>
     [Theory]
     [InlineData("list worktrees")]
     [InlineData("remove a worktree")]

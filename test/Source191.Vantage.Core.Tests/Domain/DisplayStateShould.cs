@@ -2,7 +2,7 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Core.Tests.Domain;
 
-/// <summary>The six display states and their labels; mapping the CLI's words to them is <c>ClaudeStatesShould</c>'s.</summary>
+/// <summary>The six named display states and Unknown, and their labels; mapping the CLI's words to them is <c>ClaudeStatesShould</c>'s.</summary>
 public sealed class DisplayStateShould
 {
     [Fact]

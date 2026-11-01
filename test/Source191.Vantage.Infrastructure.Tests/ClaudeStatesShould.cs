@@ -3,7 +3,7 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Infrastructure.Tests;
 
-/// <summary>The listing's words (status busy, waiting, idle; state working, blocked, done, failed) as the six display states.</summary>
+/// <summary>The listing's words (status busy, waiting, idle; state working, blocked, done, failed) as the six named display states and Unknown.</summary>
 public sealed class ClaudeStatesShould
 {
     [Fact]
