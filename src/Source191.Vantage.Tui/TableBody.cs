@@ -13,58 +13,6 @@ using GuiKey = Terminal.Gui.Input.Key;
 
 namespace Source191.Vantage.Tui;
 
-/// <summary>What the console asks of a tab, whatever its rows: its view, its words for the frame, its keys and its refresh.</summary>
-internal interface ITabBody
-{
-    View View { get; }
-
-    TimeSpan RefreshEvery { get; }
-
-    string Title { get; }
-
-    IReadOnlyList<TextPart> Counts { get; }
-
-    /// <summary>The table's title for the frame's line, or the failure banner in red when the last load failed.</summary>
-    TextPart FrameTitle { get; }
-
-    KeyBar Bar(bool updateKnown);
-
-    /// <summary>What the console's status line says while this tab is shown: its last message, or its standing hint.</summary>
-    StatusMessage Status { get; }
-
-    /// <summary>Whether an action this tab started is still running, which the status line shows with its spinner.</summary>
-    bool Running { get; }
-
-    void OnKey(GuiKey key);
-
-    void Press(Key key);
-
-    /// <summary>An input for the tab's reducer that is not a key, such as the status line's close mark or a success's time running out.</summary>
-    void Reduce(ViewInput input);
-
-    void TriggerLoad();
-
-    void Redraw();
-
-    /// <summary>
-    /// Tells the tab whether it is the one shown. A hidden tab keeps its spinners still: a spinner redraws its own tab alone,
-    /// title and frame included, and a hidden tab drawn alone lands on top of the shown one and closes its edge.
-    /// </summary>
-    void Shown(bool shown);
-}
-
-/// <summary>Where a tab hands what is not its own: an effect that leaves the console, a tab switch, a question only the Sessions tab's rows answer, and a change the frame must redraw.</summary>
-internal interface ITabHost
-{
-    void Leave(ViewEffect effect);
-
-    void Switch(ISwitchesTab effect);
-
-    RowDecision Consult(IConsultsSessions effect);
-
-    void FrameChanged();
-}
-
 /// <summary>
 /// One tab of the console: a view's rows in a table with its waiting indicator (its title goes on the frame), the detail pane under
 /// the table when the view has one (read for the selected row off the UI thread, only while the tab is shown), the reducer it
@@ -635,19 +583,5 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         public sealed record NoPane : DetailPart;
 
         public sealed record Pane(IDetailSource<TRow> Source, DetailRequests Requests, DetailPane View) : DetailPart;
-    }
-}
-
-/// <summary>Vantage's tooltips: black on amber, so they read as tooltips and not as more screen text.</summary>
-internal static class ToolTips
-{
-    /// <summary>Each line keeps its breaks and a cell of margin either side, and the view is exactly as tall as its lines.</summary>
-    public static Label View(string text)
-    {
-        string[] lines = [.. text.Split('\n').Select(line => $" {line} ")];
-        Label label = new() { Width = lines.Max(line => line.Length), Height = lines.Length, Text = string.Join('\n', lines) };
-        label.SetScheme(Palette.Pair(Palette.Background, Palette.Amber));
-
-        return label;
     }
 }
