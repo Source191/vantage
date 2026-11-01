@@ -1,4 +1,5 @@
 using Interop.UIAutomationClient;
+using Source191.Vantage.Domain;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -13,14 +14,14 @@ internal static class UiAutomationTabs
 {
     private const string TerminalProcessName = "WindowsTerminal";
 
-    public static bool Select(int? terminalProcessId, string title)
+    public static bool Select(TerminalWindow window, string title)
     {
         try
         {
             IUIAutomation automation = new CUIAutomation8();
             IUIAutomationElement desktop = automation.GetRootElement();
 
-            return TerminalProcesses(terminalProcessId).Any(processId => SelectIn(automation, desktop, processId, title));
+            return TerminalProcesses(window).Any(processId => SelectIn(automation, desktop, processId, title));
         }
         catch (COMException)
         {
@@ -28,13 +29,15 @@ internal static class UiAutomationTabs
         }
     }
 
-    private static List<int> TerminalProcesses(int? known)
+    private static List<int> TerminalProcesses(TerminalWindow window) => window switch
     {
-        if (known is int processId)
-        {
-            return [processId];
-        }
+        TerminalWindow.Owning owning => [owning.ProcessId],
+        TerminalWindow.Any => EveryTerminalProcess(),
+        _ => throw new UnreachableException(),
+    };
 
+    private static List<int> EveryTerminalProcess()
+    {
         List<int> found = [];
         foreach (Process process in Process.GetProcessesByName(TerminalProcessName))
         {
