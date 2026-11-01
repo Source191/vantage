@@ -55,7 +55,7 @@ public sealed class GitCliShould
 
         Only.ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe("git"),
-            request => request.WorkingDirectory.ShouldBe(Repository),
+            request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Repository)),
             request => request.Arguments.ShouldBe(["worktree", "list", "--porcelain"]));
         entries.Single().Head.ShouldBe(new Head.OnBranch(BranchName.From("main")));
     }
@@ -161,7 +161,7 @@ public sealed class GitCliShould
         int changed = await Git.CountChangedFilesAsync(Worktree, CancellationToken.None);
 
         Only.ShouldSatisfyAllConditions(
-            request => request.WorkingDirectory.ShouldBe(Worktree),
+            request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Worktree)),
             request => request.Arguments.ShouldBe(["status", "--porcelain"]));
         changed.ShouldBe(3);
     }
@@ -304,7 +304,7 @@ public sealed class GitCliShould
         string? url = await Git.OriginUrlAsync(Repository, CancellationToken.None);
 
         Only.ShouldSatisfyAllConditions(
-            request => request.WorkingDirectory.ShouldBe(Repository),
+            request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Repository)),
             request => request.Arguments.ShouldBe(["remote", "get-url", "origin"]));
         url.ShouldBe("https://github.com/northwind/Northwind.Orders.git");
     }

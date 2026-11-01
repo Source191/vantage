@@ -46,7 +46,7 @@ public sealed class SessionRowEnricherShould : IDisposable
         first.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
         second.PullRequest.ShouldBe(new PullRequestLookup.Found(open));
         hosts.Calls.Count.ShouldBe(1);
-        remotes.CapturedRequests.Single().WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
+        remotes.CapturedRequests.Single().WorkingDirectory.ShouldBe(new WorkingFolder.At(@"C:\repos\Northwind.Orders"));
     }
 
     [Fact]
@@ -286,9 +286,9 @@ public sealed class SessionRowEnricherShould : IDisposable
 
     private void AnswerGit(string directory, string root, string commonDir, string branch)
     {
-        processes.Answer(request => request.WorkingDirectory == directory && request.Arguments.Contains("--show-toplevel"), new ProcessResult(0, root + "\n", string.Empty));
-        processes.Answer(request => request.WorkingDirectory == directory && request.Arguments.Contains("--git-common-dir"), new ProcessResult(0, commonDir + "\n", string.Empty));
-        processes.Answer(request => request.WorkingDirectory == directory && request.Arguments.Contains("--show-current"), new ProcessResult(0, branch + "\n", string.Empty));
+        processes.Answer(request => request.WorkingDirectory == new WorkingFolder.At(directory) && request.Arguments.Contains("--show-toplevel"), new ProcessResult(0, root + "\n", string.Empty));
+        processes.Answer(request => request.WorkingDirectory == new WorkingFolder.At(directory) && request.Arguments.Contains("--git-common-dir"), new ProcessResult(0, commonDir + "\n", string.Empty));
+        processes.Answer(request => request.WorkingDirectory == new WorkingFolder.At(directory) && request.Arguments.Contains("--show-current"), new ProcessResult(0, branch + "\n", string.Empty));
     }
 
     private static BackgroundSession Session(string workingDirectory)

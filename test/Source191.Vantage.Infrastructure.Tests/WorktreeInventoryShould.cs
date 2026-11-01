@@ -44,7 +44,7 @@ public sealed class WorktreeInventoryShould : IDisposable
         first.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.Looking));
         second.PullRequest.ShouldBe(new PullRequestLookup.Found(open));
         hosts.Calls.Count.ShouldBe(1);
-        remotes.CapturedRequests.ShouldAllBe(request => request.WorkingDirectory == repository);
+        remotes.CapturedRequests.ShouldAllBe(request => request.WorkingDirectory == new WorkingFolder.At(repository));
     }
 
     [Fact]

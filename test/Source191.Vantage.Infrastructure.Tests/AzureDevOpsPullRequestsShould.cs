@@ -39,7 +39,7 @@ public sealed class AzureDevOpsPullRequestsShould
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe(Az),
-            request => request.WorkingDirectory.ShouldBe(Checkout.Value),
+            request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Checkout.Value)),
             request => request.Arguments.ShouldBe(["repos", "pr", "list", "--org", "https://dev.azure.com/northwind", "--project", "Northwind Trading", "--repository", "Northwind.Orders", "--source-branch", "fix-123", "--status", "all", "--top", "20", "--output", "json"]));
         listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.ShouldBe(
         [

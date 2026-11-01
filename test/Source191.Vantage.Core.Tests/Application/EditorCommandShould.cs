@@ -14,6 +14,7 @@ public sealed class EditorCommandShould
 
         request.FileName.ShouldBe(@"C:\Code\Code.exe");
         request.Arguments.ShouldBe([folder.Value]);
+        request.WorkingDirectory.ShouldBe(Ports.WorkingFolder.Inherit, "an editor starts in Vantage's folder, as before");
     }
 
     [Fact]
@@ -26,5 +27,6 @@ public sealed class EditorCommandShould
 
         request.FileName.ShouldBe(@"C:\Tools\subl.exe");
         request.Arguments.ShouldBe(["-n", @"--folder=C:\Users\me\source\repos\Northwind.Orders", "--wait"]);
+        request.WorkingDirectory.ShouldBe(Ports.WorkingFolder.Inherit);
     }
 }

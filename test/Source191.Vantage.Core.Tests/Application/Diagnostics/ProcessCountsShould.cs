@@ -5,8 +5,8 @@ namespace Source191.Vantage.Core.Tests.Application.Diagnostics;
 
 public sealed class ProcessCountsShould
 {
-    private static readonly ChildCommand WorktreeList = ChildCommand.For(new ProcessRequest("git", ["worktree", "list", "--porcelain"], null));
-    private static readonly ChildCommand WorktreeRemove = ChildCommand.For(new ProcessRequest("git", ["worktree", "remove", "x"], null));
+    private static readonly ChildCommand WorktreeList = ChildCommand.For(new ProcessRequest("git", ["worktree", "list", "--porcelain"], WorkingFolder.Inherit));
+    private static readonly ChildCommand WorktreeRemove = ChildCommand.For(new ProcessRequest("git", ["worktree", "remove", "x"], WorkingFolder.Inherit));
 
     [Fact]
     public void CountRunsByProgramSubcommandAndExitCode()
