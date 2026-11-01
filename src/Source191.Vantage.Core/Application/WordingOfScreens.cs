@@ -185,7 +185,7 @@ public static partial class Wording
     [
         new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
         new("TAB", $"a block in the tab's colour, faded as the tab looks from Vantage's own tab,\nwhile a Vantage tab shows the session; {TerminalSwatch} grey for a plain claude in its own terminal"),
-        new("STATE", "◐ needs input (amber), ● working (cyan), ○ idle (white),\n✓ completed (green), ✗ failed (red), ■ stopped (grey)"),
+        new("STATE", "◐ needs input (amber), ● working (cyan), ○ idle (white),\n✓ completed (green), ✗ failed (red), ■ stopped (grey), ? unknown (grey)"),
         new("REPOSITORY", "the repository it runs in, or the folder's label outside a repository"),
         new("PR", "its pull request: #123 on GitHub (open, draft, merged, closed),\n!123 on Azure DevOps (active, draft, completed, abandoned); blank if none or not yet known"),
         new("AGE", "time since the session started"),
