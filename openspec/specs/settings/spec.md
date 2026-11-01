@@ -63,7 +63,7 @@ The editor setting SHALL be one of the presets VS Code, Visual Studio, Rider and
 The settings SHALL be shown and edited on the Config tab, a row at a time: the repository roots together, one per line, and the worktree root, the editor and the default worktree base each in a dialog for that one value, the update check by Enter on its row. Esc SHALL close a dialog without changing anything. No other key SHALL open a settings dialog.
 
 #### Scenario: Open settings
-- **WHEN** the user presses 3, or Right from the Worktrees tab
+- **WHEN** the user presses Right from the Worktrees tab, or clicks the Config title
 - **THEN** the Config tab shows the current roots, worktree root, editor, default base and update check
 
 #### Scenario: Cancel
