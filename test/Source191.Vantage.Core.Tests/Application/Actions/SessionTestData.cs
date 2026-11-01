@@ -52,12 +52,12 @@ internal static class SessionTestData
     /// <summary>The <see cref="Terminal"/> session as a row on main.</summary>
     public static SessionRow Interactive(string name, int processId, DisplayState? state = null)
     {
-        return new SessionRow(Terminal(name, processId, state), "Northwind.Orders", new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
+        return new SessionRow(Terminal(name, processId, state), new SessionLocation.InRepository("Northwind.Orders", FolderPath.From(Repository)), new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
     }
 
     /// <summary>The <see cref="Job"/> session as a row, on its own branch in a worktree or on main.</summary>
     public static SessionRow Background(string directory, bool isWorktree, DisplayState? state = null)
     {
-        return new SessionRow(Job(directory, state), "Northwind.Orders", new Head.OnBranch(BranchName.From(isWorktree ? "fix-123" : "main")), new LiveTab.None(), HasTranscript: true);
+        return new SessionRow(Job(directory, state), new SessionLocation.InRepository("Northwind.Orders", FolderPath.From(Repository)), new Head.OnBranch(BranchName.From(isWorktree ? "fix-123" : "main")), new LiveTab.None(), HasTranscript: true);
     }
 }

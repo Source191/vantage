@@ -146,13 +146,13 @@ public sealed class WordingOfKeyBarShould
     {
         BackgroundSession session = new(SessionId.From(id), JobId.From("81cdb0f9"), name, FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), DateTimeOffset.UnixEpoch, state, process);
 
-        return new SessionRow(session, "Northwind.Orders", new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
+        return new SessionRow(session, new SessionLocation.InRepository("Northwind.Orders", session.WorkingDirectory), new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
     }
 
     private static SessionRow Terminal(string id, string name, bool hasTranscript)
     {
         InteractiveSession session = new(SessionId.From(id), name, FolderPath.From(@"C:\Users\me\source\repos"), DateTimeOffset.UnixEpoch, DisplayState.Idle, ProcessId: 200);
 
-        return new SessionRow(session, "repos", new Head.Unknown(), new LiveTab.None(), hasTranscript);
+        return new SessionRow(session, new SessionLocation.Outside("repos"), new Head.Unknown(), new LiveTab.None(), hasTranscript);
     }
 }

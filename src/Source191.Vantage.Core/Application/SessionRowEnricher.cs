@@ -14,7 +14,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
     private static readonly TimeSpan CacheWindow = TimeSpan.FromSeconds(30);
 
     // Refreshes can overlap (the timer and the refresh after an action), so the cache must take concurrent writes.
-    private readonly System.Collections.Concurrent.ConcurrentDictionary<FolderPath, (DateTimeOffset CachedAt, Location Location)> locations = new();
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<FolderPath, (DateTimeOffset CachedAt, Located Located)> locations = new();
 
     public async Task<IReadOnlyList<SessionRow>> EnrichAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
     {
@@ -25,15 +25,14 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         List<(FolderPath Checkout, BranchName Branch)> branches = [];
         foreach (Session session in sessions)
         {
-            Location location = await LocateAsync(session.WorkingDirectory, cancellationToken);
+            Located located = await LocateAsync(session.WorkingDirectory, cancellationToken);
             LiveTab tab = liveTabs.TryGetValue(session.SessionId, out TabColour? colour) ? new LiveTab.Open(colour) : new LiveTab.None();
-            SessionRow row = new(session, location.Repository, location.Head, tab, transcripts.HasMessages(session.SessionId.Value))
+            SessionRow row = new(session, located.Location, located.Head, tab, transcripts.HasMessages(session.SessionId.Value))
             {
                 Memory = MemoryOf(session, processTable),
-                Checkout = location.Checkout,
             };
-            rows.Add(location.Checkout is null ? row : row with { PullRequest = pullRequests.Find(location.Checkout, location.Head) });
-            branches.AddRange(location is { Checkout: FolderPath checkout, Head: Head.OnBranch on } ? [(checkout, on.Branch)] : []);
+            rows.Add(located.Location is SessionLocation.InRepository inRepository ? row with { PullRequest = pullRequests.Find(inRepository.Checkout, located.Head) } : row);
+            branches.AddRange(located is { Location: SessionLocation.InRepository { Checkout: FolderPath checkout }, Head: Head.OnBranch on } ? [(checkout, on.Branch)] : []);
         }
 
         // Never awaited: the rows show what the catalogue already holds, and a later refresh picks up what lands.
@@ -90,38 +89,38 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         return colours;
     }
 
-    private async Task<Location> LocateAsync(FolderPath directory, CancellationToken cancellationToken)
+    private async Task<Located> LocateAsync(FolderPath directory, CancellationToken cancellationToken)
     {
         DateTimeOffset now = clock.GetUtcNow();
-        if (locations.TryGetValue(directory, out (DateTimeOffset CachedAt, Location Location) cached) && now - cached.CachedAt < CacheWindow)
+        if (locations.TryGetValue(directory, out (DateTimeOffset CachedAt, Located Located) cached) && now - cached.CachedAt < CacheWindow)
         {
-            return cached.Location;
+            return cached.Located;
         }
 
-        Location location = await AskGitAsync(directory, cancellationToken);
-        locations[directory] = (now, location);
+        Located located = await AskGitAsync(directory, cancellationToken);
+        locations[directory] = (now, located);
 
-        return location;
+        return located;
     }
 
-    private async Task<Location> AskGitAsync(FolderPath directory, CancellationToken cancellationToken)
+    private async Task<Located> AskGitAsync(FolderPath directory, CancellationToken cancellationToken)
     {
         string? root = await git.RepositoryRootAsync(directory.Value, cancellationToken);
         if (root is null)
         {
-            return new Location(directory.Name, new Head.Unknown(), Checkout: null);
+            return new Located(new SessionLocation.Outside(directory.Name), new Head.Unknown());
         }
 
         string? main = await git.MainCheckoutOfAsync(directory.Value, cancellationToken);
         string? branch = await git.CurrentBranchAsync(directory.Value, cancellationToken);
-        FolderPath? mainCheckout = FolderPath.TryParse(main, out FolderPath? parsedMain) ? parsedMain : null;
-        FolderPath? rootPath = FolderPath.TryParse(root, out FolderPath? parsedRoot) ? parsedRoot : null;
         Head head = BranchName.TryParse(branch, out BranchName? current) ? new Head.OnBranch(current) : new Head.Unknown();
-        FolderPath? repository = mainCheckout ?? rootPath;
+        SessionLocation location = FolderPath.TryParse(main, out FolderPath? checkout) || FolderPath.TryParse(root, out checkout)
+            ? new SessionLocation.InRepository(checkout.Name, checkout)
+            : new SessionLocation.Outside(root);
 
-        return new Location(repository?.Name ?? root, head, repository);
+        return new Located(location, head);
     }
 
-    /// <summary>Checkout is the main checkout (or the root when git names none), where the pull request lookup runs. Head is Unknown outside a repository and where git names no branch, since the port cannot tell a detached head from a failure.</summary>
-    private sealed record Location(string Repository, Head Head, FolderPath? Checkout);
+    /// <summary>The checkout is the main checkout (or the root when git names none), where the pull request lookup runs; a root git names that Vantage cannot read as a folder is Outside under its text. Head is Unknown outside a repository and where git names no branch, since the port cannot tell a detached head from a failure.</summary>
+    private sealed record Located(SessionLocation Location, Head Head);
 }

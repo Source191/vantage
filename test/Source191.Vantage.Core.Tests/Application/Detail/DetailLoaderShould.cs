@@ -69,7 +69,7 @@ public sealed class DetailLoaderShould
     [Fact]
     public async Task LeaveOutGitCountsForAFolderOutsideARepository()
     {
-        SessionRow outside = Row(process: new JobProcess.None()) with { Checkout = null };
+        SessionRow outside = Row(process: new JobProcess.None()) with { Location = new SessionLocation.Outside("Northwind.Billing") };
 
         SessionDetail detail = await Loader().SessionAsync(outside, CancellationToken.None);
 
@@ -132,7 +132,7 @@ public sealed class DetailLoaderShould
     {
         BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon, DisplayState.Working, process);
 
-        return new SessionRow(session, "Northwind.Billing", new Head.OnBranch(BranchName.From("invoice-pdf")), new LiveTab.None(), HasTranscript: true) { Checkout = Repository };
+        return new SessionRow(session, new SessionLocation.InRepository("Northwind.Billing", Repository), new Head.OnBranch(BranchName.From("invoice-pdf")), new LiveTab.None(), HasTranscript: true);
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
