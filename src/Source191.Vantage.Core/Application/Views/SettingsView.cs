@@ -18,6 +18,8 @@ public static class SettingsView
             SettingsInput.FoldersChosen { Folders.Count: 0 } => Changed(state),
             SettingsInput.FoldersChosen chosen when state.Browses == SettingsBrowse.OneFolder => Changed(state with { Text = state.Text with { WorktreeRoot = chosen.Folders[0] } }),
             SettingsInput.FoldersChosen chosen => Changed(state with { Text = state.Text with { Roots = WithLines(state.Text.Roots, chosen.Folders) } }),
+            SettingsInput.FileChosen { Path.Length: 0 } => Changed(state),
+            SettingsInput.FileChosen chosen => Changed(state with { Text = state.Text with { Executable = chosen.Path } }),
             SettingsInput.WorktreeRootChanged changed => Changed(state with { Text = state.Text with { WorktreeRoot = changed.Text } }),
             SettingsInput.PresetChanged changed => Changed(state with { Text = state.Text with { Preset = changed.Preset } }),
             SettingsInput.PresetsLocated located => Changed(state with { Presets = new PresetSearch.Looked(located.Missing) }),

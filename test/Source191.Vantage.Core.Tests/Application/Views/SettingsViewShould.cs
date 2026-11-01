@@ -195,6 +195,39 @@ public sealed class SettingsViewShould
     }
 
     [Fact]
+    public void BrowseForAFileOnlyWhileCustomIsChosen()
+    {
+        SettingsState opened = Opened(new SettingsScope.Editor());
+
+        opened.Browses.ShouldBe(SettingsBrowse.No);
+        Reduce(opened, new SettingsInput.PresetChanged(EditorPreset.Custom)).Browses.ShouldBe(SettingsBrowse.OneFile);
+        Reduce(Reduce(opened, new SettingsInput.PresetChanged(EditorPreset.Custom)), new SettingsInput.PresetChanged(EditorPreset.Rider)).Browses.ShouldBe(SettingsBrowse.No);
+    }
+
+    [Fact]
+    public void ReplaceTheExecutableWithTheFileChosen()
+    {
+        SettingsState custom = Reduce(Reduce(Opened(new SettingsScope.Editor()), new SettingsInput.PresetChanged(EditorPreset.Custom)), new SettingsInput.ExecutableChanged(@"C:\Tools\old.exe"));
+
+        SettingsState chosen = Reduce(custom, new SettingsInput.FileChosen(@"C:\Tools\subl.exe"));
+
+        chosen.Text.Executable.ShouldBe(@"C:\Tools\subl.exe");
+        Reduce(custom, new SettingsInput.FileChosen(string.Empty)).ShouldBe(custom, "a cancelled picker changes nothing");
+        SettingsView.Reduce(Reduce(chosen, new SettingsInput.ArgumentsChanged("-n {folder}")), new SettingsInput.Save()).Effect.ShouldBeOfType<SettingsEffect.Save>()
+            .Settings.Editor.ShouldBe(EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), "nothing is saved until F5, which checks the file like a typed one");
+    }
+
+    [Fact]
+    public void BrowseForTheExecutableFromTheFolderHoldingIt()
+    {
+        SettingsState custom = Reduce(Opened(new SettingsScope.Editor()), new SettingsInput.PresetChanged(EditorPreset.Custom));
+
+        Reduce(custom, new SettingsInput.ExecutableChanged(@"C:\Tools\subl.exe")).BrowseFrom.ShouldBe(new BrowseStart.At(FolderPath.From(@"C:\Tools")));
+        Reduce(custom, new SettingsInput.ExecutableChanged("subl.exe")).BrowseFrom.ShouldBe(new BrowseStart.NoFolderTyped());
+        custom.BrowseFrom.ShouldBe(new BrowseStart.NoFolderTyped(), "nothing typed yet");
+    }
+
+    [Fact]
     public void ClearTheProblemOnceTheValueIsValid()
     {
         SettingsState refused = SettingsView.Reduce(Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("repos")), new SettingsInput.Save()).State;

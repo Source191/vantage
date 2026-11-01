@@ -11,6 +11,9 @@ public abstract record SettingsInput
     /// <summary>The folders chosen in the picker, in the order chosen; none when it was cancelled.</summary>
     public sealed record FoldersChosen(IReadOnlyList<string> Folders) : SettingsInput;
 
+    /// <summary>The file chosen in the picker for a custom editor's executable; empty when it was cancelled.</summary>
+    public sealed record FileChosen(string Path) : SettingsInput;
+
     public sealed record WorktreeRootChanged(string Text) : SettingsInput;
 
     public sealed record PresetChanged(EditorPreset Preset) : SettingsInput;
