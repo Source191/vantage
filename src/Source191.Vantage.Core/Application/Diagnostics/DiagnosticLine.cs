@@ -47,6 +47,7 @@ public static class DiagnosticLine
         Started started => $"started {Environment(started)}",
         ViewShown view => $"view {view.View}",
         DialogShown dialog => $"dialog {dialog.Dialog}",
+        PackagedNotesUnreadable unreadable => $"no readable release notes in the package of {unreadable.Running.Text}",
         EffectRan ran => $"effect {ran.Effect} -> {ran.Outcome} in {Milliseconds(ran.Duration)}",
 
         ProcessSlow slow => $"slow {slow.Command} exit {slow.ExitCode} in {Milliseconds(slow.Duration)}",
