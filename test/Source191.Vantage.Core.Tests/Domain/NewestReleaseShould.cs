@@ -17,8 +17,8 @@ public sealed class NewestReleaseShould
     }
 
     [Fact]
-    public void ReadTextThatIsNotAVersionAsNone()
+    public void ReadTextThatIsNotAVersionAsUnreadable()
     {
-        NewestRelease.Recorded("rubbish").ShouldBe(new NewestRelease.None());
+        NewestRelease.Recorded("rubbish").ShouldBe(new NewestRelease.Unreadable("rubbish"));
     }
 }
