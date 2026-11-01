@@ -53,6 +53,38 @@ public sealed class TerminalFragmentShould : IDisposable
     }
 
     [Fact]
+    public async Task WriteTheFragmentTextExactly()
+    {
+        await fragment.WriteAsync(Profiles with { SessionSound = new BellSound.TerminalDefault() }, CancellationToken.None);
+
+        (await File.ReadAllTextAsync(fragment.Location, TestContext.Current.CancellationToken)).ShouldBe("""
+            {
+              "profiles": [
+                {
+                  "name": "Vantage",
+                  "commandline": "\"C:\\Users\\me\\.dotnet\\tools\\vantage.exe\"",
+                  "bellStyle": [
+                    "audible",
+                    "window",
+                    "taskbar"
+                  ],
+                  "bellSound": "C:\\Windows\\Media\\Windows Notify Messaging.wav"
+                },
+                {
+                  "name": "Vantage session",
+                  "commandline": "pwsh.exe -NoLogo",
+                  "bellStyle": [
+                    "audible",
+                    "window",
+                    "taskbar"
+                  ]
+                }
+              ]
+            }
+            """.ReplaceLineEndings(Environment.NewLine));
+    }
+
+    [Fact]
     public async Task GiveTheVantageProfileNoTabColourAndNoFixedTitle()
     {
         await fragment.WriteAsync(Profiles, CancellationToken.None);
