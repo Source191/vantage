@@ -123,7 +123,7 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | --- | --- |
 | NAME | The session name given at launch (`-n`), or the folder name for an unnamed one |
 | TAB | While a Vantage tab shows the session, a two-cell block in that tab's colour, faded as Windows Terminal draws the tab while Vantage's own tab is selected so that it matches the strip, on the highlighted row too (the tab closes when its attach ends, so the swatch clears with it), `▯` in grey for a session started as plain `claude` in a tab of its own, blank otherwise |
-| STATE | `◐ needs input` (amber), `● working` (cyan), `○ idle` (white), `✓ completed` (green), `✗ failed` (red), `■ stopped` (grey) |
+| STATE | `◐ needs input` (amber), `● working` (cyan), `○ idle` (white), `✓ completed` (green), `✗ failed` (red), `■ stopped` (grey), `? unknown` (grey) followed by the CLI's own words, a state Vantage does not know |
 | REPOSITORY | The repository the session runs in, such as `Northwind.Orders`, whether in its main checkout, a folder inside it or one of its worktrees; for a folder outside any repository its label, relative to the repository root or worktree root that holds it, else to your home folder (`~\scratch\notes`), else in full. The worktree, branch and full folder are in the [detail pane](#the-detail-pane) |
 | PR | The branch's pull request: `#123 open` on GitHub (open, draft, merged, closed), `!123 active` on Azure DevOps (active, draft, completed, abandoned); an open one wins, else the most recent. Blank when there is none or it cannot be looked up; `p` says why. See [Pull requests](#pull-requests) |
 | AGE | Time since the session started, right-aligned |
@@ -190,22 +190,23 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 ╭────────╭─────────╮──────╮
 │Sessions│Worktrees│Config│  3 ok · 1 broken · 1 with changes · 2 with unpushed commits  4 worktrees, selected: Northwind.Bi…
 ├────────╯         ╰──────┴────────────────────────────────────────────────────────────────────────────────────────────╮
-││WORKTREE                                                                                      │LAST COMMIT│SESSION    ││
-│ Northwind.Billing › invoice-pdf                                                                  3d4h       invoice-pdf │
-│ Northwind.Billing › study                                                                        9d16h                  │
-│ Northwind.Orders › fix-tests                                                                     1d0h       fix-tests   │
-│ Northwind.Sales › republish                                                                      -                      │
+││WORKTREE                                                                          │HEALTH     │LAST COMMIT│SESSION    ││
+│ Northwind.Billing › invoice-pdf                                                    ✓ ok          3d4h       invoice-pdf │
+│ Northwind.Billing › study                                                          ✓ ok          9d16h                  │
+│ Northwind.Orders › fix-tests                                                       ✓ ok          1d0h       fix-tests   │
+│ Northwind.Sales › republish                                                        ✗ broken      -                      │
 ```
 
 | Column | Meaning |
 | --- | --- |
-| WORKTREE | The owning repository, then `›` and the worktree folder's slug (`Northwind.Billing › invoice-pdf` for the folder `Northwind.Billing-invoice-pdf`), or the folder's label when it is not named after the repository. The column takes the width the others leave and elides the middle of a long repository name. The row's colour is its health: white ok, amber locked, red broken or orphan, grey empty |
+| WORKTREE | The owning repository, then `›` and the worktree folder's slug (`Northwind.Billing › invoice-pdf` for the folder `Northwind.Billing-invoice-pdf`), or the folder's label when it is not named after the repository. The column takes the width the others leave and elides the middle of a long repository name |
+| HEALTH | The health as a glyph and a word, in the row's colour: `✓ ok` (white), `◆ locked` (amber), `△ orphan` (red), `✗ broken` (red), `□ empty` (grey), `↗ elsewhere` (amber), so it reads the same without colour |
 | LAST COMMIT | Age of the last commit |
 | SESSION | The session running inside it, if any |
 
-The branch, the pull request, the changed files, the unpushed commits and the health are in the [detail pane](#the-detail-pane). The health words: `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it), `elsewhere` (a live worktree of a repository that is not under the roots, so Vantage never scanned it; the row names that repository, and the status line says where it is).
+The branch, the pull request, the changed files and the unpushed commits are in the [detail pane](#the-detail-pane). The health is in the HEALTH column and, with its reason in full, in the pane. The health words: `ok`, `locked` (by another tool), `orphan` (a folder under `.claude\worktrees` git no longer lists), `broken` (a registration whose folder is gone, or a folder under a root or the worktree root whose registration or repository is gone), `empty` (a leftover `.worktrees` folder with nothing in it), `elsewhere` (a live worktree of a repository that is not under the roots, so Vantage never scanned it; the row names that repository, and the status line says where it is).
 
-The selected row's health and its reason are in the detail pane, and its colour in the table. A long repository name is elided in the middle of the WORKTREE cell, and `<` and `>` scroll the table on a narrow terminal.
+The table shows each row's health as a glyph and a word in its colour, and the detail pane gives the selected row's reason. A long repository name is elided in the middle of the WORKTREE cell, and `<` and `>` scroll the table on a narrow terminal.
 
 | Key | Action |
 | --- | --- |
