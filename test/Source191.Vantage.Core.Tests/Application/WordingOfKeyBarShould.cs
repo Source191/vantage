@@ -96,7 +96,7 @@ public sealed class WordingOfKeyBarShould
 
     private static readonly ConfigViewState ConfigLoaded = ConfigView.Reduce(
         ConfigViewState.Empty,
-        new ConfigRowsLoaded(ConfigRows.For(Settings.Resolve([FolderPath.From(@"C:\Users\me\source\repos"), FolderPath.From(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me")), facts: null))).State;
+        new ConfigRowsLoaded(ConfigRows.For(Settings.Resolve([FolderPath.From(@"C:\Users\me\source\repos"), FolderPath.From(@"D:\work")], worktreeRoot: null, EditorChoice.VsCode, defaultBase: null, FolderPath.From(@"C:\Users\me")), SetupFacts.Reading))).State;
 
     [Fact]
     public void PlaceEachItemOneCellFromTheEdgeAndTwoCellsAfterTheLast()
