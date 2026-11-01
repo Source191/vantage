@@ -1,4 +1,6 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Application.Detail;
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
@@ -17,8 +19,78 @@ public sealed class NullFreeModelsShould
 {
     private const BindingFlags Declared = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
-    private static readonly AllowedNullable[] Kept = [];
-
+    /// <summary>
+    /// The nullables kept on purpose, each with its reason: absences that arrive from outside Vantage (git, the process
+    /// table, config.json, the environment, Microsoft.Extensions.Logging) and are met where they arrive, and the list
+    /// selection, which is empty when nothing is shown. Fixing one removes its entry; <c>KeepNoStaleEntry</c> says so.
+    /// </summary>
+    private static readonly AllowedNullable[] Kept =
+    [
+        new(typeof(IGit), "LastCommitAtAsync", "git answers nothing when it fails or the worktree has no commits"),
+        new(typeof(IGit), "DefaultRemoteBranchAsync", "git answers nothing when it fails or origin has no HEAD"),
+        new(typeof(IGit), "CurrentBranchAsync", "git answers nothing when it fails or the head is detached"),
+        new(typeof(IGit), "RepositoryRootAsync", "git answers nothing outside a repository"),
+        new(typeof(IGit), "MainCheckoutOfAsync", "git answers nothing when it cannot name the main checkout"),
+        new(typeof(IGit), "OriginUrlAsync", "git answers nothing when there is no origin"),
+        new(typeof(IProcessRegistry), "StartTimeOf", "the process has gone or its start time is refused to Vantage"),
+        new(typeof(IProcessRegistry), "ParentOf", "the process has gone or lists no parent"),
+        new(typeof(IProcessRegistry), "UsageOf", "the process has gone or cannot be measured"),
+        new(typeof(ProcessIdentity), "StillTheSession(processStartedAt)", "takes IProcessRegistry.StartTimeOf's answer as it comes"),
+        new(typeof(ProcessTree), "Under(usageOf)", "takes IProcessRegistry.UsageOf as it is"),
+        new(typeof(TerminalTab), "ShellOf", "the parent chain from IProcessRegistry.ParentOf may end before a shell"),
+        new(typeof(TerminalTab), "TerminalOf", "the parent chain from IProcessRegistry.ParentOf may end before a terminal"),
+        new(typeof(FolderPath), "Parent", "a drive's root has no parent, as Path.GetDirectoryName says"),
+        new(typeof(TextValues), "Parsed(texts)", "keeps the texts from outside Vantage that parse, nulls among them"),
+        new(typeof(VantageConfig), "RepositoryRoots", "config.json may leave the property out"),
+        new(typeof(VantageConfig), "DefaultBase", "config.json may leave the property out"),
+        new(typeof(VantageConfig), "WorktreeRoot", "config.json may leave the property out"),
+        new(typeof(VantageConfig), "Editor", "config.json may leave the property out"),
+        new(typeof(VantageConfig), "CheckForUpdates", "config.json may leave the property out"),
+        new(typeof(VantageConfig), "DefaultPlace", "config.json may leave the property out"),
+        new(typeof(EditorSetting), "Preset", "config.json may leave the property out"),
+        new(typeof(EditorSetting), "Executable", "config.json may leave the property out"),
+        new(typeof(EditorSetting), "Arguments", "config.json may leave the property out"),
+        new(typeof(EditorChoice), "FromFile(preset)", "reads EditorSetting's properties as config.json has them"),
+        new(typeof(EditorChoice), "FromFile(executable)", "reads EditorSetting's properties as config.json has them"),
+        new(typeof(EditorChoice), "FromFile(arguments)", "reads EditorSetting's properties as config.json has them"),
+        new(typeof(Settings), "Resolve(roots)", "resolves a property config.json left out to its default"),
+        new(typeof(Settings), "Resolve(worktreeRoot)", "resolves a property config.json left out to its default"),
+        new(typeof(Settings), "Resolve(defaultBase)", "resolves a property config.json left out to its default"),
+        new(typeof(Settings), "Resolve(checkForUpdates)", "resolves a property config.json left out to its default"),
+        new(typeof(Settings), "Resolve(defaultPlace)", "resolves a property config.json left out to its default"),
+        new(typeof(ToolVersion), "FromInformational(informational)", "the assembly's informational version attribute may be missing"),
+        new(typeof(UpdateCheckOptOut), "Applies(value)", "reads an environment variable that may be unset"),
+        new(typeof(DiagnosticLogSetting), "Read(variable)", "reads VANTAGE_LOG, which may be unset"),
+        new(typeof(Wording), "ClaudeBellPlan(replacing)", "Claude's settings.json may name no other notification channel"),
+        new(typeof(WorktreeCounts), "LastCommitAt", "IGit.LastCommitAtAsync's answer as it comes"),
+        new(typeof(WorktreeRow), "LastCommitAt", "IGit.LastCommitAtAsync's answer as it comes"),
+        new(typeof(SessionActivity), "LastPromptedAt", "this Vantage has seen no prompt for the session yet"),
+        new(typeof(SessionDetail), "LastPromptedAt", "SessionActivity.LastPromptedAt's answer"),
+        new(typeof(WorktreeDetail), "Created", "a worktree Vantage did not create has no creation record"),
+        new(typeof(ListSelection<>), "SelectedKey", "nothing is selected in an empty list"),
+        new(typeof(ListSelection<>), "Selected", "nothing is selected in an empty or filtered-out list"),
+        new(typeof(TableTitle), "Selected", "nothing is selected in an empty or filtered-out list"),
+        new(typeof(SessionsViewState), "SelectedSessionId", "the list selection's key, held in the state"),
+        new(typeof(SessionsViewState), "Selected", "the list selection"),
+        new(typeof(WorktreesViewState), "SelectedPath", "the list selection's key, held in the state"),
+        new(typeof(WorktreesViewState), "Selected", "the list selection"),
+        new(typeof(ConfigViewState), "SelectedKey", "the list selection's key, held in the state"),
+        new(typeof(ConfigViewState), "Selected", "the list selection"),
+        new(typeof(WizardState), "SelectedIndex", "bound to Terminal.Gui's ListView.SelectedItem, which is null with no row"),
+        new(typeof(IListViewState<>), "Banner", "the last load failure's message, none while loading succeeds"),
+        new(typeof(SessionsViewState), "Banner", "the last load failure's message, none while loading succeeds"),
+        new(typeof(WorktreesViewState), "Banner", "the last load failure's message, none while loading succeeds"),
+        new(typeof(ConfigViewState), "Banner", "the last load failure's message, none while loading succeeds"),
+        new(typeof(SettingsState), "BrowseFrom", "no folder typed yet, so the folder picker starts where Terminal.Gui chooses"),
+        new(typeof(TabKeys), "For", "a key that is not a tab key answers no effect"),
+        new(typeof(Started), "ClaudeCode", "Claude Code's version could not be read"),
+        new(typeof(Failed), "What", "a failure outside an effect has no code name"),
+        new(typeof(TerminalGuiReported), "Failure", "Terminal.Gui reports some events without an exception"),
+        new(typeof(Attempt), "RunAsync(what)", "passed on as Failed.What"),
+        new(typeof(TerminalGuiBridge), "BeginScope", "ILogger's signature, from Microsoft.Extensions.Logging"),
+        new(typeof(TerminalGuiBridge), "Log(exception)", "ILogger's signature, from Microsoft.Extensions.Logging"),
+        new(typeof(TerminalGuiBridge), "Log(formatter)", "ILogger's signature, from Microsoft.Extensions.Logging"),
+    ];
     private static readonly string[] ModelNamespaces = ["Source191.Vantage.Domain", "Source191.Vantage.Ports", "Source191.Vantage.Application"];
 
     private static readonly string[] EqualityNames = ["Equals", "CompareTo", "op_Equality", "op_Inequality"];
