@@ -93,7 +93,8 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
 
     public async Task<IReadOnlyList<string>> ChangedFilesAsync(string worktree, int limit, CancellationToken cancellationToken)
     {
-        ProcessResult result = await RunOrThrowAsync(worktree, ["status", "--porcelain"], cancellationToken);
+        // core.quotePath off, or git writes a name with letters beyond ASCII as an octal escape in quotes ("na\303\257ve.txt").
+        ProcessResult result = await RunOrThrowAsync(worktree, ["-c", "core.quotePath=false", "status", "--porcelain"], cancellationToken);
 
         // A porcelain line is two status letters (the first may be a space, so lines are not trimmed), a space and the path
         // (https://git-scm.com/docs/git-status).

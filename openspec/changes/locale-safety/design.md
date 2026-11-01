@@ -45,7 +45,7 @@ It compares whole paths, as now, so a Toolbox install (under `%LOCALAPPDATA%`) s
 
 ### 3. `-c core.quotePath=false` for the changed files
 
-`GitCli.ChangedFilesAsync` runs `git -c core.quotePath=false status --porcelain`. Only that list shows paths. `CountChangedFilesAsync` counts lines, which quoting does not change, so it stays as it is.
+`GitCli.ChangedFilesAsync` runs `git -c core.quotePath=false status --porcelain`. Only that list shows paths. A diagnostic record keeps a child's leading arguments only while each is on its program's fixed word list, so `-c` and `core.quotePath=false` join git's list in `ChildCommandWords`, and the record reads `git -c core.quotePath=false status` rather than a bare `git`; both are fixed words, so nothing personal can enter by them. `CountChangedFilesAsync` counts lines, which quoting does not change, so it stays as it is.
 
 - **Alternative, `-z`:** rejected for now. It also handles a tab, a newline or a double quote in a name (which git still quotes with `core.quotePath` off) and gives renames as two entries, but it needs a new parser for a case nobody has reported.
 

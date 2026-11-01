@@ -13,7 +13,8 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 3. Changed files by name
 
-- [ ] 3.1 `GitCliIntegrationShould.ListAChangedFileByItsOwnName`: a real repository with the untracked `naïve.txt` lists `naïve.txt`. Red, then `-c core.quotePath=false` before `status` in `GitCli.ChangedFilesAsync` green; `GitCliShould`'s argument facts updated to match. Verify both test classes pass in `Source191.Vantage.Infrastructure.Tests`.
+- [x] 3.1 `GitCliIntegrationShould.ListAChangedFileByItsOwnName`: a real repository with the untracked `naïve.txt` lists `naïve.txt`. Red, then `-c core.quotePath=false` before `status` in `GitCli.ChangedFilesAsync` green; `GitCliShould`'s argument facts updated to match. Verify both test classes pass in `Source191.Vantage.Infrastructure.Tests`.
+  - 1 November 2026: `GitCliShould` checks only the count's arguments, which do not change, so it needed nothing. Found on the way: the diagnostic record stops at the first unlisted argument, so `-c` would have left it a bare `git`; `ChildCommandShould` gained the case and `ChildCommandWords.Git` the two words (design decision 3).
 
 ## 4. Local times in the detail pane
 
