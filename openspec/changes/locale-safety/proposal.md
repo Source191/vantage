@@ -11,7 +11,7 @@ A locale review (1 November 2026) found three faults that do not depend on the l
 - The detail pane lists a changed file by its name as typed, whatever letters it has, by asking git not to quote such paths.
 - `InvariantGlobalization` leaves the Core, Infrastructure and Tui library projects, so the culture analysers check their code (they find nothing today), and joins the three test projects, so the tests run as the tool runs. The tool project and the headless terminal keep it.
 - `CLAUDE.md` gains a section of what translating Vantage, or supporting another culture, will need.
-- The tool's version rises to 0.19.0-preview.14.
+- The tool's version rises to the next preview in the pull request that implements this.
 
 ## Capabilities
 

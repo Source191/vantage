@@ -1,6 +1,6 @@
 # Tasks
 
-Each task is one red-green-refactor cycle with a commit per step; the test is named before the code. The branch is stacked on `v-null-guard-rule` (PR #148). Verify each with `dotnet build -c Debug` (warnings are errors) and `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build`, adding `test\Source191.Vantage.Infrastructure.Tests` where a task names an adapter test.
+Each task is one red-green-refactor cycle with a commit per step; the test is named before the code. The proposal merges on its own (PR #151); implement it in a later pull request, on a branch from main once #151 has merged. Verify each with `dotnet build -c Debug` (warnings are errors) and `dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build`, adding `test\Source191.Vantage.Infrastructure.Tests` where a task names an adapter test.
 
 ## 1. Tests run as the tool ships
 
@@ -31,7 +31,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 7. Release and whole build
 
-- [ ] 7.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to `0.19.0-preview.14`. Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `v-null-guard-rule`.
+- [ ] 7.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview after main's version when implementation starts (0.19.0-preview.14 if nothing else has released by then). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against main.
 - [ ] 7.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate locale-safety --strict` pass, and the packed tool's `vantage.runtimeconfig.json` (from `dotnet pack`) still sets `System.Globalization.Invariant` to true. Record the counts here.
 
 ## Workflow follow-up
