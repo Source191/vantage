@@ -25,9 +25,9 @@ public sealed record EditorFolders(IReadOnlyList<string> PathFolders, string Loc
 /// </summary>
 public sealed class EditorLocator(IFolders folders, IProcessRunner processes, EditorFolders where) : IEditorLocator
 {
-    public async Task<string?> LocateAsync(EditorPreset preset, CancellationToken cancellationToken)
+    public async Task<ProgramLocation> LocateAsync(EditorPreset preset, CancellationToken cancellationToken)
     {
-        return preset switch
+        string? executable = preset switch
         {
             EditorPreset.VsCode => FirstExisting([.. CodeBesideTheShim(), Path.Combine(where.LocalAppData, "Programs", "Microsoft VS Code", "Code.exe"), Path.Combine(where.ProgramFiles, "Microsoft VS Code", "Code.exe")]),
             EditorPreset.VisualStudio => await VisualStudioAsync(cancellationToken),
@@ -35,6 +35,8 @@ public sealed class EditorLocator(IFolders folders, IProcessRunner processes, Ed
             EditorPreset.Explorer => Path.Combine(where.Windows, "explorer.exe"),
             EditorPreset.Custom => null,
         };
+
+        return executable is null ? new ProgramLocation.Missing() : new ProgramLocation.Found(executable);
     }
 
     private IEnumerable<string> CodeBesideTheShim()

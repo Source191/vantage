@@ -15,8 +15,8 @@ public sealed class FakeEditorLocator : IEditorLocator
         return this;
     }
 
-    public Task<string?> LocateAsync(EditorPreset preset, CancellationToken cancellationToken)
+    public Task<ProgramLocation> LocateAsync(EditorPreset preset, CancellationToken cancellationToken)
     {
-        return Task.FromResult(installed.GetValueOrDefault(preset));
+        return Task.FromResult<ProgramLocation>(installed.TryGetValue(preset, out string? executable) ? new ProgramLocation.Found(executable) : new ProgramLocation.Missing());
     }
 }
