@@ -24,7 +24,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
   Red was a build failure (no type), folded into green; the setting-off fact writes `checkForUpdates: false` to `InMemoryState` before `CurrentSettings.LoadAsync`; Core.Tests 1967 passed.
 - [x] 3.2 `UpdateCheckSwitchShould.FollowASaveWithoutARestart`: turning `checkForUpdates` off through `CurrentSettings` turns `IsOn` off. Verify the fact passes.
   Green at once (`IsOn` reads `settings.Value` on each call); saved through `Settings.WithUpdateCheckToggled`; Core.Tests 1968 passed.
-- [ ] 3.3 `HeaderSettingsRowShould.ShowTheVersionsAndVantagesMemory`: `Rows(width)` is one row equal to `Wording.SettingsRow(vantage, claude, updates.Status, memory)`, with the memory `FakeProcessRegistry` reports for the process id. Red, then green with `HeaderSettingsRow(ToolVersion, ClaudeCodeVersion, UpdateCheck, IProcessRegistry, int processId)` in `src\Source191.Vantage.Core\Application\HeaderSettingsRow.cs`. Verify the fact passes.
+- [x] 3.3 `HeaderSettingsRowShould.ShowTheVersionsAndVantagesMemory`: `Rows(width)` is one row equal to `Wording.SettingsRow(vantage, claude, updates.Status, memory)`, with the memory `FakeProcessRegistry` reports for the process id. Red, then green with `HeaderSettingsRow(ToolVersion, ClaudeCodeVersion, UpdateCheck, IProcessRegistry, int processId)` in `src\Source191.Vantage.Core\Application\HeaderSettingsRow.cs`. Verify the fact passes.
+  Red was a build failure (no type), folded into green; the unused width raised no analyser warning; Core.Tests 1969 passed.
 - [ ] 3.4 `HeaderSettingsRowShould.ShowZeroWhenTheProcessCannotBeMeasured` (`UsageOf` answers null) and `ShowTheUpdateStatusAsItIsNow` (the status read at each call). Verify the facts pass.
 
 ## 4. The console's loads
