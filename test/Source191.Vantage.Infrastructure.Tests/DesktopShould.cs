@@ -30,7 +30,7 @@ public sealed class DesktopShould : IDisposable
         string report = Path.Combine(folder, "environment.txt");
         string script = $"Start-Sleep -Milliseconds 1500; Get-ChildItem env: | ForEach-Object Name | Set-Content '{report}'";
 
-        await new Desktop(new ProcessRunner(), new ProgramLocation.Found(Pwsh)).StartAsync(new ProcessRequest("pwsh", ["-NoProfile", "-Command", script], WorkingDirectory: null), TestContext.Current.CancellationToken);
+        await new Desktop(new ProcessRunner(), new ProgramLocation.Found(Pwsh)).StartAsync(new ProcessRequest("pwsh", ["-NoProfile", "-Command", script], WorkingFolder.Inherit), TestContext.Current.CancellationToken);
 
         File.Exists(report).ShouldBeFalse("the call returned before the child had finished");
         await WaitForAsync(report);
@@ -104,6 +104,7 @@ public sealed class DesktopShould : IDisposable
         await new Desktop(processes, new ProgramLocation.Found(@"C:\Program Files\PowerShell\7\pwsh.exe")).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken);
 
         processes.CapturedRequests.Single().FileName.ShouldBe(@"C:\Program Files\PowerShell\7\pwsh.exe");
+        processes.CapturedRequests.Single().WorkingDirectory.ShouldBe(WorkingFolder.Inherit);
     }
 
     [Fact]

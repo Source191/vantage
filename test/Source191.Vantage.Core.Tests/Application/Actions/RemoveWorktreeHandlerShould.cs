@@ -22,7 +22,7 @@ public sealed class RemoveWorktreeHandlerShould
         RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok), forced: false, CancellationToken.None);
 
         GitCalls(processes).Single(request => request.Arguments.Contains("remove")).ShouldSatisfyAllConditions(
-            request => request.WorkingDirectory.ShouldBe(Repository),
+            request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Repository)),
             request => request.Arguments.ShouldBe(["worktree", "remove", Worktree]));
         outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123")), CreatedByVantage: false));
     }

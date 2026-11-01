@@ -16,7 +16,7 @@ public sealed class ProcessRunnerIntegrationShould
     [Fact]
     public async Task CaptureStandardOutputAndTheExitCode()
     {
-        ProcessRequest request = new("cmd.exe", ["/c", "echo hello from the runner"], WorkingDirectory: null);
+        ProcessRequest request = new("cmd.exe", ["/c", "echo hello from the runner"], WorkingFolder.Inherit);
 
         ProcessResult result = await runner.RunAsync(request, TestContext.Current.CancellationToken);
 
@@ -27,7 +27,7 @@ public sealed class ProcessRunnerIntegrationShould
     [Fact]
     public async Task CaptureStandardErrorAndANonZeroExitCode()
     {
-        ProcessRequest request = new("cmd.exe", ["/c", "echo oops 1>&2 & exit 3"], WorkingDirectory: null);
+        ProcessRequest request = new("cmd.exe", ["/c", "echo oops 1>&2 & exit 3"], WorkingFolder.Inherit);
 
         ProcessResult result = await runner.RunAsync(request, TestContext.Current.CancellationToken);
 
@@ -39,7 +39,7 @@ public sealed class ProcessRunnerIntegrationShould
     public async Task RunTheWorkingDirectoryTheRequestNames()
     {
         string temporary = Path.GetTempPath().TrimEnd('\\');
-        ProcessRequest request = new("cmd.exe", ["/c", "cd"], temporary);
+        ProcessRequest request = new("cmd.exe", ["/c", "cd"], new WorkingFolder.At(temporary));
 
         ProcessResult result = await runner.RunAsync(request, TestContext.Current.CancellationToken);
 

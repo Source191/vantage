@@ -5,7 +5,7 @@ namespace Source191.Vantage.Core.Tests.TestDoubles;
 
 public sealed class FakeProcessRunnerShould
 {
-    private static readonly ProcessRequest Listing = new("git", ["worktree", "list"], null);
+    private static readonly ProcessRequest Listing = new("git", ["worktree", "list"], WorkingFolder.Inherit);
 
     [Fact]
     public async Task AnswerInTurnThenRepeatTheLastResult()

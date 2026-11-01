@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Application.Diagnostics;
+using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Core.Tests.Application.Diagnostics;
@@ -73,7 +74,7 @@ public sealed class DiagnosticLogShould
         RecordingSink sink = new();
         DiagnosticLog log = new(clock, [sink]);
         ProcessCounts counts = new();
-        counts.Add(ChildCommand.For(new Ports.ProcessRequest("git", ["worktree", "list", "--porcelain"], null)), 0, TimeSpan.FromMilliseconds(41));
+        counts.Add(ChildCommand.For(new Ports.ProcessRequest("git", ["worktree", "list", "--porcelain"], WorkingFolder.Inherit)), 0, TimeSpan.FromMilliseconds(41));
 
         log.WriteCounts(counts);
 

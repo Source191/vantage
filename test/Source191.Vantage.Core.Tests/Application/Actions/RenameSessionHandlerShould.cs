@@ -42,7 +42,7 @@ public sealed class RenameSessionHandlerShould
 
         List<ProcessRequest> claude = [.. processes.CapturedRequests.Where(request => request.FileName == Claude)];
         claude.Select(request => string.Join(' ', request.Arguments)).ShouldBe(["rm 81cdb0f9", "--bg --resume sess-1 -n fix-124"]);
-        claude[1].WorkingDirectory.ShouldBe(Repository);
+        claude[1].WorkingDirectory.ShouldBe(new WorkingFolder.At(Repository));
         message.ShouldBe(new RenameSessionOutcome.Renamed("fix-123", "fix-124", TabMoved: false));
     }
 

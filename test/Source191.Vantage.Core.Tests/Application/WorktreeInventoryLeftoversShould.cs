@@ -34,7 +34,7 @@ public sealed class WorktreeInventoryLeftoversShould : IDisposable
 
         await Inventory.ScanAsync([], CancellationToken.None);
 
-        processes.CapturedRequests.Where(request => request.WorkingDirectory == worktree).Select(request => request.Arguments[0]).ShouldBe(["status", "rev-list", "log"]);
+        processes.CapturedRequests.Where(request => request.WorkingDirectory == new WorkingFolder.At(worktree)).Select(request => request.Arguments[0]).ShouldBe(["status", "rev-list", "log"]);
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("merge-base") || request.Arguments.Contains("symbolic-ref"));
     }
 

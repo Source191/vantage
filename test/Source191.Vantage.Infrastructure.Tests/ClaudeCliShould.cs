@@ -96,7 +96,7 @@ public sealed class ClaudeCliShould
         StartResult result = await Cli.StartBackgroundAsync(Directory, name, new OpeningPrompt.None(), CancellationToken.None);
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
-            request => request.WorkingDirectory.ShouldBe(Directory),
+            request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Directory)),
             request => request.Arguments.ShouldBe(["--bg", "-n", "Refund retry policy"]));
         StartResult.Started started = result.ShouldBeOfType<StartResult.Started>();
         started.JobId.ShouldBe(JobId.From("81cdb0f9"));
@@ -161,7 +161,7 @@ public sealed class ClaudeCliShould
         ResumeResult result = await Cli.ResumeBackgroundAsync("81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6", Directory, name: null, CancellationToken.None);
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
-            request => request.WorkingDirectory.ShouldBe(Directory),
+            request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Directory)),
             request => request.Arguments.ShouldBe(["--bg", "--resume", "81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6"]));
         result.Continued.ShouldBeTrue();
     }

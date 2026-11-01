@@ -22,6 +22,7 @@ public sealed class DesktopCommandLineShould
         await new Desktop(processes, new ProgramLocation.Found("pwsh.exe")).OpenAsync(address[..ProblemReport.AddressLimit], TestContext.Current.CancellationToken);
 
         ProcessRequest request = processes.CapturedRequests.Single();
+        request.WorkingDirectory.ShouldBe(WorkingFolder.Inherit, "PowerShell opens the file from Vantage's folder");
         int commandLine = request.FileName.Length + 2 + request.Arguments.Sum(argument => argument.Length + 3);
         commandLine.ShouldBeLessThan(WindowsCommandLineLimit);
     }

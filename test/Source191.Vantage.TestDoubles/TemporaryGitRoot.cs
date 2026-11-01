@@ -60,7 +60,7 @@ public sealed class TemporaryGitRoot : IDisposable
 
     public async Task GitAsync(string directory, params string[] arguments)
     {
-        ProcessResult result = await processes.RunAsync(new ProcessRequest("git", arguments, directory), CancellationToken.None);
+        ProcessResult result = await processes.RunAsync(new ProcessRequest("git", arguments, new WorkingFolder.At(directory)), CancellationToken.None);
         if (result.ExitCode != 0)
         {
             throw new InvalidOperationException(result.StandardError);

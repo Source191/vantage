@@ -27,7 +27,7 @@ public sealed class ProblemReportsShould
     {
         crashFile.Write("2026-10-28T09:00:00.000Z view Sessions\n2026-10-28T09:00:01.000Z failed Crash: InvalidOperationException\n");
         log.Record(new ViewShown(ViewKind.Worktrees));
-        counts.Add(ChildCommand.For(new ProcessRequest("git", ["status"], null)), 0, TimeSpan.FromMilliseconds(12));
+        counts.Add(ChildCommand.For(new ProcessRequest("git", ["status"], WorkingFolder.Inherit)), 0, TimeSpan.FromMilliseconds(12));
         CurrentSettings settings = TestSettings.Current(@"C:\Users\me\source\repos", @"D:\work");
 
         ProblemReport report = await new ProblemReports(log, counts, crashFile, Start, settings).BuildAsync();
