@@ -9,7 +9,7 @@ What changes in each release of Vantage, written for the people who use it. The 
 - U opens a What's new dialog listing the changes in every release since the running one, with Update now, Release page and Later; a newly found release is announced once in the status line, and the first start after an update shows what changed, once (#180)
 - Sessions, Worktrees and Config are tabs of one screen, each title carrying its count with the state counts and glyphs beside it, and a two-line key bar at the bottom (#114)
 - A Config tab lists every setting and the setup Vantage reads (settings file, terminal profiles, Claude's bell, diagnostic log, last update check); Enter edits a setting in a small dialog and saves at once, and setup that needs attention says what to run (#117)
-- Left and Right, 1, 2 and 3, or a click on a title move between the tabs; Esc on Worktrees or Config with no filter returns to Sessions (#117)
+- Left and Right, or a click on a title, move between the tabs; Esc on Worktrees or Config with no filter returns to Sessions (#117, #181)
 - A detail pane under the Sessions and Worktrees tables shows the selected row's facts: what a session is waiting for, when it started and was last prompted, folder, session id, worktree, branch, tab, changed files, unpushed commits, last commit, memory and health with its reason (#119)
 - The Config tab describes the selected setting, and a Setup heading separates the settings from the setup rows (#165)
 - Browse (F3) in the repository roots and worktree root dialogs opens a folder picker inside the terminal (#125)
