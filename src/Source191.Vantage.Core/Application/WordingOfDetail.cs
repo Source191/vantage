@@ -2,6 +2,7 @@ using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 using System.Globalization;
 
 namespace Source191.Vantage.Application;
@@ -39,7 +40,7 @@ public static partial class Wording
                 new("Prompted", detail.LastPromptedAt is DateTimeOffset prompted ? TimeAgo(prompted, now) : "not seen since Vantage started"),
             ],
             [new("Folder", session.WorkingDirectory.Value, Span: 2), new("Session", session.SessionId.Value)],
-            [new("Worktree", PlaceOf(row)), new("Branch", row.Branch?.Value ?? "none"), new("Tab", TabLine(row))],
+            [new("Worktree", PlaceOf(row)), new("Branch", HeadLine(row.Head)), new("Tab", TabLine(row))],
             [
                 new("Changes", CountsLine(detail.Counts, now), Span: 2),
                 new("Memory", row.Memory is MemorySize memory ? $"{Memory(memory)} (m for the breakdown)" : "nothing to measure"),
@@ -57,7 +58,7 @@ public static partial class Wording
         IReadOnlyList<IReadOnlyList<DetailLine>> facts =
         [
             [new("Health", HealthLine(row.Health), ToneOf(row.Health.Kind), Span: 3)],
-            [new("Branch", BranchLine(row.Branch, detail.Merge), Span: 2), new("PR", PullRequestLine(row.PullRequest))],
+            [new("Branch", BranchLine(row.Head, detail.Merge), Span: 2), new("PR", PullRequestLine(row.PullRequest))],
             [
                 new("Folder", row.Path.Value, Span: 2),
                 new("Created", detail.Created is CreatedWorktree created ? $"by Vantage, {DayAndTime(created.CreatedAt, now)}" : "not by Vantage"),
@@ -99,8 +100,16 @@ public static partial class Wording
     private static string TabLine(SessionRow row) => row switch
     {
         { Session: InteractiveSession } => "its own terminal",
-        { HasLiveTab: true, TabColour: TabColour colour } => $"open, {colour.Name.ToLowerInvariant()}",
+        { Tab: LiveTab.Open open } => $"open, {open.Colour.Name.ToLowerInvariant()}",
         _ => "none",
+    };
+
+    private static string HeadLine(Head head) => head switch
+    {
+        Head.OnBranch on => on.Branch.Value,
+        Head.Detached => "none",
+        Head.Unknown => "none",
+        _ => throw new UnreachableException(),
     };
 
     private static string PullRequestLine(PullRequestLookup lookup) => lookup is PullRequestLookup.Found ? $"{PullRequestCell(lookup)} (p opens it)" : "none";
@@ -126,12 +135,14 @@ public static partial class Wording
         return health.Reason is HealthReason.None ? kind : $"{kind}: {Describe(health.Reason)}";
     }
 
-    private static string BranchLine(BranchName? branch, DetailFact<MergeState> merge) => (branch, merge) switch
+    private static string BranchLine(Head head, DetailFact<MergeState> merge) => (head, merge) switch
     {
-        (null, _) => "none",
-        (_, DetailFact<MergeState>.Known known) => $"{branch.Value}, {(known.Value.Merged ? "merged" : "not merged")} into {known.Value.Into}",
-        (_, DetailFact<MergeState>.Unavailable) => $"{branch.Value}, merge state unavailable",
-        _ => branch.Value,
+        (Head.Detached, _) => "none",
+        (Head.Unknown, _) => "none",
+        (Head.OnBranch on, DetailFact<MergeState>.Known known) => $"{on.Branch.Value}, {(known.Value.Merged ? "merged" : "not merged")} into {known.Value.Into}",
+        (Head.OnBranch on, DetailFact<MergeState>.Unavailable) => $"{on.Branch.Value}, merge state unavailable",
+        (Head.OnBranch on, _) => on.Branch.Value,
+        _ => throw new UnreachableException(),
     };
 
     /// <summary>The unpushed commits as far as they were read, then how many more; or the changed files; or that git could not be read.</summary>

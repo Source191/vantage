@@ -20,7 +20,7 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
         CreatedWorktree? created = (await createdWorktrees.ReadCreatedWorktreesAsync())
             .FirstOrDefault(candidate => candidate.Path == row.Path);
         // Merge state needs a branch and a repository that still exists.
-        bool merged = created is not null && row is { Branch: BranchName branch, OwnerExists: true } && await inspector.IsMergedAsync(row.Repository, branch, cancellationToken);
+        bool merged = created is not null && row is { Head: Head.OnBranch { Branch: BranchName branch }, OwnerExists: true } && await inspector.IsMergedAsync(row.Repository, branch, cancellationToken);
         RemovalDecision decision = RemovalDecision.For(row.Facts(created is not null, merged), forced);
 
         return await remover.CarryOutAsync(row, decision, createdByVantage: created is not null, cancellationToken);
