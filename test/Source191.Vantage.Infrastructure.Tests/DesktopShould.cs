@@ -39,6 +39,19 @@ public sealed class DesktopShould : IDisposable
         names.Select(name => name.ToUpperInvariant()).ShouldContain("PATH");
     }
 
+    /// <summary>A text file is not a program, so Windows refuses to start it (no shell, so no dialog), as it would a broken install.</summary>
+    [Fact]
+    public async Task ThrowProgramNotStartedWhenWindowsRefusesTheProgram()
+    {
+        string notAProgram = Path.Combine(folder, "Northwind.notes.txt");
+        await File.WriteAllTextAsync(notAProgram, "not a program", TestContext.Current.CancellationToken);
+
+        ProgramNotStartedException failure = await Should.ThrowAsync<ProgramNotStartedException>(() => new Desktop(new ProcessRunner(), new ProgramLocation.Found(Pwsh)).StartAsync(new ProcessRequest(notAProgram, [], WorkingFolder.Inherit), TestContext.Current.CancellationToken));
+
+        failure.Reason.ShouldNotBeNullOrWhiteSpace();
+        failure.Reason.ShouldNotContain(notAProgram, Case.Insensitive, "Windows' reason, not .NET's sentence naming the file");
+    }
+
     [Theory]
     [InlineData("plain")]
     [InlineData("Northwind & Co's tools")]
