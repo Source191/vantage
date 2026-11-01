@@ -151,7 +151,10 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
     ScreenContext context = new(tabTitle, _ => [Wording.SettingsRow(version, claudeCode, updates.Status, processRegistry.UsageOf(Environment.ProcessId)?.PrivateMemory ?? MemorySize.Zero)], () => updates.Status is UpdateStatus.Available, clipboard, log);
     FolderLabels folderLabels = new(() => [.. settings.Value.RepositoryRoots, settings.Value.WorktreeRoot], home);
     SetupFactsReader setup = new(terminalFragment, ClaudeSettings.ForCurrentUser(), store, store.ConfigFile, logPath);
-    ConsoleScreen consoleScreen = new(LoadAsync, ScanAsync, ReadConfigAsync, () => ConfigRows.For(settings.Value, facts: null), notifier, activity, new DetailLoader(git, store, activity), dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
+    // The Sessions tab's listing is held for the worktrees scan, which waits for the first and runs none of its own.
+    LatestSessions latestSessions = new(claude);
+    RunningLoads scans = new();
+    ConsoleScreen consoleScreen = new(LoadAsync, scans.Track<ViewInput>(ScanAsync), scans, ReadConfigAsync, () => ConfigRows.For(settings.Value, facts: null), notifier, activity, new DetailLoader(git, store, activity), dialogs, dispatcher, TimeProvider.System, context, claudeExecutable, folderLabels);
     ScreenLoop loop = new(consoleScreen, ownTab, console, updates, log);
 
     return await loop.RunAsync(Environment.ProcessId, cancellationToken);
@@ -160,7 +163,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
 
     async Task<ViewInput> LoadAsync(CancellationToken loadCancellation)
     {
-        SessionListing listing = await claude.ListSessionsAsync(loadCancellation);
+        SessionListing listing = await latestSessions.ListAsync(loadCancellation);
         IReadOnlyList<SessionRow> rows = await enricher.EnrichAsync(listing.Sessions, loadCancellation);
 
         return new RowsLoaded(rows) { AutomatedRuns = enricher.Measure(listing.AutomatedRuns) };
@@ -168,7 +171,7 @@ async Task<int> OpenConsoleAsync(CancellationToken cancellationToken)
 
     async Task<ViewInput> ScanAsync(CancellationToken scanCancellation)
     {
-        IReadOnlyList<Session> sessions = (await claude.ListSessionsAsync(scanCancellation)).Sessions;
+        IReadOnlyList<Session> sessions = await latestSessions.SessionsAsync(scanCancellation);
 
         return new WorktreeRowsLoaded(await inventory.ScanAsync(sessions, scanCancellation));
     }

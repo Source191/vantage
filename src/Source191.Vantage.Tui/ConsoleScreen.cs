@@ -19,6 +19,7 @@ namespace Source191.Vantage.Tui;
 public sealed class ConsoleScreen(
     Func<CancellationToken, Task<ViewInput>> loadSessions,
     Func<CancellationToken, Task<ViewInput>> scanWorktrees,
+    RunningLoads scans,
     Func<CancellationToken, Task<ViewInput>> readConfig,
     Func<IReadOnlyList<ConfigRow>> settingRows,
     StateTransitionNotifier notifier,
@@ -34,6 +35,7 @@ public sealed class ConsoleScreen(
 {
     private readonly Func<CancellationToken, Task<ViewInput>> loadSessions = loadSessions;
     private readonly Func<CancellationToken, Task<ViewInput>> scanWorktrees = scanWorktrees;
+    private readonly RunningLoads scans = scans ?? throw new ArgumentNullException(nameof(scans));
     private readonly Func<CancellationToken, Task<ViewInput>> readConfig = readConfig;
     private readonly Func<IReadOnlyList<ConfigRow>> settingRows = settingRows;
     private readonly StateTransitionNotifier notifier = notifier;
@@ -46,7 +48,6 @@ public sealed class ConsoleScreen(
     private readonly string claudeExecutable = claudeExecutable;
     private readonly FolderLabels folders = folders;
     private ConsoleTab? shown;
-    private bool worktreesScanned;
 
     public ConsoleExit Run(ConsoleState initial)
     {
@@ -158,8 +159,7 @@ public sealed class ConsoleScreen(
             tabs.ValueChanged += (_, _) => OnTabClicked();
             Window.Initialized += (_, _) => Show(active);
 
-            Start(sessions, always: true);
-            Start(worktrees, always: false);
+            StartRefreshing();
             sessions.Redraw();
             worktrees.Redraw();
             config.Redraw();
@@ -232,8 +232,9 @@ public sealed class ConsoleScreen(
         private int ScreenWidth => Window.Viewport.Width > 0 ? Window.Viewport.Width : app.Screen.Width;
 
         /// <summary>
-        /// Shows a tab: selects it in the strip (ignoring the change event that raises), records it, starts the worktrees scan
-        /// the first time it is shown, and tells both tabs which is shown so the hidden one keeps its spinners still.
+        /// Shows a tab: selects it in the strip (ignoring the change event that raises), records it, rescans the worktrees
+        /// each time their tab is shown unless a scan is already running (the start-up scan, when the tab is shown first),
+        /// and tells every tab which is shown so the hidden ones keep their spinners still.
         /// </summary>
         private void Show(ConsoleTab tab)
         {
@@ -252,10 +253,9 @@ public sealed class ConsoleScreen(
                 }));
             }
 
-            if (tab == ConsoleTab.Worktrees && !screen.worktreesScanned)
+            if (tab == ConsoleTab.Worktrees)
             {
-                screen.worktreesScanned = true;
-                worktrees.TriggerLoad();
+                ScanWorktrees();
             }
 
             if (tab == ConsoleTab.Config)
@@ -380,26 +380,47 @@ public sealed class ConsoleScreen(
         /// <summary>The strip's width: each title with a border cell either side, adjacent tabs sharing one (measured with the spike of 30 October 2026); the titles never change, so neither does this.</summary>
         private int HeaderSpan() => sessions.View.Title.Length + worktrees.View.Title.Length + config.View.Title.Length + 4;
 
-        /// <summary>The sessions tab refreshes always; the worktrees tab only while it is shown, once its first scan has been asked for.</summary>
-        private void Start(ITabBody body, bool always)
+        /// <summary>
+        /// The sessions are listed at once and on every tick, shown or not. The worktrees are scanned once at once, whichever
+        /// tab is shown (the scan waits for the first sessions listing), and on a tick only while their tab is shown.
+        /// </summary>
+        private void StartRefreshing()
+        {
+            Every(sessions, sessions.TriggerLoad);
+            Every(worktrees, () =>
+            {
+                if (Active == worktrees)
+                {
+                    ScanWorktrees();
+                }
+            });
+            sessions.TriggerLoad();
+            ScanWorktrees();
+        }
+
+        private void Every(ITabBody body, Action refresh)
         {
             object? timer = app.AddTimeout(body.RefreshEvery, () =>
             {
-                if (always || (body == Active && screen.worktreesScanned))
-                {
-                    body.TriggerLoad();
-                }
-
+                refresh();
                 return true;
             });
             if (timer is not null)
             {
                 timers.Add(timer);
             }
+        }
 
-            if (always)
+        /// <summary>
+        /// Starts a worktrees scan unless one is already running: reserved here on the UI thread, so a show or a timer tick
+        /// before the scan has started on its pool thread starts no second one. The start-up scan waits inside for the
+        /// first sessions listing.
+        /// </summary>
+        private void ScanWorktrees()
+        {
+            if (screen.scans.TryReserve())
             {
-                body.TriggerLoad();
+                worktrees.TriggerLoad();
             }
         }
 
