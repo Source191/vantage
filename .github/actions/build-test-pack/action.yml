@@ -26,7 +26,7 @@ runs:
   steps:
     # The runner image carries the .NET SDKs, and global.json (10.0.301, latestMinor) picks one, so nothing is
     # downloaded; an image without a suitable SDK fails here with the SDK's own message. The line records which
-    # SDK built this run.
+    # SDK built this run (https://learn.microsoft.com/dotnet/core/tools/global-json).
     - name: Show the .NET SDK
       shell: pwsh
       run: dotnet --version
@@ -42,6 +42,7 @@ runs:
     # Whitespace only: EnforceCodeStyleInBuild and TreatWarningsAsErrors in Directory.Build.props already fail
     # the build on every style and analyser rule at warning, which is what dotnet format's style and analyzers
     # passes check. Workspace mode, not --folder, so the generated files under obj are left out.
+    # (https://learn.microsoft.com/dotnet/core/tools/dotnet-format)
     - name: Format (whitespace)
       shell: pwsh
       run: dotnet format whitespace --verify-no-changes --no-restore

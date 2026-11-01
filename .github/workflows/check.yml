@@ -4,6 +4,7 @@ name: check
 # another branch is checked against that branch, so each one in a stack is green before it is
 # retargeted to main. Branch protection on main requires the `check` job, so a red pull request
 # cannot merge. Windows only: the code uses P/Invoke, ConPTY and cmd.exe in the integration tests.
+# (ConPTY: https://learn.microsoft.com/windows/console/creating-a-pseudoconsole-session)
 on:
   pull_request:
   push:
@@ -226,7 +227,8 @@ jobs:
 
   # The hand-off check against a real Claude session (CLAUDE.md, "Hand-off check"): vantage here
   # starts a throwaway session with no prompt, attaches, and is detached with Ctrl+Z. Needs the
-  # CLAUDE_CODE_OAUTH_TOKEN secret from `claude setup-token`; without it every step after the gate
+  # CLAUDE_CODE_OAUTH_TOKEN secret from `claude setup-token` (https://code.claude.com/docs/en/github-actions);
+  # without it every step after the gate
   # is skipped. continue-on-error because a slow runner can fail it for reasons that are not bugs:
   # read the handoff-capture artefact when it does. Exit 1 is vantage here not exiting after the
   # detach, 3 is Claude's screen missing from the capture (the attach never reached Claude). Claude's

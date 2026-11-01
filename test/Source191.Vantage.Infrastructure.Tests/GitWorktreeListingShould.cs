@@ -8,7 +8,7 @@ public sealed class GitWorktreeListingShould
 {
     /// <summary>
     /// Captured from "git worktree list --porcelain" on 2026-10-23, with a lock reason and a prunable entry added
-    /// in the shapes git documents.
+    /// in the <see href="https://git-scm.com/docs/git-worktree">shapes git documents</see>.
     /// </summary>
     private const string Capture = """
         worktree C:/Users/me/source/repos/Northwind.Billing

@@ -2,7 +2,10 @@ using System.Text.RegularExpressions;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
-/// <summary>Strips CSI, OSC and DCS sequences from a capture so plain text can be searched.</summary>
+/// <summary>
+/// Strips <see href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html">CSI, OSC and DCS sequences</see> from a
+/// capture so plain text can be searched.
+/// </summary>
 public static partial class EscapeSequences
 {
     public static string Strip(string raw) => OscOrDcs().Replace(Csi().Replace(raw, string.Empty), string.Empty);

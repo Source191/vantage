@@ -2,7 +2,11 @@ using System.Text;
 
 namespace Source191.Vantage.HeadlessTerminal;
 
-/// <summary>Builds a Windows command line the C runtime parses back into the same arguments.</summary>
+/// <summary>
+/// Builds a Windows command line the
+/// <see href="https://learn.microsoft.com/cpp/c-language/parsing-c-command-line-arguments">C runtime parses back</see>
+/// into the same arguments.
+/// </summary>
 public static class CommandLine
 {
     public static string Build(string exe, IReadOnlyList<string> arguments) => string.Join(' ', arguments.Prepend(exe).Select(Quote));

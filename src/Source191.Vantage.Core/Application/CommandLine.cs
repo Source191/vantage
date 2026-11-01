@@ -24,8 +24,9 @@ public static class CommandLine
     }
 
     /// <summary>
-    /// Parses and runs. The library's termination handler is off (<c>ProcessTerminationTimeout</c> null): it would
-    /// cancel the action on Ctrl+C and force an exit two seconds later, even under an attached session. When the parse
+    /// Parses and runs. The library's termination handler is off
+    /// (<see href="https://learn.microsoft.com/dotnet/api/system.commandline.invocationconfiguration.processterminationtimeout"><c>ProcessTerminationTimeout</c></see>
+    /// null): it would cancel the action on Ctrl+C and force an exit two seconds later, even under an attached session. When the parse
     /// has errors the action never runs, so an option-like name is named here first and the library's errors follow.
     /// </summary>
     public static async Task<int> InvokeAsync(RootCommand root, IReadOnlyList<string> arguments, TextWriter output, TextWriter error)

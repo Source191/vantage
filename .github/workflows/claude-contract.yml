@@ -86,7 +86,8 @@ jobs:
 
       # Only the ClaudeContract tests, with the variable that lets them start real sessions. A run where they
       # were all skipped (the CLI not found, the variable lost) would pass silently, so --fail-skips turns each
-      # skip into a failure with its reason, and a filter that matches nothing exits 8 ("Zero tests ran").
+      # skip into a failure with its reason, and a filter that matches nothing exits 8 ("Zero tests ran",
+      # https://learn.microsoft.com/dotnet/core/testing/microsoft-testing-platform-exit-codes).
       - name: Contract tests
         id: contract
         if: steps.gate.outputs.enabled == 'true'

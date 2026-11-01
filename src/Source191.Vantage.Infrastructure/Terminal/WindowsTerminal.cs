@@ -6,9 +6,9 @@ using System.Text;
 namespace Source191.Vantage.Adapters.Terminal;
 
 /// <summary>
-/// Builds the wt.exe argument list. wt.exe splits its command line on a semicolon even inside a quoted argument, so
-/// the tab's command travels as an encoded PowerShell command and every semicolon left, in a title or a folder, is
-/// escaped.
+/// Builds the <see href="https://learn.microsoft.com/windows/terminal/command-line-arguments">wt.exe argument list</see>.
+/// wt.exe splits its command line on a semicolon even inside a quoted argument, so the tab's command travels as an
+/// encoded PowerShell command and every semicolon left, in a title or a folder, is escaped.
 /// </summary>
 public static class WindowsTerminalArguments
 {
@@ -33,7 +33,10 @@ public static class WindowsTerminalArguments
     private static string Escaped(string argument) => argument.Replace(";", @"\;", StringComparison.Ordinal);
 }
 
-/// <summary>The -EncodedCommand form PowerShell takes: the script as Base64 of its UTF-16 bytes.</summary>
+/// <summary>
+/// The <see href="https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_pwsh">-EncodedCommand
+/// form PowerShell takes</see>: the script as Base64 of its UTF-16 bytes.
+/// </summary>
 public static class EncodedCommand
 {
     public static string Encode(string script) => Convert.ToBase64String(Encoding.Unicode.GetBytes(script));

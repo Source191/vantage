@@ -31,7 +31,8 @@ string vantageExecutable = Environment.ProcessPath ?? "vantage";
 TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser(Path.Combine(AppContext.BaseDirectory, "vantage.ico"));
 
 // Every program Vantage starts is found on the PATH once and run by its full path, never by a bare name that Windows
-// would look for in the folder Vantage was started from first.
+// would look for in the folder Vantage was started from first
+// (https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw).
 ProgramLocator programs = ProgramLocator.ForCurrentUser();
 
 // The diagnostic log is always kept in memory; VANTAGE_LOG=<file> also writes it to that file.

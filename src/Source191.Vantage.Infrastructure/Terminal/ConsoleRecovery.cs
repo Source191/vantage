@@ -14,9 +14,12 @@ public static partial class ConsoleRecovery
     private const int StandardOutputHandle = -11;
     private const uint EnableVirtualTerminalProcessing = 0x0004;
 
-    /// <summary>Terminal modes a child may have left behind; each one is turned off, then the cursor is shown.</summary>
+    /// <summary>
+    /// <see href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html">Terminal modes</see> a child may have left
+    /// behind; each one is turned off, then the cursor is shown.
+    /// </summary>
     internal const string ResetSequence =
-        "\u001b[<u" +          // pop any kitty keyboard protocol flags
+        "\u001b[<u" +          // pop any kitty keyboard protocol flags (https://sw.kovidgoyal.net/kitty/keyboard-protocol/)
         "\u001b[?1004l" +      // focus reporting off
         "\u001b[?2004l" +      // bracketed paste off
         "\u001b[?1000l\u001b[?1002l\u001b[?1003l\u001b[?1006l" + // mouse reporting off
@@ -26,7 +29,10 @@ public static partial class ConsoleRecovery
     /// <summary>Moves the cursor up one line and erases it: removes a one-line message once a child has given the screen back.</summary>
     public const string EraseLineAbove = "\u001b[1A\u001b[2K";
 
-    /// <summary>How long to wait for late query replies before the input buffer is discarded.</summary>
+    /// <summary>
+    /// How long to wait for late query replies before the
+    /// <see href="https://learn.microsoft.com/windows/console/flushconsoleinputbuffer">input buffer is discarded</see>.
+    /// </summary>
     internal static readonly TimeSpan SettleTime = TimeSpan.FromMilliseconds(150);
 
     /// <summary>Writes escape sequences (such as the tab title) to the console, making sure they are interpreted rather than printed.</summary>
@@ -47,7 +53,8 @@ public static partial class ConsoleRecovery
     }
 
     /// <summary>
-    /// Without ENABLE_VIRTUAL_TERMINAL_PROCESSING the reset sequence would print as text. A shell parent turns the
+    /// Without <see href="https://learn.microsoft.com/windows/console/setconsolemode">ENABLE_VIRTUAL_TERMINAL_PROCESSING</see>
+    /// the reset sequence would print as text. A shell parent turns the
     /// flag on, but Windows Terminal launching vantage.exe directly may not, so it is set here and left on.
     /// </summary>
     private static void EnableEscapeSequencesOnOutput()

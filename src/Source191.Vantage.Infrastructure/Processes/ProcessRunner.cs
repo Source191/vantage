@@ -34,7 +34,11 @@ public sealed class ProcessRunner : IProcessRunner
         return process.ExitCode;
     }
 
-    /// <summary>The empty string is ProcessStartInfo's own "start in this process's folder".</summary>
+    /// <summary>
+    /// The empty string is
+    /// <see href="https://learn.microsoft.com/dotnet/api/system.diagnostics.processstartinfo.workingdirectory">ProcessStartInfo's
+    /// own "start in this process's folder"</see>.
+    /// </summary>
     private static string FolderOf(WorkingFolder folder) => folder switch
     {
         WorkingFolder.Inherited => string.Empty,
@@ -45,12 +49,14 @@ public sealed class ProcessRunner : IProcessRunner
     internal static ProcessStartInfo StartInfo(ProcessRequest request, bool capture)
     {
         // Redirected streams decode with the console code page unless told otherwise; Claude Code prints UTF-8
-        // (its start line uses a middle dot), so both streams are read as UTF-8.
+        // (its start line uses a middle dot), so both streams are read as UTF-8
+        // (https://learn.microsoft.com/dotnet/api/system.diagnostics.processstartinfo.standardoutputencoding).
         ProcessStartInfo startInfo = new(request.FileName)
         {
             UseShellExecute = false,
             // A captured child (git, claude --json) must never get a console window of its own,
-            // which would take the focus from the terminal; an interactive child owns the current console instead.
+            // which would take the focus from the terminal; an interactive child owns the current console instead
+            // (https://learn.microsoft.com/dotnet/api/system.diagnostics.processstartinfo.createnowindow).
             CreateNoWindow = capture,
             RedirectStandardOutput = capture,
             RedirectStandardError = capture,

@@ -14,7 +14,11 @@ public sealed class PullRequestHosts(GitHubPullRequests gitHub, AzureDevOpsPullR
     };
 }
 
-/// <summary>Finds az.cmd on the PATH; CreateProcess cannot find a .cmd by its bare name.</summary>
+/// <summary>
+/// Finds az.cmd on the PATH;
+/// <see href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">CreateProcess
+/// cannot find a .cmd by its bare name</see>.
+/// </summary>
 public static class AzureCliExecutable
 {
     /// <summary>The first az.cmd in the PATH's folders, in order; the variable itself may be unset.</summary>

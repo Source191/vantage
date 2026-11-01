@@ -8,9 +8,10 @@ using System.Text.Json;
 namespace Source191.Vantage.Adapters.PullRequests;
 
 /// <summary>
-/// Lists one branch's pull requests in an Azure DevOps repository with az repos pr list, run through the full path of az.cmd (missing
-/// when it is not on the PATH). The only place az's words are read: its login hints are not signed in, a missing
-/// azure-devops extension is a missing CLI, anything else failed. Every argument is a fixed flag, a name the Domain
+/// Lists one branch's pull requests in an Azure DevOps repository with
+/// <see href="https://learn.microsoft.com/cli/azure/repos/pr">az repos pr list</see>, run through the full path of az.cmd
+/// (missing when it is not on the PATH). The only place az's words are read: its login hints are not signed in, a missing
+/// <see href="https://learn.microsoft.com/azure/devops/cli/">azure-devops extension</see> is a missing CLI, anything else failed. Every argument is a fixed flag, a name the Domain
 /// has already checked, or the branch, checked here by the same rule, so cmd.exe, which reads az.cmd's arguments,
 /// finds nothing special in them; a branch that fails the rule is not looked up at all.
 /// </summary>

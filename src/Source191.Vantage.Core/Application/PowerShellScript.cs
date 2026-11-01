@@ -9,7 +9,9 @@ namespace Source191.Vantage.Application;
 public static class PowerShellScript
 {
     /// <summary>
-    /// Every character PowerShell's tokenizer reads as a single quote: the ASCII apostrophe and U+2018 to U+201B.
+    /// Every character
+    /// <see href="https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_quoting_rules">PowerShell's
+    /// tokenizer reads as a single quote</see>: the ASCII apostrophe and U+2018 to U+201B.
     /// Any of them would end the literal, so each is doubled with itself and the text comes back unchanged.
     /// </summary>
     private static readonly char[] SingleQuotes = ['\'', '‘', '’', '‚', '‛'];

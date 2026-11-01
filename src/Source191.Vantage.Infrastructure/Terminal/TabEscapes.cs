@@ -3,9 +3,14 @@ using Source191.Vantage.Domain;
 namespace Source191.Vantage.Adapters.Terminal;
 
 /// <summary>
-/// The escape sequences a program can use to label its own Windows Terminal tab: OSC 2 for the title, OSC 4 on
-/// palette entry 264 (the tab background) for the colour, and OSC 104 with DECAC to put the entry and the tab's colour indices back.
-/// Ignored by the terminal when the tab was launched with an explicit tabColor.
+/// The escape sequences a program can use to label its own Windows Terminal tab:
+/// <see href="https://learn.microsoft.com/windows/console/console-virtual-terminal-sequences">OSC 2</see> for the title,
+/// <see href="https://learn.microsoft.com/windows/console/console-virtual-terminal-sequences">OSC 4</see> on palette entry
+/// 264 (the tab background) for the colour, and
+/// <see href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html">OSC 104</see> with
+/// <see href="https://vt100.net/dec/ek-vt520-rm.pdf">DECAC</see> to put the entry and the tab's colour indices back.
+/// Ignored by the terminal when the tab was launched with an explicit
+/// <see href="https://learn.microsoft.com/windows/terminal/command-line-arguments">tabColor</see>.
 /// </summary>
 public static class TabEscapes
 {

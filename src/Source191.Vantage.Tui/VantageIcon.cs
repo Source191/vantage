@@ -6,7 +6,8 @@ namespace Source191.Vantage.Tui;
 /// <summary>
 /// The Vantage icon for the console's top left corner: the pixels of assets\icon\vantage-48.rgba (written by
 /// tools\New-IconPixels.ps1), drawn by an ImageView fitted to one row. It shows only where the terminal draws images
-/// (Sixel or Kitty); cell-based drawing would turn each pixel into a cell, so without image support it stays hidden.
+/// (<see href="https://vt100.net/docs/vt3xx-gp/chapter14.html">Sixel</see> or
+/// <see href="https://sw.kovidgoyal.net/kitty/graphics-protocol/">Kitty</see>); cell-based drawing would turn each pixel into a cell, so without image support it stays hidden.
 /// </summary>
 internal static class VantageIcon
 {

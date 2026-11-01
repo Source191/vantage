@@ -7,7 +7,9 @@ namespace Source191.Vantage.Infrastructure.Tests;
 
 /// <summary>
 /// Hands quoted text to real PowerShell 7, encoded exactly as a tab's script is, so the quoting is checked against
-/// PowerShell's own tokenizer rather than against a reading of its rules.
+/// PowerShell's own tokenizer rather than against a reading of
+/// <see href="https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_quoting_rules">its
+/// rules</see>.
 /// </summary>
 [Trait("Category", "Integration")]
 public sealed class PowerShellQuotingShould

@@ -5,9 +5,12 @@ using System.Diagnostics;
 namespace Source191.Vantage.Adapters.Processes;
 
 /// <summary>
-/// Hands things to Windows: a file or URL to its associated application (ShellExecute), a program to run on its own.
-/// Neither is waited for to close, and both get the same environment as every other child of Vantage, without the Claude
-/// Code markers. ShellExecute cannot be given an environment, so a short-lived PowerShell child that has the cleaned one
+/// Hands things to Windows: a file or URL to its associated application
+/// (<see href="https://learn.microsoft.com/windows/win32/api/shellapi/nf-shellapi-shellexecutew">ShellExecute</see>), a
+/// program to run on its own. Neither is waited for to close, and both get the same environment as every other child of
+/// Vantage, without the Claude Code markers. ShellExecute
+/// <see href="https://learn.microsoft.com/dotnet/api/system.diagnostics.processstartinfo.useshellexecute">cannot be given
+/// an environment</see>, so a short-lived PowerShell child that has the cleaned one
 /// makes the call (see <see cref="OpenFileScript"/>); the call waits for that child, which ends once Windows has started the
 /// application, so a file that has gone is reported rather than lost. PowerShell is run by the full path it was given
 /// (missing when pwsh.exe is not on the PATH, which fails each open with a sentence naming it).
