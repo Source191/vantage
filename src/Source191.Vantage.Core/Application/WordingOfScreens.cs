@@ -164,6 +164,17 @@ public static partial class Wording
         DisplayStateKind.Unknown => "■",
     };
 
+    /// <summary>The glyph before a worktree health's word, so the health reads without its colour: a closed enum, so a new kind fails the build here.</summary>
+    public static string HealthGlyph(WorktreeHealthKind kind) => kind switch
+    {
+        WorktreeHealthKind.Ok => "✓",
+        WorktreeHealthKind.Locked => "◆",
+        WorktreeHealthKind.Orphan => "△",
+        WorktreeHealthKind.Broken => "✗",
+        WorktreeHealthKind.Empty => "□",
+        WorktreeHealthKind.Elsewhere => "↗",
+    };
+
     public static IReadOnlyList<ColumnHelp> SessionsColumns { get; } =
     [
         new("NAME", "the session name given at launch, or the folder name for an unnamed one"),
