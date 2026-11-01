@@ -1,6 +1,7 @@
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Reporting;
 
@@ -22,16 +23,22 @@ public sealed class ProblemReports(DiagnosticLog log, ProcessCounts counts, ICra
 
     public async Task<ProblemReport> BuildAsync()
     {
-        string? crash = await crashFile.ReadAsync();
-        List<ReportLine> lines = [Kept("Environment"), Kept(DiagnosticLine.Environment(start)), Kept(SettingsLine()), Kept(string.Empty)];
-        if (crash is not null)
-        {
-            lines.AddRange([Kept("Last crash"), .. CrashLines(crash), Kept(string.Empty)]);
-        }
-
+        LastCrash crash = await crashFile.ReadAsync();
+        List<ReportLine> lines = [Kept("Environment"), Kept(DiagnosticLine.Environment(start)), Kept(SettingsLine()), Kept(string.Empty), .. CrashBlock(crash)];
         lines.AddRange([Kept("Recent events"), .. EventLines(), Kept(string.Empty), Kept("Child program counts"), .. CountLines()]);
 
-        return new ProblemReport(lines, crash is not null);
+        return new ProblemReport(lines, crash is LastCrash.Recorded);
+    }
+
+    /// <summary>The "Last crash" block, only when the crash file holds one.</summary>
+    private static IEnumerable<ReportLine> CrashBlock(LastCrash crash)
+    {
+        return crash switch
+        {
+            LastCrash.Recorded recorded => [Kept("Last crash"), .. CrashLines(recorded.Text), Kept(string.Empty)],
+            LastCrash.None => [],
+            _ => throw new UnreachableException(),
+        };
     }
 
     private string SettingsLine()
