@@ -6,23 +6,24 @@ name: release
 # same action that decides whether a release happens. Publishing to nuget.org is never done from
 # here: publish.yml pushes a tested release's package by hand, so nuget.org (where a version cannot
 # be replaced) only gets what was tried first. The GitHub Release is the immutable package tied to
-# a commit that publish.yml starts from.
+# a commit that publish.yml starts from; publish.yml verifies its provenance attestation before it pushes.
 on:
   push:
     branches: [main]
 
 jobs:
-  release:
-    name: Publish a release if the version changed
+  # Builds and tests with read rights only, so the version check, the restore and the tests never hold a token that
+  # can write to the repository or sign anything. The package travels to the release job as an artefact.
+  build:
+    name: Build the package if the version changed
     runs-on: windows-latest
     timeout-minutes: 20
-    # contents to publish the release; id-token and attestations to sign the package's provenance.
     permissions:
-      contents: write
-      id-token: write
-      attestations: write
+      contents: read
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+      version: ${{ steps.check.outputs.version }}
     steps:
-      # The release is published with gh and GH_TOKEN, never git push, so git keeps no credentials.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 2
@@ -68,28 +69,65 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         id: build
 
-      # Signed build provenance for the package: which commit and workflow built it, kept by GitHub and checked
-      # with `gh attestation verify <nupkg> --repo Source191/vantage` before a publish or an install.
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.check.outputs.changed == 'true'
+        with:
+          name: package
+          path: ${{ steps.build.outputs.package }}
+          if-no-files-found: error
+
+  # Attests and publishes the package the build job made, and nothing else: it checks nothing out and runs no
+  # build, so the write and signing rights are held only by steps that download, attest and call gh.
+  release:
+    name: Publish the release
+    needs: build
+    if: needs.build.outputs.changed == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 10
+    # contents to publish the release; id-token and attestations to sign the package's provenance.
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: package
+          path: package
+
+      - name: Find the package
+        id: package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $packages = @(Get-ChildItem package -Filter *.nupkg)
+          if ($packages.Count -ne 1) {
+              throw "Expected exactly one .nupkg in the build's artefact, found $($packages.Count)."
+          }
+          "path=$($packages[0].FullName)" >> $env:GITHUB_OUTPUT
+
+      # Signed build provenance for the package: which commit and workflow built it, kept by GitHub. publish.yml
+      # checks it with gh attestation verify before it pushes anything to nuget.org, and anyone can before an install.
+      # The attestation is made on the downloaded bytes, which are the ones released.
       # (https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds,
       # https://cli.github.com/manual/gh_attestation_verify)
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
-        if: steps.check.outputs.changed == 'true'
         with:
-          subject-path: ${{ steps.build.outputs.package }}
+          subject-path: ${{ steps.package.outputs.path }}
 
       # gh is on the runner, so no third-party action is needed for the release itself. A version with a
       # prerelease label (0.16.2-preview.1; the csproj never carries build metadata) is published as a
-      # GitHub prerelease, so it never becomes the repository's Latest release.
+      # GitHub prerelease, so it never becomes the repository's Latest release. Nothing is checked out, so the
+      # repository is named.
       - name: Publish the release
-        if: steps.check.outputs.changed == 'true'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ steps.check.outputs.version }}
-          PACKAGE: ${{ steps.build.outputs.package }}
+          VERSION: ${{ needs.build.outputs.version }}
+          PACKAGE: ${{ steps.package.outputs.path }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $arguments = @("v$env:VERSION", $env:PACKAGE, '--title', "v$env:VERSION", '--generate-notes', '--target', $env:GITHUB_SHA)
+          $arguments = @("v$env:VERSION", $env:PACKAGE, '--repo', $env:GITHUB_REPOSITORY, '--title', "v$env:VERSION", '--generate-notes', '--target', $env:GITHUB_SHA)
           if ($env:VERSION.Contains('-')) {
               $arguments += '--prerelease'
           }

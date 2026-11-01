@@ -11,16 +11,23 @@ on:
     - cron: '17 3 * * *'
   workflow_dispatch:
 
-# Issues are written only by the last step, and only when the install or the contract tests failed.
+# Issues are written only by the report job, and only when the install or the contract tests failed: the job that
+# installs Claude Code and runs the tests can read the repository and nothing more.
 permissions:
   contents: read
-  issues: write
 
 jobs:
   contract:
     name: contract
     runs-on: windows-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+    # The report job reads these to decide whether to raise the issue and what to say.
+    outputs:
+      install: ${{ steps.claude.outcome }}
+      contract: ${{ steps.contract.outcome }}
+      version: ${{ steps.claude.outputs.version }}
     # The token is given only to the steps that start Claude (and the gate that checks it is there), never to
     # the job, so the installer, the build and the issue step never see it.
     env:
@@ -123,15 +130,30 @@ jobs:
             tools\HeadlessTerminal\drive-raw.txt
           if-no-files-found: ignore
 
-      # One rolling issue: a comment on the open claude-cli issue, or a new one when none is open. Its assignee
-      # is subscribed to it, so GitHub notifies them of every comment.
+  # One rolling issue: a comment on the open claude-cli issue, or a new one when none is open. Its assignee is
+  # subscribed to it, so GitHub notifies them of every comment. A job of its own, so only it holds issues: write, and
+  # it runs nothing from the CLI or the repository: it reads the contract job's outcomes and its results artefact.
+  report:
+    name: report
+    needs: contract
+    if: always() && (needs.contract.outputs.install == 'failure' || needs.contract.outputs.contract == 'failure')
+    runs-on: windows-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        continue-on-error: true
+        with:
+          name: contract-results
+
       - name: Raise the claude-cli issue
-        if: always() && (steps.claude.outcome == 'failure' || steps.contract.outcome == 'failure')
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-          INSTALL_OUTCOME: ${{ steps.claude.outcome }}
-          CLAUDE_VERSION: ${{ steps.claude.outputs.version }}
+          GH_REPO: ${{ github.repository }}
+          INSTALL_OUTCOME: ${{ needs.contract.outputs.install }}
+          CLAUDE_VERSION: ${{ needs.contract.outputs.version }}
           WATCHER: ${{ vars.CLAUDE_CLI_WATCHER }}
         run: |
           $ErrorActionPreference = 'Stop'
