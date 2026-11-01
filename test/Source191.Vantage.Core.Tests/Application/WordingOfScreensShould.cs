@@ -151,6 +151,14 @@ public sealed class WordingOfScreensShould
     }
 
     [Fact]
+    public void CountAStartingSessionWithTheWorkingOnes()
+    {
+        SessionRow[] rows = [SessionIn(DisplayState.Starting, 0), SessionIn(DisplayState.Working, 1)];
+
+        Wording.SessionCounts(rows, AutomatedRuns.None).ShouldBe([new TextPart("● 2 working", TextTone.Cyan)]);
+    }
+
+    [Fact]
     public void EndTheCountsWithTheAutomatedRunsAndTheirMemoryInGrey()
     {
         SessionRow[] rows = [SessionIn(DisplayState.Working, 0), SessionIn(DisplayState.Stopped, 1)];
