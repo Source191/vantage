@@ -234,7 +234,7 @@ public static partial class Wording
 
     public static string WizardChosenCaption(WizardState wizard) => wizard.ShowsChooser ? "Repository" : "Directory";
 
-    public static string WizardChosen(WizardState wizard) => wizard.Chosen?.Name ?? "(none)";
+    public static string WizardChosen(WizardState wizard) => wizard.Chosen is RepositoryPick.Picked picked ? picked.Choice.Name : "(none)";
 
     public static string WizardHint(WizardState wizard)
     {

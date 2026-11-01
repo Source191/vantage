@@ -25,7 +25,7 @@ internal static class LaunchWizardDialog
         // Read once, on a pool thread: Terminal.Gui installs a synchronisation context while it runs, so awaiting
         // on the UI thread and then blocking for the result would deadlock (it did, after every attach-and-return).
         IReadOnlyList<string> recent = Task.Run(recentRepositories.ReadRecentRepositoriesAsync).GetAwaiter().GetResult();
-        WizardState state = WizardState.Open(catalogue, recent, folders, settings, fixedDirectory);
+        WizardState state = WizardState.Open(catalogue, recent, folders, settings, fixedDirectory is null ? new WizardOrigin.Anywhere() : WizardOrigin.In(fixedDirectory));
         WizardEffect result = new WizardEffect.Close();
         bool binding = false;
         IReadOnlyList<string> listed = [];

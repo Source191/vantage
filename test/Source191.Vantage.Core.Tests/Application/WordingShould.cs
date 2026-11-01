@@ -848,7 +848,7 @@ public sealed class WordingShould
     {
         FakeFolders folders = new();
 
-        return WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current()), [], folders, TestSettings.For(), fixedDirectory is null ? null : FolderPath.From(fixedDirectory));
+        return WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current()), [], folders, TestSettings.For(), fixedDirectory is null ? new WizardOrigin.Anywhere() : WizardOrigin.In(FolderPath.From(fixedDirectory)));
     }
 
     // vantage setup-terminal.

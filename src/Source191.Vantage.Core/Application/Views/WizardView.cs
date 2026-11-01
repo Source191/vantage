@@ -60,7 +60,7 @@ public static class WizardView
 
     private static WizardState Confirmed(WizardState state)
     {
-        return state.Chosen is null
+        return state.Chosen is RepositoryPick.None
             ? state with { Problem = new WizardProblem.NoRepository(), Focus = WizardField.RepositoryFilter }
             : state with { Problem = new WizardProblem.None(), Focus = WizardField.Name };
     }
@@ -81,12 +81,12 @@ public static class WizardView
 
     private static WizardUpdate Started(WizardState state)
     {
-        if (state.Chosen is not RepositoryChoice repository)
+        if (state.Chosen is not RepositoryPick.Picked picked)
         {
             return Changed(state with { Problem = new WizardProblem.NoRepository(), Focus = WizardField.RepositoryFilter });
         }
 
-        LaunchRequest request = new(repository, state.Name, state.Mode, state.Base, state.Prompt);
+        LaunchRequest request = new(picked.Choice, state.Name, state.Mode, state.Base, state.Prompt);
 
         return LaunchPlanBuilder.Build(request, state.WorktreeRoot, state.Folders.DirectoryExists) switch
         {
