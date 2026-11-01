@@ -8,7 +8,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 - [x] 1.2 `WorktreeHealthShould` builds observations with `WorktreeLock` and `GitPointer` (`Locked("maintenance")`, `Locked("")`, `RegisteredElsewhere(owner)`, `TargetGone`, `TargetExists`, `NoGitFile`) and expects the same kinds and reasons: red, then `Domain\WorktreeLock.cs`, `Domain\GitPointer.cs`, `WorktreeObservation` and `WorktreeHealth.From` green. Verify every fact passes with unchanged expectations.
 - [x] 1.3 `ProcessTreeShould.KeepAChildItCouldNotMeasureAsUnmeasured` (and the existing facts reading `Measured`): red, then `Domain\ProcessMeasure.cs` and `ProcessTree.Usage` with `Build` translating `usageOf`'s answer green. Verify the facts pass with today's totals and counts.
 - [x] 1.4 `ReleaseVersionShould`: a release's `Prerelease` is empty, a prerelease's is its text, and every comparison and `ToString` fact is unchanged: red, then `ReleaseVersion.Prerelease` as non-nullable text green. Verify the facts pass.
-- [ ] 1.5 `Domain\WaitingReason.cs` (`Nothing`, `Given(string Text)`) and `Domain\SessionMemory.cs` (`Measured(MemorySize Size)`, `NothingToMeasure`), first exercised by 3.2 and 4.1 (no fact of their own: they hold no rule). Verify the build.
+- [x] 1.5 `Domain\WaitingReason.cs` (`Nothing`, `Given(string Text)`) and `Domain\SessionMemory.cs` (`Measured(MemorySize Size)`, `NothingToMeasure`), first exercised by 3.2 and 4.1 (no fact of their own: they hold no rule). Verify the build.
 
 ## 2. Adapters
 
