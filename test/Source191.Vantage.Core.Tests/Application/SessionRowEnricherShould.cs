@@ -165,6 +165,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
+        row.Location.ShouldBe(new SessionLocation.InRepository("Northwind.Orders", FolderPath.From(@"C:\repos\Northwind.Orders")));
         row.Repository.ShouldBe("Northwind.Orders");
         row.Head.ShouldBe(new Head.OnBranch(BranchName.From("feature/x")));
     }
@@ -177,6 +178,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
+        row.Location.ShouldBe(new SessionLocation.InRepository("Northwind.Orders", FolderPath.From(@"C:\repos\Northwind.Orders")));
         row.Repository.ShouldBe("Northwind.Orders");
         row.Head.ShouldBe(new Head.OnBranch(BranchName.From("fix")));
     }
@@ -201,6 +203,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
+        row.Location.ShouldBe(new SessionLocation.Outside("repos"));
         row.Repository.ShouldBe("repos");
         row.Head.ShouldBe(new Head.Unknown());
         row.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
@@ -214,6 +217,7 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();
 
+        row.Location.ShouldBe(new SessionLocation.Outside(@"repos\Northwind.Orders"));
         row.Repository.ShouldBe(@"repos\Northwind.Orders");
         row.Head.ShouldBe(new Head.OnBranch(BranchName.From("main")));
         row.PullRequest.ShouldBe(new PullRequestLookup.Missing(PullRequestGap.NoBranch));
@@ -281,7 +285,7 @@ public sealed class SessionRowEnricherShould : IDisposable
     }
 
     [Fact]
-    public async Task CarryTheCheckoutAndTheTabColour()
+    public async Task CarryTheLocationAndTheTabColour()
     {
         AnswerGit(@"C:\repos\Northwind.Orders-fix", root: "C:/repos/Northwind.Orders-fix", commonDir: "C:/repos/Northwind.Orders/.git", branch: "fix");
         Session inWorktree = Session(@"C:\repos\Northwind.Orders-fix");
@@ -291,9 +295,9 @@ public sealed class SessionRowEnricherShould : IDisposable
 
         IReadOnlyList<SessionRow> rows = await Enricher.EnrichAsync([inWorktree, outside], CancellationToken.None);
 
-        rows[0].Checkout.ShouldBe(FolderPath.From(@"C:\repos\Northwind.Orders"));
+        rows[0].Location.ShouldBe(new SessionLocation.InRepository("Northwind.Orders", FolderPath.From(@"C:\repos\Northwind.Orders")));
         rows[0].Tab.ShouldBe(new LiveTab.Open(TabPalette.Default[2]));
-        rows[1].Checkout.ShouldBeNull();
+        rows[1].Location.ShouldBe(new SessionLocation.Outside("notes"));
         rows[1].Tab.ShouldBe(new LiveTab.None());
     }
 
