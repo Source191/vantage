@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Settings live in one file with defaults
-Vantage SHALL keep its settings in `config.json` in its state folder: the repository roots, the worktree root, the editor, the default worktree base and the default place for a new session. A missing file, a corrupt file or a missing property SHALL read as the default: roots `<home>\source\repos`, worktree root `worktrees` beside the first repository root, editor VS Code, base the remote default branch, place a new worktree. A file Vantage is not allowed to read, and a number where a base or place name belongs, SHALL read as a corrupt file does.
+Vantage SHALL keep its settings in `config.json` in its state folder: the repository roots, the worktree root, the editor, the default worktree base and the default place for a new session. A missing, corrupt or unreadable file, a number where a base or place name belongs, or a missing property SHALL read as the default: roots `<home>\source\repos`, worktree root `worktrees` beside the first repository root, editor VS Code, base the remote default branch, place a new worktree.
 
 #### Scenario: No settings file
 - **WHEN** Vantage starts and `config.json` does not exist

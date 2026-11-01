@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Time.Testing;
-using System.Runtime.Versioning;
-using System.Security.AccessControl;
-using System.Security.Principal;
 using Source191.Vantage.Adapters.State;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Runtime.Versioning;
+using System.Security.AccessControl;
+using System.Security.Principal;
 
 namespace Source191.Vantage.Infrastructure.Tests;
 

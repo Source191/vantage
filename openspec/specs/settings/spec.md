@@ -6,7 +6,7 @@ Lets the user see and change where Vantage looks for repositories, where it puts
 ## Requirements
 
 ### Requirement: Settings live in one file with defaults
-Vantage SHALL keep its settings in `config.json` in its state folder: the repository roots, the worktree root, the editor, the default worktree base and the default place for a new session. A missing file, a corrupt file or a missing property SHALL read as the default: roots `<home>\source\repos`, worktree root `worktrees` beside the first repository root, editor VS Code, base the remote default branch, place a new worktree.
+Vantage SHALL keep its settings in `config.json` in its state folder: the repository roots, the worktree root, the editor, the default worktree base and the default place for a new session. A missing, corrupt or unreadable file, a number where a base or place name belongs, or a missing property SHALL read as the default: roots `<home>\source\repos`, worktree root `worktrees` beside the first repository root, editor VS Code, base the remote default branch, place a new worktree.
 
 #### Scenario: No settings file
 - **WHEN** Vantage starts and `config.json` does not exist
@@ -27,6 +27,14 @@ Vantage SHALL keep its settings in `config.json` in its state folder: the reposi
 #### Scenario: The default place by hand
 - **WHEN** `config.json` holds `defaultPlace` of `CurrentBranch`
 - **THEN** the wizard opened with n starts on Current branch
+
+#### Scenario: A number where a name belongs
+- **WHEN** `config.json` holds `repositoryRoots` of `D:\work` and `defaultBase` of `7`
+- **THEN** Vantage starts with every default, as it does for a corrupt file, the Config tab draws and the wizard opens, and nothing exits
+
+#### Scenario: A file Vantage may not read
+- **WHEN** `config.json` exists but the user's account is denied reading its contents
+- **THEN** Vantage starts with every default and does not exit
 
 ### Requirement: The editor is a preset or a custom command
 The editor setting SHALL be one of the presets VS Code, Visual Studio, Rider and Explorer, or a custom executable, named by its full path, with arguments in which `{folder}` stands for the folder to open. Visual Studio SHALL open the folder in the newest installed Visual Studio.
@@ -177,3 +185,14 @@ While Custom is chosen, the Open folder with dialog SHALL offer Browse (F3), whi
 #### Scenario: A preset is chosen
 - **WHEN** VS Code is chosen in the Open folder with dialog
 - **THEN** no Browse button is shown and F3 does nothing
+
+### Requirement: A saved settings file is replaced whole
+Saving SHALL write the new `config.json` beside the old one and replace it in one step, so a save that is interrupted leaves the previous settings in place and no partly written file is ever read. Another Vantage process reading `config.json` SHALL NOT stop a save, and a save SHALL leave no temporary file behind.
+
+#### Scenario: An interrupted save
+- **WHEN** Vantage is ended while it is saving the repository roots `C:\Users\me\source\repos` and `D:\work`
+- **THEN** the next start reads either the roots as they were before the save or both new roots, never no roots
+
+#### Scenario: Another process is reading the file
+- **WHEN** `vantage here` is reading `config.json` as the console saves a new worktree root
+- **THEN** the save completes, the new worktree root is read by the next reader, and only `config.json` is left in the state folder
