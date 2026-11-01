@@ -18,7 +18,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
 
     public TimeSpan RefreshEvery => TimeSpan.FromSeconds(5);
 
-    public IDetailSource<SessionRow>? Detail => detail;
+    public TableDetail<SessionRow> Detail => new TableDetail<SessionRow>.Pane(detail);
 
     public string? RowTip(SessionRow row) => null;
 

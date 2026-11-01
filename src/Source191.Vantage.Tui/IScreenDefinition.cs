@@ -1,5 +1,4 @@
 using Source191.Vantage.Application;
-using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
@@ -59,8 +58,8 @@ internal interface IScreenDefinition<TState, TRow>
     /// <summary>What a row is, shown as a tooltip while the pointer rests on it, or null for a view whose rows need none.</summary>
     string? RowTip(TRow row);
 
-    /// <summary>How the pane under the table reads the selected row, or null for a view with no pane.</summary>
-    IDetailSource<TRow>? Detail { get; }
+    /// <summary>Whether the tab has a pane under its table and how it reads the selected row; asked once, when the tab is built.</summary>
+    TableDetail<TRow> Detail { get; }
 }
 
 /// <summary>What a dialog flow may do on the UI thread of the screen that raised it.</summary>
