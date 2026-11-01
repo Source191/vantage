@@ -40,31 +40,31 @@ public sealed class UpdateCheckRuleShould
     [Fact]
     public void TakeTheNewestRelease()
     {
-        UpdateCheckRule.Newest(["0.7.2", "0.10.0", "0.9.0", "0.11.0-rc.1", "not a version"])!.ToString().ShouldBe("0.10.0");
+        UpdateCheckRule.Newest(["0.7.2", "0.10.0", "0.9.0", "0.11.0-rc.1", "not a version"]).ShouldBe(new NewestRelease.Found(new ReleaseVersion(0, 10, 0, null)));
     }
 
     [Fact]
     public void FindNoNewestReleaseAmongPrereleasesAndNoise()
     {
-        UpdateCheckRule.Newest(["0.11.0-rc.1", "rubbish"]).ShouldBeNull();
-        UpdateCheckRule.Newest([]).ShouldBeNull();
+        UpdateCheckRule.Newest(["0.11.0-rc.1", "rubbish"]).ShouldBe(new NewestRelease.None());
+        UpdateCheckRule.Newest([]).ShouldBe(new NewestRelease.None());
     }
 
     [Fact]
     public void OfferOnlyAHigherRelease()
     {
-        UpdateCheckRule.Offer(Release, enabled: true, "0.10.0").ShouldBe(new UpdateStatus.Available(ReleaseVersion.TryParse("0.9.0")!, ReleaseVersion.TryParse("0.10.0")!));
-        UpdateCheckRule.Offer(Release, enabled: true, "0.9.0").ShouldBe(new UpdateStatus.UpToDate());
-        UpdateCheckRule.Offer(Release, enabled: true, "0.8.0").ShouldBe(new UpdateStatus.UpToDate());
-        UpdateCheckRule.Offer(Release, enabled: true, newest: null).ShouldBe(new UpdateStatus.UpToDate());
-        UpdateCheckRule.Offer(Release, enabled: true, "rubbish").ShouldBe(new UpdateStatus.UpToDate());
+        UpdateCheckRule.Offer(Release, enabled: true, NewestRelease.Recorded("0.10.0")).ShouldBe(new UpdateStatus.Available(ReleaseVersion.TryParse("0.9.0")!, ReleaseVersion.TryParse("0.10.0")!));
+        UpdateCheckRule.Offer(Release, enabled: true, NewestRelease.Recorded("0.9.0")).ShouldBe(new UpdateStatus.UpToDate());
+        UpdateCheckRule.Offer(Release, enabled: true, NewestRelease.Recorded("0.8.0")).ShouldBe(new UpdateStatus.UpToDate());
+        UpdateCheckRule.Offer(Release, enabled: true, new NewestRelease.None()).ShouldBe(new UpdateStatus.UpToDate());
+        UpdateCheckRule.Offer(Release, enabled: true, NewestRelease.Recorded("rubbish")).ShouldBe(new UpdateStatus.UpToDate());
     }
 
     [Fact]
     public void OfferNothingWhenTurnedOffOrForAPrerelease()
     {
-        UpdateCheckRule.Offer(Release, enabled: false, "0.10.0").ShouldBe(new UpdateStatus.Off());
-        UpdateCheckRule.Offer(new ToolVersion("0.9.0-local"), enabled: true, "0.10.0").ShouldBe(new UpdateStatus.Off());
-        UpdateCheckRule.Offer(new ToolVersion("unknown"), enabled: true, "0.10.0").ShouldBe(new UpdateStatus.Off());
+        UpdateCheckRule.Offer(Release, enabled: false, NewestRelease.Recorded("0.10.0")).ShouldBe(new UpdateStatus.Off());
+        UpdateCheckRule.Offer(new ToolVersion("0.9.0-local"), enabled: true, NewestRelease.Recorded("0.10.0")).ShouldBe(new UpdateStatus.Off());
+        UpdateCheckRule.Offer(new ToolVersion("unknown"), enabled: true, NewestRelease.Recorded("0.10.0")).ShouldBe(new UpdateStatus.Off());
     }
 }

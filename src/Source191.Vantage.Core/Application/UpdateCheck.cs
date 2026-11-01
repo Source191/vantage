@@ -1,5 +1,6 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -15,15 +16,15 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
     /// <summary>The feed the check consults, and the only one the update tab installs from, whatever else the machine has configured.</summary>
     public const string Source = "https://api.nuget.org/v3/index.json";
 
-    private string? newest;
+    private readonly SharedSnapshot<NewestRelease> newest = new(new NewestRelease.None());
 
     /// <summary>What the update key and the header offer now, read on every use so turning the setting off applies at once.</summary>
-    public UpdateStatus Status => UpdateCheckRule.Offer(running, enabled(), Volatile.Read(ref newest));
+    public UpdateStatus Status => UpdateCheckRule.Offer(running, enabled(), newest.Value);
 
     public async Task RunAsync(CancellationToken cancellationToken)
     {
         UpdateCheckRecord? record = await records.ReadUpdateCheckAsync();
-        Volatile.Write(ref newest, record?.Newest);
+        newest.Replace(record?.Newest is string text ? NewestRelease.Recorded(text) : new NewestRelease.None());
         DateTimeOffset now = clock.GetUtcNow();
         if (!UpdateCheckRule.ShouldCheck(running, enabled(), record?.CheckedAt, now))
         {
@@ -36,8 +37,19 @@ public sealed class UpdateCheck(ToolVersion running, Func<bool> enabled, IUpdate
             return;
         }
 
-        string? found = UpdateCheckRule.Newest(versions)?.ToString();
-        await records.WriteUpdateCheckAsync(new UpdateCheckRecord(now, found));
-        Volatile.Write(ref newest, found);
+        NewestRelease found = UpdateCheckRule.Newest(versions);
+        await records.WriteUpdateCheckAsync(new UpdateCheckRecord(now, RecordedText(found)));
+        newest.Replace(found);
+    }
+
+    /// <summary>The record keeps the newest release as text, and no text when there is none.</summary>
+    private static string? RecordedText(NewestRelease release)
+    {
+        return release switch
+        {
+            NewestRelease.Found found => found.Version.ToString(),
+            NewestRelease.None => null,
+            _ => throw new UnreachableException(),
+        };
     }
 }

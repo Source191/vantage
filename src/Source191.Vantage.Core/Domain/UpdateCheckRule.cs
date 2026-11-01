@@ -24,18 +24,20 @@ public static class UpdateCheckRule
             && (lastCheckedAt is null || now - lastCheckedAt.Value >= Interval);
     }
 
-    /// <summary>The highest release in the list; prereleases and text that is not a version are skipped.</summary>
-    public static ReleaseVersion? Newest(IEnumerable<string> versions)
+    /// <summary>The highest release in the list, or none; prereleases and text that is not a version are skipped.</summary>
+    public static NewestRelease Newest(IEnumerable<string> versions)
     {
-        return versions
+        ReleaseVersion? highest = versions
             .Select(ReleaseVersion.TryParse)
             .OfType<ReleaseVersion>()
             .Where(version => !version.IsPrerelease)
             .Max();
+
+        return highest is null ? new NewestRelease.None() : new NewestRelease.Found(highest);
     }
 
     /// <summary>An update is offered only to a release build with the check on, and only when the newest known release is higher.</summary>
-    public static UpdateStatus Offer(ToolVersion running, bool enabled, string? newest)
+    public static UpdateStatus Offer(ToolVersion running, bool enabled, NewestRelease newest)
     {
         ReleaseVersion? current = ReleaseOf(running);
         if (!enabled || current is null)
@@ -43,10 +45,8 @@ public static class UpdateCheckRule
             return new UpdateStatus.Off();
         }
 
-        ReleaseVersion? candidate = ReleaseVersion.TryParse(newest);
-
-        return candidate is not null && candidate.IsHigherThan(current)
-            ? new UpdateStatus.Available(current, candidate)
+        return newest is NewestRelease.Found found && found.Version.IsHigherThan(current)
+            ? new UpdateStatus.Available(current, found.Version)
             : new UpdateStatus.UpToDate();
     }
 
