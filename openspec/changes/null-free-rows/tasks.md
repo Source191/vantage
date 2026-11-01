@@ -37,7 +37,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 ## 6. Version and the whole build
 
 - [x] 6.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to one step above main (projected `0.19.0-preview.6`). Verify `.github\scripts\Assert-VersionBumped.ps1` passes against `origin/main`.
-- [ ] 6.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` pass; `Get-ChildItem src -Recurse -Filter *.cs | Select-String -Pattern '(?<!out )BranchName\? (Branch|branch)\b|HasLiveTab|TabColour\? TabColour|LiveSessionName|SessionName\?'` finds nothing (the `TryParse` outs keep `out BranchName?`, the house pattern); `openspec validate null-free-rows` passes.
+- [x] 6.2 Whole-solution check: `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution and `dotnet format --verify-no-changes` pass; `Get-ChildItem src -Recurse -Filter *.cs | Select-String -Pattern '(?<!out )BranchName\? (Branch|branch)\b|HasLiveTab|TabColour\? TabColour|LiveSessionName|SessionName\?'` finds nothing (the `TryParse` outs keep `out BranchName?`, the house pattern); `openspec validate null-free-rows` passes. Done: build, 2120 passed and 8 skipped, format and validate pass; the search finds only `out SessionName? name` in three `TryParse` calls and the port's optional `SessionName? name` on `ResumeBackgroundAsync`, which the pattern's missing `out` lookbehind catches and which this change does not own.
 
 ## Workflow follow-up
 
