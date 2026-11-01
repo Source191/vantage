@@ -24,6 +24,12 @@ public sealed class FakeProcessRegistry : IProcessRegistry
         return this;
     }
 
+    /// <summary>Declares a process in the tree that is also running since the given time, so a walk up can compare ages.</summary>
+    public FakeProcessRegistry InTree(int processId, string name, int parentId, DateTimeOffset startedAt)
+    {
+        return InTree(processId, name, parentId).Running(processId, startedAt);
+    }
+
     /// <summary>Declares what a process uses; one declared in the tree but not here reads as refusing the query.</summary>
     public FakeProcessRegistry Using(int processId, DateTimeOffset startedAt, MemorySize privateMemory, string commandLine = "")
     {
