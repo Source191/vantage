@@ -21,8 +21,8 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     private static readonly FrozenDictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>> Flows = new Dictionary<Type, Action<DialogEffects, IEffectContext, ViewEffect>>
     {
         [typeof(ShowHelp)] = (_, context, _) => HelpDialog.Show(context.App, context.Diagnostics, "Keys", context.HelpText),
-        [typeof(OpenLaunchWizard)] = (self, context, _) => self.StartSession(context, fixedDirectory: null),
-        [typeof(StartSessionIn)] = (self, context, effect) => self.StartSession(context, ((StartSessionIn)effect).Row.Path),
+        [typeof(OpenLaunchWizard)] = (self, context, _) => self.StartSession(context, new WizardOrigin.Anywhere()),
+        [typeof(StartSessionIn)] = (self, context, effect) => self.StartSession(context, WizardOrigin.In(((StartSessionIn)effect).Row.Path)),
         [typeof(AskForNewName)] = (_, context, effect) => Rename(context, ((AskForNewName)effect).Session),
         [typeof(CloseEmptyTerminals)] = (_, context, effect) => ConfirmCloseEmpty(context, (CloseEmptyTerminals)effect),
         [typeof(DeleteSession)] = (self, context, effect) => self.ConfirmDelete(context, (DeleteSession)effect),
@@ -154,9 +154,9 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         });
     }
 
-    private void StartSession(IEffectContext context, FolderPath? fixedDirectory)
+    private void StartSession(IEffectContext context, WizardOrigin origin)
     {
-        switch (LaunchWizardDialog.Show(context.App, context.Diagnostics, catalogue, recent, folders, settings.Value, fixedDirectory))
+        switch (LaunchWizardDialog.Show(context.App, context.Diagnostics, catalogue, recent, folders, settings.Value, origin))
         {
             case WizardEffect.Launch launch:
                 context.Dispatch(new StartSession(launch.Plan));
