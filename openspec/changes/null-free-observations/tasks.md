@@ -18,7 +18,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 3. Application: tabs and worktrees
 
-- [ ] 3.1 `SessionTabsShould`, `OpenTabHandlerShould` (the claimed tab's `Claim` in place of `ProcessStartedAt`) and `OwnTabShould` (likewise) with their outcomes unchanged: red, then `SessionTabs`, `OpenTabHandler` and `OwnTab` on `TabClaim` green. Verify the facts pass and `SessionTestData.LiveTabAsync` still builds a live tab.
+- [x] 3.1 `SessionTabsShould`, `OpenTabHandlerShould` (the claimed tab's `Claim` in place of `ProcessStartedAt`) and `OwnTabShould` (likewise) with their outcomes unchanged: red, then `SessionTabs`, `OpenTabHandler` and `OwnTab` on `TabClaim` green. Verify the facts pass and `SessionTestData.LiveTabAsync` still builds a live tab. Done with 1.1's green, since the build needs every reader of the old fields changed at once: `SessionTabs` matches `TabClaim.Claimed { ProcessId: int shell }`, the two handlers still claim through `ClaimedBy`, and their facts read `Claim`.
 - [ ] 3.2 `WorktreeInventoryShould` (Infrastructure tests, real git) and `WorktreeInspectorShould`: a locked worktree, an orphan under `.claude\worktrees`, a broken folder and a worktree of a repository outside the roots keep their health and reasons: red on the compile, then `WorktreeInventory` (`PointerOf` in place of `GitDirOf`, `OwnerOf` and the `bool?`) and `WorktreeInspector` building the new observations green. Verify the facts pass and `WorktreeInventory.cs` keeps no `bool?` or `FolderPath?`.
 
 ## 4. Application: memory and waiting
