@@ -132,7 +132,7 @@ public sealed class DetailLoaderShould
     {
         BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon, DisplayState.Working, processId);
 
-        return new SessionRow(session, "Northwind.Billing", BranchName.From("invoice-pdf"), HasLiveTab: false, HasTranscript: true) { Checkout = Repository };
+        return new SessionRow(session, "Northwind.Billing", new Head.OnBranch(BranchName.From("invoice-pdf")), new LiveTab.None(), HasTranscript: true) { Checkout = Repository };
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>

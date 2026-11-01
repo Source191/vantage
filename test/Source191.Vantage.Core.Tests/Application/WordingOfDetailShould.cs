@@ -15,7 +15,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void DescribeASessionAtAPermissionPrompt()
     {
-        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { HasLiveTab = true, TabColour = new TabColour("Yellow", "#FFB900"), Memory = MemorySize.FromMegabytes(903) };
+        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = MemorySize.FromMegabytes(903) };
         row = row with { Session = row.Session with { WaitingFor = "permission prompt" } };
         SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, Now.AddHours(-2))));
 
@@ -178,7 +178,7 @@ public sealed class WordingOfDetailShould
     {
         BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "fix-123", folder ?? Worktree, Now.AddMinutes(-5), state, processId);
 
-        return new SessionRow(session, "Northwind.Orders", BranchName.From("fix-123"), HasLiveTab: false, HasTranscript: true) { Checkout = Repository };
+        return new SessionRow(session, "Northwind.Orders", new Head.OnBranch(BranchName.From("fix-123")), new LiveTab.None(), HasTranscript: true) { Checkout = Repository };
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>
