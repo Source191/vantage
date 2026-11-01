@@ -1,0 +1,14 @@
+# Tasks
+
+## 1. Check the scenarios against the console
+
+- [x] 1.1 Check each scenario of the modified requirement against the code on main: `WhereLabelShould`, `FolderLabelShould` and `FolderLabelsShould` for the texts they pin, and `SessionsScreenDefinition.Repository` and `WorktreesScreenDefinition`'s WORKTREE cell for which label each cell builds. Where a scenario is not pinned by a fact (the session in a worktree, the repository subfolder, the main checkout), check it in a headless capture: seed Northwind fixtures as the `check` job does, `dotnet run --project tools\HeadlessTerminal -- drive` on both tabs, then `grid`. Verify every scenario's text appears in the capture or a fact, and record here any that does not, with the console's actual text, before changing the spec.
+  - **Not as written:** "Main checkout in the worktrees view" describes a row the console never draws: `WorktreeInventory` lists linked worktrees only (`!entry.IsMain`, as `worktree-management` says), so a main checkout has no WORKTREE cell. It is replaced by "Session in the main checkout", whose REPOSITORY cell reads Northwind.Orders (`SessionRowEnricherShould.NameTheRepositoryAndBranchOfASessionInAMainCheckout`, and `session-listing`'s "Main checkout").
+  - **Description:** the WORKTREE cell has a third form, the whole label when the folder is not named after the repository (`WhereLabelShould.NameAHandMadeFolderByItsLabel`: Northwind.Orders › spike), and the label falls back to `~\` under home and then the full path (`FolderLabelShould`); both are now in the description.
+  - **Capture:** the fixture capture could not be made: `Program.cs` finds its state folder through `Environment.GetFolderPath(SpecialFolder.LocalApplicationData)`, which ignores `%LOCALAPPDATA%`, so the console read the default config. With navigation keys only, the capture showed every WORKTREE cell as repository › slug and every session in a linked worktree with the repository's name alone in REPOSITORY. The subfolder, outside-root, outside-home and root-itself scenarios are checked by the facts above and the code path (`Checkout` set: `row.Repository`, the main checkout's name; `Checkout` null: `FolderLabels.For`).
+- [x] 1.2 `CONTRIBUTING.md`'s manual check for a new worktree session reads its REPOSITORY cell (the repository) and the worktree's WORKTREE cell (the repository › the slug) in place of "WHERE cell reads the repository › the worktree's slug". Verify by reading it against the spec delta and checking no em dash was introduced.
+- [x] 1.3 `openspec validate correct-folder-label-spec --strict` passes, the requirement's description is 500 characters or fewer, and `git diff --stat origin/main` shows only `openspec\` and `CONTRIBUTING.md` (no version raise).
+
+## Workflow follow-up
+
+- Archive the change in the pull request that completes it, which syncs the delta into `openspec\specs\folder-actions\spec.md`.

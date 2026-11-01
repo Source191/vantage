@@ -165,7 +165,7 @@ Before asking for review, check that:
 The runner drives Vantage inside a pseudo-console, which is the same plumbing Windows Terminal uses for a tab, so rendering, keys and the attach through `vantage here` are covered. Anything that goes out through `wt.exe` is not: a runner has no desktop for a tab to appear on. Before merging a pull request that changes how Vantage drives `wt.exe`, opens, titles or colours tabs, or attaches to a session, install its package (`tools\install-local.ps1`) and run these in a real Windows Terminal:
 
 1. Enter on a session opens a coloured tab titled with the session name, and Enter again switches to that tab while it is open; `o` does nothing.
-2. `n`, choose a repository, name the session and leave `New worktree` chosen, F5: a new tab opens attached to the new session, and its WHERE cell reads the repository › the worktree's slug; F6 in the wizard does nothing.
+2. `n`, choose a repository, name the session and leave `New worktree` chosen, F5: a new tab opens attached to the new session, its REPOSITORY cell reads the repository, and the new worktree's WORKTREE cell on the Worktrees tab reads the repository › the worktree's slug; F6 in the wizard does nothing.
 3. Ctrl+Z in that tab closes it, and the TAB block clears within one refresh.
 4. `d` on a session shown in its tab ends claude and the tab closes by itself.
 5. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
