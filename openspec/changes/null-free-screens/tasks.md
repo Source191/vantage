@@ -45,7 +45,7 @@ Each Core task is one red-green-refactor cycle with a commit per step, the test 
   - `TableBody.CellColour` switches over the three cases, and shows a row's tooltip only for a tip with words.
 
   Verify the build, and that no screen definition answers `null`.
-- [ ] 5.3 `ConsoleScreen`:
+- [x] 5.3 `ConsoleScreen`:
   - `statusOwner` and `shownStatus` become one private `StatusShown` (`Nothing`, `Message`).
   - `shownBar` starts as an empty `KeyBar`.
   - `Fill` takes joined parts.

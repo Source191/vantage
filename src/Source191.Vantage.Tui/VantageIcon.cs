@@ -25,25 +25,28 @@ internal static class VantageIcon
     }
 
     /// <summary>
-    /// Shows the icon where the terminal draws images, as many cells wide as its row is tall in pixels so the square
-    /// icon is not stretched (a fixed five cells widened it and left its right edge unlike its left), and answers the
-    /// cells the settings row starts after: the icon and a cell of space, or none when it is hidden.
+    /// Shows the icon where the terminal draws images, given the terminal's cell size in pixels, as many cells wide as its
+    /// row is tall in pixels so the square icon is not stretched (a fixed five cells widened it and left its right edge
+    /// unlike its left), and answers the cells the settings row starts after: the icon and a cell of space.
     /// </summary>
-    public static int Fit(ImageView icon, SixelSupportResult? support)
+    public static int Fit(ImageView icon, System.Drawing.Size cell)
     {
         ArgumentNullException.ThrowIfNull(icon);
-        if (support is not { IsSupported: true, Resolution: System.Drawing.Size cell })
-        {
-            icon.Visible = false;
-            return 0;
-        }
-
         icon.Visible = true;
         int width = cell.Width > 0 && cell.Height > 0 ? (int)Math.Round((double)Height * cell.Height / cell.Width) : DefaultWidth;
         int cells = Math.Clamp(width, 1, 3);
         icon.Width = cells;
 
         return cells + 1;
+    }
+
+    /// <summary>Hides the icon where the terminal draws no images, and answers the cells the settings row starts after: none.</summary>
+    public static int Hide(ImageView icon)
+    {
+        ArgumentNullException.ThrowIfNull(icon);
+        icon.Visible = false;
+
+        return 0;
     }
 
     /// <summary>Transparent pixels take the console's background, so the icon sits on it whatever the terminal does with transparency.</summary>
