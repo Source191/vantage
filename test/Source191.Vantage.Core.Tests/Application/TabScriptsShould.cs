@@ -18,7 +18,7 @@ public sealed class TabScriptsShould
     [Fact]
     public void BuildTheAttachScript()
     {
-        BackgroundSession session = new(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "Refund retry policy", Repository, Noon, DisplayState.Working);
+        BackgroundSession session = new(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "Refund retry policy", Repository, Noon, DisplayState.Working, new JobProcess.None());
         TabRegistration registration = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), TabPalette.Default[0], Noon);
 
         TabLaunch tab = scripts.Attach(session, registration);

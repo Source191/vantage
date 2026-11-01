@@ -118,7 +118,7 @@ public static partial class Wording
         (IReadOnlyList<string> Keys, IReadOnlyList<BarWord> Words) forRow = state.Selected switch
         {
             null => ([], []),
-            { Session: BackgroundSession { ProcessId: not null } } => (["enter", "x", "d", "r", "m"], []),
+            { Session: BackgroundSession { Process: JobProcess.Running } } => (["enter", "x", "d", "r", "m"], []),
             { Session: BackgroundSession } => (["enter", "d", "r"], []),
             { Session: InteractiveSession, HasTranscript: false } => (["b", "d", "m"], [CloseTab]),
             _ => (["b", "m"], []),

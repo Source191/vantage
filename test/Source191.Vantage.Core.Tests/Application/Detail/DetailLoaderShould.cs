@@ -30,7 +30,7 @@ public sealed class DetailLoaderShould
             .Answer(request => request.Arguments.Contains("status"), new ProcessResult(0, " M a.cs\n M b.cs\n?? c.cs\n", string.Empty))
             .Answer(request => request.Arguments.Contains("rev-list"), new ProcessResult(0, "0\n", string.Empty))
             .Answer(request => request.Arguments.Contains("log"), new ProcessResult(0, "2026-10-30T11:00:00+00:00\n", string.Empty));
-        SessionRow row = Row(processId: 4242);
+        SessionRow row = Row(process: new JobProcess.Running(4242));
 
         SessionDetail detail = await Loader().SessionAsync(row, CancellationToken.None);
 
@@ -43,7 +43,7 @@ public sealed class DetailLoaderShould
     public async Task CarryTheTimeTheSessionWasLastPrompted()
     {
         SessionActivity activity = new(clock);
-        SessionRow waiting = Row(processId: 4242) with { Session = Row(processId: 4242).Session with { State = DisplayState.NeedsInput } };
+        SessionRow waiting = Row(process: new JobProcess.Running(4242)) with { Session = Row(process: new JobProcess.Running(4242)).Session with { State = DisplayState.NeedsInput } };
         SessionRow working = waiting with { Session = waiting.Session with { State = DisplayState.Working } };
         clock.Advance(TimeSpan.FromMinutes(3));
         activity.Observe([waiting], [working]);
@@ -58,7 +58,7 @@ public sealed class DetailLoaderShould
     {
         processes
             .Answer(request => request.Arguments.Contains("status"), new ProcessResult(128, string.Empty, "fatal: not a git repository"));
-        SessionRow row = Row(processId: 4242);
+        SessionRow row = Row(process: new JobProcess.Running(4242));
 
         SessionDetail detail = await Loader().SessionAsync(row, CancellationToken.None);
 
@@ -69,7 +69,7 @@ public sealed class DetailLoaderShould
     [Fact]
     public async Task LeaveOutGitCountsForAFolderOutsideARepository()
     {
-        SessionRow outside = Row(processId: null) with { Checkout = null };
+        SessionRow outside = Row(process: new JobProcess.None()) with { Location = new SessionLocation.Outside("Northwind.Billing") };
 
         SessionDetail detail = await Loader().SessionAsync(outside, CancellationToken.None);
 
@@ -128,11 +128,11 @@ public sealed class DetailLoaderShould
         detail.Merge.ShouldBeOfType<DetailFact<MergeState>.NotApplicable>();
     }
 
-    private static SessionRow Row(int? processId)
+    private static SessionRow Row(JobProcess process)
     {
-        BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon, DisplayState.Working, processId);
+        BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon, DisplayState.Working, process);
 
-        return new SessionRow(session, "Northwind.Billing", new Head.OnBranch(BranchName.From("invoice-pdf")), new LiveTab.None(), HasTranscript: true) { Checkout = Repository };
+        return new SessionRow(session, new SessionLocation.InRepository("Northwind.Billing", Repository), new Head.OnBranch(BranchName.From("invoice-pdf")), new LiveTab.None(), HasTranscript: true);
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>

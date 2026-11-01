@@ -361,7 +361,7 @@ public sealed class SessionsViewShould
     [Fact]
     public void ShowTheMemoryOfARunningSessionOnM()
     {
-        BackgroundSession running = WaitingJob with { ProcessId = 5151 };
+        BackgroundSession running = WaitingJob with { Process = new JobProcess.Running(5151) };
         SessionsViewState state = Reduce(SessionsViewState.Empty, new RowsLoaded([Row(running)]));
 
         ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('m')));
@@ -588,12 +588,12 @@ public sealed class SessionsViewShould
     /// <summary>The session in its repository's folder, on main.</summary>
     private static SessionRow Row(Session session)
     {
-        return new SessionRow(session, session.WorkingDirectory.Name, new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
+        return new SessionRow(session, new SessionLocation.InRepository(session.WorkingDirectory.Name, session.WorkingDirectory), new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
     }
 
     private static BackgroundSession Job(string name, DisplayState state, string repository, string jobId)
     {
-        return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From(jobId), name, FolderPath.From($@"C:\repos\{repository}"), Noon, state);
+        return new BackgroundSession(SessionId.From(Guid.NewGuid().ToString()), JobId.From(jobId), name, FolderPath.From($@"C:\repos\{repository}"), Noon, state, new JobProcess.None());
     }
 
     private static InteractiveSession Terminal(string name, DisplayState state, string repository)

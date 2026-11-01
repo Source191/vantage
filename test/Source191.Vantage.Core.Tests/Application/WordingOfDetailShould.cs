@@ -15,7 +15,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void DescribeASessionAtAPermissionPrompt()
     {
-        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = new SessionMemory.Measured(MemorySize.FromMegabytes(903)) };
+        SessionRow row = Row(DisplayState.NeedsInput, process: new JobProcess.Running(4242)) with { Tab = new LiveTab.Open(new TabColour("Yellow", "#FFB900")), Memory = new SessionMemory.Measured(MemorySize.FromMegabytes(903)) };
         row = row with { Session = row.Session with { WaitingFor = new WaitingReason.Given("permission prompt") } };
         SessionDetail detail = new(row, LastPromptedAt: null, new DetailFact<WorktreeCounts>.Known(new WorktreeCounts(3, 0, Now.AddHours(-2))));
 
@@ -37,7 +37,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void SayASessionWaitsForAFirstPrompt()
     {
-        SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { HasTranscript = false };
+        SessionRow row = Row(DisplayState.NeedsInput, process: new JobProcess.Running(4242)) with { HasTranscript = false };
 
         DetailLine waiting = Wording.Detail(Detail(row), Now).Facts[0][0];
 
@@ -47,7 +47,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void SayAWorkingSessionWaitsForNothing()
     {
-        DetailLine waiting = Wording.Detail(Detail(Row(DisplayState.Working, processId: 4242)), Now).Facts[0][0];
+        DetailLine waiting = Wording.Detail(Detail(Row(DisplayState.Working, process: new JobProcess.Running(4242))), Now).Facts[0][0];
 
         (waiting.Text, waiting.Tone).ShouldBe(("nothing", TextTone.Plain));
     }
@@ -55,8 +55,8 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void NameTheMainCheckoutAndAFolderInsideIt()
     {
-        SessionRow main = Row(DisplayState.Idle, processId: 4242, folder: Repository);
-        SessionRow inside = Row(DisplayState.Idle, processId: 4242, folder: Repository.Combine(@"src\Api"));
+        SessionRow main = Row(DisplayState.Idle, process: new JobProcess.Running(4242), folder: Repository);
+        SessionRow inside = Row(DisplayState.Idle, process: new JobProcess.Running(4242), folder: Repository.Combine(@"src\Api"));
 
         Text(Wording.Detail(Detail(main), Now)).ShouldContain("Worktree main checkout");
         Text(Wording.Detail(Detail(inside), Now)).ShouldContain(@"Worktree src\Api");
@@ -65,7 +65,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void NameAWorktreeNotNamedAfterItsRepository()
     {
-        SessionRow spike = Row(DisplayState.Idle, processId: 4242, folder: FolderPath.From(@"C:\Users\me\source\worktrees\spike"));
+        SessionRow spike = Row(DisplayState.Idle, process: new JobProcess.Running(4242), folder: FolderPath.From(@"C:\Users\me\source\worktrees\spike"));
 
         Text(Wording.Detail(Detail(spike), Now)).ShouldContain("Worktree spike");
     }
@@ -73,7 +73,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void GiveTheLastPromptAndAStoppedSessionsMemory()
     {
-        SessionDetail detail = new(Row(DisplayState.Stopped, processId: null), Now.AddMinutes(-4), new DetailFact<WorktreeCounts>.Unavailable());
+        SessionDetail detail = new(Row(DisplayState.Stopped, process: new JobProcess.None()), Now.AddMinutes(-4), new DetailFact<WorktreeCounts>.Unavailable());
 
         string[] lines = Text(Wording.Detail(detail, Now));
 
@@ -85,7 +85,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void NameATerminalSessionsOwnTerminal()
     {
-        SessionRow row = Row(DisplayState.Idle, processId: null) with { Session = new InteractiveSession(SessionId.From("82db48ec-63de-49db-9831-b8147075dc3a"), "repos-93", Worktree, Now, DisplayState.Idle, ProcessId: 51432), Checkout = null };
+        SessionRow row = Row(DisplayState.Idle, process: new JobProcess.None()) with { Session = new InteractiveSession(SessionId.From("82db48ec-63de-49db-9831-b8147075dc3a"), "repos-93", Worktree, Now, DisplayState.Idle, ProcessId: 51432), Location = new SessionLocation.Outside("Northwind.Orders") };
 
         string[] lines = Text(Wording.Detail(Detail(row), Now));
 
@@ -164,8 +164,8 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void SayNoBranchAndNoTabForASessionOnNoBranch()
     {
-        SessionRow detached = Row(DisplayState.Idle, processId: 4242) with { Head = new Head.Detached() };
-        SessionRow unknown = Row(DisplayState.Idle, processId: 4242) with { Head = new Head.Unknown() };
+        SessionRow detached = Row(DisplayState.Idle, process: new JobProcess.Running(4242)) with { Head = new Head.Detached() };
+        SessionRow unknown = Row(DisplayState.Idle, process: new JobProcess.Running(4242)) with { Head = new Head.Unknown() };
 
         Rows(Wording.Detail(Detail(detached), Now))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
         Rows(Wording.Detail(Detail(unknown), Now))[2].ShouldBe(["Worktree fix-123", "Branch none", "Tab none"]);
@@ -188,7 +188,7 @@ public sealed class WordingOfDetailShould
     {
         WorktreeDetail worktree = new(WorktreeRowOf(unpushed: 0, dirty: 0), null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
 
-        Wording.Detail(Detail(Row(DisplayState.Idle, processId: null)), Now).Facts.Count.ShouldBe(Wording.DetailFactRows);
+        Wording.Detail(Detail(Row(DisplayState.Idle, process: new JobProcess.None())), Now).Facts.Count.ShouldBe(Wording.DetailFactRows);
         Wording.Detail(worktree, Now).Facts.Count.ShouldBe(Wording.DetailFactRows);
     }
 
@@ -198,11 +198,11 @@ public sealed class WordingOfDetailShould
 
     private static string[][] Rows(DetailContent content) => [.. content.Facts.Select(row => row.Select(line => $"{line.Label} {line.Text}").ToArray())];
 
-    private static SessionRow Row(DisplayState state, int? processId, FolderPath? folder = null)
+    private static SessionRow Row(DisplayState state, JobProcess process, FolderPath? folder = null)
     {
-        BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "fix-123", folder ?? Worktree, Now.AddMinutes(-5), state, processId);
+        BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "fix-123", folder ?? Worktree, Now.AddMinutes(-5), state, process);
 
-        return new SessionRow(session, "Northwind.Orders", new Head.OnBranch(BranchName.From("fix-123")), new LiveTab.None(), HasTranscript: true) { Checkout = Repository };
+        return new SessionRow(session, new SessionLocation.InRepository("Northwind.Orders", Repository), new Head.OnBranch(BranchName.From("fix-123")), new LiveTab.None(), HasTranscript: true);
     }
 
     private static WorktreeRow WorktreeRowOf(int unpushed, int dirty) =>

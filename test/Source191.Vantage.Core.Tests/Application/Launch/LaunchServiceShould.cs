@@ -34,14 +34,16 @@ public sealed class LaunchServiceShould
         }
     }
 
+    private static readonly PlannedWorktree FlakyTests = new(FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"), BranchName.From("fix-flaky-tests"));
+
     private static LaunchPlan CurrentBranch => new(
-        Repository.Path, SessionName.From("Fix flaky tests"), Worktree: null,
-        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, new OpeningPrompt.None(), Repository);
+        Repository.Path, SessionName.From("Fix flaky tests"), new LaunchPlace.CurrentBranch(),
+        WorktreeBase.RemoteDefault, new OpeningPrompt.None(), Repository);
 
     private static LaunchPlan NewWorktree => CurrentBranch with
     {
         Directory = FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"),
-        Worktree = new PlannedWorktree(FolderPath.From(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"), BranchName.From("fix-flaky-tests")),
+        Place = new LaunchPlace.NewWorktree(FlakyTests),
     };
 
     [Fact]
@@ -91,7 +93,7 @@ public sealed class LaunchServiceShould
     [Fact]
     public async Task SkipCreationWhenReusingAnExistingWorktree()
     {
-        await Service.LaunchAsync(NewWorktree with { ReuseExistingWorktree = true }, CancellationToken.None);
+        await Service.LaunchAsync(NewWorktree with { Place = new LaunchPlace.ExistingWorktree(FlakyTests) }, CancellationToken.None);
 
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("add"));
         (await Store.ReadCreatedWorktreesAsync()).ShouldBeEmpty();

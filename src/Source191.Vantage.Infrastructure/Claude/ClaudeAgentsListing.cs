@@ -54,9 +54,11 @@ public static class ClaudeAgentsListing
         }
 
         return JobId.TryParse(row.Id, out JobId? jobId) || JobId.TryParse(sessionId, out jobId)
-            ? new BackgroundSession(sessionId, jobId, name, workingDirectory, startedAt, state, row.Pid) { WaitingFor = WaitingOf(row.WaitingFor) }
+            ? new BackgroundSession(sessionId, jobId, name, workingDirectory, startedAt, state, ProcessOf(row.Pid)) { WaitingFor = WaitingOf(row.WaitingFor) }
             : null;
     }
+
+    private static JobProcess ProcessOf(int? pid) => pid is int id ? new JobProcess.Running(id) : new JobProcess.None();
 
     private static WaitingReason WaitingOf(string? text) => text is string reason ? new WaitingReason.Given(reason) : new WaitingReason.None();
 

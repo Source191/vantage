@@ -46,18 +46,18 @@ internal static class SessionTestData
     /// <summary>A supervised session named fix-123, job 81cdb0f9, session id sess-1.</summary>
     public static BackgroundSession Job(string directory, DisplayState? state = null)
     {
-        return new BackgroundSession(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "fix-123", FolderPath.From(directory), Noon, state ?? DisplayState.Working);
+        return new BackgroundSession(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "fix-123", FolderPath.From(directory), Noon, state ?? DisplayState.Working, new JobProcess.None());
     }
 
     /// <summary>The <see cref="Terminal"/> session as a row on main.</summary>
     public static SessionRow Interactive(string name, int processId, DisplayState? state = null)
     {
-        return new SessionRow(Terminal(name, processId, state), "Northwind.Orders", new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
+        return new SessionRow(Terminal(name, processId, state), new SessionLocation.InRepository("Northwind.Orders", FolderPath.From(Repository)), new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
     }
 
     /// <summary>The <see cref="Job"/> session as a row, on its own branch in a worktree or on main.</summary>
     public static SessionRow Background(string directory, bool isWorktree, DisplayState? state = null)
     {
-        return new SessionRow(Job(directory, state), "Northwind.Orders", new Head.OnBranch(BranchName.From(isWorktree ? "fix-123" : "main")), new LiveTab.None(), HasTranscript: true);
+        return new SessionRow(Job(directory, state), new SessionLocation.InRepository("Northwind.Orders", FolderPath.From(Repository)), new Head.OnBranch(BranchName.From(isWorktree ? "fix-123" : "main")), new LiveTab.None(), HasTranscript: true);
     }
 }

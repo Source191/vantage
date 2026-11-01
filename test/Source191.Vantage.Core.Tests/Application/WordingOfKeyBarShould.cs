@@ -8,8 +8,8 @@ public sealed class WordingOfKeyBarShould
 {
     private const int MostCells = 118;
 
-    private static readonly SessionRow Running = Background("sess-1", "fix-123", DisplayState.Working, processId: 100);
-    private static readonly SessionRow Stopped = Background("sess-2", "old-spike", DisplayState.Stopped, processId: null);
+    private static readonly SessionRow Running = Background("sess-1", "fix-123", DisplayState.Working, process: new JobProcess.Running(100));
+    private static readonly SessionRow Stopped = Background("sess-2", "old-spike", DisplayState.Stopped, process: new JobProcess.None());
     private static readonly SessionRow EmptyTerminal = Terminal("sess-3", "repos-93", hasTranscript: false);
     private static readonly SessionRow BusyTerminal = Terminal("sess-4", "repos-94", hasTranscript: true);
 
@@ -142,17 +142,17 @@ public sealed class WordingOfKeyBarShould
 
     private static WorktreesViewState Loaded(WorktreesViewState state) => WorktreesView.Reduce(state, new WorktreeRowsLoaded([])).State;
 
-    private static SessionRow Background(string id, string name, DisplayState state, int? processId)
+    private static SessionRow Background(string id, string name, DisplayState state, JobProcess process)
     {
-        BackgroundSession session = new(SessionId.From(id), JobId.From("81cdb0f9"), name, FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), DateTimeOffset.UnixEpoch, state, processId);
+        BackgroundSession session = new(SessionId.From(id), JobId.From("81cdb0f9"), name, FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), DateTimeOffset.UnixEpoch, state, process);
 
-        return new SessionRow(session, "Northwind.Orders", new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
+        return new SessionRow(session, new SessionLocation.InRepository("Northwind.Orders", session.WorkingDirectory), new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
     }
 
     private static SessionRow Terminal(string id, string name, bool hasTranscript)
     {
         InteractiveSession session = new(SessionId.From(id), name, FolderPath.From(@"C:\Users\me\source\repos"), DateTimeOffset.UnixEpoch, DisplayState.Idle, ProcessId: 200);
 
-        return new SessionRow(session, "repos", new Head.Unknown(), new LiveTab.None(), hasTranscript);
+        return new SessionRow(session, new SessionLocation.Outside("repos"), new Head.Unknown(), new LiveTab.None(), hasTranscript);
     }
 }

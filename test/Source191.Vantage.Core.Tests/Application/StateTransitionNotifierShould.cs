@@ -61,8 +61,8 @@ public sealed class StateTransitionNotifierShould : IDisposable
         FolderPath directory = FolderPath.From(@"C:\repos\Northwind.Orders");
         Session session = interactive
             ? new InteractiveSession(id, name, directory, Noon, state, ProcessId: 4242)
-            : new BackgroundSession(id, JobId.From("81cdb0f9"), name, directory, Noon, state);
+            : new BackgroundSession(id, JobId.From("81cdb0f9"), name, directory, Noon, state, new JobProcess.None());
 
-        return new SessionRow(session, "Northwind.Orders", new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
+        return new SessionRow(session, new SessionLocation.InRepository("Northwind.Orders", directory), new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
     }
 }

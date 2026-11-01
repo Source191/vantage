@@ -4,13 +4,21 @@ using System.Diagnostics;
 namespace Source191.Vantage.Application.Views;
 
 /// <summary>
-/// A listed session with what git, the state store and the transcript folder add to it. Head is Unknown outside a
+/// A listed session with what git, the state store and the transcript folder add to it. Location says whether it runs
+/// in a repository (and which main checkout) or outside one; Repository is the name either gives. Head is Unknown outside a
 /// repository or when git did not name a branch. Tab says whether a live Vantage tab shows the session, and in which
 /// colour. HasTranscript is false for a session never sent a message: Claude writes nothing to resume from until then,
 /// so every caller must say which it is.
 /// </summary>
-public sealed record SessionRow(Session Session, string Repository, Head Head, LiveTab Tab, bool HasTranscript)
+public sealed record SessionRow(Session Session, SessionLocation Location, Head Head, LiveTab Tab, bool HasTranscript)
 {
+    /// <summary>The repository's name, or the folder's outside a repository: what REPOSITORY, the filter and the folder keys read.</summary>
+    public string Repository => Location switch
+    {
+        SessionLocation.Outside outside => outside.Folder,
+        SessionLocation.InRepository inRepository => inRepository.Name,
+        _ => throw new UnreachableException(),
+    };
 
     /// <summary>The branch's pull request, or why there is none; a row outside a repository has no branch to look up.</summary>
     public PullRequestLookup PullRequest { get; init; } = new PullRequestLookup.Missing(PullRequestGap.NoBranch);
@@ -18,8 +26,6 @@ public sealed record SessionRow(Session Session, string Repository, Head Head, L
     /// <summary>What the session's process and everything it started use; nothing to measure for a session with no process, or whose process has gone.</summary>
     public SessionMemory Memory { get; init; } = new SessionMemory.NothingToMeasure();
 
-    /// <summary>The main checkout the session's folder belongs to; null outside a repository, which is how REPOSITORY knows to show the folder's label.</summary>
-    public FolderPath? Checkout { get; init; }
 }
 
 /// <summary>A key as the reducer sees it, independent of any terminal library.</summary>
@@ -232,7 +238,7 @@ public static class SessionsView
         }
 
         // Attaching to a session with no process resumes it from its transcript; a session never sent a message has none.
-        if (attachment != Attachment.None && session.ProcessId is null && !row.HasTranscript)
+        if (attachment != Attachment.None && session.Process is JobProcess.None && !row.HasTranscript)
         {
             return Unchanged(state with { Message = new StatusMessage.NeverSentAMessage(row.Session.Name) });
         }
@@ -267,7 +273,7 @@ public static class SessionsView
         return state.Selected switch
         {
             null => Unchanged(state with { Message = new StatusMessage.NoSessionSelected() }),
-            { Session: BackgroundSession { ProcessId: int processId } session } => Effect(state with { Message = StatusMessage.None }, new ShowMemory(session, processId)),
+            { Session: BackgroundSession { Process: JobProcess.Running running } session } => Effect(state with { Message = StatusMessage.None }, new ShowMemory(session, running.Id)),
             { Session: InteractiveSession session } => Effect(state with { Message = StatusMessage.None }, new ShowMemory(session, session.ProcessId)),
             SessionRow row => Unchanged(state with { Message = new StatusMessage.NothingToMeasure(row.Session.Name) }),
         };
@@ -293,7 +299,7 @@ public static class SessionsView
 
         return (row.HasTranscript, session) switch
         {
-            (false, { ProcessId: null }) => Unchanged(state with { Message = new StatusMessage.NeverSentAMessage(session.Name) }),
+            (false, { Process: JobProcess.None }) => Unchanged(state with { Message = new StatusMessage.NeverSentAMessage(session.Name) }),
             (false, _) => Unchanged(state with { Message = new StatusMessage.NoMessagesToRename(session.Name) }),
             (_, { State.Kind: DisplayStateKind.Working }) => Unchanged(state with { Message = new StatusMessage.WorkingSoRenameWaits(session.Name) }),
             _ => Effect(state with { Message = StatusMessage.None }, new AskForNewName(session)),

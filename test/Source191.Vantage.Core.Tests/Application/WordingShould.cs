@@ -466,8 +466,8 @@ public sealed class WordingShould
     public void NameTheSessionBeingStarted()
     {
         LaunchPlan plan = new(
-            FolderPath.From(Sessions.Repository), SessionName.From("Fix flaky tests"), Worktree: null,
-            ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, new OpeningPrompt.None(), new RepositoryChoice("Northwind.Orders", FolderPath.From(Sessions.Repository), IsRepository: true));
+            FolderPath.From(Sessions.Repository), SessionName.From("Fix flaky tests"), new LaunchPlace.CurrentBranch(),
+            WorktreeBase.RemoteDefault, new OpeningPrompt.None(), new RepositoryChoice("Northwind.Orders", FolderPath.From(Sessions.Repository), IsRepository: true));
 
         Wording.Working(new StartSession(plan)).ShouldBe("Starting Fix flaky tests...");
     }
@@ -843,12 +843,17 @@ public sealed class WordingShould
         Wording.WizardHint(Wizard(FixedFolder)).ShouldBe("Enter or F5 starts and opens in tab   Esc cancel");
     }
 
-    /// <summary>A wizard with no repositories to offer, or fixed in one folder.</summary>
-    private static WizardState Wizard(string? fixedDirectory = null)
+    /// <summary>A wizard with no repositories to offer.</summary>
+    private static WizardState Wizard() => Wizard(new WizardOrigin.Anywhere());
+
+    /// <summary>A wizard fixed in one folder.</summary>
+    private static WizardState Wizard(string fixedDirectory) => Wizard(WizardOrigin.In(FolderPath.From(fixedDirectory)));
+
+    private static WizardState Wizard(WizardOrigin origin)
     {
         FakeFolders folders = new();
 
-        return WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current()), [], folders, TestSettings.For(), fixedDirectory is null ? null : FolderPath.From(fixedDirectory));
+        return WizardState.Open(new RepositoryCatalogue(folders, TestSettings.Current()), [], folders, TestSettings.For(), origin);
     }
 
     // vantage setup-terminal.
