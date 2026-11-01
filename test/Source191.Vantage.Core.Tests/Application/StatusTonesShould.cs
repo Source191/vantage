@@ -130,6 +130,9 @@ public sealed class StatusTonesShould
     {
         Wording.ToneOf(new DeleteSessionOutcome.RemovedWorktree("fix-123", new RemoveWorktreeOutcome.DeletedFolder("Northwind.Orders-fix-123"))).ShouldBe(StatusTone.Success);
         Wording.ToneOf(new DeleteSessionOutcome.RemovedWorktree("fix-123", new RemoveWorktreeOutcome.InUse("Northwind.Orders-fix-123"))).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new DeleteSessionOutcome.KeptWorktree("fix-123", new RemovalReason.LeftoverFilesWouldBeLost(12, AtLeast: false))).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new DeleteSessionOutcome.RemovedWorktree("fix-123", new RemoveWorktreeOutcome.Refused(new RemovalReason.OutsideTheRoots(FolderPath.From(@"D:\Northwind.Archive"))))).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new RemoveWorktreeOutcome.Refused(new RemovalReason.OutsideTheRoots(FolderPath.From(@"D:\Northwind.Archive")))).ShouldBe(StatusTone.Notice);
     }
 
     [Fact]
