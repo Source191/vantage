@@ -26,7 +26,7 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
         await claude.RemoveAsync(session.JobId.Value, cancellationToken);
         bool tabClosed = await tabs.CloseAsync(session.SessionId) == TabClosure.Closed;
         ResumeResult renamed = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, newName, cancellationToken);
-        if (renamed.Continued)
+        if (renamed is ResumeResult.Continued)
         {
             if (tabClosed)
             {
@@ -42,7 +42,7 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
             ? await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken)
             : await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, cancellationToken);
 
-        return restored.Continued
+        return restored is ResumeResult.Continued
             ? new RenameSessionOutcome.Restored(session.Name, renamed.Message, tabClosed)
             : new RenameSessionOutcome.Unsupervised(session.Name, renamed.Message, session.SessionId, restored.Message);
     }

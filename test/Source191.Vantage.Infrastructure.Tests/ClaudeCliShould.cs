@@ -231,8 +231,7 @@ public sealed class ClaudeCliShould
 
         ResumeResult result = await Cli.ResumeBackgroundAsync("81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6", Directory, CancellationToken.None);
 
-        result.Continued.ShouldBeFalse();
-        result.Message.ShouldContain("copy");
+        result.ShouldBeOfType<ResumeResult.Failed>().Message.ShouldContain("copy");
     }
 
     [Fact]
@@ -242,8 +241,7 @@ public sealed class ClaudeCliShould
 
         ResumeResult result = await Cli.ResumeBackgroundAsync("81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6", Directory, CancellationToken.None);
 
-        result.Continued.ShouldBeFalse();
-        result.Message.ShouldBe("Session 81cdb0f9 can't start: source session not found");
+        result.ShouldBeOfType<ResumeResult.Failed>().Message.ShouldBe("Session 81cdb0f9 can't start: source session not found");
     }
 
 }

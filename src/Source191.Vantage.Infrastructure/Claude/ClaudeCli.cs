@@ -64,7 +64,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         ProcessResult result = await processes.RunAsync(Request(arguments, new WorkingFolder.At(directory)), cancellationToken);
         if (result.ExitCode != 0)
         {
-            return new ResumeResult(Continued: false, (result.StandardError + result.StandardOutput).Trim());
+            return new ResumeResult.Failed((result.StandardError + result.StandardOutput).Trim());
         }
 
         string? note = result.StandardOutput
@@ -72,7 +72,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
             .Select(line => line.Trim())
             .FirstOrDefault(line => line.StartsWith("note:", StringComparison.OrdinalIgnoreCase));
 
-        return new ResumeResult(Continued: note is null, note ?? result.StandardOutput.Trim());
+        return note is null ? new ResumeResult.Continued(result.StandardOutput.Trim()) : new ResumeResult.Failed(note);
     }
 
     private async Task<ProcessResult> RunOrThrowAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
