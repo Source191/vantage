@@ -5,7 +5,7 @@ using Source191.Vantage.Application.Launch;
 namespace Source191.Vantage.Application.Effects;
 
 /// <summary>
-/// Every background effect's handler, registered in one place: <c>Program.cs</c> builds the real dispatcher here and
+/// Every background effect's handler, registered in one place: the tool's <c>ConsoleComposition</c> builds the real dispatcher here and
 /// <c>EffectDispatcherShould</c> checks that no effect a reducer can produce is missing.
 /// </summary>
 public static class Composition
