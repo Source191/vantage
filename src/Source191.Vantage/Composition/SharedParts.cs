@@ -42,7 +42,7 @@ internal sealed record SharedParts(
         DiagnosticLog log = new(TimeProvider.System, logSetting is DiagnosticLogSetting.File logFile ? [new DiagnosticFile(logFile.Path)] : []);
         ProcessCounts processCounts = new();
         PerformanceCounts counts = new(processCounts, new RefreshCounts(TimeProvider.System, log), new StallCounts());
-        RecordedProcessRunner processes = new(new ProcessRunner(), log, processCounts, TimeProvider.System);
+        RecordedProcessRunner processes = new(new ProcessRunner(ProcessRunner.DefaultLimit), log, processCounts, TimeProvider.System);
         CrashFile crashFile = new(stateFolder);
         CrashRecorder crashes = new(log, counts, crashFile, TimeProvider.System);
 

@@ -19,6 +19,7 @@ namespace Source191.Vantage.Tui;
 /// </summary>
 public sealed class ConsoleScreen(
     Func<CancellationToken, Task<ViewInput>> loadSessions,
+    RunningLoads listings,
     Func<CancellationToken, Task<ViewInput>> scanWorktrees,
     RunningLoads scans,
     Func<CancellationToken, Task<ViewInput>> readConfig,
@@ -36,6 +37,7 @@ public sealed class ConsoleScreen(
 {
     private readonly Func<CancellationToken, Task<ViewInput>> loadSessions = loadSessions;
     private readonly Func<CancellationToken, Task<ViewInput>> scanWorktrees = scanWorktrees;
+    private readonly RunningLoads listings = listings ?? throw new ArgumentNullException(nameof(listings));
     private readonly RunningLoads scans = scans ?? throw new ArgumentNullException(nameof(scans));
     private readonly Func<CancellationToken, Task<ViewInput>> readConfig = readConfig;
     private readonly Func<IReadOnlyList<ConfigRow>> settingRows = settingRows;
@@ -401,7 +403,7 @@ public sealed class ConsoleScreen(
         /// </summary>
         private void StartRefreshing()
         {
-            Every(sessions.RefreshEvery, sessions.TriggerLoad);
+            Every(sessions.RefreshEvery, ListSessions);
             Every(worktrees.RefreshEvery, () =>
             {
                 if (Active == worktrees)
@@ -410,7 +412,7 @@ public sealed class ConsoleScreen(
                 }
             });
             Every(Heartbeat.Interval, screen.context.Heartbeat.Beat);
-            sessions.TriggerLoad();
+            ListSessions();
             ScanWorktrees();
         }
 
@@ -424,6 +426,18 @@ public sealed class ConsoleScreen(
             if (timer is not null)
             {
                 timers.Add(timer);
+            }
+        }
+
+        /// <summary>
+        /// Starts a sessions listing unless one is already running, reserved here on the UI thread as the scan is, so a slow
+        /// or stuck listing is never joined by another child every tick. The reload after an action never reserves.
+        /// </summary>
+        private void ListSessions()
+        {
+            if (screen.listings.TryReserve())
+            {
+                sessions.TriggerLoad();
             }
         }
 

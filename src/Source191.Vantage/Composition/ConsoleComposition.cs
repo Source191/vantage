@@ -142,11 +142,13 @@ internal static class ConsoleComposition
         StateTransitionNotifier notifier = new(Console.Out);
         SessionActivity activity = new(TimeProvider.System);
         DetailLoader details = new(launch.Git, parts.Store, activity);
+        RunningLoads listings = new();
         RunningLoads scans = new();
         Func<CancellationToken, Task<ViewInput>> scanWorktrees = scans.Track<ViewInput>(loads.ScanWorktreesAsync);
 
         return new ConsoleScreen(
-            loads.LoadSessionsAsync,
+            listings.Track<ViewInput>(loads.LoadSessionsAsync),
+            listings,
             scanWorktrees,
             scans,
             loads.ReadConfigAsync,
