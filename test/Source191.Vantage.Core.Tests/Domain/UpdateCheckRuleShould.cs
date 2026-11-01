@@ -42,7 +42,7 @@ public sealed class UpdateCheckRuleShould
     [Fact]
     public void TakeTheNewestRelease()
     {
-        UpdateCheckRule.Newest(["0.7.2", "0.10.0", "0.9.0", "0.11.0-rc.1", "not a version"]).ShouldBe(new NewestRelease.Found(new ReleaseVersion(0, 10, 0, "")));
+        UpdateCheckRule.Newest(["0.7.2", "0.10.0", "0.9.0", "0.11.0-rc.1", "not a version"]).ShouldBe(new NewestRelease.Found(ReleaseVersions.Version("0.10.0")));
     }
 
     [Fact]

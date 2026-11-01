@@ -9,9 +9,28 @@ namespace Source191.Vantage.Domain;
 /// dropped. Text from outside Vantage (nuget.org's list, the update-check record) goes through
 /// <see cref="TryParse"/>, which answers false for anything else.
 /// </summary>
-public sealed record ReleaseVersion(int Major, int Minor, int Patch, string Prerelease) : IComparable<ReleaseVersion>
+public sealed record ReleaseVersion : IComparable<ReleaseVersion>
 {
+    private ReleaseVersion(int major, int minor, int patch, string prerelease)
+    {
+        Major = major;
+        Minor = minor;
+        Patch = patch;
+        Prerelease = prerelease;
+    }
+
+    public int Major { get; }
+
+    public int Minor { get; }
+
+    public int Patch { get; }
+
+    public string Prerelease { get; }
+
     public bool IsPrerelease => Prerelease.Length > 0;
+
+    /// <summary>For text Vantage already trusts; anything that is not a version is a programming error.</summary>
+    public static ReleaseVersion From(string text) => TryParse(text, out ReleaseVersion? version) ? version : throw new ArgumentException("Not a version.", nameof(text));
 
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out ReleaseVersion version)
     {

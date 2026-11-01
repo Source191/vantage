@@ -280,7 +280,7 @@ public sealed class JsonFileStoreShould : IDisposable
         await Store.WriteTabAsync(SessionTab);
         await Store.RecordRecentRepositoryAsync(@"C:\repos\A");
         await Store.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Noon, new NewestRelease.None()));
-        await Store.WriteLastRunAsync(new ReleaseVersion(0, 21, 0, ""));
+        await Store.WriteLastRunAsync(ReleaseVersion.From("0.21.0"));
 
         Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories).ShouldAllBe(file => file.EndsWith(".json", StringComparison.Ordinal));
     }
@@ -622,7 +622,7 @@ public sealed class JsonFileStoreShould : IDisposable
     /// <summary>The newest member's JSON in update-check.json and the release it stands for.</summary>
     public static TheoryData<string, NewestRelease> RecordedNewest => new()
     {
-        { "\"0.10.0\"", new NewestRelease.Found(new ReleaseVersion(0, 10, 0, "")) },
+        { "\"0.10.0\"", new NewestRelease.Found(ReleaseVersion.From("0.10.0")) },
         { "null", new NewestRelease.None() },
         { "\"rubbish\"", new NewestRelease.Unreadable("rubbish") },
     };
@@ -651,7 +651,7 @@ public sealed class JsonFileStoreShould : IDisposable
     [Fact]
     public async Task RoundTripTheUpdateCheckRecord()
     {
-        UpdateCheckRecord.Checked record = new(Noon, new NewestRelease.Found(new ReleaseVersion(0, 10, 0, "")));
+        UpdateCheckRecord.Checked record = new(Noon, new NewestRelease.Found(ReleaseVersion.From("0.10.0")));
 
         await Store.WriteUpdateCheckAsync(record);
 
@@ -663,7 +663,7 @@ public sealed class JsonFileStoreShould : IDisposable
     public async Task KeepTheNewestReleasesNotes()
     {
         ReleaseNotes.TryParse("## 0.21.0\n### Added\n- A key that opens the Northwind order (#171)", out ReleaseNotes? notes).ShouldBeTrue();
-        UpdateCheckRecord.Checked record = new(Noon, new NewestRelease.Found(new ReleaseVersion(0, 21, 0, "")), notes);
+        UpdateCheckRecord.Checked record = new(Noon, new NewestRelease.Found(ReleaseVersion.From("0.21.0")), notes);
 
         await Store.WriteUpdateCheckAsync(record);
 
@@ -706,9 +706,9 @@ public sealed class JsonFileStoreShould : IDisposable
     {
         (await Store.ReadLastRunAsync()).ShouldBe(new LastRun.Never());
 
-        await Store.WriteLastRunAsync(new ReleaseVersion(0, 21, 0, ""));
+        await Store.WriteLastRunAsync(ReleaseVersion.From("0.21.0"));
 
-        (await Store.ReadLastRunAsync()).ShouldBe(new LastRun.Ran(new ReleaseVersion(0, 21, 0, "")));
+        (await Store.ReadLastRunAsync()).ShouldBe(new LastRun.Ran(ReleaseVersion.From("0.21.0")));
         string written = await File.ReadAllTextAsync(Path.Combine(folder, "last-run.json"), TestContext.Current.CancellationToken);
         written.ReplaceLineEndings("\n").ShouldBe("{\n  \"version\": \"0.21.0\"\n}");
     }
