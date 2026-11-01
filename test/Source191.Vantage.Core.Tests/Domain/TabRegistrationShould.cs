@@ -13,6 +13,7 @@ public sealed class TabRegistrationShould
     {
         TabRegistration pending = Pending(createdAt: Now.AddSeconds(-30));
 
+        pending.Claim.ShouldBe(new TabClaim.Pending());
         pending.IsLive(Now, new FakeProcessRegistry()).ShouldBeTrue();
     }
 
@@ -38,6 +39,7 @@ public sealed class TabRegistrationShould
         TabRegistration claimed = Pending(createdAt: Now.AddMinutes(-10)).ClaimedBy(processId: 4242, ProcessStart);
         FakeProcessRegistry processes = new FakeProcessRegistry().Running(4242, ProcessStart);
 
+        claimed.Claim.ShouldBe(new TabClaim.Claimed(4242, ProcessStart));
         claimed.IsLive(Now, processes).ShouldBeTrue();
     }
 
