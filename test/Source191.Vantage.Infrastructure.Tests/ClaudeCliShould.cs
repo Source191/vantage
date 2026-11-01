@@ -244,4 +244,21 @@ public sealed class ClaudeCliShould
         result.ShouldBeOfType<ResumeResult.Failed>().Message.ShouldBe("Session 81cdb0f9 can't start: source session not found");
     }
 
+    [Fact]
+    public async Task RefuseAStartAnswerWhoseIdIsNotEightHexCharacters()
+    {
+        processes.AnswerAll(new ProcessResult(0, "backgrounded · 81cdb0f9x · cc-spike", string.Empty));
+
+        StartResult result = await Cli.StartBackgroundAsync(Directory, name, new OpeningPrompt.None(), CancellationToken.None);
+
+        result.ShouldBeOfType<StartResult.Failed>();
+    }
+
+    [Fact]
+    public async Task AnswerNotReadWhenTheVersionWordIsNotAVersion()
+    {
+        processes.AnswerAll(new ProcessResult(0, "2.1.310abc (Claude Code)\n", string.Empty));
+
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBe(new ClaudeVersionReport.NotRead());
+    }
 }
