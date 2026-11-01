@@ -1,4 +1,5 @@
 using Source191.Vantage.Application;
+using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Core.Tests.Application;
 
@@ -62,9 +63,21 @@ public sealed class WordingOfKeysAndColumnsShould
     public void ExplainEveryColumnOfEachView()
     {
         Wording.SessionsColumns.Select(column => column.Name).ShouldBe(["NAME", "TAB", "STATE", "REPOSITORY", "PR", "AGE"]);
-        Wording.WorktreesColumns.Select(column => column.Name).ShouldBe(["WORKTREE", "LAST COMMIT", "SESSION"]);
+        Wording.WorktreesColumns.Select(column => column.Name).ShouldBe(["WORKTREE", "HEALTH", "LAST COMMIT", "SESSION"]);
         Wording.ConfigColumns.Select(column => column.Name).ShouldBe(["SETTING", "VALUE"]);
         Wording.SessionsColumns.Concat(Wording.WorktreesColumns).ShouldAllBe(column => column.Meaning.Length > 0);
+    }
+
+    [Fact]
+    public void ListEveryHealthGlyphInTheHelp()
+    {
+        string health = Wording.WorktreesColumns.Single(column => column.Name == "HEALTH").Meaning;
+        string worktree = Wording.WorktreesColumns.Single(column => column.Name == "WORKTREE").Meaning;
+
+        Enum.GetValues<WorktreeHealthKind>().ShouldAllBe(kind => health.Contains(Wording.HealthCell(kind), StringComparison.Ordinal));
+        worktree.ShouldNotContain("white", Case.Insensitive);
+        worktree.ShouldNotContain("amber", Case.Insensitive);
+        worktree.ShouldNotContain("grey", Case.Insensitive);
     }
 
     [Fact]
