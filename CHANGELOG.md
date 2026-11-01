@@ -28,7 +28,7 @@ What changes in each release of Vantage, written for the people who use it. The 
 
 ### Changed
 
-- Removing a worktree on a detached head, or whose head git could not name, deletes no branch and asks about none; the folder's name no longer stands in for a branch (#N)
+- Removing a worktree on a detached head, or whose head git could not name, deletes no branch and asks about none; the folder's name no longer stands in for a branch (#186)
 - The update notice in the settings row is amber (#180)
 - The header is one grey settings row with Vantage's version and memory and Claude Code's version; the repository roots and worktree root moved to the Config tab, so every table gains rows (#117)
 - A status line appears under the settings row only when there is something to say, marked by its tone (✓ done, ! refused, ✗ failed, a spinner while working), wraps up to three rows and can be closed with ✕ (#129)
@@ -52,7 +52,7 @@ What changes in each release of Vantage, written for the people who use it. The 
 
 ### Fixed
 
-- Deleting a session whose worktree's repository has gone, or that git cannot inspect, keeps the worktree and says why; a leftover folder a tab or program holds open is reported as in use; a junction or an unreadable subfolder inside a leftover no longer fails the Worktrees scan; a new worktree is recorded before its include files are copied, so a failed copy leaves it known to Vantage; adopt and close-empty finish when part of a process tree has already gone, and close-empty closes a tab whose root process is claude (#N)
+- Deleting a session whose worktree's repository has gone, or that git cannot inspect, keeps the worktree and says why; a leftover folder a tab or program holds open is reported as in use; a junction or an unreadable subfolder inside a leftover no longer fails the Worktrees scan; a new worktree is recorded before its include files are copied, so a failed copy leaves it known to Vantage; adopt and close-empty finish when part of a process tree has already gone, and close-empty closes a tab whose root process is claude (#186)
 - State files are written beside and moved over and created worktrees are one file each, so an interrupted save keeps the previous settings and two Vantage processes cannot lose each other's records; a config.json Vantage may not read, or one holding a number for the default base or place, starts Vantage with the defaults instead of ending it (#185)
 - A session just stopped or deleted no longer comes back for a few seconds, rows that arrive while a dialog is open are kept when it closes, the spinner keeps turning until every action has reported and stays through a filter typed before the first listing, Esc clears the status message with the filter, and a child program that has not answered after 60 seconds is ended and reported instead of running on (#184)
 - R continues each session in its own row instead of leaving a duplicate, and a session just started or resumed shows as starting rather than /blocked (#162)
