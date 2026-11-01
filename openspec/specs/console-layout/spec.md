@@ -37,8 +37,8 @@ The console SHALL show the sessions view, the worktrees view and the Config tab 
 - **THEN** the Sessions tab is shown
 
 #### Scenario: Go to session
-- **WHEN** the user presses Enter on a worktree row with a session inside it
-- **THEN** the Sessions tab is shown with that session selected, without leaving the console
+- **WHEN** the user presses Enter on a worktree row with a background session inside it
+- **THEN** the session opens in its own tab, or its open tab is switched to, and the Worktrees tab stays shown with its selection unchanged
 
 ### Requirement: The active tab stands out
 The active tab's title SHALL be drawn in bold cyan and the other tabs' titles in grey; the tabs' frames and every join between them SHALL stay grey, and the table's header SHALL be a box closed on all four sides, its lines in the frames' grey and its column names white, so the tab shown is plain at a glance.
@@ -90,7 +90,7 @@ The last two rows of the screen SHALL be a key bar of items, each a key and a wo
 
 #### Scenario: A background session is selected
 - **WHEN** a running background session is selected and no stopped session or empty terminal session is listed
-- **THEN** the first row reads Enter Open, x Stop, d Delete, r Rename, m Memory and n New session, and the second row c Copy path, e Open folder, v Solution, p Open PR, / Filter, ? Help, ! Report and q Quit
+- **THEN** the first row reads Enter Open, x Stop, d Delete, r Rename, m Memory and n New session, and the second row c Copy path, f Open folder, s Open solution, p Open PR, / Filter, ? Help, ! Report and q Quit
 
 #### Scenario: A terminal session is selected
 - **WHEN** a plain claude session that has never been sent a message is selected
@@ -119,6 +119,10 @@ The last two rows of the screen SHALL be a key bar of items, each a key and a wo
 #### Scenario: The help names Enter as Open
 - **WHEN** the user presses ? on the Sessions tab
 - **THEN** the help lists Enter as opening the session in its own tab or switching to it, and lists no o key and no attach in this tab
+
+#### Scenario: The help names the folder keys
+- **WHEN** the user presses ? on the Sessions or Worktrees tab
+- **THEN** the help lists f as opening the folder and s as opening its solution, and lists neither e nor v
 
 ### Requirement: The settings take one line
 The first row SHALL show the versions, labels orange, values white, parts separated by a grey ·: Vantage with its version and memory, then Claude and its version, with the update notice and the below-minimum warning in their places. The repository roots and the worktree root SHALL be shown on the Config tab, not here.
@@ -153,6 +157,10 @@ The console SHALL show the shown tab's status line directly under the settings r
 - **WHEN** no key has reported anything on the Sessions tab and no action is running
 - **THEN** the tab strip starts on the row under the versions and the tabs' frame ends on the row just above the key bar
 
+#### Scenario: Nothing to say on Config
+- **WHEN** the Config tab is shown with Worktree root selected and no key has reported anything
+- **THEN** there is no status line and the tab strip starts on the row under the versions
+
 #### Scenario: The line follows the tab shown
 - **WHEN** the Sessions tab says a folder was copied, the Worktrees tab has no message, and the user presses 2
 - **THEN** there is no status line while the Worktrees tab is shown, and pressing 1 shows the copied message again
@@ -173,7 +181,7 @@ A message wider than the screen SHALL wrap at spaces onto further rows, each sta
 - **THEN** it takes three rows and the third ends with …
 
 ### Requirement: Every message has a tone
-The status line SHALL start with its message's tone: a green ✓ when something was done, an orange ! when the key was refused or did part of what was asked, a red ✗ when it failed, and a cyan spinner while an action runs, the words in the same colour. The Config tab's description of the selected row SHALL be plain white with no glyph. A message reporting a result and then what followed it SHALL take the tone of what followed.
+The status line SHALL start with its message's tone: a green ✓ when something was done, an orange ! when the key was refused or did part of what was asked, a red ✗ when it failed, and a cyan spinner while an action runs, the words in the same colour. A message saying how a setup is changed SHALL be plain white with no glyph. A message reporting a result and then what followed it SHALL take the tone of what followed.
 
 #### Scenario: Something done
 - **WHEN** a session started from the wizard opens in a purple tab
@@ -200,19 +208,23 @@ The status line SHALL start with its message's tone: a green ✓ when something 
 - **THEN** the status line starts with a green ✓ and says the worktree was removed and the branch deleted
 
 #### Scenario: Config's description
-- **WHEN** the user selects Worktree root on the Config tab and no message is shown
-- **THEN** the status line gives the row's description in white with no glyph before it
+- **WHEN** the user presses Enter on Windows Terminal profiles on the Config tab
+- **THEN** the status line says how to set them up in white with no glyph before it, and selecting a row alone shows no status line
 
 ### Requirement: A message can be closed
-Every status message SHALL end with a ✕ that clears it when clicked and shows a tooltip saying so, except while an action runs and for the Config tab's description of the selected row, which are not messages. The ✕ SHALL follow the message's last word, on its last row.
+Every status message SHALL end with a ✕ that clears it when clicked and shows a tooltip saying so, except while an action runs. The ✕ SHALL follow the message's last word, on its last row.
 
 #### Scenario: Closing a refusal
 - **WHEN** the status line reads ! No session selected. and the user clicks the ✕ after it
 - **THEN** the status line goes and the tabs move back up
 
 #### Scenario: Nothing to close
-- **WHEN** an action is running, or the Config tab shows the selected row's description
+- **WHEN** an action is running
 - **THEN** there is no ✕
+
+#### Scenario: Closing setup advice
+- **WHEN** the Config tab's status line says how to set up the Windows Terminal profiles and the user clicks the ✕ after it
+- **THEN** the status line goes and the tabs move back up
 
 ### Requirement: A success clears itself
 A message with a ✓ SHALL clear by itself ten seconds after it appears, unless something else has replaced or cleared it first; refusals, failures and hints SHALL stay until they are closed, the selection moves or the filter changes.

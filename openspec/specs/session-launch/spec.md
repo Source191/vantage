@@ -67,11 +67,11 @@ The wizard opened from the overview SHALL start on the default place setting, a 
 - **THEN** the wizard starts nothing and explains that a worktree needs a repository
 
 #### Scenario: Wizard on a fixed folder
-- **WHEN** the default place is New worktree and the user starts a session with `s` on a worktree row
+- **WHEN** the default place is New worktree and the user starts a session with `n` on a worktree row
 - **THEN** the session starts in that worktree on its current branch and no new worktree is created
 
 #### Scenario: Fixed folder without a tab
-- **WHEN** the user starts a session with `s` on a worktree row, types a name and presses F5
+- **WHEN** the user starts a session with `n` on a worktree row, types a name and presses F5
 - **THEN** the session starts in that worktree and opens in its own tab, as on Enter, because the wizard has no way to start without one
 
 #### Scenario: Fixed folder dialog is compact
@@ -259,5 +259,5 @@ The wizard opened from the overview SHALL lay its controls out in one column in 
 - **THEN** the prompt gains a new line and nothing starts
 
 #### Scenario: The compact form is unchanged
-- **WHEN** the user presses s on a worktree row
+- **WHEN** the user presses n on a worktree row
 - **THEN** the compact fixed-folder dialog opens as before, and Enter in its name starts the session and opens its tab
