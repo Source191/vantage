@@ -24,7 +24,7 @@ public sealed class Desktop(IProcessRunner processes, ProgramLocation powerShell
             _ => throw new UnreachableException(),
         };
 
-        ProcessRequest request = new(executable, ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(OpenFileScript.For(file))], WorkingDirectory: null);
+        ProcessRequest request = new(executable, ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(OpenFileScript.For(file))], WorkingFolder.Inherit);
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
         {

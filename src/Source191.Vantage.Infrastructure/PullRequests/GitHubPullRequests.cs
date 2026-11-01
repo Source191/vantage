@@ -25,7 +25,7 @@ public sealed class GitHubPullRequests(IProcessRunner processes, ProgramLocation
 
     private async Task<PullRequestListing> ListAsync(string executable, GitHubRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken)
     {
-        ProcessRequest request = new(executable, ["pr", "list", "--repo", $"{repository.Owner}/{repository.Name}", "--head", branch.Value, "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"], checkout.Value);
+        ProcessRequest request = new(executable, ["pr", "list", "--repo", $"{repository.Owner}/{repository.Name}", "--head", branch.Value, "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"], new WorkingFolder.At(checkout.Value));
         ProcessResult result;
         try
         {
