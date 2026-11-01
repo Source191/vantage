@@ -5,16 +5,14 @@ namespace Source191.Vantage.Domain;
 /// </summary>
 /// <param name="RegisteredWithGit">The folder appears in the repository's worktree listing.</param>
 /// <param name="FolderExists">The folder exists on disc.</param>
-/// <param name="LockReason">Git's lock reason, an empty string for a lock with no reason, or null when unlocked.</param>
+/// <param name="Lock">Whether git has the worktree locked, with its reason.</param>
 /// <param name="UnderClaudeWorktrees">The folder sits under a repository's .claude\worktrees directory.</param>
-/// <param name="GitFileTargetExists">For an unregistered folder with a .git file, whether the registration it points at still exists; null when there is no .git file.</param>
+/// <param name="GitFile">For an unregistered folder, what its .git file points at.</param>
 /// <param name="EmptyLeftoverFolder">The folder is an empty leftover such as a .worktrees folder.</param>
-/// <param name="OwnerRepository">For an unregistered folder with a .git file, the repository its registration sits in when that repository still has its .git folder; null otherwise.</param>
 public sealed record WorktreeObservation(
     bool RegisteredWithGit,
     bool FolderExists,
-    string? LockReason,
+    WorktreeLock Lock,
     bool UnderClaudeWorktrees,
-    bool? GitFileTargetExists,
-    bool EmptyLeftoverFolder,
-    FolderPath? OwnerRepository = null);
+    GitPointer GitFile,
+    bool EmptyLeftoverFolder);
