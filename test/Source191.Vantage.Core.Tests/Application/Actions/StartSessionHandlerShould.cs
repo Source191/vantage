@@ -30,8 +30,8 @@ public sealed class StartSessionHandlerShould
     private readonly FakeWindowsTerminal terminal = new();
 
     private static LaunchPlan Plan => new(
-        FolderPath.From(Repository), SessionName.From("Fix flaky tests"), Worktree: null,
-        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, new OpeningPrompt.None(), new RepositoryChoice("Northwind.Orders", FolderPath.From(Repository), IsRepository: true));
+        FolderPath.From(Repository), SessionName.From("Fix flaky tests"), new LaunchPlace.CurrentBranch(),
+        WorktreeBase.RemoteDefault, new OpeningPrompt.None(), new RepositoryChoice("Northwind.Orders", FolderPath.From(Repository), IsRepository: true));
 
     private StartSessionHandler Handler
     {
