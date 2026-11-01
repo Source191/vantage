@@ -28,6 +28,8 @@ public sealed class BatchFileArgumentShould
     [InlineData("a>b")]
     [InlineData("a^b")]
     [InlineData("hi!")]
+    [InlineData("abc\n")]
+    [InlineData("abc\r\n")]
     [InlineData("")]
     public void RefuseAnythingCmdExeReadsSpecially(string text)
     {

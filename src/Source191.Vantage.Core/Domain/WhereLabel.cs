@@ -11,6 +11,12 @@ public abstract record WhereLabel
     private const string Ellipsis = "…";
     private const string Separator = " › ";
 
+    /// <summary>A character, the ellipsis and a character.</summary>
+    private const int LeastElided = 3;
+
+    /// <summary>The ellipsis, the separator and a character of the place.</summary>
+    private const int LeastPlaced = 5;
+
     public static WhereLabel For(string repositoryName, string folderLabel, bool inRepository)
     {
         ArgumentNullException.ThrowIfNull(repositoryName);
@@ -48,15 +54,18 @@ public abstract record WhereLabel
                 return Repository + tail;
             }
 
+            if (Place.Length == 0 || width < LeastPlaced)
+            {
+                return ElideMiddle(Repository, width);
+            }
+
             int room = width - tail.Length;
-            if (room >= 3)
+            if (room >= LeastElided)
             {
                 return ElideMiddle(Repository, room) + tail;
             }
 
-            int placeRoom = width - Ellipsis.Length - Separator.Length;
-
-            return Ellipsis + Separator + CutEnd(Place, Math.Max(placeRoom, 1));
+            return Ellipsis + Separator + CutEnd(Place, width - Ellipsis.Length - Separator.Length);
         }
 
         private static string ElideMiddle(string text, int width)
@@ -64,6 +73,11 @@ public abstract record WhereLabel
             if (text.Length <= width)
             {
                 return text;
+            }
+
+            if (width < LeastElided)
+            {
+                return CutEnd(text, width);
             }
 
             int kept = width - Ellipsis.Length;
@@ -91,5 +105,10 @@ public abstract record WhereLabel
     }
 
 
-    private static string CutEnd(string text, int width) => text.Length <= width ? text : text[..Math.Max(width - Ellipsis.Length, 0)] + Ellipsis;
+    private static string CutEnd(string text, int width) => (text.Length <= width, width) switch
+    {
+        (true, _) => text,
+        (_, 0) => string.Empty,
+        _ => text[..(width - Ellipsis.Length)] + Ellipsis,
+    };
 }

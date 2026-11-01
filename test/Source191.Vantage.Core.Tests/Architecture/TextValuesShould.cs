@@ -36,13 +36,6 @@ public sealed class TextValuesShould
 
     [Theory]
     [MemberData(nameof(TextValues))]
-    public void HaveNoPublicConstructor(Type type)
-    {
-        type.GetConstructors().ShouldBeEmpty();
-    }
-
-    [Theory]
-    [MemberData(nameof(TextValues))]
     public void DeclareFromOnTheInterface(Type type)
     {
         MethodInfo from = typeof(ITextValue<>).MakeGenericType(type).GetMethod("From").ShouldNotBeNull();

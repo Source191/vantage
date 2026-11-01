@@ -8,7 +8,7 @@ namespace Source191.Vantage.Domain;
 /// </summary>
 public static class ClaudeCodeSupport
 {
-    public static readonly ReleaseVersion Minimum = new(2, 1, 309, string.Empty);
+    public static readonly ReleaseVersion Minimum = ReleaseVersion.From("2.1.309");
 
     /// <summary>Only a version Vantage can read and compare is warned about; a false alarm is worse than none.</summary>
     public static ClaudeCodeVersion Check(ClaudeVersionReport report)

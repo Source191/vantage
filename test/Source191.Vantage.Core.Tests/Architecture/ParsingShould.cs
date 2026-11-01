@@ -38,6 +38,16 @@ public sealed class ParsingShould
     }
 
     [Fact]
+    public void HideTheConstructorBehindEveryTryParse()
+    {
+        DomainTypes
+            .Where(type => StaticMethodsNamed("TryParse").Any(parser => parser.Type == type.Name))
+            .Where(type => type.GetConstructors().Length > 0)
+            .Select(type => type.Name)
+            .ShouldBeEmpty();
+    }
+
+    [Fact]
     public void DeclareNoParse()
     {
         StaticMethodsNamed("Parse")

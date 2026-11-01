@@ -9,9 +9,28 @@ namespace Source191.Vantage.Domain;
 /// dropped. Text from outside Vantage (nuget.org's list, the update-check record) goes through
 /// <see cref="TryParse"/>, which answers false for anything else.
 /// </summary>
-public sealed record ReleaseVersion(int Major, int Minor, int Patch, string Prerelease) : IComparable<ReleaseVersion>
+public sealed record ReleaseVersion : IComparable<ReleaseVersion>
 {
+    private ReleaseVersion(int major, int minor, int patch, string prerelease)
+    {
+        Major = major;
+        Minor = minor;
+        Patch = patch;
+        Prerelease = prerelease;
+    }
+
+    public int Major { get; }
+
+    public int Minor { get; }
+
+    public int Patch { get; }
+
+    public string Prerelease { get; }
+
     public bool IsPrerelease => Prerelease.Length > 0;
+
+    /// <summary>For text Vantage already trusts; anything that is not a version is a programming error.</summary>
+    public static ReleaseVersion From(string text) => TryParse(text, out ReleaseVersion? version) ? version : throw new ArgumentException("Not a version.", nameof(text));
 
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out ReleaseVersion version)
     {
@@ -19,7 +38,7 @@ public sealed record ReleaseVersion(int Major, int Minor, int Patch, string Prer
         int dash = withoutMetadata.IndexOf('-', StringComparison.Ordinal);
         string core = dash < 0 ? withoutMetadata : withoutMetadata[..dash];
         string prerelease = dash < 0 ? string.Empty : withoutMetadata[(dash + 1)..];
-        if ((dash < 0 || prerelease.Length > 0)
+        if ((dash < 0 || AreIdentifiers(prerelease))
             && core.Split('.') is [string major, string minor, string patch]
             && Number(major) is int majorNumber
             && Number(minor) is int minorNumber
@@ -69,8 +88,15 @@ public sealed record ReleaseVersion(int Major, int Minor, int Patch, string Prer
 
     public override string ToString() => Prerelease.Length == 0 ? $"{Major}.{Minor}.{Patch}" : $"{Major}.{Minor}.{Patch}-{Prerelease}";
 
-    /// <summary>Digits only: <see cref="NumberStyles.None"/> refuses a sign, spaces and an empty identifier.</summary>
-    private static int? Number(string text) => int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out int number) ? number : null;
+    /// <summary>Digits only, with no leading zero: <see cref="NumberStyles.None"/> refuses a sign, spaces and an empty identifier.</summary>
+    private static int? Number(string text) => HasNoLeadingZero(text) && int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out int number) ? number : null;
+
+    private static bool HasNoLeadingZero(string text) => text is "0" or not ['0', ..];
+
+    /// <summary>Each dot-separated identifier is non-empty, and a numeric one has no leading zero.</summary>
+    private static bool AreIdentifiers(string prerelease) => prerelease.Split('.').All(IsIdentifier);
+
+    private static bool IsIdentifier(string identifier) => identifier.Length > 0 && (!identifier.All(char.IsAsciiDigit) || HasNoLeadingZero(identifier));
 
     /// <summary>A release outranks any prerelease of the same numbers; prereleases compare identifier by identifier.</summary>
     private static int ComparePrerelease(string mine, string theirs)

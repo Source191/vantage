@@ -87,6 +87,9 @@ public sealed class ReleaseVersionShould
     [InlineData("1.x.0")]
     [InlineData("-1.0.0")]
     [InlineData("1.0.0-")]
+    [InlineData("01.0.0")]
+    [InlineData("1.0.0-01")]
+    [InlineData("1.0.0-a..b")]
     public void AnswerFalseForTextThatIsNotAVersion(string? text)
     {
         ReleaseVersion.TryParse(text, out ReleaseVersion? version).ShouldBeFalse();
@@ -98,10 +101,15 @@ public sealed class ReleaseVersionShould
     [InlineData("2.1.310", 2, 1, 310, "")]
     [InlineData("0.19.0-preview.6", 0, 19, 0, "preview.6")]
     [InlineData(" 1.0.0+3f2a9c1d ", 1, 0, 0, "")]
+    [InlineData("1.0.0-0", 1, 0, 0, "0")]
+    [InlineData("1.0.0-01a", 1, 0, 0, "01a")]
     public void ReadAVersion(string text, int major, int minor, int patch, string prerelease)
     {
         ReleaseVersion.TryParse(text, out ReleaseVersion? version).ShouldBeTrue();
-        version.ShouldBe(new ReleaseVersion(major, minor, patch, prerelease));
+        version.Major.ShouldBe(major);
+        version.Minor.ShouldBe(minor);
+        version.Patch.ShouldBe(patch);
+        version.Prerelease.ShouldBe(prerelease);
     }
 
     [Fact]
@@ -109,7 +117,7 @@ public sealed class ReleaseVersionShould
     {
         string[] texts = ["0.10.0", "unknown", "0.9.0-rc.1", "1.0", "0.11.0"];
 
-        ReleaseVersion.Parsed(texts).ShouldBe([new ReleaseVersion(0, 10, 0, ""), new ReleaseVersion(0, 9, 0, "rc.1"), new ReleaseVersion(0, 11, 0, "")]);
+        ReleaseVersion.Parsed(texts).ShouldBe([ReleaseVersions.Version("0.10.0"), ReleaseVersions.Version("0.9.0-rc.1"), ReleaseVersions.Version("0.11.0")]);
     }
 
     [Fact]
@@ -117,5 +125,13 @@ public sealed class ReleaseVersionShould
     {
         ReleaseVersions.Version("0.10.0-rc.1").ToString().ShouldBe("0.10.0-rc.1");
         ReleaseVersions.Version("0.10.0").ToString().ShouldBe("0.10.0");
+    }
+
+    [Fact]
+    public void BuildFromTrustedTextAndThrowForTheRest()
+    {
+        ReleaseVersion.From("2.1.309").ShouldBe(ReleaseVersions.Version("2.1.309"));
+        ReleaseVersion.From("0.19.0-preview.6").Prerelease.ShouldBe("preview.6");
+        Should.Throw<ArgumentException>(() => ReleaseVersion.From("unknown"));
     }
 }
