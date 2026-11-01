@@ -17,7 +17,8 @@ public abstract record StartResult(string Message)
 public sealed record ResumeResult(bool Continued, string Message);
 
 /// <summary>
-/// The documented Claude Code CLI surface Vantage depends on. Nothing else about Claude Code is touched.
+/// The <see href="https://code.claude.com/docs/en/cli-reference">documented Claude Code CLI surface</see> Vantage
+/// depends on. Nothing else about Claude Code is touched.
 /// </summary>
 public interface IClaudeCli
 {
