@@ -148,8 +148,8 @@ Each row is a Claude Code session, ordered so that the ones needing attention co
 | b | Move a plain `claude` session under Vantage's supervision; its old tab closes once the session has resumed |
 | m | Show what the session's memory is made of: Claude Code itself and each program it started (MCP servers, shells), largest first |
 | c | Copy the row's folder path |
-| f | Open the row's folder with the program chosen under "Open folder with" on the [Config tab](#the-config-tab) |
-| s | Open the folder's solution (`*.sln` or `*.slnx`, in the folder or its `src` folder) with Windows' default application; with several, the one named after the repository (`.slnx` before `.sln`), else ask which |
+| f | Open the row's folder with the program chosen under "Open folder with" on the [Config tab](#the-config-tab); when that program cannot be found or Windows will not start it, the status line says so and where to choose another |
+| s | Open the folder's solution (`*.sln` or `*.slnx`, in the folder or its `src` folder) with Windows' default application; with several, the one named after the repository (`.slnx` before `.sln`), else ask which; when Windows has no application for the type, the status line says so and nothing opens |
 | p | Open the row's pull request in your browser, or say why there is none |
 
 The key bar shows what applies to the selected row: a running background session has `Enter Open  x Stop  d Delete  r Rename  m Memory`; a stopped or failed one `Enter Open  d Delete  r Rename`; a plain `claude` session `b Adopt  m Memory`, with `d Close tab` while it has never been sent a message. `R Resume`, `C Close empty`, `n New session` and `U Update` follow when they apply; the second row is `c Copy path  f Open folder  s Open solution  p Open PR  / Filter  ? Help  ! Report  q Quit`.
@@ -240,7 +240,7 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 
 - **Repository roots:** the folders whose repositories the wizard offers and the Worktrees tab scans. Enter opens every root, one per line: add or delete lines, or Browse (F3) to pick folders, then F5 saves. Each must be a full path that exists, listed once, and at least one must stay.
 - **Worktree root:** where new worktrees go, as `<worktree root>\<repository>-<name>`; `~\source\worktrees` unless you change it. Browse (F3) picks a folder.
-- **Open folder with:** what `f` uses: VS Code, Visual Studio (the newest install), Rider, Explorer, or Custom: the full path of an executable and its arguments, with `{folder}` where the folder goes. A bare name, a relative path, or a `.cmd` or `.bat` file is refused.
+- **Open folder with:** what `f` uses: VS Code, Visual Studio (the newest install), Rider (the newest install under Program Files or from JetBrains Toolbox, including Toolbox 2's folders under `%LOCALAPPDATA%\Programs`), Explorer, or Custom: the full path of an executable and its arguments, with `{folder}` where the folder goes. A bare name, a relative path, a `.cmd` or `.bat` file, or a file that does not exist is refused; while Custom is chosen, Browse (F3) picks the executable. Once the dialog has looked, it marks each preset it cannot find, such as `Rider (not found)`; you can still choose it, ready for when it is installed.
 - **Default base:** where a new worktree's branch starts: origin's default branch as last fetched, or HEAD.
 - **Default place:** where `n` starts a session: `New worktree` or `Current branch`. `n` on a worktree and `vantage here` always use the folder's current branch.
 - **Check for updates:** whether Vantage asks nuget.org once a day for a newer release; Enter turns it on or off.
