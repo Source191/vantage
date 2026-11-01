@@ -50,13 +50,15 @@ public static class ClaudeAgentsListing
 
         if (row is { Kind: "interactive", Pid: int processId })
         {
-            return new InteractiveSession(sessionId, name, workingDirectory, startedAt, state, processId) { WaitingFor = row.WaitingFor };
+            return new InteractiveSession(sessionId, name, workingDirectory, startedAt, state, processId) { WaitingFor = WaitingOf(row.WaitingFor) };
         }
 
         return JobId.TryParse(row.Id, out JobId? jobId) || JobId.TryParse(sessionId, out jobId)
-            ? new BackgroundSession(sessionId, jobId, name, workingDirectory, startedAt, state, row.Pid) { WaitingFor = row.WaitingFor }
+            ? new BackgroundSession(sessionId, jobId, name, workingDirectory, startedAt, state, row.Pid) { WaitingFor = WaitingOf(row.WaitingFor) }
             : null;
     }
+
+    private static WaitingReason WaitingOf(string? text) => text is string reason ? new WaitingReason.Given(reason) : new WaitingReason.None();
 
     private sealed record Row(
         int? Pid,

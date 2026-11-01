@@ -7,8 +7,8 @@ namespace Source191.Vantage.Domain;
 /// </summary>
 public abstract record Session(SessionId SessionId, string Name, FolderPath WorkingDirectory, DateTimeOffset StartedAt, DisplayState State)
 {
-    /// <summary>What the listing says the session waits for ("permission prompt"), in the CLI's own words; null when it says nothing.</summary>
-    public string? WaitingFor { get; init; }
+    /// <summary>What the listing says the session waits for ("permission prompt"), in the CLI's own words; none when it says nothing.</summary>
+    public WaitingReason WaitingFor { get; init; } = new WaitingReason.None();
 }
 
 /// <summary>A supervised job: attachable, stoppable and removable by its job id. A stopped job has no process.</summary>
