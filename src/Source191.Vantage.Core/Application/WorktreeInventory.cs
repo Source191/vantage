@@ -116,11 +116,13 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
             }
 
             registered.Add(path);
-            bool folderExists = !entry.IsPrunable && folders.DirectoryExists(path.Value);
-            WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.Lock, false, new GitPointer.NoGitFile(), false, Prunable: false));
-            rows.Add(folderExists
+            // The disc decides whether the folder exists; git's prunable says only that its .git file is gone, and such a
+            // folder may still hold work, so it is counted like any leftover.
+            bool folderExists = folders.DirectoryExists(path.Value);
+            WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.Lock, false, new GitPointer.NoGitFile(), false, entry.IsPrunable));
+            rows.Add(folderExists && !entry.IsPrunable
                 ? await InspectedAsync(repository, path, entry, health, cancellationToken)
-                : new WorktreeRow(repository, path, entry.Head, health, 0, 0, new LastCommit.Unknown(), new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: false));
+                : new WorktreeRow(repository, path, entry.Head, health, 0, 0, new LastCommit.Unknown(), new WorktreeSession.None(), CountLeftoverFiles(path), OwnerExists: true, FolderExists: folderExists));
         }
 
         return rows;
