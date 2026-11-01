@@ -11,6 +11,7 @@ namespace Source191.Vantage.Core.Tests.Application;
 public sealed class CommandLineShould : IDisposable
 {
     private readonly List<string> calls = [];
+    private readonly List<TerminalSetupRequest> setups = [];
     private readonly StringWriter output = new();
     private readonly StringWriter error = new();
 
@@ -19,7 +20,11 @@ public sealed class CommandLineShould : IDisposable
         CommandActions actions = new(
             OpenConsole: _ => Record("console"),
             StartHere: (name, prompt, _) => Record($"here name={name ?? "(none)"} prompt={prompt ?? "(none)"}"),
-            SetUpTerminal: (request, _) => Record($"setup {request}"),
+            SetUpTerminal: (request, _) =>
+            {
+                setups.Add(request);
+                return Record("setup");
+            },
             ClaimTab: (registration, processId, _) => Record($"claim {registration:N} {processId}"));
 
         return CommandLine.InvokeAsync(CommandLine.Build(actions), arguments, output, error);
@@ -96,7 +101,20 @@ public sealed class CommandLineShould : IDisposable
         int exitCode = await InvokeAsync("setup-terminal", "--sound", @"C:\Windows\Media\chimes.wav", "--yes");
 
         exitCode.ShouldBe(0);
-        calls.ShouldBe([$"setup {new TerminalSetupRequest(@"C:\Windows\Media\chimes.wav", SessionSound: null, Yes: true, Remove: false)}"]);
+        setups.ShouldBe([new TerminalSetupRequest(new SoundArgument.Given(@"C:\Windows\Media\chimes.wav"), new SoundArgument.Omitted(), Yes: true, Remove: false)]);
+    }
+
+    [Theory]
+    [InlineData(new[] { "setup-terminal", "--sound", "a.wav" }, "a.wav", null)]
+    [InlineData(new[] { "setup-terminal", "--session-sound", "b.wav" }, null, "b.wav")]
+    [InlineData(new[] { "setup-terminal", "--sound", "  ", "--session-sound=" }, "  ", "")]
+    [InlineData(new[] { "setup-terminal" }, null, null)]
+    public async Task ReadSetupTerminalSoundsAsArguments(string[] arguments, string? sound, string? sessionSound)
+    {
+        await InvokeAsync(arguments);
+
+        setups.Single().Sound.ShouldBe(sound is null ? new SoundArgument.Omitted() : new SoundArgument.Given(sound));
+        setups.Single().SessionSound.ShouldBe(sessionSound is null ? new SoundArgument.Omitted() : new SoundArgument.Given(sessionSound), "blank text is given, and refused later by the runner");
     }
 
     [Fact]
