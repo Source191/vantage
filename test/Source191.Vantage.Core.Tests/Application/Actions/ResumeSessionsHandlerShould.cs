@@ -41,6 +41,7 @@ public sealed class ResumeSessionsHandlerShould
         Outcome message = await Handler.HandleAsync(new ResumeSessions([withTranscript, stub]), CancellationToken.None);
 
         processes.CapturedRequests.Count(request => request.Arguments.Contains("--resume")).ShouldBe(1);
+        processes.CapturedRequests.Count(request => request.Arguments.Contains("rm")).ShouldBe(1, "a session with no transcript keeps its job, since it could not come back");
         ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
         (resume.Resumed, resume.Chosen).ShouldBe((1, 2));
         resume.Notes.ShouldBe([new ResumeNote.NeverSentAMessage("repos-f6")]);
@@ -79,8 +80,20 @@ public sealed class ResumeSessionsHandlerShould
     }
 
     [Fact]
-    public async Task ResumeEachSessionUnderItsListedNameOrUnnamed()
+    public async Task NameTheSessionIdWhenAResumeFailsAfterTheRemoval()
     {
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(1, string.Empty, "Workspace not trusted"));
+        transcripts.WithMessages("sess-1");
+
+        Outcome message = await Handler.HandleAsync(new ResumeSessions([Job(Repository, DisplayState.Failed)]), CancellationToken.None);
+
+        ResumeSessionsOutcome resume = message.ShouldBeOfType<ResumeSessionsOutcome>();
+        resume.Resumed.ShouldBe(0);
+        resume.Notes.ShouldBe([new ResumeNote.Failed("fix-123", "Workspace not trusted", SessionId.From("sess-1"))], "the job is gone, so the note carries what brings the session back");
+    }
+
+    [Fact]
+    public async Task ResumeEachSessionUnderItsListedNameOrUnnamed()    {
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
         transcripts.WithMessages("sess-1").WithMessages("sess-2");
         BackgroundSession named = Job(Repository, DisplayState.Failed);
