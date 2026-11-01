@@ -96,6 +96,8 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 ## 8. Whole-solution check
 
 - [ ] 8.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate show-release-notes --strict` pass; then, on a stable build (a development build never offers an update or reads `last-run.json`, so pack with `dotnet pack src\Source191.Vantage -c Release -p:Version=0.99.0 -o <folder>` and install it with `dotnet tool install -g Source191.Vantage --add-source <folder> --version 0.99.0`), a manual check with a hand-written `update-check.json` naming 1.0.0 with notes: the amber notice, U's dialogue, Release page opening the browser, Later and Esc; then a seeded `last-run.json` showing What's new once.
+  Done in part: `dotnet build -c Debug` clean; `dotnet test -c Debug --no-build` at the solution 2,558 tests, 2,549 passed and 9 skipped (the Claude contract facts), 0 failed (Core 2,157, Infrastructure 357 with 9 skipped, HeadlessTerminal 44); `dotnet format --verify-no-changes` clean after it dropped the new files' final newlines; `openspec validate show-release-notes --strict` valid.
+  Owed: the manual check on an installed stable build (the amber notice, the announcement, U's dialog, Release page opening the browser, Later and Esc, then What's new once after a seeded `last-run.json`), which needs a global 0.99.0 install and seeded state in the real `%LOCALAPPDATA%\Vantage` that this unattended run may not make; the steps are in the pull request's Owed section.
 
 ## Workflow follow-up
 
