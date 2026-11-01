@@ -19,7 +19,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 ## 4. Local times in the detail pane
 
 - [x] 4.1 `WordingOfDetailShould`: the three scenarios of the detail-pane delta's "The pane's times are local" (a summer start in the UK, before the clocks went back, today in Nairobi) through `Wording.Detail(detail, now, zone)` with `GMT Standard Time` and `E. Africa Standard Time`; the existing facts pass UTC. Red, then the zone parameter and `TimeZoneInfo.ConvertTime` in `DayAndTime` green. Verify the facts pass.
-- [ ] 4.2 `SessionDetails` and `WorktreeDetails` pass `clock.LocalTimeZone`; a fact over each with a `FakeTimeProvider` set to the UK zone reads the local Started or Created time. Red, then green. Verify the facts pass.
+- [x] 4.2 `SessionDetails` and `WorktreeDetails` pass `clock.LocalTimeZone`; a fact over each with a `FakeTimeProvider` set to the UK zone reads the local Started or Created time. Red, then green. Verify the facts pass.
 
 ## 5. Local time on the Config tab
 
