@@ -64,6 +64,21 @@ public sealed class ResumeSessionsHandlerShould
     }
 
     [Fact]
+    public async Task RemoveEachJobBeforeResumingIt()
+    {
+        processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
+        transcripts.WithMessages("sess-1").WithMessages("sess-2");
+        BackgroundSession first = Job(Repository, DisplayState.Failed);
+        BackgroundSession second = Job(Worktree, DisplayState.Stopped) with { SessionId = SessionId.From("sess-2"), JobId = JobId.From("c429a96e"), Name = "fix-124" };
+
+        await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
+
+        processes.CapturedRequests.Where(request => request.FileName == Claude).Select(request => string.Join(' ', request.Arguments)).ShouldBe(
+            ["rm 81cdb0f9", "--bg --resume sess-1 -n fix-123", "rm c429a96e", "--bg --resume sess-2 -n fix-124"],
+            "a listed job resumed with flags starts a copy, so it is removed first and the session id continues");
+    }
+
+    [Fact]
     public async Task ResumeEachSessionUnderItsListedNameOrUnnamed()
     {
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));
