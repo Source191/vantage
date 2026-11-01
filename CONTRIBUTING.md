@@ -157,7 +157,7 @@ Before asking for review, check that:
 - **The change:** its OpenSpec change has every task ticked, manual checks recorded, and is archived in this pull request (`openspec validate` passes).
 - **The loop:** `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` pass, and the hand-off check exits 0 if you touched attach, dialogs or Terminal.Gui.
 - **The version:** a pull request that changes the packaged tool (`src\`, `Directory.Build.props`, `global.json` or `nuget.config`) raises `Version`; see [Versions](#versions).
-- **The documents:** the README describes any behaviour a user will notice, CLAUDE.md records any newly verified fact about Claude Code, Terminal.Gui, Windows Terminal or Windows (with the date and version), and a project's README any fact worth knowing about it.
+- **The documents:** the README describes any behaviour a user will notice, CLAUDE.md records any newly verified fact about Claude Code, and its `.claude\rules` files any about Terminal.Gui, Windows Terminal or Windows (with the date and version), and a project's README any fact worth knowing about it.
 - **Manual checks:** a change to how Vantage drives `wt.exe`, tabs or attach has been through the [manual checks](#manual-checks-for-tab-and-attach-changes) in a real Windows Terminal.
 
 ## Manual checks for tab and attach changes

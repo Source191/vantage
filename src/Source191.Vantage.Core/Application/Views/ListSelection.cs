@@ -11,6 +11,10 @@ public sealed record ListPolicy<TRow>(
 {
     /// <summary>A selection with no rows yet, governed by this policy.</summary>
     public ListSelection<TRow> EmptyList() => new(this, [], SelectedKey: null, RowFilter.None, FilterEditing: false, Loaded: false);
+
+    /// <summary>A selection governed by this policy, from a view state's fields; the one place a <see cref="SelectionKey"/> becomes the selection's own key.</summary>
+    public ListSelection<TRow> List(IReadOnlyList<TRow> rows, SelectionKey selected, RowFilter filter, bool filterEditing, bool loaded) =>
+        new(this, rows, selected is SelectionKey.Row row ? row.Key : null, filter, filterEditing, loaded);
 }
 
 /// <summary>
@@ -29,6 +33,9 @@ public sealed record ListSelection<TRow>(
     public IReadOnlyList<TRow> Visible => [.. Policy.Order(Rows.Where(row => Filter.Matches(Policy.FilterFields(row))))];
 
     public TRow? Selected => Visible.FirstOrDefault(IsSelected);
+
+    /// <summary>The selected key as a view state holds it.</summary>
+    public SelectionKey Selection => SelectedKey is string key ? new SelectionKey.Row(key) : new SelectionKey.None();
 
     /// <summary>What the table's title says: how many rows show of how many, the filter if one is set, and the selected row's label.</summary>
     public TableTitle Title(string noun, Func<TRow, string> labelOf)

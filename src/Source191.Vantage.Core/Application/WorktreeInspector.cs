@@ -4,7 +4,7 @@ using Source191.Vantage.Ports;
 namespace Source191.Vantage.Application;
 
 /// <summary>What git says about a worktree's work: changed files, commits not pushed, and when it last committed.</summary>
-public sealed record WorktreeCounts(int DirtyFiles, int UnpushedCommits, DateTimeOffset? LastCommitAt);
+public sealed record WorktreeCounts(int DirtyFiles, int UnpushedCommits, LastCommit LastCommitAt);
 
 /// <summary>
 /// The one place git-backed worktree facts are gathered: the counts the scan and the removal rules need, the health
@@ -16,7 +16,7 @@ public sealed class WorktreeInspector(IGit git)
     public async Task<WorktreeCounts> CountAsync(FolderPath worktree, CancellationToken cancellationToken) => new(
         await git.CountChangedFilesAsync(worktree.Value, cancellationToken),
         await git.CountUnpushedCommitsAsync(worktree.Value, cancellationToken),
-        await git.LastCommitAtAsync(worktree.Value, cancellationToken));
+        await git.LastCommitAtAsync(worktree.Value, cancellationToken) is DateTimeOffset at ? new LastCommit.Made(at) : new LastCommit.Unknown());
 
     /// <summary>Health as git's listing gives it: broken when git no longer lists the worktree or calls it prunable, locked with git's reason.</summary>
     public async Task<WorktreeHealth> HealthAsync(FolderPath repository, FolderPath worktree, CancellationToken cancellationToken)
