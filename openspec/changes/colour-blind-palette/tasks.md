@@ -25,7 +25,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 ## 5. Release
 
 - [ ] 5.1 Raise `Version` in `src\Source191.Vantage\Source191.Vantage.csproj` to the next preview. Verify `.github\scripts\Assert-VersionBumped.ps1` passes locally, `dotnet format --verify-no-changes` is clean, `dotnet test -c Debug --no-build` passes at the solution and `dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>` exits 0.
-- [ ] 5.2 Update the README: the Config tab's section says the setup sits under a Setup heading the selection steps over, rather than "in grey"; where it describes tab colours, say the palette is ordered for red-green colour blindness. Verify by reading it against the specs' scenarios and checking no em dash was introduced.
+- [x] 5.2 Update the README: the Config tab's section says the setup sits under a Setup heading the selection steps over, rather than "in grey"; where it describes tab colours, say the palette is ordered for red-green colour blindness. Verify by reading it against the specs' scenarios and checking no em dash was introduced.
 
 ## Workflow follow-up
 
