@@ -4,7 +4,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 ## 1. Tests run as the tool ships
 
-- [ ] 1.1 Move `InvariantGlobalization` out of `src\Source191.Vantage.Core`, `src\Source191.Vantage.Infrastructure` and `src\Source191.Vantage.Tui` and into `test\Source191.Vantage.Core.Tests`, `test\Source191.Vantage.Infrastructure.Tests` and `tools\HeadlessTerminal.Tests`, with a sentence in each of those six projects' `README.md` saying why (design decision 4). Verify `dotnet build -c Debug` is clean with the culture analysers now running on the libraries, and that `EditorLocatorShould.RankRiderBuildsByNumberNotByText` is the one failing test (the red step for group 2).
+- [x] 1.1 Move `InvariantGlobalization` out of `src\Source191.Vantage.Core`, `src\Source191.Vantage.Infrastructure` and `src\Source191.Vantage.Tui` and into `test\Source191.Vantage.Core.Tests`, `test\Source191.Vantage.Infrastructure.Tests` and `tools\HeadlessTerminal.Tests`, with a sentence in each of those six projects' `README.md` saying why (design decision 4). Verify `dotnet build -c Debug` is clean with the culture analysers now running on the libraries, and that `EditorLocatorShould.RankRiderBuildsByNumberNotByText` is the one failing test (the red step for group 2).
 
 ## 2. Rider by number
 

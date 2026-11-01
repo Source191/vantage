@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Source191.Vantage.Tui</RootNamespace>
     <IsPackable>false</IsPackable>
-    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>
