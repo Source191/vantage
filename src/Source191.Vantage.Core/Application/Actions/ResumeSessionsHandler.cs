@@ -44,16 +44,3 @@ public sealed class ResumeSessionsHandler(IClaudeCli claude, ITranscripts transc
         return new ResumeSessionsOutcome(continued, effect.Sessions.Count, notes);
     }
 }
-
-/// <summary>How many of the chosen sessions resumed, and a note for each that did not.</summary>
-public sealed record ResumeSessionsOutcome(int Resumed, int Chosen, IReadOnlyList<ResumeNote> Notes) : Outcome;
-
-/// <summary>A session that did not resume, and why.</summary>
-public abstract record ResumeNote(string Name)
-{
-    /// <summary>The session has no transcript, so there is nothing to resume.</summary>
-    public sealed record NeverSentAMessage(string Name) : ResumeNote(Name);
-
-    /// <summary>The CLI refused the resume with this message; the job was removed first, so the session id is what brings it back.</summary>
-    public sealed record Failed(string Name, string Failure, SessionId SessionId) : ResumeNote(Name);
-}

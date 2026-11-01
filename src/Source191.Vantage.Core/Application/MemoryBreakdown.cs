@@ -3,9 +3,6 @@ using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
-/// <summary>One program a session started, with everything under it: an MCP server, a shell, whatever else.</summary>
-public sealed record MemoryShare(string Label, MemorySize Memory);
-
 /// <summary>
 /// What a session's memory is made of, for the breakdown dialog: Claude Code's own process, then each program it
 /// started directly with that program's whole subtree, largest first, then the total and the process count.

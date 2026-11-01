@@ -1,16 +1,5 @@
 namespace Source191.Vantage.Application.Detail;
 
-/// <summary>One request for the selected row's detail: its place in the order asked, and the row's key.</summary>
-public sealed record DetailRequest(int Number, object Key);
-
-/// <summary>What the pane does with a read: show it, or drop it because the read was cancelled or failed, its row is no longer selected or a newer answer was shown.</summary>
-public abstract record DetailAnswer
-{
-    public sealed record Show(DetailContent Content) : DetailAnswer;
-
-    public sealed record Dropped : DetailAnswer;
-}
-
 /// <summary>
 /// The order of one tab's detail requests and which answers the pane shows: moving the selection or refreshing the rows
 /// asks again, and an answer is shown only while its row is still selected and no newer answer has been shown. Used on

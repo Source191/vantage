@@ -1,18 +1,6 @@
-using Source191.Vantage.Application.Launch;
 using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application.Views;
-
-/// <summary>The wizard's fields, in the order Tab visits them.</summary>
-public enum WizardField
-{
-    RepositoryFilter,
-    RepositoryList,
-    Name,
-    Mode,
-    Base,
-    Prompt,
-}
 
 /// <summary>What happened in the wizard: each case is one control event or key, raised by the dialog that binds them.</summary>
 public abstract record WizardInput
@@ -49,28 +37,3 @@ public abstract record WizardInput
     /// <summary>Esc or the Cancel button.</summary>
     public sealed record Cancel : WizardInput;
 }
-
-/// <summary>What the dialog does after a reduce: nothing, start the plan, or close.</summary>
-public abstract record WizardEffect
-{
-    /// <summary>Nothing: the dialog pushes the new state back to its controls.</summary>
-    public sealed record None : WizardEffect;
-
-    public sealed record Launch(LaunchPlan Plan) : WizardEffect;
-
-    public sealed record Close : WizardEffect;
-}
-
-/// <summary>Why the wizard will not go on, as a fact; <see cref="Wording"/> says it.</summary>
-public abstract record WizardProblem
-{
-    /// <summary>Nothing is wrong: the problem line is empty.</summary>
-    public sealed record None : WizardProblem;
-
-    public sealed record NoRepository : WizardProblem;
-
-    /// <summary>The plan builder said no, for its own reason.</summary>
-    public sealed record Refused(LaunchProblem Problem) : WizardProblem;
-}
-
-public sealed record WizardUpdate(WizardState State, WizardEffect Effect);

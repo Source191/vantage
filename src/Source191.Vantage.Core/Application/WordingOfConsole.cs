@@ -3,34 +3,6 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application;
 
-/// <summary>How a piece of the frame's text is coloured; the screen maps each tone to a colour of its palette.</summary>
-public enum TextTone
-{
-    Plain,
-    Amber,
-    Cyan,
-    Green,
-    Red,
-    Grey,
-    Orange,
-}
-
-/// <summary>A piece of the frame's text in its tone, such as "◐ 2 need input" in amber or "Vantage " in orange.</summary>
-public sealed record TextPart(string Text, TextTone Tone);
-
-/// <summary>One item of the key bar: the key as the help names it, its word, the cell it starts at and the tooltip it shows.</summary>
-public sealed record KeyBarItem(string Key, string Word, int X, string Tip)
-{
-    /// <summary>The cell after the item's last character.</summary>
-    public int End => X + Key.Length + 1 + Word.Length;
-}
-
-/// <summary>The two rows of the key bar; <see cref="Width"/> is the cells the wider row reaches.</summary>
-public sealed record KeyBar(IReadOnlyList<KeyBarItem> First, IReadOnlyList<KeyBarItem> Second)
-{
-    public int Width => First.Concat(Second).Select(item => item.End).DefaultIfEmpty(0).Max();
-}
-
 /// <summary>The words of the console's frame: the settings line, the tab titles, the counts beside them and the key bar.</summary>
 public static partial class Wording
 {

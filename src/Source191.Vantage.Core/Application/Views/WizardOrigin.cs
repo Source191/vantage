@@ -21,11 +21,3 @@ public abstract record WizardOrigin
 
     public sealed record Fixed(RepositoryChoice Choice) : WizardOrigin;
 }
-
-/// <summary>The repository the wizard would start in: the fixed one, the selected choice, or none while the list is empty.</summary>
-public abstract record RepositoryPick
-{
-    public sealed record None : RepositoryPick;
-
-    public sealed record Picked(RepositoryChoice Choice) : RepositoryPick;
-}

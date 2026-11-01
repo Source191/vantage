@@ -3,9 +3,6 @@ using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application;
 
-/// <summary>What git says about a worktree's work: changed files, commits not pushed, and when it last committed.</summary>
-public sealed record WorktreeCounts(int DirtyFiles, int UnpushedCommits, LastCommit LastCommitAt);
-
 /// <summary>
 /// The one place git-backed worktree facts are gathered: the counts the scan and the removal rules need, the health
 /// git's own listing gives a worktree, and whether its branch is merged into the remote default. Leftover-file counts

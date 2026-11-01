@@ -3,12 +3,6 @@ using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Launch;
 
-public sealed record RepositoryChoice(string Name, FolderPath Path, bool IsRepository)
-{
-    /// <summary>Whether the filter typed in the wizard keeps this choice: part of its name, in any case.</summary>
-    public bool Matches(string filter) => Name.Contains(filter, StringComparison.OrdinalIgnoreCase);
-}
-
 /// <summary>
 /// The repositories the wizard offers: every main checkout directly under the roots saved now, recently used ones
 /// first. A linked worktree (a .git file rather than a folder) under a root is not offered, and neither is a root
