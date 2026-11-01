@@ -29,15 +29,18 @@ public sealed class PullRequestHostsShould : IDisposable
     }
 
     [Fact]
-    public void FindAzCmdOnThePath()
+    public void LocateAzCmdOnThePathAsAProgramLocation()
     {
         string bin = Path.Combine(folder, "wbin");
+        string later = Path.Combine(folder, "later");
         Directory.CreateDirectory(bin);
+        Directory.CreateDirectory(later);
         File.WriteAllText(Path.Combine(bin, "az.cmd"), "@echo off");
+        File.WriteAllText(Path.Combine(later, "az.cmd"), "@echo off");
 
-        AzureCliExecutable.Locate($"{Path.Combine(folder, "missing")};{bin}").ShouldBe(Path.Combine(bin, "az.cmd"));
-        AzureCliExecutable.Locate(Path.Combine(folder, "missing")).ShouldBeNull();
-        AzureCliExecutable.Locate(null).ShouldBeNull();
+        AzureCliExecutable.Locate($"{Path.Combine(folder, "missing")};{bin};{later}").ShouldBe(new ProgramLocation.Found(Path.Combine(bin, "az.cmd")), "the first PATH folder holding az.cmd wins");
+        AzureCliExecutable.Locate(Path.Combine(folder, "missing")).ShouldBe(new ProgramLocation.Missing());
+        AzureCliExecutable.Locate(null).ShouldBe(new ProgramLocation.Missing());
     }
 
     public void Dispose()
