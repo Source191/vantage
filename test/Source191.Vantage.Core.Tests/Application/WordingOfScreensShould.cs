@@ -16,7 +16,6 @@ public sealed class WordingOfScreensShould
     [InlineData(DialogName.Keys, "Vantage (Keys)")]
     [InlineData(DialogName.NewSession, "Vantage (New session)")]
     [InlineData(DialogName.Rename, "Vantage (Rename)")]
-    [InlineData(DialogName.Resume, "Vantage (Resume)")]
     [InlineData(DialogName.Settings, "Vantage (Settings)")]
     [InlineData(DialogName.FolderPicker, "Vantage (Browse)")]
     [InlineData(DialogName.DeleteSession, "Vantage (Delete session)")]
@@ -48,7 +47,7 @@ public sealed class WordingOfScreensShould
     [Fact]
     public void HaveATabTitleForEveryDialog()
     {
-        Enum.GetValues<DialogName>().Length.ShouldBe(14, "a new dialog needs its own NameEachDialogInTheTabTitle case");
+        Enum.GetValues<DialogName>().Length.ShouldBe(13, "a new dialog needs its own NameEachDialogInTheTabTitle case");
     }
 
     [Theory]

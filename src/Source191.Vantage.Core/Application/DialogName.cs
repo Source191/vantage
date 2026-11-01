@@ -6,7 +6,6 @@ public enum DialogName
     Keys,
     NewSession,
     Rename,
-    Resume,
     Settings,
     FolderPicker,
     DeleteSession,

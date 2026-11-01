@@ -100,8 +100,6 @@ public sealed record CloseEmptyTerminals(IReadOnlyList<InteractiveSession> Sessi
 
 public sealed record OpenLaunchWizard : ViewEffect, IDialogEffect;
 
-public sealed record ResumeStoppedSessions(IReadOnlyList<SessionRow> Rows) : ViewEffect, IDialogEffect;
-
 
 public sealed record Quit : ViewEffect, ILeavesScreen;
 

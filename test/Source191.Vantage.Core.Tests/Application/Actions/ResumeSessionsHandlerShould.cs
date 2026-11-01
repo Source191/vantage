@@ -29,20 +29,6 @@ public sealed class ResumeSessionsHandlerShould
     }
 
     [Fact]
-    public void SeparateFailedSessionsFromStoppedOnesWhenPlanningAResume()
-    {
-        SessionRow failed = Background(Repository, isWorktree: false, DisplayState.Failed);
-        SessionRow stopped = Background(Repository, isWorktree: false, DisplayState.Stopped) with { Session = Background(Repository, false).Session with { SessionId = SessionId.From("sess-2"), State = DisplayState.Stopped } };
-        SessionRow stoppedLater = stopped with { Session = stopped.Session with { SessionId = SessionId.From("sess-3"), Name = "later" } };
-        SessionRow working = Background(Repository, isWorktree: false);
-
-        ResumePlan plan = ResumeSessionsHandler.Plan([failed, stoppedLater, stopped, working]);
-
-        plan.Automatic.ShouldBe([failed]);
-        plan.ToChoose.ShouldBe([stoppedLater, stopped], "the checklist keeps the order it was given, which is the table's order");
-    }
-
-    [Fact]
     public async Task SkipASessionWithNoTranscriptWhenResumingAndSaySo()
     {
         processes.Answer(request => request.Arguments.Contains("--resume"), new ProcessResult(0, "backgrounded · 81cdb0f9 · fix-123", string.Empty));

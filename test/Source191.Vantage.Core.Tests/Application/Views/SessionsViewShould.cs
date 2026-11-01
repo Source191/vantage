@@ -555,7 +555,6 @@ public sealed class SessionsViewShould
         new Quit().ShouldBeAssignableTo<ILeavesScreen>();
         new AskForNewName(WaitingJob).ShouldBeAssignableTo<IDialogEffect>();
         new DeleteSession(WaitingJob).ShouldBeAssignableTo<IDialogEffect>();
-        new ResumeStoppedSessions([]).ShouldBeAssignableTo<IDialogEffect>();
         new OpenLaunchWizard().ShouldBeAssignableTo<IDialogEffect>();
         new StopSession(WaitingJob).ShouldNotBeAssignableTo<ILeavesScreen>();
         new StopSession(WaitingJob).ShouldNotBeAssignableTo<IDialogEffect>();

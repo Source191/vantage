@@ -24,7 +24,6 @@ public static partial class Wording
         DialogName.Keys => "Keys",
         DialogName.NewSession => "New session",
         DialogName.Rename => "Rename",
-        DialogName.Resume => "Resume",
         DialogName.Settings => "Settings",
         DialogName.FolderPicker => "Browse",
         DialogName.DeleteSession => "Delete session",
