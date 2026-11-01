@@ -7,6 +7,7 @@ public sealed class SmokeScriptShould
     private const string Worktree = "Northwind.Smoke-smoke";
     private const string Escape = "\u001b";
     private const string F3 = "\u001bOR";
+    private const string Down = "\u001b[B";
 
     private static readonly IReadOnlyList<SmokeStep> Steps = SmokeScript.Build(Worktree);
 
@@ -21,6 +22,7 @@ public sealed class SmokeScriptShould
             Wording.TabTitleDuring(DialogName.NewSession), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.ProblemReport), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitleDuring(DialogName.FolderPicker), Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitle,
+            Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitleDuring(DialogName.FilePicker), Wording.TabTitleDuring(DialogName.Settings), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.Keys), Wording.TabTitle,
             Wording.TabTitleDuring(DialogName.ForceRemove), Wording.TabTitle,
             Wording.TabTitle,
@@ -57,6 +59,7 @@ public sealed class SmokeScriptShould
             Key(Wording.SessionsKeys, "New session"), Escape,
             Key(Wording.SessionsKeys, "Report"), Escape,
             "3", Key(Wording.ConfigKeys, "Edit"), F3, Escape, Escape,
+            Key(Wording.ConfigKeys, "Filter") + "with", "\r", Key(Wording.ConfigKeys, "Edit"), Down + Down + Down + Down + " " + F3, Escape, Escape,
             "2", string.Empty,
             Key(Wording.WorktreesKeys, "Help"), Escape,
             Key(Wording.WorktreesKeys, "Filter") + Worktree, "\r",
@@ -71,8 +74,22 @@ public sealed class SmokeScriptShould
     [Fact]
     public void SendEnterAndDForceRemoveWithoutAMarkerOfTheirOwn()
     {
-        Steps[16].Marker.ShouldBe(CaptureMarker.Nothing);
-        Steps[17].Marker.ShouldBe(CaptureMarker.Nothing);
+        Steps[22].Marker.ShouldBe(CaptureMarker.Nothing);
+        Steps[23].Marker.ShouldBe(CaptureMarker.Nothing);
+    }
+
+    [Fact]
+    public void EndTheConfigFilterAndEditTheRowWithoutAMarkerOfTheirOwn()
+    {
+        Steps[12].Marker.ShouldBe(CaptureMarker.Nothing);
+        Steps[13].Marker.ShouldBe(CaptureMarker.Nothing);
+    }
+
+    [Fact]
+    public void ChooseCustomTheLastEditorBeforeBrowsingForAFile()
+    {
+        Enum.GetValues<Source191.Vantage.Domain.EditorPreset>()[^1].ShouldBe(Source191.Vantage.Domain.EditorPreset.Custom, "the smoke reaches Custom by Down presses from the first choice");
+        Steps[14].Keys.ShouldEndWith(" " + F3);
     }
 
     [Fact]
@@ -81,8 +98,8 @@ public sealed class SmokeScriptShould
         TimeSpan[] timeouts = [.. Steps.Select(step => step.Timeout)];
 
         timeouts[0].ShouldBe(TimeSpan.FromSeconds(60));
-        timeouts[13].ShouldBe(TimeSpan.FromSeconds(60));
-        timeouts.Where((_, index) => index is not 0 and not 13).ShouldAllBe(timeout => timeout == TimeSpan.FromSeconds(20));
+        timeouts[19].ShouldBe(TimeSpan.FromSeconds(60));
+        timeouts.Where((_, index) => index is not 0 and not 19).ShouldAllBe(timeout => timeout == TimeSpan.FromSeconds(20));
     }
 
     [Fact]

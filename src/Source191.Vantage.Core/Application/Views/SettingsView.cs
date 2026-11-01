@@ -18,8 +18,11 @@ public static class SettingsView
             SettingsInput.FoldersChosen { Folders.Count: 0 } => Changed(state),
             SettingsInput.FoldersChosen chosen when state.Browses == SettingsBrowse.OneFolder => Changed(state with { Text = state.Text with { WorktreeRoot = chosen.Folders[0] } }),
             SettingsInput.FoldersChosen chosen => Changed(state with { Text = state.Text with { Roots = WithLines(state.Text.Roots, chosen.Folders) } }),
+            SettingsInput.FileChosen { Path.Length: 0 } => Changed(state),
+            SettingsInput.FileChosen chosen => Changed(state with { Text = state.Text with { Executable = chosen.Path } }),
             SettingsInput.WorktreeRootChanged changed => Changed(state with { Text = state.Text with { WorktreeRoot = changed.Text } }),
             SettingsInput.PresetChanged changed => Changed(state with { Text = state.Text with { Preset = changed.Preset } }),
+            SettingsInput.PresetsLocated located => Changed(state with { Presets = new PresetSearch.Looked(located.Missing) }),
             SettingsInput.ExecutableChanged changed => Changed(state with { Text = state.Text with { Executable = changed.Text } }),
             SettingsInput.ArgumentsChanged changed => Changed(state with { Text = state.Text with { Arguments = changed.Text } }),
             SettingsInput.BaseChanged changed => Changed(state with { Text = state.Text with { Base = changed.Base } }),
@@ -33,7 +36,7 @@ public static class SettingsView
 
     private static SettingsUpdate Saved(SettingsState state)
     {
-        return Settings.Validate(state.Text, state.FolderExists) switch
+        return Settings.Validate(state.Text, state.FolderExists, state.FileExists) switch
         {
             SettingsValidation.Valid valid => new SettingsUpdate(state with { Problem = new SettingsProblemLine.None() }, new SettingsEffect.Save(valid.Settings)),
             SettingsValidation.Refused refused => Changed(state with { Problem = new SettingsProblemLine.Shows(refused.Problem), Focus = FieldOf(refused.Problem) }),
@@ -48,7 +51,7 @@ public static class SettingsView
         {
             SettingsProblem.NoRoots or SettingsProblem.RootNotFullPath or SettingsProblem.RootMissing or SettingsProblem.RootAlreadyListed => SettingsField.Roots,
             SettingsProblem.WorktreeRootNotFullPath => SettingsField.WorktreeRoot,
-            SettingsProblem.NoExecutable or SettingsProblem.ExecutableNotFullPath or SettingsProblem.BatchFileExecutable => SettingsField.Executable,
+            SettingsProblem.NoExecutable or SettingsProblem.ExecutableNotFullPath or SettingsProblem.BatchFileExecutable or SettingsProblem.ExecutableMissing => SettingsField.Executable,
             SettingsProblem.NoFolderPlaceholder => SettingsField.Arguments,
             _ => throw new UnreachableException(),
         };

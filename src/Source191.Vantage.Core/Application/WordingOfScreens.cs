@@ -26,6 +26,7 @@ public static partial class Wording
         DialogName.Rename => "Rename",
         DialogName.Settings => "Settings",
         DialogName.FolderPicker => "Browse",
+        DialogName.FilePicker => "Choose editor",
         DialogName.DeleteSession => "Delete session",
         DialogName.DeleteBranch => "Delete branch",
         DialogName.CloseEmpty => "Close empty",

@@ -8,7 +8,8 @@ namespace Source191.Vantage.Adapters.Processes;
 /// two folders up, beside the shim's bin folder) or its usual install folders, but the shim itself is never answered,
 /// because Windows would run it through cmd.exe. Visual Studio is the newest install
 /// <see href="https://github.com/microsoft/vswhere">vswhere</see> names, run by its full path. Rider is the newest
-/// install, by number-aware order, under Program Files or the JetBrains Toolbox, and Explorer is the Windows folder's.
+/// install, by number-aware order of the full path, under Program Files, in JetBrains Toolbox 1.x's apps folder or in a folder of
+/// the user's Programs folder (Toolbox 2.x), and Explorer is the Windows folder's.
 /// </summary>
 public sealed class EditorLocator(IFolders folders, IProcessRunner processes, EditorFolders where) : IEditorLocator
 {
@@ -16,7 +17,7 @@ public sealed class EditorLocator(IFolders folders, IProcessRunner processes, Ed
     {
         string? executable = preset switch
         {
-            EditorPreset.VsCode => FirstExisting([.. CodeBesideTheShim(), Path.Combine(where.LocalAppData, "Programs", "Microsoft VS Code", "Code.exe"), Path.Combine(where.ProgramFiles, "Microsoft VS Code", "Code.exe")]),
+            EditorPreset.VsCode => FirstExisting([.. CodeBesideTheShim(), Path.Combine(where.UserPrograms, "Microsoft VS Code", "Code.exe"), Path.Combine(where.ProgramFiles, "Microsoft VS Code", "Code.exe")]),
             EditorPreset.VisualStudio => await VisualStudioAsync(cancellationToken),
             EditorPreset.Rider => NewestRider(),
             EditorPreset.Explorer => Path.Combine(where.Windows, "explorer.exe"),
@@ -42,7 +43,8 @@ public sealed class EditorLocator(IFolders folders, IProcessRunner processes, Ed
         string toolbox = Path.Combine(where.LocalAppData, "JetBrains", "Toolbox", "apps", "Rider");
 
         // Toolbox keeps <channel>\<build>\bin; walking only those levels avoids listing every file of the IDE.
-        IEnumerable<string> installs = [.. Children(jetBrains), .. Children(toolbox).SelectMany(Children)];
+        // Toolbox 2.0 and later install each IDE in a folder of its own under the user's Programs folder, whatever it is called.
+        IEnumerable<string> installs = [.. Children(jetBrains), .. Children(toolbox).SelectMany(Children), .. Children(where.UserPrograms)];
 
         return installs
             .Select(install => Path.Combine(install, "bin", "rider64.exe"))

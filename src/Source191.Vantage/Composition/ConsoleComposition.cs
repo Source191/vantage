@@ -92,9 +92,10 @@ internal static class ConsoleComposition
         RemoveWorktreeHandler removeWorktree = new(launch.Git, parts.Store, folders, settings);
         RepositoryCatalogue repositories = new(folders, settings);
         SolutionFinder solutions = new(folders);
+        EditorPresets presets = new(new EditorLocator(folders, parts.Processes, EditorFolders.ForCurrentUser()));
 
         return new DialogEffects(
-            repositories, parts.Store, folders, settings, solutions, updates, deleteSession, removeWorktree, reports, parts.ProcessRegistry);
+            repositories, parts.Store, folders, settings, solutions, updates, deleteSession, removeWorktree, reports, parts.ProcessRegistry, presets);
     }
 
     private static ScreenContext Context(SharedParts parts, ClaudeVersionReport claudeVersionReport, UpdateCheck updates, ScreenClipboard clipboard)

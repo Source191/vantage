@@ -727,6 +727,7 @@ public sealed class WordingShould
         Wording.Describe(new SettingsProblem.ExecutableNotFullPath()).ShouldBe(@"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Vantage was started from.");
         Wording.Describe(new SettingsProblem.BatchFileExecutable()).ShouldBe("A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.");
         Wording.Describe(new SettingsProblem.NoFolderPlaceholder()).ShouldBe("A custom editor's arguments need {folder} where the folder goes.");
+        Wording.Describe(new SettingsProblem.ExecutableMissing(@"C:\Tools\subl.exe")).ShouldBe(@"C:\Tools\subl.exe does not exist.");
     }
 
     [Fact]
@@ -739,6 +740,18 @@ public sealed class WordingShould
     public void NameEveryEditorPreset()
     {
         Enum.GetValues<EditorPreset>().Select(Wording.Describe).ShouldBe(["VS Code", "Visual Studio", "Rider", "Explorer", "Custom"]);
+    }
+
+    [Fact]
+    public void MarkAPresetNotFoundOnceTheDialogHasLooked()
+    {
+        PresetSearch looked = new PresetSearch.Looked(new HashSet<EditorPreset> { EditorPreset.Rider, EditorPreset.Explorer, EditorPreset.Custom });
+
+        Wording.Describe(EditorPreset.Rider, looked).ShouldBe("Rider (not found)");
+        Wording.Describe(EditorPreset.VsCode, looked).ShouldBe("VS Code");
+        Wording.Describe(EditorPreset.Explorer, looked).ShouldBe("Explorer", "Explorer is never looked for");
+        Wording.Describe(EditorPreset.Custom, looked).ShouldBe("Custom", "Custom is never marked");
+        Wording.Describe(EditorPreset.Rider, new PresetSearch.NotYetLooked()).ShouldBe("Rider");
     }
 
     [Fact]

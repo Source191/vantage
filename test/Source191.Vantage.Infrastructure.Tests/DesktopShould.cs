@@ -4,7 +4,10 @@ using Source191.Vantage.TestDoubles;
 
 namespace Source191.Vantage.Infrastructure.Tests;
 
-/// <summary>Starts real child processes to see what a started or opened program inherits and whether the call waits for it.</summary>
+/// <summary>
+/// Starts real child processes to see what a started or opened program inherits and whether the call waits for it. Files
+/// opened are .txt or .cmd, which every Windows install associates, because a type with no application never reaches PowerShell.
+/// </summary>
 [Trait("Category", "Integration")]
 public sealed class DesktopShould : IDisposable
 {
@@ -37,6 +40,19 @@ public sealed class DesktopShould : IDisposable
         string[] names = await File.ReadAllLinesAsync(report, TestContext.Current.CancellationToken);
         names.ShouldNotContain("CLAUDECODE");
         names.Select(name => name.ToUpperInvariant()).ShouldContain("PATH");
+    }
+
+    /// <summary>A text file is not a program, so Windows refuses to start it (no shell, so no dialog), as it would a broken install.</summary>
+    [Fact]
+    public async Task ThrowProgramNotStartedWhenWindowsRefusesTheProgram()
+    {
+        string notAProgram = Path.Combine(folder, "Northwind.notes.txt");
+        await File.WriteAllTextAsync(notAProgram, "not a program", TestContext.Current.CancellationToken);
+
+        ProgramNotStartedException failure = await Should.ThrowAsync<ProgramNotStartedException>(() => new Desktop(new ProcessRunner(), new ProgramLocation.Found(Pwsh)).StartAsync(new ProcessRequest(notAProgram, [], WorkingFolder.Inherit), TestContext.Current.CancellationToken));
+
+        failure.Reason.ShouldNotBeNullOrWhiteSpace();
+        failure.Reason.ShouldNotContain(notAProgram, Case.Insensitive, "Windows' reason, not .NET's sentence naming the file");
     }
 
     [Theory]
@@ -89,7 +105,7 @@ public sealed class DesktopShould : IDisposable
     [Fact]
     public async Task ThrowWithTheReasonWhenTheFileIsGone()
     {
-        string gone = Path.Combine(folder, "Northwind.Orders.slnx");
+        string gone = Path.Combine(folder, "Northwind.Orders.txt");
 
         InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(new ProcessRunner(), new ProgramLocation.Found(Pwsh)).OpenAsync(gone, TestContext.Current.CancellationToken));
 
@@ -101,10 +117,32 @@ public sealed class DesktopShould : IDisposable
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
 
-        await new Desktop(processes, new ProgramLocation.Found(@"C:\Program Files\PowerShell\7\pwsh.exe")).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken);
+        await new Desktop(processes, new ProgramLocation.Found(@"C:\Program Files\PowerShell\7\pwsh.exe")).OpenAsync(@"C:\Users\me\Northwind.Orders.txt", TestContext.Current.CancellationToken);
 
         processes.CapturedRequests.Single().FileName.ShouldBe(@"C:\Program Files\PowerShell\7\pwsh.exe");
         processes.CapturedRequests.Single().WorkingDirectory.ShouldBe(WorkingFolder.Inherit);
+    }
+
+    /// <summary>Asked before anything starts, because ShellExecute would open Windows' "How do you want to open this file?" picker instead of failing.</summary>
+    [Fact]
+    public async Task ThrowNoApplicationForAnUnassociatedType()
+    {
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
+
+        NoApplicationException failure = await Should.ThrowAsync<NoApplicationException>(() => new Desktop(processes, new ProgramLocation.Found(Pwsh)).OpenAsync(@"C:\Users\me\Northwind.Orders.vantagenoapp", TestContext.Current.CancellationToken));
+
+        failure.Extension.ShouldBe(".vantagenoapp");
+        processes.CapturedRequests.ShouldBeEmpty("nothing was handed to Windows");
+    }
+
+    [Fact]
+    public async Task NeverAskAboutTheTypeOfAnAddress()
+    {
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
+
+        await new Desktop(processes, new ProgramLocation.Found(Pwsh)).OpenAsync("https://example.test/Northwind/pulls/42.vantagenoapp", TestContext.Current.CancellationToken);
+
+        processes.CapturedRequests.ShouldHaveSingleItem();
     }
 
     [Fact]
@@ -112,7 +150,7 @@ public sealed class DesktopShould : IDisposable
     {
         FakeProcessRunner processes = new();
 
-        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes, new ProgramLocation.Missing()).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
+        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes, new ProgramLocation.Missing()).OpenAsync(@"C:\Users\me\Northwind.Orders.txt", TestContext.Current.CancellationToken));
 
         failure.Message.ShouldBe("PowerShell 7 (pwsh.exe) was not found on the PATH, so nothing can be opened.");
         processes.CapturedRequests.ShouldBeEmpty();
@@ -123,7 +161,7 @@ public sealed class DesktopShould : IDisposable
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(1, string.Empty, "Cannot find the file.\r\n"));
 
-        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes, new ProgramLocation.Found(Pwsh)).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
+        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes, new ProgramLocation.Found(Pwsh)).OpenAsync(@"C:\Users\me\Northwind.Orders.txt", TestContext.Current.CancellationToken));
 
         failure.Message.ShouldBe("Cannot find the file.");
     }
@@ -133,7 +171,7 @@ public sealed class DesktopShould : IDisposable
     {
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(5, string.Empty, string.Empty));
 
-        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes, new ProgramLocation.Found(Pwsh)).OpenAsync(@"C:\Users\me\Northwind.Orders.slnx", TestContext.Current.CancellationToken));
+        InvalidOperationException failure = await Should.ThrowAsync<InvalidOperationException>(() => new Desktop(processes, new ProgramLocation.Found(Pwsh)).OpenAsync(@"C:\Users\me\Northwind.Orders.txt", TestContext.Current.CancellationToken));
 
         failure.Message.ShouldContain("5");
     }

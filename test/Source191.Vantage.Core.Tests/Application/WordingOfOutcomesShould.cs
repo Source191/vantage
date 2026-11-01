@@ -29,6 +29,21 @@ public sealed class WordingOfOutcomesShould
         Wording.Describe(outcome).ShouldNotBe(outcome.ToString(), $"{type.Name} has no arm in Wording.Describe");
     }
 
+    /// <summary>The comma key opened the settings dialog until the Config tab replaced it; no outcome may still send the user there.</summary>
+    [Theory]
+    [MemberData(nameof(OutcomeCases))]
+    public void NeverOfferTheCommaKey(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        Outcome outcome = (Outcome)constructor.Invoke([.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))]);
+
+        string words = Wording.Describe(outcome);
+
+        words.ShouldNotContain("press ,", Case.Insensitive);
+        words.ShouldNotContain(" , ");
+        words.ShouldNotContain("in settings", Case.Insensitive);
+    }
+
     [Fact]
     public void SayTheUpdateStarted()
     {
@@ -353,7 +368,18 @@ public sealed class WordingOfOutcomesShould
     public void SayWhichEditorCouldNotBeFound()
     {
         Wording.Describe(new OpenInEditorOutcome.EditorNotFound(EditorChoice.Of(EditorPreset.Rider)))
-            .ShouldBe("Could not find Rider; choose another under Open folder with on the Config tab (3).");
+            .ShouldBe("Could not find Rider; choose another in Open folder with on the Config tab (3).");
+        Wording.Describe(new OpenInEditorOutcome.EditorNotFound(EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"])))
+            .ShouldBe("Could not find subl; choose another in Open folder with on the Config tab (3).");
+    }
+
+    [Fact]
+    public void SayWhichEditorWouldNotStartAndWhy()
+    {
+        Wording.Describe(new OpenInEditorOutcome.EditorNotStarted(EditorChoice.Of(EditorPreset.Rider), "Access is denied."))
+            .ShouldBe("Rider would not start: Access is denied. Choose another in Open folder with on the Config tab (3).");
+        Wording.Describe(new OpenInEditorOutcome.EditorNotStarted(EditorChoice.Custom(@"C:\Tools\subl.exe", ["{folder}"]), "The specified executable is not a valid application for this OS platform"))
+            .ShouldBe("subl would not start: The specified executable is not a valid application for this OS platform. Choose another in Open folder with on the Config tab (3).");
     }
 
     [Fact]
@@ -364,7 +390,13 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASolutionWasOpened()
     {
-        Wording.Describe(new OpenedSolution("Northwind.Orders.slnx")).ShouldBe("Opened Northwind.Orders.slnx.");
+        Wording.Describe(new OpenSolutionOutcome.Opened("Northwind.Orders.slnx")).ShouldBe("Opened Northwind.Orders.slnx.");
+    }
+
+    [Fact]
+    public void SayNoApplicationOpensTheSolutionsType()
+    {
+        Wording.Describe(new OpenSolutionOutcome.NoApplication(".slnx")).ShouldBe("No application opens .slnx files; install one, or choose one in Windows' Default apps.");
     }
 
     [Fact]

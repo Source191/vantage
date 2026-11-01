@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: An editor Vantage cannot use reads as VS Code
-A custom editor whose arguments do not contain `{folder}`, whose executable is not a full path, or whose executable is a `.cmd` or `.bat` file SHALL be refused when saved from its dialog and SHALL read as VS Code when found in the file; a preset name the file holds that Vantage no longer offers, such as Cursor, SHALL read as VS Code with every other setting kept. A custom editor in the file whose executable does not exist SHALL be kept as it is, so the editor key reports it rather than another editor opening.
+A custom editor whose arguments do not contain `{folder}`, whose executable is not a full path, or whose executable is a `.cmd` or `.bat` file SHALL be refused when saved from its dialog and SHALL read as VS Code when found in the file; a preset name the file holds that Vantage no longer offers SHALL read as VS Code with every other setting kept. A custom editor in the file whose executable does not exist SHALL be kept as it is, so the editor key reports it rather than another editor opening.
 
 #### Scenario: A batch file in the file
 - **WHEN** `config.json` names a custom editor whose executable is `C:\Tools\edit.bat` with arguments `{folder}`

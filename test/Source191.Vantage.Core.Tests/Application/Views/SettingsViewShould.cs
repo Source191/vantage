@@ -12,9 +12,11 @@ public sealed class SettingsViewShould
 
     private static readonly Func<string, bool> Exists = path => path is Root or Work;
 
+    private static readonly Func<string, bool> Installed = path => path is @"C:\Tools\subl.exe";
+
     private static readonly Settings TwoRoots = TestSettings.For([Root, Work], @"D:\worktrees", WorktreeBase.Head);
 
-    private static SettingsState Opened(SettingsScope scope) => SettingsState.Open(TestSettings.For(Root), scope, Exists);
+    private static SettingsState Opened(SettingsScope scope) => SettingsState.Open(TestSettings.For(Root), scope, Exists, Installed);
 
     public static TheoryData<SettingsScope, SettingsField> Scopes => new()
     {
@@ -29,7 +31,7 @@ public sealed class SettingsViewShould
     [MemberData(nameof(Scopes))]
     public void OpenOnTheOneValueWithItsField(SettingsScope scope, SettingsField field)
     {
-        SettingsState opened = SettingsState.Open(TwoRoots, scope, Exists);
+        SettingsState opened = SettingsState.Open(TwoRoots, scope, Exists, Installed);
 
         opened.Scope.ShouldBe(scope);
         opened.Focus.ShouldBe(field);
@@ -64,6 +66,7 @@ public sealed class SettingsViewShould
         { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged("subl"), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.ExecutableNotFullPath(), SettingsField.Executable },
         { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\edit.cmd"), new SettingsInput.ArgumentsChanged("{folder}")], new SettingsProblem.BatchFileExecutable(), SettingsField.Executable },
         { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\subl.exe"), new SettingsInput.ArgumentsChanged("-n")], new SettingsProblem.NoFolderPlaceholder(), SettingsField.Arguments },
+        { new SettingsScope.Editor(), [new SettingsInput.PresetChanged(EditorPreset.Custom), new SettingsInput.ExecutableChanged(@"C:\Tools\gone.exe"), new SettingsInput.ArgumentsChanged("-n {folder}")], new SettingsProblem.ExecutableMissing(@"C:\Tools\gone.exe"), SettingsField.Executable },
     };
 
     [Theory]
@@ -90,7 +93,7 @@ public sealed class SettingsViewShould
     [Fact]
     public void SaveTheWorktreeRootKeepingEverythingElse()
     {
-        SettingsState state = Reduce(SettingsState.Open(TwoRoots, new SettingsScope.WorktreeRoot(), Exists), new SettingsInput.WorktreeRootChanged(@"E:\trees"));
+        SettingsState state = Reduce(SettingsState.Open(TwoRoots, new SettingsScope.WorktreeRoot(), Exists, Installed), new SettingsInput.WorktreeRootChanged(@"E:\trees"));
 
         SettingsView.Reduce(state, new SettingsInput.Save()).Effect.ShouldBe(new SettingsEffect.Save(TestSettings.For([Root, Work], @"E:\trees", WorktreeBase.Head)));
     }
@@ -192,6 +195,39 @@ public sealed class SettingsViewShould
     }
 
     [Fact]
+    public void BrowseForAFileOnlyWhileCustomIsChosen()
+    {
+        SettingsState opened = Opened(new SettingsScope.Editor());
+
+        opened.Browses.ShouldBe(SettingsBrowse.No);
+        Reduce(opened, new SettingsInput.PresetChanged(EditorPreset.Custom)).Browses.ShouldBe(SettingsBrowse.OneFile);
+        Reduce(Reduce(opened, new SettingsInput.PresetChanged(EditorPreset.Custom)), new SettingsInput.PresetChanged(EditorPreset.Rider)).Browses.ShouldBe(SettingsBrowse.No);
+    }
+
+    [Fact]
+    public void ReplaceTheExecutableWithTheFileChosen()
+    {
+        SettingsState custom = Reduce(Reduce(Opened(new SettingsScope.Editor()), new SettingsInput.PresetChanged(EditorPreset.Custom)), new SettingsInput.ExecutableChanged(@"C:\Tools\old.exe"));
+
+        SettingsState chosen = Reduce(custom, new SettingsInput.FileChosen(@"C:\Tools\subl.exe"));
+
+        chosen.Text.Executable.ShouldBe(@"C:\Tools\subl.exe");
+        Reduce(custom, new SettingsInput.FileChosen(string.Empty)).ShouldBe(custom, "a cancelled picker changes nothing");
+        SettingsView.Reduce(Reduce(chosen, new SettingsInput.ArgumentsChanged("-n {folder}")), new SettingsInput.Save()).Effect.ShouldBeOfType<SettingsEffect.Save>()
+            .Settings.Editor.ShouldBe(EditorChoice.Custom(@"C:\Tools\subl.exe", ["-n", "{folder}"]), "nothing is saved until F5, which checks the file like a typed one");
+    }
+
+    [Fact]
+    public void BrowseForTheExecutableFromTheFolderHoldingIt()
+    {
+        SettingsState custom = Reduce(Opened(new SettingsScope.Editor()), new SettingsInput.PresetChanged(EditorPreset.Custom));
+
+        Reduce(custom, new SettingsInput.ExecutableChanged(@"C:\Tools\subl.exe")).BrowseFrom.ShouldBe(new BrowseStart.At(FolderPath.From(@"C:\Tools")));
+        Reduce(custom, new SettingsInput.ExecutableChanged("subl.exe")).BrowseFrom.ShouldBe(new BrowseStart.NoFolderTyped());
+        custom.BrowseFrom.ShouldBe(new BrowseStart.NoFolderTyped(), "nothing typed yet");
+    }
+
+    [Fact]
     public void ClearTheProblemOnceTheValueIsValid()
     {
         SettingsState refused = SettingsView.Reduce(Reduce(Opened(new SettingsScope.Roots()), new SettingsInput.RootsChanged("repos")), new SettingsInput.Save()).State;
@@ -216,6 +252,28 @@ public sealed class SettingsViewShould
         opened.ShowsCustomEditor.ShouldBeFalse();
         Reduce(opened, new SettingsInput.PresetChanged(EditorPreset.Custom)).ShowsCustomEditor.ShouldBeTrue();
         Reduce(opened, new SettingsInput.PresetChanged(EditorPreset.Explorer)).ShowsCustomEditor.ShouldBeFalse();
+    }
+
+    [Fact]
+    public void MarkThePresetsNotFound()
+    {
+        SettingsState opened = Opened(new SettingsScope.Editor());
+
+        SettingsState located = Reduce(opened, new SettingsInput.PresetsLocated(new HashSet<EditorPreset> { EditorPreset.Rider }));
+
+        opened.Presets.ShouldBe(new PresetSearch.NotYetLooked());
+        located.Presets.ShouldBeOfType<PresetSearch.Looked>().Missing.ShouldBe([EditorPreset.Rider]);
+        located.Text.ShouldBe(opened.Text, "looking changes no choice");
+    }
+
+    [Fact]
+    public void SaveAPresetMarkedNotFound()
+    {
+        SettingsState located = Reduce(Opened(new SettingsScope.Editor()), new SettingsInput.PresetsLocated(new HashSet<EditorPreset> { EditorPreset.Rider }));
+
+        SettingsUpdate saved = SettingsView.Reduce(Reduce(located, new SettingsInput.PresetChanged(EditorPreset.Rider)), new SettingsInput.Save());
+
+        saved.Effect.ShouldBeOfType<SettingsEffect.Save>().Settings.Editor.ShouldBe(EditorChoice.Of(EditorPreset.Rider));
     }
 
     [Fact]

@@ -165,6 +165,7 @@ public static partial class Wording
             SettingsProblem.ExecutableNotFullPath => @"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Vantage was started from.",
             SettingsProblem.BatchFileExecutable => "A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.",
             SettingsProblem.NoFolderPlaceholder => $"A custom editor's arguments need {EditorChoice.FolderPlaceholder} where the folder goes.",
+            SettingsProblem.ExecutableMissing missing => $"{missing.Path} does not exist.",
             _ => problem.ToString(),
         };
     }
@@ -179,6 +180,19 @@ public static partial class Wording
             EditorPreset.Rider => "Rider",
             EditorPreset.Explorer => "Explorer",
             EditorPreset.Custom => "Custom",
+        };
+    }
+
+    /// <summary>A preset as the Open folder with dialog lists it, marked once the dialog has looked and could not find it; Explorer and Custom are never marked.</summary>
+    public static string Describe(EditorPreset preset, PresetSearch search)
+    {
+        ArgumentNullException.ThrowIfNull(search);
+
+        return search switch
+        {
+            PresetSearch.Looked looked when preset is not (EditorPreset.Explorer or EditorPreset.Custom) && looked.Missing.Contains(preset) => $"{Describe(preset)} (not found)",
+            PresetSearch.Looked or PresetSearch.NotYetLooked => Describe(preset),
+            _ => throw new UnreachableException(),
         };
     }
 
