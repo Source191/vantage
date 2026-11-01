@@ -53,6 +53,7 @@ public static class DiagnosticLine
         ProcessSlow slow => $"slow {slow.Command} exit {slow.ExitCode} in {Milliseconds(slow.Duration)}",
         RefreshSlow slow => $"slow refresh {Name(slow.Part)} in {Milliseconds(slow.Duration)}",
         UiThreadStalled stalled => $"stalled ui thread for {Milliseconds(stalled.Lateness)}",
+        ProcessTimedOut timedOut => $"timed out {timedOut.Command} after {Milliseconds(timedOut.Limit)}",
         ProcessFailedToStart failed => $"not started {failed.Command}: {failed.Failure}",
         Failed failed => failed.What is null ? $"failed {failed.Site}: {failed.Failure}" : $"failed {failed.Site} {failed.What}: {failed.Failure}",
         TerminalGuiReported reported => reported.Failure is null ? $"terminal.gui {reported.Level}" : $"terminal.gui {reported.Level}: {reported.Failure}",

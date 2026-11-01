@@ -314,6 +314,11 @@ public sealed class WorktreesViewShould
         Press(afterDelete, Key.Down).Message.ShouldBe(StatusMessage.None);
         Press(afterDelete, Key.Up).Message.ShouldBe(StatusMessage.None);
         Press(afterDelete, Key.Of('/'), Key.Of('k')).Message.ShouldBe(StatusMessage.None);
+
+        WorktreesViewState filtered = Press(afterDelete, Key.Of('/'), Key.Of('k'), Key.Enter) with { Message = new StatusMessage.Kept() };
+        WorktreesViewState cleared = Press(filtered, Key.Escape);
+        cleared.Filter.Text.ShouldBeEmpty();
+        cleared.Message.ShouldBe(StatusMessage.None);
     }
 
     [Fact]

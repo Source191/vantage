@@ -42,6 +42,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly string[] columnNames;
     private readonly DetailPart detailPart;
     private readonly CancellationTokenSource lifetime = new();
+    private readonly LoadSequence sequence = new();
 
     /// <summary>What <see cref="detailKey"/> holds when the next redraw must ask for the selected row's detail again; no row's key equals it.</summary>
     private readonly object askAgain = new();
@@ -58,7 +59,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private PointerOver pointer = new PointerOver.Nothing();
     private int columnOffset;
     private bool isShown;
-    private bool running;
+    private int inFlight;
 
     public TableBody(IScreenDefinition<TState, TRow> definition, DialogEffects dialogs, EffectDispatcher dispatcher, Func<CancellationToken, Task<ViewInput>> load, TimeProvider clock, ScreenContext context, IApplication app, ITabHost host, TState initial)
     {
@@ -138,7 +139,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public StatusMessage Status => State.Shown;
 
-    public bool Running => running;
+    public bool Running => inFlight > 0;
 
     /// <summary>Drops the detail still being read, then disposes the tab's view and everything in it; the console removes it from the window first, so nothing is disposed twice.</summary>
     public void Dispose()
@@ -150,12 +151,18 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
     public void TriggerLoad()
     {
+        int ticket = sequence.Begin();
         Task.Run(async () =>
         {
             ViewInput input = await Attempt.RunAsync(Diagnostics, FailureSite.Load, CodeName.For(typeof(TState)), () => load(CancellationToken.None), exception => new LoadFailed(exception.Message));
 
             app.Invoke(() =>
             {
+                if (!sequence.Accept(ticket))
+                {
+                    return;
+                }
+
                 object before = detailKey;
                 Apply(input);
                 if (Equals(detailKey, before))
@@ -197,7 +204,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     public void RunInBackground<T>(StatusMessage working, Func<CancellationToken, Task<T>> action, Func<T, StatusMessage> onUiThread)
     {
         State = definition.WithMessage(State, working);
-        running = true;
+        inFlight++;
         Redraw();
         Task.Run(async () =>
         {
@@ -215,8 +222,9 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
             app.Invoke(() =>
             {
-                running = false;
-                State = definition.WithMessage(State, settle());
+                inFlight--;
+                StatusMessage settled = settle();
+                State = definition.WithMessage(State, settled);
                 Redraw();
                 TriggerLoad();
             });

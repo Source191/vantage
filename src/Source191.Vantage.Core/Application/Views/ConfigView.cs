@@ -45,7 +45,7 @@ public static class ConfigView
             // Moving on or filtering clears the last message; what the selected row is for is only its tooltip.
             { Name: KeyName.Up } => Unchanged(state.With(state.List.Move(-1)) with { Message = StatusMessage.None }),
             { Name: KeyName.Down } => Unchanged(state.With(state.List.Move(+1)) with { Message = StatusMessage.None }),
-            { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter())),
+            { Name: KeyName.Escape } when state.Filter.Text.Length > 0 => Unchanged(state.With(state.List.ClearFilter()) with { Message = StatusMessage.None }),
             { Name: KeyName.Escape } => Effect(state, new SelectTab(ConsoleTab.Sessions)),
             { Name: KeyName.Enter } => RowAction(state, Enter),
             { Name: KeyName.Character, Character: '/' } => Unchanged(state.With(state.List.StartFilter()) with { Message = StatusMessage.None }),

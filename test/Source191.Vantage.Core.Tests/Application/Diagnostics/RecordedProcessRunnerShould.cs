@@ -72,6 +72,22 @@ public sealed class RecordedProcessRunnerShould
     }
 
     [Fact]
+    public async Task RecordARunThatTimedOutAndRethrow()
+    {
+        ProcessTimedOutException timedOut = new("claude.exe", TimeSpan.FromSeconds(60));
+        processes.Fail(timedOut);
+        RecordedProcessRunner runner = Runner(TimeSpan.Zero);
+
+        ProcessTimedOutException thrown = await Should.ThrowAsync<ProcessTimedOutException>(() => runner.RunAsync(Agents, CancellationToken.None));
+
+        thrown.ShouldBeSameAs(timedOut);
+        ProcessTimedOut recorded = log.Snapshot().Single().Event.ShouldBeOfType<ProcessTimedOut>();
+        recorded.Command.ShouldBe(ChildCommand.For(Agents));
+        recorded.Limit.ShouldBe(TimeSpan.FromSeconds(60));
+        DiagnosticLine.Render(counts, Written).ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task LetACancellationThroughUnrecorded()
     {
         processes.Fail(new OperationCanceledException());

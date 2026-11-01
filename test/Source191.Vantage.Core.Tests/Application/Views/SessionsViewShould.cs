@@ -423,6 +423,22 @@ public sealed class SessionsViewShould
         Press(said, Key.Up).Message.ShouldBe(StatusMessage.None);
         Press(said, Key.Of('/')).Message.ShouldBe(StatusMessage.None);
         Press(Press(said, Key.Of('/')) with { Message = new StatusMessage.Kept() }, Key.Of('k')).Message.ShouldBe(StatusMessage.None);
+
+        SessionsViewState filtered = Press(Loaded, Key.Slash, Key.Of('n'), Key.Enter) with { Message = new StatusMessage.Kept() };
+        SessionsViewState cleared = Press(filtered, Key.Escape);
+        cleared.Filter.Text.ShouldBeEmpty();
+        cleared.Message.ShouldBe(StatusMessage.None);
+    }
+
+    [Fact]
+    public void DoNothingOnEscapeWithNoFilter()
+    {
+        SessionsViewState said = Loaded with { Message = new StatusMessage.Kept() };
+
+        ViewUpdate update = SessionsView.Reduce(said, new KeyPressed(Key.Escape));
+
+        update.State.ShouldBe(said);
+        update.Effects.ShouldBeEmpty();
     }
 
     [Fact]

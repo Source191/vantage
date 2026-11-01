@@ -49,6 +49,14 @@ public sealed class ClaudeCliShould
     }
 
     [Fact]
+    public async Task AnswerNotReadWhenTheRunTimesOut()
+    {
+        processes.Fail(new ProcessTimedOutException("claude.exe", TimeSpan.FromSeconds(60)));
+
+        (await Cli.VersionAsync(CancellationToken.None)).ShouldBe(new ClaudeVersionReport.NotRead());
+    }
+
+    [Fact]
     public async Task AnswerNotReadWhenVersionFails()
     {
         processes.AnswerAll(new ProcessResult(1, string.Empty, "boom"));

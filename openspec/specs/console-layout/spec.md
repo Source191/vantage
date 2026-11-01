@@ -6,7 +6,7 @@ The frame the sessions and worktrees views share: two settings lines under the V
 ## Requirements
 
 ### Requirement: Sessions and worktrees are two tabs of one screen
-The console SHALL show the sessions view, the worktrees view and the Config tab as three tabs of one screen, titled Sessions, Worktrees and Config. Left and Right SHALL select the tab before and after the one shown (stopping at the ends), Esc on the Worktrees or Config tab with no filter SHALL return to Sessions, and a click on a tab's title SHALL select it. Each tab SHALL keep its rows, selection, filter and status message while another is shown.
+The console SHALL show the sessions view, the worktrees view and the Config tab as three tabs of one screen. Left and Right SHALL select the tab before and after the one shown (stopping at the ends), Esc on Worktrees or Config with no filter SHALL return to Sessions, Esc on Sessions with no filter SHALL do nothing, and a click on a tab's title SHALL select it. Each tab SHALL keep its rows, selection, filter and status message while another is shown.
 
 #### Scenario: Switch and come back
 - **WHEN** the user selects templates-sync, types a filter of "temp", presses Enter, then Right and then Left
@@ -39,6 +39,10 @@ The console SHALL show the sessions view, the worktrees view and the Config tab 
 #### Scenario: Esc on the worktrees tab
 - **WHEN** the worktrees tab is shown with no filter and the user presses Esc
 - **THEN** the Sessions tab is shown
+
+#### Scenario: Esc on the Sessions tab with no filter
+- **WHEN** the Sessions tab is shown with no filter, a status message showing, and the user presses Esc
+- **THEN** the rows, selection and message are unchanged and the Sessions tab stays shown
 
 #### Scenario: Go to session
 - **WHEN** the user presses Enter on a worktree row with a background session inside it
@@ -151,7 +155,7 @@ The console SHALL run as one terminal application for every tab from start to qu
 - **THEN** the tabs change at once and the console never leaves its screen
 
 ### Requirement: The status line sits under the settings row
-The console SHALL show the shown tab's status line directly under the settings row and above the tabs, its mark in the column where the versions start, outside every tab, only while that tab has a message or an action it started is running; the tabs, their counts and the table's title SHALL move down to make room and back up when it goes. Nothing SHALL be drawn under the detail pane inside a tab's frame, and the tabs' frame SHALL end directly above the key bar.
+The console SHALL show the shown tab's status line directly under the settings row and above the tabs, its mark in the column where the versions start, outside every tab, only while that tab has a message or any action it started is still running; the spinner SHALL turn until every running action has reported. The tabs, their counts and the table's title SHALL move down to make room and back up when it goes. The tabs' frame SHALL end directly above the key bar.
 
 #### Scenario: A message under the settings row
 - **WHEN** the user presses c on fix-123 in the Sessions tab
@@ -172,6 +176,14 @@ The console SHALL show the shown tab's status line directly under the settings r
 #### Scenario: An action running in the Worktrees tab
 - **WHEN** the user removes a worktree
 - **THEN** the row under the versions shows a spinner before "Removing name" until the removal reports its outcome
+
+#### Scenario: Nothing under the detail pane
+- **WHEN** the status line is showing
+- **THEN** nothing is drawn under the detail pane inside the tab's frame
+
+#### Scenario: Two actions overlap
+- **WHEN** the user presses d on one worktree and, before it reports, d on another, and the first reports
+- **THEN** the spinner keeps turning before the second's working text until the second reports, and only then is the mark drawn
 
 ### Requirement: A long message wraps
 A message wider than the screen SHALL wrap at spaces onto further rows, each starting under the first row's words, up to three rows; a word wider than a row SHALL be broken at the row's end and carried on the next, and a message that needs more than three rows SHALL end its third with an ellipsis.
