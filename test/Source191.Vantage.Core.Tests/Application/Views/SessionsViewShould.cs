@@ -306,7 +306,7 @@ public sealed class SessionsViewShould
     [InlineData('d', typeof(DeleteSession))]
     [InlineData('r', typeof(AskForNewName))]
     [InlineData('n', typeof(OpenLaunchWizard))]
-    [InlineData('R', typeof(ResumeStoppedSessions))]
+    [InlineData('R', typeof(ResumeSessions))]
     [InlineData('q', typeof(Quit))]
     [InlineData('?', typeof(ShowHelp))]
     [InlineData('U', typeof(UpdateVantage))]
@@ -428,11 +428,39 @@ public sealed class SessionsViewShould
     }
 
     [Fact]
-    public void HandTheResumeChecklistTheRowsInTheOrderTheTableShowsThem()
+    public void ResumeEveryShownStoppedOrFailedSessionInTableOrder()
     {
-        ViewUpdate update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('R')));
+        SessionRow failed = Row("broken-build", DisplayState.Failed, "Northwind.Billing", jobId: "dddd4444");
+        SessionsViewState loaded = SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([Stopped, Working, Interactive, failed])).State;
+        List<BackgroundSession> expected = [.. loaded.VisibleRows.Where(row => row == Stopped || row == failed).Select(row => (BackgroundSession)row.Session)];
 
-        update.Effects.Single().ShouldBeOfType<ResumeStoppedSessions>().Rows.ShouldBe(Loaded.VisibleRows);
+        ViewUpdate update = SessionsView.Reduce(loaded, new KeyPressed(Key.Of('R')));
+
+        expected.Count.ShouldBe(2);
+        update.Effects.Single().ShouldBeOfType<ResumeSessions>().Sessions.ShouldBe(expected, "the working and terminal rows are left alone, and the rest go in the order the table shows them");
+    }
+
+    [Fact]
+    public void ResumeOnlyTheSessionsTheFilterShows()
+    {
+        SessionRow otherStopped = Row("spare-spike", DisplayState.Stopped, "Northwind.Billing", jobId: "eeee5555");
+        SessionsViewState loaded = SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([Stopped, otherStopped, Working])).State;
+        SessionsViewState filtered = Press(loaded, Key.Slash, Key.Of('o'), Key.Of('l'), Key.Enter);
+
+        ViewUpdate update = SessionsView.Reduce(filtered, new KeyPressed(Key.Of('R')));
+
+        update.Effects.Single().ShouldBeOfType<ResumeSessions>().Sessions.ShouldBe([(BackgroundSession)Stopped.Session]);
+    }
+
+    [Fact]
+    public void SayThereIsNothingToResume()
+    {
+        SessionsViewState loaded = SessionsView.Reduce(SessionsViewState.Empty, new RowsLoaded([Working, Interactive, Waiting])).State;
+
+        ViewUpdate update = SessionsView.Reduce(loaded, new KeyPressed(Key.Of('R')));
+
+        update.Effects.ShouldBeEmpty();
+        update.State.Message.ShouldBe(new StatusMessage.NothingToResume());
     }
 
     [Fact]
