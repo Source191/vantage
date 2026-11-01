@@ -54,9 +54,9 @@ public sealed class ClaudeAgentsListingShould
         interactive.WorkingDirectory.Value.ShouldBe(@"C:\Users\me\source\repos");
         interactive.State.ShouldBe(DisplayState.Idle);
         background.JobId.ShouldBe(JobId.From("1a4d2d86"));
-        background.ProcessId.ShouldBe(57456);
+        background.Process.ShouldBe(new JobProcess.Running(57456));
         background.State.ShouldBe(DisplayState.Completed);
-        Sessions.Single(session => session.Name == "spike-permission").ShouldBeOfType<BackgroundSession>().ProcessId.ShouldBeNull("a stopped job has no process");
+        Sessions.Single(session => session.Name == "spike-permission").ShouldBeOfType<BackgroundSession>().Process.ShouldBe(new JobProcess.None(), "a stopped job has no process");
     }
 
     /// <summary>
