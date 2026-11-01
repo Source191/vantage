@@ -51,7 +51,7 @@ public abstract partial record RemoteRepository
         return false;
     }
 
-    [GeneratedRegex(@"^(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)(?<owner>[^/\s]+)/(?<name>[^/\s]+?)(?:\.git)?/?$", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"^(?:https://(?:[^@/\s]+@)?github\.com/|git@github\.com:|ssh://git@github\.com/)(?<owner>[^/\s]+)/(?<name>[^/\s]+?)(?:\.git)?/?$", RegexOptions.IgnoreCase)]
     private static partial Regex GitHub();
 
     [GeneratedRegex(@"^(?:https://(?:[^@/\s]+@)?dev\.azure\.com/(?<org>[^/\s]+)/(?<project>[^/\s]+)/_git/(?<name>[^/\s]+?)" +
