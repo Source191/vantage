@@ -42,7 +42,7 @@ public sealed class RenameSessionHandlerShould
 
         List<ProcessRequest> claude = [.. processes.CapturedRequests.Where(request => request.FileName == Claude)];
         claude.Select(request => string.Join(' ', request.Arguments)).ShouldBe(["rm 81cdb0f9", "--bg --resume sess-1 -n fix-124"]);
-        claude[1].WorkingDirectory.ShouldBe(Repository);
+        claude[1].WorkingDirectory.ShouldBe(new WorkingFolder.At(Repository));
         message.ShouldBe(new RenameSessionOutcome.Renamed("fix-123", "fix-124", TabMoved: false));
     }
 
@@ -66,6 +66,20 @@ public sealed class RenameSessionHandlerShould
 
         processes.CapturedRequests.Where(request => request.FileName == Claude).Select(request => request.Arguments[^1]).ShouldBe(["81cdb0f9", "fix-124", "fix-123"]);
         message.ShouldBeOfType<RenameSessionOutcome.Restored>().OldName.ShouldBe("fix-123");
+    }
+
+    [Fact]
+    public async Task PutAnOldNameThatIsNotASessionNameBackUnnamed()
+    {
+        processes.Answer(request => request.Arguments.Contains("fix-124"), new ProcessResult(1, string.Empty, "boom"));
+        processes.Answer(request => request.Arguments.Contains("--resume") && !request.Arguments.Contains("-n"), new ProcessResult(0, "backgrounded · 81cdb0f9 · sess-1", string.Empty));
+        transcripts.WithMessages("sess-1");
+        RenameSession rename = new(Job(Repository, DisplayState.Idle) with { Name = " " }, SessionName.From("fix-124"));
+
+        await Handler.HandleAsync(rename, CancellationToken.None);
+
+        processes.CapturedRequests.Where(request => request.FileName == Claude).Select(request => string.Join(" ", request.Arguments))
+            .ShouldBe(["rm 81cdb0f9", "--bg --resume sess-1 -n fix-124", "--bg --resume sess-1"]);
     }
 
     [Fact]

@@ -9,7 +9,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
 {
     public async Task<SessionListing> ListSessionsAsync(CancellationToken cancellationToken)
     {
-        ProcessResult result = await processes.RunAsync(Request(["agents", "--json", "--all"]), cancellationToken);
+        ProcessResult result = await processes.RunAsync(Request(["agents", "--json", "--all"], WorkingFolder.Inherit), cancellationToken);
 
         return ClaudeAgentsListing.Parse(result.StandardOutput);
     }
@@ -18,7 +18,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
     {
         try
         {
-            ProcessResult result = await processes.RunAsync(Request(["--version"]), cancellationToken);
+            ProcessResult result = await processes.RunAsync(Request(["--version"], WorkingFolder.Inherit), cancellationToken);
             Match version = LeadingVersion().Match(result.StandardOutput);
 
             return result.ExitCode == 0 && version.Success ? version.Value : null;
@@ -30,34 +30,34 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         }
     }
 
-    public async Task<StartResult> StartBackgroundAsync(string directory, SessionName name, string? openingPrompt, CancellationToken cancellationToken)
+    public async Task<StartResult> StartBackgroundAsync(string directory, SessionName name, OpeningPrompt openingPrompt, CancellationToken cancellationToken)
     {
         List<string> arguments = ["--bg", "-n", name.Value];
-        if (openingPrompt is not null)
+        if (openingPrompt is OpeningPrompt.Text text)
         {
-            arguments.Add(openingPrompt);
+            arguments.Add(text.Words);
         }
 
-        ProcessResult result = await processes.RunAsync(Request(arguments, directory), cancellationToken);
+        ProcessResult result = await processes.RunAsync(Request(arguments, new WorkingFolder.At(directory)), cancellationToken);
 
         return InterpretStart(result);
     }
 
-    public Task<int> AttachAsync(string jobId, CancellationToken cancellationToken) => processes.RunInteractiveAsync(Request(["attach", jobId]), cancellationToken);
+    public Task<int> AttachAsync(string jobId, CancellationToken cancellationToken) => processes.RunInteractiveAsync(Request(["attach", jobId], WorkingFolder.Inherit), cancellationToken);
 
-    public Task StopAsync(string jobId, CancellationToken cancellationToken) => processes.RunAsync(Request(["stop", jobId]), cancellationToken);
+    public Task StopAsync(string jobId, CancellationToken cancellationToken) => processes.RunAsync(Request(["stop", jobId], WorkingFolder.Inherit), cancellationToken);
 
-    public Task RemoveAsync(string jobId, CancellationToken cancellationToken) => processes.RunAsync(Request(["rm", jobId]), cancellationToken);
+    public Task RemoveAsync(string jobId, CancellationToken cancellationToken) => processes.RunAsync(Request(["rm", jobId], WorkingFolder.Inherit), cancellationToken);
 
-    public async Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, SessionName? name, CancellationToken cancellationToken)
+    public Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, SessionName name, CancellationToken cancellationToken) =>
+        ResumeAsync(["--bg", "--resume", sessionId, "-n", name.Value], directory, cancellationToken);
+
+    public Task<ResumeResult> ResumeBackgroundAsync(string sessionId, string directory, CancellationToken cancellationToken) =>
+        ResumeAsync(["--bg", "--resume", sessionId], directory, cancellationToken);
+
+    private async Task<ResumeResult> ResumeAsync(IReadOnlyList<string> arguments, string directory, CancellationToken cancellationToken)
     {
-        List<string> arguments = ["--bg", "--resume", sessionId];
-        if (name is not null)
-        {
-            arguments.AddRange(["-n", name.Value]);
-        }
-
-        ProcessResult result = await processes.RunAsync(Request(arguments, directory), cancellationToken);
+        ProcessResult result = await processes.RunAsync(Request(arguments, new WorkingFolder.At(directory)), cancellationToken);
         if (result.ExitCode != 0)
         {
             return new ResumeResult(Continued: false, (result.StandardError + result.StandardOutput).Trim());
@@ -71,7 +71,7 @@ public sealed partial class ClaudeCli(IProcessRunner processes, string executabl
         return new ResumeResult(Continued: note is null, note ?? result.StandardOutput.Trim());
     }
 
-    private ProcessRequest Request(IReadOnlyList<string> arguments, string? workingDirectory = null) => new(executable, arguments, workingDirectory);
+    private ProcessRequest Request(IReadOnlyList<string> arguments, WorkingFolder folder) => new(executable, arguments, folder);
 
     private static StartResult InterpretStart(ProcessResult result)
     {

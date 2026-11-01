@@ -234,8 +234,8 @@ public sealed class StatusTonesShould
     [Fact]
     public void MarkAFailedPullRequestLookUpAsAFailure()
     {
-        Wording.ToneOf(new StatusMessage.NoPullRequest("fix-123", PullRequestGap.Failed, PullRequestHost.GitHub)).ShouldBe(StatusTone.Failure);
-        Wording.ToneOf(new StatusMessage.NoPullRequest("fix-123", PullRequestGap.NoPullRequest, PullRequestHost.GitHub)).ShouldBe(StatusTone.Notice);
+        Wording.ToneOf(new StatusMessage.NoPullRequest("fix-123", PullRequestGap.Failed, new LookupHost.Known(PullRequestHost.GitHub))).ShouldBe(StatusTone.Failure);
+        Wording.ToneOf(new StatusMessage.NoPullRequest("fix-123", PullRequestGap.NoPullRequest, new LookupHost.Known(PullRequestHost.GitHub))).ShouldBe(StatusTone.Notice);
     }
 
     private static object Built(Type type)
@@ -265,7 +265,7 @@ public sealed class StatusTonesShould
             _ when type == typeof(IReadOnlyList<SkippedSession>) => new List<SkippedSession>(),
             _ when type == typeof(IReadOnlyList<ResumeNote>) => new List<ResumeNote>(),
             _ when type == typeof(PullRequestHost) => PullRequestHost.AzureDevOps,
-            _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
+            _ when type == typeof(LookupHost) => new LookupHost.Known(PullRequestHost.GitHub),
             _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
             _ when type == typeof(WorktreeHealthKind) => WorktreeHealthKind.Locked,
             _ when type == typeof(HealthReason) => new HealthReason.FolderGone(),

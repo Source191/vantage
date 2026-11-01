@@ -36,7 +36,7 @@ public sealed class LaunchServiceShould
 
     private static LaunchPlan CurrentBranch => new(
         Repository.Path, SessionName.From("Fix flaky tests"), Worktree: null,
-        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, Repository);
+        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, new OpeningPrompt.None(), Repository);
 
     private static LaunchPlan NewWorktree => CurrentBranch with
     {
@@ -51,7 +51,7 @@ public sealed class LaunchServiceShould
 
         outcome.ShouldBeAssignableTo<LaunchOutcome.Started>().ShouldNotBeNull().JobId.ShouldBe(JobId.From("81cdb0f9"));
         ProcessRequest start = processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg"));
-        start.WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
+        start.WorkingDirectory.ShouldBe(new WorkingFolder.At(@"C:\repos\Northwind.Orders"));
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
     }
 
@@ -61,9 +61,9 @@ public sealed class LaunchServiceShould
         await Service.LaunchAsync(NewWorktree, CancellationToken.None);
 
         ProcessRequest add = processes.CapturedRequests.Single(request => request.Arguments.Contains("add"));
-        add.WorkingDirectory.ShouldBe(@"C:\repos\Northwind.Orders");
+        add.WorkingDirectory.ShouldBe(new WorkingFolder.At(@"C:\repos\Northwind.Orders"));
         add.Arguments.ShouldBe(["worktree", "add", @"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests", "-b", "fix-flaky-tests", "origin/main"]);
-        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests");
+        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(new WorkingFolder.At(@"C:\Users\me\source\worktrees\Northwind.Orders-fix-flaky-tests"));
         (await Store.ReadCreatedWorktreesAsync()).Single().Branch.ShouldBe(BranchName.From("fix-flaky-tests"));
     }
 

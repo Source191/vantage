@@ -464,12 +464,12 @@ public sealed class SessionsViewShould
     [Fact]
     public void ExplainAMissingPullRequest()
     {
-        SessionsViewState state = Reduce(SessionsViewState.Empty, new RowsLoaded([Waiting with { PullRequest = new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, PullRequestHost.GitHub) }]));
+        SessionsViewState state = Reduce(SessionsViewState.Empty, new RowsLoaded([Waiting with { PullRequest = new PullRequestLookup.Missing(PullRequestGap.NotSignedIn, new LookupHost.Known(PullRequestHost.GitHub)) }]));
 
         ViewUpdate update = SessionsView.Reduce(state, new KeyPressed(Key.Of('p')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Message.ShouldBe(new StatusMessage.NoPullRequest("change-feed", PullRequestGap.NotSignedIn, PullRequestHost.GitHub));
+        update.State.Message.ShouldBe(new StatusMessage.NoPullRequest("change-feed", PullRequestGap.NotSignedIn, new LookupHost.Known(PullRequestHost.GitHub)));
     }
 
     [Fact]

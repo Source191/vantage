@@ -10,8 +10,9 @@ namespace Source191.Vantage.Adapters.Terminal;
 /// Vantage's Windows Terminal JSON fragment at <c>&lt;Fragments root&gt;\Vantage\vantage.json</c>. Windows Terminal reads
 /// every fragment at start-up and adds the profiles in it; the user's own settings file is never opened. Written as
 /// UTF-8 without a byte order mark, as fragments must be.
+/// The icon source is the tool's own icon, which a build without one simply lacks.
 /// </summary>
-public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = null) : ITerminalFragment
+public sealed class TerminalFragment(string fragmentsRoot, string iconSource) : ITerminalFragment
 {
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -19,7 +20,7 @@ public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = 
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
-    public static TerminalFragment ForCurrentUser(string? iconSource = null) => new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "Windows Terminal", "Fragments"), iconSource);
+    public static TerminalFragment ForCurrentUser(string iconSource) => new(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft", "Windows Terminal", "Fragments"), iconSource);
 
     private string FragmentFolder => Path.Combine(fragmentsRoot, "Vantage");
 
@@ -32,28 +33,28 @@ public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = 
     public async Task WriteAsync(TerminalProfiles profiles, CancellationToken cancellationToken)
     {
         Directory.CreateDirectory(FragmentFolder);
-        string? icon = CopyIcon();
+        bool withIcon = TryCopyIcon();
         JsonObject fragment = new()
         {
             ["profiles"] = new JsonArray(
-                Profile(TerminalProfiles.VantageProfileName, $"\"{profiles.VantageExecutable}\"", profiles.VantageSound, icon),
-                Profile(TerminalProfiles.SessionProfileName, TerminalProfiles.SessionCommandLine, profiles.SessionSound, icon)),
+                Profile(TerminalProfiles.VantageProfileName, $"\"{profiles.VantageExecutable}\"", profiles.VantageSound, withIcon),
+                Profile(TerminalProfiles.SessionProfileName, TerminalProfiles.SessionCommandLine, profiles.SessionSound, withIcon)),
         };
 
         await File.WriteAllTextAsync(Location, fragment.ToJsonString(Options), new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), cancellationToken);
     }
 
-    /// <summary>Copies the tool's icon beside the fragment, where it survives a tool update; null when the tool carries none.</summary>
-    private string? CopyIcon()
+    /// <summary>Copies the tool's icon beside the fragment, where it survives a tool update; false when the tool carries none.</summary>
+    private bool TryCopyIcon()
     {
-        if (iconSource is null || !File.Exists(iconSource))
+        if (!File.Exists(iconSource))
         {
-            return null;
+            return false;
         }
 
         File.Copy(iconSource, IconCopy, overwrite: true);
 
-        return IconCopy;
+        return true;
     }
 
     public Task<bool> RemoveAsync(CancellationToken cancellationToken)
@@ -68,7 +69,7 @@ public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = 
         return Task.FromResult(true);
     }
 
-    private static JsonObject Profile(string name, string commandLine, string? sound, string? icon)
+    private JsonObject Profile(string name, string commandLine, BellSound sound, bool withIcon)
     {
         JsonObject profile = new()
         {
@@ -76,14 +77,15 @@ public sealed class TerminalFragment(string fragmentsRoot, string? iconSource = 
             ["commandline"] = commandLine,
             ["bellStyle"] = new JsonArray([.. TerminalProfiles.BellStyle.Select(style => (JsonNode?)JsonValue.Create(style))]),
         };
-        if (sound is not null)
+        // Windows Terminal's own sound is its default, so it is written by leaving bellSound out.
+        if (sound is BellSound.File file)
         {
-            profile["bellSound"] = sound;
+            profile["bellSound"] = file.Path;
         }
 
-        if (icon is not null)
+        if (withIcon)
         {
-            profile["icon"] = icon;
+            profile["icon"] = IconCopy;
         }
 
         return profile;

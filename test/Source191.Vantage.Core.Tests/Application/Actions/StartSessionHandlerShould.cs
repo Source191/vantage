@@ -31,7 +31,7 @@ public sealed class StartSessionHandlerShould
 
     private static LaunchPlan Plan => new(
         FolderPath.From(Repository), SessionName.From("Fix flaky tests"), Worktree: null,
-        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", FolderPath.From(Repository), IsRepository: true));
+        ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, new OpeningPrompt.None(), new RepositoryChoice("Northwind.Orders", FolderPath.From(Repository), IsRepository: true));
 
     private StartSessionHandler Handler
     {
@@ -100,7 +100,7 @@ public sealed class StartSessionHandlerShould
 
         Outcome outcome = await Handler.HandleAsync(new StartSession(inWorktree), CancellationToken.None);
 
-        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(Worktree);
+        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(new WorkingFolder.At(Worktree));
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
         outcome.ShouldBeOfType<StartSessionOutcome.StartedAndOpened>().Name.ShouldBe("Fix flaky tests");
     }

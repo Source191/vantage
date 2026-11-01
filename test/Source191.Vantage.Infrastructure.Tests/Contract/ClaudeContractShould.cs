@@ -70,7 +70,7 @@ public sealed class ClaudeContractShould
         try
         {
             await ListedAsync(cli, name);
-            ProcessResult listing = await runner.RunAsync(new ProcessRequest(executable, ["agents", "--json", "--all"], WorkingDirectory: null), Cancellation);
+            ProcessResult listing = await runner.RunAsync(new ProcessRequest(executable, ["agents", "--json", "--all"], WorkingFolder.Inherit), Cancellation);
             using JsonDocument rows = JsonDocument.Parse(listing.StandardOutput);
 
             JsonElement row = rows.RootElement.EnumerateArray().Single(element => element.TryGetProperty("name", out JsonElement value) && value.GetString() == name.Value);
@@ -89,7 +89,7 @@ public sealed class ClaudeContractShould
     {
         ClaudeCli cli = new(runner, ClaudeContract.Executable());
 
-        StartResult started = await cli.StartBackgroundAsync(RepositoryFolder.Root(), UniqueName("encoding"), openingPrompt: null, Cancellation);
+        StartResult started = await cli.StartBackgroundAsync(RepositoryFolder.Root(), UniqueName("encoding"), new OpeningPrompt.None(), Cancellation);
         try
         {
             StartResult.Started running = started.ShouldBeOfType<StartResult.Started>(started.Message);
@@ -229,7 +229,7 @@ public sealed class ClaudeContractShould
 
     private static async Task<string> StartAsync(ClaudeCli cli, SessionName name)
     {
-        StartResult started = await cli.StartBackgroundAsync(RepositoryFolder.Root(), name, openingPrompt: null, Cancellation);
+        StartResult started = await cli.StartBackgroundAsync(RepositoryFolder.Root(), name, new OpeningPrompt.None(), Cancellation);
         return started.ShouldBeOfType<StartResult.Started>(started.Message).JobId.Value;
     }
 

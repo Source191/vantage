@@ -239,7 +239,7 @@ public sealed class WordingShould
         Wording.PullRequestCell(new PullRequestLookup.Found(azure with { Number = 4460, State = PullRequestState.Completed })).ShouldBe("!4460 completed");
         Wording.PullRequestCell(new PullRequestLookup.Found(azure with { State = PullRequestState.Active })).ShouldBe("!4521 active");
         Wording.PullRequestCell(new PullRequestLookup.Found(azure with { State = PullRequestState.Abandoned })).ShouldBe("!4521 abandoned");
-        Enum.GetValues<PullRequestGap>().ShouldAllBe(gap => Wording.PullRequestCell(new PullRequestLookup.Missing(gap, null)) == string.Empty);
+        Enum.GetValues<PullRequestGap>().ShouldAllBe(gap => Wording.PullRequestCell(new PullRequestLookup.Missing(gap)) == string.Empty);
     }
 
     [Theory]
@@ -259,7 +259,9 @@ public sealed class WordingShould
     [InlineData(PullRequestGap.BranchNotGivenToAz, PullRequestHost.AzureDevOps, "fix-123's branch name holds a character the Azure CLI cannot be given, so it was not looked up.")]
     public void SayWhyThereIsNoPullRequest(PullRequestGap gap, PullRequestHost? host, string expected)
     {
-        Wording.Describe(new StatusMessage.NoPullRequest("fix-123", gap, host)).ShouldBe(expected);
+        LookupHost lookupHost = host is PullRequestHost known ? new LookupHost.Known(known) : new LookupHost.NotRead();
+
+        Wording.Describe(new StatusMessage.NoPullRequest("fix-123", gap, lookupHost)).ShouldBe(expected);
     }
 
     [Fact]
@@ -465,7 +467,7 @@ public sealed class WordingShould
     {
         LaunchPlan plan = new(
             FolderPath.From(Sessions.Repository), SessionName.From("Fix flaky tests"), Worktree: null,
-            ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, OpeningPrompt: null, new RepositoryChoice("Northwind.Orders", FolderPath.From(Sessions.Repository), IsRepository: true));
+            ReuseExistingWorktree: false, WorktreeBase.RemoteDefault, new OpeningPrompt.None(), new RepositoryChoice("Northwind.Orders", FolderPath.From(Sessions.Repository), IsRepository: true));
 
         Wording.Working(new StartSession(plan)).ShouldBe("Starting Fix flaky tests...");
     }
@@ -646,7 +648,7 @@ public sealed class WordingShould
             _ when type == typeof(ViewEffect) => new Quit(),
             _ when type == typeof(Outcome) => new StopSessionOutcome("fix-123", TabClosed: false),
             _ when type == typeof(PullRequestGap) => PullRequestGap.NotSignedIn,
-            _ when type == typeof(PullRequestHost?) => PullRequestHost.GitHub,
+            _ when type == typeof(LookupHost) => new LookupHost.Known(PullRequestHost.GitHub),
             _ when type == typeof(SetupItem) => SetupItem.TerminalProfiles,
             _ when type == typeof(ConfigRow) => new ConfigRow.CheckForUpdates(On: true),
             _ => throw new InvalidOperationException($"A status message field of type {type.Name} needs a placeholder."),
@@ -883,7 +885,7 @@ public sealed class WordingShould
     [Fact]
     public void ShowWhatTheProfilesWillBe()
     {
-        TerminalProfiles profiles = new(@"C:\Users\me\.dotnet\tools\vantage.exe", @"C:\Windows\Media\Windows Notify Messaging.wav", SessionSound: null);
+        TerminalProfiles profiles = new(@"C:\Users\me\.dotnet\tools\vantage.exe", new BellSound.File(@"C:\Windows\Media\Windows Notify Messaging.wav"), new BellSound.TerminalDefault());
 
         Wording.TerminalSetupPlan(@"C:\Users\me\AppData\Local\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json", profiles).ShouldBe("""
             Two Windows Terminal profiles will be written to C:\Users\me\AppData\Local\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json

@@ -1,35 +1,38 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 
 namespace Source191.Vantage.Adapters.PullRequests;
 
 /// <summary>
-/// Lists one branch's pull requests in an Azure DevOps repository with az repos pr list, run through the full path of az.cmd (null
+/// Lists one branch's pull requests in an Azure DevOps repository with az repos pr list, run through the full path of az.cmd (missing
 /// when it is not on the PATH). The only place az's words are read: its login hints are not signed in, a missing
 /// azure-devops extension is a missing CLI, anything else failed. Every argument is a fixed flag, a name the Domain
 /// has already checked, or the branch, checked here by the same rule, so cmd.exe, which reads az.cmd's arguments,
 /// finds nothing special in them; a branch that fails the rule is not looked up at all.
 /// </summary>
-public sealed class AzureDevOpsPullRequests(IProcessRunner processes, string? az)
+public sealed class AzureDevOpsPullRequests(IProcessRunner processes, ProgramLocation az)
 {
     private const string BranchPrefix = "refs/heads/";
 
-    public async Task<PullRequestListing> ListAsync(AzureDevOpsRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken)
+    public Task<PullRequestListing> ListAsync(AzureDevOpsRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken) => az switch
     {
-        if (az is null)
-        {
-            return new PullRequestListing.Unavailable(PullRequestGap.CliMissing);
-        }
+        ProgramLocation.Found found => ListAsync(found.Path, repository, checkout, branch, cancellationToken),
+        ProgramLocation.Missing => Task.FromResult<PullRequestListing>(new PullRequestListing.Unavailable(PullRequestGap.CliMissing)),
+        _ => throw new UnreachableException(),
+    };
 
+    private async Task<PullRequestListing> ListAsync(string executable, AzureDevOpsRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken)
+    {
         if (!BatchFileArgument.IsSafe(branch.Value))
         {
             return new PullRequestListing.Unavailable(PullRequestGap.BranchNotGivenToAz);
         }
 
-        ProcessRequest request = new(az, ["repos", "pr", "list", "--org", $"https://dev.azure.com/{repository.Organisation}", "--project", repository.Project, "--repository", repository.Name, "--source-branch", branch.Value, "--status", "all", "--top", "20", "--output", "json"], checkout.Value);
+        ProcessRequest request = new(executable, ["repos", "pr", "list", "--org", $"https://dev.azure.com/{repository.Organisation}", "--project", repository.Project, "--repository", repository.Name, "--source-branch", branch.Value, "--status", "all", "--top", "20", "--output", "json"], new WorkingFolder.At(checkout.Value));
         ProcessResult result;
         try
         {

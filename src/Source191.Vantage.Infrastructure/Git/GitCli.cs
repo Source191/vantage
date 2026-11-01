@@ -176,7 +176,7 @@ public sealed class GitCli(IProcessRunner processes, string executable) : IGit
     {
         try
         {
-            return await processes.RunAsync(new ProcessRequest(executable, arguments, directory), cancellationToken);
+            return await processes.RunAsync(new ProcessRequest(executable, arguments, new WorkingFolder.At(directory)), cancellationToken);
         }
         catch (Win32Exception exception) when (exception.NativeErrorCode == ErrorDirectory)
         {

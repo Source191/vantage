@@ -13,13 +13,13 @@ public sealed class OwnTab(ITabRegistry tabs, IProcessRegistry processes, TimePr
 
     private readonly TabColourSelection colours = new(TabPalette.Default);
 
-    /// <summary>The colour the tab should take, or null when the process cannot be registered.</summary>
-    public async Task<TabColour?> ClaimAsync(int processId)
+    /// <summary>The colour the tab should take, or unregistered when the process's start time cannot be read.</summary>
+    public async Task<OwnTabClaim> ClaimAsync(int processId)
     {
         DateTimeOffset? startedAt = processes.StartTimeOf(processId);
         if (startedAt is null)
         {
-            return null;
+            return new OwnTabClaim.Unregistered();
         }
 
         DateTimeOffset now = clock.GetUtcNow();
@@ -27,6 +27,14 @@ public sealed class OwnTab(ITabRegistry tabs, IProcessRegistry processes, TimePr
         ColourChoice choice = colours.Choose([.. live.Select(registration => registration.Colour)], Preferred);
         await tabs.WriteTabAsync(TabRegistration.Pending(TabOwner.Vantage, choice.Colour, now).ClaimedBy(processId, startedAt.Value));
 
-        return choice.Colour;
+        return new OwnTabClaim.Claimed(choice.Colour);
     }
+}
+
+/// <summary>Vantage's own tab claimed in a colour, or left unregistered, when it is titled alone.</summary>
+public abstract record OwnTabClaim
+{
+    public sealed record Claimed(TabColour Colour) : OwnTabClaim;
+
+    public sealed record Unregistered : OwnTabClaim;
 }

@@ -2,6 +2,7 @@ using Source191.Vantage.Application.Effects;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Actions;
 
@@ -20,14 +21,20 @@ public sealed class OpenInEditorHandler(IEditorLocator locator, IDesktop desktop
         }
 
         EditorChoice editor = settings.Value.Editor;
-        string? executable = editor.Preset == EditorPreset.Custom
-            ? editor.Executable
+        ProgramLocation location = editor.Preset == EditorPreset.Custom
+            ? new ProgramLocation.Found(editor.Executable)
             : await locator.LocateAsync(editor.Preset, cancellationToken);
-        if (executable is null)
-        {
-            return new OpenInEditorOutcome.EditorNotFound(editor);
-        }
 
+        return location switch
+        {
+            ProgramLocation.Found found => await OpenAsync(editor, found.Path, folder, cancellationToken),
+            ProgramLocation.Missing => new OpenInEditorOutcome.EditorNotFound(editor),
+            _ => throw new UnreachableException(),
+        };
+    }
+
+    private async Task<Outcome> OpenAsync(EditorChoice editor, string executable, FolderPath folder, CancellationToken cancellationToken)
+    {
         await desktop.StartAsync(EditorCommand.For(editor, executable, folder), cancellationToken);
 
         return new OpenInEditorOutcome.Opened(folder.Name, editor);

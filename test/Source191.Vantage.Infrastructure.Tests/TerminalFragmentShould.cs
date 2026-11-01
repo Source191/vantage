@@ -13,10 +13,10 @@ public sealed class TerminalFragmentShould : IDisposable
 
     public TerminalFragmentShould()
     {
-        fragment = new TerminalFragment(root);
+        fragment = new TerminalFragment(root, Path.Combine(root, "tool", "absent.ico"));
     }
 
-    private static TerminalProfiles Profiles => new(@"C:\Users\me\.dotnet\tools\vantage.exe", @"C:\Windows\Media\Windows Notify Messaging.wav", @"C:\Windows\Media\Windows Proximity Notification.wav");
+    private static TerminalProfiles Profiles => new(@"C:\Users\me\.dotnet\tools\vantage.exe", new BellSound.File(@"C:\Windows\Media\Windows Notify Messaging.wav"), new BellSound.File(@"C:\Windows\Media\Windows Proximity Notification.wav"));
 
     private JsonArray WrittenProfiles => JsonNode.Parse(File.ReadAllText(fragment.Location))!["profiles"]!.AsArray();
 
@@ -43,13 +43,45 @@ public sealed class TerminalFragmentShould : IDisposable
     }
 
     [Fact]
-    public async Task LeaveOutASoundThatIsNull()
+    public async Task LeaveOutTheSoundOfAProfileOnTheTerminalsOwnBell()
     {
-        await fragment.WriteAsync(Profiles with { VantageSound = null }, CancellationToken.None);
+        await fragment.WriteAsync(Profiles with { VantageSound = new BellSound.TerminalDefault() }, CancellationToken.None);
 
         JsonArray profiles = WrittenProfiles;
         profiles[0]!.AsObject().ContainsKey("bellSound").ShouldBeFalse();
         profiles[1]!.AsObject().ContainsKey("bellSound").ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task WriteTheFragmentTextExactly()
+    {
+        await fragment.WriteAsync(Profiles with { SessionSound = new BellSound.TerminalDefault() }, CancellationToken.None);
+
+        (await File.ReadAllTextAsync(fragment.Location, TestContext.Current.CancellationToken)).ShouldBe("""
+            {
+              "profiles": [
+                {
+                  "name": "Vantage",
+                  "commandline": "\"C:\\Users\\me\\.dotnet\\tools\\vantage.exe\"",
+                  "bellStyle": [
+                    "audible",
+                    "window",
+                    "taskbar"
+                  ],
+                  "bellSound": "C:\\Windows\\Media\\Windows Notify Messaging.wav"
+                },
+                {
+                  "name": "Vantage session",
+                  "commandline": "pwsh.exe -NoLogo",
+                  "bellStyle": [
+                    "audible",
+                    "window",
+                    "taskbar"
+                  ]
+                }
+              ]
+            }
+            """.ReplaceLineEndings(Environment.NewLine));
     }
 
     [Fact]
@@ -67,7 +99,7 @@ public sealed class TerminalFragmentShould : IDisposable
     {
         await fragment.WriteAsync(Profiles, CancellationToken.None);
 
-        await fragment.WriteAsync(Profiles with { VantageSound = @"C:\Windows\Media\chimes.wav", SessionSound = null }, CancellationToken.None);
+        await fragment.WriteAsync(Profiles with { VantageSound = new BellSound.File(@"C:\Windows\Media\chimes.wav"), SessionSound = new BellSound.TerminalDefault() }, CancellationToken.None);
 
         JsonArray profiles = WrittenProfiles;
         profiles.Count.ShouldBe(2);
@@ -126,11 +158,11 @@ public sealed class TerminalFragmentShould : IDisposable
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("missing.ico")]
-    public async Task WriteNoIconWhenTheToolHasNone(string? source)
+    [InlineData(@"no-such-folder\vantage.ico")]
+    public async Task WriteNoIconWhenTheToolHasNone(string source)
     {
-        TerminalFragment withoutIcon = new(root, source is null ? null : Path.Combine(root, source));
+        TerminalFragment withoutIcon = new(root, Path.Combine(root, source));
 
         await withoutIcon.WriteAsync(Profiles, CancellationToken.None);
 
@@ -138,6 +170,8 @@ public sealed class TerminalFragmentShould : IDisposable
         {
             profile!.AsObject().ContainsKey("icon").ShouldBeFalse();
         }
+
+        File.Exists(Path.Combine(root, "Vantage", "vantage.ico")).ShouldBeFalse();
     }
 
     [Fact]

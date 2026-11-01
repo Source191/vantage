@@ -17,8 +17,13 @@ public sealed class PullRequestHosts(GitHubPullRequests gitHub, AzureDevOpsPullR
 /// <summary>Finds az.cmd on the PATH; CreateProcess cannot find a .cmd by its bare name.</summary>
 public static class AzureCliExecutable
 {
-    public static string? Locate(string? path) =>
-        (path ?? string.Empty).Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    /// <summary>The first az.cmd in the PATH's folders, in order; the variable itself may be unset.</summary>
+    public static ProgramLocation Locate(string? path)
+    {
+        string? found = (path ?? string.Empty).Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(folder => Path.Combine(folder, "az.cmd"))
             .FirstOrDefault(File.Exists);
+
+        return found is null ? new ProgramLocation.Missing() : new ProgramLocation.Found(found);
+    }
 }

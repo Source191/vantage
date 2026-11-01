@@ -10,18 +10,21 @@ namespace Source191.Vantage.Adapters.Processes;
 /// Code markers. ShellExecute cannot be given an environment, so a short-lived PowerShell child that has the cleaned one
 /// makes the call (see <see cref="OpenFileScript"/>); the call waits for that child, which ends once Windows has started the
 /// application, so a file that has gone is reported rather than lost. PowerShell is run by the full path it was given
-/// (null when pwsh.exe is not on the PATH, which fails each open with a sentence naming it).
+/// (missing when pwsh.exe is not on the PATH, which fails each open with a sentence naming it).
 /// </summary>
-public sealed class Desktop(IProcessRunner processes, string? powerShell) : IDesktop
+public sealed class Desktop(IProcessRunner processes, ProgramLocation powerShell) : IDesktop
 {
     public async Task OpenAsync(string file, CancellationToken cancellationToken)
     {
-        if (powerShell is null)
+        // Thrown inside the task, as before, so a caller holding the task sees the failure when it awaits.
+        string executable = powerShell switch
         {
-            throw new InvalidOperationException("PowerShell 7 (pwsh.exe) was not found on the PATH, so nothing can be opened.");
-        }
+            ProgramLocation.Found found => found.Path,
+            ProgramLocation.Missing => throw new InvalidOperationException("PowerShell 7 (pwsh.exe) was not found on the PATH, so nothing can be opened."),
+            _ => throw new UnreachableException(),
+        };
 
-        ProcessRequest request = new(powerShell, ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(OpenFileScript.For(file))], WorkingDirectory: null);
+        ProcessRequest request = new(executable, ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(OpenFileScript.For(file))], WorkingFolder.Inherit);
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
         {

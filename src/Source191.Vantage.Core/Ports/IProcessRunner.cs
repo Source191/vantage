@@ -1,6 +1,6 @@
 namespace Source191.Vantage.Ports;
 
-public sealed record ProcessRequest(string FileName, IReadOnlyList<string> Arguments, string? WorkingDirectory);
+public sealed record ProcessRequest(string FileName, IReadOnlyList<string> Arguments, WorkingFolder WorkingDirectory);
 
 public sealed record ProcessResult(int ExitCode, string StandardOutput, string StandardError);
 

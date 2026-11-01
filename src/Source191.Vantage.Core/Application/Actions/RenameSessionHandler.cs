@@ -22,7 +22,7 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
             return new RenameSessionOutcome.NoMessages(session.Name);
         }
 
-        TabColour? colour = (await registrations.ReadTabsAsync()).FirstOrDefault(tab => tab.Owner == new TabOwner.ForSession(session.SessionId))?.Colour;
+        TabRegistration? earlier = (await registrations.ReadTabsAsync()).FirstOrDefault(tab => tab.Owner == new TabOwner.ForSession(session.SessionId));
         await claude.RemoveAsync(session.JobId.Value, cancellationToken);
         bool tabClosed = await tabs.CloseAsync(session.SessionId) == TabClosure.Closed;
         ResumeResult renamed = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, newName, cancellationToken);
@@ -30,15 +30,17 @@ public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcr
         {
             if (tabClosed)
             {
-                await openTab.OpenAsync(session with { Name = newName.Value }, colour, cancellationToken);
+                BackgroundSession renamedSession = session with { Name = newName.Value };
+                await (earlier is null ? openTab.OpenAsync(renamedSession, cancellationToken) : openTab.OpenAsync(renamedSession, earlier.Colour, cancellationToken));
             }
 
             return new RenameSessionOutcome.Renamed(session.Name, newName.Value, TabMoved: tabClosed);
         }
 
-        // The port resumes under a name or under none: a listed name SessionName refuses resumes unnamed, so the bool is not needed.
-        _ = SessionName.TryParse(session.Name, out SessionName? name);
-        ResumeResult restored = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken);
+        // A listed name SessionName refuses is restored unnamed.
+        ResumeResult restored = SessionName.TryParse(session.Name, out SessionName? name)
+            ? await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken)
+            : await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, cancellationToken);
 
         return restored.Continued
             ? new RenameSessionOutcome.Restored(session.Name, renamed.Message, tabClosed)

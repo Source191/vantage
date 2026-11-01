@@ -25,10 +25,12 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
     }
 
     /// <summary>Opens a tab for a session, a listed row or one the wizard has just started, after forgetting any earlier tab registered for it, so that tab's colour is free again.</summary>
-    public Task<OpenTabOutcome> OpenAsync(BackgroundSession session, CancellationToken cancellationToken) => OpenAsync(session, preferred: null, cancellationToken);
+    public Task<OpenTabOutcome> OpenAsync(BackgroundSession session, CancellationToken cancellationToken) => OpenAsync(session, colours.Choose, cancellationToken);
 
     /// <summary>Opens a tab as above, in the preferred colour when no live tab uses it, such as a renamed session's old colour.</summary>
-    public async Task<OpenTabOutcome> OpenAsync(BackgroundSession session, TabColour? preferred, CancellationToken cancellationToken)
+    public Task<OpenTabOutcome> OpenAsync(BackgroundSession session, TabColour preferred, CancellationToken cancellationToken) => OpenAsync(session, inUse => colours.Choose(inUse, preferred), cancellationToken);
+
+    private async Task<OpenTabOutcome> OpenAsync(BackgroundSession session, Func<IReadOnlyList<TabColour>, ColourChoice> choose, CancellationToken cancellationToken)
     {
         DateTimeOffset now = clock.GetUtcNow();
         foreach (TabRegistration earlier in (await tabs.ReadTabsAsync()).Where(tab => tab.Owner == new TabOwner.ForSession(session.SessionId)))
@@ -38,7 +40,7 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
 
         IReadOnlyList<TabRegistration> live = new TabRegistrations(await tabs.ReadTabsAsync()).Live(now, processes);
         TabColour[] inUse = [.. live.Select(registration => registration.Colour)];
-        ColourChoice colour = preferred is null ? colours.Choose(inUse) : colours.Choose(inUse, preferred);
+        ColourChoice colour = choose(inUse);
         TabRegistration pending = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), colour.Colour, now);
         await tabs.WriteTabAsync(pending);
 
@@ -59,8 +61,7 @@ public sealed class OpenTabHandler(ITabRegistry tabs, IProcessRegistry processes
             return await OpenAsync(session, cancellationToken);
         }
 
-        int? owner = registration.OwningTerminal(processes);
-        bool found = await terminal.FocusTabAsync(owner, session.Name, cancellationToken);
+        bool found = await terminal.FocusTabAsync(registration.OwningTerminal(processes), session.Name, cancellationToken);
 
         return found
             ? new OpenTabOutcome.SwitchedTo(session.Name)

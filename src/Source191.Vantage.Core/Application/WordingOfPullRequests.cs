@@ -1,5 +1,6 @@
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -39,24 +40,26 @@ public static partial class Wording
         PullRequestGap.CliMissing => $"Install {Cli(none.Host)} to see {none.RowName}'s pull request.",
         PullRequestGap.NotSignedIn => $"Sign in with {SignIn(none.Host)} to see {none.RowName}'s pull request.",
         PullRequestGap.Looking => $"Still looking up {none.RowName}'s pull request; try again in a moment.",
-        PullRequestGap.Failed when none.Host is PullRequestHost host => $"{Capitalised(Cli(host))} could not list {none.RowName}'s pull requests.",
+        PullRequestGap.Failed when none.Host is LookupHost.Known known => $"{Capitalised(Cli(known))} could not list {none.RowName}'s pull requests.",
         PullRequestGap.Failed => $"Could not look up {none.RowName}'s pull requests.",
         PullRequestGap.NoPullRequest => $"No pull request found for {none.RowName}'s branch.",
         PullRequestGap.BranchNotGivenToAz => $"{none.RowName}'s branch name holds a character the Azure CLI cannot be given, so it was not looked up.",
     };
 
-    private static string Cli(PullRequestHost? host) => host switch
+    private static string Cli(LookupHost host) => host switch
     {
-        PullRequestHost.GitHub => "the GitHub CLI (gh)",
-        PullRequestHost.AzureDevOps => "the Azure CLI (az) with the azure-devops extension",
-        null => "the GitHub CLI (gh) or the Azure CLI (az)",
+        LookupHost.Known { Host: PullRequestHost.GitHub } => "the GitHub CLI (gh)",
+        LookupHost.Known { Host: PullRequestHost.AzureDevOps } => "the Azure CLI (az) with the azure-devops extension",
+        LookupHost.NotRead => "the GitHub CLI (gh) or the Azure CLI (az)",
+        _ => throw new UnreachableException(),
     };
 
-    private static string SignIn(PullRequestHost? host) => host switch
+    private static string SignIn(LookupHost host) => host switch
     {
-        PullRequestHost.GitHub => "gh auth login",
-        PullRequestHost.AzureDevOps => "az login",
-        null => "gh auth login or az login",
+        LookupHost.Known { Host: PullRequestHost.GitHub } => "gh auth login",
+        LookupHost.Known { Host: PullRequestHost.AzureDevOps } => "az login",
+        LookupHost.NotRead => "gh auth login or az login",
+        _ => throw new UnreachableException(),
     };
 
     private static string Capitalised(string text) => string.Concat(char.ToUpperInvariant(text[0]).ToString(), text[1..]);

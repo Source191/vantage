@@ -31,9 +31,10 @@ public sealed class AdoptSessionHandler(IClaudeCli claude, IProcessRegistry proc
         // The tab's shell, unless claude was the tab's root process itself and ending it closes the tab already.
         int? shell = TerminalTab.ShellOf(session.ProcessId, processes) is int root && root != session.ProcessId ? root : null;
         processes.Terminate(session.ProcessId);
-        // The port resumes under a name or under none: a listed name SessionName refuses resumes unnamed, so the bool is not needed.
-        _ = SessionName.TryParse(session.Name, out SessionName? name);
-        ResumeResult result = await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken);
+        // A listed name SessionName refuses is resumed unnamed.
+        ResumeResult result = SessionName.TryParse(session.Name, out SessionName? name)
+            ? await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, name, cancellationToken)
+            : await claude.ResumeBackgroundAsync(session.SessionId.Value, session.WorkingDirectory.Value, cancellationToken);
 
         if (!result.Continued)
         {

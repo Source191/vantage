@@ -172,7 +172,7 @@ public sealed class WorktreesViewShould
         WorktreesViewUpdate update = WorktreesView.Reduce(state, new KeyPressed(Key.Of('p')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Message.ShouldBe(new StatusMessage.NoPullRequest("Northwind.Orders-fix-1", PullRequestGap.Looking, null));
+        update.State.Message.ShouldBe(new StatusMessage.NoPullRequest("Northwind.Orders-fix-1", PullRequestGap.Looking, new LookupHost.NotRead()));
     }
 
     [Fact]

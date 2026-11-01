@@ -1,4 +1,5 @@
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application.TerminalSetup;
 
@@ -30,7 +31,7 @@ public sealed class TerminalSetupRunner(
 
     public async Task<int> RunAsync(TerminalSetupRequest request, CancellationToken cancellationToken)
     {
-        if (request.Remove && (request.Sound is not null || request.SessionSound is not null))
+        if (request.Remove && (request.Sound is SoundArgument.Given || request.SessionSound is SoundArgument.Given))
         {
             await ReportProblemAsync(new TerminalSetupProblem.RemoveWithSound());
             return 2;
@@ -40,7 +41,11 @@ public sealed class TerminalSetupRunner(
     }
 
     /// <summary>Windows Terminal does not share our working directory, so a sound is written as a full path.</summary>
-    private static string? FullPath(string? sound) => string.IsNullOrWhiteSpace(sound) ? sound : Path.GetFullPath(sound);
+    private static SoundArgument FullPath(SoundArgument sound) => sound switch
+    {
+        SoundArgument.Given given when !string.IsNullOrWhiteSpace(given.Path) => new SoundArgument.Given(Path.GetFullPath(given.Path)),
+        _ => sound,
+    };
 
     private async Task<int> RemoveAsync(CancellationToken cancellationToken)
     {
@@ -58,10 +63,9 @@ public sealed class TerminalSetupRunner(
 
     private async Task<int> SetUpAsync(TerminalSetupRequest request, CancellationToken cancellationToken)
     {
-        TerminalSetupProblem? problem = CheckSounds(request);
-        if (problem is not null)
+        if (CheckSounds(request) is SoundCheck.Refused refused)
         {
-            await ReportProblemAsync(problem);
+            await ReportProblemAsync(refused.Problem);
             return 2;
         }
 
@@ -82,43 +86,46 @@ public sealed class TerminalSetupRunner(
         return 0;
     }
 
-    private TerminalSetupProblem? CheckSounds(TerminalSetupRequest request) => CheckSound(request.Sound) ?? CheckSound(request.SessionSound);
+    /// <summary>The Vantage profile's sound is checked first, and its refusal is the one reported.</summary>
+    private SoundCheck CheckSounds(TerminalSetupRequest request) => CheckSound(request.Sound) is SoundCheck.Refused refused ? refused : CheckSound(request.SessionSound);
 
-    private TerminalSetupProblem? CheckSound(string? sound)
+    private SoundCheck CheckSound(SoundArgument sound)
     {
         return sound switch
         {
-            null => null,
-            _ when !folders.FileExists(sound) => new TerminalSetupProblem.SoundNotFound(sound),
-            _ when !string.Equals(Path.GetExtension(sound), ".wav", StringComparison.OrdinalIgnoreCase) => new TerminalSetupProblem.SoundNotWav(sound),
-            _ => null,
+            SoundArgument.Omitted => new SoundCheck.Accepted(),
+            SoundArgument.Given given when !folders.FileExists(given.Path) => new SoundCheck.Refused(new TerminalSetupProblem.SoundNotFound(given.Path)),
+            SoundArgument.Given given when !string.Equals(Path.GetExtension(given.Path), ".wav", StringComparison.OrdinalIgnoreCase) => new SoundCheck.Refused(new TerminalSetupProblem.SoundNotWav(given.Path)),
+            SoundArgument.Given => new SoundCheck.Accepted(),
+            _ => throw new UnreachableException(),
         };
     }
 
     private async Task<TerminalProfiles> ChooseProfilesAsync(TerminalSetupRequest request)
     {
-        string? vantageSound = await SoundOrDefaultAsync(request.Sound, VantageDefaultSound, TerminalProfiles.VantageProfileName);
-        string? sessionSound = await SoundOrDefaultAsync(request.SessionSound, SessionDefaultSound, TerminalProfiles.SessionProfileName);
+        BellSound vantageSound = await SoundOrDefaultAsync(request.Sound, VantageDefaultSound, TerminalProfiles.VantageProfileName);
+        BellSound sessionSound = await SoundOrDefaultAsync(request.SessionSound, SessionDefaultSound, TerminalProfiles.SessionProfileName);
 
         return new TerminalProfiles(vantageExecutable, vantageSound, sessionSound);
     }
 
-    private async Task<string?> SoundOrDefaultAsync(string? given, string defaultFile, string profileName)
+    /// <summary>The sound given, else the Windows media default, else Windows Terminal's own after saying so.</summary>
+    private async Task<BellSound> SoundOrDefaultAsync(SoundArgument sound, string defaultFile, string profileName)
     {
-        if (given is not null)
+        if (sound is SoundArgument.Given given)
         {
-            return given;
+            return new BellSound.File(given.Path);
         }
 
         string defaultSound = Path.Combine(windowsMediaFolder, defaultFile);
         if (folders.FileExists(defaultSound))
         {
-            return defaultSound;
+            return new BellSound.File(defaultSound);
         }
 
         await output.WriteLineAsync(Wording.DefaultSoundMissing(profileName, defaultSound));
 
-        return null;
+        return new BellSound.TerminalDefault();
     }
 
     private async Task<Step> WriteProfilesAsync(TerminalSetupRequest request, TerminalProfiles profiles, CancellationToken cancellationToken)
@@ -203,4 +210,12 @@ public sealed class TerminalSetupRunner(
     }
 
     private Task ReportProblemAsync(TerminalSetupProblem problem) => error.WriteLineAsync(Wording.DescribeSetupProblem(problem));
+
+    /// <summary>A given sound accepted, or the problem that refuses it; an omitted one is always accepted.</summary>
+    private abstract record SoundCheck
+    {
+        public sealed record Accepted : SoundCheck;
+
+        public sealed record Refused(TerminalSetupProblem Problem) : SoundCheck;
+    }
 }

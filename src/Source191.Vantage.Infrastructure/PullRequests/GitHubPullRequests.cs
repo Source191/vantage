@@ -1,28 +1,31 @@
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
 
 namespace Source191.Vantage.Adapters.PullRequests;
 
 /// <summary>
-/// Lists one branch's pull requests in a GitHub repository with gh pr list, run by the full path of gh.exe (null when
+/// Lists one branch's pull requests in a GitHub repository with gh pr list, run by the full path of gh.exe (missing when
 /// it is not on the PATH, which reads as the CLI missing). The only place gh's words are read: exit code 4 (and its
 /// gh auth login hint) is not signed in, a gh that cannot start is missing, anything else failed.
 /// </summary>
-public sealed class GitHubPullRequests(IProcessRunner processes, string? gh)
+public sealed class GitHubPullRequests(IProcessRunner processes, ProgramLocation gh)
 {
     private const int NotSignedInExitCode = 4;
 
-    public async Task<PullRequestListing> ListAsync(GitHubRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken)
+    public Task<PullRequestListing> ListAsync(GitHubRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken) => gh switch
     {
-        if (gh is null)
-        {
-            return new PullRequestListing.Unavailable(PullRequestGap.CliMissing);
-        }
+        ProgramLocation.Found found => ListAsync(found.Path, repository, checkout, branch, cancellationToken),
+        ProgramLocation.Missing => Task.FromResult<PullRequestListing>(new PullRequestListing.Unavailable(PullRequestGap.CliMissing)),
+        _ => throw new UnreachableException(),
+    };
 
-        ProcessRequest request = new(gh, ["pr", "list", "--repo", $"{repository.Owner}/{repository.Name}", "--head", branch.Value, "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"], checkout.Value);
+    private async Task<PullRequestListing> ListAsync(string executable, GitHubRepository repository, FolderPath checkout, BranchName branch, CancellationToken cancellationToken)
+    {
+        ProcessRequest request = new(executable, ["pr", "list", "--repo", $"{repository.Owner}/{repository.Name}", "--head", branch.Value, "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"], new WorkingFolder.At(checkout.Value));
         ProcessResult result;
         try
         {

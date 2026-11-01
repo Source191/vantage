@@ -21,7 +21,7 @@ public sealed class ClaudeHelpSurfaceShould
     {
         string executable = ClaudeContract.Executable();
 
-        ProcessResult help = await new ProcessRunner().RunAsync(new ProcessRequest(executable, arguments.Split(' '), WorkingDirectory: null), TestContext.Current.CancellationToken);
+        ProcessResult help = await new ProcessRunner().RunAsync(new ProcessRequest(executable, arguments.Split(' '), WorkingFolder.Inherit), TestContext.Current.CancellationToken);
         IReadOnlyList<string> received = HelpSurface.Extract(help.StandardOutput);
         IReadOnlyList<string> expected = Lines(await File.ReadAllTextAsync(Path.Combine(Snapshots, snapshot), TestContext.Current.CancellationToken));
 

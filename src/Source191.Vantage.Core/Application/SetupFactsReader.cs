@@ -1,5 +1,7 @@
+using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -7,7 +9,7 @@ namespace Source191.Vantage.Application;
 /// Reads the setup the Config tab shows, through the ports that already read it for <c>vantage setup-terminal</c> and the
 /// update check; a piece whose read fails is unreadable on its own, and never stops the others.
 /// </summary>
-public sealed class SetupFactsReader(ITerminalFragment fragment, IClaudeSettings claude, IUpdateCheckRecords updateChecks, string settingsFile, string? logPath)
+public sealed class SetupFactsReader(ITerminalFragment fragment, IClaudeSettings claude, IUpdateCheckRecords updateChecks, string settingsFile, DiagnosticLogSetting log)
 {
     private const string TerminalBell = "terminal_bell";
 
@@ -17,7 +19,7 @@ public sealed class SetupFactsReader(ITerminalFragment fragment, IClaudeSettings
             new SetupState.At(settingsFile),
             await Guarded(() => Task.FromResult(TerminalProfiles())),
             await Guarded(() => ClaudeBellAsync(cancellationToken)),
-            string.IsNullOrWhiteSpace(logPath) ? new SetupState.Disabled() : new SetupState.At(logPath),
+            LogState(),
             await Guarded(LastUpdateCheckAsync));
     }
 
@@ -32,6 +34,13 @@ public sealed class SetupFactsReader(ITerminalFragment fragment, IClaudeSettings
             return new SetupState.Unreadable();
         }
     }
+
+    private SetupState LogState() => log switch
+    {
+        DiagnosticLogSetting.File file => new SetupState.At(file.Path),
+        DiagnosticLogSetting.Off => new SetupState.Disabled(),
+        _ => throw new UnreachableException(),
+    };
 
     private SetupState TerminalProfiles() => fragment.Exists ? new SetupState.At(fragment.Location) : new SetupState.NotSetUp();
 

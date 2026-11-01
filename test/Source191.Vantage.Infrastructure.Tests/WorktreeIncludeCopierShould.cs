@@ -151,7 +151,7 @@ public sealed class WorktreeIncludeCopierShould : IDisposable
 
     private async Task RunGitAsync(params string[] arguments)
     {
-        ProcessResult result = await new ProcessRunner().RunAsync(new ProcessRequest("git", arguments, Repository), TestContext.Current.CancellationToken);
+        ProcessResult result = await new ProcessRunner().RunAsync(new ProcessRequest("git", arguments, new WorkingFolder.At(Repository)), TestContext.Current.CancellationToken);
         result.ExitCode.ShouldBe(0, result.StandardError);
     }
 }

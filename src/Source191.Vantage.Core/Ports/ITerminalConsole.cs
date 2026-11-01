@@ -8,8 +8,11 @@ namespace Source191.Vantage.Ports;
 /// </summary>
 public interface ITerminalConsole
 {
-    /// <summary>Titles the tab with Vantage's title (its name and version) and, when a colour is given, colours it; written again after every hand-off because the child retitles the tab.</summary>
-    void ShowOwnTab(TabColour? colour);
+    /// <summary>Titles the tab with Vantage's title and colours it.</summary>
+    void ShowOwnTab(TabColour colour);
+
+    /// <summary>Titles the tab with Vantage's title alone, leaving its colour as it is.</summary>
+    void ShowOwnTab();
 
     /// <summary>Clears the title and resets the tab colour, so the shell's tab looks as it did before Vantage ran.</summary>
     void ClearOwnTab();

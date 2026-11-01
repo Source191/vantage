@@ -30,7 +30,7 @@ public sealed class AzureDevOpsPullRequestsShould
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, Recorded, string.Empty));
 
-    private AzureDevOpsPullRequests Hosts => new(processes, Az);
+    private AzureDevOpsPullRequests Hosts => new(processes, new ProgramLocation.Found(Az));
 
     [Fact]
     public async Task AskForTheBranchOnly()
@@ -39,7 +39,7 @@ public sealed class AzureDevOpsPullRequestsShould
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe(Az),
-            request => request.WorkingDirectory.ShouldBe(Checkout.Value),
+            request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Checkout.Value)),
             request => request.Arguments.ShouldBe(["repos", "pr", "list", "--org", "https://dev.azure.com/northwind", "--project", "Northwind Trading", "--repository", "Northwind.Orders", "--source-branch", "fix-123", "--status", "all", "--top", "20", "--output", "json"]));
         listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.ShouldBe(
         [
@@ -87,9 +87,9 @@ public sealed class AzureDevOpsPullRequestsShould
     }
 
     [Fact]
-    public async Task ReportCliMissingWithoutAz()
+    public async Task AnswerCliMissingWhenAzIsMissing()
     {
-        AzureDevOpsPullRequests hosts = new(processes, null);
+        AzureDevOpsPullRequests hosts = new(processes, new ProgramLocation.Missing());
 
         (await hosts.ListAsync(Orders, Checkout, BranchName.From("fix-123"), CancellationToken.None)).ShouldBe(new PullRequestListing.Unavailable(PullRequestGap.CliMissing));
         processes.CapturedRequests.ShouldBeEmpty();

@@ -26,7 +26,7 @@ public sealed class WorktreeInspectorShould
         WorktreeCounts counts = await Inspector.CountAsync(Worktree, CancellationToken.None);
 
         counts.ShouldBe(new WorktreeCounts(DirtyFiles: 2, UnpushedCommits: 3, LastCommitAt: new DateTimeOffset(2026, 10, 23, 12, 0, 0, TimeSpan.Zero)));
-        processes.CapturedRequests.ShouldAllBe(request => request.WorkingDirectory == Worktree.Value);
+        processes.CapturedRequests.ShouldAllBe(request => request.WorkingDirectory == new WorkingFolder.At(Worktree.Value));
     }
 
     [Fact]

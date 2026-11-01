@@ -35,7 +35,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         return answer switch
         {
             { Listing: PullRequestListing.Listed listed } => ForBranch(listed, branch),
-            { Listing: PullRequestListing.Unavailable unavailable, Host: var host } => new PullRequestLookup.Missing(unavailable.Gap, host),
+            { Listing: PullRequestListing.Unavailable unavailable } => new PullRequestLookup.Missing(unavailable.Gap, answer.Host),
             _ => new PullRequestLookup.Missing(PullRequestGap.Failed),
         };
     }
@@ -70,13 +70,13 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         string key = KeyOf(checkout, branch);
         try
         {
-            (PullRequestListing listing, PullRequestHost? host) = await ListAsync(checkout, branch);
+            (PullRequestListing listing, LookupHost host) = await ListAsync(checkout, branch);
             answers[key] = new Answer(listing, host, clock.GetUtcNow());
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             // Nothing awaits a refresh started by a row, so a failure is kept as an answer the status line can explain.
-            answers[key] = new Answer(new PullRequestListing.Unavailable(PullRequestGap.Failed), Host: null, clock.GetUtcNow());
+            answers[key] = new Answer(new PullRequestListing.Unavailable(PullRequestGap.Failed), new LookupHost.NotRead(), clock.GetUtcNow());
         }
         finally
         {
@@ -84,23 +84,23 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         }
     }
 
-    private async Task<(PullRequestListing Listing, PullRequestHost? Host)> ListAsync(FolderPath checkout, BranchName branch)
+    private async Task<(PullRequestListing Listing, LookupHost Host)> ListAsync(FolderPath checkout, BranchName branch)
     {
         string? url = await git.OriginUrlAsync(checkout.Value, CancellationToken.None);
         if (url is null)
         {
-            return (new PullRequestListing.Unavailable(PullRequestGap.NoRemote), null);
+            return (new PullRequestListing.Unavailable(PullRequestGap.NoRemote), new LookupHost.NotRead());
         }
 
         if (!RemoteRepository.TryParse(url, out RemoteRepository? repository))
         {
-            return (new PullRequestListing.Unavailable(PullRequestGap.UnknownHost), null);
+            return (new PullRequestListing.Unavailable(PullRequestGap.UnknownHost), new LookupHost.NotRead());
         }
 
         await slots.WaitAsync();
         try
         {
-            return (await hosts.ListAsync(repository, checkout, branch, CancellationToken.None), repository.Host);
+            return (await hosts.ListAsync(repository, checkout, branch, CancellationToken.None), new LookupHost.Known(repository.Host));
         }
         finally
         {
@@ -108,7 +108,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         }
     }
 
-    private sealed record Answer(PullRequestListing Listing, PullRequestHost? Host, DateTimeOffset At)
+    private sealed record Answer(PullRequestListing Listing, LookupHost Host, DateTimeOffset At)
     {
         public TimeSpan Kept => Listing is PullRequestListing.Listed ? Window : UnavailableWindow;
     }

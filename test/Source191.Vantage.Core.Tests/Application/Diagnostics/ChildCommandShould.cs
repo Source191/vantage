@@ -18,13 +18,13 @@ public sealed class ChildCommandShould
     [InlineData("pwsh.exe", new[] { "-NoProfile", "-NonInteractive", "-EncodedCommand", "QQBCAEMA" }, "pwsh")]
     public void KeepOnlyTheListedLeadingWords(string program, string[] arguments, string expected)
     {
-        ChildCommand.For(new ProcessRequest(program, arguments, null)).ToString().ShouldBe(expected);
+        ChildCommand.For(new ProcessRequest(program, arguments, WorkingFolder.Inherit)).ToString().ShouldBe(expected);
     }
 
     [Fact]
     public void NameAProgramItHasNoWordForAsAnotherProgram()
     {
-        ProcessRequest request = new(@"C:\Users\me\tools\MyTool.exe", [@"C:\Users\me\source\repos\Northwind.Orders"], null);
+        ProcessRequest request = new(@"C:\Users\me\tools\MyTool.exe", [@"C:\Users\me\source\repos\Northwind.Orders"], WorkingFolder.Inherit);
 
         ChildCommand.For(request).ToString().ShouldBe("another program");
     }
@@ -32,7 +32,7 @@ public sealed class ChildCommandShould
     [Fact]
     public void StopAtThreeWords()
     {
-        ProcessRequest request = new("git", ["worktree", "list", "worktree", "list"], null);
+        ProcessRequest request = new("git", ["worktree", "list", "worktree", "list"], WorkingFolder.Inherit);
 
         ChildCommand.For(request).ToString().ShouldBe("git worktree list worktree");
     }
@@ -40,6 +40,6 @@ public sealed class ChildCommandShould
     [Fact]
     public void EqualTheSameCommand()
     {
-        ChildCommand.For(new ProcessRequest("git", ["status", "--porcelain"], "a")).ShouldBe(ChildCommand.For(new ProcessRequest("git.exe", ["status"], "b")));
+        ChildCommand.For(new ProcessRequest("git", ["status", "--porcelain"], new WorkingFolder.At("a"))).ShouldBe(ChildCommand.For(new ProcessRequest("git.exe", ["status"], new WorkingFolder.At("b"))));
     }
 }

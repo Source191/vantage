@@ -19,9 +19,10 @@ public sealed class DesktopCommandLineShould
         FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
         string address = "https://github.com/Source191/vantage/issues/new?template=problem-report.yml&diagnostics=" + new string('%', ProblemReport.AddressLimit);
 
-        await new Desktop(processes, "pwsh.exe").OpenAsync(address[..ProblemReport.AddressLimit], TestContext.Current.CancellationToken);
+        await new Desktop(processes, new ProgramLocation.Found("pwsh.exe")).OpenAsync(address[..ProblemReport.AddressLimit], TestContext.Current.CancellationToken);
 
         ProcessRequest request = processes.CapturedRequests.Single();
+        request.WorkingDirectory.ShouldBe(WorkingFolder.Inherit, "PowerShell opens the file from Vantage's folder");
         int commandLine = request.FileName.Length + 2 + request.Arguments.Sum(argument => argument.Length + 3);
         commandLine.ShouldBeLessThan(WindowsCommandLineLimit);
     }

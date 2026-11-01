@@ -1,4 +1,6 @@
+using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 using System.Text;
 
 namespace Source191.Vantage.Adapters.Terminal;
@@ -10,13 +12,13 @@ namespace Source191.Vantage.Adapters.Terminal;
 /// </summary>
 public static class WindowsTerminalArguments
 {
-    /// <summary>The arguments for a new tab; a profile name adds <c>--profile</c>, null leaves the tab in the default profile.</summary>
-    public static IReadOnlyList<string> ForTab(TabLaunch launch, string? profile)
+    /// <summary>The arguments for a new tab; the profile's arguments are <c>--profile</c> and its name, or none for the default profile.</summary>
+    public static IReadOnlyList<string> ForTab(TabLaunch launch, IReadOnlyList<string> profile)
     {
         string[] arguments =
         [
             "-w", "0", "new-tab",
-            .. profile is null ? (string[])[] : ["--profile", profile],
+            .. profile,
             "--title", launch.Title,
             "--tabColor", launch.Colour.Hex,
             "--suppressApplicationTitle",
@@ -38,22 +40,24 @@ public static class EncodedCommand
 }
 
 /// <summary>
-/// Opens tabs through wt.exe, run by the full path it was given (null when wt.exe is not on the PATH, which fails each
+/// Opens tabs through wt.exe, run by the full path it was given (missing when wt.exe is not on the PATH, which fails each
 /// open with a sentence naming it). When Vantage's fragment is installed the tab asks for the "Vantage session"
 /// profile, so its bell sounds different from other tabs; the file is checked on each open, so a setup run while
 /// Vantage is open takes effect at once.
 /// </summary>
-public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment fragment, string? executable) : IWindowsTerminal
+public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment fragment, ProgramLocation wt) : IWindowsTerminal
 {
     public async Task OpenTabAsync(TabLaunch launch, CancellationToken cancellationToken)
     {
-        if (executable is null)
+        string executable = wt switch
         {
-            throw new TerminalException("Windows Terminal (wt.exe) was not found on the PATH, so no tab can be opened.");
-        }
+            ProgramLocation.Found found => found.Path,
+            ProgramLocation.Missing => throw new TerminalException("Windows Terminal (wt.exe) was not found on the PATH, so no tab can be opened."),
+            _ => throw new UnreachableException(),
+        };
 
-        string? profile = fragment.Exists ? TerminalProfiles.SessionProfileName : null;
-        ProcessRequest request = new(executable, WindowsTerminalArguments.ForTab(launch, profile), launch.StartingDirectory.Value);
+        string[] profile = fragment.Exists ? ["--profile", TerminalProfiles.SessionProfileName] : [];
+        ProcessRequest request = new(executable, WindowsTerminalArguments.ForTab(launch, profile), new WorkingFolder.At(launch.StartingDirectory.Value));
         ProcessResult result = await processes.RunAsync(request, cancellationToken);
         if (result.ExitCode != 0)
         {
@@ -61,5 +65,5 @@ public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment 
         }
     }
 
-    public Task<bool> FocusTabAsync(int? terminalProcessId, string title, CancellationToken cancellationToken) => Task.Run(() => UiAutomationTabs.Select(terminalProcessId, title), cancellationToken);
+    public Task<bool> FocusTabAsync(TerminalWindow window, string title, CancellationToken cancellationToken) => Task.Run(() => UiAutomationTabs.Select(window, title), cancellationToken);
 }

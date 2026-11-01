@@ -40,11 +40,11 @@ public sealed class HereCommandRunnerShould : IDisposable
     [Fact]
     public async Task StartInTheFolderAttachAndExitZeroAfterTheDetach()
     {
-        int exitCode = await Runner.RunAsync(Directory, "fix-tests", "Fix the tests", CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, new HereName.Typed("fix-tests"), "Fix the tests", CancellationToken.None);
 
         exitCode.ShouldBe(0);
         output.ToString().ShouldContain("Started fix-tests (81cdb0f9) in " + Directory);
-        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(Directory);
+        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(new WorkingFolder.At(Directory));
         processes.InteractiveRequests.Single().Arguments.ShouldBe(["attach", "81cdb0f9"]);
         console.Recovered.ShouldBe(1);
     }
@@ -54,7 +54,7 @@ public sealed class HereCommandRunnerShould : IDisposable
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "Workspace not trusted. Run `claude` once and accept the trust prompt."));
 
-        int exitCode = await Runner.RunAsync(Directory, name: null, prompt: null, CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, new HereName.FolderName(), prompt: string.Empty, CancellationToken.None);
 
         exitCode.ShouldBe(1);
         error.ToString().ShouldContain("is not trusted yet");
@@ -66,7 +66,7 @@ public sealed class HereCommandRunnerShould : IDisposable
     {
         processes.Answer(request => request.Arguments.Contains("--bg"), new ProcessResult(1, string.Empty, "something broke"));
 
-        int exitCode = await Runner.RunAsync(Directory, name: null, prompt: null, CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, new HereName.FolderName(), prompt: string.Empty, CancellationToken.None);
 
         exitCode.ShouldBe(1);
         error.ToString().ShouldContain("Could not start: something broke");
@@ -75,7 +75,7 @@ public sealed class HereCommandRunnerShould : IDisposable
     [Fact]
     public async Task PrintOnlyTheSentenceForARefusedName()
     {
-        int exitCode = await Runner.RunAsync(Directory, "   ", prompt: null, CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, new HereName.Typed("   "), prompt: string.Empty, CancellationToken.None);
 
         exitCode.ShouldBe(2);
         error.ToString().ShouldBe("A session name is required." + Environment.NewLine);
@@ -85,7 +85,7 @@ public sealed class HereCommandRunnerShould : IDisposable
     [Fact]
     public async Task ExitTwoAndStartNothingForADashLedPrompt()
     {
-        int exitCode = await Runner.RunAsync(Directory, "fix-tests", "-fix the tests", CancellationToken.None);
+        int exitCode = await Runner.RunAsync(Directory, new HereName.Typed("fix-tests"), "-fix the tests", CancellationToken.None);
 
         exitCode.ShouldBe(2);
         processes.CapturedRequests.ShouldBeEmpty();
