@@ -93,12 +93,17 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
     private readonly DetailPart detailPart;
     private readonly CancellationTokenSource lifetime = new();
 
+    /// <summary>What <see cref="detailKey"/> holds when the next redraw must ask for the selected row's detail again; no row's key equals it.</summary>
+    private readonly object askAgain = new();
+
     /// <summary>
     /// What a tooltip hangs from: Terminal.Gui draws a tooltip under its target's frame, and under the whole table that is
     /// the detail pane, so the target is this view, as wide as nothing, laid over the header or the row under the pointer.
     /// </summary>
     private readonly View toolTipAnchor = new() { X = 0, Y = 0, Width = 0, Height = HeaderRows, CanFocus = false };
-    private object? detailKey;
+
+    /// <summary>The key of the row whose detail was last asked for, or <see cref="askAgain"/>.</summary>
+    private object detailKey;
     private TRow? selected;
     private int? headerUnderMouse;
     private int? rowUnderMouse;
@@ -118,6 +123,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         this.host = host;
         State = initial;
         columnNames = [.. definition.Columns.Select(column => column.Name)];
+        detailKey = askAgain;
 
         // The tab's title is the view's Title; it can take focus because Tabs shows whichever tab has it.
         View = new View { Title = definition.TabTitle(initial), Width = Dim.Fill(), Height = Dim.Fill(), CanFocus = true };
@@ -201,7 +207,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
 
             app.Invoke(() =>
             {
-                object? before = detailKey;
+                object before = detailKey;
                 Apply(input);
                 if (Equals(detailKey, before))
                 {
@@ -275,7 +281,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         isShown = shown;
         if (shown)
         {
-            detailKey = null;
+            detailKey = askAgain;
         }
 
         Redraw();
@@ -328,7 +334,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         if (State.List.Selected is not TRow row)
         {
             part.Requests.Cleared();
-            detailKey = null;
+            detailKey = askAgain;
             part.View.Show(DetailContent.Empty);
             return;
         }
@@ -349,8 +355,8 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         CancellationToken token = lifetime.Token;
         Task.Run(async () =>
         {
-            DetailContent? content = await Attempt.RunAsync<DetailContent?>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(part.Source, row, token), _ => null);
-            if (content is null || token.IsCancellationRequested)
+            DetailAnswer read = await Attempt.RunAsync<DetailAnswer>(Diagnostics, FailureSite.Load, CodeName.For(typeof(DetailContent)), () => ReadAsync(part.Source, row, token), _ => new DetailAnswer.Dropped());
+            if (read is not DetailAnswer.Show { Content: DetailContent content } || token.IsCancellationRequested)
             {
                 return;
             }
@@ -359,15 +365,16 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }, token);
     }
 
-    private static async Task<DetailContent?> ReadAsync(IDetailSource<TRow> source, TRow row, CancellationToken token)
+    /// <summary>The row's detail as read, or dropped when the tab was disposed while it was being read.</summary>
+    private static async Task<DetailAnswer> ReadAsync(IDetailSource<TRow> source, TRow row, CancellationToken token)
     {
         try
         {
-            return await source.ReadAsync(row, token);
+            return new DetailAnswer.Show(await source.ReadAsync(row, token));
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested)
         {
-            return null;
+            return new DetailAnswer.Dropped();
         }
     }
 
