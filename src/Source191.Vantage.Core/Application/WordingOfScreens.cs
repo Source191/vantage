@@ -193,7 +193,8 @@ public static partial class Wording
 
     public static IReadOnlyList<ColumnHelp> WorktreesColumns { get; } =
     [
-        new("WORKTREE", "the owning repository › the folder's slug, or its label when not named after it;\nwhite ok, amber locked, red broken or orphan, grey empty"),
+        new("WORKTREE", "the owning repository › the folder's slug, or its label when not named after it"),
+        new("HEALTH", "✓ ok, ◆ locked (by another tool), △ orphan (a folder git has forgotten),\n✗ broken (registration or owner gone), □ empty (a leftover folder),\n↗ elsewhere (a worktree of a repository outside the roots); the pane gives the reason"),
         new("LAST COMMIT", "time since the last commit"),
         new("SESSION", "the session running in it, if any"),
     ];

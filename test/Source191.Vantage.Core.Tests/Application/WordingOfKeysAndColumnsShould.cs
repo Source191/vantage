@@ -160,8 +160,10 @@ public sealed class WordingOfKeysAndColumnsShould
             >      scroll the columns right
 
             Columns
-            WORKTREE     the owning repository › the folder's slug, or its label when not named after it;
-                         white ok, amber locked, red broken or orphan, grey empty
+            WORKTREE     the owning repository › the folder's slug, or its label when not named after it
+            HEALTH       ✓ ok, ◆ locked (by another tool), △ orphan (a folder git has forgotten),
+                         ✗ broken (registration or owner gone), □ empty (a leftover folder),
+                         ↗ elsewhere (a worktree of a repository outside the roots); the pane gives the reason
             LAST COMMIT  time since the last commit
             SESSION      the session running in it, if any
 
