@@ -6,7 +6,8 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step and
 
 - [x] 1.1 `NullFreeModelsShould.ExemptTheHouseShapes`: move `TryFind(int, [NotNullWhen(true)] out string?)` from `IHouseShapes` to a probe of its own and assert it is reported as `TryFind(found)`. Red, because `IsOutUntilParsed` still accepts `NotNullWhen`. Then drop the `NotNullWhen` branch from `IsOutUntilParsed`: the fact goes green and `HoldNoNullableMember` goes red, reporting `ClaudeVersion.TryParse`, `ConfigView.TryPathOf` and `TabKeys.TryFor`. Verify both outcomes and that `IHouseShapes` still reports nothing.
   Verified: the probe `INotNullWhenTry` failed red with `["TryFind(found)"]` unreported, then passed; `HoldNoNullableMember` went red with `ConfigView.TryPathOf(path)`, `TabKeys.TryFor(effect)`, `ClaudeVersion.TryParse(version)` and also `ClaudeVersion.TryParse(text)` (no longer a house-shape TryParse once its `out` is not exempt); `IHouseShapes` reports nothing.
-- [ ] 1.2 Green for `HoldNoNullableMember`: `ClaudeVersion.TryParse`, `ConfigView.TryPathOf` and `TabKeys.TryFor` declare `[MaybeNullWhen(false)] out T` with `T` non-nullable, bodies and callers unchanged. Verify the Core suite passes, including `ClaudeVersionShould`, `TabKeysShould` and the Config view facts with their expected answers unchanged, and `KeepNoStaleEntry` still passes.
+- [x] 1.2 Green for `HoldNoNullableMember`: `ClaudeVersion.TryParse`, `ConfigView.TryPathOf` and `TabKeys.TryFor` declare `[MaybeNullWhen(false)] out T` with `T` non-nullable, bodies and callers unchanged. Verify the Core suite passes, including `ClaudeVersionShould`, `TabKeysShould` and the Config view facts with their expected answers unchanged, and `KeepNoStaleEntry` still passes.
+  Verified: build 0 warnings; Core suite 1956 passed, 0 failed, no test or caller changed.
 
 ## 2. Tui and the comment
 
