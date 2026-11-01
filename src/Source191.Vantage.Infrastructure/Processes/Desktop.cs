@@ -1,5 +1,6 @@
 using Source191.Vantage.Adapters.Terminal;
 using Source191.Vantage.Ports;
+using System.ComponentModel;
 using System.Diagnostics;
 
 namespace Source191.Vantage.Adapters.Processes;
@@ -36,11 +37,23 @@ public sealed class Desktop(IProcessRunner processes, ProgramLocation powerShell
         }
     }
 
+    /// <summary>
+    /// Starts the program detached. A <see cref="Win32Exception"/> (Windows refused the start: access denied, not a program,
+    /// a broken install) becomes <see cref="ProgramNotStartedException"/> with Windows' sentence for its error code alone,
+    /// since .NET's own message also names the path and the working folder.
+    /// </summary>
     public Task StartAsync(ProcessRequest request, CancellationToken cancellationToken)
     {
         ProcessStartInfo startInfo = ProcessRunner.StartInfo(request, capture: false);
         startInfo.CreateNoWindow = true;
-        using Process? process = Process.Start(startInfo);
+        try
+        {
+            using Process? process = Process.Start(startInfo);
+        }
+        catch (Win32Exception refused)
+        {
+            throw new ProgramNotStartedException(new Win32Exception(refused.NativeErrorCode).Message);
+        }
 
         return Task.CompletedTask;
     }
