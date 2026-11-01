@@ -186,7 +186,7 @@ public sealed class WordingOfDetailShould
     [Fact]
     public void KeepEveryDetailToItsFactRows()
     {
-        WorktreeDetail worktree = new(WorktreeRowOf(unpushed: 0, dirty: 0), null, new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
+        WorktreeDetail worktree = new(WorktreeRowOf(unpushed: 0, dirty: 0), new WorktreeOrigin.NotByVantage(), new DetailFact<MergeState>.NotApplicable(), new DetailFact<IReadOnlyList<UnpushedCommit>>.NotApplicable(), new DetailFact<IReadOnlyList<string>>.NotApplicable());
 
         Wording.Detail(Detail(Row(DisplayState.Idle, process: new JobProcess.None())), Now).Facts.Count.ShouldBe(Wording.DetailFactRows);
         Wording.Detail(worktree, Now).Facts.Count.ShouldBe(Wording.DetailFactRows);

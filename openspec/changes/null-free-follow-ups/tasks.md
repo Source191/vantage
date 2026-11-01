@@ -11,7 +11,7 @@ Each task is one red-green-refactor cycle with a commit per step; the test is na
 
 - [x] 2.1 `WorktreeInspectorShould.AnswerAnUnknownLastCommitWhenGitHasNone` and the counts fact reading `new LastCommit.Made(...)`, with the two `LastCommitAt` entries out of `Kept`: red, then `Application\LastCommit.cs`, `WorktreeCounts`, `WorktreeRow`, `WorktreeInventory`, `WordingOfDetail` and `WorktreesScreenDefinition` green. Verify `WordingOfDetailShould` and `WorktreeInventoryShould` (Infrastructure) pass unchanged in their text.
 - [x] 2.2 `SessionActivityShould` reads `new LastPrompt.Seen(...)` and `new LastPrompt.NotSeen()`, with the two `LastPromptedAt` entries out of `Kept`: red, then `Application\LastPrompt.cs`, `SessionActivity`, `SessionDetail` and the pane's Prompted line green. Verify the pane's text facts pass.
-- [ ] 2.3 `DetailLoaderShould` reads `CreatedByVantage` and `NotByVantage`, with `WorktreeDetail.Created` out of `Kept`: red, then `Application\Detail\WorktreeOrigin.cs`, `DetailLoader` and the pane's Created line green. Verify the pane's text facts pass.
+- [x] 2.3 `DetailLoaderShould` reads `CreatedByVantage` and `NotByVantage`, with `WorktreeDetail.Created` out of `Kept`: red, then `Application\Detail\WorktreeOrigin.cs`, `DetailLoader` and the pane's Created line green. Verify the pane's text facts pass.
 - [ ] 2.4 `Attempt.RunAsync(what)` out of `Kept`: red, then the parameter as a `CodeName` green. Verify `AttemptShould` and `DiagnosticsPrivacyShould` pass.
 
 ## 3. Application: views and dialogs

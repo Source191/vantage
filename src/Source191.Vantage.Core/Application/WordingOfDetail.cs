@@ -64,7 +64,7 @@ public static partial class Wording
             [new("Branch", BranchLine(row.Head, detail.Merge), Span: 2), new("PR", PullRequestLine(row.PullRequest))],
             [
                 new("Folder", row.Path.Value, Span: 2),
-                new("Created", detail.Created is CreatedWorktree created ? $"by Vantage, {DayAndTime(created.CreatedAt, now)}" : "not by Vantage"),
+                new("Created", detail.Created is WorktreeOrigin.CreatedByVantage created ? $"by Vantage, {DayAndTime(created.Record.CreatedAt, now)}" : "not by Vantage"),
             ],
             [new("Changes", $"{Count(row.DirtyFiles, "changed file")} · {Count(row.UnpushedCommits, "unpushed commit")}", row.DirtyFiles + row.UnpushedCommits > 0 ? TextTone.Amber : TextTone.Plain, Span: 3)],
         ];

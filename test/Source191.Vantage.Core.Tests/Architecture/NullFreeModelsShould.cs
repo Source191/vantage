@@ -1,5 +1,4 @@
 using Source191.Vantage.Application;
-using Source191.Vantage.Application.Detail;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
