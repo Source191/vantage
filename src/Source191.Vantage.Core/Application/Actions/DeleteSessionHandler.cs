@@ -48,17 +48,21 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
     }
 
     /// <summary>
-    /// The worktree as the worktrees view would list it. Git's listing is the source of truth: a prunable entry means the
-    /// folder or its .git has gone, so there is nothing for git status to count and the health decides.
+    /// The worktree as the worktrees view would list it, judged by git's listing and the folder on disc together: a
+    /// folder that exists is never taken to be gone, and for any health but ok its files are counted, so a worktree
+    /// whose .git file has gone, or that git lists under another spelling of its path, is kept while it holds work.
     /// </summary>
     private async Task<WorktreeRow> RowAsync(CreatedWorktree created, CancellationToken cancellationToken)
     {
-        WorktreeHealth health = await inspector.HealthAsync(created.Repository, created.Path, folderExists: true, cancellationToken);
-        WorktreeCounts counts = health.Kind == WorktreeHealthKind.Ok
+        bool folderExists = folders.DirectoryExists(created.Path.Value);
+        WorktreeHealth health = await inspector.HealthAsync(created.Repository, created.Path, folderExists, cancellationToken);
+        bool healthy = health.Kind == WorktreeHealthKind.Ok;
+        WorktreeCounts counts = healthy
             ? await inspector.CountAsync(created.Path, cancellationToken)
             : new WorktreeCounts(0, 0, new LastCommit.Unknown());
+        int leftoverFiles = healthy ? 0 : LeftoverFiles.Count(folders, created.Path);
 
-        return new WorktreeRow(created.Repository, created.Path, new Head.OnBranch(created.Branch), health, counts.DirtyFiles, counts.UnpushedCommits, counts.LastCommitAt, new WorktreeSession.None(), LeftoverFileCount: 0, OwnerExists: true, FolderExists: folders.DirectoryExists(created.Path.Value));
+        return new WorktreeRow(created.Repository, created.Path, new Head.OnBranch(created.Branch), health, counts.DirtyFiles, counts.UnpushedCommits, counts.LastCommitAt, new WorktreeSession.None(), leftoverFiles, OwnerExists: true, folderExists);
     }
 }
 
