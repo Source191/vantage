@@ -39,7 +39,9 @@ public sealed class WordingOfDetailShould
     {
         SessionRow row = Row(DisplayState.NeedsInput, processId: 4242) with { HasTranscript = false };
 
-        Text(Wording.Detail(Detail(row), Now))[0].ShouldBe("Waiting a first prompt");
+        DetailLine waiting = Wording.Detail(Detail(row), Now).Facts[0][0];
+
+        (waiting.Text, waiting.Tone).ShouldBe(("a first prompt", TextTone.Amber));
     }
 
     [Fact]
