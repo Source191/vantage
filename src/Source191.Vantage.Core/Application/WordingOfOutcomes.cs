@@ -235,7 +235,7 @@ public static partial class Wording
         IEnumerable<string> notes = outcome.Notes.Select(note => note switch
         {
             ResumeNote.NeverSentAMessage => $"{note.Name}: never sent a message, so there is nothing to resume; d deletes it",
-            ResumeNote.Failed failed => $"{note.Name}: {failed.Failure}",
+            ResumeNote.Failed failed => $"{note.Name}: {failed.Failure}; resume it with claude --bg --resume {failed.SessionId.Value}",
             _ => throw new UnreachableException(),
         });
         string suffix = outcome.Notes.Count == 0 ? string.Empty : $" Notes: {string.Join("; ", notes)}";
