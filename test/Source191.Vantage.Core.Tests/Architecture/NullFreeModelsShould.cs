@@ -302,6 +302,10 @@ public sealed class NullFreeModelsShould
         bool Equals(IHouseShapes? other);
 
         int CompareTo(IHouseShapes? other);
+
+        bool TryFind(int key, [NotNullWhen(true)] out string? found);
+
+        bool TryTake(IHouseShapes from, [MaybeNullWhen(false)] out IHouseShapes taken);
     }
 
     private interface IBareTryParse
