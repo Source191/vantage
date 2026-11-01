@@ -121,7 +121,7 @@ public sealed class FolderDeletionShould : IDisposable
     private async Task CreateJunctionAsync(string link, string target)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(link)!);
-        ProcessRequest request = new("cmd.exe", ["/c", "mklink", "/J", link, target], WorkingDirectory: null);
+        ProcessRequest request = new("cmd.exe", ["/c", "mklink", "/J", link, target], WorkingFolder.Inherit);
         ProcessResult result = await new ProcessRunner().RunAsync(request, TestContext.Current.CancellationToken);
         result.ExitCode.ShouldBe(0, result.StandardError);
         junctions.Add(link);

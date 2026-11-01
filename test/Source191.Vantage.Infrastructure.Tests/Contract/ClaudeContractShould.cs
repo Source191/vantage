@@ -70,7 +70,7 @@ public sealed class ClaudeContractShould
         try
         {
             await ListedAsync(cli, name);
-            ProcessResult listing = await runner.RunAsync(new ProcessRequest(executable, ["agents", "--json", "--all"], WorkingDirectory: null), Cancellation);
+            ProcessResult listing = await runner.RunAsync(new ProcessRequest(executable, ["agents", "--json", "--all"], WorkingFolder.Inherit), Cancellation);
             using JsonDocument rows = JsonDocument.Parse(listing.StandardOutput);
 
             JsonElement row = rows.RootElement.EnumerateArray().Single(element => element.TryGetProperty("name", out JsonElement value) && value.GetString() == name.Value);

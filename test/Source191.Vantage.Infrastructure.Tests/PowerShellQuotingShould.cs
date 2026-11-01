@@ -19,7 +19,7 @@ public sealed class PowerShellQuotingShould
     public async Task PrintQuotedTextBackUnchanged()
     {
         string script = $"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\nWrite-Output {PowerShellScript.Quote(Text)}";
-        ProcessRequest request = new("pwsh.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(script)], WorkingDirectory: null);
+        ProcessRequest request = new("pwsh.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(script)], WorkingFolder.Inherit);
 
         ProcessResult result = await new ProcessRunner().RunAsync(request, TestContext.Current.CancellationToken);
 
@@ -34,7 +34,7 @@ public sealed class PowerShellQuotingShould
     {
         string update = new TabScripts(@"C:\Users\O'Neill\.local\bin\claude.exe", @"C:\Users\O'Neill\.dotnet\tools\vantage.exe").Update(4242, Domain.FolderPath.From(@"C:\Users\O'Neill")).Script;
         string script = $"$errors = $null\n[void][System.Management.Automation.Language.Parser]::ParseInput({PowerShellScript.Quote(update)}, [ref]$null, [ref]$errors)\nWrite-Output $errors.Count";
-        ProcessRequest request = new("pwsh.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(script)], WorkingDirectory: null);
+        ProcessRequest request = new("pwsh.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", EncodedCommand.Encode(script)], WorkingFolder.Inherit);
 
         ProcessResult result = await new ProcessRunner().RunAsync(request, TestContext.Current.CancellationToken);
 

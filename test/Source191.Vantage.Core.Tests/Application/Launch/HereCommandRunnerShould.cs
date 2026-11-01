@@ -44,7 +44,7 @@ public sealed class HereCommandRunnerShould : IDisposable
 
         exitCode.ShouldBe(0);
         output.ToString().ShouldContain("Started fix-tests (81cdb0f9) in " + Directory);
-        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(Directory);
+        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(new WorkingFolder.At(Directory));
         processes.InteractiveRequests.Single().Arguments.ShouldBe(["attach", "81cdb0f9"]);
         console.Recovered.ShouldBe(1);
     }

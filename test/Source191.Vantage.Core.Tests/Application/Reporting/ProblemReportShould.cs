@@ -36,8 +36,8 @@ public sealed class ProblemReportShould
         string[] programs = ["status", "log", "branch", "rev-list"];
         foreach (string program in programs)
         {
-            counts.Add(ChildCommand.For(new ProcessRequest("git", [program], null)), 0, TimeSpan.FromMilliseconds(5));
-            counts.Add(ChildCommand.For(new ProcessRequest("git", [program], null)), 128, TimeSpan.FromMilliseconds(5));
+            counts.Add(ChildCommand.For(new ProcessRequest("git", [program], WorkingFolder.Inherit)), 0, TimeSpan.FromMilliseconds(5));
+            counts.Add(ChildCommand.For(new ProcessRequest("git", [program], WorkingFolder.Inherit)), 128, TimeSpan.FromMilliseconds(5));
         }
 
         ProblemReport report = await Reports().BuildAsync();
@@ -68,7 +68,7 @@ public sealed class ProblemReportShould
         log.Record(new ViewShown(ViewKind.Sessions));
         log.Record(new Failed(FailureSite.Load, null, ExceptionSummary.From(new GitException("x"))));
         log.Record(new ViewShown(ViewKind.Worktrees));
-        counts.Add(ChildCommand.For(new ProcessRequest("git", ["status"], null)), 0, TimeSpan.FromMilliseconds(5));
+        counts.Add(ChildCommand.For(new ProcessRequest("git", ["status"], WorkingFolder.Inherit)), 0, TimeSpan.FromMilliseconds(5));
         ProblemReport report = await Reports().BuildAsync();
         int withoutTwoEvents = ProblemReportAddress.Length(Title, report.Text) - Uri.EscapeDataString("2026-10-29T12:00:00.000Z view Sessions\n").Length - Uri.EscapeDataString("2026-10-29T12:00:00.000Z view Worktrees\n").Length + Uri.EscapeDataString("\n(2 lines left out to fit the page address)").Length;
 

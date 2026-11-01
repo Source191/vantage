@@ -8,8 +8,8 @@ namespace Source191.Vantage.Core.Tests.Application.Diagnostics;
 
 public sealed class RecordedProcessRunnerShould
 {
-    private static readonly ProcessRequest WorktreeList = new("git", ["worktree", "list", "--porcelain"], @"C:\Users\me\source\repos\Northwind.Orders");
-    private static readonly ProcessRequest Agents = new(@"C:\Users\me\.local\bin\claude.exe", ["agents", "--json", "--all"], null);
+    private static readonly ProcessRequest WorktreeList = new("git", ["worktree", "list", "--porcelain"], new WorkingFolder.At(@"C:\Users\me\source\repos\Northwind.Orders"));
+    private static readonly ProcessRequest Agents = new(@"C:\Users\me\.local\bin\claude.exe", ["agents", "--json", "--all"], WorkingFolder.Inherit);
 
     private readonly FakeTimeProvider clock = new(new DateTimeOffset(2026, 10, 29, 12, 0, 0, TimeSpan.Zero));
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, "worktree C:/Users/me", string.Empty));
@@ -86,7 +86,7 @@ public sealed class RecordedProcessRunnerShould
         processes.InteractiveExitCode = 130;
         RecordedProcessRunner runner = Runner(TimeSpan.FromHours(2));
 
-        int exitCode = await runner.RunInteractiveAsync(new ProcessRequest("claude", ["attach", "81cdb0f9"], null), CancellationToken.None);
+        int exitCode = await runner.RunInteractiveAsync(new ProcessRequest("claude", ["attach", "81cdb0f9"], WorkingFolder.Inherit), CancellationToken.None);
 
         exitCode.ShouldBe(130);
         DiagnosticLine.Render(counts).ShouldBe(["counts claude attach exit 130: 1 run, longest 7200000 ms"]);

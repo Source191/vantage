@@ -100,7 +100,7 @@ public sealed class StartSessionHandlerShould
 
         Outcome outcome = await Handler.HandleAsync(new StartSession(inWorktree), CancellationToken.None);
 
-        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(Worktree);
+        processes.CapturedRequests.Single(request => request.Arguments.Contains("--bg")).WorkingDirectory.ShouldBe(new WorkingFolder.At(Worktree));
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("worktree"));
         outcome.ShouldBeOfType<StartSessionOutcome.StartedAndOpened>().Name.ShouldBe("Fix flaky tests");
     }

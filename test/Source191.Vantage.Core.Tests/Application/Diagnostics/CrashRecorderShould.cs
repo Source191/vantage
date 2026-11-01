@@ -17,7 +17,7 @@ public sealed class CrashRecorderShould
     {
         log = new DiagnosticLog(new FakeTimeProvider(new DateTimeOffset(2026, 10, 29, 12, 0, 0, TimeSpan.Zero)), [sink]);
         recorder = new CrashRecorder(log, counts, crashFile);
-        counts.Add(ChildCommand.For(new ProcessRequest("git", ["status"], null)), 0, TimeSpan.FromMilliseconds(12));
+        counts.Add(ChildCommand.For(new ProcessRequest("git", ["status"], WorkingFolder.Inherit)), 0, TimeSpan.FromMilliseconds(12));
     }
 
     [Fact]

@@ -57,7 +57,7 @@ public sealed class ResumeSessionsHandlerShould
         Outcome message = await Handler.HandleAsync(new ResumeSessions([first, second]), CancellationToken.None);
 
         List<ProcessRequest> resumes = [.. processes.CapturedRequests.Where(request => request.Arguments.Contains("--resume"))];
-        resumes.Select(request => request.WorkingDirectory).ShouldBe([Repository, Worktree]);
+        resumes.Select(request => request.WorkingDirectory).ShouldBe([new WorkingFolder.At(Repository), new WorkingFolder.At(Worktree)]);
         resumes.Select(request => request.Arguments[2]).ShouldBe(["sess-1", "sess-2"]);
         resumes.Select(request => request.Arguments[^1]).ShouldAllBe(name => name == "fix-123", "the display name survives the resume");
         message.ShouldBeOfType<ResumeSessionsOutcome>().Resumed.ShouldBe(2);

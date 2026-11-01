@@ -43,7 +43,7 @@ public sealed class GitHubPullRequestsShould
 
         processes.CapturedRequests.Single().ShouldSatisfyAllConditions(
             request => request.FileName.ShouldBe(Gh),
-            request => request.WorkingDirectory.ShouldBe(Checkout.Value),
+            request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Checkout.Value)),
             request => request.Arguments.ShouldBe(["pr", "list", "--repo", "northwind/Northwind.Orders", "--head", "fix-123", "--state", "all", "--limit", "20", "--json", "number,url,state,isDraft,headRefName,createdAt"]));
         listing.ShouldBeOfType<PullRequestListing.Listed>().PullRequests.ShouldBe(
         [
