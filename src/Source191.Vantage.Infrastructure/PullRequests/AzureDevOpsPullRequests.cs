@@ -32,7 +32,7 @@ public sealed class AzureDevOpsPullRequests(IProcessRunner processes, ProgramLoc
             return new PullRequestListing.Unavailable(PullRequestGap.BranchNotGivenToAz);
         }
 
-        ProcessRequest request = new(executable, ["repos", "pr", "list", "--org", $"https://dev.azure.com/{repository.Organisation}", "--project", repository.Project, "--repository", repository.Name, "--source-branch", branch.Value, "--status", "all", "--top", "20", "--output", "json"], checkout.Value);
+        ProcessRequest request = new(executable, ["repos", "pr", "list", "--org", $"https://dev.azure.com/{repository.Organisation}", "--project", repository.Project, "--repository", repository.Name, "--source-branch", branch.Value, "--status", "all", "--top", "20", "--output", "json"], new WorkingFolder.At(checkout.Value));
         ProcessResult result;
         try
         {
