@@ -21,7 +21,7 @@ internal interface ITabBody
 
     KeyBar Bar(bool updateKnown);
 
-    /// <summary>What the console's status line says while this tab is shown: its last message, or its standing hint.</summary>
+    /// <summary>What the console's status line says while this tab is shown: its last message, or nothing.</summary>
     StatusMessage Status { get; }
 
     /// <summary>Whether an action this tab started is still running, which the status line shows with its spinner.</summary>

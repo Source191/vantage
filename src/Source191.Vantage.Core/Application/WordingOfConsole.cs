@@ -3,7 +3,7 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application;
 
-/// <summary>The words of the console's frame: the settings line, the tab titles, the counts beside them and the key bar.</summary>
+/// <summary>The words of the console's frame: the settings row, the tab titles, the counts beside them and the key bar.</summary>
 public static partial class Wording
 {
     private const int BarStart = 1;

@@ -4,9 +4,8 @@ using Source191.Vantage.Domain;
 namespace Source191.Vantage.Core.Tests.Architecture;
 
 /// <summary>
-/// The dependency direction the project split will later enforce with project references: Domain at the bottom,
-/// Ports above it, Application above that, and Adapters and Tui on top, with Program (the global namespace) the only
-/// place that may know everything. Rules that the code does not meet yet are skipped and name the task that unskips them.
+/// The dependency direction: Domain at the bottom, Ports above it, Application above that, and Adapters and Tui on top,
+/// with Program (the global namespace) the only place that may know everything.
 /// </summary>
 public sealed class LayeringShould
 {

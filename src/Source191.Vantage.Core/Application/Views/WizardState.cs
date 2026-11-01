@@ -23,7 +23,7 @@ public sealed record WizardState(
     FolderPath WorktreeRoot,
     WizardField Focus)
 {
-    /// <summary>The wizard as it opens, with the default place, the worktree root and the default base from the settings saved now. Fixed on a folder (the worktrees view's s key) the session starts there on its current branch: no repository list, no worktree choice.</summary>
+    /// <summary>The wizard as it opens, with the default place, the worktree root and the default base from the settings saved now. Fixed on a folder (n on a Worktrees row) the session starts there on its current branch: no repository list, no worktree choice.</summary>
     public static WizardState Open(RepositoryCatalogue catalogue, IReadOnlyList<string> recent, IFolders folders, Settings settings, WizardOrigin origin)
     {
         bool anywhere = origin is WizardOrigin.Anywhere;

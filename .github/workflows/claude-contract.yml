@@ -1,6 +1,6 @@
 name: claude-contract
 
-# Every night, checks that the latest Claude Code CLI still offers what Vantage relies on (CLAUDE.md, "Claude Code
+# Every night, checks that the latest Claude Code CLI still offers what Vantage relies on (.claude\rules\checks.md, "Claude Code
 # contract tests"): the contract tests drive Vantage's own Claude adapters against a fresh install, compare the
 # commands and options in the CLI's help with the committed snapshots, and the hand-off check attaches through vantage here and detaches.
 # A failed install or contract test raises one rolling issue labelled claude-cli, assigned to the login in the
@@ -71,7 +71,7 @@ jobs:
           "version=$version" >> $env:GITHUB_OUTPUT
 
       # The runner has no desktop to accept the trust prompt on, so trust the checkout here. The
-      # only places this record is ever written by a script; see CLAUDE.md.
+      # only places this record is ever written by a script; see .claude\rules\claude-code.md.
       - name: Trust the checkout
         if: steps.gate.outputs.enabled == 'true'
         shell: pwsh

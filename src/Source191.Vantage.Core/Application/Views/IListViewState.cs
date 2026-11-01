@@ -9,7 +9,7 @@ public interface IListViewState<TRow>
 
     LoadBanner Banner { get; }
 
-    /// <summary>The status message to show: the last message, else the view's standing message.</summary>
+    /// <summary>The status message to show: the last message; <see cref="StatusMessage.Blank"/> shows no status line.</summary>
     StatusMessage Shown { get; }
 
     bool Loaded { get; }

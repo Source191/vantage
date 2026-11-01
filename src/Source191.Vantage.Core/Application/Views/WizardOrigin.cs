@@ -5,7 +5,7 @@ namespace Source191.Vantage.Application.Views;
 
 /// <summary>
 /// How the new-session wizard was opened: anywhere (n, with the repository list and the worktree choice), or fixed on
-/// one folder (the worktrees view's s), where the session starts on that folder's current branch.
+/// one folder (n on a Worktrees row), where the session starts on that folder's current branch.
 /// </summary>
 public abstract record WizardOrigin
 {

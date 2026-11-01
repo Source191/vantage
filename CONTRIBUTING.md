@@ -1,6 +1,6 @@
 # Contributing to Vantage
 
-Thank you for wanting to make Vantage better. This guide holds everything needed to develop it: how to propose a change, how to build and test it, how the code is organised, how every change goes through OpenSpec, and how a change becomes a release. The [README](README.md) is the user guide; [CLAUDE.md](CLAUDE.md) is the full rulebook and records the verified facts about Claude Code, Terminal.Gui, Windows Terminal and Windows that Vantage depends on.
+Thank you for wanting to make Vantage better. This guide holds what you need to develop it: how to propose a change, build and test it, how the code is organised, how every change goes through OpenSpec, and how to open a pull request. The [README](README.md) is the user guide; [CLAUDE.md](CLAUDE.md) and `.claude\rules` are the full rulebook and the verified facts about Claude Code, Terminal.Gui, Windows Terminal and Windows that Vantage depends on; [MAINTAINING.md](MAINTAINING.md) is the owner's guide to releasing.
 
 ## Contents
 
@@ -15,14 +15,13 @@ Thank you for wanting to make Vantage better. This guide holds everything needed
 - [Manual checks for tab and attach changes](#manual-checks-for-tab-and-attach-changes)
 - [Continuous integration](#continuous-integration)
 - [Versions](#versions)
-- [Releasing and maintaining](#releasing-and-maintaining)
 
 ## How to contribute
 
 - **Small fixes:** a typo, a broken link or an obvious one-line bug can go straight to a pull request.
-- **Anything larger:** open an issue first and describe the problem or the idea, so we can agree the change before you spend time on an OpenSpec proposal and code. A bug report is best made from Vantage itself with `!` (see the README's [Reporting a problem](README.md#reporting-a-problem)), which fills in the diagnostics.
+- **Anything larger:** open an issue first and describe the problem or the idea, so we can agree the change before you spend time on a proposal and code. A bug report is best made from Vantage itself with `!` (see the README's [Reporting a problem](README.md#reporting-a-problem)), which fills in the diagnostics.
 - **Security problems:** never in a public issue; follow [SECURITY.md](SECURITY.md).
-- **Review:** every pull request needs the owner's approval before it can merge; `.github\CODEOWNERS` and the "Owner approves main" ruleset enforce it.
+- **Review:** every pull request needs the owner's approval before it can merge.
 - **Licence:** Vantage is under the [Apache License 2.0](LICENSE). By opening a pull request you agree your contribution is under the same licence (its section 5); there is no contributor licence agreement to sign.
 - **Fixtures:** tests use made-up `Northwind.*` repositories and `C:\Users\me` paths, never real repositories, people or your own machine's paths.
 
@@ -31,7 +30,7 @@ Thank you for wanting to make Vantage better. This guide holds everything needed
 Vantage builds and runs on Windows 11 only. Install what the README's [Prerequisites](README.md#prerequisites) list (Windows Terminal, PowerShell 7, the .NET 10 SDK, git and Claude Code), then:
 
 ```powershell
-npm install -g @fission-ai/openspec   # the OpenSpec CLI; `openspec install` gives a standalone build without Node.js
+npm install -g @fission-ai/openspec   # the OpenSpec CLI
 dotnet tool install -g dotnet-stryker # mutation testing, optional
 git clone https://github.com/Source191/vantage.git
 cd vantage
@@ -46,17 +45,21 @@ dotnet build -c Debug
 
 ```powershell
 dotnet build -c Debug                                              # warnings are errors
-dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build  # the fast in-memory suite, about two seconds
+dotnet test test\Source191.Vantage.Core.Tests -c Debug --no-build  # the fast in-memory suite, a few seconds
 dotnet test -c Debug --no-build                                    # every suite, including real git and processes
 dotnet format --verify-no-changes
-dotnet run --project tools\HeadlessTerminal -- check               # the hand-off check, from tools\HeadlessTerminal
 ```
 
 - **Warnings are errors:** style and analyser rules fail the build, so a clean build is most of the style review.
-- **Debug for the loop:** a Release build of `vantage.exe` cannot be rebuilt while it is running; stop the running instance before `dotnet pack` (`tools\install-local.ps1` does both).
-- **The hand-off check:** run it after any change to attach, dialogs or Terminal.Gui. It starts and removes its own throwaway session; exit 1 means a blocked UI thread, 3 that Vantage quit but Claude's own screen never appeared. `tools\HeadlessTerminal` also has `drive` (scripted keystrokes into a pseudo-console, captured to `drive-raw.txt`), `grid` (replay a capture as a screen, which is how the screens in the README are drawn) and `count`; keys sent in the first 8 seconds are lost, so scripts start at 8000 ms. See its [README](tools/HeadlessTerminal/README.md).
-- **The smoke check:** `dotnet run --project tools\HeadlessTerminal -- smoke <exe> <worktree-folder>` opens and cancels every dialog and view of a packed tool, then quits; exit 0 passes.
-- **Claude Code contract tests:** they start real sessions, so an ordinary `dotnet test` skips them. Run them from a trusted repository with `$env:VANTAGE_CLAUDE_CONTRACT = 1; dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug -- --filter-trait "Category=ClaudeContract"`. A difference in the CLI's help leaves `<name>.received.txt` beside the snapshot; see [the nightly contract check](#the-nightly-claude-code-contract-check).
+- **The hand-off check:** after any change to attach, `vantage here` or the pseudo-console code, build Release and run it from `tools\HeadlessTerminal`. It starts and removes its own throwaway session, makes no model call, and exits 0 when it passes, 1 when `here` had to be killed after the detach, 2 when it could not start, and 3 when Claude's own screen never appeared.
+
+  ```powershell
+  dotnet build src\Source191.Vantage -c Release
+  cd tools\HeadlessTerminal; dotnet run -- check
+  ```
+
+- **The smoke check:** `dotnet run -- smoke <exe> <worktree-folder>` from the same folder opens and cancels every dialog and view of an installed tool, then quits; exit 0 passes. The worktree must be an idle linked worktree under a repository root holding two solutions. The tool's [README](tools/HeadlessTerminal/README.md) also covers `drive`, `grid` and `count`, for scripted keystrokes and reading a capture as a screen.
+- **Claude Code contract tests:** they start real sessions, so an ordinary `dotnet test` skips them. Run them from a trusted repository with `$env:VANTAGE_CLAUDE_CONTRACT = 1; dotnet test --project test\Source191.Vantage.Infrastructure.Tests -c Debug -- --filter-trait "Category=ClaudeContract"`.
 - **Mutation testing:** from `test\Source191.Vantage.Core.Tests`, run `dotnet stryker --test-runner mtp --project Source191.Vantage.Core.csproj --mutate "**/Domain/*.cs"`. Use `--test-runner mtp` (xunit.v3 scores 0 % under the VSTest bridge) and globs like that one, never solution-relative paths.
 - **Performance:** [docs/performance-monitoring.md](docs/performance-monitoring.md) explains how to watch Vantage over a working day with `VANTAGE_LOG`, `dotnet-counters`, `dotnet-trace` and the Windows Performance Recorder, and how to read the results before changing anything for speed.
 
@@ -68,87 +71,64 @@ Pack and install the tool from your working copy:
 .\tools\install-local.ps1
 ```
 
-The script stops a running `vantage.exe`, packs the tool as `<Version>-local.<timestamp>` and installs or updates the global tool. The suffix matters: the tool cache keeps the first package it saw for a version, so two plain builds of 0.1.18 would run the first one. `-Clean` uninstalls first.
+The script stops a running `vantage.exe`, packs the tool as `<Version>-local.<timestamp>` and installs or updates the global tool. The suffix matters: the tool cache keeps the first package it saw for a version, so two plain builds of one version would run the first. `-Clean` uninstalls first.
 
-To test the package a GitHub Actions run built instead, download the run's `Source191.Vantage-<version>-ci.<run number>` artefact and install from the folder:
+To test the package a GitHub Actions run built, download the run's `Source191.Vantage-<version>-ci.<run number>` artefact and install from the folder:
 
 ```powershell
-gh run download <run id> --name Source191.Vantage-0.1.18-ci.42 --dir .\downloaded
+gh run download <run id> --name Source191.Vantage-0.20.0-ci.42 --dir .\downloaded
 .\tools\install-local.ps1 -FromArtifact .\downloaded
 ```
 
-Or by hand: `dotnet pack src\Source191.Vantage -c Release` then `dotnet tool install -g Source191.Vantage --add-source .\artifacts\packages`. Go back to the published tool with `dotnet tool update -g Source191.Vantage`.
+Go back to the published tool with `dotnet tool update -g Source191.Vantage` (add `--prerelease` to stay on previews).
 
 ## How the code is organised
 
 | Project | What it holds |
 | --- | --- |
-| [src\Source191.Vantage.Core](src/Source191.Vantage.Core/README.md) | `Domain` (rules and value objects, depends on nothing), `Ports` (the boundary interfaces and their records), `Application` (use cases in `Actions` and `Launch`, read models, the `Views` reducers, the detail pane's reading, ordering and layout in `Detail`, `ScreenLoop`, `CommandLine`, `Wording`) |
-| [src\Source191.Vantage.Infrastructure](src/Source191.Vantage.Infrastructure/README.md) | The adapters: git, the Claude CLI, Windows Terminal, processes, files, state, pull requests, diagnostics |
+| [src\Source191.Vantage.Core](src/Source191.Vantage.Core/README.md) | Domain (rules and value objects, depends on nothing), Ports (the boundary interfaces and their records), Application (use cases in Actions and Launch, effect routing in Effects, the Views reducers, the detail pane in Detail, Diagnostics, Reporting, TerminalSetup, ScreenLoop, CommandLine, Wording) |
+| [src\Source191.Vantage.Infrastructure](src/Source191.Vantage.Infrastructure/README.md) | The adapters: git, the Claude CLI, Windows Terminal, processes, files, state, pull requests, package versions, diagnostics |
 | [src\Source191.Vantage.Tui](src/Source191.Vantage.Tui/README.md) | Terminal.Gui rendering and dialogs, nothing else |
-| [src\Source191.Vantage](src/Source191.Vantage/README.md) | `Program.cs`, the only composition root, packed as the tool with the other three inside |
+| [src\Source191.Vantage](src/Source191.Vantage/README.md) | Program.cs, the only composition root, packed as the tool with the other three inside |
 | [test\Source191.Vantage.Core.Tests](test/Source191.Vantage.Core.Tests/README.md) | The fast in-memory suite, including the architecture tests |
 | [test\Source191.Vantage.Infrastructure.Tests](test/Source191.Vantage.Infrastructure.Tests/README.md) | The adapters against real git, processes and files, and the Claude Code contract tests |
-| [test\Source191.Vantage.TestDoubles](test/Source191.Vantage.TestDoubles/README.md) | The shared hand-written fakes, no test framework |
+| [test\Source191.Vantage.TestDoubles](test/Source191.Vantage.TestDoubles/README.md) | The shared hand-written fakes, one per port, no test framework |
 | [tools\HeadlessTerminal](tools/HeadlessTerminal/README.md) and [its tests](tools/HeadlessTerminal.Tests/README.md) | Drives the built exe in a pseudo-console: the hand-off and smoke checks |
 
-Each project's README holds what is worth knowing about it; a `.csproj` carries no comments (the root `Directory.Build.props` keeps its own beside its settings). `openspec\` holds the specifications and the changes made against them, `.github\` the workflows and their scripts, `assets\` the icon and artwork and the scripts in `tools\` that draw them.
+Each project's README holds what is worth knowing about it; a `.csproj` carries no comments (the root `Directory.Build.props` keeps its own beside its settings). `openspec\` holds the specifications and the changes made against them, `.github\` the workflows and their scripts, `assets\` the icon and artwork.
 
 ## The code rules in brief
 
 CLAUDE.md's "Code rules" are the authority; this is their shape.
 
-- **Layers:** Domain, Ports, Application, Adapters, Tui, one namespace each, with dependencies pointing one way; `Architecture\LayeringShould` fails the build's tests otherwise. Nothing outside the adapters touches files or processes, and nothing outside `Tui` touches Terminal.Gui.
+- **Layers:** Domain, Ports, Application, Adapters, Tui, one namespace each, with dependencies pointing one way; `Architecture\LayeringShould` fails otherwise. Nothing outside the adapters touches files or processes, and nothing outside `Tui` touches Terminal.Gui.
 - **Test-driven:** red, green, refactor, a commit per step. No untested code except `Program.cs` and wiring.
-- **Sociable tests:** real collaborators inside the code; hand-written fakes from `TestDoubles` only at the boundaries (process runner, process registry, terminal, console, transcripts, folders, state, git roots), never a mocking library.
-- **C# style:** concrete types rather than `var`, primary constructors, records, collection expressions, file-scoped namespaces, target-typed `new`, `is null` and `is not` patterns, `System.Threading.Lock`, `[LibraryImport]` for platform calls, `TimeProvider`, braces always, expression bodies for one-line methods, the throw helpers for guard clauses (a primary constructor guards a parameter with `?? throw` in the field initialiser that reads it), and switch expressions that name every member of a closed enum. `.editorconfig` holds the language idioms at `warning`, so the build reports a lapse.
-- **Reducers:** each view (`Application\Views\*View.cs`) is a pure function of state and input returning effects; the `Tui` layer only renders and runs effects. A new key is four pieces and no screen change: the effect record, the reducer case and its test, a handler (`IEffectHandler<TEffect>`, one class per effect, with its outcome record and a `...HandlerShould` test) and its line in `Composition.Handlers`.
-- **Values are types:** folders are `FolderPath`, ids are `SessionId`, `JobId` and `BranchName`, and so on. Each text value builds with `From`, parses outside text with `TryParse` and, where a person typed it, explains a problem with `Validate`.
+- **Sociable tests:** real collaborators inside the code; hand-written fakes from `TestDoubles` only at the boundaries, never a mocking library.
+- **C# style:** concrete types rather than `var`, primary constructors, sealed records and classes, collection expressions, file-scoped namespaces, target-typed `new`, `TimeProvider`, braces always, one top-level type per file, the throw helpers for guard clauses, and switch expressions that name every member of a closed enum. `.editorconfig` and the architecture tests hold these, so the build reports a lapse.
+- **Reducers:** each view (`Application\Views\*View.cs`) is a pure function of state and input returning effects; the `Tui` layer only renders and runs effects. A new key is the effect record, the reducer case and its test, a handler (`IEffectHandler<TEffect>`, one class per effect, with its outcome record and a `...HandlerShould` test) and its line in `Composition.Handlers`.
+- **Values are types:** folders are `FolderPath`, ids are `SessionId`, `JobId` and `BranchName`, and so on. Each text value builds with `From`, parses outside text with `TryParse` and, where a person typed it, explains a problem with `Validate`. Vantage's own models never use null for meaning.
 - **Words live in `Wording`:** all user-facing text is in `Application\Wording`, in British English, with a fact in its tests. User text never comes from an exception message.
 - **Privacy:** diagnostics record numbers, durations, versions, enums and type names only, never a path, a name, program output or anything typed; `DiagnosticEventsShould` and `DiagnosticsPrivacyShould` enforce it.
-- **Programs Vantage starts:** each is found once in the PATH folders as an `.exe` and run by its full path; no batch file is ever given text from a person, a repository or a listing; user text never reaches PowerShell source unquoted.
+- **Programs Vantage starts:** each is found once on the PATH as an `.exe` and run by its full path; no batch file is ever given text from a person, a repository or a listing; user text never reaches PowerShell source unquoted.
 
 ## OpenSpec: how every change is made
 
 Vantage uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven development. Every piece of work, including refactors, tooling and documentation, starts as an OpenSpec change and is archived in the pull request that completes it.
 
-### What lives where
+- **`openspec\specs`:** what Vantage does today, one capability per folder (`session-listing`, `session-launch`, `worktree-management`, `settings` and so on), as `SHALL` requirements with `WHEN`/`THEN` scenarios. Read it to learn current behaviour.
+- **`openspec\changes\<name>`:** a change in flight: `proposal.md`, `design.md`, `tasks.md` and delta specs under `specs\`.
+- **`openspec\changes\archive`:** every finished change, dated. Search it only to learn why something was decided; never read an archived design as a description of the current code.
+- **`openspec\config.yaml`:** the project context every change inherits and the rules for each artifact.
 
-- **`openspec\specs`:** what Vantage does today, one capability per folder (`session-listing`, `session-launch`, `session-attach`, `worktree-management`, `settings` and so on). Each holds requirements written as `SHALL` statements with scenarios (`WHEN` and `THEN`).
-- **`openspec\changes\<name>`:** a change in flight: `proposal.md`, `design.md`, `tasks.md` and, under `specs\`, delta specs that add, modify or remove requirements.
-- **`openspec\changes\archive\<date>-<name>`:** every finished change, dated.
-- **`openspec\config.yaml`:** the project context every change inherits (platform, the Claude Code CLI surface, worktree conventions, layering, coding style) and the rules for each artifact. Update it when a rule changes rather than repeating the rule in each proposal.
+The stages, each with a Claude Code command and a CLI equivalent:
 
-### The stages
+1. **Explore (optional):** `/opsx:explore` thinks an unclear idea through with you, reading the specs and the code, and writes nothing.
+2. **Propose:** `/opsx:propose <name>` (or `openspec new change <name>`) writes the proposal (why, what, out of scope, impact), the delta specs (`ADDED`, `MODIFIED` or `REMOVED` requirements; read the current spec first with `openspec show <capability> --type spec`), the design (decisions, rejected alternatives, risks) and the tasks (numbered checkboxes, each one red-green-refactor cycle or smaller, domain first, then adapters, then screens). It is done when `openspec validate <name>` passes; commit it before writing code.
+3. **Apply:** `/opsx:apply <name>` works through the tasks test-first, a commit per step, ticking each box. When the code shows the plan was wrong, change the plan (`/opsx:update`) rather than quietly building something else.
+4. **Record:** a task that needs a person (a check in a real Windows Terminal) is ticked only once done, with a note saying what was seen, when and on which build.
+5. **Archive:** `/opsx:archive <name>` once every task is ticked, in the same pull request, so `openspec\specs` on `main` always describes the code on `main`.
 
-Each stage has a Claude Code command (from `.claude\commands\opsx`, backed by the skills in `.claude\skills`) and a CLI equivalent. Run `openspec update` after upgrading the CLI to refresh those files.
-
-1. **Explore (optional):** `/opsx:explore` is a thinking partner for an idea that is not yet clear: it reads the specs and the code and asks questions, but writes nothing. Leave it when you can say in two sentences what should change and why.
-2. **Propose:** `/opsx:propose <name>`, or `openspec new change <name>` and then `openspec instructions <artifact> --change <name>` for each artifact. It writes, in order:
-   - **`proposal.md`:** why the change is needed, what changes, what is out of scope, which capabilities it creates or modifies, and its impact.
-   - **Delta specs:** under `specs\<capability>\spec.md`, the `ADDED`, `MODIFIED` or `REMOVED` requirements with their scenarios. Read the current spec first (`openspec show <capability> --type spec`) so a delta changes the existing requirement rather than duplicating it.
-   - **`design.md`:** how: the decisions, the alternatives rejected and why, and the risks.
-   - **`tasks.md`:** numbered checkboxes, each one red-green-refactor cycle or smaller with the test named before the code, ordered domain first, then adapters, then screens, each saying how it is verified.
-
-   The proposal is done when `openspec validate <name>` passes and the artifacts agree with each other. Commit it before writing code, so the review can start with the plan.
-3. **Apply:** `/opsx:apply <name>` works through the tasks test-first: a failing test, the least code that passes, a refactor, a commit per step, and the task's box ticked. `openspec status --change <name>` shows progress. When the code shows the plan was wrong, stop and change the plan rather than quietly building something else.
-4. **Update:** `/opsx:update <name>` revises the proposal, design, specs and tasks together when a decision changes in flight, so they stay consistent with one another and with the code.
-5. **Record:** a task that needs a person (a check in a real Windows Terminal, the owner trying a local build) is ticked only once done, with a note under it saying what was seen, when and on which build, for example "Recorded 30 October 2026 by the product owner on 0.18.0-preview.4-local.20261030073119: all good on the laptop screen and the monitor". Captures and timings from the headless terminal are recorded the same way.
-6. **Sync (rarely):** `/opsx:sync <name>` merges a change's delta specs into `openspec\specs` without archiving, for a long-running change whose finished part others need to build on.
-7. **Archive:** `/opsx:archive <name>`, or `openspec archive <name>`, once every task is ticked. It merges the delta specs into `openspec\specs` and moves the change to `openspec\changes\archive\<date>-<name>`. Archive in the same pull request that completes the change, so `openspec\specs` on `main` always describes the code on `main`.
-
-### Changes with no behaviour change
-
-A refactor, a tooling change or a documentation change still gets a proposal and tasks, but has nothing to say to the specs. It declares `skip_specs: true` in its `.openspec.yaml`, writes no delta specs, and `openspec validate` accepts it. The change that added this guide is one.
-
-### Why the specs and the archive are kept for ever
-
-They answer two different questions, and both answers would otherwise be lost.
-
-- **The specs answer "what does Vantage do?"** `openspec\specs` is the one current account of the behaviour on `main`. Because every change's delta specs merge into it as the change is archived, it never drifts from the code the way a hand-kept document does, and it is small enough to read before changing anything. Proposing against it is what stops a new change from quietly contradicting an old promise: the delta has to say which requirement it modifies. It also tells a reviewer, a user or a Claude Code session what behaviour is deliberate rather than accidental, which the code alone cannot.
-- **The archive answers "why is it like this?"** Each archived change keeps the problem it solved, the alternatives it rejected and why, the risks it accepted, and what was observed when it was checked by hand. Git keeps the diff, but not the reasoning or the rejected options, and a commit message cannot hold a design. When a choice looks odd, the archive usually explains it, so the next person does not undo a decision that was made on purpose or repeat an experiment that already failed. Dated folders make the history easy to read in order, and keeping it costs only a few kilobytes of text.
-
-Use them that way round. Read `openspec\specs` to learn current behaviour. Search `openspec\changes\archive` only when asking why something was decided, and never read an archived design as a description of the current code: later changes may have replaced it, and only the specs and the code say what is true now.
+A refactor, tooling or documentation change still gets a proposal and tasks but has nothing to say to the specs: it declares `skip_specs: true` in its `.openspec.yaml`, and `openspec validate` accepts it with no delta specs.
 
 ## Opening a pull request
 
@@ -156,91 +136,47 @@ Before asking for review, check that:
 
 - **The issue:** for anything beyond a small fix, the pull request links the issue where the change was agreed.
 - **The change:** its OpenSpec change has every task ticked, manual checks recorded, and is archived in this pull request (`openspec validate` passes).
-- **The loop:** `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` pass, and the hand-off check exits 0 if you touched attach, dialogs or Terminal.Gui.
-- **The version:** a pull request that changes the packaged tool (`src\`, `Directory.Build.props`, `global.json` or `nuget.config`) raises `Version`; see [Versions](#versions).
-- **The documents:** the README describes any behaviour a user will notice, CLAUDE.md records any newly verified fact about Claude Code, and its `.claude\rules` files any about Terminal.Gui, Windows Terminal or Windows (with the date and version), and a project's README any fact worth knowing about it.
-- **Manual checks:** a change to how Vantage drives `wt.exe`, tabs or attach has been through the [manual checks](#manual-checks-for-tab-and-attach-changes) in a real Windows Terminal.
+- **The loop:** `dotnet build -c Debug`, `dotnet test -c Debug --no-build` and `dotnet format --verify-no-changes` pass, and the hand-off check exits 0 if you touched attach, `vantage here` or the pseudo-console.
+- **The version:** a pull request that changes the packaged tool raises `Version`; see [Versions](#versions).
+- **The documents:** the README describes any behaviour a user will notice; any newly verified fact about Claude Code, Terminal.Gui, Windows Terminal or Windows is recorded in its `.claude\rules` file with the date and version; a project's README holds any fact worth knowing about it.
+- **Manual checks:** a change to how Vantage drives `wt.exe`, tabs or attach has been through the [manual checks](#manual-checks-for-tab-and-attach-changes).
 
 ## Manual checks for tab and attach changes
 
-The runner drives Vantage inside a pseudo-console, which is the same plumbing Windows Terminal uses for a tab, so rendering, keys and the attach through `vantage here` are covered. Anything that goes out through `wt.exe` is not: a runner has no desktop for a tab to appear on. Before merging a pull request that changes how Vantage drives `wt.exe`, opens, titles or colours tabs, or attaches to a session, install its package (`tools\install-local.ps1`) and run these in a real Windows Terminal:
+CI drives Vantage inside a pseudo-console, so rendering, keys and the attach through `vantage here` are covered; anything that goes out through `wt.exe` is not, because a runner has no desktop. Before merging a pull request that changes how Vantage opens, titles or colours tabs, or attaches to a session, install its package (`tools\install-local.ps1`) and check in a real Windows Terminal:
 
-1. Enter on a session opens a coloured tab titled with the session name, and Enter again switches to that tab while it is open; `o` does nothing.
-2. `n`, choose a repository, name the session and leave `New worktree` chosen, F5: a new tab opens attached to the new session, its REPOSITORY cell reads the repository, and the new worktree's WORKTREE cell on the Worktrees tab reads the repository › the worktree's slug; F6 in the wizard does nothing.
+1. Enter on a session opens a coloured tab titled with the session name, and Enter again switches to that tab while it is open.
+2. `n`, choose a repository, name the session, leave `New worktree` chosen, F5: a new tab opens attached to the new session, its REPOSITORY cell reads the repository, and the Worktrees tab lists the new worktree.
 3. Ctrl+Z in that tab closes it, and the TAB block clears within one refresh.
-4. `d` on a session shown in its tab ends claude and the tab closes by itself.
+4. `d` on a session shown in its tab ends it and the tab closes by itself.
 5. A background session that pauses for input turns its row amber and rings the bell in the Vantage tab while another tab is in front.
-6. The tab Vantage runs in is titled `Vantage` and green, reads `Vantage (Keys)` while `?` is open and `Vantage` again after Esc, keeps that title while session tabs open and close, and goes back to the profile's title and colour on `q`.
+6. Vantage's own tab is titled `Vantage` and green, reads `Vantage (Keys)` while `?` is open and `Vantage` after Esc, and goes back to the profile's title and colour on `q`.
 7. `vantage here` in a trusted repository prints "Ctrl+Z detaches; the session keeps running.", attaches in the same tab, and Ctrl+Z returns to the shell with the line gone.
 
-After a Terminal.Gui update, check the dialog title from `tools\HeadlessTerminal` without a terminal: `dotnet run -- drive <vantage.exe> '8000:?,2000:\u001b,2000:q'`, then the `ESC ] 0 ;` titles in `drive-raw.txt` must read `Vantage`, `Vantage (Keys)`, `Vantage`. Terminal.Gui writes every Runnable's title to the terminal unless it is told not to, so a new dialog that skips `DialogTabTitle.Apply` shows up here as its own title.
+After a Terminal.Gui update, check the dialog titles without a terminal: from `tools\HeadlessTerminal`, `dotnet run -- drive <vantage.exe> '8000:?,2000:\u001b,2000:q'`, then the `ESC ] 0 ;` titles in `drive-raw.txt` must read `Vantage`, `Vantage (Keys)`, `Vantage`. Terminal.Gui writes every window's title to the terminal unless told not to, so a new dialog that skips `DialogTabTitle.Apply` shows up here.
 
 ## Continuous integration
 
-`.github\workflows\check.yml` runs on every pull request and every push to `main`, on a `windows-latest` runner because the code uses P/Invoke, ConPTY and `cmd.exe` in its integration tests. Branch protection on `main` requires its `check` job on an up-to-date branch, so a red pull request cannot merge, and nobody can push to `main` directly.
+`.github\workflows\check.yml` runs on every pull request and push to `main` on a Windows runner, and its `check` job must pass, on a branch up to date with `main`, before a pull request can merge.
 
-- **What `check` does:** builds in Release (warnings are errors) with the runner image's .NET SDK, which `global.json` chooses, so no SDK is downloaded; runs the whole test suite against that build; checks whitespace with `dotnet format whitespace --verify-no-changes` (the build already fails on every style and analyser warning, so the full `dotnet format` of the local loop would only repeat it); packs the tool as `<Version>-ci.<run number>`, a version the tool cache has never seen; uploads the `.nupkg` as the artefact `Source191.Vantage-<that version>`, so a working package is downloadable from any commit (see [Trying your build](#trying-your-build)); and runs the smoke check against the installed package, the one test of the bits users install.
-- **Documentation-only pull requests:** one that changes only files under `openspec\`, or `.md` files outside `.github\`, as `.github\scripts\Test-DocumentationOnly.ps1` decides, passes `check` after the version check without building. A push to `main` always runs every step.
-- **Cancelled runs:** a new commit on a pull request cancels the run for the one before it; runs for pushes to `main` are never cancelled.
-- **The hand-off job:** `check.yml` has a second job, `handoff`, that runs the hand-off check against a real throwaway session. It needs the `CLAUDE_CODE_OAUTH_TOKEN` secret and never blocks a merge; see [The hand-off job](#the-hand-off-job).
-- **CodeQL:** `.github\workflows\codeql.yml` runs CodeQL over the C# (without a build) and over the workflows on every pull request, every push to `main` and once a week. It is not a required check and skips documentation-only changes.
+- **What `check` does:** checks the version bump, builds in Release, runs every test, checks whitespace, packs the tool as `<Version>-ci.<run number>` and uploads it as an artefact (see [Trying your build](#trying-your-build)), then installs that package and runs the smoke check against it.
+- **Documentation-only pull requests:** one that changes only files under `openspec\` or `.md` files outside `.github\` passes after the version check without building. Run the tests yourself if you touched the README, because `DocumentedMinimumShould` reads it.
+- **The hand-off job:** a second job, `handoff`, runs the hand-off check against a real throwaway session when the repository's Claude Code token is available; it never blocks a merge.
+- **CodeQL:** `.github\workflows\codeql.yml` scans the C# and the workflows; it is not a required check.
 
 ## Versions
 
-Every pull request that changes the packaged tool raises `Version` in `src\Source191.Vantage\Source191.Vantage.csproj`, because the tool cache keeps a version for ever; each merge of one is therefore a release (see [Releases](#releases)). Versions follow [semantic versioning](https://semver.org/):
+Every pull request that changes the packaged tool (anything under `src\`, or `Directory.Build.props`, `global.json` or `nuget.config`) raises `Version` in `src\Source191.Vantage\Source191.Vantage.csproj`, because the tool cache keeps a version for ever and each merge of one is a release. Versions follow [semantic versioning](https://semver.org/):
 
 - **Patch:** fixes, refactors with no behaviour change, and changes to text.
 - **Minor:** a new key or a new behaviour that keeps existing keys working.
 - **Major:** a change that breaks how existing keys, state files or the `vantage here` command line behave. While the tool is `0.y.z`, a minor bump may break.
-
-The first step of the `check` job, on pull requests only, runs `.github\scripts\Assert-VersionBumped.ps1` against the two parents of the pull request's merge commit. It fails when the pull request changes anything under `src\`, or `Directory.Build.props`, `global.json` or `nuget.config`, without raising `Version` above `main`'s (compared as semantic versions, so 0.10.0 is above 0.9.0). Pull requests touching only documentation, CI, `openspec\`, `test\` or `tools\` need no bump.
 
 ```powershell
 .github\scripts\Assert-VersionBumped.ps1 -Base main -Head HEAD   # the check, locally
 .github\scripts\Step-Version.ps1                                 # raise Version one step; -WhatIf only prints it
 ```
 
-`Step-Version.ps1` raises the prerelease number when there is one, otherwise the patch. "Require branches to be up to date before merging" is on for `main`: without it, two open pull requests that both bump to the same version would merge without a conflict and the second would never be released. With it, updating the branch reruns the check against the current `main`, and the second fails until it bumps again.
+`Step-Version.ps1` raises the prerelease number when there is one, otherwise the patch. The check compares semantic versions, so 0.10.0 is above 0.9.0. Because branches must be up to date before merging, two pull requests that bump to the same version cannot both merge: the second fails until it bumps again.
 
-## Releasing and maintaining
-
-This section is for the owner; contributors can stop here.
-
-### Releases
-
-`.github\workflows\release.yml` runs on every push to `main` and is a no-op unless that push changed `Version`. When it did, a `build` job with read rights only builds, tests and packs again and hands the package on as an artefact; a `release` job, which checks nothing out and builds nothing, is the only one with the rights to write and sign: it downloads that artefact, attaches a signed build provenance attestation to it (`gh attestation verify <nupkg> --repo Source191/vantage` checks which commit and workflow built it), and publishes a GitHub Release tagged `v<version>` with the `.nupkg` attached. Immutable releases are turned on for the repository, so a release's package cannot be replaced once it is published; a fix is a new version. A version with a prerelease label (`0.16.2-preview.1`) is published as a GitHub prerelease, so it never becomes the Latest release. A release is not published to nuget.org: that is a separate, manual step, so a package is tried by hand before it goes where a version can never be replaced. The "Release tags" ruleset stops anyone but the owner moving or deleting a `v*` tag.
-
-### Publishing to nuget.org
-
-`.github\workflows\publish.yml` is run by hand (Actions, "publish", with the release tag, e.g. `v0.5.0`). It downloads that GitHub Release's `.nupkg`, verifies its provenance attestation (`gh attestation verify` with `--signer-workflow` naming `release.yml` and `--source-ref refs/heads/main`, so a package swapped on the release or attested anywhere else fails the run) and pushes it to nuget.org without building anything, so what is published is the package that was built, tested and released from `main`.
-
-- **No stored API key:** the `NuGet/login` action swaps the run's GitHub identity for a one-hour key through a Trusted Publishing policy on nuget.org (owner `Source191`, repository `vantage`, workflow `publish.yml`, environment `nuget`); the nuget.org profile name is the `NUGET_USER` repository secret.
-- **The `nuget` environment:** accepts only runs started from `main` and waits for the owner to approve each one (Actions, the waiting run, Review deployments), so a copy of the workflow on a branch, or a run started by an app, never gets a key.
-- **Mistakes:** nuget.org versions cannot be replaced, only unlisted, so a bad publish is unlisted and fixed by a higher patch version.
-- **Prereleases:** published the same way; nuget.org leaves them out of search unless prereleases are included, and `dotnet tool install` takes one only with `--prerelease` or `--version`, which is how a version reaches nuget.org before it is offered to everyone.
-
-### Reviews and merging
-
-The "Owner approves main" ruleset requires a code owner's approval, and `.github\CODEOWNERS` names the owner for every path, so a pull request opened by anyone else (an app or Dependabot included) waits for that review. The owner merges their own pull requests through the ruleset's bypass (`gh pr merge --admin`), so auto-merge does not fire for them.
-
-### Dependabot and the version bump token
-
-Dependabot updates the NuGet packages and the actions' pins weekly, and security updates are on, so a dependency with a known vulnerability gets a pull request at once (the build's NuGet audit fails on it anyway). A Dependabot pull request that touches the tool is bumped for you: a step before the version check raises `Version` on the pull request's branch, commits "Raise Version to <version> for the dependency update" and pushes it with `DEPENDABOT_BUMP_TOKEN`, a fine-grained personal access token with Contents read and write on this repository, stored under Settings, Secrets and variables, Dependabot (a Dependabot run can read only those). The run for the pushed commit is the one branch protection reads; you still review and merge. When the token expires the step fails naming it: create a new one and replace the secret.
-
-### Supply chain
-
-Every action the workflows use is pinned to the commit of its release, with the version in a comment, so a moved tag cannot change what runs; Dependabot updates the pins, and the repository setting that requires such pins is turned on once every workflow on `main` carries them. The `CLAUDE_CODE_OAUTH_TOKEN` secret reaches the latest Claude Code CLI that the `handoff` and `claude-contract` jobs install from `claude.ai`, so it belongs to an account that has nothing else and is rotated like a password.
-
-### The hand-off job
-
-`handoff` installs Claude Code on the runner and runs the hand-off check from `tools\HeadlessTerminal` against a real throwaway session. It needs the `CLAUDE_CODE_OAUTH_TOKEN` repository secret (from `claude setup-token`); without one it skips with a notice, as it does for a documentation-only pull request. It builds only the tool (`src\Source191.Vantage`), because `check` builds and runs the tests, and installs Claude Code in the background while it builds. It never blocks a merge, because its keystroke timings were tuned on a laptop and a slow runner can fail it for reasons that are not bugs; read its `handoff-capture` artefact when it does.
-
-The runner has no desktop, so the job seeds workspace trust for the checkout in its own `~\.claude.json`, which, with the nightly contract check, is the only place that record is ever written by a script. Vantage strips `CLAUDE_CODE_*` from the environment of the `claude` processes it starts (`InheritedEnvironment`), so the token reaches the throwaway session the harness starts but not Vantage's own `claude agents` and `claude attach`; the live runs show the attach reaches Claude's screen all the same. The check exits 3 when it does not: Claude's screen must be in the capture, not only Vantage's.
-
-### The nightly Claude Code contract check
-
-Claude Code's native installer updates the CLI in the background, so users soon run a newer CLI than Vantage was verified against. `.github\workflows\claude-contract.yml` runs every night at 03:17 UTC, and by hand from Actions, "claude-contract": it installs the latest CLI, runs the `ClaudeContract` tests (Vantage's own Claude adapters against that CLI: the version, a background session started with no prompt, listed with every field Vantage reads in a state it knows, then stopped and removed; and the commands and options in `claude --help` and `claude agents --help` against the snapshots in `test\Source191.Vantage.Infrastructure.Tests\Contract\Snapshots`), then the hand-off check. It needs the same `CLAUDE_CODE_OAUTH_TOKEN` secret and seeds trust the same way; without the secret it skips with a warning. It never runs on pull requests, so a CLI release never blocks a merge.
-
-- **The claude-cli issue:** when the latest CLI fails to install or a contract test fails, a `report` job of its own, the only one with `issues: write`, reads the contract job's outcomes and its `contract-results` artefact and comments on the open issue labelled `claude-cli`, or opens one when none is open, with the CLI version, the run link and the failing tests' messages. It assigns a new issue to the GitHub login in the `CLAUDE_CLI_WATCHER` repository variable (Settings, Secrets and variables, Actions, Variables); an assignee is subscribed to the issue, so GitHub notifies them of every comment. Close the issue by hand once the fix is merged. The hand-off check marks the run but never raises the issue.
-- **Accepting a snapshot:** a difference leaves `<name>.received.txt` in the run's `contract-results` artefact (and in the test output folder locally). Copy it over the snapshot in a change that re-checks the CLI facts in CLAUDE.md, so a new flag is either used, deliberately ignored or recorded.
-- **Never** add `--bg --resume --help` to the contract tests: it starts a session.
+Releasing and publishing are the owner's; see [MAINTAINING.md](MAINTAINING.md).

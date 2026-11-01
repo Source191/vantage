@@ -2,8 +2,8 @@ namespace Source191.Vantage.Ports;
 
 /// <summary>
 /// The two Windows Terminal profiles Vantage adds, named once: "Vantage" runs the installed Vantage, "Vantage session"
-/// is PowerShell and is the profile every tab Vantage opens asks for. Each has its bell sound, a file or Windows
-/// Terminal's own.
+/// is PowerShell and, once the fragment exists, the profile every tab Vantage opens asks for. Each has its bell sound,
+/// a file or Windows Terminal's own.
 /// </summary>
 public sealed record TerminalProfiles(string VantageExecutable, BellSound VantageSound, BellSound SessionSound)
 {

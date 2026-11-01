@@ -79,7 +79,10 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
     /// <summary>The paths among folder listings that are full paths; anything else is skipped.</summary>
     private static IEnumerable<FolderPath> Paths(IEnumerable<string> texts) => texts.Parsed<FolderPath>();
 
-    /// <summary>The worktree root's children with a .git file: broken when no repository lists them. A root that is also a repository root was scanned already.</summary>
+    /// <summary>
+    /// The worktree root's children with a .git file: when no repository lists them, broken, or elsewhere when their gitdir
+    /// still exists (see <see cref="BrokenWorktree"/>). A root that is also a repository root was scanned already.
+    /// </summary>
     private IEnumerable<FolderPath> WorktreeRootCandidates(Settings snapshot)
     {
         FolderPath worktreeRoot = snapshot.WorktreeRoot;

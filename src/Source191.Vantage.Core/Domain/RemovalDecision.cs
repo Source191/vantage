@@ -2,7 +2,8 @@ namespace Source191.Vantage.Domain;
 
 /// <summary>
 /// What removing a worktree should do. CanBeForced says, for a refusal, whether force-remove would go ahead: true when
-/// only work would be lost, false for a lock or a live session, so the view never has to read the reason to find out.
+/// only work would be lost, false for a lock, a live session or a repository outside the roots, so the view never has
+/// to read the reason to find out.
 /// </summary>
 public sealed record RemovalDecision(
     RemovalOutcome Outcome,

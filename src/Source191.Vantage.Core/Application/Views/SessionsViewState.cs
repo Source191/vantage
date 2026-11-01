@@ -35,7 +35,7 @@ public sealed record SessionsViewState(
 
     public TableTitle Title => List.Title("session", row => row.Session.Name);
 
-    /// <summary>The status message to show: the last message, else how many sessions need input.</summary>
+    /// <summary>The status message to show: the last message; <see cref="StatusMessage.Blank"/> shows no status line.</summary>
     public StatusMessage Shown => Message;
 
     /// <summary>This state with the list component's fields taken from <paramref name="list"/>.</summary>

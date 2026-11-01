@@ -71,7 +71,7 @@ public static partial class Wording
             StatusMessage.Blank => string.Empty,
             StatusMessage.NoSessionSelected => "No session selected.",
             StatusMessage.RunsInOwnTerminal { HasTranscript: true } terminal =>
-                $"{terminal.Name} runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there.",
+                $"{terminal.Name} runs in its own terminal. Press b to move it under Vantage (its old tab closes), or type /bg there.",
             StatusMessage.RunsInOwnTerminal terminal =>
                 $"{terminal.Name} runs in its own terminal and has no messages yet. d closes its tab, C closes every such tab, or send it something there and press b.",
             StatusMessage.NeverSentAMessage never => $"{never.Name} has nothing to resume: it was never sent a message. d deletes it.",

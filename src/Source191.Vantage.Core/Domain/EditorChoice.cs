@@ -4,8 +4,8 @@ namespace Source191.Vantage.Domain;
 
 /// <summary>
 /// The editor that opens a folder: a preset, or a custom executable whose arguments hold <see cref="FolderPlaceholder"/>
-/// where the folder goes. Arguments are a list, never a command line, so nothing re-parses a path. How a preset
-/// reaches its executable is the open-in-editor key's business; this only holds the choice.
+/// where the folder goes. Arguments are a list, never a command line, so nothing re-parses a path. A preset's
+/// executable is found by <see cref="Ports.IEditorLocator"/> when key f opens a folder; this only holds the choice.
 /// </summary>
 public sealed record EditorChoice
 {

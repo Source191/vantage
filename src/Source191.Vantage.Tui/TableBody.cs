@@ -385,7 +385,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
     }
 
-    /// <summary>Left and Right move the table one column sideways, within its columns; presentation only, so the reducer never sees a change.</summary>
     /// <summary>&lt; and &gt; scroll a table too wide for the terminal (Shift+arrows did not reach Vantage in Windows Terminal); Left and Right are the tab keys.</summary>
     private static int? ScrollStep(Key key) => key switch
     {

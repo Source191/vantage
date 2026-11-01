@@ -35,7 +35,8 @@ public static class ClaudeAgentsListing
     /// <summary>
     /// A row without a session id or a full working directory is skipped: the CLI always gives both, and one odd row must
     /// not fail the listing. An interactive row has a process; any other row is a background job, whose id is the row's
-    /// or, failing that, the session id's first eight characters (a row that has neither is skipped too).
+    /// or, failing that, the session id's first eight characters (a row whose id and session id both fail to give a job id
+    /// is skipped).
     /// </summary>
     private static Session? ToSession(Row row)
     {

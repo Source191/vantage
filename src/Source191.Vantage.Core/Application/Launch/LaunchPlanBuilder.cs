@@ -3,6 +3,10 @@ using System.Diagnostics;
 
 namespace Source191.Vantage.Application.Launch;
 
+/// <summary>
+/// The launch rules: the session's name, where it starts and its opening prompt, checked and turned into a
+/// <see cref="LaunchPlanResult"/>, a plan or the <see cref="LaunchProblem"/> that refused it.
+/// </summary>
 public static class LaunchPlanBuilder
 {
     public static LaunchPlanResult Build(LaunchRequest request, FolderPath worktreeRoot, Func<string, bool> folderExists)

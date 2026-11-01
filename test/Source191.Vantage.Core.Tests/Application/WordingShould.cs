@@ -59,7 +59,7 @@ public sealed class WordingShould
     public void ExplainATerminalSessionWithMessages()
     {
         Wording.Describe(new StatusMessage.RunsInOwnTerminal("fix-123", HasTranscript: true))
-            .ShouldBe("fix-123 runs in its own terminal. Press b to move it under Vantage (its tab becomes a plain shell), or type /bg there.");
+            .ShouldBe("fix-123 runs in its own terminal. Press b to move it under Vantage (its old tab closes), or type /bg there.");
     }
 
     [Fact]

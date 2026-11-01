@@ -5,6 +5,10 @@ namespace Source191.Vantage.Domain;
 /// </summary>
 public interface IProcessRegistry
 {
+    /// <summary>
+    /// When the process started, or null when it has gone or refuses to be read; <see cref="ProcessIdentity"/> and
+    /// <see cref="TabRegistration.IsLive"/> rely on the null to tell a process that has gone from the one they recorded.
+    /// </summary>
     DateTimeOffset? StartTimeOf(int processId);
 
     /// <summary>Ends the process and everything it started. A process that has already gone is not an error.</summary>

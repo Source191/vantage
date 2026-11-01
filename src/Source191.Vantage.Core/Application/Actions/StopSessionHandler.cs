@@ -4,6 +4,7 @@ using Source191.Vantage.Ports;
 
 namespace Source191.Vantage.Application.Actions;
 
+/// <summary>Stops the background job, then closes a Vantage tab showing it, if one is open.</summary>
 public sealed class StopSessionHandler(IClaudeCli claude, SessionTabs tabs) : IEffectHandler<StopSession>
 {
     public async Task<Outcome> HandleAsync(StopSession effect, CancellationToken cancellationToken)
