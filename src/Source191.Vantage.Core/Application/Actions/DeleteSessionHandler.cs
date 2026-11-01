@@ -32,9 +32,23 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
             return new DeleteSessionOutcome.Deleted(name);
         }
 
-        WorktreeRow row = await RowAsync(created, cancellationToken);
-        bool merged = await inspector.IsMergedAsync(created.Repository, created.Branch, cancellationToken);
-        RemovalDecision decision = RemovalDecision.For(row.Facts(branchCreatedByVantage: true, merged), forced);
+        if (!folders.DirectoryExists(created.Repository.Value))
+        {
+            return new DeleteSessionOutcome.KeptWorktree(name, new RemovalReason.RepositoryGone(created.Repository));
+        }
+
+        WorktreeRow row;
+        RemovalDecision decision;
+        try
+        {
+            row = await RowAsync(created, cancellationToken);
+            bool merged = await inspector.IsMergedAsync(created.Repository, created.Branch, cancellationToken);
+            decision = RemovalDecision.For(row.Facts(branchCreatedByVantage: true, merged), forced);
+        }
+        catch (GitException failure)
+        {
+            return new DeleteSessionOutcome.KeptWorktree(name, new RemovalReason.GitFailed(failure.Message));
+        }
 
         return await remover.CarryOutAsync(row, decision, createdByVantage: true, cancellationToken) switch
         {
