@@ -11,6 +11,10 @@ namespace Source191.Vantage.Core.Tests.Architecture;
 /// </summary>
 public sealed class NullFreeModelsShould
 {
+    private const BindingFlags Declared = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
+
+    private static readonly string[] EqualityNames = ["Equals", "CompareTo", "op_Equality", "op_Inequality"];
+
     [Fact]
     public void SeeEveryKindOfNullable()
     {
@@ -24,10 +28,6 @@ public sealed class NullFreeModelsShould
         NullableMembersOf(typeof(IHouseShapes)).ShouldBeEmpty();
         NullableMembersOf(typeof(IBareTryParse)).ShouldBe(["TryParse(text)"]);
     }
-
-    private static readonly string[] EqualityNames = ["Equals", "CompareTo", "op_Equality", "op_Inequality"];
-
-    private const BindingFlags Declared = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
     private static IEnumerable<string> NullableMembersOf(Type type)
     {
