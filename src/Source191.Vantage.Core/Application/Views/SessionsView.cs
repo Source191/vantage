@@ -130,7 +130,8 @@ public sealed record SessionsViewState(
         KeyOf: row => row.Session.SessionId.Value,
         FilterFields: row => [row.Session.Name, row.Repository, .. FilterText.Of(row.Head)],
         Order: ByAttention,
-        KeyComparison: StringComparison.Ordinal);
+        KeyComparison: StringComparison.Ordinal,
+        Selectable: _ => true);
 
     /// <summary>The rows, selection, filter and loaded flag as the shared list component, built from this state's fields.</summary>
     public ListSelection<SessionRow> List => Policy.List(Rows, SelectedSessionId, Filter, FilterEditing, Loaded);

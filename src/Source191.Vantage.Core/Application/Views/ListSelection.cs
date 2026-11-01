@@ -2,12 +2,16 @@ using Source191.Vantage.Domain;
 
 namespace Source191.Vantage.Application.Views;
 
-/// <summary>How one view identifies, filters and orders its rows; a static per view, held by the selection it governs.</summary>
+/// <summary>
+/// How one view identifies, filters and orders its rows, and which of them the selection may rest on (a heading may not);
+/// a static per view, held by the selection it governs.
+/// </summary>
 public sealed record ListPolicy<TRow>(
     Func<TRow, string> KeyOf,
     Func<TRow, IReadOnlyList<string>> FilterFields,
     Func<IEnumerable<TRow>, IEnumerable<TRow>> Order,
-    StringComparison KeyComparison)
+    StringComparison KeyComparison,
+    Func<TRow, bool> Selectable)
 {
     /// <summary>A selection with no rows yet, governed by this policy.</summary>
     public ListSelection<TRow> EmptyList() => new(this, [], SelectedKey: null, RowFilter.None, FilterEditing: false, Loaded: false);
@@ -34,6 +38,9 @@ public sealed record ListSelection<TRow>(
 
     public TRow? Selected => Visible.FirstOrDefault(IsSelected);
 
+    /// <summary>The visible rows the selection may rest on, in table order.</summary>
+    private IReadOnlyList<TRow> Choosable => [.. Visible.Where(Policy.Selectable)];
+
     /// <summary>The selected key as a view state holds it.</summary>
     public SelectionKey Selection => SelectedKey is string key ? new SelectionKey.Row(key) : new SelectionKey.None();
 
@@ -42,9 +49,12 @@ public sealed record ListSelection<TRow>(
     {
         TRow? current = Selected;
 
-        return new TableTitle(noun, Visible.Count, Rows.Count, Filter.Text, current is null ? null : labelOf(current));
+        return new TableTitle(noun, Choosable.Count, Rows.Count(Policy.Selectable), Filter.Text, current is null ? null : labelOf(current));
     }
-    /// <summary>New rows keep the selected key when it is still visible, otherwise the nearest row by position; the first load selects the first row.</summary>
+    /// <summary>
+    /// New rows keep the selected key when it is still visible, otherwise the selectable row nearest its position; the
+    /// first load selects the first selectable row.
+    /// </summary>
     public ListSelection<TRow> Load(IReadOnlyList<TRow> rows)
     {
         int previousIndex = IndexOfSelected();
@@ -55,27 +65,30 @@ public sealed record ListSelection<TRow>(
         }
 
         IReadOnlyList<TRow> visible = loaded.Visible;
-        if (visible.Count == 0)
+        List<int> choosable = [.. Enumerable.Range(0, visible.Count).Where(index => Policy.Selectable(visible[index]))];
+        if (choosable.Count == 0)
         {
             return loaded with { SelectedKey = null };
         }
 
-        int nearest = Math.Clamp(previousIndex, 0, visible.Count - 1);
+        int nearest = choosable.MinBy(index => Math.Abs(index - previousIndex));
 
         return loaded with { SelectedKey = Policy.KeyOf(visible[nearest]) };
     }
 
+    /// <summary>Moves the selection by this many selectable rows, stepping over the rest and staying put at either end.</summary>
     public ListSelection<TRow> Move(int delta)
     {
-        IReadOnlyList<TRow> visible = Visible;
-        if (visible.Count == 0)
+        IReadOnlyList<TRow> choosable = Choosable;
+        if (choosable.Count == 0)
         {
             return this;
         }
 
-        int index = Math.Clamp(IndexOfSelected() + delta, 0, visible.Count - 1);
+        int position = Math.Max(choosable.ToList().FindIndex(IsSelected), 0);
+        int index = Math.Clamp(position + delta, 0, choosable.Count - 1);
 
-        return this with { SelectedKey = Policy.KeyOf(visible[index]) };
+        return this with { SelectedKey = Policy.KeyOf(choosable[index]) };
     }
 
     public ListSelection<TRow> StartFilter() => this with { FilterEditing = true, Filter = RowFilter.None };
@@ -98,10 +111,10 @@ public sealed record ListSelection<TRow>(
         };
     }
 
-    /// <summary>Selects the row with this key when there is one; a filter that would hide it is cleared so it shows.</summary>
+    /// <summary>Selects the selectable row with this key when there is one; a filter that would hide it is cleared so it shows.</summary>
     public ListSelection<TRow> Select(string key)
     {
-        if (!Rows.Any(row => string.Equals(Policy.KeyOf(row), key, Policy.KeyComparison)))
+        if (!Rows.Any(row => Policy.Selectable(row) && string.Equals(Policy.KeyOf(row), key, Policy.KeyComparison)))
         {
             return this;
         }

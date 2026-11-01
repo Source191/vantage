@@ -18,8 +18,11 @@ internal static class Palette
     /// <summary>Grey text: #868180, 5.09:1 on the background, so it meets WCAG AA wherever it is drawn as a foreground.</summary>
     public static readonly Color Grey = new(134, 129, 128);
 
-    /// <summary>The background behind white text in a dialog's unfocused field and a list's chosen row once focus moves on.</summary>
-    public static readonly Color FieldBackground = new(122, 117, 116);
+    /// <summary>
+    /// The background behind white text in a dialog's unfocused field and a list's chosen row once focus moves on:
+    /// #606060, which white text is 5.04:1 from and which stands 3.11:1 from the console's background.
+    /// </summary>
+    public static readonly Color FieldBackground = new(96, 96, 96);
     public static readonly Color Magenta = new(227, 0, 140);
     public static readonly Color Blue = new(59, 142, 234);
     public static readonly Color White = new(230, 230, 230);

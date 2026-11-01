@@ -27,9 +27,10 @@ public sealed record ConfigViewState(
 
     private static readonly ListPolicy<ConfigRow> Policy = new(
         KeyOf: row => row.Key,
-        FilterFields: row => [Wording.ConfigSetting(row), ConfigView.TryPathOf(row, out string? path) ? path : string.Empty],
+        FilterFields: FilterFieldsOf,
         Order: rows => rows,
-        KeyComparison: StringComparison.Ordinal);
+        KeyComparison: StringComparison.Ordinal,
+        Selectable: row => row is not ConfigRow.Heading);
 
     public ListSelection<ConfigRow> List => Policy.List(Rows, SelectedKey, Filter, FilterEditing, Loaded);
 
@@ -39,6 +40,17 @@ public sealed record ConfigViewState(
     public StatusMessage Shown => Message;
 
     public TableTitle Title => List.Title("row", Wording.ConfigSetting);
+
+    /// <summary>A row's setting and its path when it has one; the heading has none, so any filter hides it.</summary>
+    private static IReadOnlyList<string> FilterFieldsOf(ConfigRow row)
+    {
+        if (row is ConfigRow.Heading)
+        {
+            return [];
+        }
+
+        return [Wording.ConfigSetting(row), ConfigView.TryPathOf(row, out string? path) ? path : string.Empty];
+    }
 
     public ConfigViewState With(ListSelection<ConfigRow> list) => this with { Rows = list.Rows, SelectedKey = list.Selection, Filter = list.Filter, FilterEditing = list.FilterEditing, Loaded = list.Loaded };
 }

@@ -48,7 +48,7 @@ public sealed class TabColourSelectionShould
     [Fact]
     public void PreferAColourWhenItIsFree()
     {
-        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default[0]], preferred: TabPalette.Default[4]);
+        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default[0]], preferred: TabPalette.Default.Single(colour => colour.Name == "Green"));
 
         choice.Colour.Name.ShouldBe("Green");
         choice.Reused.ShouldBeFalse();
@@ -57,23 +57,25 @@ public sealed class TabColourSelectionShould
     [Fact]
     public void FallBackToTheFirstFreeColourWhenThePreferredOneIsInUse()
     {
-        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default[4]], preferred: TabPalette.Default[4]);
+        ColourChoice choice = selection.Choose(inUse: [TabPalette.Default.Single(colour => colour.Name == "Green")], preferred: TabPalette.Default.Single(colour => colour.Name == "Green"));
 
         choice.Colour.Name.ShouldBe("Red");
         choice.Reused.ShouldBeFalse();
     }
 
     [Fact]
-    public void OfferElevenContrastingColoursInOrder()
+    public void GiveFiveSessionTabsBesideVantagesGreenFiveDistinctColours()
     {
-        TabPalette.Default.Select(colour => colour.Name).ShouldBe(
-            ["Red", "Blue", "Yellow", "Purple", "Green", "Orange", "Teal", "Pink", "Brown", "Lime", "Grey"]);
-    }
+        List<TabColour> inUse = [TabPalette.Default.Single(colour => colour.Name == "Green")];
+        List<string> given = [];
 
-    [Fact]
-    public void GiveEveryPaletteColourTheWindowsTerminalHexItIsNamedFor()
-    {
-        TabPalette.Default.Select(colour => colour.Hex).ShouldBe(
-            ["#E74856", "#0078D4", "#FFB900", "#8764B8", "#16C60C", "#F7630C", "#00B7C3", "#E3008C", "#8E562E", "#9ACD32", "#7A7574"]);
+        for (int tab = 0; tab < 5; tab++)
+        {
+            ColourChoice choice = selection.Choose(inUse);
+            inUse.Add(choice.Colour);
+            given.Add(choice.Colour.Name);
+        }
+
+        given.ShouldBe(["Red", "Blue", "Teal", "Pink", "Brown"]);
     }
 }

@@ -208,6 +208,39 @@ public sealed class ConfigViewShould
         Press(Press(advised, Key.Of('/')) with { Message = new StatusMessage.Kept() }, Key.Of('w')).Message.ShouldBe(StatusMessage.None);
     }
 
+    [Fact]
+    public void StepOverTheSetupHeadingOnDown()
+    {
+        ConfigViewState down = ConfigView.Reduce(At("check-for-updates"), new KeyPressed(Key.Down)).State;
+
+        down.Selected.ShouldBe(new ConfigRow.Setup(SetupItem.SettingsFile, new SetupState.At(SettingsFile)));
+    }
+
+    [Fact]
+    public void StepOverTheSetupHeadingOnUp()
+    {
+        ConfigViewState up = ConfigView.Reduce(At("setup:SettingsFile"), new KeyPressed(Key.Up)).State;
+
+        up.Selected.ShouldBe(new ConfigRow.CheckForUpdates(On: true));
+    }
+
+    [Fact]
+    public void HideTheSetupHeadingWhileFiltering()
+    {
+        ConfigViewState filtered = Press(Loaded, Key.Slash, Key.Of('b'), Key.Of('e'), Key.Of('l'), Key.Of('l'), Key.Enter);
+
+        filtered.List.Visible.ShouldBe([new ConfigRow.Setup(SetupItem.ClaudeBell, new SetupState.Enabled())]);
+        Press(Loaded, Key.Slash, Key.Of('s'), Key.Of('e'), Key.Of('t'), Key.Of('u'), Key.Of('p'), Key.Enter).List.Visible.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public void LeaveTheSetupHeadingOutOfTheTitle()
+    {
+        ConfigViewState oneRoot = ConfigView.Reduce(ConfigViewState.Empty, new ConfigRowsLoaded(ConfigRows.For(TestSettings.For(Repos), Facts))).State;
+
+        oneRoot.Title.Shown.ShouldBe(11);
+        oneRoot.Title.Total.ShouldBe(11);
+    }
     private static ConfigViewState At(string key) => Loaded.With(Loaded.List.Select(key));
 
     private static ConfigViewState Press(ConfigViewState state, params Key[] keys) => keys.Aggregate(state, (current, key) => ConfigView.Reduce(current, new KeyPressed(key)).State);

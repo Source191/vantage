@@ -9,7 +9,18 @@ public sealed class ListSelectionShould
         KeyOf: row => row,
         FilterFields: row => [row],
         Order: rows => rows.OrderBy(row => row, StringComparer.Ordinal),
-        KeyComparison: StringComparison.Ordinal);
+        KeyComparison: StringComparison.Ordinal,
+        Selectable: _ => true);
+
+    /// <summary>Rows kept in the order given, where a row starting with # is a heading the selection steps over and any filter hides.</summary>
+    private static readonly ListPolicy<string> Headed = new(
+        KeyOf: row => row,
+        FilterFields: row => row.StartsWith('#') ? [] : [row],
+        Order: rows => rows,
+        KeyComparison: StringComparison.Ordinal,
+        Selectable: row => !row.StartsWith('#'));
+
+    private static readonly ListSelection<string> HeadedLoaded = Headed.EmptyList().Load(["#fruit", "apple", "fig", "#veg", "kale"]);
 
     private static readonly ListSelection<string> Loaded = Alphabetical.EmptyList().Load(["pear", "apple", "fig"]);
 
@@ -138,5 +149,60 @@ public sealed class ListSelectionShould
         selected.Selected.ShouldBe("pear");
         selected.Filter.Text.ShouldBeEmpty();
         Loaded.Select("kiwi").Selected.ShouldBe("apple");
+    }
+
+    [Fact]
+    public void NeverSelectAnUnselectableRowOnFirstLoad()
+    {
+        HeadedLoaded.Selected.ShouldBe("apple");
+    }
+
+    [Fact]
+    public void StepOverAnUnselectableRowWhenMoving()
+    {
+        ListSelection<string> onFig = HeadedLoaded.Move(+1);
+
+        onFig.Selected.ShouldBe("fig");
+        onFig.Move(+1).Selected.ShouldBe("kale");
+        onFig.Move(+1).Move(-1).Selected.ShouldBe("fig");
+        HeadedLoaded.Move(+2).Selected.ShouldBe("kale");
+    }
+
+    [Fact]
+    public void StayPutAtEitherEndWhenTheRowBeyondIsUnselectable()
+    {
+        HeadedLoaded.Move(-1).Selected.ShouldBe("apple");
+        HeadedLoaded.Move(+10).Selected.ShouldBe("kale");
+        HeadedLoaded.Move(+10).Move(+1).Selected.ShouldBe("kale");
+    }
+
+    [Fact]
+    public void PickTheNearestSelectableRowWhenTheSelectionDisappears()
+    {
+        ListSelection<string> onKale = HeadedLoaded.Move(+2);
+
+        onKale.Load(["#fruit", "apple", "fig", "#veg"]).Selected.ShouldBe("fig");
+    }
+
+    [Fact]
+    public void NeverLandOnAnUnselectableRowWhenAFilterIsCleared()
+    {
+        ListSelection<string> hidingAll = HeadedLoaded.StartFilter().EditFilter(Key.Of('z'));
+
+        hidingAll.Selected.ShouldBeNull();
+        hidingAll.EditFilter(Key.Escape).Selected.ShouldBe("apple");
+    }
+
+    [Fact]
+    public void IgnoreSelectingAnUnselectableRow()
+    {
+        HeadedLoaded.Select("#veg").ShouldBe(HeadedLoaded);
+    }
+
+    [Fact]
+    public void CountOnlySelectableRowsInTheTitle()
+    {
+        HeadedLoaded.Title("item", row => row).ShouldBe(new TableTitle("item", Shown: 3, Total: 3, Filter: string.Empty, Selected: "apple"));
+        HeadedLoaded.StartFilter().EditFilter(Key.Of('a')).Title("item", row => row).ShouldBe(new TableTitle("item", Shown: 2, Total: 3, Filter: "a", Selected: "apple"));
     }
 }

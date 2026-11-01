@@ -243,7 +243,7 @@ public sealed class SessionRowEnricherShould : IDisposable
     public async Task NotTakeVantagesOwnTabForASessionsTab()
     {
         Session session = Session(@"C:\repos\Northwind.Orders");
-        await store.WriteTabAsync(TabRegistration.Pending(TabOwner.Vantage, TabPalette.Default[4], Noon.AddMinutes(-5)).ClaimedBy(7001, Noon.AddMinutes(-5)));
+        await store.WriteTabAsync(TabRegistration.Pending(TabOwner.Vantage, TabPalette.Default.Single(colour => colour.Name == "Green"), Noon.AddMinutes(-5)).ClaimedBy(7001, Noon.AddMinutes(-5)));
         registry.Running(7001, Noon.AddMinutes(-5));
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();

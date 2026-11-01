@@ -69,6 +69,15 @@ public sealed class WordingOfKeysAndColumnsShould
     }
 
     [Fact]
+    public void PlaceTheSetupUnderItsHeadingInTheSettingHelp()
+    {
+        string setting = Wording.ConfigColumns.Single(column => column.Name == "SETTING").Meaning;
+
+        setting.ShouldContain("under the Setup heading");
+        setting.ShouldNotContain("grey");
+    }
+
+    [Fact]
     public void NameTheUnknownStateInTheStateHelp()
     {
         Wording.SessionsColumns.Single(column => column.Name == "STATE").Meaning.ShouldContain("? unknown (grey)");
@@ -200,7 +209,7 @@ public sealed class WordingOfKeysAndColumnsShould
             <      scroll the columns left                        >      scroll the columns right
 
             Columns
-            SETTING  a setting Vantage keeps in config.json, or, in grey, setup it reads but does not change
+            SETTING  a setting Vantage keeps in config.json, or, under the Setup heading, setup it reads but does not change
             VALUE    its value; a setup row that needs attention says what to run
             """.ReplaceLineEndings("\n"));
     }

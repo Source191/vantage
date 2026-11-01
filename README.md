@@ -179,7 +179,7 @@ Enter never starts a session here, so there is nothing to undo if you press it t
 
 ## Session tabs
 
-**Open (Enter):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable, and attaches there; Vantage itself stays on screen in its own tab. A session that has never had a message opens at its own prompt. The TAB column shows a block in that tab's colour, in the faded shade the tab has while you are looking at Vantage's own tab. While that tab is open, Enter switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; Enter checks the tab's shell is still running before switching, and opens a new tab when it is not. Vantage never attaches in its own tab; `vantage here` is the way to attach in the tab you are in.
+**Open (Enter):** Vantage opens a new Windows Terminal tab, titled with the session name and coloured from a palette so each session's tab is recognisable (ordered so that Vantage's green and the first five session tabs stay apart for red-green colour blindness too), and attaches there; Vantage itself stays on screen in its own tab. A session that has never had a message opens at its own prompt. The TAB column shows a block in that tab's colour, in the faded shade the tab has while you are looking at Vantage's own tab. While that tab is open, Enter switches to it instead of opening a second one (Vantage finds the tab by its title through Windows UI Automation, so it works in whichever window holds the tab); detaching in it (Ctrl+Z), stopping, renaming or deleting the session closes the tab, because its script exits when `claude attach` ends cleanly; a failed attach keeps the tab open to show the error. Close a tab by hand and the swatch clears within a few seconds; Enter checks the tab's shell is still running before switching, and opens a new tab when it is not. Vantage never attaches in its own tab; `vantage here` is the way to attach in the tab you are in.
 
 ## The worktrees view
 
@@ -371,7 +371,7 @@ Its own state lives in `%LOCALAPPDATA%\Vantage`; it never edits Claude Code's tr
 
 ## The Config tab
 
-Press `3`, or Right until it shows (or click the Config tab). Each setting has a row, and below them, in grey, the setup Vantage reads but does not change:
+Press `3`, or Right until it shows (or click the Config tab). Each setting has a row, and below them, under an orange Setup heading and in grey, the setup Vantage reads but does not change. The selection steps over the heading, a filter hides it, and it is not counted as a setting or a row:
 
 ```text
 Vantage 0.18.0 (35 MB) · Claude 2.1.310
@@ -386,6 +386,7 @@ Vantage 0.18.0 (35 MB) · Claude 2.1.310
 │ Default base              origin's default branch, as last fetched                                         │
 │ Default place             New worktree                                                                     │
 │ Check for updates         on                                                                               │
+│ Setup                                                                                                      │
 │ Settings file             C:\Users\you\AppData\Local\Vantage\config.json                                   │
 │ Windows Terminal profiles not set up, run vantage setup-terminal                                           │
 │ Claude bell               on                                                                               │

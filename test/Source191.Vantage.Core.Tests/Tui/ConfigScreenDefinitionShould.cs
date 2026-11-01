@@ -18,4 +18,14 @@ public sealed class ConfigScreenDefinitionShould
 
         value.ShouldBe("09:12 today, newest 0.18.0");
     }
+
+    [Fact]
+    public void DrawTheSetupHeadingInOrangeAndTheSetupGrey()
+    {
+        ConfigScreenDefinition definition = new(new FakeTimeProvider());
+
+        definition.RowColour(new ConfigRow.Heading()).ShouldBe(Palette.Orange);
+        definition.RowColour(new ConfigRow.Setup(SetupItem.ClaudeBell, new SetupState.Enabled())).ShouldBe(Palette.Grey);
+        definition.RowColour(new ConfigRow.CheckForUpdates(On: true)).ShouldBe(Palette.White);
+    }
 }

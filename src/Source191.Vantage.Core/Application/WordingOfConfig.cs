@@ -31,6 +31,7 @@ public static partial class Wording
             ConfigRow.DefaultPlace => "Default place",
             ConfigRow.CheckForUpdates => "Check for updates",
             ConfigRow.Setup setup => ConfigSetting(setup.Item),
+            ConfigRow.Heading => "Setup",
             _ => row.ToString(),
         };
     }
@@ -61,6 +62,7 @@ public static partial class Wording
             ConfigRow.DefaultPlace place => Describe(place.Place),
             ConfigRow.CheckForUpdates check => check.On ? "on" : "off",
             ConfigRow.Setup setup => SetupValue(setup.Item, setup.State, now, zone),
+            ConfigRow.Heading => string.Empty,
             _ => row.ToString(),
         };
     }

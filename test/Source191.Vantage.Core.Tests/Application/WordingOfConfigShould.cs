@@ -36,6 +36,7 @@ public sealed class WordingOfConfigShould
         { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Checked(new DateTimeOffset(2026, 10, 30, 9, 12, 0, TimeSpan.Zero), new NewestRelease.Unreadable("rubbish"))), "Last update check", "09:12 today, newest rubbish" },
         { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Checked(new DateTimeOffset(2026, 10, 28, 18, 5, 0, TimeSpan.Zero), new NewestRelease.None())), "Last update check", "28 October 2026 18:05" },
         { new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Never()), "Last update check", "never" },
+        { new ConfigRow.Heading(), "Setup", string.Empty },
     };
 
     [Fact]

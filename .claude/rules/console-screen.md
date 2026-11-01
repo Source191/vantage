@@ -29,7 +29,7 @@ How the console is laid out and refreshed. The rules every view follows (reducer
 
 - The worktrees are scanned once as the console opens, whichever tab is shown, and that scan waits for the Sessions tab's first listing (succeeded or failed) through `Application\LatestSessions`, which holds the Sessions tab's latest listing for every scan, so a scan runs no `claude agents` of its own. After it the Worktrees tab rescans on every show and every 15 seconds while shown, never while hidden, and `Application\RunningLoads` lets one scan run at a time (the console reserves one on the UI thread before `TriggerLoad` and starts nothing when it cannot, and the scan function is wrapped in its `Track`, so the reload after an action is counted but never skipped).
 - `TableBody` asks only while its tab is shown (a hidden tab drawn alone lands on the shown one) and never makes a refresh wait, and the waiting spinner centres on the table, not the tab.
-- The Config tab is `ConfigView` over `ConfigRow`s (`ConfigRows.For(settings, SetupFacts)`, a case per setting and one `Setup` case per piece of setup, its key stable across a save); its setting rows are shown at once and the setup is read off the UI thread by `SetupFactsReader` each time the tab is shown and after each save, and it has no refresh timer.
+- The Config tab is `ConfigView` over `ConfigRow`s (`ConfigRows.For(settings, SetupFacts)`, a case per setting, then one `Heading` the selection steps over (`ListPolicy.Selectable`) and any filter hides, then one `Setup` case per piece of setup, its key stable across a save); its setting rows are shown at once and the setup is read off the UI thread by `SetupFactsReader` each time the tab is shown and after each save, and it has no refresh timer.
 
 ## Detail pane
 

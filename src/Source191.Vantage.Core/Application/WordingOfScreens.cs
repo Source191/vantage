@@ -228,7 +228,7 @@ public static partial class Wording
 
     public static IReadOnlyList<ColumnHelp> ConfigColumns { get; } =
     [
-        new("SETTING", "a setting Vantage keeps in config.json, or, in grey, setup it reads but does not change"),
+        new("SETTING", "a setting Vantage keeps in config.json, or, under the Setup heading, setup it reads but does not change"),
         new("VALUE", "its value; a setup row that needs attention says what to run"),
     ];
 
