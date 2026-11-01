@@ -23,7 +23,7 @@ Each task is one red-green-refactor cycle (or smaller), with the test named befo
 
 ## 4. Whole-solution check
 
-- [ ] 4.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate resume-without-dialogue --strict` all pass; `tools\install-local.ps1`, then `R` in a real console with stopped sessions resumes them and opens their tabs (manual check from `CONTRIBUTING.md`, as this touches tabs and attach).
+- [ ] 4.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate resume-without-dialogue --strict` all pass; `tools\install-local.ps1`, then `R` in a real console with stopped sessions resumes them and opens their tabs (manual check from `CONTRIBUTING.md`, as this touches tabs and attach). The automated part passed on 1 Nov 2026 (2239 tests: 2231 passed, 8 contract tests skipped; format clean; validate strict valid); the real-console part is (owed: manual check, see PR).
 
 ## Workflow follow-up
 
