@@ -16,7 +16,7 @@ public sealed class TerminalFragmentShould : IDisposable
         fragment = new TerminalFragment(root);
     }
 
-    private static TerminalProfiles Profiles => new(@"C:\Users\me\.dotnet\tools\vantage.exe", @"C:\Windows\Media\Windows Notify Messaging.wav", @"C:\Windows\Media\Windows Proximity Notification.wav");
+    private static TerminalProfiles Profiles => new(@"C:\Users\me\.dotnet\tools\vantage.exe", new BellSound.File(@"C:\Windows\Media\Windows Notify Messaging.wav"), new BellSound.File(@"C:\Windows\Media\Windows Proximity Notification.wav"));
 
     private JsonArray WrittenProfiles => JsonNode.Parse(File.ReadAllText(fragment.Location))!["profiles"]!.AsArray();
 
@@ -43,9 +43,9 @@ public sealed class TerminalFragmentShould : IDisposable
     }
 
     [Fact]
-    public async Task LeaveOutASoundThatIsNull()
+    public async Task LeaveOutTheSoundOfAProfileOnTheTerminalsOwnBell()
     {
-        await fragment.WriteAsync(Profiles with { VantageSound = null }, CancellationToken.None);
+        await fragment.WriteAsync(Profiles with { VantageSound = new BellSound.TerminalDefault() }, CancellationToken.None);
 
         JsonArray profiles = WrittenProfiles;
         profiles[0]!.AsObject().ContainsKey("bellSound").ShouldBeFalse();
@@ -67,7 +67,7 @@ public sealed class TerminalFragmentShould : IDisposable
     {
         await fragment.WriteAsync(Profiles, CancellationToken.None);
 
-        await fragment.WriteAsync(Profiles with { VantageSound = @"C:\Windows\Media\chimes.wav", SessionSound = null }, CancellationToken.None);
+        await fragment.WriteAsync(Profiles with { VantageSound = new BellSound.File(@"C:\Windows\Media\chimes.wav"), SessionSound = new BellSound.TerminalDefault() }, CancellationToken.None);
 
         JsonArray profiles = WrittenProfiles;
         profiles.Count.ShouldBe(2);
