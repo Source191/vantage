@@ -49,7 +49,7 @@ public static partial class Wording
     };
 
     /// <summary>The VALUE cell; <paramref name="now"/> says whether the last update check was today.</summary>
-    public static string ConfigValue(ConfigRow row, DateTimeOffset now)
+    public static string ConfigValue(ConfigRow row, DateTimeOffset now, TimeZoneInfo zone)
     {
         return row switch
         {

@@ -34,7 +34,7 @@ internal sealed class ConfigScreenDefinition : IScreenDefinition<ConfigViewState
         return column switch
         {
             0 => Wording.ConfigSetting(row),
-            _ => Middle(Wording.ConfigValue(row, now), width),
+            _ => Middle(Wording.ConfigValue(row, now, TimeZoneInfo.Utc), width),
         };
     }
 
