@@ -90,6 +90,13 @@ public sealed class FolderPathShould
     }
 
     [Fact]
+    public void RefuseTextHoldingANul()
+    {
+        FolderPath.TryParse(@"C:\Users\me\a" + "\0" + "b", out FolderPath? path).ShouldBeFalse();
+        path.ShouldBeNull();
+    }
+
+    [Fact]
     public void ReadAsThePathItself()
     {
         $"{FolderPath.From(Repository)}".ShouldBe(Repository);
