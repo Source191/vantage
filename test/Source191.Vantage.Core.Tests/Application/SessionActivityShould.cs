@@ -77,7 +77,7 @@ public sealed class SessionActivityShould
         FolderPath directory = FolderPath.From(@"C:\repos\Northwind.Orders");
         Session session = interactive
             ? new InteractiveSession(id, "fix-123", directory, Noon, state, ProcessId: 4242)
-            : new BackgroundSession(id, JobId.From("81cdb0f9"), "fix-123", directory, Noon, state);
+            : new BackgroundSession(id, JobId.From("81cdb0f9"), "fix-123", directory, Noon, state, new JobProcess.None());
 
         return new SessionRow(session, "Northwind.Orders", new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
     }

@@ -22,7 +22,7 @@ public sealed class DetailSourcesShould
     public async Task WordASessionsDetailKeyedByItsIdInItsFactRows()
     {
         SessionDetails source = new(Loader(), clock);
-        BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon.AddMinutes(-5), DisplayState.Stopped, ProcessId: null);
+        BackgroundSession session = new(SessionId.From("81cdb0f9-0000-4000-8000-000000000001"), JobId.From("81cdb0f9"), "invoice-pdf", Worktree, Noon.AddMinutes(-5), DisplayState.Stopped, new JobProcess.None());
         SessionRow row = new(session, "Northwind.Billing", new Head.OnBranch(BranchName.From("invoice-pdf")), new LiveTab.None(), HasTranscript: true);
 
         DetailContent content = await source.ReadAsync(row, CancellationToken.None);

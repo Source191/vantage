@@ -46,7 +46,7 @@ internal static class SessionTestData
     /// <summary>A supervised session named fix-123, job 81cdb0f9, session id sess-1.</summary>
     public static BackgroundSession Job(string directory, DisplayState? state = null)
     {
-        return new BackgroundSession(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "fix-123", FolderPath.From(directory), Noon, state ?? DisplayState.Working);
+        return new BackgroundSession(SessionId.From("sess-1"), JobId.From("81cdb0f9"), "fix-123", FolderPath.From(directory), Noon, state ?? DisplayState.Working, new JobProcess.None());
     }
 
     /// <summary>The <see cref="Terminal"/> session as a row on main.</summary>

@@ -188,7 +188,7 @@ public sealed class WordingOfScreensShould
 
     private static SessionRow SessionIn(DisplayState state, int index)
     {
-        BackgroundSession session = new(SessionId.From($"sess-{index}"), JobId.From($"81cdb0f{index}"), $"fix-{index}", FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), DateTimeOffset.UnixEpoch, state);
+        BackgroundSession session = new(SessionId.From($"sess-{index}"), JobId.From($"81cdb0f{index}"), $"fix-{index}", FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders"), DateTimeOffset.UnixEpoch, state, new JobProcess.None());
 
         return new SessionRow(session, "Northwind.Orders", new Head.OnBranch(BranchName.From("main")), new LiveTab.None(), HasTranscript: true);
     }
