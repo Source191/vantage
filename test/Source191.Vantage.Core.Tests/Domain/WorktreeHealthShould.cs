@@ -10,7 +10,8 @@ public sealed class WorktreeHealthShould
         Lock: new WorktreeLock.Unlocked(),
         UnderClaudeWorktrees: false,
         GitFile: new GitPointer.TargetExists(),
-        EmptyLeftoverFolder: false);
+        EmptyLeftoverFolder: false,
+        Prunable: false);
 
     [Fact]
     public void BeOkForARegisteredWorktreeWhoseFolderExistsWithNothingToExplain()
@@ -44,6 +45,23 @@ public sealed class WorktreeHealthShould
         WorktreeHealth health = WorktreeHealth.From(Registered with { FolderExists = false });
 
         health.Kind.ShouldBe(WorktreeHealthKind.Broken);
+        health.Reason.ShouldBe(new HealthReason.FolderGone());
+    }
+
+    [Fact]
+    public void BeBrokenWithItsGitFileGoneWhenAPrunableFolderExists()
+    {
+        WorktreeHealth health = WorktreeHealth.From(Registered with { Prunable = true });
+
+        health.Kind.ShouldBe(WorktreeHealthKind.Broken);
+        health.Reason.ShouldBe(new HealthReason.GitFileGone());
+    }
+
+    [Fact]
+    public void BeBrokenWithTheFolderGoneWhenAPrunableFolderIsGone()
+    {
+        WorktreeHealth health = WorktreeHealth.From(Registered with { Prunable = true, FolderExists = false });
+
         health.Reason.ShouldBe(new HealthReason.FolderGone());
     }
 

@@ -25,8 +25,8 @@ public sealed class WorktreeInspector(IGit git)
         GitWorktreeEntry? entry = entries.FirstOrDefault(candidate => FolderPath.TryParse(candidate.Path, out FolderPath? path) && path.Equals(worktree));
 
         return entry is null
-            ? WorktreeHealth.From(new WorktreeObservation(true, false, new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), false))
-            : WorktreeHealth.From(new WorktreeObservation(true, !entry.IsPrunable, entry.Lock, false, new GitPointer.NoGitFile(), false));
+            ? WorktreeHealth.From(new WorktreeObservation(true, false, new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), false, Prunable: false))
+            : WorktreeHealth.From(new WorktreeObservation(true, !entry.IsPrunable, entry.Lock, false, new GitPointer.NoGitFile(), false, Prunable: false));
     }
 
     /// <summary>Merged into the remote default branch, or into HEAD when the repository has none.</summary>

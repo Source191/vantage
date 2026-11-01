@@ -41,7 +41,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
                 }
                 else if (IsEmptyLeftover(child))
                 {
-                    rows.Add(Leftover(root, child, new WorktreeObservation(false, true, new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), EmptyLeftoverFolder: true), ownerExists: false));
+                    rows.Add(Leftover(root, child, new WorktreeObservation(false, true, new WorktreeLock.Unlocked(), false, new GitPointer.NoGitFile(), EmptyLeftoverFolder: true, Prunable: false), ownerExists: false));
                 }
             }
         }
@@ -117,7 +117,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
 
             registered.Add(path);
             bool folderExists = !entry.IsPrunable && folders.DirectoryExists(path.Value);
-            WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.Lock, false, new GitPointer.NoGitFile(), false));
+            WorktreeHealth health = WorktreeHealth.From(new WorktreeObservation(true, folderExists, entry.Lock, false, new GitPointer.NoGitFile(), false, Prunable: false));
             rows.Add(folderExists
                 ? await InspectedAsync(repository, path, entry, health, cancellationToken)
                 : new WorktreeRow(repository, path, entry.Head, health, 0, 0, new LastCommit.Unknown(), new WorktreeSession.None(), 0, OwnerExists: true, FolderExists: false));
@@ -168,7 +168,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
 
             string gitFile = IOPath.Combine(folder.Value, ".git");
             GitPointer pointer = folders.FileExists(gitFile) ? TargetOf(GitDirOf(gitFile)) : new GitPointer.NoGitFile();
-            WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), UnderClaudeWorktrees: true, pointer, false);
+            WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), UnderClaudeWorktrees: true, pointer, false, Prunable: false);
             yield return Leftover(repository, folder, observation, ownerExists: true);
         }
     }
@@ -185,7 +185,7 @@ public sealed class WorktreeInventory(IGit git, IFolders folders, CurrentSetting
         bool ownerExists = folders.DirectoryExists(IOPath.Combine(owner.Value, ".git"));
         GitPointer target = TargetOf(gitDir);
         GitPointer pointer = target is GitPointer.TargetExists && registeredWith is not null && ownerExists ? new GitPointer.RegisteredElsewhere(owner) : target;
-        WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), false, pointer, false);
+        WorktreeObservation observation = new(false, true, new WorktreeLock.Unlocked(), false, pointer, false, Prunable: false);
 
         return Leftover(owner, folder, observation, ownerExists);
     }
