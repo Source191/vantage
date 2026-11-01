@@ -39,6 +39,14 @@ public sealed class ProgramLocatorShould
     }
 
     [Fact]
+    public void SkipARelativePathEntry()
+    {
+        FakeFolders folders = new FakeFolders().WithFile(@".\git.exe").WithFile(@"bin\git.exe").WithFile(@"C:\Program Files\Git\cmd\git.exe");
+
+        new ProgramLocator(folders, [".", "bin", @"C:\Program Files\Git\cmd"]).Locate("git").ShouldBe(new ProgramLocation.Found(@"C:\Program Files\Git\cmd\git.exe"));
+    }
+
+    [Fact]
     public void NeverLookOutsideThePathFolders()
     {
         FakeFolders folders = new FakeFolders().WithFile(@"C:\Users\me\source\repos\Planted\git.exe");

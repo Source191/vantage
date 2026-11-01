@@ -21,10 +21,11 @@ public sealed class PullRequestHosts(GitHubPullRequests gitHub, AzureDevOpsPullR
 /// </summary>
 public static class AzureCliExecutable
 {
-    /// <summary>The first az.cmd in the PATH's folders, in order; the variable itself may be unset.</summary>
-    public static ProgramLocation Locate(string? path)
+    /// <summary>The first az.cmd in the PATH's folders, in order.</summary>
+    public static ProgramLocation Locate(IReadOnlyList<string> pathFolders)
     {
-        string? found = (path ?? string.Empty).Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        ArgumentNullException.ThrowIfNull(pathFolders);
+        string? found = pathFolders
             .Select(folder => Path.Combine(folder, "az.cmd"))
             .FirstOrDefault(File.Exists);
 
