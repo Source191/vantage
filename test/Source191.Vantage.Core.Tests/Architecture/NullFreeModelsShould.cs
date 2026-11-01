@@ -61,7 +61,6 @@ public sealed class NullFreeModelsShould
         new(typeof(WorktreesViewState), "Selected", "the list selection"),
         new(typeof(ConfigViewState), "Selected", "the list selection"),
         new(typeof(WizardState), "SelectedIndex", "bound to Terminal.Gui's ListView.SelectedItem, which is null with no row"),
-        new(typeof(TabKeys), "For", "a key that is not a tab key answers no effect"),
         new(typeof(Started), "ClaudeCode", "Claude Code's version could not be read"),
         new(typeof(Failed), "What", "a failure outside an effect has no code name"),
         new(typeof(TerminalGuiReported), "Failure", "Terminal.Gui reports some events without an exception"),
