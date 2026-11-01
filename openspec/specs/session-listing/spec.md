@@ -284,6 +284,10 @@ The `m` key SHALL open a dialog titled with the session's name that lists Claude
 - **WHEN** a server was started with a command line that carries an API key
 - **THEN** the dialog shows the package name alone
 
+#### Scenario: An option's value is never a label
+- **WHEN** a session started uvx --from git+https://x-access-token:secret@github.com/northwind/mcp northwind-mcp, and another started npx --registry https://me:secret@registry.northwind.example -y @northwind/mcp
+- **THEN** the dialog shows northwind-mcp and @northwind/mcp, and no line shows any part of either URL
+
 #### Scenario: A stopped session
 - **WHEN** `m` is pressed on a stopped session
 - **THEN** no dialog opens and the status line says there is nothing to measure for a session with no process
@@ -461,3 +465,18 @@ A Claude version older than the minimum Vantage supports SHALL show that minimum
 #### Scenario: An older minor version
 - **WHEN** the minimum is 2.1.309 and the Claude Code CLI reports 2.0.99
 - **THEN** the first settings row reads Claude 2.0.99 (below 2.1.309, update Claude Code) and the sessions are listed as usual
+
+### Requirement: A session id has the CLI's shape
+A session id read from the CLI's listing or a state file SHALL be made of ASCII letters, digits and hyphens and SHALL start with a letter or digit; a listing row or a state entry whose id has any other shape SHALL be skipped as a malformed row is, so no id is ever passed to Claude Code where it could be read as an option or used to name a file outside the transcripts folder.
+
+#### Scenario: An ordinary id
+- **WHEN** the listing has a row whose sessionId is 81cdb0f9-8c3f-4c9b-b478-ca0a5ebf85c6
+- **THEN** the row is shown
+
+#### Scenario: An id that looks like an option
+- **WHEN** the listing has a row whose sessionId is --dangerously-skip-permissions
+- **THEN** that row is not shown, the other rows are, and no Claude Code command is ever given that id
+
+#### Scenario: An id that names another folder
+- **WHEN** the listing has a row whose sessionId is ..\..\Northwind
+- **THEN** that row is not shown and no file is looked for under that name
