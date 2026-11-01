@@ -128,3 +128,14 @@ The Open folder with dialog SHALL refuse to save, name the problem and stay open
 #### Scenario: No placeholder
 - **WHEN** the user enters `C:\Tools\subl.exe` with the arguments `-n` as a custom editor and presses F5
 - **THEN** nothing is saved, the dialog stays open and says the arguments need `{folder}`
+
+### Requirement: Rider opens the newest installed Rider
+When the editor is Rider, the folder SHALL open in the newest of the installed Riders found, comparing the numbers in their install folders as numbers rather than as text, with the same answer whatever the culture of the machine.
+
+#### Scenario: A two-digit release
+- **WHEN** the editor is Rider and both JetBrains Rider 2025.9 and JetBrains Rider 2025.10 are installed under Program Files
+- **THEN** pressing e on a worktree row opens it in JetBrains Rider 2025.10
+
+#### Scenario: Toolbox builds
+- **WHEN** the editor is Rider and Toolbox holds Rider builds 253.99 and 253.100 in one channel
+- **THEN** pressing e on a worktree row opens it in build 253.100

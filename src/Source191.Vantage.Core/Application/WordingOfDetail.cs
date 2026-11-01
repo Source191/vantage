@@ -30,17 +30,18 @@ public static partial class Wording
     private const string NotInARepository = "not in a repository";
 
     /// <summary>A session's facts in four rows, the folder and its changes two columns wide; its state and pull request are in the row.</summary>
-    public static DetailContent Detail(SessionDetail detail, DateTimeOffset now)
+    public static DetailContent Detail(SessionDetail detail, DateTimeOffset now, TimeZoneInfo zone)
     {
         ArgumentNullException.ThrowIfNull(detail);
+        ArgumentNullException.ThrowIfNull(zone);
         SessionRow row = detail.Row;
         Session session = row.Session;
         IReadOnlyList<IReadOnlyList<DetailLine>> facts =
         [
             [
                 WaitingLine(WaitingFor(row)),
-                new("Started", TimeAgo(session.StartedAt, now)),
-                new("Prompted", detail.LastPromptedAt is LastPrompt.Seen prompted ? TimeAgo(prompted.At, now) : "not seen since Vantage started"),
+                new("Started", TimeAgo(session.StartedAt, now, zone)),
+                new("Prompted", detail.LastPromptedAt is LastPrompt.Seen prompted ? TimeAgo(prompted.At, now, zone) : "not seen since Vantage started"),
             ],
             [new("Folder", session.WorkingDirectory.Value, Span: 2), new("Session", session.SessionId.Value)],
             [new("Worktree", PlaceOf(row)), new("Branch", HeadLine(row.Head)), new("Tab", TabLine(row))],
@@ -54,9 +55,10 @@ public static partial class Wording
     }
 
     /// <summary>A worktree's facts in four rows, its health and changes across the pane, and its unpushed commits or changed files beneath.</summary>
-    public static DetailContent Detail(WorktreeDetail detail, DateTimeOffset now)
+    public static DetailContent Detail(WorktreeDetail detail, DateTimeOffset now, TimeZoneInfo zone)
     {
         ArgumentNullException.ThrowIfNull(detail);
+        ArgumentNullException.ThrowIfNull(zone);
         WorktreeRow row = detail.Row;
         IReadOnlyList<IReadOnlyList<DetailLine>> facts =
         [
@@ -64,7 +66,7 @@ public static partial class Wording
             [new("Branch", BranchLine(row.Head, detail.Merge), Span: 2), new("PR", PullRequestLine(row.PullRequest))],
             [
                 new("Folder", row.Path.Value, Span: 2),
-                new("Created", detail.Created is WorktreeOrigin.CreatedByVantage created ? $"by Vantage, {DayAndTime(created.Record.CreatedAt, now)}" : "not by Vantage"),
+                new("Created", detail.Created is WorktreeOrigin.CreatedByVantage created ? $"by Vantage, {DayAndTime(created.Record.CreatedAt, now, zone)}" : "not by Vantage"),
             ],
             [new("Changes", $"{Count(row.DirtyFiles, "changed file")} · {Count(row.UnpushedCommits, "unpushed commit")}", row.DirtyFiles + row.UnpushedCommits > 0 ? TextTone.Amber : TextTone.Plain, Span: 3)],
         ];
@@ -188,13 +190,14 @@ public static partial class Wording
         return lines;
     }
 
-    /// <summary>A time today as its hour and minute with how long ago; another day with its date.</summary>
-    private static string TimeAgo(DateTimeOffset at, DateTimeOffset now) => $"{DayAndTime(at, now)} ({Durations.Age(now - at)} ago)";
+    /// <summary>A time today as its hour and minute with how long ago; another day with its date; both in the local zone.</summary>
+    private static string TimeAgo(DateTimeOffset at, DateTimeOffset now, TimeZoneInfo zone) => $"{DayAndTime(at, now, zone)} ({Durations.Age(now - at)} ago)";
 
-    private static string DayAndTime(DateTimeOffset at, DateTimeOffset now)
+    /// <summary>Each moment takes the offset the zone had then, so a time from before the clocks changed keeps its own.</summary>
+    private static string DayAndTime(DateTimeOffset at, DateTimeOffset now, TimeZoneInfo zone)
     {
-        DateTimeOffset local = at.ToOffset(now.Offset);
+        DateTimeOffset local = TimeZoneInfo.ConvertTime(at, zone);
 
-        return local.Date == now.Date ? local.ToString("HH:mm", CultureInfo.InvariantCulture) : local.ToString("d MMM HH:mm", CultureInfo.InvariantCulture);
+        return local.Date == TimeZoneInfo.ConvertTime(now, zone).Date ? local.ToString("HH:mm", CultureInfo.InvariantCulture) : local.ToString("d MMM HH:mm", CultureInfo.InvariantCulture);
     }
 }

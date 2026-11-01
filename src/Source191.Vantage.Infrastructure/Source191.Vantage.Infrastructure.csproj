@@ -6,7 +6,6 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Source191.Vantage.Adapters</RootNamespace>
     <IsPackable>false</IsPackable>
-    <InvariantGlobalization>true</InvariantGlobalization>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 

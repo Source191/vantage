@@ -80,7 +80,7 @@ public static class ChildCommandWords
 {
     public static readonly IReadOnlySet<string> Git = new HashSet<string>(StringComparer.Ordinal)
     {
-        "worktree", "list", "add", "remove", "prune", "status", "rev-list", "log", "branch", "symbolic-ref", "merge-base", "rev-parse", "remote", "get-url", "ls-files",
+        "worktree", "list", "add", "remove", "prune", "status", "rev-list", "log", "branch", "symbolic-ref", "merge-base", "rev-parse", "remote", "get-url", "ls-files", "-c", "core.quotePath=false",
     };
 
     public static readonly IReadOnlySet<string> Claude = new HashSet<string>(StringComparer.Ordinal)

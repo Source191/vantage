@@ -7,6 +7,7 @@ namespace Source191.Vantage.Core.Tests.Application;
 public sealed class WordingOfConfigShould
 {
     private static readonly DateTimeOffset Now = new(2026, 10, 30, 15, 0, 0, TimeSpan.Zero);
+    private static readonly TimeZoneInfo UnitedKingdom = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
     private const string Fragment = @"C:\Users\me\AppData\Local\Microsoft\Windows Terminal\Fragments\Vantage\vantage.json";
 
     public static TheoryData<ConfigRow, string, string> Rows => new()
@@ -70,9 +71,24 @@ public sealed class WordingOfConfigShould
     public void NameEachRowAndSayItsValue(ConfigRow row, string setting, string value)
     {
         Wording.ConfigSetting(row).ShouldBe(setting);
-        Wording.ConfigValue(row, Now).ShouldBe(value);
+        Wording.ConfigValue(row, Now, TimeZoneInfo.Utc).ShouldBe(value);
     }
 
+    [Fact]
+    public void SayASummerCheckInUnitedKingdomTime()
+    {
+        ConfigRow row = new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Checked(new DateTimeOffset(2026, 7, 15, 8, 12, 0, TimeSpan.Zero), new NewestRelease.Found(ReleaseVersions.Version("0.18.0"))));
+
+        Wording.ConfigValue(row, new DateTimeOffset(2026, 7, 15, 10, 0, 0, TimeSpan.Zero), UnitedKingdom).ShouldBe("09:12 today, newest 0.18.0");
+    }
+
+    [Fact]
+    public void SayACheckFromBeforeTheClocksWentBackInItsOwnOffset()
+    {
+        ConfigRow row = new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Checked(new DateTimeOffset(2026, 10, 24, 8, 12, 0, TimeSpan.Zero), new NewestRelease.None()));
+
+        Wording.ConfigValue(row, new DateTimeOffset(2026, 11, 1, 12, 0, 0, TimeSpan.Zero), UnitedKingdom).ShouldBe("24 October 2026 09:12");
+    }
     [Fact]
     public void SayHowEachPieceOfSetupIsChanged()
     {
