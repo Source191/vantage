@@ -2,8 +2,10 @@ using Source191.Vantage.Application;
 using Source191.Vantage.Application.Actions;
 using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Application.Views;
+using Source191.Vantage.Core.Tests.Architecture;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Core.Tests.Application.Diagnostics;
 
@@ -146,6 +148,51 @@ public sealed class DiagnosticLineShould
         none.ShouldBe(["2026-10-29T14:03:12.345Z stalls ui thread: 0 stalls"]);
         DiagnosticLine.Render(counts, At).ShouldBe(["2026-10-29T14:03:12.345Z stalls ui thread: 3 stalls, median 180 ms, p95 820 ms, longest 820 ms"]);
     }
+
+    public static TheoryData<Type> EventTypes => DiagnosticEventsShould.EventTypes;
+
+    [Theory]
+    [MemberData(nameof(EventTypes))]
+    public void RenderEveryEvent(Type type)
+    {
+        System.Reflection.ConstructorInfo constructor = type.GetConstructors().Single(candidate => candidate.GetParameters().All(parameter => parameter.ParameterType != type));
+        object?[] arguments = [.. constructor.GetParameters().Select(parameter => Placeholder(parameter.ParameterType))];
+        DiagnosticEvent diagnostic = (DiagnosticEvent)constructor.Invoke(arguments);
+
+        Body(diagnostic).ShouldNotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
+    public void RefuseAnEventItDoesNotKnow()
+    {
+        Should.Throw<UnreachableException>(() => DiagnosticLine.Render(new TimedEvent(At, new Unknown())));
+    }
+
+    private static object? Placeholder(Type type)
+    {
+        Type underlying = Nullable.GetUnderlyingType(type) ?? type;
+        if (type != underlying)
+        {
+            return null;
+        }
+
+        return underlying switch
+        {
+            _ when underlying.IsEnum => Enum.GetValues(underlying).GetValue(0),
+            _ when underlying == typeof(int) => 2,
+            _ when underlying == typeof(long) => 2L,
+            _ when underlying == typeof(bool) => true,
+            _ when underlying == typeof(TimeSpan) => TimeSpan.FromMilliseconds(412),
+            _ when underlying == typeof(Version) => new Version(2, 1, 310),
+            _ when underlying == typeof(ToolVersion) => new ToolVersion("0.20.0"),
+            _ when underlying == typeof(CodeName) => CodeName.For(typeof(StopSession)),
+            _ when underlying == typeof(ExceptionSummary) => ExceptionSummary.From(new GitException("x")),
+            _ when underlying == typeof(ChildCommand) => ChildCommand.For(new ProcessRequest("git", ["status"], WorkingFolder.Inherit)),
+            _ => throw new NotSupportedException($"{type.Name} needs a placeholder."),
+        };
+    }
+
+    private sealed record Unknown : DiagnosticEvent;
 
     private static string Body(DiagnosticEvent diagnostic)
     {
