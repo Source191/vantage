@@ -10,9 +10,9 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
 
 ## 2. Layering facts
 
-- [ ] 2.1 `LayeringShould.KeepPortsFreeOfApplication`: types in `Source191.Vantage.Ports` have no dependency on `Source191.Vantage.Application`. Red by probe: a temporary `Application.Wording` reference in a `Ports` record fails the fact. Verify it passes with the probe removed.
-- [ ] 2.2 `LayeringShould.KeepSystemCommandLineInsideCommandLine`: types in `Source191.Vantage` namespaces whose name does not start with `CommandLine` (the class and its compiler-generated closures) have no dependency on `System.CommandLine`. Red by probe: a `System.CommandLine.Option<string>` field in `Application\Launch\HereCommand.cs`. Verify it passes with the probe removed.
-- [ ] 2.3 Refactor: drop `{Root}.Screens`, `{Root}.Actions`, `{Root}.Launch` and `{Root}.Screens.Tui` from `LayeringShould.cs:20, 27, 44, 52`. Verify the five existing facts still pass and the file names no namespace absent from `src`.
+- [x] 2.1 `LayeringShould.KeepPortsFreeOfApplication`: types in `Source191.Vantage.Ports` have no dependency on `Source191.Vantage.Application`. Red by probe: a temporary `Application.Wording` reference in a `Ports` record fails the fact. Verify it passes with the probe removed.
+- [x] 2.2 `LayeringShould.KeepSystemCommandLineInsideCommandLine`: types in `Source191.Vantage` namespaces whose name does not start with `CommandLine` (the class and its compiler-generated closures) have no dependency on `System.CommandLine`. Red by probe: a `System.CommandLine.Option<string>` field in `Application\Launch\HereCommand.cs`. Verify it passes with the probe removed.
+- [x] 2.3 Refactor: drop `{Root}.Screens`, `{Root}.Actions`, `{Root}.Launch` and `{Root}.Screens.Tui` from `LayeringShould.cs:20, 27, 44, 52`. Verify the five existing facts still pass and the file names no namespace absent from `src`.
 
 ## 3. Reducers and handlers
 
