@@ -59,7 +59,7 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
 
 ## 10. Whole-solution check
 
-- [ ] 10.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate convention-nets --strict` all pass. Record the totals here.
+- [x] 10.1 `dotnet build -c Debug`, `dotnet test -c Debug --no-build` at the solution, `dotnet format --verify-no-changes` and `openspec validate convention-nets --strict` all pass. Totals: build 0 warnings 0 errors; 2716 tests, 2707 passed, 9 skipped (contract), 0 failed; format and `openspec validate --all --strict` clean.
 
 ## Workflow follow-up
 
