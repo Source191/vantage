@@ -51,7 +51,8 @@ public sealed class SetupFactsReader(ITerminalFragment fragment, IClaudeSettings
             NotificationChannelState.Configured { Value: TerminalBell } => new SetupState.Enabled(),
             NotificationChannelState.Configured other => new SetupState.OtherChannel(other.Value),
             NotificationChannelState.Unreadable => new SetupState.Unreadable(),
-            _ => new SetupState.NotSetUp(),
+            NotificationChannelState.Missing or NotificationChannelState.Unset => new SetupState.NotSetUp(),
+            _ => throw new UnreachableException(),
         };
     }
 
