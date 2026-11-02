@@ -136,7 +136,7 @@ public static class SessionsView
             null => Unchanged(state with { Message = new StatusMessage.NoSessionSelected() }),
             { PullRequest: PullRequestLookup.Found found } => Effect(state with { Message = StatusMessage.None }, new OpenPullRequest(found.PullRequest)),
             { PullRequest: PullRequestLookup.Missing missing } row => Unchanged(state with { Message = new StatusMessage.NoPullRequest(row.Session.Name, missing.Gap, missing.Host) }),
-            _ => Unchanged(state),
+            _ => throw new UnreachableException(),
         };
     }
 
@@ -205,7 +205,7 @@ public static class SessionsView
             { Session: BackgroundSession } => Unchanged(state with { Message = new StatusMessage.AlreadyUnderVantage(row.Session.Name) }),
             { Session.State.Kind: DisplayStateKind.Working } => Unchanged(state with { Message = new StatusMessage.WorkingSoAdoptWaits(row.Session.Name) }),
             { Session: InteractiveSession terminal } => Effect(state with { Message = StatusMessage.None }, new AdoptSession(terminal)),
-            _ => Unchanged(state),
+            _ => throw new UnreachableException(),
         };
     }
 
