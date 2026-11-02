@@ -181,7 +181,7 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
         }
 
         key.Handled = true;
-        if (!State.List.FilterEditing && ScrollStep(mapped) is int step)
+        if (!State.List.FilterEditing && ScrollKeys.TryFor(mapped, out int step))
         {
             Scroll(step);
             return;
@@ -392,14 +392,6 @@ internal sealed class TableBody<TState, TRow> : ITabBody, IEffectContext, IDispo
                 throw new UnreachableException();
         }
     }
-
-    /// <summary>&lt; and &gt; scroll a table too wide for the terminal (Shift+arrows did not reach Vantage in Windows Terminal); Left and Right are the tab keys.</summary>
-    private static int? ScrollStep(Key key) => key switch
-    {
-        { Name: KeyName.Character, Character: '<' } => -1,
-        { Name: KeyName.Character, Character: '>' } => 1,
-        _ => null,
-    };
 
     private void Scroll(int step)
     {
