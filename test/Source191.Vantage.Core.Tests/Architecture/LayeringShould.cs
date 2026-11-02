@@ -17,14 +17,14 @@ public sealed class LayeringShould
     public void KeepDomainFreeOfEverythingElse()
     {
         Vantage.That().ResideInNamespace($"{Root}.Domain")
-            .ShouldNot().HaveDependencyOnAny($"{Root}.Ports", $"{Root}.Application", $"{Root}.Adapters", $"{Root}.Tui", $"{Root}.Screens", $"{Root}.Actions", $"{Root}.Launch", "Terminal.Gui", "System.IO.File", "System.IO.Directory", "System.Diagnostics.Process")
+            .ShouldNot().HaveDependencyOnAny($"{Root}.Ports", $"{Root}.Application", $"{Root}.Adapters", $"{Root}.Tui", "Terminal.Gui", "System.IO.File", "System.IO.Directory", "System.Diagnostics.Process")
             .GetResult().FailingTypeNames.ShouldBeNull();
     }
 
     [Fact]
     public void KeepTerminalGuiInsideTui()
     {
-        Vantage.That().ResideInNamespaceStartingWith(Root).And().DoNotResideInNamespaceStartingWith($"{Root}.Screens.Tui").And().DoNotResideInNamespaceStartingWith($"{Root}.Tui")
+        Vantage.That().ResideInNamespaceStartingWith(Root).And().DoNotResideInNamespaceStartingWith($"{Root}.Tui")
             .ShouldNot().HaveDependencyOn("Terminal.Gui")
             .GetResult().FailingTypeNames.ShouldBeNull();
     }
@@ -41,7 +41,7 @@ public sealed class LayeringShould
     public void KeepApplicationFreeOfAdaptersAndTui()
     {
         Vantage.That().ResideInNamespaceStartingWith($"{Root}.Application")
-            .ShouldNot().HaveDependencyOnAny($"{Root}.Adapters", $"{Root}.Tui", $"{Root}.Screens.Tui")
+            .ShouldNot().HaveDependencyOnAny($"{Root}.Adapters", $"{Root}.Tui")
             .GetResult().FailingTypeNames.ShouldBeNull();
     }
 
@@ -49,7 +49,23 @@ public sealed class LayeringShould
     public void KeepAdaptersFreeOfApplicationAndTui()
     {
         Vantage.That().ResideInNamespaceStartingWith($"{Root}.Adapters")
-            .ShouldNot().HaveDependencyOnAny($"{Root}.Application", $"{Root}.Screens", $"{Root}.Actions", $"{Root}.Launch", $"{Root}.Tui")
+            .ShouldNot().HaveDependencyOnAny($"{Root}.Application", $"{Root}.Tui")
+            .GetResult().FailingTypeNames.ShouldBeNull();
+    }
+
+    [Fact]
+    public void KeepPortsFreeOfApplication()
+    {
+        Vantage.That().ResideInNamespaceStartingWith($"{Root}.Ports")
+            .ShouldNot().HaveDependencyOn($"{Root}.Application")
+            .GetResult().FailingTypeNames.ShouldBeNull();
+    }
+
+    [Fact]
+    public void KeepSystemCommandLineInsideCommandLine()
+    {
+        Vantage.That().ResideInNamespaceStartingWith(Root).And().DoNotHaveNameStartingWith("CommandLine")
+            .ShouldNot().HaveDependencyOn("System.CommandLine")
             .GetResult().FailingTypeNames.ShouldBeNull();
     }
 }

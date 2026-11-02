@@ -101,7 +101,7 @@ public static class WorktreesView
     {
         PullRequestLookup.Found found => new RowDecision.Act(new OpenPullRequest(found.PullRequest)),
         PullRequestLookup.Missing missing => new RowDecision.Explain(new StatusMessage.NoPullRequest(row.FolderName, missing.Gap, missing.Host)),
-        _ => new RowDecision.Explain(StatusMessage.None),
+        _ => throw new UnreachableException(),
     };
 
     private static RowDecision Prune(WorktreeRow row)

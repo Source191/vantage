@@ -11,13 +11,11 @@ namespace Source191.Vantage.Infrastructure.Tests;
 public sealed class OneTypePerFileShould
 {
     private static readonly string[] Folders = ["src", "test", "tools"];
-    private static readonly string[] SkippedFolders = ["bin", "obj"];
-    private static readonly CSharpParseOptions Options = new(LanguageVersion.Preview);
 
     [Fact]
     public void HoldOneTypePerFile()
     {
-        List<string> offenders = [.. SourceFiles()
+        List<string> offenders = [.. FilesWithTheirTypes()
             .Where(file => file.Types.Count > 1)
             .Select(file => $"{file.RelativePath} ({file.Types.Count}): {string.Join(", ", file.Types.Select(type => type.Name))}")];
 
@@ -27,27 +25,21 @@ public sealed class OneTypePerFileShould
     [Fact]
     public void NameEachFileAfterItsType()
     {
-        List<string> offenders = [.. SourceFiles()
+        List<string> offenders = [.. FilesWithTheirTypes()
             .Where(file => file.Types.Count == 1 && !file.IsNamedAfter(file.Types[0]))
             .Select(file => $"{file.RelativePath}: {file.Types[0].Name}")];
 
         offenders.ShouldBeEmpty($"{offenders.Count} files are not named after their type:{Environment.NewLine}{string.Join(Environment.NewLine, offenders)}");
     }
 
-    private static IEnumerable<SourceFile> SourceFiles()
+    private static IEnumerable<SourceFile> FilesWithTheirTypes()
     {
-        string root = RepositoryFolder.Root();
-        return Folders
-            .SelectMany(folder => Directory.EnumerateFiles(Path.Combine(root, folder), "*.cs", SearchOption.AllDirectories))
-            .Select(path => Path.GetRelativePath(root, path))
-            .Where(relativePath => !relativePath.Split(Path.DirectorySeparatorChar).Any(segment => SkippedFolders.Contains(segment, StringComparer.OrdinalIgnoreCase)))
-            .Order(StringComparer.Ordinal)
-            .Select(relativePath => new SourceFile(relativePath, TopLevelTypes(File.ReadAllText(Path.Combine(root, relativePath)))));
+        return SourceFiles.Under(Folders)
+            .Select(relativePath => new SourceFile(relativePath, TopLevelTypes(SourceFiles.Read(relativePath))));
     }
-
     private static List<TopLevelType> TopLevelTypes(string text)
     {
-        CompilationUnitSyntax unit = CSharpSyntaxTree.ParseText(text, Options).GetCompilationUnitRoot();
+        CompilationUnitSyntax unit = SourceFiles.Parse(text).GetCompilationUnitRoot();
         return [.. TypesAmong(unit.Members)];
     }
 

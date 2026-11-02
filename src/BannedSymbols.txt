@@ -1,0 +1,25 @@
+P:System.DateTime.Now;Use TimeProvider
+P:System.DateTime.UtcNow;Use TimeProvider
+P:System.DateTime.Today;Use TimeProvider and the local zone
+P:System.DateTimeOffset.Now;Use TimeProvider
+P:System.DateTimeOffset.UtcNow;Use TimeProvider
+M:System.DateTimeOffset.ToOffset(System.TimeSpan);Use TimeZoneInfo.ConvertTime with the caller's zone
+M:System.Threading.Thread.Sleep(System.Int32);Async throughout: await Task.Delay with the TimeProvider
+M:System.Threading.Thread.Sleep(System.TimeSpan);Async throughout: await Task.Delay with the TimeProvider
+M:System.Threading.Tasks.Task.Wait;Async throughout: await it
+M:System.Threading.Tasks.Task.Wait(System.Int32);Async throughout: await it
+M:System.Threading.Tasks.Task.Wait(System.TimeSpan);Async throughout: await it
+M:System.Threading.Tasks.Task.Wait(System.Threading.CancellationToken);Async throughout: await it
+M:System.Threading.Tasks.Task.Wait(System.Int32,System.Threading.CancellationToken);Async throughout: await it
+M:System.Threading.Tasks.Task.Wait(System.TimeSpan,System.Threading.CancellationToken);Async throughout: await it
+P:System.Threading.Tasks.Task`1.Result;Async throughout: await it
+M:System.Runtime.CompilerServices.TaskAwaiter.GetResult;Async throughout: await it
+M:System.Runtime.CompilerServices.TaskAwaiter`1.GetResult;Async throughout: await it
+T:System.Threading.Volatile;Use Application.SharedSnapshot<T>
+M:System.Diagnostics.Process.Start(System.String);Run a program by its located full path through ProcessRunner
+M:System.Diagnostics.Process.Start(System.String,System.String);Run a program by its located full path through ProcessRunner
+M:System.Diagnostics.Process.Start(System.String,System.Collections.Generic.IEnumerable{System.String});Run a program by its located full path through ProcessRunner
+M:System.Diagnostics.Process.Start(System.String,System.String,System.String,System.Security.SecureString,System.String);Run a program by its located full path through ProcessRunner
+M:System.Diagnostics.Process.Start(System.String,System.String,System.String,System.Security.SecureString,System.String,System.String);Run a program by its located full path through ProcessRunner
+M:System.String.ToLower;Use ToLowerInvariant or an ordinal comparison
+M:System.Diagnostics.Process.Start(System.String,System.String,System.Security.SecureString,System.String);Run a program by its located full path through ProcessRunner

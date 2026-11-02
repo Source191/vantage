@@ -6,6 +6,6 @@ public abstract record RowDecision
     /// <summary>Run the effect; the status message is cleared.</summary>
     public sealed record Act(ViewEffect Effect) : RowDecision;
 
-    /// <summary>Run nothing and show the message; <see cref="StatusMessage.None"/> for a row whose answer is still loading.</summary>
+    /// <summary>Run nothing and show the message.</summary>
     public sealed record Explain(StatusMessage Message) : RowDecision;
 }

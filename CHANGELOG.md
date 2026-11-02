@@ -86,6 +86,7 @@ What changes in each release of Vantage, written for the people who use it. The 
 
 ### Internal
 
+- Convention nets: a banned-symbols list for src, layering, reducer, handler, diagnostic-line, key-parity and source-text facts, and UnreachableException in the closed discards (#189)
 - Smoke test of the packed tool in CI, its script built from Wording (#75)
 - Prerelease versions are published as GitHub prereleases (#78)
 - Repository guards for going public: code owner and approval for nuget.org publishing (#80)

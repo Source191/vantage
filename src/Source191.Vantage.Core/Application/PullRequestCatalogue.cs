@@ -2,6 +2,7 @@ using Source191.Vantage.Application.Diagnostics;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace Source191.Vantage.Application;
 
@@ -39,7 +40,7 @@ public sealed class PullRequestCatalogue(IGit git, IPullRequests hosts, TimeProv
         {
             { Listing: PullRequestListing.Listed listed } => ForBranch(listed, branch),
             { Listing: PullRequestListing.Unavailable unavailable } => new PullRequestLookup.Missing(unavailable.Gap, answer.Host),
-            _ => new PullRequestLookup.Missing(PullRequestGap.Failed),
+            _ => throw new UnreachableException(),
         };
     }
 
