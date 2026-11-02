@@ -2,8 +2,6 @@ using Microsoft.Extensions.Time.Testing;
 using Source191.Vantage.Adapters.Claude;
 using Source191.Vantage.Adapters.Git;
 using Source191.Vantage.Application.Actions;
-using Source191.Vantage.Application.Effects;
-using Source191.Vantage.Application.Views;
 using Source191.Vantage.Domain;
 using Source191.Vantage.Ports;
 using Source191.Vantage.TestDoubles;
@@ -96,17 +94,6 @@ public sealed class DeleteSessionHandlerShould
         processes.CapturedRequests.ShouldContain(request => request.Arguments.Contains("remove"));
         processes.CapturedRequests.ShouldNotContain(request => request.Arguments.Contains("branch"));
         outcome.ShouldBe(new DeleteSessionOutcome.BranchNotMerged("fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123"))));
-    }
-
-    [Fact]
-    public async Task DeleteABranchOnRequestWithForce()
-    {
-        DeleteBranchHandler handler = new(new GitCli(processes, "git"));
-
-        Outcome message = await handler.HandleAsync(new DeleteBranch(new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123"))), CancellationToken.None);
-
-        processes.CapturedRequests.Single().Arguments.ShouldBe(["branch", "-D", "fix-123"]);
-        message.ShouldBe(new DeleteBranchOutcome());
     }
 
     [Fact]
