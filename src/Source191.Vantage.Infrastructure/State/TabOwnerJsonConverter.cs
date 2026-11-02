@@ -1,4 +1,5 @@
 using Source191.Vantage.Domain;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,6 +23,7 @@ public sealed class TabOwnerJsonConverter : JsonConverter<TabOwner>
     public override void Write(Utf8JsonWriter writer, TabOwner value, JsonSerializerOptions options) => writer.WriteStringValue(value switch
     {
         TabOwner.ForSession session => session.Id.Value,
-        _ => Vantage,
+        TabOwner.ForVantage => Vantage,
+        _ => throw new UnreachableException(),
     });
 }

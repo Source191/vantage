@@ -40,9 +40,9 @@ Each task is one red-green-refactor cycle or smaller, with a commit per step; th
 
 ## 7. Discard arms
 
-- [ ] 7.1 Refactor: `src\Source191.Vantage.Core\Application\Views\SessionsView.cs:139` and `:208` and `Views\WorktreesView.cs:104` become `_ => throw new UnreachableException()`; `Views\RowDecision.cs:9` loses "for a row whose answer is still loading". Verify `SessionsViewShould` and `WorktreesViewShould` pass (the `p` and `b` facts cover both named arms).
-- [ ] 7.2 Refactor: `Application\PullRequestCatalogue.cs:42` throws `UnreachableException`; `Application\SetupFactsReader.cs:54` becomes `NotificationChannelState.Missing or NotificationChannelState.Unset => new SetupState.NotSetUp()` followed by the throwing discard. Verify `PullRequestCatalogueShould` and `SetupFactsReaderShould` (its `Unset` fact at `:32` and `Missing` at `:42`) pass.
-- [ ] 7.3 Refactor: `src\Source191.Vantage.Infrastructure\State\TabOwnerJsonConverter.cs:25` names `TabOwner.ForVantage => Vantage` with the throwing discard. Verify `JsonFileStoreShould`'s tab-file round trips pass (`dotnet test test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build`).
+- [x] 7.1 Refactor: `src\Source191.Vantage.Core\Application\Views\SessionsView.cs:139` and `:208` and `Views\WorktreesView.cs:104` become `_ => throw new UnreachableException()`; `Views\RowDecision.cs:9` loses "for a row whose answer is still loading". Verify `SessionsViewShould` and `WorktreesViewShould` pass (the `p` and `b` facts cover both named arms).
+- [x] 7.2 Refactor: `Application\PullRequestCatalogue.cs:42` throws `UnreachableException`; `Application\SetupFactsReader.cs:54` becomes `NotificationChannelState.Missing or NotificationChannelState.Unset => new SetupState.NotSetUp()` followed by the throwing discard. Verify `PullRequestCatalogueShould` and `SetupFactsReaderShould` (its `Unset` fact at `:32` and `Missing` at `:42`) pass.
+- [x] 7.3 Refactor: `src\Source191.Vantage.Infrastructure\State\TabOwnerJsonConverter.cs:25` names `TabOwner.ForVantage => Vantage` with the throwing discard. Verify `JsonFileStoreShould`'s tab-file round trips pass (`dotnet test test\Source191.Vantage.Infrastructure.Tests -c Debug --no-build`).
 
 ## 8. Guard rule (after the owner's decision)
 
