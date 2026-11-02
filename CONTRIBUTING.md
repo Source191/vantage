@@ -96,7 +96,7 @@ Go back to the published tool with `dotnet tool update -g Source191.Vantage` (ad
 | [test\Source191.Vantage.TestDoubles](test/Source191.Vantage.TestDoubles/README.md) | The shared hand-written fakes, one per port, no test framework |
 | [tools\HeadlessTerminal](tools/HeadlessTerminal/README.md) and [its tests](tools/HeadlessTerminal.Tests/README.md) | Drives the built exe in a pseudo-console: the hand-off and smoke checks |
 
-Each project's README holds what is worth knowing about it; a `.csproj` carries no comments (the root `Directory.Build.props` keeps its own beside its settings). `openspec\` holds the specifications and the changes made against them, `.github\` the workflows and their scripts, `assets\` the icon and artwork.
+Each project's README holds what is worth knowing about it; a `.csproj` carries no comments (the two `Directory.Build.props` files, the root one and `src\Directory.Build.props`, keep their own beside their settings). `openspec\` holds the specifications and the changes made against them, `.github\` the workflows and their scripts, `assets\` the icon and artwork.
 
 ## The code rules in brief
 
