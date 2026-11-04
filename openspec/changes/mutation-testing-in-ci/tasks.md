@@ -3,7 +3,7 @@
 ## 1. Pinned tool and shared settings
 
 - [ ] 1.1 Add `.config\dotnet-tools.json` pinning `dotnet-stryker` (the newest release at least two weeks old), and replace `CONTRIBUTING.md`'s global install with `dotnet tool restore`. Verify `dotnet tool restore` then `dotnet stryker --version` prints the pinned version.
-- [ ] 1.2 Add `test\Source191.Vantage.Core.Tests\stryker-config.json`:
+- [ ] 1.2 Add `test\Source191.Torni.Core.Tests\stryker-config.json`:
   - `project` and `test-runner: mtp`;
   - the `html`, `markdown`, `json` and `progress` reporters;
   - `high` and `low` thresholds, with `break` 0 for now.
@@ -36,7 +36,7 @@
   - `--since:<that commit>` for `workflow_run`, none for `schedule` and `workflow_dispatch`.
 
   Verify by running the step's script locally against `main`'s history with a recorded `gh run list` answer, for three cases: a tagged commit, an untagged commit, and no earlier run.
-- [ ] 3.3 Restore `pipeline`'s NuGet cache read-only (`actions/cache/restore`, same key), run `dotnet tool restore`, and run Stryker from `test\Source191.Vantage.Core.Tests`. Append `mutation-report.md` to the job summary and upload `StrykerOutput` (30 days). Verified by the dispatch run in 3.1.
+- [ ] 3.3 Restore `pipeline`'s NuGet cache read-only (`actions/cache/restore`, same key), run `dotnet tool restore`, and run Stryker from `test\Source191.Torni.Core.Tests`. Append `mutation-report.md` to the job summary and upload `StrykerOutput` (30 days). Verified by the dispatch run in 3.1.
 - [ ] 3.4 Write `run.json` (kind, release tag, `--since` commit, whole score) beside `mutation-report.json` and upload both as the `mutation-results` artefact. Set the job's `finding` output:
   - **After a release:** any `Survived` or `NoCoverage` mutant in the report.
   - **After a full run:** the score below the previous full run's, read with `gh run download`; skipped with a notice when that artefact is missing.
@@ -59,7 +59,7 @@
   - `MAINTAINING.md` gets the optional `MUTATION_WATCHER` variable, beside `CLAUDE_CLI_WATCHER`.
   - `MAINTAINING.md` and `CONTRIBUTING.md`, where they list the workflows and the mutation command.
   - `CLAUDE.md`'s mutation line.
-  - `Source191.Vantage.slnx`: add `mutation.yml` to the solution items.
+  - `Source191.Torni.slnx`: add `mutation.yml` to the solution items.
 
   Verify with `git grep -n "stryker"` that every mention matches the config file and the manifest.
 - [ ] 4.2 Run `openspec validate mutation-testing-in-ci` and confirm `pipeline`'s `check` is green on the pull request.

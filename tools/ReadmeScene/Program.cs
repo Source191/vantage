@@ -1,19 +1,19 @@
-using Source191.Vantage.Adapters.Processes;
-using Source191.Vantage.Adapters.State;
-using Source191.Vantage.Application.Actions;
-using Source191.Vantage.Domain;
+using Source191.Torni.Adapters.Processes;
+using Source191.Torni.Adapters.State;
+using Source191.Torni.Application.Actions;
+using Source191.Torni.Domain;
 using System.Globalization;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
-/// Makes the README's screenshot and animation: Vantage's real console screen over a made-up scene of Northwind.*
+/// Makes the README's screenshot and animation: Torni's real console screen over a made-up scene of Northwind.*
 /// repositories, with scripted Claude Code, gh and az answers, run by <c>tools\New-ReadmeScreenshot.ps1</c>.
 /// <code>
-///   readme-scene run &lt;scene-root&gt; &lt;vantage-version&gt; [--frames &lt;folder&gt;] [key-script...]
+///   readme-scene run &lt;scene-root&gt; &lt;torni-version&gt; [--frames &lt;folder&gt;] [key-script...]
 ///       the console over the scene: opens its tabs, then plays the key scripts in turn, capturing frames while they play
 ///   readme-scene attach &lt;job-id&gt;                       what a session tab shows in place of claude attach
-///   readme-scene claim-tab &lt;registration&gt; &lt;pid&gt;       what a session tab runs in place of vantage claim-tab
+///   readme-scene claim-tab &lt;registration&gt; &lt;pid&gt;       what a session tab runs in place of torni claim-tab
 ///   readme-scene capture &lt;scene-root&gt; &lt;png&gt;          the scene's window, as it looks now
 /// </code>
 /// </summary>
@@ -86,7 +86,7 @@ public static class Program
 
     private static int Usage()
     {
-        Console.Error.WriteLine("Usage: readme-scene run <scene-root> <vantage-version> [--frames <folder>] [key-script...] | attach <job-id> | claim-tab <registration> <pid>");
+        Console.Error.WriteLine("Usage: readme-scene run <scene-root> <torni-version> [--frames <folder>] [key-script...] | attach <job-id> | claim-tab <registration> <pid>");
 
         return 2;
     }

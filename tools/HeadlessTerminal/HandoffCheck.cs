@@ -1,9 +1,9 @@
 using System.Runtime.Versioning;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
-/// The repeatable hand-off check: run <c>vantage here</c> with a throwaway name and no prompt, wait for Claude's own
+/// The repeatable hand-off check: run <c>torni here</c> with a throwaway name and no prompt, wait for Claude's own
 /// screen, detach with Ctrl+Z and wait for <c>here</c> to exit by itself. Exit 0 when it did and Claude's screen is in
 /// the capture, 1 when <c>here</c> had to be killed after the detach, 2 when the check could not start, 3 when Claude's
 /// screen never appeared. The throwaway session is stopped and removed whatever happens; nothing else is touched.
@@ -25,7 +25,7 @@ public sealed class HandoffCheck(ClaudeJobs jobs)
 
     public async Task<int> RunAsync(IReadOnlyList<string> rest)
     {
-        string exe = Path.GetFullPath(rest.Count > 0 ? rest[0] : @"..\..\src\Source191.Vantage\bin\Release\net10.0\vantage.exe");
+        string exe = Path.GetFullPath(rest.Count > 0 ? rest[0] : @"..\..\src\Source191.Torni\bin\Release\net10.0\torni.exe");
         string repository = Path.GetFullPath(rest.Count > 1 ? rest[1] : @"..\..");
         if (!File.Exists(exe))
         {
@@ -33,7 +33,7 @@ public sealed class HandoffCheck(ClaudeJobs jobs)
             return CouldNotStart;
         }
 
-        string name = "vantage-check-" + Guid.NewGuid().ToString("N")[..6];
+        string name = "torni-check-" + Guid.NewGuid().ToString("N")[..6];
         try
         {
             return await DriveAsync(exe, repository, name);
@@ -49,7 +49,7 @@ public sealed class HandoffCheck(ClaudeJobs jobs)
         }
     }
 
-    /// <summary>vantage here in the repository, Ctrl+Z once Claude's banner is drawn, then the wait for here to exit; the capture stays in the start folder.</summary>
+    /// <summary>torni here in the repository, Ctrl+Z once Claude's banner is drawn, then the wait for here to exit; the capture stays in the start folder.</summary>
     private static async Task<int> DriveAsync(string exe, string repository, string name)
     {
         string home = Environment.CurrentDirectory;
@@ -77,13 +77,13 @@ public sealed class HandoffCheck(ClaudeJobs jobs)
                 await Console.Error.WriteLineAsync("Claude's own screen is not in the capture: the attach never reached Claude.");
                 return ClaudeNeverShown;
             case 0 when HandoffCapture.ShowsClaudeScreen(await File.ReadAllTextAsync("drive-raw.txt")):
-                await Console.Out.WriteLineAsync("Claude's own screen is in the capture, and vantage here exited by itself after the detach.");
+                await Console.Out.WriteLineAsync("Claude's own screen is in the capture, and torni here exited by itself after the detach.");
                 return 0;
             case 0:
-                await Console.Error.WriteLineAsync("vantage here exited, but Claude's own screen is not in the capture.");
+                await Console.Error.WriteLineAsync("torni here exited, but Claude's own screen is not in the capture.");
                 return ClaudeNeverShown;
             default:
-                await Console.Error.WriteLineAsync("vantage here did not exit within the deadline after the detach.");
+                await Console.Error.WriteLineAsync("torni here did not exit within the deadline after the detach.");
                 return result;
         }
     }

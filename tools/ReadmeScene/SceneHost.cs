@@ -1,29 +1,29 @@
-using Source191.Vantage.Adapters.Claude;
-using Source191.Vantage.Adapters.Diagnostics;
-using Source191.Vantage.Adapters.Files;
-using Source191.Vantage.Adapters.Git;
-using Source191.Vantage.Adapters.Packages;
-using Source191.Vantage.Adapters.Processes;
-using Source191.Vantage.Adapters.PullRequests;
-using Source191.Vantage.Adapters.State;
-using Source191.Vantage.Adapters.Terminal;
-using Source191.Vantage.Application;
-using Source191.Vantage.Application.Actions;
-using Source191.Vantage.Application.Detail;
-using Source191.Vantage.Application.Diagnostics;
-using Source191.Vantage.Application.Effects;
-using Source191.Vantage.Application.Launch;
-using Source191.Vantage.Application.Reporting;
-using Source191.Vantage.Application.Views;
-using Source191.Vantage.Domain;
-using Source191.Vantage.Ports;
-using Source191.Vantage.Tui;
-using HandlerComposition = Source191.Vantage.Application.Effects.Composition;
+using Source191.Torni.Adapters.Claude;
+using Source191.Torni.Adapters.Diagnostics;
+using Source191.Torni.Adapters.Files;
+using Source191.Torni.Adapters.Git;
+using Source191.Torni.Adapters.Packages;
+using Source191.Torni.Adapters.Processes;
+using Source191.Torni.Adapters.PullRequests;
+using Source191.Torni.Adapters.State;
+using Source191.Torni.Adapters.Terminal;
+using Source191.Torni.Application;
+using Source191.Torni.Application.Actions;
+using Source191.Torni.Application.Detail;
+using Source191.Torni.Application.Diagnostics;
+using Source191.Torni.Application.Effects;
+using Source191.Torni.Application.Launch;
+using Source191.Torni.Application.Reporting;
+using Source191.Torni.Application.Views;
+using Source191.Torni.Domain;
+using Source191.Torni.Ports;
+using Source191.Torni.Tui;
+using HandlerComposition = Source191.Torni.Application.Effects.Composition;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
-/// Vantage's console as <c>ConsoleComposition</c> builds it, with the scene's parts in place of the machine's: Claude
+/// Torni's console as <c>ConsoleComposition</c> builds it, with the scene's parts in place of the machine's: Claude
 /// Code, gh and az answered from the scene, the state, transcripts and crash file in the scene folder, the scene's
 /// processes in the process table, no update check and no log. Git, Windows Terminal and PowerShell are real.
 /// Untested wiring, like the tool project's composition root; keep it in step with <c>ConsoleComposition</c>.
@@ -52,7 +52,7 @@ internal sealed class SceneHost(SceneFolders folders, Scene scene, ToolVersion v
         RecordedProcessRunner realProcesses = new(new ProcessRunner(TimeSpan.FromSeconds(60)), log, processCounts, clock);
         SceneProcessRunner processes = new(listing, new ScenePullRequests(scene, clock), executables, realProcesses);
         string git = programs.Locate("git") is ProgramLocation.Found found ? found.Path : throw new InvalidOperationException("git is not on the PATH.");
-        TerminalFragment fragment = TerminalFragment.ForCurrentUser(Path.Combine(folders.Bin, "vantage.ico"));
+        TerminalFragment fragment = TerminalFragment.ForCurrentUser(Path.Combine(folders.Bin, "torni.ico"));
         CrashFile crashFile = new(folders.State);
 
         ClaudeCli claude = new(processes, executables.Claude);
@@ -79,8 +79,8 @@ internal sealed class SceneHost(SceneFolders folders, Scene scene, ToolVersion v
         EditorLocator editors = new(fileFolders, processes, EditorFolders.ForCurrentUser());
         EffectPorts ports = new(claude, gitCli, processRegistry, transcripts, terminal, store, clock, clipboard, desktop, editors, fileFolders, crashFile);
         TabScripts tabScripts = new(executables.Claude, ownPath);
-        VantageProcess vantage = new(Environment.ProcessId, home, new ProgramLocation.Missing());
-        EffectDispatcher dispatcher = HandlerComposition.Handlers(ports, launches, tabScripts, settings, vantage, log);
+        TorniProcess torni = new(Environment.ProcessId, home, new ProgramLocation.Missing());
+        EffectDispatcher dispatcher = HandlerComposition.Handlers(ports, launches, tabScripts, settings, torni, log);
 
         ProblemReports reports = new(log, counts.Processes, crashFile, start, settings, clock);
         SessionTabs sessionTabs = new(store, processRegistry);
@@ -132,7 +132,7 @@ internal sealed class SceneHost(SceneFolders folders, Scene scene, ToolVersion v
         return exitCode;
     }
 
-    // Esc closes anything open, then q quits Vantage; the tab's process exits 0 and Windows Terminal closes the tab.
+    // Esc closes anything open, then q quits Torni; the tab's process exits 0 and Windows Terminal closes the tab.
     private async Task QuitWhenAskedAsync(CancellationToken cancellationToken)
     {
         while (!File.Exists(folders.CloseFile))

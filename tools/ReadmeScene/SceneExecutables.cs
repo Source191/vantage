@@ -1,4 +1,4 @@
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// The paths the scene's programs answer for: this program standing in for Claude Code, the gh and az the

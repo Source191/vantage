@@ -1,0 +1,21 @@
+namespace Source191.Torni.Ports;
+
+/// <summary>
+/// The two Windows Terminal profiles Torni adds, named once: "Torni" runs the installed Torni, "Torni session"
+/// is PowerShell and, once the fragment exists, the profile every tab Torni opens asks for. Each has its bell sound,
+/// a file or Windows Terminal's own.
+/// </summary>
+public sealed record TerminalProfiles(string TorniExecutable, BellSound TorniSound, BellSound SessionSound)
+{
+    public const string TorniProfileName = "Torni";
+
+    public const string SessionProfileName = "Torni session";
+
+    public const string SessionCommandLine = "pwsh.exe -NoLogo";
+
+    /// <summary>
+    /// <see href="https://learn.microsoft.com/windows/terminal/customize-settings/profile-advanced">Sound, flash the window,
+    /// flash the taskbar</see>.
+    /// </summary>
+    public static IReadOnlyList<string> BellStyle { get; } = ["audible", "window", "taskbar"];
+}

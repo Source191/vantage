@@ -21,7 +21,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$csproj = 'src/Source191.Vantage/Source191.Vantage.csproj'
+$csproj = 'src/Source191.Torni/Source191.Torni.csproj'
 
 # The tool paths and the version reader are shared with Assert-ChangelogUpdated.ps1.
 . (Join-Path $PSScriptRoot 'ToolPaths.ps1')

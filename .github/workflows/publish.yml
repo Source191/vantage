@@ -53,7 +53,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $version = $env:TAG.Substring(1)
-          gh release download $env:TAG --repo $env:GITHUB_REPOSITORY --pattern "vantage_$($version)_win-x64.zip" --dir release
+          gh release download $env:TAG --repo $env:GITHUB_REPOSITORY --pattern "torni_$($version)_win-x64.zip" --dir release
           if ($LASTEXITCODE -ne 0) {
               throw "gh release download failed with exit code $LASTEXITCODE: is $env:TAG a published release with its zip?"
           }
@@ -68,7 +68,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $zip = (Get-ChildItem release -Filter 'vantage_*_win-x64.zip').FullName
+          $zip = (Get-ChildItem release -Filter 'torni_*_win-x64.zip').FullName
           gh attestation verify $zip --repo $env:GITHUB_REPOSITORY --signer-workflow "$env:GITHUB_REPOSITORY/.github/workflows/pipeline.yml" --source-ref refs/heads/main
           if ($LASTEXITCODE -ne 0) {
               throw "gh attestation verify failed with exit code $LASTEXITCODE: the zip is not the one pipeline.yml built from main."
@@ -76,23 +76,23 @@ jobs:
 
       # wingetcreate update changes a manifest that already exists, so until the first one, submitted by hand
       # (MAINTAINING.md, winget), is merged into winget-pkgs there is nothing to update and this run fails saying so.
-      - name: Check Source191.Vantage is in winget-pkgs
+      - name: Check Source191.Torni is in winget-pkgs
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           $ErrorActionPreference = 'Stop'
           $lookup = @{
-              Uri = 'https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/s/Source191/Vantage'
+              Uri = 'https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/s/Source191/Torni'
               Headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json' }
               SkipHttpErrorCheck = $true
           }
           $status = (Invoke-WebRequest @lookup).StatusCode
           if ($status -eq 404) {
-              throw 'Source191.Vantage is not in winget-pkgs yet: submit the first version by hand (MAINTAINING.md, winget).'
+              throw 'Source191.Torni is not in winget-pkgs yet: submit the first version by hand (MAINTAINING.md, winget).'
           }
           if ($status -ne 200) {
-              throw "Looking up Source191.Vantage in winget-pkgs answered HTTP $status; rerun this workflow."
+              throw "Looking up Source191.Torni in winget-pkgs answered HTTP $status; rerun this workflow."
           }
 
       # wingetcreate (Microsoft's manifest tool, pinned to a release and its SHA-256) downloads the release's zip, hashes
@@ -117,8 +117,8 @@ jobs:
           }
 
           $version = $env:TAG.Substring(1)
-          $zip = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:TAG/vantage_$($version)_win-x64.zip"
-          & $tool update Source191.Vantage --version $version --urls "$zip|x64" --submit --token $env:WINGET_PKGS_TOKEN
+          $zip = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/$env:TAG/torni_$($version)_win-x64.zip"
+          & $tool update Source191.Torni --version $version --urls "$zip|x64" --submit --token $env:WINGET_PKGS_TOKEN
           if ($LASTEXITCODE -ne 0) {
               throw "wingetcreate update failed with exit code $LASTEXITCODE, so $env:TAG is not on its way to winget. Read its output above, fix the cause and run this again."
           }

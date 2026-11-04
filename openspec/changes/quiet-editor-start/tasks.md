@@ -12,8 +12,8 @@
 
 ## 3. Release
 
-- [ ] 3.1 Raise `Version` one patch or prerelease step in `src\Source191.Vantage\Source191.Vantage.csproj` and add a `### Fixed` line under Unreleased in `CHANGELOG.md` ending with the pull request number. Verify `Assert-VersionBumped.ps1` and `Assert-ChangelogUpdated.ps1` against `main`.
-- [ ] 3.2 Manual (owner): with Open folder with set to VS Code, press `f` on a row in a local build (`tools\install-local.ps1`) and check that VS Code opens the folder and no text appears over Vantage's screen. Verify by eye, and that the status line names the folder and the editor.
+- [ ] 3.1 Raise `Version` one patch or prerelease step in `src\Source191.Torni\Source191.Torni.csproj` and add a `### Fixed` line under Unreleased in `CHANGELOG.md` ending with the pull request number. Verify `Assert-VersionBumped.ps1` and `Assert-ChangelogUpdated.ps1` against `main`.
+- [ ] 3.2 Manual (owner): with Open folder with set to VS Code, press `f` on a row in a local build (`tools\install-local.ps1`) and check that VS Code opens the folder and no text appears over Torni's screen. Verify by eye, and that the status line names the folder and the editor.
 
 ## Workflow follow-up
 

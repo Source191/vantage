@@ -8,7 +8,7 @@ Running it on every pull request would add a long job to the path every merge wa
 
 ## What Changes
 
-- **New workflow `.github\workflows\mutation.yml`:** runs Stryker on `src\Source191.Vantage.Core` through `test\Source191.Vantage.Core.Tests` (`--test-runner mtp`) on a Windows runner, with read-only rights and no secrets.
+- **New workflow `.github\workflows\mutation.yml`:** runs Stryker on `src\Source191.Torni.Core` through `test\Source191.Torni.Core.Tests` (`--test-runner mtp`) on a Windows runner, with read-only rights and no secrets.
 - **After each release, on that release's changes:**
   - It starts when `pipeline` finishes on `main` (`workflow_run`). A release created with the workflow's token starts no `release` event, so that event can't be used.
   - It carries on only when the commit carries a `v*` tag, which means the release job ran.
@@ -31,7 +31,7 @@ Running it on every pull request would add a long job to the path every merge wa
 ## Out of scope
 
 - **Gating:** mutation testing on pull requests, or as a required check.
-- **Other projects:** mutating `Source191.Vantage.Infrastructure`, `Tui` or the tool project. Their tests drive real git, processes and Terminal.Gui, which is slow per mutant and better judged once Core's times are known.
+- **Other projects:** mutating `Source191.Torni.Infrastructure`, `Tui` or the tool project. Their tests drive real git, processes and Terminal.Gui, which is slow per mutant and better judged once Core's times are known.
 - **Issue automation beyond the rolling issue:** one issue per release, closing issues automatically, or linking a finding to the pull request that made it.
 - **Stryker dashboard or baseline storage** (`--with-baseline`).
 - **Multiple Claude accounts:** a later change.
@@ -48,7 +48,7 @@ None: a CI workflow, a tool manifest, a Stryker config and documentation. Nothin
 
 ## Impact
 
-- **New files:** `.github\workflows\mutation.yml`, `.config\dotnet-tools.json` and `test\Source191.Vantage.Core.Tests\stryker-config.json`.
-- **Docs:** `.claude\rules\checks.md`, `CONTRIBUTING.md`, `MAINTAINING.md`, `CLAUDE.md` and `Source191.Vantage.slnx` (solution items).
+- **New files:** `.github\workflows\mutation.yml`, `.config\dotnet-tools.json` and `test\Source191.Torni.Core.Tests\stryker-config.json`.
+- **Docs:** `.claude\rules\checks.md`, `CONTRIBUTING.md`, `MAINTAINING.md`, `CLAUDE.md` and `Source191.Torni.slnx` (solution items).
 - **Repository settings:** a `mutation` label, made by the report job with `gh label create --force`, and an optional `MUTATION_WATCHER` variable. Without the variable, new issues are left unassigned.
 - **Runners:** one Windows runner per coalesced release run and one weekly, plus a short report job when there is something to say; no cost on a public repository. It never occupies a pull request's or a release's path.

@@ -1,8 +1,8 @@
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// The scene's folders under its root: <c>me</c> is the home the console is given (so labels read <c>~\source\repos</c>
-/// and no real user name shows), <c>state</c> stands in for <c>%LOCALAPPDATA%\Vantage</c>, <c>claude</c> for
+/// and no real user name shows), <c>state</c> stands in for <c>%LOCALAPPDATA%\Torni</c>, <c>claude</c> for
 /// <c>~\.claude</c>, and <c>bin</c> holds what the tool would carry beside itself.
 /// </summary>
 public sealed record SceneFolders(string Root)

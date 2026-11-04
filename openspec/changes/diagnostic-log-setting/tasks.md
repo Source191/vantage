@@ -2,13 +2,13 @@
 
 ## 1. The setting
 
-- [ ] 1.1 Red: `SettingsShould` and `SettingsFileShould` facts that `diagnosticLog` reads false when absent, true when `true`, every default for a value that is not a boolean, and is written back as `diagnosticLog`. Green: add it to `Domain\Settings`, `SettingsText`, `Ports\VantageConfig` and `Application\SettingsFile`. Verify the new facts and the existing settings facts pass.
+- [ ] 1.1 Red: `SettingsShould` and `SettingsFileShould` facts that `diagnosticLog` reads false when absent, true when `true`, every default for a value that is not a boolean, and is written back as `diagnosticLog`. Green: add it to `Domain\Settings`, `SettingsText`, `Ports\TorniConfig` and `Application\SettingsFile`. Verify the new facts and the existing settings facts pass.
 
 ## 2. The switch and the file
 
 - [ ] 2.1 Red: `DiagnosticLogSwitchShould` facts that a new switch is off, that it follows the function it is pointed at on every read, and that it can be pointed again from another thread. Green: add `Application\Diagnostics\DiagnosticLogSwitch` over a `SharedSnapshot`. Verify the facts pass.
 - [ ] 2.2 Red: `DiagnosticFileShould` facts (temporary folder): nothing is written while the switch is off; lines are appended while it is on; switching off then on writes only the lines recorded while on; a locked file is skipped without throwing. Green: give `DiagnosticFile` the switch. Verify the facts pass.
-- [ ] 2.3 Red: `DiagnosticFileShould` facts for the rollover: a line that would take the file past 10,485,760 bytes moves it to `vantage.log.1` and starts a new file with that line; an existing `vantage.log.1` is replaced; a failed move leaves the line in the old file. Green: add the size check and move to `DiagnosticFile`. Verify the facts pass.
+- [ ] 2.3 Red: `DiagnosticFileShould` facts for the rollover: a line that would take the file past 10,485,760 bytes moves it to `torni.log.1` and starts a new file with that line; an existing `torni.log.1` is replaced; a failed move leaves the line in the old file. Green: add the size check and move to `DiagnosticFile`. Verify the facts pass.
 - [ ] 2.4 Red: `PeriodicCountsShould` facts that the timer ticks with no setting passed, and that its lines reach a sink every 10 minutes. Green: remove `DiagnosticLogSetting` from `PeriodicCounts`. Then remove `DiagnosticLogSetting` and its tests, and `NullFreeModelsShould`'s `Kept` entry for it. Verify `PeriodicCountsShould`, `NullFreeModelsShould` (including `KeepNoStaleEntry`) and the build pass.
 
 ## 3. The toggle
@@ -23,10 +23,10 @@
 
 ## 5. Wiring and documentation
 
-- [ ] 5.1 Wire it (untested composition): `SharedParts` always adds the `DiagnosticFile` for `%LOCALAPPDATA%\Vantage\vantage.log` with a switch and no longer reads `VANTAGE_LOG`; `ConsoleComposition` points the switch at `CurrentSettings` before `RecordStart` and gives `ConfigRows` the path; `HereComposition` loads the settings once and points the switch at them before `RecordStart`. Remove `InheritedEnvironmentShould`'s `VANTAGE_LOG` case. Verify `dotnet build -c Debug`, the whole solution's tests and the hand-off check.
-- [ ] 5.2 Documentation: `docs\performance-monitoring.md` (turn the setting on instead of `$env:VANTAGE_LOG`, and the file's place and rollover), CONTRIBUTING's Performance line, `.claude\rules\security.md` (Diagnostics) and `console-screen.md` if they name `VANTAGE_LOG`. Verify `git grep VANTAGE_LOG` outside the archive, `CHANGELOG.md` and this change finds nothing.
-- [ ] 5.3 Raise `Version` as CONTRIBUTING's Versions says and add `CHANGELOG.md` lines: Added (the Diagnostic log setting) and Changed (`VANTAGE_LOG` removed, use the setting), each ending with the pull request number. Verify `Assert-VersionBumped.ps1` and `Assert-ChangelogUpdated.ps1` against `main`.
-- [ ] 5.4 Manual (owner): in a local build, turn Diagnostic log on with Enter, see the tooltip name `vantage.log` and the status line say so, stop a session, and find the line in `%LOCALAPPDATA%\Vantage\vantage.log`; turn it off and check no further line is added. Verify by eye and by the file.
+- [ ] 5.1 Wire it (untested composition): `SharedParts` always adds the `DiagnosticFile` for `%LOCALAPPDATA%\Torni\torni.log` with a switch and no longer reads `TORNI_LOG`; `ConsoleComposition` points the switch at `CurrentSettings` before `RecordStart` and gives `ConfigRows` the path; `HereComposition` loads the settings once and points the switch at them before `RecordStart`. Remove `InheritedEnvironmentShould`'s `TORNI_LOG` case. Verify `dotnet build -c Debug`, the whole solution's tests and the hand-off check.
+- [ ] 5.2 Documentation: `docs\performance-monitoring.md` (turn the setting on instead of `$env:TORNI_LOG`, and the file's place and rollover), CONTRIBUTING's Performance line, `.claude\rules\security.md` (Diagnostics) and `console-screen.md` if they name `TORNI_LOG`. Verify `git grep TORNI_LOG` outside the archive, `CHANGELOG.md` and this change finds nothing.
+- [ ] 5.3 Raise `Version` as CONTRIBUTING's Versions says and add `CHANGELOG.md` lines: Added (the Diagnostic log setting) and Changed (`TORNI_LOG` removed, use the setting), each ending with the pull request number. Verify `Assert-VersionBumped.ps1` and `Assert-ChangelogUpdated.ps1` against `main`.
+- [ ] 5.4 Manual (owner): in a local build, turn Diagnostic log on with Enter, see the tooltip name `torni.log` and the status line say so, stop a session, and find the line in `%LOCALAPPDATA%\Torni\torni.log`; turn it off and check no further line is added. Verify by eye and by the file.
 
 ## Workflow follow-up
 

@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Source191.Vantage.ReadmeScene.Tests</RootNamespace>
-    <AssemblyName>Source191.Vantage.ReadmeScene.Tests</AssemblyName>
+    <RootNamespace>Source191.Torni.ReadmeScene.Tests</RootNamespace>
+    <AssemblyName>Source191.Torni.ReadmeScene.Tests</AssemblyName>
     <OutputType>Exe</OutputType>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
@@ -26,7 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ReadmeScene\ReadmeScene.csproj" />
-    <ProjectReference Include="..\..\test\Source191.Vantage.TestDoubles\Source191.Vantage.TestDoubles.csproj" />
+    <ProjectReference Include="..\..\test\Source191.Torni.TestDoubles\Source191.Torni.TestDoubles.csproj" />
   </ItemGroup>
 
 </Project>

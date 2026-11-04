@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Text.Json;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
-/// <summary>The few Claude Code CLI calls the hand-off check needs: find the job vantage here started by its name, stop and remove it.</summary>
+/// <summary>The few Claude Code CLI calls the hand-off check needs: find the job torni here started by its name, stop and remove it.</summary>
 public sealed class ClaudeJobs
 {
     private readonly string claude = Locate();

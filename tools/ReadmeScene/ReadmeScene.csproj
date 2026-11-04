@@ -5,7 +5,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Source191.Vantage.ReadmeScene</RootNamespace>
+    <RootNamespace>Source191.Torni.ReadmeScene</RootNamespace>
     <AssemblyName>readme-scene</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsPackable>false</IsPackable>
@@ -13,9 +13,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Source191.Vantage.Core\Source191.Vantage.Core.csproj" />
-    <ProjectReference Include="..\..\src\Source191.Vantage.Infrastructure\Source191.Vantage.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\src\Source191.Vantage.Tui\Source191.Vantage.Tui.csproj" />
+    <ProjectReference Include="..\..\src\Source191.Torni.Core\Source191.Torni.Core.csproj" />
+    <ProjectReference Include="..\..\src\Source191.Torni.Infrastructure\Source191.Torni.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Source191.Torni.Tui\Source191.Torni.Tui.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Source191.Vantage.ReadmeScene.Tests" />
+    <InternalsVisibleTo Include="Source191.Torni.ReadmeScene.Tests" />
   </ItemGroup>
 
 </Project>

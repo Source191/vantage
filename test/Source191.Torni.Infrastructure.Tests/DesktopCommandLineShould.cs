@@ -1,0 +1,29 @@
+using Source191.Torni.Adapters.Processes;
+using Source191.Torni.Application.Reporting;
+using Source191.Torni.Ports;
+using Source191.Torni.TestDoubles;
+
+namespace Source191.Torni.Infrastructure.Tests;
+
+/// <summary>
+/// Opening an address encodes it twice (Base64 inside a script that is itself encoded for pwsh), so the longest
+/// problem report address must still fit Windows' command line of 32,767 characters.
+/// </summary>
+public sealed class DesktopCommandLineShould
+{
+    private const int WindowsCommandLineLimit = 32_767;
+
+    [Fact]
+    public async Task KeepTheLongestReportAddressUnderTheCommandLineLimit()
+    {
+        FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, string.Empty, string.Empty));
+        string address = "https://github.com/Source191/torni/issues/new?template=problem-report.yml&diagnostics=" + new string('%', ProblemReport.AddressLimit);
+
+        await new Desktop(processes, new ProgramLocation.Found("pwsh.exe")).OpenAsync(address[..ProblemReport.AddressLimit], TestContext.Current.CancellationToken);
+
+        ProcessRequest request = processes.CapturedRequests.Single();
+        request.WorkingDirectory.ShouldBe(WorkingFolder.Inherit, "PowerShell opens the file from Torni's folder");
+        int commandLine = request.FileName.Length + 2 + request.Arguments.Sum(argument => argument.Length + 3);
+        commandLine.ShouldBeLessThan(WindowsCommandLineLimit);
+    }
+}

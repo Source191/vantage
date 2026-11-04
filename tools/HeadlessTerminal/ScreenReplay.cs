@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// Replays a capture into a character grid, honouring cursor positioning, erase-characters, erase-line, clear-screen

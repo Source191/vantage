@@ -1,8 +1,8 @@
-using Source191.Vantage.Domain;
+using Source191.Torni.Domain;
 using System.Globalization;
 using System.Text.Json;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>What <c>gh pr list</c> and <c>az repos pr list</c> answer for one branch of a scene repository, in each CLI's own JSON.</summary>
 public sealed class ScenePullRequests(Scene scene, TimeProvider clock)

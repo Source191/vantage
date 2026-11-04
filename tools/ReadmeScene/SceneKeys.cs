@@ -1,8 +1,8 @@
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// The keys that set the scene up once the console is showing: for each session with a tab, filter to it, open its tab
-/// with Enter and come back to Vantage's tab; then select the waiting session, so the detail pane shows what it waits
+/// with Enter and come back to Torni's tab; then select the waiting session, so the detail pane shows what it waits
 /// for, and mark the scene ready for the screenshot.
 /// </summary>
 public static class SceneKeys
@@ -22,7 +22,7 @@ public static class SceneKeys
         {
             steps.AddRange(FilterTo(session.Name));
             steps.Add(new KeyStep.Press(Beat, NamedKey.Enter));
-            steps.Add(new KeyStep.FocusVantage(TabOpening));
+            steps.Add(new KeyStep.FocusTorni(TabOpening));
             steps.Add(new KeyStep.Press(Beat, NamedKey.Esc));
         }
 

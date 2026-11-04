@@ -1,10 +1,10 @@
-using Source191.Vantage.Domain;
+using Source191.Torni.Domain;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// What <c>claude agents --json --all</c> answers for the scene: its sessions and automated runs, each given a made-up

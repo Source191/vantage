@@ -1,7 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>The Win32 calls the scene makes: finding its Windows Terminal window by title and capturing it.</summary>
 internal static partial class NativeMethods

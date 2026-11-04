@@ -1,4 +1,4 @@
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// Presses keys in the scene's own console by writing key events into its input buffer, where the console's

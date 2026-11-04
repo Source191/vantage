@@ -1,4 +1,4 @@
-namespace Source191.Vantage.HeadlessTerminal.Tests;
+namespace Source191.Torni.HeadlessTerminal.Tests;
 
 public sealed class HandoffCaptureShould
 {
@@ -8,7 +8,7 @@ public sealed class HandoffCaptureShould
     private const string Clears = "\u001b[H\u001b[K\r\n\u001b[K\r\n\u001b[H\u001b[?25h";
 
     [Fact]
-    public void AcceptClaudesScreenDrawnAfterVantageHereHandsOver()
+    public void AcceptClaudesScreenDrawnAfterTorniHereHandsOver()
     {
         string capture = Here + Enter + "\u001b[1m Claude Code v2.1.310" + Leave + Clears;
 

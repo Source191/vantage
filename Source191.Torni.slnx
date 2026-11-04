@@ -1,0 +1,38 @@
+<Solution>
+  <Folder Name="/pipelines/" />
+  <Folder Name="/pipelines/actions/" />
+  <Folder Name="/pipelines/actions/build-test-pack/">
+    <File Path=".github/actions/build-test-pack/action.yml" />
+  </Folder>
+  <Folder Name="/pipelines/workflows/">
+    <File Path=".github/workflows/pipeline.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="CLAUDE.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Source191.Torni.Core/Source191.Torni.Core.csproj" />
+    <Project Path="src/Source191.Torni.Infrastructure/Source191.Torni.Infrastructure.csproj" />
+    <Project Path="src/Source191.Torni.Tui/Source191.Torni.Tui.csproj" />
+    <Project Path="src/Source191.Torni/Source191.Torni.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Source191.Torni.TestDoubles/Source191.Torni.TestDoubles.csproj" />
+    <Project Path="test/Source191.Torni.Core.Tests/Source191.Torni.Core.Tests.csproj" />
+    <Project Path="test/Source191.Torni.Infrastructure.Tests/Source191.Torni.Infrastructure.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/HeadlessTerminal/HeadlessTerminal.csproj" />
+    <Project Path="tools/HeadlessTerminal.Tests/HeadlessTerminal.Tests.csproj" />
+    <Project Path="tools/ReadmeScene.Tests/ReadmeScene.Tests.csproj" />
+    <Project Path="tools/ReadmeScene/ReadmeScene.csproj" />
+  </Folder>
+</Solution>

@@ -1,4 +1,4 @@
-namespace Source191.Vantage.HeadlessTerminal.Tests;
+namespace Source191.Torni.HeadlessTerminal.Tests;
 
 public sealed class TerminalQueriesShould
 {

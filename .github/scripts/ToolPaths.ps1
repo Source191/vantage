@@ -32,10 +32,20 @@ function Get-ChangedToolPath([string] $Base, [string] $Head) {
     return @($changed | Where-Object { Test-ToolPath $_ })
 }
 
+# The tool's csproj at a commit: its path before the rename to Torni when the commit is older than the rename.
+function Get-ToolProjectPath([string] $commit) {
+    $csproj = 'src/Source191.Torni/Source191.Torni.csproj'
+    git cat-file -e "${commit}:$csproj" 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        return $csproj
+    }
+    return 'src/Source191.Vantage/Source191.Vantage.csproj'
+}
+
 # The tool's Version at a commit. The same regex pipeline.yml uses: git's output comes through the console encoding,
 # and a byte order mark would break an [xml] cast.
 function Read-ToolVersion([string] $commit) {
-    $csproj = 'src/Source191.Vantage/Source191.Vantage.csproj'
+    $csproj = Get-ToolProjectPath $commit
     $content = git show "${commit}:$csproj" | Out-String
     if ($LASTEXITCODE -ne 0) {
         throw "git show ${commit}:$csproj failed with exit code $LASTEXITCODE."

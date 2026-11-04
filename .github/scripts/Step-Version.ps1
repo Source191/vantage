@@ -14,7 +14,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    [string] $Csproj = 'src/Source191.Vantage/Source191.Vantage.csproj'
+    [string] $Csproj = 'src/Source191.Torni/Source191.Torni.csproj'
 )
 
 $ErrorActionPreference = 'Stop'

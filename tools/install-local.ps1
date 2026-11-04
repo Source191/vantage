@@ -1,19 +1,19 @@
 <#
 .SYNOPSIS
-    Builds Vantage's self-contained winget build, or extracts one from a check run's artefact, into a folder of its own
+    Builds Torni's self-contained winget build, or extracts one from a check run's artefact, into a folder of its own
     for testing before it is released, and prints the executable's full path.
 
 .DESCRIPTION
-    The build goes to %LOCALAPPDATA%\Vantage\local, replacing whatever an earlier run put there. Nothing is added to the
-    PATH and no winget install is touched, so the `vantage` command still runs the installed release; run
+    The build goes to %LOCALAPPDATA%\Torni\local, replacing whatever an earlier run put there. Nothing is added to the
+    PATH and no winget install is touched, so the `torni` command still runs the installed release; run
     the local build by the printed path.
 
     A local build is published as <Version>-local.<UTC timestamp>, a prerelease, so it never checks for updates or offers
-    one. A running vantage.exe from the local folder locks its files, so any such process is stopped first; a Vantage
+    one. A running torni.exe from the local folder locks its files, so any such process is stopped first; a Torni
     started from anywhere else is left running. Safe to re-run.
 
 .PARAMETER FromArtifact
-    A folder holding a vantage_<version>_win-x64.zip, typically one downloaded from a GitHub Actions check run with
+    A folder holding a torni_<version>_win-x64.zip, typically one downloaded from a GitHub Actions check run with
     `gh run download <run id>`, or from a GitHub prerelease. The newest zip in the folder (or below it) is extracted as it
     is; nothing is built.
 
@@ -21,7 +21,7 @@
     .\tools\install-local.ps1
 
 .EXAMPLE
-    gh run download 123456789 --name vantage-0.21.0-ci.42-win-x64 --dir .\downloaded
+    gh run download 123456789 --name torni-0.21.0-ci.42-win-x64 --dir .\downloaded
     .\tools\install-local.ps1 -FromArtifact .\downloaded
 #>
 [CmdletBinding()]
@@ -32,24 +32,24 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-$Project = Join-Path $RepoRoot 'src\Source191.Vantage\Source191.Vantage.csproj'
+$Project = Join-Path $RepoRoot 'src\Source191.Torni\Source191.Torni.csproj'
 $Published = Join-Path $RepoRoot 'artifacts\publish'
-$Destination = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Vantage\local'
-$Executable = Join-Path $Destination 'vantage.exe'
+$Destination = Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Torni\local'
+$Executable = Join-Path $Destination 'torni.exe'
 
-$running = @(Get-Process -Name vantage -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($Destination, [StringComparison]::OrdinalIgnoreCase) })
+$running = @(Get-Process -Name torni -ErrorAction SilentlyContinue | Where-Object { $_.Path -and $_.Path.StartsWith($Destination, [StringComparison]::OrdinalIgnoreCase) })
 if ($running.Count -gt 0) {
     $running | Stop-Process -Force
-    Write-Host "Stopped $($running.Count) vantage.exe process(es) running from $Destination."
+    Write-Host "Stopped $($running.Count) torni.exe process(es) running from $Destination."
 }
 
 if ($FromArtifact) {
     $source = (Resolve-Path -LiteralPath $FromArtifact).Path
-    $zip = Get-ChildItem -LiteralPath $source -Recurse -Filter 'vantage_*_win-x64.zip' |
+    $zip = Get-ChildItem -LiteralPath $source -Recurse -Filter 'torni_*_win-x64.zip' |
         Sort-Object LastWriteTime |
         Select-Object -Last 1
     if ($null -eq $zip) {
-        Write-Error "No vantage_<version>_win-x64.zip found in '$source'."
+        Write-Error "No torni_<version>_win-x64.zip found in '$source'."
         exit 1
     }
 
@@ -63,7 +63,7 @@ else {
     $baseVersion = (Select-Xml -Path $Project -XPath '//Version').Node.InnerText
     $stamp = [DateTimeOffset]::UtcNow.ToString('yyyyMMddHHmmss')
     $version = "$baseVersion-local.$stamp"
-    Write-Host "Publishing Vantage $version."
+    Write-Host "Publishing Torni $version."
     if (Test-Path -LiteralPath $Published) {
         Remove-Item -LiteralPath $Published -Recurse -Force
     }
@@ -80,5 +80,5 @@ else {
     Copy-Item -Path (Join-Path $Published '*') -Destination $Destination -Recurse
 }
 
-Write-Host "Vantage is at $Executable" -ForegroundColor Green
-Write-Host "Run it by that path; the vantage command on the PATH still runs the installed release."
+Write-Host "Torni is at $Executable" -ForegroundColor Green
+Write-Host "Run it by that path; the torni command on the PATH still runs the installed release."

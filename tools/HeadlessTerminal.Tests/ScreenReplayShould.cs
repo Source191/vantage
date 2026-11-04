@@ -1,6 +1,6 @@
-using Source191.Vantage.Adapters.Terminal;
+using Source191.Torni.Adapters.Terminal;
 
-namespace Source191.Vantage.HeadlessTerminal.Tests;
+namespace Source191.Torni.HeadlessTerminal.Tests;
 
 public sealed class ScreenReplayShould
 {

@@ -1,4 +1,4 @@
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// What the console plays once it is showing: the keys that set the scene up, then the keys to record, with the

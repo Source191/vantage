@@ -3,7 +3,7 @@ using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Json;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// One program running in a pseudo-console of the options' size (120 by 40 unless set): everything it writes is captured, terminal queries are answered

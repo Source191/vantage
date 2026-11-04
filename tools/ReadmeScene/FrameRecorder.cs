@@ -3,7 +3,7 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.Runtime.Versioning;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>Captures the scene's window at each of a schedule's offsets, saving <c>frame-00000.png</c> onwards; a capture that runs late is taken at once.</summary>
 [SupportedOSPlatform("windows")]

@@ -1,4 +1,4 @@
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>How long to let the program settle after a marker before sending keys, and how long it has to exit after the last step.</summary>
 public sealed record StepTimings(TimeSpan Settle, TimeSpan Grace)

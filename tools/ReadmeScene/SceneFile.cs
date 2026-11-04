@@ -1,12 +1,12 @@
-using Source191.Vantage.Domain;
+using Source191.Torni.Domain;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// Reads <c>scene.json</c>. Only made-up repositories are allowed: a Northwind.* name whose remote belongs to the
-/// <c>northwind-demo</c> GitHub owner or Azure DevOps organisation, or Vantage itself at its own GitHub address.
+/// <c>northwind-demo</c> GitHub owner or Azure DevOps organisation, or Torni itself at its own GitHub address.
 /// </summary>
 public static class SceneFile
 {
@@ -34,7 +34,7 @@ public static class SceneFile
 
     private static bool IsMadeUp(SceneRepository repository) => RemoteRepository.TryParse(repository.Remote, out RemoteRepository? remote) && remote switch
     {
-        RemoteRepository.GitHub { Owner: "Source191", Name: "vantage" } => repository.Name == "vantage",
+        RemoteRepository.GitHub { Owner: "Source191", Name: "torni" } => repository.Name == "torni",
         RemoteRepository.GitHub gitHub => IsNorthwind(repository) && gitHub.Owner == DemoOwner,
         RemoteRepository.AzureDevOps azure => IsNorthwind(repository) && azure.Organisation == DemoOwner,
         _ => false,

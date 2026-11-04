@@ -1,6 +1,6 @@
 using System.Runtime.Versioning;
 
-namespace Source191.Vantage.HeadlessTerminal.Tests;
+namespace Source191.Torni.HeadlessTerminal.Tests;
 
 /// <summary>Runs a short pwsh child in a real pseudo-console: it prints READY, waits for a key, sets the title DONE and lingers.</summary>
 [SupportedOSPlatform("windows")]
