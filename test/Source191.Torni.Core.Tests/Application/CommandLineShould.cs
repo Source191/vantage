@@ -157,11 +157,11 @@ public sealed class CommandLineShould : IDisposable
     }
 
     [Fact]
-    public async Task DescribeTorniAsMissionControl()
+    public async Task DescribeTorniByItsTagline()
     {
         await InvokeAsync("--help");
 
-        output.ToString().ShouldContain("Mission control for Claude Code sessions: every session in one tab, still there after a reboot.");
+        output.ToString().ShouldContain("Every agent session in one tab, still there after a reboot.");
     }
 
     [Fact]
