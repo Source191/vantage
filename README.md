@@ -1,6 +1,6 @@
 # Torni
 
-![Torni: every agent session in one tab, still there after a reboot. Beside it, the icon: two branches merging into one node, shaped as a V](https://raw.githubusercontent.com/Source191/torni/main/assets/header/readme-banner.png)
+![Torni: every agent session in one tab, still there after a reboot. Beside it, the icon: two branches meeting in the bar of a T, over a stem to one node](https://raw.githubusercontent.com/Source191/torni/main/assets/header/readme-banner.png)
 
 <a href="https://buymeacoffee.com/simonvane"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-orange.png" alt="Buy me a coffee" height="40"></a> &nbsp; [![Built by Simon Vane](https://img.shields.io/badge/Built_by-Simon_Vane-0A66C2?style=for-the-badge)](https://www.linkedin.com/in/simonvane/)
 

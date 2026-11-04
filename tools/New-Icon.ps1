@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Draws the Torni icon (two worktree branches merging into one node, shaped as a V) at every size.
+Draws the Torni icon (two worktree branches meeting in the bar of a T over a stem to one node) at every size.
 .DESCRIPTION
 Writes assets\icon\torni-<size>.png for each size and assets\icon\torni.ico (PNG-compressed entries, up to 256 px: the format cannot hold 512), then checks
 every file. The output is committed, so a build never needs this script; run it to change the drawing.

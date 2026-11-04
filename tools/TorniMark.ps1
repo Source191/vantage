@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-The Torni mark (two worktree branches merging into one node, shaped as a V on a rounded tile), drawn once for every script that needs it.
+The Torni mark (two worktree branches meeting in the bar of a T, a tower, over a stem to one node, on a rounded tile), drawn once for every script that needs it.
 .DESCRIPTION
 Dot-source it: New-Icon.ps1 draws the icon with it, New-Header.ps1 draws the mark on the header images, and New-IconPixels.ps1
 draws it without its tile (-NoTile) for the console's black background, where the dark tile disappeared. The mark is laid out on a
@@ -58,12 +58,13 @@ function Add-TorniMark([System.Drawing.Graphics]$graphics, [float]$x, [float]$y,
         }
     }
 
-    # The stem is drawn first so the branches' round ends cover its top and the join is clean.
-    $graphics.DrawLine((New-Pen '#FFFFFF' 40), 256, 330, 256, 408)
-    $graphics.DrawLine((New-Pen '#2DD4BF' 40), 124, 112, 256, 330)
-    $graphics.DrawLine((New-Pen '#A78BFA' 40), 388, 112, 256, 330)
-    Add-Node $graphics 124 104 46 '#2DD4BF' $NodeCentre
-    Add-Node $graphics 388 104 46 '#A78BFA' $NodeCentre
-    Add-Node $graphics 256 408 46 '#FFFFFF' $NodeCentre
+    # A T: the branches run level from the top corners and meet at the centre, over a stem down to one node. The stem is
+    # drawn first so the branches' round ends cover its top and the join is clean.
+    $graphics.DrawLine((New-Pen '#FFFFFF' 40), 256, 120, 256, 392)
+    $graphics.DrawLine((New-Pen '#2DD4BF' 40), 112, 120, 256, 120)
+    $graphics.DrawLine((New-Pen '#A78BFA' 40), 400, 120, 256, 120)
+    Add-Node $graphics 112 120 46 '#2DD4BF' $NodeCentre
+    Add-Node $graphics 400 120 46 '#A78BFA' $NodeCentre
+    Add-Node $graphics 256 392 46 '#FFFFFF' $NodeCentre
     $graphics.Restore($state)
 }
