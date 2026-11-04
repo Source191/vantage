@@ -6,11 +6,11 @@ Tells the user, without blocking the session or the terminal, that a session nee
 ## Requirements
 
 ### Requirement: The console rings the terminal bell when a session starts waiting
-Because the agent_needs_input and agent_completed hook types fire only while the native agent view is open, Vantage SHALL write the terminal bell character to its own terminal whenever a refresh shows a background session in needs input that was in another state at the previous refresh, and SHALL NOT ring for a session that was already waiting, for completed or failed transitions, for interactive sessions, or on the first load.
+Because the agent_needs_input and agent_completed hook types fire only while the native agent view is open, Torni SHALL write the terminal bell character to its own terminal whenever a refresh shows a background session in needs input that was in another state at the previous refresh, and SHALL NOT ring for a session that was already waiting, for completed or failed transitions, for interactive sessions, or on the first load.
 
 #### Scenario: Session starts waiting
 - **WHEN** a refresh shows a background session in needs input that was working at the previous refresh
-- **THEN** the bell rings once in the Vantage tab, so Windows Terminal flags it according to the profile's bell style
+- **THEN** the bell rings once in the Torni tab, so Windows Terminal flags it according to the profile's bell style
 
 #### Scenario: No duplicate bell
 - **WHEN** a session was already in needs input at the previous refresh
@@ -18,39 +18,39 @@ Because the agent_needs_input and agent_completed hook types fire only while the
 
 #### Scenario: Interactive sessions ring their own tab
 - **WHEN** an interactive session starts waiting
-- **THEN** Vantage stays silent, because Claude Code rings the bell in that session's own tab
+- **THEN** Torni stays silent, because Claude Code rings the bell in that session's own tab
 
 ### Requirement: Claude Code's own bell covers attached tabs
-The README SHALL have one short notifications section that tells the user to run `vantage setup-terminal`, which sets Claude Code's `preferredNotifChannel` to `terminal_bell` and so makes Claude ring the bell in the tab a session is attached in when it finishes a task or pauses for a permission prompt while the user appears away.
+The README SHALL have one short notifications section that tells the user to run `torni setup-terminal`, which sets Claude Code's `preferredNotifChannel` to `terminal_bell` and so makes Claude ring the bell in the tab a session is attached in when it finishes a task or pauses for a permission prompt while the user appears away.
 
 #### Scenario: Attached session needs permission
-- **WHEN** a session attached in a Vantage-opened tab pauses for a permission prompt while the user is in another tab
+- **WHEN** a session attached in a Torni-opened tab pauses for a permission prompt while the user is in another tab
 - **THEN** Claude Code rings the bell in that tab and Windows Terminal flags it
 
 #### Scenario: Choosing a sound by hand
-- **WHEN** the user picks `C:\Windows\Media\Windows Message Nudge.wav` as the Vantage profile's bell sound in Windows Terminal's settings
-- **THEN** a bell in the Vantage tab plays that sound and bells in other profiles keep theirs
+- **WHEN** the user picks `C:\Windows\Media\Windows Message Nudge.wav` as the Torni profile's bell sound in Windows Terminal's settings
+- **THEN** a bell in the Torni tab plays that sound and bells in other profiles keep theirs
 
 #### Scenario: Reading the notifications section
 - **WHEN** the user reads the README's notifications section
-- **THEN** it names `vantage setup-terminal` as the one step that sets up both bells
+- **THEN** it names `torni setup-terminal` as the one step that sets up both bells
 
 ### Requirement: No toasts and no hooks
-Vantage SHALL NOT raise Windows toast notifications and SHALL NOT install Claude Code hooks; attention is the terminal bell, the header's needs-input count and the amber rows.
+Torni SHALL NOT raise Windows toast notifications and SHALL NOT install Claude Code hooks; attention is the terminal bell, the header's needs-input count and the amber rows.
 
 #### Scenario: Install
-- **WHEN** Vantage is installed
+- **WHEN** Torni is installed
 - **THEN** nothing is written to the user's Claude Code hooks
 
 #### Scenario: Terminal setup
-- **WHEN** the user runs `vantage setup-terminal --yes`
+- **WHEN** the user runs `torni setup-terminal --yes`
 - **THEN** nothing is written to the user's Claude Code hooks
 
-### Requirement: The setup command adds Vantage's Windows Terminal profiles
-`vantage setup-terminal` SHALL write a Windows Terminal JSON fragment for the current user that adds a "Vantage" profile, which runs the installed Vantage, and a "Vantage session" profile, which runs PowerShell, each with a bell style that sounds, flashes the window and flashes the taskbar, and each with the Vantage icon as its tab icon.
+### Requirement: The setup command adds Torni's Windows Terminal profiles
+`torni setup-terminal` SHALL write a Windows Terminal JSON fragment for the current user that adds a "Torni" profile, which runs the installed Torni, and a "Torni session" profile, which runs PowerShell, each with a bell style that sounds, flashes the window and flashes the taskbar, and each with the Torni icon as its tab icon.
 
 #### Scenario: First run
-- **WHEN** the user runs `vantage setup-terminal --yes` and no fragment exists
+- **WHEN** the user runs `torni setup-terminal --yes` and no fragment exists
 - **THEN** the fragment exists with the two profiles, each naming the copied icon file, Windows Terminal's settings file is unchanged, the output says to restart Windows Terminal, and the command exits 0
 
 #### Scenario: Run again
@@ -58,22 +58,22 @@ Vantage SHALL NOT raise Windows toast notifications and SHALL NOT install Claude
 - **THEN** the fragment is replaced with the new sounds and still holds exactly the two profiles, each with the icon
 
 #### Scenario: No icon file beside the tool
-- **WHEN** the user runs `vantage setup-terminal --yes` and the tool's icon file is missing
+- **WHEN** the user runs `torni setup-terminal --yes` and the tool's icon file is missing
 - **THEN** the fragment holds the two profiles without an icon property, no error is shown, and the command exits 0
 
 #### Scenario: Remove takes the icon too
-- **WHEN** the fragment exists with its icon and the user runs `vantage setup-terminal --remove`
+- **WHEN** the fragment exists with its icon and the user runs `torni setup-terminal --remove`
 - **THEN** the fragment folder, including the icon copy, is gone
 
-#### Scenario: Vantage tab colour still applies
-- **WHEN** Vantage starts in a tab opened with the "Vantage" profile
-- **THEN** the tab is titled and coloured as the session-attach spec describes for Vantage's own tab
+#### Scenario: Torni tab colour still applies
+- **WHEN** Torni starts in a tab opened with the "Torni" profile
+- **THEN** the tab is titled and coloured as the session-attach spec describes for Torni's own tab
 
 ### Requirement: Setup asks before writing
 Unless `--yes` is given, the setup command SHALL show every file it will write or change and what it will put there, and SHALL write nothing until the user answers yes; any other answer, or the end of input, SHALL leave every file as it was and exit 0.
 
 #### Scenario: User declines
-- **WHEN** the user runs `vantage setup-terminal` and answers n
+- **WHEN** the user runs `torni setup-terminal` and answers n
 - **THEN** no file is written or changed and the output says nothing was written
 
 #### Scenario: Input is not interactive
@@ -81,25 +81,25 @@ Unless `--yes` is given, the setup command SHALL show every file it will write o
 - **THEN** no file is written or changed
 
 ### Requirement: Setup chooses the bell sounds
-The "Vantage" profile's bell sound SHALL default to `C:\Windows\Media\Windows Notify Messaging.wav` and the "Vantage session" profile's to `C:\Windows\Media\Windows Proximity Notification.wav`; `--sound` and `--session-sound` SHALL replace them. A default that does not exist on the machine SHALL be left out, so that profile uses Windows Terminal's own bell sound, and the output SHALL say so.
+The "Torni" profile's bell sound SHALL default to `C:\Windows\Media\Windows Notify Messaging.wav` and the "Torni session" profile's to `C:\Windows\Media\Windows Proximity Notification.wav`; `--sound` and `--session-sound` SHALL replace them. A default that does not exist on the machine SHALL be left out, so that profile uses Windows Terminal's own bell sound, and the output SHALL say so.
 
 #### Scenario: Custom sound
-- **WHEN** the user runs `vantage setup-terminal --yes --sound "C:\Windows\Media\chimes.wav"`
-- **THEN** the "Vantage" profile's bell sound is chimes.wav and the "Vantage session" profile keeps its default
+- **WHEN** the user runs `torni setup-terminal --yes --sound "C:\Windows\Media\chimes.wav"`
+- **THEN** the "Torni" profile's bell sound is chimes.wav and the "Torni session" profile keeps its default
 
 #### Scenario: Default sound absent
 - **WHEN** `Windows Notify Messaging.wav` does not exist on the machine
-- **THEN** the "Vantage" profile has no bell sound and the output says Windows Terminal's default sound will play
+- **THEN** the "Torni" profile has no bell sound and the output says Windows Terminal's default sound will play
 
 ### Requirement: A chosen sound must be a wav file that exists
 A sound given with `--sound` or `--session-sound` that is not an existing `.wav` file SHALL be a usage error with exit code 2, and nothing SHALL be written.
 
 #### Scenario: Missing sound file
-- **WHEN** the user runs `vantage setup-terminal --sound C:\Users\me\missing.wav`
+- **WHEN** the user runs `torni setup-terminal --sound C:\Users\me\missing.wav`
 - **THEN** the command prints the usage, names the missing file, writes nothing and exits 2
 
 #### Scenario: Not a wav file
-- **WHEN** the user runs `vantage setup-terminal --session-sound C:\Windows\Media\notes.txt` and that file exists
+- **WHEN** the user runs `torni setup-terminal --session-sound C:\Windows\Media\notes.txt` and that file exists
 - **THEN** the command prints the usage, writes nothing and exits 2
 
 ### Requirement: Setup can turn on Claude Code's terminal bell
@@ -118,26 +118,26 @@ The setup command SHALL offer to set `preferredNotifChannel` to `terminal_bell` 
 - **THEN** the file is unchanged, the output says it could not be read, and the profiles are still written
 
 ### Requirement: Setup can be undone
-`vantage setup-terminal --remove` SHALL delete Vantage's fragment folder and nothing else, and SHALL report when there was nothing to remove.
+`torni setup-terminal --remove` SHALL delete Torni's fragment folder and nothing else, and SHALL report when there was nothing to remove.
 
 #### Scenario: Remove
-- **WHEN** the fragment exists and the user runs `vantage setup-terminal --remove`
+- **WHEN** the fragment exists and the user runs `torni setup-terminal --remove`
 - **THEN** the fragment folder is gone, `~\.claude\settings.json` is unchanged, and the output says to restart Windows Terminal
 
 #### Scenario: Nothing installed
-- **WHEN** no fragment exists and the user runs `vantage setup-terminal --remove`
+- **WHEN** no fragment exists and the user runs `torni setup-terminal --remove`
 - **THEN** nothing changes, the output says there was nothing to remove, and the command exits 0
 
-### Requirement: The profiles' icon lives in Vantage's fragment folder
-The setup command SHALL copy the icon file into Vantage's fragment folder, so that removing the folder removes it; when the tool carries no icon file the profiles SHALL be written without an icon and setup SHALL still succeed.
+### Requirement: The profiles' icon lives in Torni's fragment folder
+The setup command SHALL copy the icon file into Torni's fragment folder, so that removing the folder removes it; when the tool carries no icon file the profiles SHALL be written without an icon and setup SHALL still succeed.
 
 #### Scenario: The icon beside the fragment
-- **WHEN** the user runs `vantage setup-terminal --yes` and the tool carries its icon file
+- **WHEN** the user runs `torni setup-terminal --yes` and the tool carries its icon file
 - **THEN** a copy of the icon sits in the fragment's own folder and both profiles name that copy
 
 ### Requirement: Setup leaves Windows Terminal's own settings alone
-The setup command SHALL NOT change the user's Windows Terminal settings file, SHALL NOT give the "Vantage" profile a tab colour, and SHALL tell the user to restart Windows Terminal.
+The setup command SHALL NOT change the user's Windows Terminal settings file, SHALL NOT give the "Torni" profile a tab colour, and SHALL tell the user to restart Windows Terminal.
 
 #### Scenario: Settings file and tab colour untouched
-- **WHEN** the user runs `vantage setup-terminal --yes`
-- **THEN** Windows Terminal's settings file is unchanged, the "Vantage" profile in the fragment has no tab colour, and the output says to restart Windows Terminal
+- **WHEN** the user runs `torni setup-terminal --yes`
+- **THEN** Windows Terminal's settings file is unchanged, the "Torni" profile in the fragment has no tab colour, and the output says to restart Windows Terminal

@@ -6,7 +6,7 @@ Shows every Claude Code session on the machine in one table with its state, so t
 ## Requirements
 
 ### Requirement: Sessions come from the supported CLI listing
-Vantage SHALL obtain the session list by running the Claude Code CLI's JSON listing of active and completed sessions, and SHALL NOT read transcript files or the sessions folder of the Claude configuration directory. A listing that has not returned within the child program time limit SHALL be ended and reported as a failed listing. When the listing command exits with an error, the failure banner SHALL show the CLI's own words and no JSON parser's message.
+Torni SHALL obtain the session list by running the Claude Code CLI's JSON listing of active and completed sessions, and SHALL NOT read transcript files or the sessions folder of the Claude configuration directory. A listing that has not returned within the child program time limit SHALL be ended and reported as a failed listing. When the listing command exits with an error, the failure banner SHALL show the CLI's own words and no JSON parser's message.
 
 #### Scenario: Listing succeeds
 - **WHEN** the CLI listing returns three sessions
@@ -25,7 +25,7 @@ Vantage SHALL obtain the session list by running the Claude Code CLI's JSON list
 - **THEN** the banner reads listing failed: Couldn't connect to the background service, with no mention of JSON tokens, the view keeps the rows it last showed, and the next refresh runs as usual
 
 ### Requirement: Session state is shown in six display states
-Vantage SHALL map each session's process presence, status, waitingFor and state fields to exactly one of: working, needs input, idle, completed, failed, stopped. A row without a process identifier is stopped or failed, never working. A background session with a process identifier and no status yet is starting up, and SHALL show the word starting in the working state.
+Torni SHALL map each session's process presence, status, waitingFor and state fields to exactly one of: working, needs input, idle, completed, failed, stopped. A row without a process identifier is stopped or failed, never working. A background session with a process identifier and no status yet is starting up, and SHALL show the word starting in the working state.
 
 #### Scenario: Busy session
 - **WHEN** a session reports status busy and state working
@@ -52,11 +52,11 @@ Vantage SHALL map each session's process presence, status, waitingFor and state 
 - **THEN** its row shows starting in the working colour and glyph, never "/blocked"
 
 #### Scenario: Unknown combination
-- **WHEN** a session reports a status or state Vantage does not recognise
+- **WHEN** a session reports a status or state Torni does not recognise
 - **THEN** its row shows the raw value rather than guessing a display state
 
 ### Requirement: Rows show repository, branch and worktree
-For each session Vantage SHALL derive the repository, the checked-out branch and the folder it runs in. The table SHALL show the repository's name in a REPOSITORY column, or the folder-actions label of a folder outside any repository; the worktree's place (its slug, or the path inside the repository, or the main checkout), the branch and the full folder SHALL be shown in the detail pane. The filter SHALL still match the name, the repository and the branch.
+For each session Torni SHALL derive the repository, the checked-out branch and the folder it runs in. The table SHALL show the repository's name in a REPOSITORY column, or the folder-actions label of a folder outside any repository; the worktree's place (its slug, or the path inside the repository, or the main checkout), the branch and the full folder SHALL be shown in the detail pane. The filter SHALL still match the name, the repository and the branch.
 
 #### Scenario: Session in a sibling worktree
 - **WHEN** a session's working directory is the linked worktree C:\Users\me\source\worktrees\Northwind.Orders-fix-123 of Northwind.Orders, on branch fix-123
@@ -101,7 +101,7 @@ The view SHALL order rows by display state: needs input first, then working, idl
 - **THEN** the needs-input row is first and the stopped row is last
 
 ### Requirement: The list refreshes without losing the selection
-Vantage SHALL refresh the list automatically at least every five seconds and on demand, SHALL keep the selected session selected across a refresh when it still exists, and SHALL stay consistent when one refresh is still running as the next begins: a refresh SHALL never show rows older than the ones already shown, and rows that arrive while a dialog is open SHALL be kept when it closes. The timed refresh SHALL NOT start a listing while one is running; the refresh after an action SHALL always run.
+Torni SHALL refresh the list automatically at least every five seconds and on demand, SHALL keep the selected session selected across a refresh when it still exists, and SHALL stay consistent when one refresh is still running as the next begins: a refresh SHALL never show rows older than the ones already shown, and rows that arrive while a dialog is open SHALL be kept when it closes. The timed refresh SHALL NOT start a listing while one is running; the refresh after an action SHALL always run.
 
 #### Scenario: Selected session survives refresh
 - **WHEN** the user has selected a session and a refresh occurs
@@ -169,7 +169,7 @@ Each state SHALL be shown as a glyph and its word in its own colour, each state 
 - **THEN** the working state reads ● working in cyan, the needs-input state ◐ needs input in amber, and the stopped row is grey
 
 #### Scenario: Stopped and unknown apart
-- **WHEN** the table shows a stopped row and a row whose listed status and state Vantage does not know, busy/paused
+- **WHEN** the table shows a stopped row and a row whose listed status and state Torni does not know, busy/paused
 - **THEN** both rows are grey, one STATE cell reads ■ stopped and the other ? busy/paused
 
 ### Requirement: The header counts sessions needing input
@@ -183,7 +183,7 @@ The counts beside the tabs SHALL show how many sessions are in the needs-input s
 The sessions view SHALL show a spinner with the words "Listing sessions" in the middle of the table until the first listing arrives, and SHALL show a spinner beside the status line's working text while an action started from the view runs; neither spinner SHALL appear for the timed refreshes. Typing a filter, Backspace or Escape before the first listing SHALL NOT end the waiting spinner.
 
 #### Scenario: First listing pending
-- **WHEN** Vantage starts and the CLI listing has not yet returned
+- **WHEN** Torni starts and the CLI listing has not yet returned
 - **THEN** the table area shows a spinner and "Listing sessions", which disappear when the first rows arrive
 
 #### Scenario: A filter typed before the first listing
@@ -203,19 +203,19 @@ The sessions view SHALL show a spinner with the words "Listing sessions" in the 
 - **THEN** the spinner is replaced by the failure banner
 
 ### Requirement: The header shows the versions and the roots
-The settings rows SHALL show the Vantage version followed by the memory Vantage's own process uses in brackets, the Claude Code CLI version, the repository roots and the worktree root, and SHALL NOT show the machine name or the Claude executable's path. The roots and the worktree root SHALL be the settings saved now, so a save from the settings dialog shows at once.
+The settings rows SHALL show the Torni version followed by the memory Torni's own process uses in brackets, the Claude Code CLI version, the repository roots and the worktree root, and SHALL NOT show the machine name or the Claude executable's path. The roots and the worktree root SHALL be the settings saved now, so a save from the settings dialog shows at once.
 
 #### Scenario: Released versions
-- **WHEN** Vantage 0.5.0 runs using 29 MB with Claude Code 2.1.310 and the root C:\Users\me\source\repos
-- **THEN** the first settings row reads Vantage 0.5.0 (29 MB) · Claude 2.1.310 and the second Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees
+- **WHEN** Torni 0.5.0 runs using 29 MB with Claude Code 2.1.310 and the root C:\Users\me\source\repos
+- **THEN** the first settings row reads Torni 0.5.0 (29 MB) · Claude 2.1.310 and the second Repository roots C:\Users\me\source\repos · Worktree root C:\Users\me\source\worktrees
 
 #### Scenario: Local build
-- **WHEN** the installed tool's version is 0.5.0-local.20261025T101500 and Vantage uses 29 MB
-- **THEN** the first settings row starts Vantage 0.5.0-local (29 MB)
+- **WHEN** the installed tool's version is 0.5.0-local.20261025T101500 and Torni uses 29 MB
+- **THEN** the first settings row starts Torni 0.5.0-local (29 MB)
 
 #### Scenario: An update is available
-- **WHEN** Vantage 0.5.0 uses 29 MB and 0.6.0 is the newest release
-- **THEN** the first settings row starts Vantage 0.5.0 (29 MB; 0.6.0 available, U to update)
+- **WHEN** Torni 0.5.0 uses 29 MB and 0.6.0 is the newest release
+- **THEN** the first settings row starts Torni 0.5.0 (29 MB; 0.6.0 available, U to update)
 
 #### Scenario: Claude version unreadable
 - **WHEN** the Claude Code CLI's version command fails or prints something without a version
@@ -230,11 +230,11 @@ The settings rows SHALL show the Vantage version followed by the memory Vantage'
 - **THEN** the first settings row reads Claude 2.1.309 with no warning
 
 #### Scenario: Default worktree root
-- **WHEN** Vantage starts with no settings file
+- **WHEN** Torni starts with no settings file
 - **THEN** the second settings row ends Worktree root C:\Users\me\source\worktrees on both tabs
 
 ### Requirement: Help explains the columns
-The help key SHALL show, beneath the keys, one line for each column of the current view saying what it shows, and the path of the Claude Code executable Vantage drives. Every line of the help SHALL be visible or reachable by scrolling on a terminal of 36 rows or more, and the whole text SHALL be visible without scrolling on a terminal of 40 rows.
+The help key SHALL show, beneath the keys, one line for each column of the current view saying what it shows, and the path of the Claude Code executable Torni drives. Every line of the help SHALL be visible or reachable by scrolling on a terminal of 36 rows or more, and the whole text SHALL be visible without scrolling on a terminal of 40 rows.
 
 #### Scenario: Sessions help
 - **WHEN** the user presses the help key in the sessions view
@@ -390,10 +390,10 @@ The sessions table SHALL give REPOSITORY the width its other columns leave and S
 - **THEN** the REPOSITORY cell for Northwind.Integration.CosmosDb.ChangeFeedMonitoring is shown whole
 
 ### Requirement: The TAB column is a swatch
-The sessions table's TAB column SHALL show a two-cell block in the colour of the Vantage tab showing the session while that tab is alive, in the shade that tab shows from Vantage's own tab, with a cell of space before the next column, on the highlighted row as on every other; SHALL show a hollow grey block for a session running as plain claude in its own terminal; and nothing otherwise. The help and the column's tooltip SHALL say what each means.
+The sessions table's TAB column SHALL show a two-cell block in the colour of the Torni tab showing the session while that tab is alive, in the shade that tab shows from Torni's own tab, with a cell of space before the next column, on the highlighted row as on every other; SHALL show a hollow grey block for a session running as plain claude in its own terminal; and nothing otherwise. The help and the column's tooltip SHALL say what each means.
 
-#### Scenario: A session open in a Vantage tab
-- **WHEN** fix-123 is shown in a Vantage tab coloured yellow
+#### Scenario: A session open in a Torni tab
+- **WHEN** fix-123 is shown in a Torni tab coloured yellow
 - **THEN** its TAB cell shows a two-cell yellow block, then a space before the state
 
 #### Scenario: A terminal session
@@ -401,22 +401,22 @@ The sessions table's TAB column SHALL show a two-cell block in the colour of the
 - **THEN** its TAB cell is a hollow block drawn in grey
 
 #### Scenario: No tab
-- **WHEN** a background session has no live Vantage tab
+- **WHEN** a background session has no live Torni tab
 - **THEN** its TAB cell is blank
 
 #### Scenario: The help names the blocks
 - **WHEN** the help is shown on the sessions view
-- **THEN** TAB's line says a block in the tab's colour marks a session a Vantage tab shows and a hollow block a plain claude in its own terminal
+- **THEN** TAB's line says a block in the tab's colour marks a session a Torni tab shows and a hollow block a plain claude in its own terminal
 
 #### Scenario: The highlighted row keeps the colour
-- **WHEN** fix-123, shown in a Vantage tab coloured red, is the selected row
+- **WHEN** fix-123, shown in a Torni tab coloured red, is the selected row
 - **THEN** its TAB block is the same shade of red as on any other row, not the highlight's colour
 
-### Requirement: The TAB block matches the tab as it looks from Vantage
-The TAB column's block SHALL be drawn in the shade Windows Terminal shows for that session's tab while another tab is selected, because Vantage's own tab is the selected one whenever the table is read. The shade SHALL be the same on the selected row as on any other, and SHALL come from one rule applied to the tab's colour.
+### Requirement: The TAB block matches the tab as it looks from Torni
+The TAB column's block SHALL be drawn in the shade Windows Terminal shows for that session's tab while another tab is selected, because Torni's own tab is the selected one whenever the table is read. The shade SHALL be the same on the selected row as on any other, and SHALL come from one rule applied to the tab's colour.
 
 #### Scenario: A red tab
-- **WHEN** a session's Vantage tab is red and the Vantage tab is selected
+- **WHEN** a session's Torni tab is red and the Torni tab is selected
 - **THEN** the session's TAB block is the faded red its tab shows in the tab strip, not the bright red the tab shows when selected
 
 #### Scenario: The selected row
@@ -488,11 +488,11 @@ Under the settings row, above the tabs, the sessions view SHALL show a status li
 A local build SHALL show its prerelease label without the build timestamp, and a Claude version that cannot be read SHALL show as unknown.
 
 #### Scenario: A local preview build
-- **WHEN** the installed tool's version is 0.18.0-preview.12-local.20261031083825 and Vantage uses 35 MB
-- **THEN** the first settings row starts Vantage 0.18.0-preview.12-local (35 MB)
+- **WHEN** the installed tool's version is 0.18.0-preview.12-local.20261031083825 and Torni uses 35 MB
+- **THEN** the first settings row starts Torni 0.18.0-preview.12-local (35 MB)
 
 ### Requirement: An old Claude Code is flagged but still works
-A Claude version older than the minimum Vantage supports SHALL show that minimum and ask for Claude Code to be updated, and the view SHALL work as usual.
+A Claude version older than the minimum Torni supports SHALL show that minimum and ask for Claude Code to be updated, and the view SHALL work as usual.
 
 #### Scenario: An older minor version
 - **WHEN** the minimum is 2.1.309 and the Claude Code CLI reports 2.0.99

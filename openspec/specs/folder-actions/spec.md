@@ -33,7 +33,7 @@ Both table views SHALL show where a row's folder is in their REPOSITORY or WORKT
 - **THEN** its REPOSITORY cell reads D:\work\Northwind.Tools
 
 #### Scenario: Session in a root itself
-- **WHEN** a session started with vantage here runs in the repository root C:\Users\me\source\repos
+- **WHEN** a session started with torni here runs in the repository root C:\Users\me\source\repos
 - **THEN** its REPOSITORY cell reads ~\source\repos
 
 ### Requirement: The copy key puts the full folder path on the clipboard
@@ -48,7 +48,7 @@ In both table views the copy key SHALL place the selected row's full folder path
 - **THEN** nothing is copied and the status line says the clipboard was busy and to try again
 
 ### Requirement: The editor key opens the folder in the chosen editor
-In both table views the editor key SHALL open the selected row's folder in the editor chosen in settings, without waiting for the editor to close, without passing Vantage's Claude Code session markers to it, and without the folder path ever being read by a command shell. When the chosen editor, preset or Custom, cannot be found or will not start, nothing SHALL be started and the status line SHALL say so in Vantage's words and that the Config tab's Open folder with row chooses another.
+In both table views the editor key SHALL open the selected row's folder in the editor chosen in settings, without waiting for the editor to close, without passing Torni's Claude Code session markers to it, and without the folder path ever being read by a command shell. When the chosen editor, preset or Custom, cannot be found or will not start, nothing SHALL be started and the status line SHALL say so in Torni's words and that the Config tab's Open folder with row chooses another.
 
 #### Scenario: Open in VS Code
 - **WHEN** the editor setting is VS Code and the user presses the editor key on a row
@@ -91,7 +91,7 @@ In both table views the solution key SHALL look for files ending `.sln` or `.sln
 
 #### Scenario: Several solutions, none named after the repository
 - **WHEN** the folder holds Api.sln and Worker.sln and the repository is Northwind.Orders
-- **THEN** a dialog lists Api.sln and Worker.sln one per line, the arrow keys move between them, Enter opens the chosen one, Esc opens nothing, and the tab reads Vantage (Open solution) while the dialog is open
+- **THEN** a dialog lists Api.sln and Worker.sln one per line, the arrow keys move between them, Enter opens the chosen one, Esc opens nothing, and the tab reads Torni (Open solution) while the dialog is open
 
 #### Scenario: Long solution names
 - **WHEN** the folder's src folder holds Northwind.Orders.PackageConfiguration - Copy.slnx and Northwind.Orders.PackageConfiguration - temp.slnx
@@ -101,9 +101,9 @@ In both table views the solution key SHALL look for files ending `.sln` or `.sln
 - **WHEN** neither the folder nor its src folder holds a solution
 - **THEN** nothing opens and the status line says no solution was found in that folder
 
-#### Scenario: Vantage started from a Claude Code session
-- **WHEN** Vantage's own environment holds NO_COLOR, CLAUDECODE, CLAUDE_PID and CLAUDE_CODE_SESSION_ID and the user opens a solution
-- **THEN** the application that opens the solution has none of those variables, and its other variables, such as PATH, are as Vantage's
+#### Scenario: Torni started from a Claude Code session
+- **WHEN** Torni's own environment holds NO_COLOR, CLAUDECODE, CLAUDE_PID and CLAUDE_CODE_SESSION_ID and the user opens a solution
+- **THEN** the application that opens the solution has none of those variables, and its other variables, such as PATH, are as Torni's
 
 #### Scenario: Solution path with shell characters
 - **WHEN** the solution is C:\Users\me\source\repos\Northwind & Co's tools\100% ^ (a)\Northwind.Orders.slnx
@@ -132,7 +132,7 @@ The copy, editor and solution keys SHALL act on every row that has a folder, inc
 A folder under no configured root but under the user's home folder SHALL be labelled `~\` followed by its path relative to home, and any other folder SHALL be labelled in full. A folder that is itself a root SHALL be labelled by the same two rules.
 
 #### Scenario: The worktree root itself
-- **WHEN** a session started with vantage here runs in the worktree root C:\Users\me\source\worktrees, which is not a repository
+- **WHEN** a session started with torni here runs in the worktree root C:\Users\me\source\worktrees, which is not a repository
 - **THEN** its WHERE cell reads ~\source\worktrees
 
 ### Requirement: The part after the repository follows ›
@@ -147,11 +147,11 @@ Inside a repository the folder label's part after the repository SHALL be shown 
 - **THEN** its WHERE cell holds no ›
 
 ### Requirement: A solution opens in its own application, safely
-The solution key SHALL open the solution with Windows' default application for its file type, without waiting for it to close, without passing Vantage's Claude Code session markers to it (the same environment the editor key gives its editor), and without any part of the solution's path being read by a command shell. When Windows has no application for the solution's file type, nothing SHALL open and the status line SHALL say that no application opens that type.
+The solution key SHALL open the solution with Windows' default application for its file type, without waiting for it to close, without passing Torni's Claude Code session markers to it (the same environment the editor key gives its editor), and without any part of the solution's path being read by a command shell. When Windows has no application for the solution's file type, nothing SHALL open and the status line SHALL say that no application opens that type.
 
-#### Scenario: Vantage does not wait
+#### Scenario: Torni does not wait
 - **WHEN** the user opens Northwind.Orders.slnx with the solution key and its application stays open
-- **THEN** Vantage's keys work at once, without waiting for that application to close
+- **THEN** Torni's keys work at once, without waiting for that application to close
 
 #### Scenario: No application for the type
 - **WHEN** the user presses the solution key on a row whose folder holds Northwind.Orders.slnx and Windows has no application for .slnx

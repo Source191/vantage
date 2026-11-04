@@ -1,7 +1,7 @@
 # problem-reports Specification
 
 ## Purpose
-Lets a user report a problem with Vantage as a GitHub issue that carries their own description and Vantage's privacy-safe diagnostics, with nothing leaving the machine until they choose to open or submit it.
+Lets a user report a problem with Torni as a GitHub issue that carries their own description and Torni's privacy-safe diagnostics, with nothing leaving the machine until they choose to open or submit it.
 
 ## Requirements
 
@@ -10,14 +10,14 @@ Both table views SHALL offer `!` (Report a problem), listed in the key hints, th
 
 #### Scenario: Open the dialog
 - **WHEN** the user presses `!` in the sessions view
-- **THEN** a "Report a problem" dialog opens with an empty title box, the preview and the three choices, and the tab reads `Vantage (Report a problem)`
+- **THEN** a "Report a problem" dialog opens with an empty title box, the preview and the three choices, and the tab reads `Torni (Report a problem)`
 
 #### Scenario: Cancel
 - **WHEN** the user presses Esc in the dialog
 - **THEN** the dialog closes, nothing is opened or copied, and the crash file is left as it was
 
 ### Requirement: The report holds only diagnostics
-The diagnostics text SHALL hold only the environment (the Vantage, Claude Code, Windows and .NET versions, the terminal's size, the editor preset, whether update checks are on and the number of repository roots), the recorded diagnostic events, the child program counts and the last crash when there is one, rendered as the diagnostic log renders them. The title SHALL be the only text the user typed, and it SHALL NOT be recorded in the diagnostic log.
+The diagnostics text SHALL hold only the environment (the Torni, Claude Code, Windows and .NET versions, the terminal's size, the editor preset, whether update checks are on and the number of repository roots), the recorded diagnostic events, the child program counts and the last crash when there is one, rendered as the diagnostic log renders them. The title SHALL be the only text the user typed, and it SHALL NOT be recorded in the diagnostic log.
 
 #### Scenario: Preview after some work
 - **WHEN** the user has opened "Fix flaky tests" in C:\Users\me\source\worktrees\Northwind.Orders-fix-123 in its tab and a worktree remove has failed, then presses `!`
@@ -35,15 +35,15 @@ The dialog SHALL state that the text holds no names, paths or code, that opening
 - **THEN** its explanation line says that opening the page passes the text to GitHub and that nothing is public until submitted
 
 ### Requirement: Opening the report uses the issue form
-Choosing to open SHALL open the default browser on the `Source191/vantage` new-issue page for the "Problem report" form, with the title and the diagnostics field filled in, so the user writes the description, can change anything, and submits from their own account. When the title is blank, the title SHALL be `Problem report from Vantage <version>`. Vantage SHALL make no network request of its own.
+Choosing to open SHALL open the default browser on the `Source191/torni` new-issue page for the "Problem report" form, with the title and the diagnostics field filled in, so the user writes the description, can change anything, and submits from their own account. When the title is blank, the title SHALL be `Problem report from Torni <version>`. Torni SHALL make no network request of its own.
 
 #### Scenario: Open with a title
 - **WHEN** the user types "Attach froze after Ctrl+Z" and chooses to open
-- **THEN** the browser opens `https://github.com/Source191/vantage/issues/new?template=problem-report.yml` with that title and the diagnostics filled in, and the status line says the report was opened in the browser
+- **THEN** the browser opens `https://github.com/Source191/torni/issues/new?template=problem-report.yml` with that title and the diagnostics filled in, and the status line says the report was opened in the browser
 
 #### Scenario: Open with a blank title
-- **WHEN** Vantage 0.18.0 opens a report with a blank title
-- **THEN** the page's title reads "Problem report from Vantage 0.18.0"
+- **WHEN** Torni 0.18.0 opens a report with a blank title
+- **THEN** the page's title reads "Problem report from Torni 0.18.0"
 
 #### Scenario: The browser cannot be started
 - **WHEN** Windows cannot open the address
@@ -64,10 +64,10 @@ Choosing to copy SHALL put the title and the full diagnostics text, untrimmed, o
 - **THEN** the clipboard holds the title and the whole diagnostics text, the status line says it was copied, and the crash file is left as it was
 
 ### Requirement: A crash is reported once
-When `last-crash.log` exists, the report SHALL include it under its own heading, and once the browser has been opened successfully Vantage SHALL remove it.
+When `last-crash.log` exists, the report SHALL include it under its own heading, and once the browser has been opened successfully Torni SHALL remove it.
 
 #### Scenario: Report after a crash
-- **WHEN** Vantage crashed earlier, has been started again and the user opens a report
+- **WHEN** Torni crashed earlier, has been started again and the user opens a report
 - **THEN** the diagnostics hold the crash under its heading, and afterwards `last-crash.log` no longer exists
 
 #### Scenario: No crash

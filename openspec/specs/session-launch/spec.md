@@ -1,7 +1,7 @@
 # session-launch Specification
 
 ## Purpose
-Starts a named Claude Code session in a chosen repository, either on the branch already checked out or in a new sibling worktree, so that every session Vantage starts can be found again by name.
+Starts a named Claude Code session in a chosen repository, either on the branch already checked out or in a new sibling worktree, so that every session Torni starts can be found again by name.
 
 ## Requirements
 
@@ -22,10 +22,10 @@ The wizard SHALL offer every git repository's main checkout found directly under
 
 #### Scenario: Roots are not choices
 - **WHEN** the picker opens with the root C:\Users\me\source\repos
-- **THEN** no "(no repository)" entry is listed; a session in the root folder itself is started with vantage here from that folder
+- **THEN** no "(no repository)" entry is listed; a session in the root folder itself is started with torni here from that folder
 
 ### Requirement: A session name is mandatory
-The wizard SHALL require a non-blank name, SHALL accept any other name, including one holding a semicolon or a double quote, and SHALL use the name exactly as typed as the session name, the tab title and the Remote Control name. A refused name SHALL be explained in a plain sentence, in the wizard and by `vantage here`, with nothing after it.
+The wizard SHALL require a non-blank name, SHALL accept any other name, including one holding a semicolon or a double quote, and SHALL use the name exactly as typed as the session name, the tab title and the Remote Control name. A refused name SHALL be explained in a plain sentence, in the wizard and by `torni here`, with nothing after it.
 
 #### Scenario: Blank name
 - **WHEN** the user submits a blank name
@@ -40,11 +40,11 @@ The wizard SHALL require a non-blank name, SHALL accept any other name, includin
 - **THEN** the session is named `say "hi"` and its tab is titled `say "hi"`
 
 #### Scenario: The explanation is only the sentence
-- **WHEN** the wizard or `vantage here` refuses a blank name
+- **WHEN** the wizard or `torni here` refuses a blank name
 - **THEN** the explanation is exactly "A session name is required.", with no parameter name or other technical text after it, and it fits on the wizard's problem line on a 120-column terminal
 
-#### Scenario: A blank name given to vantage here
-- **WHEN** `vantage here ""` is run
+#### Scenario: A blank name given to torni here
+- **WHEN** `torni here ""` is run
 - **THEN** it prints exactly "A session name is required." and starts nothing
 
 ### Requirement: A new worktree is the default launch mode
@@ -79,7 +79,7 @@ The wizard opened from the overview SHALL start on the default place setting, a 
 - **THEN** the dialog shows the directory, the name, the preview and the prompt from its left edge, with no empty repository column, and its hint line says Enter or F5 starts and opens in a tab
 
 ### Requirement: A new worktree goes under the worktree root
-When the user chooses a worktree, Vantage SHALL create it at `<worktree root>\<repository>-<slug>` on a new branch named `<slug>`, creating the worktree root when it does not exist, where the slug is the name lower-cased with every run of characters other than a-z and 0-9 replaced by one hyphen and leading and trailing hyphens removed.
+When the user chooses a worktree, Torni SHALL create it at `<worktree root>\<repository>-<slug>` on a new branch named `<slug>`, creating the worktree root when it does not exist, where the slug is the name lower-cased with every run of characters other than a-z and 0-9 replaced by one hyphen and leading and trailing hyphens removed.
 
 #### Scenario: Slug derivation
 - **WHEN** the session name is "Fix #123: flaky tests!" and the worktree root is C:\Users\me\source\worktrees
@@ -109,7 +109,7 @@ The worktree SHALL branch from the remote default branch by default, or from the
 - **THEN** the new branch starts at origin's default branch
 
 ### Requirement: Gitignored local files are copied into a new worktree
-When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the gitignored files it matches into the new worktree before starting the session. When the copy fails because a file cannot be read or written, the session SHALL NOT start, the worktree SHALL be kept and remain recorded as Vantage's own, and the status line SHALL say the session could not start and give the reason.
+When the repository contains a `.worktreeinclude` file, Torni SHALL copy the gitignored files it matches into the new worktree before starting the session. When the copy fails because a file cannot be read or written, the session SHALL NOT start, the worktree SHALL be kept and remain recorded as Torni's own, and the status line SHALL say the session could not start and give the reason.
 
 #### Scenario: Include file present
 - **WHEN** `.worktreeinclude` lists appsettings.Development.json and that file is gitignored in the main checkout
@@ -121,36 +121,36 @@ When the repository contains a `.worktreeinclude` file, Vantage SHALL copy the g
 
 #### Scenario: A file cannot be copied
 - **WHEN** `.worktreeinclude` matches a file that another program holds locked, so the copy fails
-- **THEN** no session starts, the worktree stays on disc and in Vantage's records, and the status line says the session could not start and why
+- **THEN** no session starts, the worktree stays on disc and in Torni's records, and the status line says the session could not start and why
 
 ### Requirement: A session can be started from the shell in the current folder
-`vantage here [name] [-p prompt]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed or the command line could not be parsed, and 2 when the name or the opening prompt is refused.
+`torni here [name] [-p prompt]` SHALL start a supervised session in the current folder on its current branch, named after the folder unless a name is given, record the recent repository, attach in the same tab, and exit 0 after a detach, 1 when the start failed or the command line could not be parsed, and 2 when the name or the opening prompt is refused.
 
 #### Scenario: Start here with a prompt
-- **WHEN** the user runs vantage here fix-tests -p "Fix the tests" in a trusted repository
+- **WHEN** the user runs torni here fix-tests -p "Fix the tests" in a trusted repository
 - **THEN** a background session named fix-tests starts there with that opening prompt and the shell is attached to it until Ctrl+Z
 
 #### Scenario: The removed description option
-- **WHEN** the user runs vantage here fix-tests -d "Flaky orders suite"
+- **WHEN** the user runs torni here fix-tests -d "Flaky orders suite"
 - **THEN** it exits 1 naming what was not recognised, and starts nothing
 
 #### Scenario: A refused name
-- **WHEN** the user runs vantage here "a;b"
+- **WHEN** the user runs torni here "a;b"
 - **THEN** it exits 2 with the sentence for the refused name, and starts nothing
 
 #### Scenario: A refused prompt
-- **WHEN** the user runs vantage here fix-tests -p "-fix the tests" in a trusted repository
+- **WHEN** the user runs torni here fix-tests -p "-fix the tests" in a trusted repository
 - **THEN** it exits 2 with the sentence that an opening prompt cannot start with a dash, and starts nothing
 
-### Requirement: vantage here says how to detach
-Before attaching, `vantage here` SHALL print one line saying that Ctrl+Z detaches and the session keeps running, and SHALL erase that line when the attach exits, whether it exited because the user detached, because it could not start, or because it was interrupted. In every one of those cases the terminal SHALL be put back in order (focus reporting off, the cursor shown, late replies discarded) before `vantage here` returns.
+### Requirement: torni here says how to detach
+Before attaching, `torni here` SHALL print one line saying that Ctrl+Z detaches and the session keeps running, and SHALL erase that line when the attach exits, whether it exited because the user detached, because it could not start, or because it was interrupted. In every one of those cases the terminal SHALL be put back in order (focus reporting off, the cursor shown, late replies discarded) before `torni here` returns.
 
 #### Scenario: The line before attaching
-- **WHEN** vantage here starts a session and attaches
+- **WHEN** torni here starts a session and attaches
 - **THEN** the last line printed before handing over is exactly "Ctrl+Z detaches; the session keeps running.", and it is gone from the terminal once the attach exits
 
 #### Scenario: The attach cannot start
-- **WHEN** vantage here has started a session and the attach command cannot be started, for example because the Claude executable was removed between the start and the attach
+- **WHEN** torni here has started a session and the attach command cannot be started, for example because the Claude executable was removed between the start and the attach
 - **THEN** the "Ctrl+Z detaches" line is gone from the terminal, and the cursor is shown and focus reporting is off when the shell prompt returns
 
 ### Requirement: Untrusted workspaces are handled
@@ -164,8 +164,8 @@ When starting the session fails because the directory's workspace is not trusted
 - **WHEN** the untrusted folder is named with a straight or curly apostrophe, such as `Bob's tools`
 - **THEN** the trust tab shows its message with the folder name exactly as it is and starts Claude Code there
 
-### Requirement: Vantage records what it created
-Vantage SHALL record each worktree and branch it created and each launched repository in its own state folder, and SHALL keep every record when two Vantage processes write at the same time. A new worktree SHALL be recorded as soon as git has created it, before its include files are copied, so a worktree that exists is never one Vantage does not know it made. A list of created worktrees saved by an earlier version SHALL be read once, kept as records and removed.
+### Requirement: Torni records what it created
+Torni SHALL record each worktree and branch it created and each launched repository in its own state folder, and SHALL keep every record when two Torni processes write at the same time. A new worktree SHALL be recorded as soon as git has created it, before its include files are copied, so a worktree that exists is never one Torni does not know it made. A list of created worktrees saved by an earlier version SHALL be read once, kept as records and removed.
 
 #### Scenario: Worktree recorded
 - **WHEN** the wizard creates a worktree
@@ -176,31 +176,31 @@ Vantage SHALL record each worktree and branch it created and each launched repos
 - **THEN** the worktree is recorded before any include file is copied, and a failed copy leaves it recorded
 
 #### Scenario: Two processes record at once
-- **WHEN** `vantage here` records a recent repository while the console records another recent repository and a created worktree
+- **WHEN** `torni here` records a recent repository while the console records another recent repository and a created worktree
 - **THEN** all three records are present on the next read
 
 #### Scenario: Two processes record created worktrees at once
-- **WHEN** `vantage here` records the worktree it created at C:\Users\me\source\worktrees\Northwind.Orders-fix-123 while the console records the one it created at C:\Users\me\source\worktrees\Northwind.Billing-invoice-pdf
-- **THEN** both worktrees are recorded as created by Vantage on the next read
+- **WHEN** `torni here` records the worktree it created at C:\Users\me\source\worktrees\Northwind.Orders-fix-123 while the console records the one it created at C:\Users\me\source\worktrees\Northwind.Billing-invoice-pdf
+- **THEN** both worktrees are recorded as created by Torni on the next read
 
 #### Scenario: A worktree is forgotten while another is recorded
-- **WHEN** the console removes the worktree Northwind.Orders-fix-123 and forgets it while `vantage here` records the worktree Northwind.Billing-invoice-pdf it has just created
-- **THEN** Northwind.Billing-invoice-pdf is recorded as created by Vantage, Northwind.Orders-fix-123 is not, and every other created worktree is still recorded
+- **WHEN** the console removes the worktree Northwind.Orders-fix-123 and forgets it while `torni here` records the worktree Northwind.Billing-invoice-pdf it has just created
+- **THEN** Northwind.Billing-invoice-pdf is recorded as created by Torni, Northwind.Orders-fix-123 is not, and every other created worktree is still recorded
 
 #### Scenario: The same worktree recorded again
 - **WHEN** a worktree already recorded at C:\Users\me\source\worktrees\Northwind.Orders-fix-123 is recorded again under the spelling c:\users\me\source\worktrees\northwind.orders-fix-123
 - **THEN** one record holds that worktree, with the newer branch and creation time
 
 #### Scenario: Existing state is kept
-- **WHEN** Vantage starts with recent repositories saved by an earlier version
+- **WHEN** Torni starts with recent repositories saved by an earlier version
 - **THEN** the recent repositories are still listed first in the wizard
 
 #### Scenario: Old state files are ignored
 - **WHEN** the state folder holds a `descriptions` folder, a `sessions.json` or a `created.json` written by an earlier version
-- **THEN** Vantage neither reads nor deletes them
+- **THEN** Torni neither reads nor deletes them
 
 ### Requirement: The session starts under the supervisor
-Vantage SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was. An opening prompt that starts with a dash SHALL be refused before anything starts, in the wizard and by `vantage here`, with a sentence saying the CLI would read it as options and to start it with a word.
+Torni SHALL start the session as a named background session in the chosen directory, passing the opening prompt when one was given and starting an idle session when none was. An opening prompt that starts with a dash SHALL be refused before anything starts, in the wizard and by `torni here`, with a sentence saying the CLI would read it as options and to start it with a word.
 
 #### Scenario: No opening prompt
 - **WHEN** the user leaves the opening prompt blank
@@ -215,11 +215,11 @@ Vantage SHALL start the session as a named background session in the chosen dire
 - **THEN** the session starts with that prompt
 
 ### Requirement: A session started from the wizard opens in its own tab
-A session started from the wizard SHALL be opened in its own Windows Terminal tab as soon as the supervisor lists it, and the wizard SHALL have no way to start one without a tab; `vantage here` attaches in its own tab instead.
+A session started from the wizard SHALL be opened in its own Windows Terminal tab as soon as the supervisor lists it, and the wizard SHALL have no way to start one without a tab; `torni here` attaches in its own tab instead.
 
 #### Scenario: Start and open in a tab
 - **WHEN** the user starts a session from the wizard
-- **THEN** Vantage starts the session, opens it in a new Windows Terminal tab titled with the session name as the open-in-tab key does, and the sessions view stays on screen with the status line naming the tab's colour
+- **THEN** Torni starts the session, opens it in a new Windows Terminal tab titled with the session name as the open-in-tab key does, and the sessions view stays on screen with the status line naming the tab's colour
 
 #### Scenario: No start without a tab
 - **WHEN** the user presses F6 in the wizard

@@ -1,7 +1,7 @@
 # config-tab Specification
 
 ## Purpose
-The Config tab: a table of Vantage's settings and of the setup it depends on, where each setting is edited in a dialog of its own, the repository roots together, and each piece of setup says what to run when it is missing.
+The Config tab: a table of Torni's settings and of the setup it depends on, where each setting is edited in a dialog of its own, the repository roots together, and each piece of setup says what to run when it is missing.
 
 ## Requirements
 
@@ -21,15 +21,15 @@ The console SHALL have a third tab, titled Config, whose table has the columns S
 - **THEN** the Open folder with row reads C:\Tools\subl.exe -n {folder}
 
 ### Requirement: The Config tab shows the setup
-After the settings, under the Setup heading row, the table SHALL have a grey row for each piece of setup Vantage reads but does not edit: Settings file (the full path of `config.json`), Windows Terminal profiles (installed, with the fragment's path, or not set up), Claude bell (on, the other channel named, or not set), Diagnostic log (the `VANTAGE_LOG` path, or off) and Last update check (when, and the newest release found, or never, or off).
+After the settings, under the Setup heading row, the table SHALL have a grey row for each piece of setup Torni reads but does not edit: Settings file (the full path of `config.json`), Windows Terminal profiles (installed, with the fragment's path, or not set up), Claude bell (on, the other channel named, or not set), Diagnostic log (the `TORNI_LOG` path, or off) and Last update check (when, and the newest release found, or never, or off).
 
 #### Scenario: Everything set up
-- **WHEN** the fragment exists, Claude's settings say terminal_bell, `VANTAGE_LOG` is unset and nuget.org was asked at 09:12 today and named 0.18.0
+- **WHEN** the fragment exists, Claude's settings say terminal_bell, `TORNI_LOG` is unset and nuget.org was asked at 09:12 today and named 0.18.0
 - **THEN** the setup rows read the settings file's path, installed with the fragment's path, on, off and 09:12 today, newest 0.18.0
 
 #### Scenario: Nothing set up
 - **WHEN** the fragment does not exist and Claude's settings file has no preferredNotifChannel
-- **THEN** Windows Terminal profiles reads not set up, run vantage setup-terminal, and Claude bell reads not set, run vantage setup-terminal
+- **THEN** Windows Terminal profiles reads not set up, run torni setup-terminal, and Claude bell reads not set, run torni setup-terminal
 
 #### Scenario: Another channel
 - **WHEN** Claude's settings say iterm2
@@ -70,11 +70,11 @@ The repository roots dialog SHALL list every root, one per line; a line added SH
 - **THEN** nothing is saved and the dialog says it is already a repository root
 
 ### Requirement: A setup row says how to change it
-Enter on a setup row SHALL change nothing and the status line SHALL say how that setup is changed: `vantage setup-terminal` for the profiles and the bell, the `VANTAGE_LOG` environment variable for the log, Check for updates for the update check, and that the settings file is written by this tab.
+Enter on a setup row SHALL change nothing and the status line SHALL say how that setup is changed: `torni setup-terminal` for the profiles and the bell, the `TORNI_LOG` environment variable for the log, Check for updates for the update check, and that the settings file is written by this tab.
 
 #### Scenario: Profiles not set up
 - **WHEN** the user presses Enter on Windows Terminal profiles
-- **THEN** the status line says to run vantage setup-terminal and restart Windows Terminal
+- **THEN** the status line says to run torni setup-terminal and restart Windows Terminal
 
 ### Requirement: The Config tab's counts and keys
 Beside the tab titles the Config tab SHALL count its settings and, when any is missing, the setup to do, the latter in amber. Its key bar SHALL read Enter Edit, then c Copy, f Open folder, / Filter, ? Help, ! Report and q Quit. c SHALL copy a path value whole; f SHALL open a folder value in the editor, and the folder holding a file value; on a value that is not a path both SHALL say so.
@@ -95,7 +95,7 @@ Beside the tab titles the Config tab SHALL count its settings and, when any is m
 The setup rows SHALL be read each time the Config tab is shown and after each save, off the UI thread, and the setting rows SHALL never wait for them; a setup row whose read fails SHALL say it could not be read.
 
 #### Scenario: Profiles installed elsewhere meanwhile
-- **WHEN** the user runs vantage setup-terminal in another tab and then shows the Config tab
+- **WHEN** the user runs torni setup-terminal in another tab and then shows the Config tab
 - **THEN** Windows Terminal profiles reads installed
 
 #### Scenario: Unreadable Claude settings

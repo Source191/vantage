@@ -1,23 +1,23 @@
 # external-tools Specification
 
 ## Purpose
-How Vantage finds and starts the programs it depends on, Claude Code, git, the GitHub and Azure CLIs, Windows Terminal and PowerShell, so that nothing is ever run from the folder Vantage was started in and no batch file is ever handed text it could read as commands.
+How Torni finds and starts the programs it depends on, Claude Code, git, the GitHub and Azure CLIs, Windows Terminal and PowerShell, so that nothing is ever run from the folder Torni was started in and no batch file is ever handed text it could read as commands.
 
 ## Requirements
 
 ### Requirement: Programs are found on the PATH, never in the current directory
-Vantage SHALL find git, gh, wt.exe and pwsh.exe once as it starts, by searching the folders of the PATH in order for the program's `.exe`, and SHALL start each by that full path. The folder Vantage was started from SHALL NOT be searched, a PATH entry that is not a full path (such as `.`) SHALL be skipped, here and wherever else Vantage searches the PATH, and a `.cmd` or `.bat` on the PATH SHALL NOT be taken for any of them.
+Torni SHALL find git, gh, wt.exe and pwsh.exe once as it starts, by searching the folders of the PATH in order for the program's `.exe`, and SHALL start each by that full path. The folder Torni was started from SHALL NOT be searched, a PATH entry that is not a full path (such as `.`) SHALL be skipped, here and wherever else Torni searches the PATH, and a `.cmd` or `.bat` on the PATH SHALL NOT be taken for any of them.
 
 #### Scenario: A planted git.exe in the start folder
-- **WHEN** the folder vantage is started from holds a file named git.exe and git is installed in a folder on the PATH
-- **THEN** every git command Vantage runs is the installed git, and the planted file is never started
+- **WHEN** the folder torni is started from holds a file named git.exe and git is installed in a folder on the PATH
+- **THEN** every git command Torni runs is the installed git, and the planted file is never started
 
 #### Scenario: A relative entry on the PATH
-- **WHEN** the PATH starts with `.`, the folder vantage is started from holds a file named git.exe, and git is installed in a later folder on the PATH
-- **THEN** every git command Vantage runs is the installed git, and the planted file is never started
+- **WHEN** the PATH starts with `.`, the folder torni is started from holds a file named git.exe, and git is installed in a later folder on the PATH
+- **THEN** every git command Torni runs is the installed git, and the planted file is never started
 
 #### Scenario: A relative entry before the Azure CLI
-- **WHEN** the PATH starts with `.` and the folder vantage is started from holds a file named az.cmd
+- **WHEN** the PATH starts with `.` and the folder torni is started from holds a file named az.cmd
 - **THEN** that file is never started for a pull request lookup
 
 #### Scenario: A program on the PATH
@@ -29,10 +29,10 @@ Vantage SHALL find git, gh, wt.exe and pwsh.exe once as it starts, by searching 
 - **THEN** gh is treated as not installed
 
 ### Requirement: A missing program is reported where it is needed
-When no folder on the PATH holds git.exe, the console and `vantage here` SHALL print one sentence saying so and exit 1 without starting anything. When none holds gh.exe, GitHub lookups SHALL report the CLI as missing without starting a process. When none holds wt.exe or pwsh.exe, the key that needs it SHALL fail with a sentence naming the program, and nothing else SHALL change.
+When no folder on the PATH holds git.exe, the console and `torni here` SHALL print one sentence saying so and exit 1 without starting anything. When none holds gh.exe, GitHub lookups SHALL report the CLI as missing without starting a process. When none holds wt.exe or pwsh.exe, the key that needs it SHALL fail with a sentence naming the program, and nothing else SHALL change.
 
 #### Scenario: git missing
-- **WHEN** no folder on the PATH holds git.exe and the user runs vantage
+- **WHEN** no folder on the PATH holds git.exe and the user runs torni
 - **THEN** standard error says git was not found on the PATH and the exit code is 1
 
 #### Scenario: wt.exe missing
@@ -44,15 +44,15 @@ When no folder on the PATH holds git.exe, the console and `vantage here` SHALL p
 - **THEN** the status line reports that PowerShell 7 (pwsh.exe) was not found on the PATH, and nothing opens
 
 ### Requirement: Claude Code is run only as an executable
-Vantage SHALL run Claude Code from `~\.local\bin\claude.exe` when that file exists, else from the first `claude.exe` in a folder on the PATH. It SHALL NOT run a `claude.cmd` or `claude.bat`: when only one of those is found, the console and `vantage here` SHALL print a sentence naming that file and the native installer and exit 1, and when nothing is found they SHALL say Claude Code was not found and exit 1.
+Torni SHALL run Claude Code from `~\.local\bin\claude.exe` when that file exists, else from the first `claude.exe` in a folder on the PATH. It SHALL NOT run a `claude.cmd` or `claude.bat`: when only one of those is found, the console and `torni here` SHALL print a sentence naming that file and the native installer and exit 1, and when nothing is found they SHALL say Claude Code was not found and exit 1.
 
 #### Scenario: Native install
 - **WHEN** ~\.local\bin\claude.exe exists
-- **THEN** every Claude Code command Vantage runs starts that file, whatever else is on the PATH
+- **THEN** every Claude Code command Torni runs starts that file, whatever else is on the PATH
 
 #### Scenario: Only the npm shim
 - **WHEN** no claude.exe exists and C:\Users\me\AppData\Roaming\npm\claude.cmd is on the PATH
-- **THEN** standard error names that file, says Vantage does not run Claude Code through a batch file, names the native installer, and the exit code is 1
+- **THEN** standard error names that file, says Torni does not run Claude Code through a batch file, names the native installer, and the exit code is 1
 
 #### Scenario: Not installed
 - **WHEN** neither claude.exe nor claude.cmd can be found
@@ -70,14 +70,14 @@ The Azure CLI, which Windows runs as a batch file through cmd.exe, SHALL be give
 - **THEN** az is started with it
 
 ### Requirement: A tab's PowerShell is started by its full path
-Every Windows Terminal tab Vantage opens SHALL name PowerShell by the full path of the pwsh.exe found on the PATH as Vantage started, never by its bare name, so a pwsh.exe in the tab's starting folder is never run.
+Every Windows Terminal tab Torni opens SHALL name PowerShell by the full path of the pwsh.exe found on the PATH as Torni started, never by its bare name, so a pwsh.exe in the tab's starting folder is never run.
 
 #### Scenario: A planted pwsh.exe in a worktree
 - **WHEN** a worktree holds a file named pwsh.exe, PowerShell 7 is installed in C:\Program Files\PowerShell\7 on the PATH, and the user opens a shell tab in that worktree
 - **THEN** the tab runs C:\Program Files\PowerShell\7\pwsh.exe and the planted file is never started
 
 ### Requirement: A captured child program is given a time limit
-Every child program Vantage runs for its output SHALL be ended, with every process it started, when it has not exited within 60 seconds or when the part of Vantage that ran it gives up on it, and SHALL then be reported as a failure naming the program and the limit, never as a success with empty output. A program Vantage hands the terminal to SHALL have no time limit.
+Every child program Torni runs for its output SHALL be ended, with every process it started, when it has not exited within 60 seconds or when the part of Torni that ran it gives up on it, and SHALL then be reported as a failure naming the program and the limit, never as a success with empty output. A program Torni hands the terminal to SHALL have no time limit.
 
 #### Scenario: A listing that never exits
 - **WHEN** `claude agents --json --all` has not exited after 60 seconds
@@ -92,5 +92,5 @@ Every child program Vantage runs for its output SHALL be ended, with every proce
 - **THEN** its output and exit code are returned as before, and nothing is ended
 
 #### Scenario: An attach is never limited
-- **WHEN** `vantage here` attaches to a session and the user works in it for an hour
+- **WHEN** `torni here` attaches to a session and the user works in it for an hour
 - **THEN** the attach runs until the user detaches or the session ends
