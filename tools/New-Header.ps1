@@ -21,7 +21,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'TorniMark.ps1')
 
 $title = 'Torni'
-$tagline = 'Mission control for Claude Code sessions:', 'every session in one tab,', 'still there after a reboot.'
+$tagline = 'Every agent session in one tab,', 'still there after a reboot.'
 $install = 'winget install Source191.Torni'
 
 function Get-FontFamily([string]$name) {

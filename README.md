@@ -1,12 +1,12 @@
 # Torni
 
-![Torni: mission control for Claude Code sessions, every session in one tab, still there after a reboot. Beside it, the icon: two branches merging into one node, shaped as a V](https://raw.githubusercontent.com/Source191/torni/main/assets/header/readme-banner.png)
+![Torni: every agent session in one tab, still there after a reboot. Beside it, the icon: two branches merging into one node, shaped as a V](https://raw.githubusercontent.com/Source191/torni/main/assets/header/readme-banner.png)
 
 <a href="https://buymeacoffee.com/simonvane"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-orange.png" alt="Buy me a coffee" height="40"></a> &nbsp; [![Built by Simon Vane](https://img.shields.io/badge/Built_by-Simon_Vane-0A66C2?style=for-the-badge)](https://www.linkedin.com/in/simonvane/)
 
 Five Claude Code sessions. A dozen terminal tabs. One of them finished ten minutes ago, another has been waiting for your permission since lunch, and you cannot remember which tab is which.
 
-**Torni is mission control for Claude Code on Windows:** one tab that lists every session on the machine, rings when one needs you, and opens any of them in its own coloured tab.
+**Torni keeps every Claude Code session on Windows in one place:** one tab that lists every session on the machine, rings when one needs you, and opens any of them in its own coloured tab.
 
 ![Torni's Sessions tab in Windows Terminal, with five coloured session tabs beside it. Eight sessions are listed in Northwind repositories and Torni's own: one needs input, two are working, two are idle, one completed, one failed and one stopped, with GitHub and Azure DevOps pull requests beside them. The detail pane shows that the selected session is waiting for permission to run dotnet test.](https://raw.githubusercontent.com/Source191/torni/main/assets/readme/sessions.png)
 

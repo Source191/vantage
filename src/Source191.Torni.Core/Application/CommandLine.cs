@@ -17,7 +17,7 @@ public static class CommandLine
 {
     public static RootCommand Build(CommandActions actions)
     {
-        RootCommand root = new($"Mission control for Claude Code sessions: every session in one tab, still there after a reboot.\n{Wording.SupportLine}") { Here(actions), SetupTerminal(actions), ClaimTab(actions) };
+        RootCommand root = new($"Every agent session in one tab, still there after a reboot.\n{Wording.SupportLine}") { Here(actions), SetupTerminal(actions), ClaimTab(actions) };
         root.SetAction((_, cancellationToken) => actions.OpenConsole(cancellationToken));
 
         return root;

@@ -10,7 +10,7 @@
     <Version>0.21.0-preview.1</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <Authors>Simon Vane</Authors>
-    <Description>Mission control for Claude Code sessions: every session in one tab, still there after a reboot.</Description>
+    <Description>Every agent session in one tab, still there after a reboot.</Description>
     <Copyright>Copyright 2026 Simon Vane</Copyright>
     <InvariantGlobalization>true</InvariantGlobalization>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
