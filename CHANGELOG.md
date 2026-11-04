@@ -29,6 +29,7 @@ What changes in each release of Torni, written for the people who use it. The fo
 
 ### Changed
 
+- Vantage is now Torni: run torni, torni here and torni setup-terminal; install with winget install Source191.Torni; settings and state live in %LOCALAPPDATA%\Torni, the Windows Terminal profiles are Torni and Torni session, the variables are TORNI_LOG and TORNI_NO_UPDATE_CHECK, and the icon is a T. Nothing is carried over from %LOCALAPPDATA%\Vantage (#219)
 - U upgrades Torni with winget, and the daily update check asks the winget community repository, so a release is offered only once winget can install it (#206)
 - The Worktrees table's LAST COMMIT column is right-aligned, as AGE is on the Sessions tab, so the durations line up (#190)
 - Removing a worktree on a detached head, or whose head git could not name, deletes no branch and asks about none; the folder's name no longer stands in for a branch (#186)
