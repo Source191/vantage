@@ -4,7 +4,7 @@ The program: `Program.cs` and its `Composition` folder, the only composition roo
 
 ## Project settings
 
-- **`SatelliteResourceLanguages` `en`:** Torni is English only, so the translated resources of System.CommandLine and Terminal.Gui are neither built nor shipped, and those libraries' own messages stay English on every Windows display language.
+- **`SatelliteResourceLanguages` `en`:** the program is English only, so the translated resources of System.CommandLine and Terminal.Gui are neither built nor shipped, and those libraries' own messages stay English on every Windows display language.
 - **`IncludeSourceRevisionInInformationalVersion` false:** `torni --version` prints exactly the version that the GitHub Release and winget show, with no `+<commit>`. The `check` job asserts this on the unzipped winget build.
 - **`CHANGELOG.md` beside the program:** copied to the output, as `torni.ico` is, where `PackagedReleaseNotes` reads it on the first start of a new version without a network request. A newer release's notes are read from the changelog at its tag (`WingetPackageVersions.NotesAsync`).
 - **`THIRD-PARTY-NOTICES.txt`:** copied to the publish folder and so into the zip, as the licences of the shipped dependencies ask.

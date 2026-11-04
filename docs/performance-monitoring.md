@@ -1,9 +1,9 @@
 # Monitoring Torni's performance
 
-How to watch Torni during a normal working day and find what makes it slow. Everything here runs on your own machine and nothing leaves it. There are three layers, from cheapest to most detailed:
+How to watch it during a normal working day and find what makes it slow. Everything here runs on your own machine and nothing leaves it. There are three layers, from cheapest to most detailed:
 
-1. **All day:** Torni's own diagnostic log and the .NET runtime counters, both written to files.
-2. **When something feels slow:** a short trace of Torni's threads, or of every process on the machine.
+1. **All day:** its own diagnostic log and the .NET runtime counters, both written to files.
+2. **When something feels slow:** a short trace of its threads, or of every process on the machine.
 3. **Afterwards:** reading the files to decide what to change.
 
 ## Contents
@@ -16,7 +16,7 @@ How to watch Torni during a normal working day and find what makes it slow. Ever
 
 ## What to expect
 
-Most of Torni's cost is in the programs it runs, not in its own process:
+Most of the cost is in the programs it runs, not in its own process:
 
 - **The Sessions tab:** every 5 seconds it runs `claude agents --json --all` (about 1.6 to 2 seconds, and a Node process of about 190 MB while it runs), then reads git and the process table for each row.
 - **The Worktrees tab:** every 15 seconds while it is shown, it runs `git worktree list` in each repository under the roots, plus git's status and log for each worktree.
@@ -27,7 +27,7 @@ So the first question is usually which child program, how often and how long, an
 
 ## All day: the log and the counters
 
-Start Torni from a plain Windows Terminal tab with the log on. Never start it from inside a Claude Code session: the tabs it opens would inherit Claude Code's environment and run monochrome.
+Start it from a plain Windows Terminal tab with the log on. Never start it from inside a Claude Code session: the tabs it opens would inherit Claude Code's environment and run monochrome.
 
 ```powershell
 $env:TORNI_LOG = "$env:TEMP\torni-$(Get-Date -Format yyyy-MM-dd).log"
@@ -135,7 +135,7 @@ Questions worth answering from a day's files:
 - **Whether effects are slow or their programs are:** compare a slow effect's time with the slow child lines around it.
 - **Whether Torni itself is busy:** the CPU and thread-pool counters while you were not touching it.
 
-Bring the log, the counters file and any trace to a Torni change (see [CONTRIBUTING.md](../CONTRIBUTING.md)) rather than tuning by feel; a change should say which figure it moves.
+Bring the log, the counters file and any trace to a change (see [CONTRIBUTING.md](../CONTRIBUTING.md)) rather than tuning by feel; a change should say which figure it moves.
 
 ## The lines the log writes
 
