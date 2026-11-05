@@ -35,11 +35,11 @@ public sealed class JsonFileStoreShould : IDisposable
         }
         """;
 
-    /// <summary>Torni's own tab file exactly as the store wrote it before ids were typed: the owner is the word torni.</summary>
+    /// <summary>The console's own tab file exactly as the store writes it: the owner is the word console.</summary>
     private const string OwnTabJson = """
         {
           "id": "1c9e3f4b-5a8c-7d6e-5f4a-3b2c1d0b8d2a",
-          "sessionId": "torni",
+          "sessionId": "console",
           "colour": {
             "name": "Green",
             "hex": "#16C60C"
