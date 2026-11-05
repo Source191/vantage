@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace Source191.Torni.Application;
 
 /// <summary>
-/// The console session: labels Torni's own tab, then runs the console screen until it quits, handing it the What's new
+/// The console session: labels the console's own tab, then runs the console screen until it quits, handing it the What's new
 /// dialog of a first start after an update to show before any key is read. Nothing else leaves the screen: a session
 /// opens in a tab of its own, so the console never hands its terminal to a child. The update check starts on a pool
 /// thread before the run and is never awaited; a failure in it, or in deciding What's new, is only recorded in the

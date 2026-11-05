@@ -2,7 +2,7 @@ using Source191.Torni.Domain;
 
 namespace Source191.Torni.Ports;
 
-/// <summary>The tabs Torni has opened, one record each, read with stale ones still present (the caller judges liveness).</summary>
+/// <summary>The tabs the console has opened, one record each, read with stale ones still present (the caller judges liveness).</summary>
 public interface ITabRegistry
 {
     Task<IReadOnlyList<TabRegistration>> ReadTabsAsync();

@@ -5,7 +5,7 @@ using Source191.Torni.TestDoubles;
 
 namespace Source191.Torni.Core.Tests.Application;
 
-/// <summary>Every tab Torni opens: what it runs, where, under what title and in which colour.</summary>
+/// <summary>Every tab the console opens: what it runs, where, under what title and in which colour.</summary>
 public sealed class TabScriptsShould
 {
     private const string Claude = @"C:\Users\me\.local\bin\claude.exe";

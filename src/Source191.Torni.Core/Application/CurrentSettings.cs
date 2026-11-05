@@ -4,7 +4,7 @@ using Source191.Torni.Ports;
 namespace Source191.Torni.Application;
 
 /// <summary>
-/// The one home of the settings while Torni runs. Every consumer reads <see cref="Value"/> when it starts a scan, a
+/// The one home of the settings while the console runs. Every consumer reads <see cref="Value"/> when it starts a scan, a
 /// wizard or a dialog, so a save from the settings dialog applies at once without a restart; a hand edit of
 /// config.json applies on the next start.
 /// </summary>

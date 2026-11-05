@@ -9,7 +9,7 @@ public abstract record OpenInEditorOutcome : Outcome
     /// <summary>The editor was started on the folder.</summary>
     public sealed record Opened(string FolderName, EditorChoice Editor) : OpenInEditorOutcome;
 
-    /// <summary>The chosen editor is not installed where Torni looks, so nothing was started.</summary>
+    /// <summary>The chosen editor is not installed where the console looks, so nothing was started.</summary>
     public sealed record EditorNotFound(EditorChoice Editor) : OpenInEditorOutcome;
 
     /// <summary>The editor was found but Windows refused to start it (access denied, a broken install); the reason is Windows' own.</summary>

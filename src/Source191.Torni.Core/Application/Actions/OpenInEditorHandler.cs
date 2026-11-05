@@ -9,7 +9,7 @@ namespace Source191.Torni.Application.Actions;
 /// <summary>
 /// Opens a folder in the editor chosen in settings, without waiting for it. The folder is checked first because a
 /// stopped session's folder may have been deleted and the editor would otherwise open an empty window. An editor that is
-/// missing, or that Windows will not start, is an outcome with Torni's words rather than an exception's message.
+/// missing, or that Windows will not start, is an outcome with the program's words rather than an exception's message.
 /// </summary>
 public sealed class OpenInEditorHandler(IEditorLocator locator, IDesktop desktop, IFolders folders, CurrentSettings settings) : IEffectHandler<OpenFolderInEditor>
 {

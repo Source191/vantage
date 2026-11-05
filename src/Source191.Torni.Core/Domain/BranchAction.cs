@@ -4,7 +4,7 @@ namespace Source191.Torni.Domain;
 public enum BranchAction
 {
 
-    /// <summary>Deleted without asking: a merged branch Torni created.</summary>
+    /// <summary>Deleted without asking: a merged branch created here.</summary>
     Delete,
 
     /// <summary>The user is asked whether to delete it.</summary>

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace Source191.Torni.Domain;
 
 /// <summary>
-/// The repository an origin remote points at, on a host Torni can ask for pull requests: github.com or Azure DevOps.
+/// The repository an origin remote points at, on a host the console can ask for pull requests: github.com or Azure DevOps.
 /// Any other remote, and an Azure DevOps name that is not plain text for a batch file (<see cref="BatchFileArgument"/>),
 /// is not read: az is a .cmd file that cmd.exe parses, so its arguments must hold none of its special characters.
 /// </summary>

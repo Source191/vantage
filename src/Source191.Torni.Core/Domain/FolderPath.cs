@@ -5,7 +5,7 @@ namespace Source191.Torni.Domain;
 
 /// <summary>
 /// A folder on disc, as a full path: normalised once (forward slashes as git prints them become backslashes, trailing
-/// separators go, a drive root keeps its own) and compared ignoring case, as Windows does. The one place Torni
+/// separators go, a drive root keeps its own) and compared ignoring case, as Windows does. The one place the console
 /// decides whether two paths are the same folder.
 /// </summary>
 public sealed record FolderPath : ITextValue<FolderPath>
@@ -35,7 +35,7 @@ public sealed record FolderPath : ITextValue<FolderPath>
     /// <summary>The containing folder; null for a drive root.</summary>
     public FolderPath? Parent => IOPath.GetDirectoryName(Value) is string parent ? FolderPath.From(parent) : null;
 
-    /// <summary>A path from outside Torni (git output, the CLI's listing, a state file); false when it is not a full path or holds a NUL, which no path can.</summary>
+    /// <summary>A path from outside the program (git output, the CLI's listing, a state file); false when it is not a full path or holds a NUL, which no path can.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out FolderPath value)
     {
         value = text is not null && !text.Contains('\0', StringComparison.Ordinal) && IOPath.IsPathFullyQualified(text) ? FolderPath.From(text) : null;

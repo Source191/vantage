@@ -2,7 +2,7 @@ using Terminal.Gui.Views;
 
 namespace Source191.Torni.Tui;
 
-/// <summary>Torni's tooltips: black on amber, so they read as tooltips and not as more screen text.</summary>
+/// <summary>The console's tooltips: black on amber, so they read as tooltips and not as more screen text.</summary>
 internal static class ToolTips
 {
     /// <summary>Each line keeps its breaks and a cell of margin either side, and the view is exactly as tall as its lines.</summary>

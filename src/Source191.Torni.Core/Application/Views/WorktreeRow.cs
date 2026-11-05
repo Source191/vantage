@@ -4,7 +4,7 @@ namespace Source191.Torni.Application.Views;
 
 /// <summary>
 /// One line of the worktrees table: a linked worktree or a leftover folder, with everything the removal rules need
-/// except the two facts only the state store and git can add (whether Torni created the branch, and whether it is merged).
+/// except the two facts only the state store and git can add (whether the branch was created here, and whether it is merged).
 /// Repository is the owning main checkout (for a leftover whose owner is gone, where it used to be; for an empty
 /// leftover, the root). OwnerExists says whether that repository still has a .git folder, so a stale registration can be pruned.
 /// A leftover's head is Unknown: git no longer lists it, so nothing names its branch.

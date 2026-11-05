@@ -9,7 +9,7 @@ namespace Source191.Torni.Adapters.Processes;
 /// Hands things to Windows: a file or URL to its associated application
 /// (<see href="https://learn.microsoft.com/windows/win32/api/shellapi/nf-shellapi-shellexecutew">ShellExecute</see>), a
 /// program to run on its own. Neither is waited for to close, and both get the same environment as every other child of
-/// Torni, without the Claude Code markers. ShellExecute
+/// the console, without the Claude Code markers. ShellExecute
 /// <see href="https://learn.microsoft.com/dotnet/api/system.diagnostics.processstartinfo.useshellexecute">cannot be given
 /// an environment</see>, so a short-lived PowerShell child that has the cleaned one
 /// makes the call (see <see cref="OpenFileScript"/>); the call waits for that child, which ends once Windows has started the

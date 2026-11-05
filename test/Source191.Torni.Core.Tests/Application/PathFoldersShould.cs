@@ -3,7 +3,7 @@ using Source191.Torni.Adapters.Processes;
 namespace Source191.Torni.Core.Tests.Application;
 
 /// <summary>
-/// A relative PATH entry would be searched against the folder Torni was started from, which a cloned repository can
+/// A relative PATH entry would be searched against the folder the console was started from, which a cloned repository can
 /// plant a program in, so only full paths are kept.
 /// </summary>
 public sealed class PathFoldersShould

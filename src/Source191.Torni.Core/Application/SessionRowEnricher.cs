@@ -71,7 +71,7 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
     private SessionMemory MemoryUnder(int root, IReadOnlyList<ProcessFacts> processTable) =>
         ProcessTree.Under(root, processTable, processes.UsageOf) is ProcessTreeLookup.Found found ? new SessionMemory.Measured(found.Tree.Total) : new SessionMemory.NothingToMeasure();
 
-    /// <summary>Each session with a live Torni tab and that tab's colour; stale registrations are removed on the way.</summary>
+    /// <summary>Each session with a live session tab and that tab's colour; stale registrations are removed on the way.</summary>
     private async Task<IReadOnlyDictionary<SessionId, TabColour>> LiveTabsAsync()
     {
         IReadOnlyList<TabRegistration> all = await tabs.ReadTabsAsync();
@@ -125,6 +125,6 @@ public sealed class SessionRowEnricher(IGit git, ITabRegistry tabs, IProcessRegi
         return new Located(location, head);
     }
 
-    /// <summary>The checkout is the main checkout (or the root when git names none), where the pull request lookup runs; a root git names that Torni cannot read as a folder is Outside under its text. Head is Unknown outside a repository and where git names no branch, since the port cannot tell a detached head from a failure.</summary>
+    /// <summary>The checkout is the main checkout (or the root when git names none), where the pull request lookup runs; a root git names that the console cannot read as a folder is Outside under its text. Head is Unknown outside a repository and where git names no branch, since the port cannot tell a detached head from a failure.</summary>
     private sealed record Located(SessionLocation Location, Head Head);
 }

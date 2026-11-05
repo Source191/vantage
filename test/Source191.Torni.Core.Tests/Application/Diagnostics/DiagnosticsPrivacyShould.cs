@@ -16,7 +16,7 @@ using System.Web;
 namespace Source191.Torni.Core.Tests.Application.Diagnostics;
 
 /// <summary>
-/// The promise the diagnostic log makes: Torni's real collaborators, run through the flows a user does every day over
+/// The promise the diagnostic log makes: the console's real collaborators, run through the flows a user does every day over
 /// fixtures full of names, folders, ids, a prompt and program output that names them, record none of those values in
 /// any line, in the counts or in the crash file.
 /// </summary>

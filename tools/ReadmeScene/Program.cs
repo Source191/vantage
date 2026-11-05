@@ -7,7 +7,7 @@ using System.Globalization;
 namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
-/// Makes the README's screenshot and animation: Torni's real console screen over a made-up scene of Northwind.*
+/// Makes the README's screenshot and animation: the real console screen over a made-up scene of Northwind.*
 /// repositories, with scripted Claude Code, gh and az answers, run by <c>tools\New-ReadmeScreenshot.ps1</c>.
 /// <code>
 ///   readme-scene run &lt;scene-root&gt; &lt;torni-version&gt; [--frames &lt;folder&gt;] [key-script...]

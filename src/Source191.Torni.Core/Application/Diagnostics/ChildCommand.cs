@@ -3,7 +3,7 @@ using Source191.Torni.Ports;
 namespace Source191.Torni.Application.Diagnostics;
 
 /// <summary>
-/// Which program Torni ran and its subcommand: up to three leading arguments, kept only while each is a word on that
+/// Which program the console ran and its subcommand: up to three leading arguments, kept only while each is a word on that
 /// program's fixed list, so no path, name, id or prompt among the arguments is ever kept. A value that happens to equal
 /// a listed word reveals only that word.
 /// </summary>

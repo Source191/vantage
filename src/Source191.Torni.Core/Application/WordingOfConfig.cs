@@ -12,10 +12,10 @@ public static partial class Wording
     /// <summary>The button of the roots, worktree root and Open folder with dialogs that opens a folder or file picker.</summary>
     public static string BrowseButton => "_Browse… (F3)";
 
-    /// <summary>The folder picker's own title, inside the dialog; Torni's tab says <see cref="DialogName.FolderPicker"/>.</summary>
+    /// <summary>The folder picker's own title, inside the dialog; the console's tab says <see cref="DialogName.FolderPicker"/>.</summary>
     public static string FolderPickerTitle(SettingsScope scope) => scope is SettingsScope.WorktreeRoot ? "Choose the worktree root" : "Add repository roots";
 
-    /// <summary>The file picker's own title, inside the Open folder with dialog; Torni's tab says <see cref="DialogName.FilePicker"/>.</summary>
+    /// <summary>The file picker's own title, inside the Open folder with dialog; the console's tab says <see cref="DialogName.FilePicker"/>.</summary>
     public static string FilePickerTitle => "Choose the editor's executable";
 
     /// <summary>What the file picker's type list calls the files it shows.</summary>
@@ -86,7 +86,7 @@ public static partial class Wording
         };
     }
 
-    /// <summary>Where a new worktree's branch starts, as the Default base row, its dialog and the wizard name it: origin's remote-tracking branch as it stood at the last fetch (Torni never fetches), or HEAD.</summary>
+    /// <summary>Where a new worktree's branch starts, as the Default base row, its dialog and the wizard name it: origin's remote-tracking branch as it stood at the last fetch (the console never fetches), or HEAD.</summary>
     public static string Describe(WorktreeBase worktreeBase)
     {
         return worktreeBase switch

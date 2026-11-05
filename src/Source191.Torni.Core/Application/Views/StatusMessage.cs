@@ -16,7 +16,7 @@ public abstract record StatusMessage
 
     public sealed record NoSessionSelected : StatusMessage;
 
-    /// <summary>A plain claude session in some tab: Torni cannot open it in a tab, stop it or delete it from outside.</summary>
+    /// <summary>A plain claude session in some tab: the console cannot open it in a tab, stop it or delete it from outside.</summary>
     public sealed record RunsInOwnTerminal(ListedName Name, bool HasTranscript) : StatusMessage;
 
     /// <summary>A stopped session with no transcript: there is nothing to open or resume.</summary>

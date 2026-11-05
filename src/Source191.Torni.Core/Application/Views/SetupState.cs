@@ -13,7 +13,7 @@ public abstract record SetupState
     /// <summary>In place at this path: the settings file, the profiles' fragment, the diagnostic log.</summary>
     public sealed record At(string Path) : SetupState;
 
-    /// <summary>Not set up: Torni's advice is to run <c>torni setup-terminal</c>.</summary>
+    /// <summary>Not set up: the advice is to run <c>torni setup-terminal</c>.</summary>
     public sealed record NotSetUp : SetupState;
 
     /// <summary>Claude's bell is on: its notification channel is the terminal bell.</summary>
@@ -27,6 +27,6 @@ public abstract record SetupState
 
     public sealed record Never : SetupState;
 
-    /// <summary>When Torni last asked the winget community repository, and the newest release it found or recorded.</summary>
+    /// <summary>When the console last asked the winget community repository, and the newest release it found or recorded.</summary>
     public sealed record Checked(DateTimeOffset When, NewestRelease Newest) : SetupState;
 }

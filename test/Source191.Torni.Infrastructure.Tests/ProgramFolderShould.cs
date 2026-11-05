@@ -2,7 +2,7 @@ using Source191.Torni.Adapters.Files;
 
 namespace Source191.Torni.Infrastructure.Tests;
 
-/// <summary>Where Torni's own files are read from, with real files and, where Windows allows one, a real symbolic link.</summary>
+/// <summary>Where the console's own files are read from, with real files and, where Windows allows one, a real symbolic link.</summary>
 public sealed class ProgramFolderShould : IDisposable
 {
     private readonly string folder = Path.Combine(Path.GetTempPath(), $"torni-program-{Guid.NewGuid():N}");

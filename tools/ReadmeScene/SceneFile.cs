@@ -6,7 +6,7 @@ namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// Reads <c>scene.json</c>. Only made-up repositories are allowed: a Northwind.* name whose remote belongs to the
-/// <c>northwind-demo</c> GitHub owner or Azure DevOps organisation, or Torni itself at its own GitHub address.
+/// <c>northwind-demo</c> GitHub owner or Azure DevOps organisation, or this repository at its own GitHub address.
 /// </summary>
 public static class SceneFile
 {

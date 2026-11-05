@@ -1,7 +1,7 @@
 namespace Source191.Torni.Ports;
 
 /// <summary>
-/// Where Claude Code was found: an executable to run, only a batch file (which Torni never runs, because cmd.exe
+/// Where Claude Code was found: an executable to run, only a batch file (which the console never runs, because cmd.exe
 /// would read session names and prompts as commands), or nothing. <c>Wording</c> says the last two.
 /// </summary>
 public abstract record ClaudeLocation

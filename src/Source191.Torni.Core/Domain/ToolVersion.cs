@@ -1,6 +1,6 @@
 namespace Source191.Torni.Domain;
 
-/// <summary>The version Torni reports for itself: the package's informational version without the commit, and a local build's timestamp cut to just "local".</summary>
+/// <summary>The version the console reports for itself: the package's informational version without the commit, and a local build's timestamp cut to just "local".</summary>
 public sealed record ToolVersion(string Text)
 {
     private const string Unknown = "unknown";

@@ -9,7 +9,7 @@ namespace Source191.Torni.Adapters.Packages;
 /// The versions winget can install, read from the package's manifest folders in the
 /// <see href="https://github.com/microsoft/winget-pkgs">winget community repository</see> through GitHub's
 /// <see href="https://docs.github.com/rest/repos/contents">contents API</see> (a folder per version, made only when its
-/// manifest's pull request is merged), and a release's notes from <c>CHANGELOG.md</c> at its tag in Torni's own
+/// manifest's pull request is merged), and a release's notes from <c>CHANGELOG.md</c> at its tag in the console's own
 /// repository. Each is one anonymous request with a 3 second timeout and a <c>Torni/&lt;version&gt;</c> user agent,
 /// which GitHub requires; any failure, a rate limit or an unreadable reply answers nothing learned.
 /// </summary>

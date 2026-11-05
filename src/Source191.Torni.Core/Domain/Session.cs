@@ -21,7 +21,7 @@ public abstract record Session(SessionId SessionId, ListedName Name, FolderPath 
         JobProcess Process)
         : Session(SessionId, Name, WorkingDirectory, StartedAt, State);
 
-    /// <summary>Plain claude in a tab of its own: it always has a process, and Torni can only end it or move it under the supervisor.</summary>
+    /// <summary>Plain claude in a tab of its own: it always has a process, and the console can only end it or move it under the supervisor.</summary>
     public sealed record Interactive(
         SessionId SessionId,
         ListedName Name,

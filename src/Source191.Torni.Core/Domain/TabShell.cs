@@ -9,6 +9,6 @@ public abstract record TabShell
     /// <summary>Windows Terminal started the process directly, so ending it cleanly closes the tab.</summary>
     public sealed record TheProcess : TabShell;
 
-    /// <summary>The process is not inside a tab Torni can trust.</summary>
+    /// <summary>The process is not inside a tab the console can trust.</summary>
     public sealed record None : TabShell;
 }

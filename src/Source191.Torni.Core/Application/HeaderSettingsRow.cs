@@ -3,7 +3,7 @@ using Source191.Torni.Domain;
 namespace Source191.Torni.Application;
 
 /// <summary>
-/// The console's settings row above the tabs: Torni's version, the update status and Torni's own memory (zero when
+/// The console's settings row above the tabs: its version, the update status and the console's own memory (zero when
 /// the process cannot be measured), each read at every call, then Claude Code's version.
 /// </summary>
 public sealed class HeaderSettingsRow(ToolVersion tool, ClaudeCodeVersion claude, UpdateCheck updates, IProcessRegistry processes, int processId)

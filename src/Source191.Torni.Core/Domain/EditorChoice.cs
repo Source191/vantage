@@ -62,7 +62,7 @@ public sealed record EditorChoice
     /// <summary>
     /// A custom command checked against the rules: the editor, or the first reason it cannot be used: no executable, not a
     /// full path (<see href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">Windows
-    /// would look for a bare name in the folder Torni was started from</see>), a batch file
+    /// would look for a bare name in the folder the console was started from</see>), a batch file
     /// (<see href="https://learn.microsoft.com/windows-server/administration/windows-commands/cmd">cmd.exe</see> would
     /// parse the folder path), no placeholder, or, last, an executable <paramref name="fileExists"/> says is not there, so a
     /// missing file never hides a reason the typed text alone gives.
@@ -94,7 +94,7 @@ public sealed record EditorChoice
 
     private static EditorChoiceValidation.Refused Refused(SettingsProblem problem) => new(problem);
 
-    /// <summary>The existence check for a command Torni already holds: a file's editor and <see cref="Custom"/> are never refused for a missing executable.</summary>
+    /// <summary>The existence check for a command the console already holds: a file's editor and <see cref="Custom"/> are never refused for a missing executable.</summary>
     private static bool AnyFileExists(string executable) => true;
 
     private static bool IsBatchFile(string executable)

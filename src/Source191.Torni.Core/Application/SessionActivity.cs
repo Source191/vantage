@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 namespace Source191.Torni.Application;
 
 /// <summary>
-/// When each background session was last prompted, as far as this Torni saw: the last time it moved from needs input
+/// When each background session was last prompted, as far as this console saw: the last time it moved from needs input
 /// or idle to working between two refreshes. Kept in memory for the run; nothing is written anywhere. Observed on the UI
 /// thread and read by the detail loader off it.
 /// </summary>

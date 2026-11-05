@@ -16,7 +16,7 @@ public static class TabEscapes
 {
     public const string ClearTitle = "\u001b]2;\u0007";
 
-    /// <summary>OSC 104 puts entry 264 back to the terminal's own colour; DECAC alone would only re-point the tab at an entry still holding Torni's colour.</summary>
+    /// <summary>OSC 104 puts entry 264 back to the terminal's own colour; DECAC alone would only re-point the tab at an entry still holding the console's colour.</summary>
     public const string ResetBackground = "\u001b]104;264\u001b\\\u001b[2;263;264,|";
 
     public static string Title(string title) => $"\u001b]2;{title}\u0007";

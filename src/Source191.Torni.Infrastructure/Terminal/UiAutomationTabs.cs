@@ -9,7 +9,7 @@ namespace Source191.Torni.Adapters.Terminal;
 /// Selects a Windows Terminal tab by its title through
 /// <see href="https://learn.microsoft.com/windows/win32/winauto/entry-uiauto-win32">UI Automation</see>, because the
 /// <see href="https://learn.microsoft.com/windows/terminal/command-line-arguments">terminal's own command line</see> can
-/// only focus a tab by index. Torni titles the tabs it opens with the session name and suppresses title changes,
+/// only focus a tab by index. The console titles the tabs it opens with the session name and suppresses title changes,
 /// so the title is the key. Searches the window of a known terminal process, or every Windows Terminal window.
 /// </summary>
 internal static class UiAutomationTabs

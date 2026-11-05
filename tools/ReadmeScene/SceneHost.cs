@@ -23,7 +23,7 @@ using HandlerComposition = Source191.Torni.Application.Effects.Composition;
 namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
-/// Torni's console as <c>ConsoleComposition</c> builds it, with the scene's parts in place of the machine's: Claude
+/// The console as <c>ConsoleComposition</c> builds it, with the scene's parts in place of the machine's: Claude
 /// Code, gh and az answered from the scene, the state, transcripts and crash file in the scene folder, the scene's
 /// processes in the process table, no update check and no log. Git, Windows Terminal and PowerShell are real.
 /// Untested wiring, like the tool project's composition root; keep it in step with <c>ConsoleComposition</c>.
@@ -132,7 +132,7 @@ internal sealed class SceneHost(SceneFolders folders, Scene scene, ToolVersion v
         return exitCode;
     }
 
-    // Esc closes anything open, then q quits Torni; the tab's process exits 0 and Windows Terminal closes the tab.
+    // Esc closes anything open, then q quits the console; the tab's process exits 0 and Windows Terminal closes the tab.
     private async Task QuitWhenAskedAsync(CancellationToken cancellationToken)
     {
         while (!File.Exists(folders.CloseFile))

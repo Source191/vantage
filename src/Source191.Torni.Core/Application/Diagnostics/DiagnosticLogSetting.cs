@@ -1,7 +1,7 @@
 namespace Source191.Torni.Application.Diagnostics;
 
 /// <summary>
-/// What <c>TORNI_LOG</c> asks of the diagnostic log, read once as Torni starts: off, so the log is kept in memory
+/// What <c>TORNI_LOG</c> asks of the diagnostic log, read once as the console starts: off, so the log is kept in memory
 /// only, or also written to the file it names.
 /// </summary>
 public abstract record DiagnosticLogSetting

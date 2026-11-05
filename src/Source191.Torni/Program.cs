@@ -23,7 +23,7 @@ RootCommand root = CommandLine.Build(new CommandActions(
     cancellationToken => crashes.GuardAsync(() => LaunchParts.RunAsync(parts, Console.Error, launch => ConsoleComposition.RunAsync(parts, launch, cancellationToken))),
     (name, prompt, cancellationToken) => crashes.GuardAsync(() => LaunchParts.RunAsync(parts, Console.Error, launch => HereComposition.RunAsync(parts, launch, name, prompt, cancellationToken))),
     (request, cancellationToken) => TerminalSetupComposition.RunAsync(parts, request, cancellationToken),
-    // Run by the shell inside a tab Torni opened, before claude attach starts; the shell passes its own $PID.
+    // Run by the shell inside a tab the console opened, before claude attach starts; the shell passes its own $PID.
     async (registrationId, processId, _) =>
     {
         await new TabClaimer(parts.Store, parts.ProcessRegistry).ClaimAsync(registrationId, processId);

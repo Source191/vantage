@@ -3,7 +3,7 @@ using Source191.Torni.Ports;
 
 namespace Source191.Torni.TestDoubles;
 
-/// <summary>Records what the loop asks of the terminal Torni runs in.</summary>
+/// <summary>Records what the loop asks of the terminal the console runs in.</summary>
 public sealed class FakeTerminalConsole : ITerminalConsole
 {
     /// <summary>The colour of each time the own tab was shown coloured.</summary>

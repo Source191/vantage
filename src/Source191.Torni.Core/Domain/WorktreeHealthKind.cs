@@ -8,6 +8,6 @@ public enum WorktreeHealthKind
     Broken,
     Empty,
 
-    /// <summary>A live worktree of a repository Torni did not scan, because it is not under the roots.</summary>
+    /// <summary>A live worktree of a repository the console did not scan, because it is not under the roots.</summary>
     Elsewhere,
 }

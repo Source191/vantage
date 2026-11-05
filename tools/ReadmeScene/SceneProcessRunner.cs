@@ -57,7 +57,7 @@ public sealed class SceneProcessRunner(SceneListing listing, ScenePullRequests p
         _ => Refuse(arguments),
     };
 
-    // Torni opens tabs in the window used last (-w 0), which need not be the scene's while someone works elsewhere.
+    // The console opens tabs in the window used last (-w 0), which need not be the scene's while someone works elsewhere.
     private ProcessRequest InSceneWindow(ProcessRequest request) => request.Arguments switch
     {
         ["-w", "0", ..] => request with { Arguments = ["-w", executables.WindowName, .. request.Arguments.Skip(2)] },

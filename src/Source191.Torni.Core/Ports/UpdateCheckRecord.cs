@@ -2,7 +2,7 @@ using Source191.Torni.Domain;
 
 namespace Source191.Torni.Ports;
 
-/// <summary>The last update check: never made (or a record that cannot be read), or when Torni last asked for its newest release, what it found and that release's notes.</summary>
+/// <summary>The last update check: never made (or a record that cannot be read), or when the console last asked for its newest release, what it found and that release's notes.</summary>
 public abstract record UpdateCheckRecord
 {
     public sealed record Never : UpdateCheckRecord;

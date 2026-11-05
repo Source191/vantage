@@ -37,8 +37,8 @@ internal sealed record SharedParts(
         string ownFolder = ProgramFolder.Of(AppContext.BaseDirectory, Environment.ProcessPath);
         TerminalFragment terminalFragment = TerminalFragment.ForCurrentUser(Path.Combine(ownFolder, "logo.ico"));
 
-        // Every program Torni starts is found on the PATH once and run by its full path, never by a bare name that Windows
-        // would look for in the folder Torni was started from first
+        // Every program the console starts is found on the PATH once and run by its full path, never by a bare name that Windows
+        // would look for in the folder the console was started from first
         // (https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw).
         ProgramLocator programs = ProgramLocator.ForCurrentUser();
 

@@ -4,7 +4,7 @@ using Source191.Torni.Ports;
 namespace Source191.Torni.Infrastructure.Tests.Contract;
 
 /// <summary>
-/// The gate for the tests that check the installed Claude Code CLI still offers what Torni relies on. They start
+/// The gate for the tests that check the installed Claude Code CLI still offers what the console relies on. They start
 /// real background sessions, so they run only when <see cref="Variable"/> is 1 (the nightly claude-contract
 /// workflow sets it) and the CLI is installed; an ordinary test run skips them.
 /// </summary>

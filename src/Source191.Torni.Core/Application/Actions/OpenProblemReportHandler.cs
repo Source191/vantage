@@ -7,7 +7,7 @@ namespace Source191.Torni.Application.Actions;
 
 /// <summary>
 /// Opens the repository's problem report form in the browser, filled in with the title and the report fitted into the
-/// address. Torni sends nothing itself. A crash the report carried is removed once the page has opened, so the next
+/// address. The console sends nothing itself. A crash the report carried is removed once the page has opened, so the next
 /// report does not repeat it; when the browser cannot be started the crash stays and the words suggest copying instead.
 /// </summary>
 public sealed class OpenProblemReportHandler(IDesktop desktop, ICrashFile crashFile) : IEffectHandler<OpenProblemReport>

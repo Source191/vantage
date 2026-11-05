@@ -36,7 +36,7 @@ public sealed class DiagnosticLog(TimeProvider clock, IReadOnlyList<IDiagnosticS
         }
     }
 
-    /// <summary>Writes every count to the sinks without keeping them as events, as Torni does every 10 minutes and when it exits.</summary>
+    /// <summary>Writes every count to the sinks without keeping them as events, as the console does every 10 minutes and when it exits.</summary>
     public void WriteCounts(PerformanceCounts counts)
     {
         lock (gate)

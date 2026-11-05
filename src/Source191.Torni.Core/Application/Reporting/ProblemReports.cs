@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace Source191.Torni.Application.Reporting;
 
 /// <summary>
-/// Builds a problem report from what Torni already records and nothing else: the start facts, the shape of the
+/// Builds a problem report from what the console already records and nothing else: the start facts, the shape of the
 /// settings (the editor preset, whether update checks are on, how many roots), the last crash, the diagnostic log and
 /// the child program counts. No path, name or typed text is read here.
 /// </summary>

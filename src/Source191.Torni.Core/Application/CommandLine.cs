@@ -7,7 +7,7 @@ using System.CommandLine.Parsing;
 namespace Source191.Torni.Application;
 
 /// <summary>
-/// Torni's whole command line, declared once with System.CommandLine: the console as the root action, <c>here</c>,
+/// The whole command line, declared once with System.CommandLine: the console as the root action, <c>here</c>,
 /// <c>setup-terminal</c> and the hidden <c>claim-tab</c>. Help, version, parse errors and close-match suggestions are
 /// the library's; each command hands its values to the matching <see cref="CommandActions"/> delegate. Descriptions
 /// sit beside their symbols rather than in <see cref="Wording"/>, so an option and its words are changed together; the

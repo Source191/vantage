@@ -106,7 +106,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
 
     /// <summary>
     /// Shows what changed since the running version; on Update now the handler opens the update tab, then the screen leaves
-    /// with Quit so this process releases its files. A failure to open the tab keeps Torni open and says why. Release
+    /// with Quit so this process releases its files. A failure to open the tab keeps the console open and says why. Release
     /// page opens the newest release's GitHub page and leaves the dialog open.
     /// </summary>
     private void ConfirmUpdate(IEffectContext context)
@@ -124,7 +124,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         }
     }
 
-    /// <summary>Asks before the update, then opens its tab; only a tab that opened makes the screen quit, so a missing winget leaves Torni running with the reason on the status line.</summary>
+    /// <summary>Asks before the update, then opens its tab; only a tab that opened makes the screen quit, so a missing winget leaves the console running with the reason on the status line.</summary>
     private static void AskToUpdate(IEffectContext context, UpdateDecision.Ask ask)
     {
         string title = Wording.WhatsNewBeforeUpdateTitle(ask.Current, ask.Newest);

@@ -6,7 +6,7 @@ namespace Source191.Torni.Application.Actions;
 
 /// <summary>
 /// Opens the update tab: a running torni.exe locks its own files, so the upgrade runs in a tab that waits for this
-/// process to exit first. <see cref="TabScripts.Update"/> says what it runs. Without winget no tab opens and Torni stays.
+/// process to exit first. <see cref="TabScripts.Update"/> says what it runs. Without winget no tab opens and the console stays.
 /// </summary>
 public sealed class StartUpdateHandler(IWindowsTerminal terminal, TabScripts scripts, OwnProcess own) : IEffectHandler<StartUpdate>
 {

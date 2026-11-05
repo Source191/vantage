@@ -1,7 +1,7 @@
 namespace Source191.Torni.Application.Diagnostics;
 
 /// <summary>
-/// Writes every count to the log's sinks every <see cref="Every"/> while Torni runs, so a day's figures survive a
+/// Writes every count to the log's sinks every <see cref="Every"/> while the console runs, so a day's figures survive a
 /// closed tab or a killed process; the exit write stays as it was. Its timer runs only when <c>TORNI_LOG</c> names a
 /// file (otherwise it never fires), and it is disposed before the exit write. The timer runs on a pool thread, which <see cref="DiagnosticLog.WriteCounts"/>
 /// and the counts' own locks allow.

@@ -6,9 +6,9 @@ namespace Source191.Torni.Adapters.Terminal;
 
 /// <summary>
 /// Opens tabs through wt.exe, run by the full path it was given, each tab running pwsh.exe by its full path (either
-/// missing when it is not on the PATH, which fails each open with a sentence naming it). When Torni's fragment is installed the tab asks for the "Torni session"
+/// missing when it is not on the PATH, which fails each open with a sentence naming it). When the console's fragment is installed the tab asks for the "Torni session"
 /// profile, so its bell sounds different from other tabs; the file is checked on each open, so a setup run while
-/// Torni is open takes effect at once.
+/// the console is open takes effect at once.
 /// </summary>
 public sealed class WindowsTerminal(IProcessRunner processes, ITerminalFragment fragment, ProgramLocation wt, ProgramLocation pwsh) : IWindowsTerminal
 {

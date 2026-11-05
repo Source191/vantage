@@ -3,7 +3,7 @@ namespace Source191.Torni.Application.Diagnostics;
 /// <summary>
 /// The durations of one kind of run: the number of runs and the longest over every run, and a ring of the latest
 /// <see cref="Capacity"/> for the median and 95th percentile, taken by nearest rank. The ring bounds the memory however
-/// long Torni runs (8 KB a sample). Runs arrive from the UI thread and from pool threads.
+/// long the console runs (8 KB a sample). Runs arrive from the UI thread and from pool threads.
 /// </summary>
 public sealed class DurationSample
 {

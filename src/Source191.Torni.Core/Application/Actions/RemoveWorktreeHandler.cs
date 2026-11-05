@@ -6,7 +6,7 @@ namespace Source191.Torni.Application.Actions;
 
 /// <summary>
 /// Removes a worktree under the removal rules. The decision comes from the domain; this class adds the facts only it
-/// can settle (did Torni create the branch, is it merged, and for a leftover whether its folder exists and what it
+/// can settle (was the branch created here, is it merged, and for a leftover whether its folder exists and what it
 /// holds now, read from the disc as the key is pressed rather than taken from the last scan) and hands the decision to
 /// <see cref="WorktreeRemover"/>.
 /// Not a dispatcher handler: the screen may ask about the branch afterwards, so it needs the outcome.

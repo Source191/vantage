@@ -23,7 +23,7 @@ public sealed record SessionId : ITextValue<SessionId>
 
     public string Value { get; }
 
-    /// <summary>An id from outside Torni (the CLI's listing, a state file); false when it is not in the CLI's shape.</summary>
+    /// <summary>An id from outside the program (the CLI's listing, a state file); false when it is not in the CLI's shape.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out SessionId value)
     {
         value = text is not null && IsSessionId(text) ? SessionId.From(text) : null;

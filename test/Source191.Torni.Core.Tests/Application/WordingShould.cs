@@ -15,7 +15,7 @@ using Worktrees = Source191.Torni.Core.Tests.Application.Actions.WorktreeTestDat
 namespace Source191.Torni.Core.Tests.Application;
 
 /// <summary>
-/// Every sentence Torni shows, verbatim, with the facts that produce it: one fact per status message case, dialog question,
+/// Every sentence the console shows, verbatim, with the facts that produce it: one fact per status message case, dialog question,
 /// working text and help text. A new status message case needs a fact here; nothing else checks that its words exist.
 /// </summary>
 public sealed class WordingShould

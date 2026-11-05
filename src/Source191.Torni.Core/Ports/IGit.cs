@@ -1,7 +1,7 @@
 namespace Source191.Torni.Ports;
 
 /// <summary>
-/// The git commands Torni needs. Every call names the directory it runs in; nothing depends on the current directory.
+/// The git commands the console needs. Every call names the directory it runs in; nothing depends on the current directory.
 /// The convention: every method but IsMerged and the nullable queries throws <see cref="GitException"/> when git fails
 /// or answers with something unreadable; the queries that return a nullable answer null instead; IsMerged answers
 /// false.

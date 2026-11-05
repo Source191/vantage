@@ -3,7 +3,7 @@ using System.Reflection;
 namespace Source191.Torni.Application.Diagnostics;
 
 /// <summary>
-/// The name of something compiled into Torni or the libraries it runs: a type (an effect, an outcome, an exception) or
+/// The name of something compiled into the program or the libraries it runs: a type (an effect, an outcome, an exception) or
 /// a method in a stack frame. It can only be built from reflection, never from text, so a diagnostic record holding one
 /// cannot hold anything a person typed or a program printed.
 /// </summary>

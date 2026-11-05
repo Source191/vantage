@@ -4,7 +4,7 @@ using Source191.Torni.Ports;
 namespace Source191.Torni.Application.Actions;
 
 /// <summary>
-/// Torni's own tab: registered like a session tab, owned by <see cref="TabOwner.Console"/> and claimed by Torni's own process, so the
+/// The console's own tab: registered like a session tab, owned by <see cref="TabOwner.Console"/> and claimed by the console's own process, so the
 /// colour it takes (green when free) is skipped by session tabs and the registration goes stale with the process.
 /// </summary>
 public sealed class OwnTab(ITabRegistry tabs, IProcessRegistry processes, TimeProvider clock)

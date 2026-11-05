@@ -5,7 +5,7 @@ namespace Source191.Torni.Application;
 
 /// <summary>
 /// Rings the terminal bell when a background session starts waiting for input between two refreshes, so Windows
-/// Terminal flags Torni's tab. Claude Code's own terminal-bell channel covers the tab a session is attached in.
+/// Terminal flags the console's tab. Claude Code's own terminal-bell channel covers the tab a session is attached in.
 /// </summary>
 public sealed class StateTransitionNotifier(TextWriter terminal)
 {

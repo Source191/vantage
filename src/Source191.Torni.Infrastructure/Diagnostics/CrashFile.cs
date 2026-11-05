@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Source191.Torni.Adapters.Diagnostics;
 
-/// <summary><c>last-crash.log</c> in Torni's state folder, replaced whole by each crash (UTF-8, no byte order mark).</summary>
+/// <summary><c>last-crash.log</c> in the console's state folder, replaced whole by each crash (UTF-8, no byte order mark).</summary>
 public sealed class CrashFile(string folder) : ICrashFile
 {
     private const string Name = "last-crash.log";

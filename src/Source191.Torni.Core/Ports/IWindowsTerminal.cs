@@ -2,7 +2,7 @@ using Source191.Torni.Domain;
 
 namespace Source191.Torni.Ports;
 
-/// <summary>The Windows Terminal operations Torni needs: open a tab, and select one by title.</summary>
+/// <summary>The Windows Terminal operations the console needs: open a tab, and select one by title.</summary>
 public interface IWindowsTerminal
 {
     Task OpenTabAsync(TabLaunch launch, CancellationToken cancellationToken);

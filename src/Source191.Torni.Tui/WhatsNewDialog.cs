@@ -12,7 +12,7 @@ namespace Source191.Torni.Tui;
 /// the lines need up to nine tenths of the screen, like the help. Before an update its buttons are Update now, Release
 /// page and Later, with Later the default so an Enter pressed as it opens does nothing; Release page leaves it open.
 /// After an update it has Close alone. Esc closes it either way. Update now has no hotkey, so a second U never updates.
-/// The lines are notes read from outside Torni, already stripped of control characters, and the box shows them as
+/// The lines are notes read from outside the program, already stripped of control characters, and the box shows them as
 /// text: nothing in them is ever opened.
 /// </summary>
 internal static class WhatsNewDialog

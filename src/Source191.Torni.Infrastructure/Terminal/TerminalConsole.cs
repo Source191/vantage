@@ -3,7 +3,7 @@ using Source191.Torni.Ports;
 
 namespace Source191.Torni.Adapters.Terminal;
 
-/// <summary>The console Torni runs in, titled with the given text, through <see cref="ConsoleRecovery"/> and <see cref="TabEscapes"/>.</summary>
+/// <summary>The console window the program runs in, titled with the given text, through <see cref="ConsoleRecovery"/> and <see cref="TabEscapes"/>.</summary>
 public sealed class TerminalConsole(TextWriter console, string title) : ITerminalConsole
 {
     public void ShowOwnTab(TabColour colour) => ConsoleRecovery.WriteSequence(console, TabEscapes.Title(title) + TabEscapes.Background(colour));

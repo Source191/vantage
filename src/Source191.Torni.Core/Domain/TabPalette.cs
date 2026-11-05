@@ -1,7 +1,7 @@
 namespace Source191.Torni.Domain;
 
 /// <summary>
-/// The ordered tab colours, arranged so that the first six (Torni's own green and the first five session tabs)
+/// The ordered tab colours, arranged so that the first six (the console's own green and the first five session tabs)
 /// stay apart for protanopia and deuteranopia as well as for normal colour vision.
 /// </summary>
 public static class TabPalette

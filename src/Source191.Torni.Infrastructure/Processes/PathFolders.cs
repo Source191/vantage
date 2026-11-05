@@ -2,7 +2,7 @@ namespace Source191.Torni.Adapters.Processes;
 
 /// <summary>
 /// The folders of this process's PATH, in order, for the locators that search it. Only full paths are kept: a relative
-/// entry such as <c>.</c> would be searched against the folder Torni was started from, which a cloned repository can
+/// entry such as <c>.</c> would be searched against the folder the console was started from, which a cloned repository can
 /// plant a program in.
 /// </summary>
 public static class PathFolders

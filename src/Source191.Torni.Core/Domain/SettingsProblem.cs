@@ -18,7 +18,7 @@ public abstract record SettingsProblem
     /// <summary>
     /// A bare name or a relative path
     /// <see href="https://learn.microsoft.com/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">would be
-    /// searched for in the folder Torni was started from</see>.
+    /// searched for in the folder the console was started from</see>.
     /// </summary>
     public sealed record ExecutableNotFullPath : SettingsProblem;
 

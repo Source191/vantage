@@ -1,6 +1,6 @@
 namespace Source191.Torni.Domain;
 
-/// <summary>What Torni knows about a newer release of itself: nothing to offer because the check is off, up to date, or one to update to.</summary>
+/// <summary>What the console knows about a newer release of itself: nothing to offer because the check is off, up to date, or one to update to.</summary>
 public abstract record UpdateStatus
 {
     /// <summary>The check is turned off, or this is a development build (a prerelease or an unknown version), which never checks.</summary>

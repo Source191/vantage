@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace Source191.Torni.Application;
 
 /// <summary>
-/// The newest release Torni knows of and its notes: read from the record at start, then asked of the winget community repository
+/// The newest release the console knows of and its notes: read from the record at start, then asked of the winget community repository
 /// at most once a day, the notes only when that release is newer than the running one and none are recorded for it.
 /// <see cref="ScreenLoop"/> runs <see cref="RunAsync"/> on a pool thread as the console opens; the settings row, the
 /// update key and the screen read <see cref="Status"/>, <see cref="Notes"/> and <see cref="TakeAnnouncement"/>, which

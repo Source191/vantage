@@ -8,8 +8,8 @@ namespace Source191.Torni.Core.Tests.Architecture;
 /// <summary>
 /// Every class or record that can be sealed is sealed, as CA1852 (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1852)
 /// recommends: a concrete class with no subtype is <c>sealed</c>, otherwise it is <c>abstract</c>, <c>static</c> or a
-/// base that another of Torni's types derives from. CA1852 itself fails the build for internal types; this fact covers
-/// the public ones, which are most of Torni because its projects reference one another.
+/// base that another of the console's types derives from. CA1852 itself fails the build for internal types; this fact covers
+/// the public ones, which are most of the console because its projects reference one another.
 /// </summary>
 public sealed class SealedTypesShould
 {

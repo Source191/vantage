@@ -24,7 +24,7 @@ internal static class SessionTestData
             .Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(0, string.Empty, string.Empty));
     }
 
-    /// <summary>A live Torni tab for the <see cref="Job"/> session (sess-1), its shell running as the given process.</summary>
+    /// <summary>A live session tab for the <see cref="Job"/> session (sess-1), its shell running as the given process.</summary>
     public static async Task<TabRegistration> LiveTabAsync(InMemoryState store, FakeProcessRegistry registry, int shell, TabColour? colour = null)
     {
         DateTimeOffset started = Fixtures.Noon.AddMinutes(-5);

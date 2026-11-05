@@ -3,7 +3,7 @@ using Source191.Torni.Domain;
 
 namespace Source191.Torni.Application.Actions;
 
-/// <summary>What deleting a session did, and in one case the unmerged branch the user is asked about. TabClosed when a Torni tab showing it was closed.</summary>
+/// <summary>What deleting a session did, and in one case the unmerged branch the user is asked about. TabClosed when a session tab showing it was closed.</summary>
 public abstract record DeleteSessionOutcome(bool TabClosed) : Outcome
 {
     public sealed record Deleted(ListedName Name, bool TabClosed) : DeleteSessionOutcome(TabClosed);

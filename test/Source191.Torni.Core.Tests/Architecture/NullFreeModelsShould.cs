@@ -10,7 +10,7 @@ using System.Runtime.CompilerServices;
 namespace Source191.Torni.Core.Tests.Architecture;
 
 /// <summary>
-/// Torni's own models and results never use null for meaning: no public property, parameter or return of a type in
+/// The console's own models and results never use null for meaning: no public property, parameter or return of a type in
 /// Domain, Ports or Application is nullable, unless it is one of the language's or the house's own shapes or is kept,
 /// with its reason, on the allow-list.
 /// </summary>
@@ -19,7 +19,7 @@ public sealed class NullFreeModelsShould
     private const BindingFlags Declared = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
     /// <summary>
-    /// The nullables kept on purpose, each with its reason: absences that arrive from outside Torni (git, the process
+    /// The nullables kept on purpose, each with its reason: absences that arrive from outside the program (git, the process
     /// table, config.json, the environment, Microsoft.Extensions.Logging) and are met where they arrive, and the list
     /// selection, which is empty when nothing is shown. Fixing one removes its entry; <see cref="KeepNoStaleEntry"/> says so.
     /// </summary>

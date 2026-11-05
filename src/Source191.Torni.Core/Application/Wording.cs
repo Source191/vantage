@@ -8,7 +8,7 @@ using System.Diagnostics;
 namespace Source191.Torni.Application;
 
 /// <summary>
-/// Every sentence Torni shows, in one place: status messages, dialog questions, the text beside the busy spinner and the
+/// Every sentence the console shows, in one place: status messages, dialog questions, the text beside the busy spinner and the
 /// key help. Reducers, dialogs and the screen hand over facts; this class chooses the words. <c>WordingShould</c>
 /// holds each sentence verbatim.
 /// </summary>
@@ -27,7 +27,7 @@ public static partial class Wording
 
     public static string GitNotFound => "git was not found on the PATH. Install Git for Windows (winget install --id Git.Git --exact --source winget) and open a new terminal.";
 
-    /// <summary>Where to support Torni, printed under its description in <c>torni --help</c>.</summary>
+    /// <summary>Where to support the console, printed under its description in <c>torni --help</c>.</summary>
     public static string SupportLine => $"Buy me a sliver of a Claude Max plan: {SupportPage}";
 
     private static readonly Uri SupportPage = new("https://buymeacoffee.com/simonvane");

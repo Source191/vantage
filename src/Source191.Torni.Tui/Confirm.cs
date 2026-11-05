@@ -6,7 +6,7 @@ using Terminal.Gui.Views;
 namespace Source191.Torni.Tui;
 
 /// <summary>
-/// A question with buttons, in Torni's colours rather than Terminal.Gui's default blue. Answers true when the first
+/// A question with buttons, in the console's colours rather than Terminal.Gui's default blue. Answers true when the first
 /// button, the default, was pressed; any other button or Esc answers false.
 /// </summary>
 internal static class Confirm

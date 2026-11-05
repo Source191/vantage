@@ -1,7 +1,7 @@
 namespace Source191.Torni.Domain;
 
 /// <summary>
-/// The newest release Torni knows of: none yet, one found in the winget community repository or in the update-check record, or recorded
+/// The newest release the console knows of: none yet, one found in the winget community repository or in the update-check record, or recorded
 /// text that is not a version. A named case stands where a null would, because <see cref="UpdateCheckRule.Offer"/>
 /// offers only a <see cref="Found"/> one.
 /// </summary>

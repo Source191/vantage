@@ -7,7 +7,7 @@ namespace Source191.Torni.Core.Tests.Architecture;
 /// <summary>
 /// The guarantee that no diagnostic record can carry a name, a path or anything a person typed or a program printed:
 /// every member of every event is a number, a duration, a version, an enum or one of the vetted values that can only be
-/// built from Torni's own code, and none of those values has a door that takes text.
+/// built from the console's own code, and none of those values has a door that takes text.
 /// </summary>
 public sealed class DiagnosticEventsShould
 {

@@ -13,7 +13,7 @@ public static partial class Wording
     private const string UpdateLine = "update in a new tab";
     private const string ReportLine = "report a problem on GitHub";
 
-    /// <summary>The title of Torni's own tab outside a dialog; every writer of it uses this one value. The version is in the settings row.</summary>
+    /// <summary>The title of the console's own tab outside a dialog; every writer of it uses this one value. The version is in the settings row.</summary>
     public static string TabTitle => "Torni";
 
     /// <summary>The tab's title while a dialog is open: Torni and the dialog's short name, never the dialog's own title.</summary>
@@ -147,10 +147,10 @@ public static partial class Wording
         .. TabKeyHelp,
     ];
 
-    /// <summary>The TAB cell of a plain claude in its own terminal; a session a Torni tab shows has its cell filled with that tab's colour instead.</summary>
+    /// <summary>The TAB cell of a plain claude in its own terminal; a session shown in a session tab has its cell filled with that tab's colour instead.</summary>
     public const string TerminalSwatch = "▯";
 
-    /// <summary>The block a Torni tab's colour is drawn with: two cells, leaving the column's third as space before the state.</summary>
+    /// <summary>The block a session tab's colour is drawn with: two cells, leaving the column's third as space before the state.</summary>
     public const string TabBlock = "██";
 
     /// <summary>The words while a tab's first load runs; a closed enum, so a new tab fails the build here.</summary>
@@ -278,7 +278,7 @@ public static partial class Wording
         new("Unpushed", "the newest five unpushed commits, or the changed files when none, and how many more"),
     ];
 
-    /// <summary>The sessions view's help: its keys and columns, then the Claude Code executable Torni drives.</summary>
+    /// <summary>The sessions view's help: its keys and columns, then the Claude Code executable the console drives.</summary>
     public static string SessionsHelp(string claudeExecutable) => $"{Help(SessionsKeys, SessionsColumns, SessionsPane)}\n\nClaude Code: {claudeExecutable}";
 
     public static string WorktreesHelp => Help(WorktreesKeys, WorktreesColumns, WorktreesPane);

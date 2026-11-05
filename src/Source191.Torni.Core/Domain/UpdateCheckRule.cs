@@ -1,6 +1,6 @@
 namespace Source191.Torni.Domain;
 
-/// <summary>When Torni asks the winget community repository for its newest release, which answer counts, and whether it is worth offering.</summary>
+/// <summary>When the console asks the winget community repository for its newest release, which answer counts, and whether it is worth offering.</summary>
 public static class UpdateCheckRule
 {
     public static readonly TimeSpan Interval = TimeSpan.FromHours(24);

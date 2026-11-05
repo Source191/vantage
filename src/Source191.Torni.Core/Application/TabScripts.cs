@@ -4,7 +4,7 @@ using Source191.Torni.Ports;
 namespace Source191.Torni.Application;
 
 /// <summary>
-/// Every tab Torni opens, built in one place: the script it runs, its title, folder and colour. Values reach the
+/// Every tab the console opens, built in one place: the script it runs, its title, folder and colour. Values reach the
 /// script only through <see cref="PowerShellScript.Quote"/>, and the two executable paths live here, nowhere else.
 /// </summary>
 public sealed class TabScripts(string claudeExecutable, string consoleExecutable)
@@ -14,7 +14,7 @@ public sealed class TabScripts(string claudeExecutable, string consoleExecutable
     /// <summary>The last palette colour, so a plain shell never looks like a session.</summary>
     private static readonly TabColour ShellColour = TabPalette.Last;
 
-    /// <summary>Torni's winget package, exactly, from the winget source alone: the package the check followed.</summary>
+    /// <summary>The winget package, exactly, from the winget source alone: the package the check followed.</summary>
     private static readonly string[] WingetPackage = ["--id", UpdateCheck.PackageId, "--exact", "--source", UpdateCheck.Source];
 
     /// <summary>
@@ -45,8 +45,8 @@ public sealed class TabScripts(string claudeExecutable, string consoleExecutable
             PowerShellScript.Invoke(claudeExecutable, [])));
 
     /// <summary>
-    /// The update tab: waits for the Torni that opened it to exit (a running torni.exe locks its files), upgrades the
-    /// winget package from the winget source alone (the one the check followed), then starts Torni again only when the
+    /// The update tab: waits for the console that opened it to exit (a running torni.exe locks its files), upgrades the
+    /// winget package from the winget source alone (the one the check followed), then starts the console again only when the
     /// upgrade succeeded; otherwise winget's output stays on screen with a hint.
     /// </summary>
     public TabLaunch Update(int ownProcessId, FolderPath startingDirectory, string winget) => new(

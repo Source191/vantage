@@ -8,7 +8,7 @@ namespace Source191.Torni.Application.Actions;
 /// <summary>
 /// The CLI cannot rename a background session, and resuming one with flags starts a copy, so the job is removed
 /// (its transcript stays on disc) and resumed by session id under the new name: same session, new label. If the
-/// resume fails the job is resumed under the old name so the session is not left unsupervised. A Torni tab showing
+/// resume fails the job is resumed under the old name so the session is not left unsupervised. A session tab showing
 /// the session is closed once the job is removed, and reopened under the new name in its old colour after the resume.
 /// </summary>
 public sealed class RenameSessionHandler(IClaudeCli claude, ITranscripts transcripts, ITabRegistry registrations, SessionTabs tabs, OpenTabHandler openTab) : IEffectHandler<RenameSession>

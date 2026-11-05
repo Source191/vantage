@@ -3,11 +3,11 @@ using System.Diagnostics.CodeAnalysis;
 namespace Source191.Torni.Domain;
 
 /// <summary>
-/// The release notes Torni shows, read from the changelog (at a release's tag on GitHub, and the file beside the
+/// The release notes the console shows, read from the changelog (at a release's tag on GitHub, and the file beside the
 /// installed program): a narrow
 /// <see href="https://keepachangelog.com/">Keep a Changelog</see> of <c>## 0.21.0</c> sections (a <c> - date</c> after
 /// the version is allowed), <c>### Added</c> and the other <see cref="ChangeKind"/> headings, and one-line <c>- </c>
-/// entries. It is text from outside Torni, so <see cref="TryParse"/> drops every control character as it reads each
+/// entries. It is text from outside the program, so <see cref="TryParse"/> drops every control character as it reads each
 /// line and skips whatever it does not understand, including the Unreleased section; <see cref="None"/> stands for
 /// notes that were never read.
 /// </summary>
@@ -111,7 +111,7 @@ public sealed record ReleaseNotes
             kind = null;
         }
 
-        /// <summary>One of the names exactly; a number or another word is not a heading Torni knows.</summary>
+        /// <summary>One of the names exactly; a number or another word is not a heading the console knows.</summary>
         private static ChangeKind? KindOf(string name) => Enum.GetNames<ChangeKind>().Contains(name, StringComparer.Ordinal) ? Enum.Parse<ChangeKind>(name) : null;
     }
 }

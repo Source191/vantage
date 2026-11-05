@@ -33,7 +33,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         TableColumn<SessionRow>.Plain(Wording.AgeColumn, (row, now, _) => Durations.Age(now - row.Session.StartedAt), new ColumnFit.RightAligned()),
     ];
 
-    /// <summary>The block keeps its tab's colour, in the shade the tab shows while Torni's own tab is selected, on every row, the selected one too; a plain claude in its own terminal shows a grey hollow block.</summary>
+    /// <summary>The block keeps its tab's colour, in the shade the tab shows while the console's own tab is selected, on every row, the selected one too; a plain claude in its own terminal shows a grey hollow block.</summary>
     private static CellPaint TabPaint(SessionRow row)
     {
         return row switch
@@ -70,7 +70,7 @@ internal sealed class SessionsScreenDefinition(StateTransitionNotifier notifier,
         _ => throw new UnreachableException(),
     };
 
-    /// <summary>A filled cell while a Torni tab shows the session, a hollow block for a session started outside Torni in its own tab, nothing otherwise.</summary>
+    /// <summary>A filled cell while a session tab shows the session, a hollow block for a session started outside the console in its own tab, nothing otherwise.</summary>
     private static string Swatch(SessionRow row)
     {
         return row switch

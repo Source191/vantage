@@ -3,7 +3,7 @@ using System.Diagnostics;
 namespace Source191.Torni.Domain;
 
 /// <summary>
-/// Torni's settings, complete and immutable: where repositories live, where new worktrees go, which editor opens a
+/// The settings, complete and immutable: where repositories live, where new worktrees go, which editor opens a
 /// folder, how new worktrees branch and where the wizard starts a new session. Whatever a file leaves out has been resolved to its default by <see cref="Resolve"/>.
 /// </summary>
 public sealed record Settings
@@ -26,7 +26,7 @@ public sealed record Settings
 
     public WorktreeBase DefaultBase { get; }
 
-    /// <summary>Whether Torni asks the winget community repository, at most once a day, for a newer release of itself.</summary>
+    /// <summary>Whether the console asks the winget community repository, at most once a day, for a newer release of itself.</summary>
     public bool CheckForUpdates { get; }
 
     /// <summary>Where the wizard opened with n starts a new session: a new worktree, or the repository's current branch.</summary>

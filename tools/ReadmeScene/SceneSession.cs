@@ -2,7 +2,7 @@ namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// One session row: where it runs (the repository's main checkout when <see cref="Worktree"/> is blank, otherwise the
-/// worktree with that slug), what Claude Code says it is doing, and whether Torni opens a tab for it.
+/// worktree with that slug), what Claude Code says it is doing, and whether the console opens a tab for it.
 /// </summary>
 public sealed record SceneSession(
     string Name,

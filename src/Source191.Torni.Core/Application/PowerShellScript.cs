@@ -3,7 +3,7 @@ using System.Text;
 namespace Source191.Torni.Application;
 
 /// <summary>
-/// Builds the PowerShell that runs inside a tab Torni opens. Every value is single-quoted, so user text such as a
+/// Builds the PowerShell that runs inside a tab the console opens. Every value is single-quoted, so user text such as a
 /// session name is never interpolated into script source; the adapter encodes the finished script for wt.exe.
 /// </summary>
 public static class PowerShellScript

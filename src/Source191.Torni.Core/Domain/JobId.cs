@@ -21,7 +21,7 @@ public sealed record JobId : ITextValue<JobId>
 
     public string Value { get; }
 
-    /// <summary>A job id from outside Torni (the CLI's listing or its answer to a start); false when it is not one.</summary>
+    /// <summary>A job id from outside the program (the CLI's listing or its answer to a start); false when it is not one.</summary>
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out JobId value)
     {
         value = text is not null && IsJobId(text) ? JobId.From(text) : null;

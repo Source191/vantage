@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Source191.Torni.Domain;
 
 /// <summary>
-/// A Windows Terminal tab that Torni opened. Pending until the tab's shell claims it with its own process.
+/// A Windows Terminal tab that the console opened. Pending until the tab's shell claims it with its own process.
 /// </summary>
 public sealed record TabRegistration(
     Guid Id,

@@ -6,7 +6,7 @@ using Source191.Torni.Ports;
 namespace Source191.Torni.Application.Actions;
 
 /// <summary>
-/// Resumes the given sessions under the supervisor, each in its own directory, opens a Torni tab for each one the CLI continues, and says which could not be. Resuming
+/// Resumes the given sessions under the supervisor, each in its own directory, opens a session tab for each one the CLI continues, and says which could not be. Resuming
 /// a listed job with flags starts a copy under a new session id, so each job is removed first (its transcript stays
 /// on disc), as rename does, and the resume continues the same session id in the same row. A session with no
 /// transcript keeps its job, since nothing could bring it back.

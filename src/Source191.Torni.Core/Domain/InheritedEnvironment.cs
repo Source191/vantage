@@ -1,9 +1,9 @@
 namespace Source191.Torni.Domain;
 
 /// <summary>
-/// What a child of Torni must not inherit. A Torni started from inside a Claude Code session carries that
+/// What a child of the console must not inherit. A console started from inside a Claude Code session carries that
 /// session's markers (CLAUDECODE, CLAUDE_CODE_*, CLAUDE_PID), its NO_COLOR and its GIT_TERMINAL_PROMPT, and Windows
-/// Terminal hands the caller's environment to a new tab, so without this every tab and session Torni opened ran
+/// Terminal hands the caller's environment to a new tab, so without this every tab and session the console opened ran
 /// colourless, thought it was nested and had git refuse to ask for credentials. CLAUDE_CONFIG_DIR stays: it is how a
 /// second account is chosen.
 /// </summary>

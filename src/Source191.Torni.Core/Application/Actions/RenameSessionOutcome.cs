@@ -8,10 +8,10 @@ public abstract record RenameSessionOutcome : Outcome
 {
     public sealed record NoMessages(ListedName Name) : RenameSessionOutcome;
 
-    /// <summary>Renamed; TabMoved when a Torni tab showing it was closed and one opened under the new name.</summary>
+    /// <summary>Renamed; TabMoved when a session tab showing it was closed and one opened under the new name.</summary>
     public sealed record Renamed(ListedName OldName, SessionName NewName, bool TabMoved) : RenameSessionOutcome;
 
-    /// <summary>Back under its old name; TabClosed when a Torni tab showing it was closed and none reopened.</summary>
+    /// <summary>Back under its old name; TabClosed when a session tab showing it was closed and none reopened.</summary>
     public sealed record Restored(ListedName OldName, string Failure, bool TabClosed) : RenameSessionOutcome;
 
     /// <summary>Claude refused to remove the job, so nothing was resumed or closed and the session is still listed under its old name.</summary>

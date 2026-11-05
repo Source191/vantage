@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 namespace Source191.Torni.Adapters.Claude;
 
 /// <summary>
-/// The one setting Torni touches in <c>~\.claude\settings.json</c>. The file is parsed, the property set in place
+/// The one setting the console touches in <c>~\.claude\settings.json</c>. The file is parsed, the property set in place
 /// (so every other key keeps its position and value) and written back with two-space indentation, bare LF line endings
 /// and the trailing newline it had, as Claude Code writes it. A file that is not a JSON object is never rewritten.
 /// </summary>

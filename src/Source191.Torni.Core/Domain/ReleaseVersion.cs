@@ -6,7 +6,7 @@ namespace Source191.Torni.Domain;
 /// <summary>
 /// A <see href="https://semver.org/">semantic version</see>, <c>major.minor.patch[-prerelease]</c>, compared by
 /// <see href="https://semver.org/#spec-item-11">semantic version precedence</see>; build metadata after <c>+</c> is
-/// dropped. Text from outside Torni (the winget community repository's listing, the update-check record) goes through
+/// dropped. Text from outside the program (the winget community repository's listing, the update-check record) goes through
 /// <see cref="TryParse"/>, which answers false for anything else.
 /// </summary>
 public sealed record ReleaseVersion : IComparable<ReleaseVersion>
@@ -29,7 +29,7 @@ public sealed record ReleaseVersion : IComparable<ReleaseVersion>
 
     public bool IsPrerelease => Prerelease.Length > 0;
 
-    /// <summary>For text Torni already trusts; anything that is not a version is a programming error.</summary>
+    /// <summary>For text the code already trusts; anything that is not a version is a programming error.</summary>
     public static ReleaseVersion From(string text) => TryParse(text, out ReleaseVersion? version) ? version : throw new ArgumentException("Not a version.", nameof(text));
 
     public static bool TryParse(string? text, [MaybeNullWhen(false)] out ReleaseVersion version)

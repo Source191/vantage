@@ -6,7 +6,7 @@ namespace Source191.Torni.Application.Launch;
 
 /// <summary>
 /// Carries out a launch plan: creates the planned worktree when one is wanted, copies the include files,
-/// starts the named background session, and records what Torni needs to remember about it.
+/// starts the named background session, and records what the console needs to remember about it.
 /// </summary>
 public sealed class LaunchService(IClaudeCli claude, IGit git, IRecentRepositories recent, ICreatedWorktrees created, IWorktreeIncludeCopier copier, TimeProvider clock)
 {

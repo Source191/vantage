@@ -3,8 +3,8 @@ using System.Runtime.Versioning;
 namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
-/// The smoke check of an installed Torni: opens and cancels every screen and dialog a clean machine can reach
-/// (<see cref="SmokeScript"/>) and quits. Exit 0 when every step's marker appeared and Torni quit by itself, 1 when it
+/// The smoke check of an installed build: opens and cancels every screen and dialog a clean machine can reach
+/// (<see cref="SmokeScript"/>) and quits. Exit 0 when every step's marker appeared and the console quit by itself, 1 when it
 /// had to be killed (a blocked UI thread), 2 when there is no exe, 4 when a marker never appeared (the step is named).
 /// It only ever cancels, so it is safe against your own repositories; the capture goes to drive-raw.txt.
 /// </summary>
@@ -13,7 +13,7 @@ public sealed class SmokeCheck(StepRunner runner)
 {
     public const int CouldNotStart = 2;
 
-    /// <summary>As a user runs Torni: inside Windows Terminal, which answers its queries.</summary>
+    /// <summary>As a user runs the console: inside Windows Terminal, which answers its queries.</summary>
     public static readonly DriverOptions Options = new(PretendWindowsTerminal: true, AnswerQueries: true, XtversionDelayMs: 0);
 
     public Task<int> RunAsync(string exe, string worktreeFolder) => RunAsync(exe, SmokeScript.Build(worktreeFolder));

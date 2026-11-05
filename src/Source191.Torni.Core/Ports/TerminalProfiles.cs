@@ -1,8 +1,8 @@
 namespace Source191.Torni.Ports;
 
 /// <summary>
-/// The two Windows Terminal profiles Torni adds, named once: "Torni" runs the installed Torni, "Torni session"
-/// is PowerShell and, once the fragment exists, the profile every tab Torni opens asks for. Each has its bell sound,
+/// The two Windows Terminal profiles the console adds, named once: "Torni" runs the installed program, "Torni session"
+/// is PowerShell and, once the fragment exists, the profile every tab the console opens asks for. Each has its bell sound,
 /// a file or Windows Terminal's own.
 /// </summary>
 public sealed record TerminalProfiles(string ConsoleExecutable, BellSound ConsoleSound, BellSound SessionSound)

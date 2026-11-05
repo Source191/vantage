@@ -1,6 +1,6 @@
 namespace Source191.Torni.Domain;
 
-/// <summary>Whether a live Torni tab shows a session, and that tab's colour when one does.</summary>
+/// <summary>Whether a live session tab shows a session, and that tab's colour when one does.</summary>
 public abstract record LiveTab
 {
     public sealed record None : LiveTab;
