@@ -58,7 +58,7 @@ public sealed class WordingOfReleaseNotesShould
         IReadOnlyList<string> lines = Wording.WhatsNewBeforeUpdate(sections);
 
         lines[0].ShouldBe("0.21.0");
-        lines[^1].ShouldBe("Update now quits Torni and updates it in a new tab; background sessions keep running.");
+        lines[^1].ShouldBe("Update now quits the console and updates it in a new tab; background sessions keep running.");
     }
 
     [Fact]

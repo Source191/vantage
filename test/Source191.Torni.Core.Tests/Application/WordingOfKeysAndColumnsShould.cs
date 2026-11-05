@@ -120,7 +120,7 @@ public sealed class WordingOfKeysAndColumnsShould
     public void SayTheTabBlockMatchesTheTabAsItLooksFromTheConsole()
     {
         Wording.SessionsColumns.Single(column => column.Name == "TAB").Meaning
-            .ShouldStartWith("a block in the tab's colour, faded as the tab looks from Torni's own tab,\nwhile a Torni tab shows the session;");
+            .ShouldStartWith("a block in the tab's colour, faded as the tab looks from the console's own tab,\nwhile a tab opened here shows the session;");
     }
 
     [Fact]
@@ -162,12 +162,12 @@ public sealed class WordingOfKeysAndColumnsShould
             Pane
             Waiting   what it waits for: Claude Code's reason, a first prompt, or nothing
             Started   when the session started
-            Prompted  when Torni last saw it go from waiting or idle to working
+            Prompted  when it was last seen going from waiting or idle to working
             Folder    the folder it runs in
             Session   the session id
             Worktree  the worktree's slug, the path inside the repository, or the main checkout
             Branch    the branch checked out there
-            Tab       its Torni tab and the tab's colour, or its own terminal
+            Tab       the tab opened for it and the tab's colour, or its own terminal
             Changes   changed files, unpushed commits and the last commit there
             Memory    what the session and everything it started use; m for the breakdown
 
@@ -226,7 +226,7 @@ public sealed class WordingOfKeysAndColumnsShould
             >      scroll the columns right
 
             Columns
-            SETTING  a setting Torni keeps in config.json, or, under the Setup heading, setup it reads but does not change
+            SETTING  a setting kept in config.json, or, under the Setup heading, setup it reads but does not change
             VALUE    its value; a setup row that needs attention says what to run
             """.ReplaceLineEndings("\n"));
     }

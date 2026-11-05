@@ -4,8 +4,8 @@
 
 ## 2. State word and label
 
-- [ ] 2.1 `TabOwnerJsonConverterShould` and the tab-file facts expect `console` for the console's own tab; red, then `TabOwnerJsonConverter`; green.
-- [ ] 2.2 The issue form applies `problem-report`; rename the GitHub label `from-vantage` to `problem-report`. Verify with `gh label list`.
+- [x] 2.1 `TabOwnerJsonConverterShould` and the tab-file facts expect `console` for the console's own tab; red, then `TabOwnerJsonConverter`; green.
+- [x] 2.2 The issue form applies `problem-report`; rename the GitHub label `from-vantage` to `problem-report`. Verify with `gh label list`.
 
 ## 3. Sentences
 

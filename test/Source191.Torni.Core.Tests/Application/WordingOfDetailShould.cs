@@ -27,7 +27,7 @@ public sealed class WordingOfDetailShould
         content.Title.ShouldBe("fix-123");
         Rows(content).ShouldBe(
         [
-            ["Waiting permission prompt", "Started 14:02 (5m ago)", "Prompted not seen since Torni started"],
+            ["Waiting permission prompt", "Started 14:02 (5m ago)", "Prompted not seen since the console started"],
             [@"Folder C:\Users\me\source\worktrees\Northwind.Orders-fix-123", "Session 81cdb0f9-0000-4000-8000-000000000001"],
             ["Worktree fix-123", "Branch fix-123", "Tab open, yellow"],
             ["Changes 3 changed files · 0 unpushed commits · last commit 2h00m ago", "Memory 903 MB (m for the breakdown)"],

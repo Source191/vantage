@@ -94,8 +94,8 @@ public sealed class WordingOfConfigShould
     [Fact]
     public void SayHowEachPieceOfSetupIsChanged()
     {
-        Wording.Describe(SetupItem.TerminalProfiles).ShouldBe("Run torni setup-terminal, then restart Windows Terminal, to add the Torni profiles.");
-        Wording.Describe(new StatusMessage.SetupAdvice(SetupItem.DiagnosticLog)).ShouldBe("Set the TORNI_LOG environment variable to a file path before starting Torni to keep a diagnostic log.");
+        Wording.Describe(SetupItem.TerminalProfiles).ShouldBe("Run torni setup-terminal, then restart Windows Terminal, to add the profiles.");
+        Wording.Describe(new StatusMessage.SetupAdvice(SetupItem.DiagnosticLog)).ShouldBe("Set the TORNI_LOG environment variable to a file path, then start again, to keep a diagnostic log.");
         Enum.GetValues<SetupItem>().Select(Wording.Describe).Distinct().Count().ShouldBe(Enum.GetValues<SetupItem>().Length);
     }
 
@@ -142,8 +142,8 @@ public sealed class WordingOfConfigShould
     [Fact]
     public void NameTheWingetCommunityRepositoryAsTheUpdateSource()
     {
-        Wording.ConfigDescription(new ConfigRow.CheckForUpdates(On: true)).ShouldBe("Whether Torni asks the winget community repository once a day for a newer release, which U then installs.");
-        Wording.Describe(SetupItem.LastUpdateCheck).ShouldBe("Torni asks the winget community repository at most once a day; turn the check on or off with Check for updates.");
-        Wording.ConfigDescription(new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Never())).ShouldBe("When Torni last asked the winget community repository for a newer release, and the newest it found.");
+        Wording.ConfigDescription(new ConfigRow.CheckForUpdates(On: true)).ShouldBe("Whether to ask the winget community repository once a day for a newer release, which U then installs.");
+        Wording.Describe(SetupItem.LastUpdateCheck).ShouldBe("The winget community repository is asked at most once a day; turn the check on or off with Check for updates.");
+        Wording.ConfigDescription(new ConfigRow.Setup(SetupItem.LastUpdateCheck, new SetupState.Never())).ShouldBe("When the winget community repository was last asked for a newer release, and the newest it found.");
     }
 }

@@ -64,7 +64,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayTheUpdateStarted()
     {
-        Wording.Describe(new UpdateStartedOutcome("0.10.0")).ShouldBe("Updating to 0.10.0 in a new tab; Torni starts again there when it is done.");
+        Wording.Describe(new UpdateStartedOutcome("0.10.0")).ShouldBe("Updating to 0.10.0 in a new tab; it starts again there when it is done.");
     }
 
     [Fact]
@@ -82,7 +82,7 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayWhetherTheUpdateCheckIsOn()
     {
-        Wording.Describe(new ToggleUpdateCheckOutcome(On: true)).ShouldBe("The update check is on: Torni asks the winget community repository at most once a day.");
+        Wording.Describe(new ToggleUpdateCheckOutcome(On: true)).ShouldBe("The update check is on: the winget community repository is asked at most once a day.");
         Wording.Describe(new ToggleUpdateCheckOutcome(On: false)).ShouldBe("The update check is off.");
     }
 
@@ -99,14 +99,14 @@ public sealed class WordingOfOutcomesShould
     public void SayThereIsNothingToMoveWithoutMessages()
     {
         Wording.Describe(new AdoptSessionOutcome.NoMessages(Listed.As("repos-f6")))
-            .ShouldBe("repos-f6 has no messages yet, so there is nothing to move. Send it something in its tab first, or close that tab and start a session from Torni.");
+            .ShouldBe("repos-f6 has no messages yet, so there is nothing to move. Send it something in its tab first, or close that tab and start a session here.");
     }
 
     [Fact]
     public void SayASessionMovedIntoTheBackground()
     {
         Wording.Describe(new AdoptSessionOutcome.Moved(Listed.As("repos-31"), TabClosed: false)).ShouldBe("Moved repos-31 under Torni.");
-        Wording.Describe(new AdoptSessionOutcome.Moved(Listed.As("repos-31"), TabClosed: true)).ShouldBe("Moved repos-31 under Torni and closed its old tab.");
+        Wording.Describe(new AdoptSessionOutcome.Moved(Listed.As("repos-31"), TabClosed: true)).ShouldBe("Moved repos-31 into the background and closed its old tab.");
     }
 
     [Fact]
@@ -178,14 +178,14 @@ public sealed class WordingOfOutcomesShould
     public void SayWhyNothingWasClosed()
     {
         Wording.Describe(new CloseEmptyTerminalsOutcome([], [], [new SkippedSession(Listed.As("repos-31"))], []))
-            .ShouldBe("Nothing closed: repos-31 has messages (press b to move it under Torni).");
+            .ShouldBe("Nothing closed: repos-31 has messages (press b to move it into the background).");
     }
 
     [Fact]
     public void NameWhatWasClosedEndedAndSkipped()
     {
         Wording.Describe(new CloseEmptyTerminalsOutcome([Listed.As("repos-f6")], [Listed.As("repos-a1")], [new SkippedSession(Listed.As("repos-93"))], []))
-            .ShouldBe("Closed 1 tab: repos-f6. Ended 1 session: repos-a1 (not in a Windows Terminal tab, so nothing to close). Skipped: repos-93 has messages (press b to move it under Torni).");
+            .ShouldBe("Closed 1 tab: repos-f6. Ended 1 session: repos-a1 (not in a Windows Terminal tab, so nothing to close). Skipped: repos-93 has messages (press b to move it into the background).");
     }
 
     [Fact]
@@ -199,7 +199,7 @@ public sealed class WordingOfOutcomesShould
     public void NameASessionLeftAloneBesideTheOnesClosedAndSkipped()
     {
         Wording.Describe(new CloseEmptyTerminalsOutcome([Listed.As("repos-f6")], [], [new SkippedSession(Listed.As("repos-93"))], [Listed.As("repos-a1")]))
-            .ShouldBe("Closed 1 tab: repos-f6. Skipped: repos-93 has messages (press b to move it under Torni); repos-a1 no longer runs under its listed process (refresh and try again).");
+            .ShouldBe("Closed 1 tab: repos-f6. Skipped: repos-93 has messages (press b to move it into the background); repos-a1 no longer runs under its listed process (refresh and try again).");
     }
 
     [Fact]
@@ -336,7 +336,7 @@ public sealed class WordingOfOutcomesShould
     public void SayAHandMadeBranchWasKept()
     {
         Wording.Describe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedHere: false))
-            .ShouldBe("Removed Northwind.Orders-fix-123; branch fix-123 was not created by Torni, so it is kept.");
+            .ShouldBe("Removed Northwind.Orders-fix-123; branch fix-123 was not created here, so it is kept.");
     }
 
     [Fact]
@@ -467,7 +467,7 @@ public sealed class WordingOfOutcomesShould
     public void SayTheOpenTabCouldNotBeFound()
     {
         Wording.Describe(new OpenTabOutcome.NotFound(Listed.As("Refund retry policy")))
-            .ShouldBe("Refund retry policy is open in another tab, but Torni could not find it. Is it in another window?");
+            .ShouldBe("Refund retry policy is open in another tab, but it could not be found. Is it in another window?");
     }
 
     [Fact]

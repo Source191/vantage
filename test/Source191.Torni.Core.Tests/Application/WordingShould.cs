@@ -69,7 +69,7 @@ public sealed class WordingShould
     public void ExplainATerminalSessionWithMessages()
     {
         Wording.Describe(new StatusMessage.RunsInOwnTerminal(Listed.As("fix-123"), HasTranscript: true))
-            .ShouldBe("fix-123 runs in its own terminal. Press b to move it under Torni (its old tab closes), or type /bg there.");
+            .ShouldBe("fix-123 runs in its own terminal. Press b to move it into the background (its old tab closes), or type /bg there.");
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public sealed class WordingShould
     [Fact]
     public void SayABackgroundSessionIsAlreadyInTheBackground()
     {
-        Wording.Describe(new StatusMessage.AlreadyInBackground(Listed.As("fix-123"))).ShouldBe("fix-123 already runs in the background under Torni.");
+        Wording.Describe(new StatusMessage.AlreadyInBackground(Listed.As("fix-123"))).ShouldBe("fix-123 already runs in the background.");
     }
 
     [Fact]
@@ -255,7 +255,7 @@ public sealed class WordingShould
     [Theory]
     [InlineData(PullRequestGap.NoBranch, null, "fix-123 has no branch, so it has no pull request.")]
     [InlineData(PullRequestGap.NoRemote, null, "fix-123's repository has no origin remote to look up pull requests on.")]
-    [InlineData(PullRequestGap.UnknownHost, null, "fix-123's origin is on neither GitHub nor Azure DevOps, so Torni cannot look up its pull requests.")]
+    [InlineData(PullRequestGap.UnknownHost, null, "fix-123's origin is on neither GitHub nor Azure DevOps, so its pull requests cannot be looked up.")]
     [InlineData(PullRequestGap.CliMissing, PullRequestHost.GitHub, "Install the GitHub CLI (gh) to see fix-123's pull request.")]
     [InlineData(PullRequestGap.CliMissing, PullRequestHost.AzureDevOps, "Install the Azure CLI (az) with the azure-devops extension to see fix-123's pull request.")]
     [InlineData(PullRequestGap.NotSignedIn, PullRequestHost.GitHub, "Sign in with gh auth login to see fix-123's pull request.")]
@@ -286,7 +286,7 @@ public sealed class WordingShould
     [Fact]
     public void SayItIsUpToDate()
     {
-        Wording.Describe(new StatusMessage.UpToDate()).ShouldBe("Torni is up to date.");
+        Wording.Describe(new StatusMessage.UpToDate()).ShouldBe("This is the newest release.");
     }
 
     [Fact]
@@ -391,7 +391,7 @@ public sealed class WordingShould
     [Fact]
     public void AskBeforeDeletingABranchNotCreatedHere()
     {
-        Wording.DeleteBranchQuestion("fix-123", createdHere: false).ShouldBe("Branch fix-123 was not created by Torni. Delete it anyway?");
+        Wording.DeleteBranchQuestion("fix-123", createdHere: false).ShouldBe("Branch fix-123 was not created here. Delete it anyway?");
     }
 
     [Fact]
@@ -440,7 +440,7 @@ public sealed class WordingShould
     {
         Wording.Working(new OpenTabForSession(Job, new LiveTab.None())).ShouldBe("Opening a tab for fix-123...");
         Wording.Working(new StopSession(Job)).ShouldBe("Stopping...");
-        Wording.Working(new AdoptSession(Terminal)).ShouldBe("Moving fix-123 under Torni...");
+        Wording.Working(new AdoptSession(Terminal)).ShouldBe("Moving fix-123 into the background...");
         Wording.Working(new RenameSession(Job, SessionName.From("fix-124"))).ShouldBe("Renaming fix-123 to fix-124...");
         Wording.Working(new CloseEmptyTerminals([Terminal])).ShouldBe("Closing...");
         Wording.Working(new ResumeSessions([Job, Job])).ShouldBe("Resuming 2...");
@@ -710,7 +710,7 @@ public sealed class WordingShould
         Wording.Describe(new SettingsProblem.RootMissing(FolderPath.From(@"D:\nowhere"))).ShouldBe(@"D:\nowhere does not exist.");
         Wording.Describe(new SettingsProblem.WorktreeRootNotFullPath()).ShouldBe(@"The worktree root must be a full path, such as C:\Users\me\source\worktrees.");
         Wording.Describe(new SettingsProblem.NoExecutable()).ShouldBe("A custom editor needs an executable.");
-        Wording.Describe(new SettingsProblem.ExecutableNotFullPath()).ShouldBe(@"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Torni was started from.");
+        Wording.Describe(new SettingsProblem.ExecutableNotFullPath()).ShouldBe(@"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder the console was started from.");
         Wording.Describe(new SettingsProblem.BatchFileExecutable()).ShouldBe("A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.");
         Wording.Describe(new SettingsProblem.NoFolderPlaceholder()).ShouldBe("A custom editor's arguments need {folder} where the folder goes.");
         Wording.Describe(new SettingsProblem.ExecutableMissing(@"C:\Tools\subl.exe")).ShouldBe(@"C:\Tools\subl.exe does not exist.");
@@ -948,7 +948,7 @@ public sealed class WordingShould
     [Fact]
     public void SayWhatRemovingDid()
     {
-        Wording.ProfilesRemoved(@"C:\f\torni.json").ShouldBe(@"Removed C:\f\torni.json. Restart Windows Terminal to drop the Torni profiles.");
+        Wording.ProfilesRemoved(@"C:\f\torni.json").ShouldBe(@"Removed C:\f\torni.json. Restart Windows Terminal to drop the profiles.");
         Wording.NothingToRemove.ShouldBe("There is nothing to remove.");
     }
 
