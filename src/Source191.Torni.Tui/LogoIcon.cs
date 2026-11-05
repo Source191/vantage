@@ -4,12 +4,12 @@ using Terminal.Gui.Views;
 namespace Source191.Torni.Tui;
 
 /// <summary>
-/// The Torni icon for the console's top left corner: the pixels of assets\icon\logo-48.rgba (written by
+/// The logo for the console's top left corner: the pixels of assets\icon\logo-48.rgba (written by
 /// tools\New-IconPixels.ps1), drawn by an ImageView fitted to one row. It shows only where the terminal draws images
 /// (<see href="https://vt100.net/docs/vt3xx-gp/chapter14.html">Sixel</see> or
 /// <see href="https://sw.kovidgoyal.net/kitty/graphics-protocol/">Kitty</see>); cell-based drawing would turn each pixel into a cell, so without image support it stays hidden.
 /// </summary>
-internal static class TorniIcon
+internal static class LogoIcon
 {
     public const int Height = 1;
 
@@ -51,7 +51,7 @@ internal static class TorniIcon
     /// <summary>Transparent pixels take the console's background, so the icon sits on it whatever the terminal does with transparency.</summary>
     private static Color[,] Pixels()
     {
-        using Stream stream = typeof(TorniIcon).Assembly.GetManifestResourceStream(Resource)
+        using Stream stream = typeof(LogoIcon).Assembly.GetManifestResourceStream(Resource)
             ?? throw new InvalidOperationException($"The icon resource {Resource} is missing from the Tui assembly.");
         int width = stream.ReadByte();
         int height = stream.ReadByte();

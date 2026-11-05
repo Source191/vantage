@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Draws the Torni icon (two worktree branches meeting in the bar of a T over a stem to one node) at every size.
+Draws the icon (two worktree branches meeting in the bar of a T over a stem to one node) at every size.
 .DESCRIPTION
 Writes assets\icon\logo-<size>.png for each size and assets\icon\logo.ico (PNG-compressed entries, up to 256 px: the format cannot hold 512), then checks
 every file. The output is committed, so a build never needs this script; run it to change the drawing.
@@ -11,7 +11,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-. (Join-Path $PSScriptRoot 'TorniMark.ps1')
+. (Join-Path $PSScriptRoot 'LogoMark.ps1')
 
 $sizes = 16, 32, 48, 64, 128, 256, 512
 $master = 512
@@ -21,7 +21,7 @@ function New-Master {
     $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
     $graphics.SmoothingMode = 'AntiAlias'
     $graphics.PixelOffsetMode = 'HighQuality'
-    Add-TorniMark $graphics 0 0 $master
+    Add-LogoMark $graphics 0 0 $master
     $graphics.Dispose()
     $bitmap
 }

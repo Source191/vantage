@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-The Torni mark (two worktree branches meeting in the bar of a T, a tower, over a stem to one node, on a rounded tile), drawn once for every script that needs it.
+The mark (two worktree branches meeting in the bar of a T, a tower, over a stem to one node, on a rounded tile), drawn once for every script that needs it.
 .DESCRIPTION
 Dot-source it: New-Icon.ps1 draws the icon with it, New-Header.ps1 draws the mark on the header images, and New-IconPixels.ps1
 draws it without its tile (-NoTile) for the console's black background, where the dark tile disappeared. The mark is laid out on a
@@ -36,7 +36,7 @@ function Add-Node([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [flo
     $graphics.DrawEllipse((New-Pen $ring ($radius * 0.55)), $x - $inner, $y - $inner, 2 * $inner, 2 * $inner)
 }
 
-function Add-TorniMark([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [float]$size, [switch]$NoTile, [string]$NodeCentre = '#0F172A', [string]$Outline) {
+function Add-LogoMark([System.Drawing.Graphics]$graphics, [float]$x, [float]$y, [float]$size, [switch]$NoTile, [string]$NodeCentre = '#0F172A', [string]$Outline) {
     $layout = 512
     $state = $graphics.Save()
     $graphics.TranslateTransform($x, $y)

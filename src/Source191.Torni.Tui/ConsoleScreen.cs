@@ -135,7 +135,7 @@ public sealed class ConsoleScreen(
             Window = new Window { BorderStyle = LineStyle.None, Title = context.Title };
             Window.SetScheme(Palette.Plain(Palette.White));
 
-            icon = TorniIcon.Create();
+            icon = LogoIcon.Create();
             settings = [.. Enumerable.Range(0, SettingsRows).Select(row => new View { X = 0, Y = row, Width = Dim.Fill(), Height = 1 })];
             tabs = new Tabs { X = 0, Y = StripTop, Width = Dim.Fill(), Height = Dim.Fill(2) };
             tabs.SetScheme(Palette.Plain(Palette.Grey));
@@ -335,7 +335,7 @@ public sealed class ConsoleScreen(
         /// <summary>The icon shows where the terminal draws images, and the settings row starts after it; elsewhere it starts at the left edge.</summary>
         private void ShowSettings()
         {
-            int indent = app.Driver?.SixelSupport is { IsSupported: true, Resolution: System.Drawing.Size cell } ? TorniIcon.Fit(icon, cell) : TorniIcon.Hide(icon);
+            int indent = app.Driver?.SixelSupport is { IsSupported: true, Resolution: System.Drawing.Size cell } ? LogoIcon.Fit(icon, cell) : LogoIcon.Hide(icon);
             // The status line's mark lines up with the first letter of the settings row.
             settingsIndent = indent;
             statusRows.X = indent;
