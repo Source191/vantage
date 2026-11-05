@@ -28,7 +28,7 @@ See proposal.md for why.
 ## Decisions
 
 ### The build: self-contained, single file, not trimmed, x64 only
-`PublishSingleFile`, `SelfContained`, `RuntimeIdentifier win-x64`, `EnableCompressionInSingleFile`, with `InvariantGlobalization` unchanged. The zip holds `torni.exe`, `libonigwrap.dll`, `CHANGELOG.md`, `torni.ico` and `THIRD-PARTY-NOTICES.txt`; the PDBs and XML documentation files the publish also writes are left out. The settings live in a publish profile, `Properties\PublishProfiles\win-x64.pubxml`, rather than the `.csproj`, so `dotnet build` keeps its output folder (the hand-off check runs `bin\Release\net10.0\torni.exe`) and the test projects can still reference a framework-dependent program. A project's `.csproj` carries no comments, so the reasons go in `src\Source191.Torni\README.md`.
+`PublishSingleFile`, `SelfContained`, `RuntimeIdentifier win-x64`, `EnableCompressionInSingleFile`, with `InvariantGlobalization` unchanged. The zip holds `torni.exe`, `libonigwrap.dll`, `CHANGELOG.md`, `logo.ico` and `THIRD-PARTY-NOTICES.txt`; the PDBs and XML documentation files the publish also writes are left out. The settings live in a publish profile, `Properties\PublishProfiles\win-x64.pubxml`, rather than the `.csproj`, so `dotnet build` keeps its output folder (the hand-off check runs `bin\Release\net10.0\torni.exe`) and the test projects can still reference a framework-dependent program. A project's `.csproj` carries no comments, so the reasons go in `src\Source191.Torni\README.md`.
 - **Alternative: framework-dependent zip plus a .NET runtime dependency:** `Microsoft.DotNet.Runtime.10` is a winget package, so the zip would be about 1 MB. Rejected because winget would install a shared runtime the user did not ask for, and a runtime-only machine is a second prerequisite state to test.
 - **Alternative: `win-arm64` too:** deferred; x64 runs under emulation, and a second runner and smoke run is a later change.
 - **Alternative: native AOT:** rejected, see Non-Goals.
@@ -59,7 +59,7 @@ The nupkg, `PackAsTool`, `publish.yml`'s nuget.org push and the package icon are
 
 ## Risks / Trade-offs
 
-- **[The exe's path or base folder is wrong behind winget's link]** `TabScripts` is built from `Environment.ProcessPath`; `torni.ico` and `CHANGELOG.md` are read from `AppContext.BaseDirectory`. → Spike task 1 (3 November 2026): through the link both are the links folder, so `ProgramFolder.Of` follows the link to the package folder, where the files are; no embedding is needed.
+- **[The exe's path or base folder is wrong behind winget's link]** `TabScripts` is built from `Environment.ProcessPath`; `logo.ico` and `CHANGELOG.md` are read from `AppContext.BaseDirectory`. → Spike task 1 (3 November 2026): through the link both are the links folder, so `ProgramFolder.Of` follows the link to the package folder, where the files are; no embedding is needed.
 - **[A zip that winget extracts only in part]** The schema says one nested installer file is run; whether the other files in the archive are kept is not stated. → The spike found every file of the zip beside the executable after install.
 - **[Unsigned executable]** SmartScreen or a managed machine's policy may block it. → Out of scope here; a signing decision follows if reports arrive.
 - **[Download size]** about 34 MB against a small package. → Accepted; winget caches nothing but the download is once per upgrade.

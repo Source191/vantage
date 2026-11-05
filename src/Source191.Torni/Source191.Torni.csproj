@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="..\..\assets\icon\torni.ico" Link="torni.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\assets\icon\logo.ico" Link="logo.ico" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
     <None Include="..\..\THIRD-PARTY-NOTICES.txt" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

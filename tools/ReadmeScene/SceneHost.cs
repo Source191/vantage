@@ -52,7 +52,7 @@ internal sealed class SceneHost(SceneFolders folders, Scene scene, ToolVersion v
         RecordedProcessRunner realProcesses = new(new ProcessRunner(TimeSpan.FromSeconds(60)), log, processCounts, clock);
         SceneProcessRunner processes = new(listing, new ScenePullRequests(scene, clock), executables, realProcesses);
         string git = programs.Locate("git") is ProgramLocation.Found found ? found.Path : throw new InvalidOperationException("git is not on the PATH.");
-        TerminalFragment fragment = TerminalFragment.ForCurrentUser(Path.Combine(folders.Bin, "torni.ico"));
+        TerminalFragment fragment = TerminalFragment.ForCurrentUser(Path.Combine(folders.Bin, "logo.ico"));
         CrashFile crashFile = new(folders.State);
 
         ClaudeCli claude = new(processes, executables.Claude);

@@ -2,13 +2,13 @@
 
 ## 1. Spike: what winget does with the build
 
-- [x] 1.1 Publish the self-contained single-file build, write a local manifest (`winget settings --enable LocalManifestFiles`) for its zip with the portable alias `torni`, run `winget install --manifest`, and record in `.claude\rules\windows.md` (dated, with the winget version): what `Environment.ProcessPath` and `AppContext.BaseDirectory` resolve to when run through the link, whether `libonigwrap.dll`, `CHANGELOG.md` and `torni.ico` are extracted beside the executable, whether the install folder survives `winget upgrade`, and the exit code and message when the upgrade finds the executable locked. Verify by the recorded facts; if a path is wrong, add a task to group 2 to embed the file.
+- [x] 1.1 Publish the self-contained single-file build, write a local manifest (`winget settings --enable LocalManifestFiles`) for its zip with the portable alias `torni`, run `winget install --manifest`, and record in `.claude\rules\windows.md` (dated, with the winget version): what `Environment.ProcessPath` and `AppContext.BaseDirectory` resolve to when run through the link, whether `libonigwrap.dll`, `CHANGELOG.md` and `logo.ico` are extracted beside the executable, whether the install folder survives `winget upgrade`, and the exit code and message when the upgrade finds the executable locked. Verify by the recorded facts; if a path is wrong, add a task to group 2 to embed the file.
 - [x] 1.2 Run `dotnet run -- smoke <exe> Northwind.Smoke-smoke` from `tools\HeadlessTerminal` against the unzipped `torni.exe` and verify exit 0.
 
 ## 2. The build
 
 - [x] 2.1 Add `PublishSingleFile`, `SelfContained`, `RuntimeIdentifier win-x64` and `EnableCompressionInSingleFile` in a publish profile (`Properties\PublishProfiles\win-x64.pubxml`) that leaves out the PDBs and XML documentation files; write each setting's reason in `src\Source191.Torni\README.md` (no comments in the csproj). Verify `dotnet publish` gives a folder holding `torni.exe` and its native library and `torni --version` prints the csproj `Version`.
-- [x] 2.2 Test then build the zip step in `build-test-pack`: a script test (or the check's existing format) asserting the zip holds `torni.exe`, `libonigwrap.dll`, `CHANGELOG.md`, `torni.ico` and `THIRD-PARTY-NOTICES.txt` and no `.pdb`. Verify the action outputs the zip path.
+- [x] 2.2 Test then build the zip step in `build-test-pack`: a script test (or the check's existing format) asserting the zip holds `torni.exe`, `libonigwrap.dll`, `CHANGELOG.md`, `logo.ico` and `THIRD-PARTY-NOTICES.txt` and no `.pdb`. Verify the action outputs the zip path.
 - [x] 2.3 Remove the dotnet tool: `PackAsTool` and the package properties and items from `Source191.Torni.csproj`, the `RemoveNonWindowsNativeAssets` target, `icon.png` and `IconAssetsShould`, the pack step in `build-test-pack` and `publish.yml`. Verify the publish folder still holds exactly the five files and the build passes.
 
 ## 3. The update source

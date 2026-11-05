@@ -6,11 +6,11 @@ The program: `Program.cs` and its `Composition` folder, the only composition roo
 
 - **`SatelliteResourceLanguages` `en`:** the program is English only, so the translated resources of System.CommandLine and Terminal.Gui are neither built nor shipped, and those libraries' own messages stay English on every Windows display language.
 - **`IncludeSourceRevisionInInformationalVersion` false:** `torni --version` prints exactly the version that the GitHub Release and winget show, with no `+<commit>`. The `check` job asserts this on the unzipped winget build.
-- **`CHANGELOG.md` beside the program:** copied to the output, as `torni.ico` is, where `PackagedReleaseNotes` reads it on the first start of a new version without a network request. A newer release's notes are read from the changelog at its tag (`WingetPackageVersions.NotesAsync`).
+- **`CHANGELOG.md` beside the program:** copied to the output, as `logo.ico` is, where `PackagedReleaseNotes` reads it on the first start of a new version without a network request. A newer release's notes are read from the changelog at its tag (`WingetPackageVersions.NotesAsync`).
 - **`THIRD-PARTY-NOTICES.txt`:** copied to the publish folder and so into the zip, as the licences of the shipped dependencies ask.
 - **`ContinuousIntegrationBuild`:** set under GitHub Actions in the root `Directory.Build.props`, which explains it, so the shipped assemblies are deterministic.
 - **`InvariantGlobalization`:** the one project where the setting takes effect, because only an executable's `runtimeconfig.json` carries it; the libraries leave it off (their READMEs say why) and the test projects set it so they run as the program does.
-- **`torni.ico`:** `assets\icon\torni.ico` is copied beside `torni.exe`, where `torni setup-terminal` finds it and copies it next to the Windows Terminal fragment as the profiles' tab icon.
+- **`logo.ico`:** `assets\icon\logo.ico` is copied beside `torni.exe`, where `torni setup-terminal` finds it and copies it next to the Windows Terminal fragment as the profiles' tab icon.
 
 ## The winget build
 
@@ -18,5 +18,5 @@ The program: `Program.cs` and its `Composition` folder, the only composition roo
 
 - **`SelfContained` and `RuntimeIdentifier` `win-x64`:** the program carries its own .NET runtime, so a machine needs neither the SDK nor the runtime, and only the `win-x64` native assets are published (Terminal.Gui's Onigwrap ships `libonigwrap` for thirteen platforms). `win-arm64` is left for a later change; x64 runs under emulation on Arm Windows.
 - **`PublishSingleFile` and `EnableCompressionInSingleFile`:** one `torni.exe` (about 40 MB, 34 MB zipped, measured 1 November 2026 on .NET 10.0.403) beside `libonigwrap.dll`, Terminal.Gui's native library, which stays a file of its own. Not trimmed and not native AOT: Terminal.Gui and System.CommandLine use reflection the trimmer would need annotating for.
-- **`CopyOutputSymbolsToPublishDirectory`, `PublishDocumentationFiles`, `PublishReferencesDocumentationFiles` false and `AllowedReferenceRelatedFileExtensions` `.none`:** the PDBs and XML documentation files of the program and the three projects it references are left out, so the folder holds exactly what the zip ships: `torni.exe`, `libonigwrap.dll`, `CHANGELOG.md`, `torni.ico` and `THIRD-PARTY-NOTICES.txt`.
+- **`CopyOutputSymbolsToPublishDirectory`, `PublishDocumentationFiles`, `PublishReferencesDocumentationFiles` false and `AllowedReferenceRelatedFileExtensions` `.none`:** the PDBs and XML documentation files of the program and the three projects it references are left out, so the folder holds exactly what the zip ships: `torni.exe`, `libonigwrap.dll`, `CHANGELOG.md`, `logo.ico` and `THIRD-PARTY-NOTICES.txt`.
 - **`PublishDir`:** `artifacts\publish` at the repository root, ignored by git.

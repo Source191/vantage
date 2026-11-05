@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\assets\icon\torni-48.rgba" LogicalName="Source191.Torni.Tui.torni-48.rgba" />
+    <EmbeddedResource Include="..\..\assets\icon\logo-48.rgba" LogicalName="Source191.Torni.Tui.logo-48.rgba" />
   </ItemGroup>
 
 </Project>

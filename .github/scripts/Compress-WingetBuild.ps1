@@ -6,7 +6,7 @@
 .DESCRIPTION
     The publish folder (dotnet publish src\Source191.Torni -p:PublishProfile=win-x64) must hold torni.exe, Terminal.Gui's
     native libonigwrap.dll, and the three files Torni reads or must carry beside itself: CHANGELOG.md (the notes of the
-    running version), torni.ico (the Windows Terminal profiles' icon) and THIRD-PARTY-NOTICES.txt. Anything else, a PDB or
+    running version), logo.ico (the Windows Terminal profiles' icon) and THIRD-PARTY-NOTICES.txt. Anything else, a PDB or
     an XML documentation file above all, fails the build rather than shipping, and so does a missing file. The zip is flat,
     so winget extracts every file beside torni.exe. Exit code 0 means the zip was written and checked; 1 means it was not.
 
@@ -22,7 +22,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$expected = @('CHANGELOG.md', 'libonigwrap.dll', 'THIRD-PARTY-NOTICES.txt', 'torni.exe', 'torni.ico')
+$expected = @('CHANGELOG.md', 'libonigwrap.dll', 'THIRD-PARTY-NOTICES.txt', 'torni.exe', 'logo.ico')
 
 $folder = (Resolve-Path -LiteralPath $PublishFolder).Path
 $published = @(Get-ChildItem -LiteralPath $folder -Recurse -File | ForEach-Object { [IO.Path]::GetRelativePath($folder, $_.FullName) })

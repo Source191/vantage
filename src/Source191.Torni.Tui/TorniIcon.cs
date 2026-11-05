@@ -4,7 +4,7 @@ using Terminal.Gui.Views;
 namespace Source191.Torni.Tui;
 
 /// <summary>
-/// The Torni icon for the console's top left corner: the pixels of assets\icon\torni-48.rgba (written by
+/// The Torni icon for the console's top left corner: the pixels of assets\icon\logo-48.rgba (written by
 /// tools\New-IconPixels.ps1), drawn by an ImageView fitted to one row. It shows only where the terminal draws images
 /// (<see href="https://vt100.net/docs/vt3xx-gp/chapter14.html">Sixel</see> or
 /// <see href="https://sw.kovidgoyal.net/kitty/graphics-protocol/">Kitty</see>); cell-based drawing would turn each pixel into a cell, so without image support it stays hidden.
@@ -16,7 +16,7 @@ internal static class TorniIcon
     /// <summary>The cells a terminal that reports no cell size gets: Terminal.Gui's own default of 10 by 20 pixels makes a row two cells wide.</summary>
     private const int DefaultWidth = 2;
 
-    private const string Resource = "Source191.Torni.Tui.torni-48.rgba";
+    private const string Resource = "Source191.Torni.Tui.logo-48.rgba";
 
     public static ImageView Create()
     {
