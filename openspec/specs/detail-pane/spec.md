@@ -45,7 +45,7 @@ The pane's Prompted line SHALL show the most recent time, while this Torni ran, 
 
 #### Scenario: Not seen
 - **WHEN** a session has been idle since Torni started
-- **THEN** its Prompted line reads not seen since Torni started
+- **THEN** its Prompted line reads not seen since the console started
 
 ### Requirement: The pane shows the selected worktree
 On the Worktrees tab the pane SHALL show, for the selected row and titled with its folder's name: the health with its reason in full, the branch and its merge state against origin's default branch, the pull request, the full folder, whether and when Torni created it, its changed files and unpushed commits, and beneath them its unpushed commits as far as five, or its changed files when none are unpushed, then how many more.
