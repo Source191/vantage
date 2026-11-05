@@ -1,6 +1,6 @@
 using System.Runtime.Versioning;
 
-namespace Source191.Vantage.HeadlessTerminal.Tests;
+namespace Source191.Torni.HeadlessTerminal.Tests;
 
 [SupportedOSPlatform("windows")]
 public sealed class SmokeCheckShould : IDisposable
@@ -12,14 +12,14 @@ public sealed class SmokeCheckShould : IDisposable
     {
         SmokeCheck check = new(new StepRunner(SmokeCheck.Options, StepTimings.Default, Path.Combine(folder, "drive-raw.txt")));
 
-        int result = await check.RunAsync(Path.Combine(folder, "vantage.exe"), "Northwind.Smoke-smoke");
+        int result = await check.RunAsync(Path.Combine(folder, "torni.exe"), "Northwind.Smoke-smoke");
 
         result.ShouldBe(SmokeCheck.CouldNotStart);
         File.Exists(Path.Combine(folder, "drive-raw.txt")).ShouldBeFalse();
     }
 
     [Fact]
-    public void PretendToBeWindowsTerminalAndAnswerItsQueriesAsVantageExpects()
+    public void PretendToBeWindowsTerminalAndAnswerItsQueriesAsExpected()
     {
         SmokeCheck.Options.ShouldBe(new DriverOptions(PretendWindowsTerminal: true, AnswerQueries: true, XtversionDelayMs: 0));
     }

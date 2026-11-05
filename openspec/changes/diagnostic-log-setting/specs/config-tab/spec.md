@@ -18,7 +18,7 @@ The console SHALL have a third tab, titled Config, whose table has the columns S
 - **THEN** the Open folder with row reads C:\Tools\subl.exe -n {folder}
 
 ### Requirement: The Config tab shows the setup
-After the settings, under the Setup heading row, the table SHALL have a grey row for each piece of setup Vantage reads but does not edit: Settings file (the full path of `config.json`), Windows Terminal profiles (installed, with the fragment's path, or not set up), Claude bell (on, the other channel named, or not set) and Last update check (when, and the newest release found, or never, or off).
+After the settings, under the Setup heading row, the table SHALL have a grey row for each piece of setup Torni reads but does not edit: Settings file (the full path of `config.json`), Windows Terminal profiles (installed, with the fragment's path, or not set up), Claude bell (on, the other channel named, or not set) and Last update check (when, and the newest release found, or never, or off).
 
 #### Scenario: Everything set up
 - **WHEN** the fragment exists, Claude's settings say terminal_bell and nuget.org was asked at 09:12 today and named 0.18.0
@@ -26,7 +26,7 @@ After the settings, under the Setup heading row, the table SHALL have a grey row
 
 #### Scenario: Nothing set up
 - **WHEN** the fragment does not exist and Claude's settings file has no preferredNotifChannel
-- **THEN** Windows Terminal profiles reads not set up, run vantage setup-terminal, and Claude bell reads not set, run vantage setup-terminal
+- **THEN** Windows Terminal profiles reads not set up, run torni setup-terminal, and Claude bell reads not set, run torni setup-terminal
 
 #### Scenario: Another channel
 - **WHEN** Claude's settings say iterm2
@@ -49,14 +49,14 @@ Enter on a Worktree root, Open folder with or Default base row SHALL open a dial
 
 #### Scenario: Turn the diagnostic log on
 - **WHEN** Diagnostic log is off and the user presses Enter on it
-- **THEN** it reads on, `config.json` says so, and the status line says the log is now written to the full path of `vantage.log`
+- **THEN** it reads on, `config.json` says so, and the status line says the log is now written to the full path of `torni.log`
 
 ### Requirement: A setup row says how to change it
-Enter on a setup row SHALL change nothing and the status line SHALL say how that setup is changed: `vantage setup-terminal` for the profiles and the bell, Check for updates for the update check, and that the settings file is written by this tab.
+Enter on a setup row SHALL change nothing and the status line SHALL say how that setup is changed: `torni setup-terminal` for the profiles and the bell, Check for updates for the update check, and that the settings file is written by this tab.
 
 #### Scenario: Profiles not set up
 - **WHEN** the user presses Enter on Windows Terminal profiles
-- **THEN** the status line says to run vantage setup-terminal and restart Windows Terminal
+- **THEN** the status line says to run torni setup-terminal and restart Windows Terminal
 
 ### Requirement: The Config tab's counts and keys
 Beside the tab titles the Config tab SHALL count its settings and, when any is missing, the setup to do, the latter in amber. Its key bar SHALL read Enter Edit, then c Copy, f Open folder, / Filter, ? Help, ! Report and q Quit. c SHALL copy a path value whole; f SHALL open a folder value in the editor, and the folder holding a file value; on a value that is not a path both SHALL say so.
@@ -99,11 +99,11 @@ Between the settings and the setup rows the Config tab's table SHALL have a head
 ## ADDED Requirements
 
 ### Requirement: The Diagnostic log row names its file
-The Diagnostic log row's tooltip SHALL say what the setting does and give the full path of the log file, `%LOCALAPPDATA%\Vantage\vantage.log` expanded for the user, whether the setting is on or off. Its VALUE SHALL read on or off and nothing else.
+The Diagnostic log row's tooltip SHALL say what the setting does and give the full path of the log file, `%LOCALAPPDATA%\Torni\torni.log` expanded for the user, whether the setting is on or off. Its VALUE SHALL read on or off and nothing else.
 
 #### Scenario: Hover on the row
 - **WHEN** the user's local application data folder is C:\Users\me\AppData\Local and the mouse rests on the Diagnostic log row
-- **THEN** the tooltip names C:\Users\me\AppData\Local\Vantage\vantage.log and says Enter turns the log on or off
+- **THEN** the tooltip names C:\Users\me\AppData\Local\Torni\torni.log and says Enter turns the log on or off
 
 #### Scenario: The value stays short
 - **WHEN** the setting is on

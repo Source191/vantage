@@ -1,7 +1,7 @@
-Third-party notices for Source191.Vantage
+Third-party notices for Source191.Torni
 =========================================
 
-Vantage itself is licensed under the Apache License 2.0 (see the package licence).
+Torni itself is licensed under the Apache License 2.0 (see the package licence).
 The tool package ships the libraries below beside it. Each is used under the licence named, and its copyright and licence notice is reproduced here as that licence requires.
 
 Packages

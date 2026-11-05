@@ -2,7 +2,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.Versioning;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// Captures the scene's window with <c>PrintWindow</c> and <c>PW_RENDERFULLCONTENT</c>, which draws Windows Terminal's

@@ -1,0 +1,8 @@
+using Source191.Torni.Domain;
+namespace Source191.Torni.Ports;
+
+/// <summary>Claude Code's transcript files, one per session, written only once a session has been sent a message.</summary>
+public interface ITranscripts
+{
+    bool HasMessages(SessionId sessionId);
+}

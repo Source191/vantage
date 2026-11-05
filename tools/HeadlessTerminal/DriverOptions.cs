@@ -1,4 +1,4 @@
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>How a drive runs: whether to pretend to be Windows Terminal and answer its queries, the XTVERSION delay, and the pseudo-console's size.</summary>
 public sealed record DriverOptions(bool PretendWindowsTerminal, bool AnswerQueries, int XtversionDelayMs, int Columns = 120, int Rows = 40)
@@ -21,7 +21,7 @@ public sealed record DriverOptions(bool PretendWindowsTerminal, bool AnswerQueri
             environment[(string)entry.Key] = (string?)entry.Value ?? string.Empty;
         }
 
-        environment["VANTAGE_NO_UPDATE_CHECK"] = "1";
+        environment["TORNI_NO_UPDATE_CHECK"] = "1";
 
         if (PretendWindowsTerminal)
         {

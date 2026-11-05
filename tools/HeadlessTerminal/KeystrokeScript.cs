@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// Parses "delayMs:keys,delayMs:keys,..." where each delay is relative to the previous step and keys use JSON

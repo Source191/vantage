@@ -1,6 +1,6 @@
-using Source191.Vantage.Ports;
+using Source191.Torni.Ports;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>Plays a key script into the scene's console: keys through <see cref="ConsoleKeys"/>, focus through <c>wt focus-tab</c>, marks as files.</summary>
 internal sealed class KeyPlayer(SceneFolders folders, IProcessRunner processes, SceneExecutables executables)
@@ -29,8 +29,8 @@ internal sealed class KeyPlayer(SceneFolders folders, IProcessRunner processes, 
             case KeyStep.Press press:
                 ConsoleKeys.Press(press.Key);
                 break;
-            case KeyStep.FocusVantage:
-                // Vantage's own tab is the first in the scene's window.
+            case KeyStep.FocusOwnTab:
+                // The console's own tab is the first in the scene's window.
                 await processes.RunAsync(new ProcessRequest(executables.Terminal, ["-w", executables.WindowName, "focus-tab", "--target", "0"], WorkingFolder.Inherit), cancellationToken);
                 break;
             case KeyStep.Mark mark:

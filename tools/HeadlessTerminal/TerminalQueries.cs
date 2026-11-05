@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// Answers terminal queries the way Windows Terminal 1.25 would:
@@ -8,7 +8,7 @@ namespace Source191.Vantage.HeadlessTerminal;
 /// <see href="https://learn.microsoft.com/windows/console/console-virtual-terminal-sequences">primary</see> and
 /// <see href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html">secondary device attributes, XTVERSION</see>,
 /// cursor position and background colour. The XTVERSION reply can be delayed so it lands
-/// after the program has exited, which is what happens to <c>vantage here</c> after a detach.
+/// after the program has exited, which is what happens to <c>torni here</c> after a detach.
 /// </summary>
 public sealed partial class TerminalQueries(int xtversionDelayMs)
 {

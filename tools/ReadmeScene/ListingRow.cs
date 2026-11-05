@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>One row of <c>claude agents --json --all</c>, in the CLI's own field names; a missing field is left out.</summary>
 internal sealed record ListingRow(

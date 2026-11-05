@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// A child process attached to a

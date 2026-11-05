@@ -1,8 +1,8 @@
-using Source191.Vantage.Application;
-using Source191.Vantage.Application.Views;
-using Source191.Vantage.Domain;
+using Source191.Torni.Application;
+using Source191.Torni.Application.Views;
+using Source191.Torni.Domain;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// The smoke run's steps, built from Wording so a renamed title or a rebound key needs no change here: open and cancel
@@ -79,7 +79,7 @@ public static class SmokeScript
 
     /// <summary>
     /// The What's new dialog before an update, on a stable build that has recorded a newer release (a development build
-    /// never offers one, so CI's smoke cannot reach it): U opens it, Esc closes it, and Vantage quits. Run after
+    /// never offers one, so CI's smoke cannot reach it): U opens it, Esc closes it, and the console quits. Run after
     /// <see cref="WhatsNewOnStart"/> it also shows that a second start opens nothing first.
     /// </summary>
     public static IReadOnlyList<SmokeStep> WhatsNewBeforeUpdate()
@@ -97,7 +97,7 @@ public static class SmokeScript
 
     /// <summary>
     /// The What's new dialog on the first start of a stable build newer than the one <c>last-run.json</c> names: it opens
-    /// before the console, Esc closes it, the sessions view follows, and Vantage quits.
+    /// before the console, Esc closes it, the sessions view follows, and the console quits.
     /// </summary>
     public static IReadOnlyList<SmokeStep> WhatsNewOnStart()
     {

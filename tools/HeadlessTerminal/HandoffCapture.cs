@@ -1,7 +1,7 @@
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
-/// Reads a hand-off capture of <c>vantage here</c>: whether Claude's own screen, its <c>Claude Code v</c> banner, was drawn.
+/// Reads a hand-off capture of <c>torni here</c>: whether Claude's own screen, its <c>Claude Code v</c> banner, was drawn.
 /// <c>here</c> has no screen of its own and prints nothing holding that text before it hands over, so the banner is
 /// looked for anywhere in the capture with the escape sequences stripped.
 /// </summary>

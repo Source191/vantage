@@ -67,7 +67,7 @@ if ($changed.Count -gt 0) {
     }
     if ($difference -eq 0) {
         $shown = ($changed | Select-Object -First 5) -join ', '
-        $failures.Add("This change touches the packaged tool ($shown) but $changelog is unchanged. Add a line under Unreleased, written for the people who use Vantage and ending with the pull request number, or under Internal when they cannot see it (CONTRIBUTING.md, Pull requests).")
+        $failures.Add("This change touches the packaged tool ($shown) but $changelog is unchanged. Add a line under Unreleased, written for the people who use it and ending with the pull request number, or under Internal when they cannot see it (CONTRIBUTING.md, Pull requests).")
     }
 }
 

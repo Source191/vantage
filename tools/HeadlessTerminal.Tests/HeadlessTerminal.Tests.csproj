@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Source191.Vantage.HeadlessTerminal.Tests</RootNamespace>
-    <AssemblyName>Source191.Vantage.HeadlessTerminal.Tests</AssemblyName>
+    <RootNamespace>Source191.Torni.HeadlessTerminal.Tests</RootNamespace>
+    <AssemblyName>Source191.Torni.HeadlessTerminal.Tests</AssemblyName>
     <OutputType>Exe</OutputType>
     <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
     <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\HeadlessTerminal\HeadlessTerminal.csproj" />
-    <ProjectReference Include="..\..\src\Source191.Vantage.Infrastructure\Source191.Vantage.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\Source191.Torni.Infrastructure\Source191.Torni.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

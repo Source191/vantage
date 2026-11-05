@@ -4,7 +4,7 @@
     Adds one line under Unreleased, Internal, in CHANGELOG.md, making the heading when it is missing.
 
 .DESCRIPTION
-    For changes nobody using Vantage can see that a workflow makes on a pull request's behalf, such as a Dependabot
+    For changes nobody using the program can see that a workflow makes on a pull request's behalf, such as a Dependabot
     dependency update, so Assert-ChangelogUpdated.ps1 finds the entry it asks every change to the packaged tool for.
     Internal is the last heading of a section, so a missing one goes at the end of Unreleased. The text is written as
     given on one line, after the "- " that starts an entry; line breaks in it become spaces.

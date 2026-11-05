@@ -18,7 +18,7 @@ outputs:
     description: The version the zip is named for (csproj Version plus any suffix).
     value: ${{ steps.zip.outputs.version }}
   zip:
-    description: Path of the winget build's zip, vantage_<version>_win-x64.zip, written to artifacts/winget.
+    description: Path of the winget build's zip, torni_<version>_win-x64.zip, written to artifacts/winget.
     value: ${{ steps.zip.outputs.zip }}
 
 runs:
@@ -49,14 +49,14 @@ runs:
       shell: pwsh
       run: dotnet format whitespace --folder --verify-no-changes --exclude openspec
 
-    # The self-contained single-file build winget installs (src\Source191.Vantage\README.md, The winget build). It builds
+    # The self-contained single-file build winget installs (src\Source191.Torni\README.md, The winget build). It builds
     # the program again for win-x64, so warnings are still errors; the assembly keeps the csproj Version.
     - name: Publish the winget build
       shell: pwsh
       run: |
         $ErrorActionPreference = 'Stop'
         if (Test-Path artifacts\publish) { Remove-Item -Recurse -Force artifacts\publish }
-        dotnet publish src\Source191.Vantage -p:PublishProfile=win-x64
+        dotnet publish src\Source191.Torni -p:PublishProfile=win-x64
         exit $LASTEXITCODE
 
     - name: Zip the winget build
@@ -66,11 +66,11 @@ runs:
         VERSION_SUFFIX: ${{ inputs.version-suffix }}
       run: |
         $ErrorActionPreference = 'Stop'
-        $version = (Select-Xml -Path src\Source191.Vantage\Source191.Vantage.csproj -XPath '//Version').Node.InnerText
+        $version = (Select-Xml -Path src\Source191.Torni\Source191.Torni.csproj -XPath '//Version').Node.InnerText
         if (-not [string]::IsNullOrEmpty($env:VERSION_SUFFIX)) {
             $version = "$version-$env:VERSION_SUFFIX"
         }
-        $zip = Join-Path (Get-Location) "artifacts\winget\vantage_$($version)_win-x64.zip"
+        $zip = Join-Path (Get-Location) "artifacts\winget\torni_$($version)_win-x64.zip"
         .github/scripts/Compress-WingetBuild.ps1 -PublishFolder artifacts\publish -Destination $zip
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         "version=$version" >> $env:GITHUB_OUTPUT

@@ -1,4 +1,4 @@
-namespace Source191.Vantage.ReadmeScene.Tests;
+namespace Source191.Torni.ReadmeScene.Tests;
 
 public sealed class KeyScriptShould
 {
@@ -21,7 +21,7 @@ public sealed class KeyScriptShould
             new KeyStep.Type(TimeSpan.FromMilliseconds(800), "Northwind.Inv"),
             new KeyStep.Press(TimeSpan.FromMilliseconds(400), NamedKey.Tab),
             new KeyStep.Press(TimeSpan.FromMilliseconds(300), NamedKey.F5),
-            new KeyStep.FocusVantage(TimeSpan.FromMilliseconds(2000)),
+            new KeyStep.FocusOwnTab(TimeSpan.FromMilliseconds(2000)),
             new KeyStep.Mark(TimeSpan.FromMilliseconds(500), "ready"),
         ]);
     }
@@ -50,6 +50,6 @@ public sealed class KeyScriptShould
         IReadOnlyList<KeyStep> steps = KeyScript.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "new-session.keys")));
 
         steps.ShouldContain(new KeyStep.Press(steps.OfType<KeyStep.Press>().First(step => step.Key == NamedKey.F5).Delay, NamedKey.F5));
-        steps.OfType<KeyStep.FocusVantage>().ShouldNotBeEmpty();
+        steps.OfType<KeyStep.FocusOwnTab>().ShouldNotBeEmpty();
     }
 }

@@ -1,11 +1,11 @@
 ---
 paths:
-  - "src/Source191.Vantage.Infrastructure/Processes/**"
-  - "src/Source191.Vantage.Infrastructure/PullRequests/**"
-  - "src/Source191.Vantage.Infrastructure/Terminal/**"
-  - "src/Source191.Vantage.Infrastructure/Diagnostics/**"
-  - "src/Source191.Vantage.Core/Application/Diagnostics/**"
-  - "src/Source191.Vantage.Core/Application/Reporting/**"
+  - "src/Source191.Torni.Infrastructure/Processes/**"
+  - "src/Source191.Torni.Infrastructure/PullRequests/**"
+  - "src/Source191.Torni.Infrastructure/Terminal/**"
+  - "src/Source191.Torni.Infrastructure/Diagnostics/**"
+  - "src/Source191.Torni.Core/Application/Diagnostics/**"
+  - "src/Source191.Torni.Core/Application/Reporting/**"
   - "**/TabScripts*.cs"
   - "**/PowerShellScript*.cs"
   - "**/BatchFileArgument*.cs"
@@ -38,13 +38,13 @@ The detail behind the security and privacy invariants in `CLAUDE.md`.
 
 ## Programs and arguments
 
-- Every program Vantage starts is found once as it starts and run by its full path: `Adapters\Processes\ProgramLocator` searches the PATH folders (only full paths: `PathFolders.Searchable` is the one filter every PATH search applies, az.cmd's and the VS Code shim's included) for the `.exe` only (CreateProcess would otherwise look in the parent's current directory before the PATH for a bare name, so a `git.exe` planted in the folder Vantage was started from would run; `ProgramLocatorShould` and the fact in the security review of 2026-10-29 cover it).
+- Every program Torni starts is found once as it starts and run by its full path: `Adapters\Processes\ProgramLocator` searches the PATH folders (only full paths: `PathFolders.Searchable` is the one filter every PATH search applies, az.cmd's and the VS Code shim's included) for the `.exe` only (CreateProcess would otherwise look in the parent's current directory before the PATH for a bare name, so a `git.exe` planted in the folder Torni was started from would run; `ProgramLocatorShould` and the fact in the security review of 2026-10-29 cover it).
 - `ClaudeExecutable.Locate` answers a `ClaudeLocation` (`Found`, `BatchFileOnly`, `Missing`), `Application\RequiredPrograms.Check` turns it and git's location into both paths or `Wording.ClaudeIsABatchFile`, `ClaudeNotFound` or `GitNotFound` (Claude Code's first), and the tool's `Composition\LaunchParts` prints that sentence and exits 1; `ProgramLocator.Locate` answers a `Ports\ProgramLocation` (`Found`, `Missing`), and `GitHubPullRequests`, `AzureDevOpsPullRequests` (through `AzureCliExecutable.Locate`), `WindowsTerminal` (wt.exe and the tab's pwsh.exe, which `WindowsTerminalArguments` names by its full path) and `Desktop` take a `ProgramLocation` and report a `Missing` one where it is needed.
 - A folder reaches an editor as one element of an argument list built by `EditorCommand`, never through a command line or cmd.exe, and the locator never answers a `.cmd` shim. `IEditorLocator` finds a preset's real executable as a `ProgramLocation` (Visual Studio's through `vswhere -latest -property productPath`, run by its full path); `IDesktop` opens a file with its associated application (`OpenAsync` throws `NoApplicationException` for a file type with none, never for an address, and `ProgramNotStartedException` when PowerShell or the open script fails; the two handlers that open an address catch the latter into `NotOpened`, the others let it reach the screen as `Failed:`) or starts a program detached with `InheritedEnvironment` applied; `IClipboard` is implemented over Terminal.Gui's `app.Clipboard` by `Tui\ScreenClipboard`, attached while a table screen runs.
 - No batch file is ever given text from a person, a repository or a listing: a custom editor's executable must be a full path (`SettingsProblem.ExecutableNotFullPath`), and `Domain\BatchFileArgument.IsSafe` (letters, digits, space, dot, underscore, hyphen, slash) is the one rule for what `az.cmd` may be given, applied to the remote names in `RemoteRepository` and to the branch in `AzureDevOpsPullRequests` (`PullRequestGap.BranchNotGivenToAz`).
 - User text must never be interpolated into PowerShell source: a tab's script reaches `wt.exe` Base64-encoded for [`pwsh -EncodedCommand`](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_pwsh), and every value inside it (paths, ids, folder names, whole messages) is built by `TabScripts` and goes through `PowerShellScript.Quote`, which doubles all five characters [PowerShell reads as a single quote](https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_quoting_rules) (`'` and U+2018 to U+201B). `PowerShellQuotingShould` checks this against real `pwsh`. Every semicolon reaching `wt.exe` is escaped by `WindowsTerminalArguments` (`windows.md`).
 - An opening prompt that starts with `-` is `LaunchProblem.PromptLooksLikeAnOption`.
-- Release notes come from outside Vantage (the changelog at a release's tag on GitHub, the changelog beside the program): `Domain\ReleaseNotes.TryParse` drops every control character as it reads each line and keeps only headings and one-line entries, the dialog shows the lines as text, and the release page's URL is built from the version alone by `Application\ReleasePage`. The version list is the names of winget-pkgs' folders, kept only when they parse as stable versions.
+- Release notes come from outside the program (the changelog at a release's tag on GitHub, the changelog beside the program): `Domain\ReleaseNotes.TryParse` drops every control character as it reads each line and keeps only headings and one-line entries, the dialog shows the lines as text, and the release page's URL is built from the version alone by `Application\ReleasePage`. The version list is the names of winget-pkgs' folders, kept only when they parse as stable versions.
 
 ## Processes and identities
 
@@ -59,6 +59,6 @@ The detail behind the security and privacy invariants in `CLAUDE.md`.
 
 ## Diagnostics
 
-- Diagnostics live in `Application\Diagnostics`: one `DiagnosticLog` (the latest 500 events in memory, each also written to the `VANTAGE_LOG` file when it is set), `ProcessCounts` filled by `RecordedProcessRunner` around the one process runner, `RefreshCounts` (timed in `ConsoleLoads` and `PullRequestCatalogue`) and `StallCounts` (filled by `Heartbeat`), the three held in one `PerformanceCounts` (each a `DurationSample`: runs and longest over every run, median and 95th percentile over the latest 1,000) and written to the sinks every 10 minutes by `PeriodicCounts` while `VANTAGE_LOG` is set and at exit, and `CrashRecorder` writing `%LOCALAPPDATA%\Vantage\last-crash.log`.
+- Diagnostics live in `Application\Diagnostics`: one `DiagnosticLog` (the latest 500 events in memory, each also written to the `TORNI_LOG` file when it is set), `ProcessCounts` filled by `RecordedProcessRunner` around the one process runner, `RefreshCounts` (timed in `ConsoleLoads` and `PullRequestCatalogue`) and `StallCounts` (filled by `Heartbeat`), the three held in one `PerformanceCounts` (each a `DurationSample`: runs and longest over every run, median and 95th percentile over the latest 1,000) and written to the sinks every 10 minutes by `PeriodicCounts` while `TORNI_LOG` is set and at exit, and `CrashRecorder` writing `%LOCALAPPDATA%\Torni\last-crash.log`.
 - A new fact is a new `DiagnosticEvent` case whose members are numbers, durations, versions, enums, `CodeName` (built only from a `Type` or `MethodBase`), `ExceptionSummary` (types and frames, never the message) or `ChildCommand` (subcommand words from `ChildCommandWords` only), which `Architecture\DiagnosticEventsShould` enforces, and `DiagnosticsPrivacyShould` runs the daily flows over Northwind fixtures and fails on any fixture value in the output. Never log an effect's `ToString()`, an exception's message, program output or anything typed.
 - The rendered lines (`DiagnosticLine`) are the one text outside `Wording`: they are a maintainer's format, not interface text. Terminal.Gui's logger is `TerminalGuiBridge`, which keeps only the level and an exception summary, Warning and above, because its messages can quote typed or pasted input.

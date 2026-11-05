@@ -1,7 +1,7 @@
 # console-layout Specification
 
 ## Purpose
-The frame the sessions and worktrees views share: two settings lines under the Vantage icon, two tabs with the active one marked, the counts and the table's title on their row, a key bar that names the keys for the selected row, and one console that keeps each tab's state across switches until it quits.
+The frame the sessions and worktrees views share: two settings lines under the Torni icon, two tabs with the active one marked, the counts and the table's title on their row, a key bar that names the keys for the selected row, and one console that keeps each tab's state across switches until it quits.
 
 ## Requirements
 
@@ -63,11 +63,11 @@ The active tab's title SHALL be drawn in bold cyan and the other tabs' titles in
 - **WHEN** the Sessions tab is shown and the user presses Right
 - **THEN** the Worktrees title turns bold cyan and the Sessions title grey, and no frame line or join changes colour
 
-### Requirement: The Vantage icon heads the settings
-Where the terminal can draw images, the console SHALL draw the Vantage icon one row high at the left of the settings row, which then starts after it; where it cannot, the console SHALL draw no icon and the settings row SHALL start at the left edge. The tabs SHALL start on the row below, or below the status line while it shows.
+### Requirement: The Torni icon heads the settings
+Where the terminal can draw images, the console SHALL draw the Torni icon one row high at the left of the settings row, which then starts after it; where it cannot, the console SHALL draw no icon and the settings row SHALL start at the left edge. The tabs SHALL start on the row below, or below the status line while it shows.
 
 #### Scenario: A terminal that draws images
-- **WHEN** Vantage runs in Windows Terminal, which draws Sixel images, and there is no status line
+- **WHEN** Torni runs in Windows Terminal, which draws Sixel images, and there is no status line
 - **THEN** the icon sits on the first row at the left, the settings row starts to its right, and the tab strip starts on the second row
 
 #### Scenario: A terminal that cannot
@@ -133,18 +133,18 @@ The last two rows of the screen SHALL be a key bar of items, each a key and a wo
 - **THEN** the help lists f as opening the folder and s as opening its solution, and lists neither e nor v
 
 ### Requirement: The settings take one line
-The first row SHALL show the versions, labels orange, values white, parts separated by a grey ·: Vantage with its version and memory, then Claude and its version, with the update notice, in amber, and the below-minimum warning in their places. The repository roots and the worktree root SHALL be shown on the Config tab, not here.
+The first row SHALL show the versions, labels orange, values white, parts separated by a grey ·: Torni with its version and memory, then Claude and its version, with the update notice, in amber, and the below-minimum warning in their places. The repository roots and the worktree root SHALL be shown on the Config tab, not here.
 
 #### Scenario: The row
-- **WHEN** Vantage 0.18.0 uses 35 MB with Claude Code 2.1.310
-- **THEN** the first row reads Vantage 0.18.0 (35 MB) · Claude 2.1.310, the labels orange and the values white, and no row above the tabs names a root
+- **WHEN** Torni 0.18.0 uses 35 MB with Claude Code 2.1.310
+- **THEN** the first row reads Torni 0.18.0 (35 MB) · Claude 2.1.310, the labels orange and the values white, and no row above the tabs names a root
 
 #### Scenario: An update is available
 - **WHEN** 0.19.0 is the newest release
-- **THEN** the first row reads Vantage 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310, with 0.19.0 available, U to update in amber and the rest as before
+- **THEN** the first row reads Torni 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310, with 0.19.0 available, U to update in amber and the rest as before
 
 ### Requirement: Only quit leaves the console
-The console SHALL run as one terminal application for every tab from start to quit, and no key SHALL leave it for another program in its own tab. Quit SHALL clear Vantage's tab as before.
+The console SHALL run as one terminal application for every tab from start to quit, and no key SHALL leave it for another program in its own tab. Quit SHALL clear Torni's tab as before.
 
 #### Scenario: Opening a session stays in the console
 - **WHEN** the user presses Enter on fix-123 on the Sessions tab with a filter of "fix" set

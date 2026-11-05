@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Source191.Torni</RootNamespace>
+    <AssemblyName>torni</AssemblyName>
+    <Version>0.21.0-preview.1</Version>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <Authors>Simon Vane</Authors>
+    <Description>Every agent session in one tab, still there after a reboot.</Description>
+    <Copyright>Copyright 2026 Simon Vane</Copyright>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\icon\logo.ico" Link="logo.ico" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\CHANGELOG.md" Link="CHANGELOG.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.txt" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Source191.Torni.Core\Source191.Torni.Core.csproj" />
+    <ProjectReference Include="..\Source191.Torni.Infrastructure\Source191.Torni.Infrastructure.csproj" />
+    <ProjectReference Include="..\Source191.Torni.Tui\Source191.Torni.Tui.csproj" />
+  </ItemGroup>
+
+</Project>

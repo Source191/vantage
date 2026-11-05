@@ -1,16 +1,16 @@
 using Microsoft.Extensions.Time.Testing;
-using Source191.Vantage.Adapters.Claude;
-using Source191.Vantage.Adapters.PullRequests;
-using Source191.Vantage.Domain;
-using Source191.Vantage.Ports;
-using Source191.Vantage.TestDoubles;
+using Source191.Torni.Adapters.Claude;
+using Source191.Torni.Adapters.PullRequests;
+using Source191.Torni.Domain;
+using Source191.Torni.Ports;
+using Source191.Torni.TestDoubles;
 
-namespace Source191.Vantage.ReadmeScene.Tests;
+namespace Source191.Torni.ReadmeScene.Tests;
 
 public sealed class SceneProcessRunnerShould
 {
-    private const string Home = @"C:\VantageDemo\me";
-    private static readonly SceneExecutables Executables = new(@"C:\VantageDemo\bin\readme-scene.exe", @"C:\VantageDemo\bin\gh.exe", @"C:\VantageDemo\bin\az.cmd", @"C:\Users\me\AppData\Local\Microsoft\WindowsApps\wt.exe", "readme-scene");
+    private const string Home = @"C:\ReadmeDemo\me";
+    private static readonly SceneExecutables Executables = new(@"C:\ReadmeDemo\bin\readme-scene.exe", @"C:\ReadmeDemo\bin\gh.exe", @"C:\ReadmeDemo\bin\az.cmd", @"C:\Users\me\AppData\Local\Microsoft\WindowsApps\wt.exe", "readme-scene");
 
     private readonly FakeTimeProvider clock = new(new DateTimeOffset(2026, 11, 4, 12, 0, 0, TimeSpan.Zero));
     private readonly FakeProcessRunner others = new();
@@ -34,11 +34,11 @@ public sealed class SceneProcessRunnerShould
         waiting.ShouldBeOfType<Session.Background>();
         waiting.State.ShouldBe(DisplayState.NeedsInput);
         waiting.WaitingFor.ShouldBe(new WaitingReason.Given("permission to run dotnet test"));
-        waiting.WorkingDirectory.ShouldBe(FolderPath.From(@"C:\VantageDemo\me\source\worktrees\Northwind.Orders-fix-tax-rounding"));
+        waiting.WorkingDirectory.ShouldBe(FolderPath.From(@"C:\ReadmeDemo\me\source\worktrees\Northwind.Orders-fix-tax-rounding"));
         waiting.StartedAt.ShouldBe(clock.GetUtcNow().AddMinutes(-95));
         listing.Sessions.Count.ShouldBe(8);
         listing.Sessions.Single(session => session.Name == new ListedName.Named(SessionName.From("explore-reporting"))).ShouldBeOfType<Session.Interactive>()
-            .WorkingDirectory.ShouldBe(FolderPath.From(@"C:\VantageDemo\me\source\repos\Northwind.Portal"));
+            .WorkingDirectory.ShouldBe(FolderPath.From(@"C:\ReadmeDemo\me\source\repos\Northwind.Portal"));
         listing.Sessions.Select(session => session.State.Kind).Distinct().Count().ShouldBe(6);
         listing.AutomatedRuns.ShouldHaveSingleItem();
     }
@@ -65,7 +65,7 @@ public sealed class SceneProcessRunnerShould
     [Fact]
     public async Task ListAStartedSessionNextTime()
     {
-        FolderPath folder = FolderPath.From(@"C:\VantageDemo\me\source\worktrees\Northwind.Inventory-add-stock-alerts");
+        FolderPath folder = FolderPath.From(@"C:\ReadmeDemo\me\source\worktrees\Northwind.Inventory-add-stock-alerts");
 
         StartResult started = await claude.StartBackgroundAsync(folder, SessionName.From("add-stock-alerts"), new OpeningPrompt.Text("Email the buyer when stock runs low"), TestContext.Current.CancellationToken);
         SessionListing first = await claude.ListSessionsAsync(TestContext.Current.CancellationToken);
@@ -85,7 +85,7 @@ public sealed class SceneProcessRunnerShould
 
         PullRequestListing listing = await gitHub.ListAsync(
             new RemoteRepository.GitHub(SceneFile.DemoOwner, "Northwind.Orders"),
-            FolderPath.From(@"C:\VantageDemo\me\source\worktrees\Northwind.Orders-fix-tax-rounding"),
+            FolderPath.From(@"C:\ReadmeDemo\me\source\worktrees\Northwind.Orders-fix-tax-rounding"),
             BranchName.From("fix-tax-rounding"),
             TestContext.Current.CancellationToken);
 
@@ -102,7 +102,7 @@ public sealed class SceneProcessRunnerShould
 
         PullRequestListing listing = await azureDevOps.ListAsync(
             new RemoteRepository.AzureDevOps(SceneFile.DemoOwner, "Northwind", "Northwind.Billing"),
-            FolderPath.From(@"C:\VantageDemo\me\source\worktrees\Northwind.Billing-invoice-pdf-export"),
+            FolderPath.From(@"C:\ReadmeDemo\me\source\worktrees\Northwind.Billing-invoice-pdf-export"),
             BranchName.From("invoice-pdf-export"),
             TestContext.Current.CancellationToken);
 

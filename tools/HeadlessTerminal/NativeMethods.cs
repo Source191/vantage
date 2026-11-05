@@ -3,7 +3,7 @@ using System.Runtime.Versioning;
 
 [assembly: DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// The handful of kernel32 calls a

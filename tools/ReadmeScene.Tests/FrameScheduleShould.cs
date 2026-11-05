@@ -1,4 +1,4 @@
-namespace Source191.Vantage.ReadmeScene.Tests;
+namespace Source191.Torni.ReadmeScene.Tests;
 
 public sealed class FrameScheduleShould
 {

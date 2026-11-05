@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>Counts plain-text markers in a capture and shows the text around the first one.</summary>
 public static class MarkerCount

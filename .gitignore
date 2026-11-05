@@ -194,7 +194,7 @@ publish/
 # but database connection strings (with potential passwords) will be unencrypted
 *.pubxml
 # The winget build's publish profile holds no secrets.
-!src/Source191.Vantage/Properties/PublishProfiles/win-x64.pubxml
+!src/Source191.Torni/Properties/PublishProfiles/win-x64.pubxml
 *.publishproj
 
 # Microsoft Azure Web App publish settings. Comment the next line if you want to
@@ -211,7 +211,7 @@ PublishScripts/
 # except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
 # except the adapter folder that holds the update check
-!src/Source191.Vantage.Infrastructure/Packages/*
+!src/Source191.Torni.Infrastructure/Packages/*
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/[Pp]ackages/repositories.config
 # NuGet v3's project.json files produces more ignorable files
@@ -437,7 +437,7 @@ test-results/
 # Icon must end with two \r
 Icon
 
-# The Vantage icon folder is not the macOS Icon file.
+# The icon folder is not the macOS Icon file.
 !/assets/icon/
 
 
@@ -488,7 +488,7 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# Vantage
+# Visual Studio
 .vs/
 *.user
 

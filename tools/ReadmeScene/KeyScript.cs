@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// Reads a key script: one step a line, <c>&lt;delay in ms&gt; type &lt;text&gt;</c>, <c>press &lt;key&gt;</c>, <c>focus</c>
@@ -36,7 +36,7 @@ public static class KeyScript
             [_, "type", string text] => new KeyStep.Type(delay, text),
             [_, "press", string key] when Enum.TryParse(key, ignoreCase: false, out NamedKey named) && Enum.IsDefined(named) => new KeyStep.Press(delay, named),
             [_, "press", string key] when key.Length == 1 => new KeyStep.Type(delay, key),
-            [_, "focus"] => new KeyStep.FocusVantage(delay),
+            [_, "focus"] => new KeyStep.FocusOwnTab(delay),
             [_, "mark", string name] => new KeyStep.Mark(delay, name),
             _ => throw new FormatException($"Not a key script line: {line}"),
         };

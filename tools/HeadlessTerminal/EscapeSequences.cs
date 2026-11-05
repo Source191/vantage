@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// Finds the end of an <see href="https://invisible-island.net/xterm/ctlseqs/ctlseqs.html">ECMA-48 escape sequence</see>

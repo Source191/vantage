@@ -5,7 +5,7 @@
     { "name": "Northwind.Billing", "remote": "https://dev.azure.com/northwind-demo/Northwind/_git/Northwind.Billing" },
     { "name": "Northwind.Inventory", "remote": "https://github.com/northwind-demo/Northwind.Inventory.git" },
     { "name": "Northwind.Portal", "remote": "https://dev.azure.com/northwind-demo/Northwind/_git/Northwind.Portal" },
-    { "name": "vantage", "remote": "https://github.com/Source191/vantage.git" }
+    { "name": "torni", "remote": "https://github.com/Source191/torni.git" }
   ],
   "sessions": [
     {
@@ -41,7 +41,7 @@
     },
     {
       "name": "readme-front-page",
-      "repository": "vantage",
+      "repository": "torni",
       "worktree": "readme-front-page",
       "kind": "background",
       "state": "idle",
@@ -85,13 +85,13 @@
     }
   ],
   "automatedRuns": [
-    { "repository": "vantage", "startedMinutesAgo": 1, "memoryMegabytes": 180 }
+    { "repository": "torni", "startedMinutesAgo": 1, "memoryMegabytes": 180 }
   ],
   "pullRequests": [
     { "repository": "Northwind.Orders", "branch": "fix-tax-rounding", "number": 142, "state": "open", "openedDaysAgo": 1 },
     { "repository": "Northwind.Billing", "branch": "invoice-pdf-export", "number": 318, "state": "draft", "openedDaysAgo": 0 },
     { "repository": "Northwind.Portal", "branch": "portal-dark-mode", "number": 87, "state": "completed", "openedDaysAgo": 1 },
-    { "repository": "vantage", "branch": "readme-front-page", "number": 216, "state": "open", "openedDaysAgo": 0 },
+    { "repository": "torni", "branch": "readme-front-page", "number": 216, "state": "open", "openedDaysAgo": 0 },
     { "repository": "Northwind.Orders", "branch": "orders-api-v2", "number": 128, "state": "merged", "openedDaysAgo": 3 },
     { "repository": "Northwind.Billing", "branch": "retry-payment-webhook", "number": 305, "state": "open", "openedDaysAgo": 2 }
   ]

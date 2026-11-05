@@ -1,6 +1,6 @@
-using Source191.Vantage.Ports;
+using Source191.Torni.Ports;
 
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>
 /// Answers Claude Code, gh and az from the scene and hands every other program (git, wt, pwsh) to the real runner,
@@ -57,7 +57,7 @@ public sealed class SceneProcessRunner(SceneListing listing, ScenePullRequests p
         _ => Refuse(arguments),
     };
 
-    // Vantage opens tabs in the window used last (-w 0), which need not be the scene's while someone works elsewhere.
+    // The console opens tabs in the window used last (-w 0), which need not be the scene's while someone works elsewhere.
     private ProcessRequest InSceneWindow(ProcessRequest request) => request.Arguments switch
     {
         ["-w", "0", ..] => request with { Arguments = ["-w", executables.WindowName, .. request.Arguments.Skip(2)] },

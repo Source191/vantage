@@ -1,0 +1,15 @@
+using Source191.Torni.Domain;
+
+namespace Source191.Torni.Ports;
+
+/// <summary>The Windows Terminal operations the console needs: open a tab, and select one by title.</summary>
+public interface IWindowsTerminal
+{
+    Task OpenTabAsync(TabLaunch launch, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Selects the tab titled <paramref name="title"/> in the window given (found by its process id), or in every Windows
+    /// Terminal window for <see cref="TerminalWindow.Any"/>. False when no such tab item could be found.
+    /// </summary>
+    Task<bool> FocusTabAsync(TerminalWindow window, string title, CancellationToken cancellationToken);
+}

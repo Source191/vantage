@@ -1,4 +1,4 @@
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 public enum SceneKind
 {

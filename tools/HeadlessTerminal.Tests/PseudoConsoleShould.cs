@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.Versioning;
 
-namespace Source191.Vantage.HeadlessTerminal.Tests;
+namespace Source191.Torni.HeadlessTerminal.Tests;
 
 /// <summary>Runs the real driver as a child with its stdout piped, as CI does, and reads the capture it wrote.</summary>
 [SupportedOSPlatform("windows")]

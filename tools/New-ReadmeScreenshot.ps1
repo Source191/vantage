@@ -4,11 +4,11 @@
     Makes the README's screenshot (assets\readme\sessions.png) and animation (assets\readme\new-session.gif).
 
 .DESCRIPTION
-    Builds a scene folder of made-up Northwind.* repositories (and a stand-in for Vantage itself) with worktrees,
-    branches and commits, then runs tools\ReadmeScene: Vantage's real console screen over that scene, with Claude
+    Builds a scene folder of made-up Northwind.* repositories (and a stand-in for this repository) with worktrees,
+    branches and commits, then runs tools\ReadmeScene: the real console screen over that scene, with Claude
     Code, gh and az answered from tools\ReadmeScene\scene.json. The console runs in a Windows Terminal window of its
     own, opens the scene's session tabs there, and captures the window. Nothing is read from or written to your own
-    Vantage state, Claude Code folder or sessions; the scene folder is deleted afterwards unless -KeepScene is given.
+    settings and state, Claude Code folder or sessions; the scene folder is deleted afterwards unless -KeepScene is given.
 
     Needs Windows Terminal, git and, for the animation, ffmpeg (winget install Gyan.FFmpeg). The desktop may be
     locked while it runs, but do not click in the scene window.
@@ -27,7 +27,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $SceneRoot = 'C:\VantageDemo',
+    [string] $SceneRoot = 'C:\ReadmeDemo',
     [switch] $KeepScene,
     [ValidateSet('Both', 'Screenshot', 'Animation', 'None')]
     [string] $Only = 'Both'
@@ -162,11 +162,11 @@ function New-Scene {
     }
 }
 
-function Get-VantageVersion {
-    [xml] $project = Get-Content (Join-Path $repositoryRoot 'src\Source191.Vantage\Source191.Vantage.csproj') -Raw
+function Get-ToolVersion {
+    [xml] $project = Get-Content (Join-Path $repositoryRoot 'src\Source191.Torni\Source191.Torni.csproj') -Raw
     $version = @($project.Project.PropertyGroup.Version | Where-Object { $_ })[0]
     if (-not $version) {
-        throw 'No <Version> in src\Source191.Vantage\Source191.Vantage.csproj.'
+        throw 'No <Version> in src\Source191.Torni\Source191.Torni.csproj.'
     }
 
     return $version
@@ -185,7 +185,7 @@ foreach ($program in 'git', 'wt') {
     }
 }
 
-$version = Get-VantageVersion
+$version = Get-ToolVersion
 $scene = Get-Content (Join-Path $repositoryRoot 'tools\ReadmeScene\scene.json') -Raw | ConvertFrom-Json
 $sceneHome = Join-Path $SceneRoot 'me'
 $bin = Join-Path $SceneRoot 'bin'

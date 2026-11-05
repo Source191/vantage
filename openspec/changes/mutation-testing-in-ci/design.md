@@ -6,7 +6,7 @@ See proposal.md for the motivation.
 
 **Today:**
 
-- **Running it:** mutation testing is run by hand from `test\Source191.Vantage.Core.Tests`: `dotnet stryker --test-runner mtp --project Source191.Vantage.Core.csproj --mutate "**/Domain/*.cs"`, scoped by glob, with `dotnet-stryker` installed globally (`CONTRIBUTING.md`).
+- **Running it:** mutation testing is run by hand from `test\Source191.Torni.Core.Tests`: `dotnet stryker --test-runner mtp --project Source191.Torni.Core.csproj --mutate "**/Domain/*.cs"`, scoped by glob, with `dotnet-stryker` installed globally (`CONTRIBUTING.md`).
 - **On record:** there is no config file, no tool manifest and no measured run time; Core has 468 source files.
 - **Releases:** `pipeline.yml`'s release job publishes a release on a push to `main` that raises `Version`, and `gh release create --target <sha>` makes the tag `v<version>` on that commit.
 
@@ -76,9 +76,9 @@ Every Sunday at 03:00 UTC (`schedule`), and on `workflow_dispatch`, the same job
 
 ### Settings in `stryker-config.json`, the tool in a manifest
 
-**`test\Source191.Vantage.Core.Tests\stryker-config.json`** holds:
+**`test\Source191.Torni.Core.Tests\stryker-config.json`** holds:
 
-- **What it mutates:** `project` (`Source191.Vantage.Core.csproj`) and `test-runner: mtp` (xunit.v3 scores 0 % under the VSTest bridge).
+- **What it mutates:** `project` (`Source191.Torni.Core.csproj`) and `test-runner: mtp` (xunit.v3 scores 0 % under the VSTest bridge).
 - **Reporters:** `html`, `markdown`, `json` (for the report job) and `progress`.
 - **Thresholds:** `high` and `low`, and `break` once a baseline is measured.
 

@@ -1,4 +1,4 @@
-namespace Source191.Vantage.ReadmeScene;
+namespace Source191.Torni.ReadmeScene;
 
 /// <summary>When to take each frame of the animation: one every <paramref name="interval"/> from the first key until <paramref name="hold"/> after the last.</summary>
 public sealed class FrameSchedule(TimeSpan interval, TimeSpan hold)

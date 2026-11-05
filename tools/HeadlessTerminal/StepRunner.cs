@@ -1,7 +1,7 @@
 using System.Runtime.Versioning;
 using System.Text.Json;
 
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// Runs a program in a pseudo-console and works through the steps: each waits for its marker after the previous

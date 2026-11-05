@@ -1,17 +1,17 @@
 #Requires -Version 7
 <#
 .SYNOPSIS
-    Zips the self-contained winget build and fails unless the zip holds exactly the files Vantage ships.
+    Zips the self-contained winget build and fails unless the zip holds exactly the files the program ships.
 
 .DESCRIPTION
-    The publish folder (dotnet publish src\Source191.Vantage -p:PublishProfile=win-x64) must hold vantage.exe, Terminal.Gui's
-    native libonigwrap.dll, and the three files Vantage reads or must carry beside itself: CHANGELOG.md (the notes of the
-    running version), vantage.ico (the Windows Terminal profiles' icon) and THIRD-PARTY-NOTICES.txt. Anything else, a PDB or
+    The publish folder (dotnet publish src\Source191.Torni -p:PublishProfile=win-x64) must hold torni.exe, Terminal.Gui's
+    native libonigwrap.dll, and the three files the program reads or must carry beside itself: CHANGELOG.md (the notes of the
+    running version), logo.ico (the Windows Terminal profiles' icon) and THIRD-PARTY-NOTICES.txt. Anything else, a PDB or
     an XML documentation file above all, fails the build rather than shipping, and so does a missing file. The zip is flat,
-    so winget extracts every file beside vantage.exe. Exit code 0 means the zip was written and checked; 1 means it was not.
+    so winget extracts every file beside torni.exe. Exit code 0 means the zip was written and checked; 1 means it was not.
 
 .EXAMPLE
-    .github\scripts\Compress-WingetBuild.ps1 -PublishFolder artifacts\publish -Destination artifacts\winget\vantage_0.21.0_win-x64.zip
+    .github\scripts\Compress-WingetBuild.ps1 -PublishFolder artifacts\publish -Destination artifacts\winget\torni_0.21.0_win-x64.zip
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingWriteHost', '',
     Justification = 'Workflow commands such as ::error:: go to the console, as in the other scripts here.')]
@@ -22,7 +22,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$expected = @('CHANGELOG.md', 'libonigwrap.dll', 'THIRD-PARTY-NOTICES.txt', 'vantage.exe', 'vantage.ico')
+$expected = @('CHANGELOG.md', 'libonigwrap.dll', 'THIRD-PARTY-NOTICES.txt', 'torni.exe', 'logo.ico')
 
 $folder = (Resolve-Path -LiteralPath $PublishFolder).Path
 $published = @(Get-ChildItem -LiteralPath $folder -Recurse -File | ForEach-Object { [IO.Path]::GetRelativePath($folder, $_.FullName) })
@@ -33,7 +33,7 @@ if ($missing.Count -gt 0 -or $extra.Count -gt 0) {
         Write-Host "::error::The winget build is missing $($missing -join ', ') in $folder."
     }
     if ($extra.Count -gt 0) {
-        Write-Host "::error::The winget build holds files it must not ship: $($extra -join ', '). Leave them out in src\Source191.Vantage\Properties\PublishProfiles\win-x64.pubxml."
+        Write-Host "::error::The winget build holds files it must not ship: $($extra -join ', '). Leave them out in src\Source191.Torni\Properties\PublishProfiles\win-x64.pubxml."
     }
     exit 1
 }

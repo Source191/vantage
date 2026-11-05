@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Draws the Vantage header (the mark, the name, the tagline and the install line over a faint git graph) in three layouts.
+Draws the header (the mark, the name, the tagline and the install line over a faint git graph) in three layouts.
 .DESCRIPTION
 Writes to assets\header:
 - buy-me-a-coffee-cover.png, 3200 x 800. Buy Me a Coffee shows a cover full width at about 390 px tall and crops it, and its About and
@@ -8,7 +8,7 @@ Writes to assets\header:
 - readme-banner.png, 1600 x 400, the top of the README (shown at about 800 px wide, sharp on high-DPI screens).
 - social-preview.png, 1280 x 640, the repository's social preview (uploaded by hand under Settings > General); GitHub crops 40 px at each edge.
 With -QrCode, also writes assets\support\buy-me-a-coffee-qr.png, that QR code at 160 px (Markdown shows an image at its own size, and the README avoids HTML).
-The output is committed, so a build never needs this script; run it to change the drawing. The mark comes from VantageMark.ps1, as the icon's does.
+The output is committed, so a build never needs this script; run it to change the drawing. The mark comes from LogoMark.ps1, as the icon's does.
 #>
 [CmdletBinding()]
 param(
@@ -18,11 +18,11 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-. (Join-Path $PSScriptRoot 'VantageMark.ps1')
+. (Join-Path $PSScriptRoot 'LogoMark.ps1')
 
-$title = 'Vantage'
-$tagline = 'Mission control for Claude Code sessions:', 'every session in one tab,', 'still there after a reboot.'
-$install = 'winget install Source191.Vantage'
+$title = 'Torni'
+$tagline = 'Every agent session in one tab,', 'still there after a reboot.'
+$install = 'winget install Source191.Torni'
 
 function Get-FontFamily([string]$name) {
     # FontFamily throws for a family that is not installed, where Font would quietly substitute another.
@@ -114,7 +114,7 @@ function Add-Group([System.Drawing.Graphics]$graphics, [System.Drawing.Rectangle
     $left = $box.X + ($box.Width - $group.Width) / 2
     $top = $box.Y + ($box.Height - $group.Height) / 2
     Add-Shade $graphics ([System.Drawing.RectangleF]::new($left, $top, $group.Width, $group.Height))
-    Add-VantageMark $graphics $left ($top + ($group.Height - $mark) / 2) $mark
+    Add-LogoMark $graphics $left ($top + ($group.Height - $mark) / 2) $mark
     $x = $left + $mark + $group.Gap
     $y = $top + ($group.Height - $group.TextHeight) / 2
     foreach ($line in $group.Lines) {

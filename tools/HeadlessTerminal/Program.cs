@@ -1,4 +1,4 @@
-namespace Source191.Vantage.HeadlessTerminal;
+namespace Source191.Torni.HeadlessTerminal;
 
 /// <summary>
 /// HeadlessTerminal drives a console program inside a Windows pseudo-console

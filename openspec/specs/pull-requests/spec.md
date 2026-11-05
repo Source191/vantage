@@ -1,7 +1,7 @@
 # pull-requests Specification
 
 ## Purpose
-Shows the pull request for each listed branch, from GitHub or Azure DevOps, in the sessions and worktrees tables, and opens it in the browser, so the user can see where a branch stands without leaving Vantage.
+Shows the pull request for each listed branch, from GitHub or Azure DevOps, in the sessions and worktrees tables, and opens it in the browser, so the user can see where a branch stands without leaving Torni.
 
 ## Requirements
 
@@ -25,7 +25,7 @@ The sessions view and the worktrees view SHALL show a PR column naming the pull 
 - **THEN** its PR column is blank
 
 ### Requirement: The host comes from the origin remote
-Vantage SHALL decide where to look from the repository's origin remote URL: a GitHub HTTPS or SSH URL names an owner and repository; an Azure DevOps URL on dev.azure.com, visualstudio.com or their SSH hosts names an organisation, project and repository. A user name before the host in an HTTPS URL SHALL be accepted on either host and never kept. A repository with no origin remote, or one on any other host, SHALL have no pull requests looked up.
+Torni SHALL decide where to look from the repository's origin remote URL: a GitHub HTTPS or SSH URL names an owner and repository; an Azure DevOps URL on dev.azure.com, visualstudio.com or their SSH hosts names an organisation, project and repository. A user name before the host in an HTTPS URL SHALL be accepted on either host and never kept. A repository with no origin remote, or one on any other host, SHALL have no pull requests looked up.
 
 #### Scenario: GitHub over SSH
 - **WHEN** origin is git@github.com:northwind/Northwind.Orders.git
@@ -47,7 +47,7 @@ Vantage SHALL decide where to look from the repository's origin remote URL: a Gi
 Looking up pull requests SHALL run off the UI thread and SHALL NOT delay a refresh of either table: rows SHALL appear with a blank PR column until the repository's first answer arrives, and a later refresh SHALL show it.
 
 #### Scenario: First refresh after start
-- **WHEN** Vantage starts and the pull request lookup for a repository takes four seconds
+- **WHEN** Torni starts and the pull request lookup for a repository takes four seconds
 - **THEN** the sessions in that repository are listed at once with a blank PR column, and the refresh after the answer arrives shows their pull requests
 
 ### Requirement: An open pull request wins over older ones
@@ -62,11 +62,11 @@ When a branch has more than one pull request, the row SHALL show the open (or ac
 - **THEN** the row shows !4460 completed
 
 ### Requirement: The pull request key opens it in the browser
-The pull request key SHALL open the selected row's pull request in the default browser, without passing Vantage's Claude Code session markers to it, and the status line SHALL name it, in both views. An Azure DevOps pull request's page SHALL be built from the organisation, project and repository of the origin remote, URL-encoded, and the pull request's number, never from a URL in the host's answer.
+The pull request key SHALL open the selected row's pull request in the default browser, without passing Torni's Claude Code session markers to it, and the status line SHALL name it, in both views. An Azure DevOps pull request's page SHALL be built from the organisation, project and repository of the origin remote, URL-encoded, and the pull request's number, never from a URL in the host's answer.
 
 #### Scenario: Open from the sessions view
 - **WHEN** the user presses the pull request key on a row whose pull request is !4521
-- **THEN** that pull request's page opens in the default browser, without Vantage's Claude Code session markers in the browser's environment, and the status line says !4521 was opened
+- **THEN** that pull request's page opens in the default browser, without Torni's Claude Code session markers in the browser's environment, and the status line says !4521 was opened
 
 #### Scenario: Azure DevOps page from the remote
 - **WHEN** origin is https://dev.azure.com/northwind/Northwind%20Trading/_git/Northwind.Orders and the row's pull request is !4521, listed by az with no web URL
@@ -126,7 +126,7 @@ A pull request SHALL be shown and opened only when its page address uses https; 
 - **THEN** the row shows it and the pull request key opens that address
 
 ### Requirement: Lookups are made per branch and cached
-Vantage SHALL ask a host for the pull requests of one branch at a time, only for branches that have a row on screen, SHALL reuse a branch's answer for 60 seconds and a failed or unavailable answer for three minutes, SHALL NOT start a second lookup for a branch while one is running, and SHALL run at most four lookups at once.
+Torni SHALL ask a host for the pull requests of one branch at a time, only for branches that have a row on screen, SHALL reuse a branch's answer for 60 seconds and a failed or unavailable answer for three minutes, SHALL NOT start a second lookup for a branch while one is running, and SHALL run at most four lookups at once.
 
 #### Scenario: Several sessions in one repository
 - **WHEN** three sessions run on three branches of the same repository

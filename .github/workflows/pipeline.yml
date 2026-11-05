@@ -7,7 +7,7 @@ name: pipeline
 # pull request cannot merge. Windows only: the code uses P/Invoke, ConPTY and cmd.exe in the integration tests.
 # (ConPTY: https://learn.microsoft.com/windows/console/creating-a-pseudoconsole-session)
 #
-# A push to main that changes Version in src/Source191.Vantage/Source191.Vantage.csproj is also a release: the check
+# A push to main that changes Version in src/Source191.Torni/Source191.Torni.csproj is also a release: the check
 # job zips the winget build named for the plain Version, smoke-tests that zip, and the release job publishes it as a
 # GitHub Release, so each merge builds and tests once and a commit whose check failed is never released; a stable
 # release reaches winget only when the owner runs publish.yml for it. Bumping the version (already required, because
@@ -185,7 +185,7 @@ jobs:
               "suffix=$suffix" >> $env:GITHUB_OUTPUT
               exit 0
           }
-          $csproj = 'src/Source191.Vantage/Source191.Vantage.csproj'
+          $csproj = 'src/Source191.Torni/Source191.Torni.csproj'
           git diff --quiet HEAD^ HEAD -- $csproj
           $diff = $LASTEXITCODE
           if ($diff -eq 0) {
@@ -198,7 +198,13 @@ jobs:
           }
           # A regex rather than an [xml] cast: git's output comes through the console encoding, and a byte
           # order mark would break the cast.
-          $before = [regex]::Match((git show "HEAD^:$csproj" | Out-String), '<Version>\s*([^<]+?)\s*</Version>').Groups[1].Value
+          # The first parent may be older than the rename to Torni, when the csproj had its old path.
+          $beforePath = $csproj
+          git cat-file -e "HEAD^:$csproj" 2>$null
+          if ($LASTEXITCODE -ne 0) {
+              $beforePath = 'src/Source191.Vantage/Source191.Vantage.csproj'
+          }
+          $before = [regex]::Match((git show "HEAD^:$beforePath" | Out-String), '<Version>\s*([^<]+?)\s*</Version>').Groups[1].Value
           $after = (Select-Xml -Path $csproj -XPath '//Version').Node.InnerText
           if ([string]::IsNullOrWhiteSpace($before) -or [string]::IsNullOrWhiteSpace($after)) {
               throw "Could not read Version from $csproj (before='$before', after='$after')."
@@ -224,12 +230,12 @@ jobs:
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.documentation.outputs.skip != 'true'
         with:
-          name: vantage-${{ steps.build.outputs.version }}-win-x64
+          name: torni-${{ steps.build.outputs.version }}-win-x64
           path: ${{ steps.build.outputs.zip }}
           if-no-files-found: error
 
       # The smoke check (.claude\rules\checks.md, "Smoke check of the packed tool") runs the zip a user would install, so a
-      # missing DLL or a screen that no longer opens fails the pull request. Vantage needs the Claude Code CLI to
+      # missing DLL or a screen that no longer opens fails the pull request. The console needs the Claude Code CLI to
       # start; signed out, `claude agents --json` prints [] and the sessions view is simply empty. No workspace
       # trust is seeded: the smoke check never starts a session. If the background install is not there, it is run
       # again in the foreground, so the job never depends on the background process having survived.
@@ -278,26 +284,26 @@ jobs:
           ZIP: ${{ steps.build.outputs.zip }}
         run: |
           $ErrorActionPreference = 'Stop'
-          Expand-Archive -LiteralPath $env:ZIP -DestinationPath "$env:RUNNER_TEMP\vantage"
+          Expand-Archive -LiteralPath $env:ZIP -DestinationPath "$env:RUNNER_TEMP\winget-zip"
 
-      # `vantage --version` prints exactly the csproj Version, with no commit after it: what a release shows on GitHub
+      # `torni --version` prints exactly the csproj Version, with no commit after it: what a release shows on GitHub
       # and in winget. A check run names its zip Version-ci.<run>, but the assembly keeps Version.
       - name: Check the unzipped build's version
         if: steps.documentation.outputs.skip != 'true'
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $expected = (Select-Xml -Path src\Source191.Vantage\Source191.Vantage.csproj -XPath '//Version').Node.InnerText
-          $printed = (& "$env:RUNNER_TEMP\vantage\vantage.exe" --version | Out-String).Trim()
+          $expected = (Select-Xml -Path src\Source191.Torni\Source191.Torni.csproj -XPath '//Version').Node.InnerText
+          $printed = (& "$env:RUNNER_TEMP\winget-zip\torni.exe" --version | Out-String).Trim()
           if ($LASTEXITCODE -ne 0 -or $printed -ne $expected) {
-              throw "vantage --version printed '$printed' (exit $LASTEXITCODE); expected '$expected'."
+              throw "torni --version printed '$printed' (exit $LASTEXITCODE); expected '$expected'."
           }
 
       - name: Smoke check
         if: steps.documentation.outputs.skip != 'true'
         shell: pwsh
         working-directory: tools\HeadlessTerminal
-        run: dotnet run --project . -c Release --no-build -- smoke "$env:RUNNER_TEMP\vantage\vantage.exe" Northwind.Smoke-smoke
+        run: dotnet run --project . -c Release --no-build -- smoke "$env:RUNNER_TEMP\winget-zip\torni.exe" Northwind.Smoke-smoke
 
       # Read it with the tool's `grid drive-raw.txt <marker>` or `count`; the failed step is named in the log.
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -357,9 +363,9 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $zips = @(Get-ChildItem release -Filter 'vantage_*_win-x64.zip')
+          $zips = @(Get-ChildItem release -Filter 'torni_*_win-x64.zip')
           if ($zips.Count -ne 1) {
-              throw "Expected exactly one vantage_<version>_win-x64.zip in the check job's artefact, found $($zips.Count)."
+              throw "Expected exactly one torni_<version>_win-x64.zip in the check job's artefact, found $($zips.Count)."
           }
           "path=$($zips[0].FullName)" >> $env:GITHUB_OUTPUT
 
@@ -404,12 +410,12 @@ jobs:
               throw "gh release create failed with exit code $LASTEXITCODE."
           }
 
-  # The hand-off check against a real Claude session (.claude\rules\checks.md, "Hand-off check"): vantage here
+  # The hand-off check against a real Claude session (.claude\rules\checks.md, "Hand-off check"): torni here
   # starts a throwaway session with no prompt, attaches, and is detached with Ctrl+Z. Needs the
   # CLAUDE_CODE_OAUTH_TOKEN secret from `claude setup-token` (https://code.claude.com/docs/en/github-actions);
   # without it every step after the gate
   # is skipped. continue-on-error because a slow runner can fail it for reasons that are not bugs:
-  # read the handoff-capture artefact when it does. Exit 1 is vantage here not exiting after the
+  # read the handoff-capture artefact when it does. Exit 1 is torni here not exiting after the
   # detach, 3 is Claude's screen missing from the capture (the attach never reached Claude). Claude's
   # screen is in the artefact, not this log: read it with the tool's `count drive-raw.txt "Claude Code v"`.
   handoff:
@@ -467,12 +473,12 @@ jobs:
           "pid=$($process.Id)" >> $env:GITHUB_OUTPUT
           Write-Host "Claude Code install started as process $($process.Id), logging to $log."
 
-      # Only the tool: the hand-off check runs bin\Release\net10.0\vantage.exe, and dotnet run builds
+      # Only the tool: the hand-off check runs bin\Release\net10.0\torni.exe, and dotnet run builds
       # tools\HeadlessTerminal itself. The test projects are built and run by check.
       - name: Build the tool (Release)
         if: steps.gate.outputs.enabled == 'true'
         shell: pwsh
-        run: dotnet build src\Source191.Vantage -c Release
+        run: dotnet build src\Source191.Torni -c Release
 
       - name: Finish the Claude Code install
         if: steps.gate.outputs.enabled == 'true'

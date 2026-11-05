@@ -1,0 +1,51 @@
+using Source191.Torni.Adapters.Terminal;
+using Source191.Torni.Domain;
+
+namespace Source191.Torni.Infrastructure.Tests;
+
+public sealed class TerminalConsoleShould : IDisposable
+{
+    private readonly StringWriter writer = new();
+
+    [Fact]
+    public void WriteTheOwnTabTitleAndColourAndClearThemAgain()
+    {
+        TerminalConsole console = new(writer, "Torni");
+
+        console.ShowOwnTab(TabPalette.Green);
+        console.ShowOwnTab();
+        console.ClearOwnTab();
+
+        writer.ToString().ShouldBe(
+            TabEscapes.Title("Torni") + TabEscapes.Background(TabPalette.Green)
+            + TabEscapes.Title("Torni")
+            + TabEscapes.ClearTitle + TabEscapes.ResetBackground);
+    }
+
+    [Fact]
+    public void WriteTheReturnHintOnItsOwnLineAndEraseItAgain()
+    {
+        TerminalConsole console = new(writer, "Torni");
+
+        console.ShowReturnHint("Ctrl+Z detaches; the session keeps running.");
+        console.RemoveReturnHint();
+
+        writer.ToString().ShouldBe("Ctrl+Z detaches; the session keeps running." + Environment.NewLine + "\u001b[1A\u001b[2K");
+        ConsoleRecovery.EraseLineAbove.ShouldBe("\u001b[1A\u001b[2K");
+    }
+
+    [Fact]
+    public void WriteTheTitleItWasGiven()
+    {
+        TerminalConsole console = new(writer, "Northwind title");
+
+        console.ShowOwnTab();
+
+        writer.ToString().ShouldBe(TabEscapes.Title("Northwind title"));
+    }
+
+    public void Dispose()
+    {
+        writer.Dispose();
+    }
+}

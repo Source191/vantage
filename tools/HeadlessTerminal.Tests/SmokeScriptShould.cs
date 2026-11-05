@@ -1,7 +1,7 @@
-using Source191.Vantage.Application;
-using Source191.Vantage.Application.Views;
+using Source191.Torni.Application;
+using Source191.Torni.Application.Views;
 
-namespace Source191.Vantage.HeadlessTerminal.Tests;
+namespace Source191.Torni.HeadlessTerminal.Tests;
 
 public sealed class SmokeScriptShould
 {
@@ -91,7 +91,7 @@ public sealed class SmokeScriptShould
     [Fact]
     public void ChooseCustomTheLastEditorBeforeBrowsingForAFile()
     {
-        Enum.GetValues<Source191.Vantage.Domain.EditorPreset>()[^1].ShouldBe(Source191.Vantage.Domain.EditorPreset.Custom, "the smoke reaches Custom by Down presses from the first choice");
+        Enum.GetValues<Source191.Torni.Domain.EditorPreset>()[^1].ShouldBe(Source191.Torni.Domain.EditorPreset.Custom, "the smoke reaches Custom by Down presses from the first choice");
         Steps[14].Keys.ShouldEndWith(" " + F3);
     }
 
@@ -128,9 +128,9 @@ public sealed class SmokeScriptShould
     [Fact]
     public void TranslateTheNamedKeysToWhatATerminalSends()
     {
-        SmokeScript.KeyFor([new KeyHelp(Source191.Vantage.Application.Views.Key.Escape, "Back", "back", Tip: "Go back.")], "Back").ShouldBe(Escape);
-        SmokeScript.KeyFor([new KeyHelp(Source191.Vantage.Application.Views.Key.Enter, "Go", "go", Tip: "Go there.")], "Go").ShouldBe("\r");
-        SmokeScript.KeyFor([new KeyHelp(Source191.Vantage.Application.Views.Key.Of(','), "Settings", "settings", Tip: "Edit the settings.")], "Settings").ShouldBe(",");
+        SmokeScript.KeyFor([new KeyHelp(Source191.Torni.Application.Views.Key.Escape, "Back", "back", Tip: "Go back.")], "Back").ShouldBe(Escape);
+        SmokeScript.KeyFor([new KeyHelp(Source191.Torni.Application.Views.Key.Enter, "Go", "go", Tip: "Go there.")], "Go").ShouldBe("\r");
+        SmokeScript.KeyFor([new KeyHelp(Source191.Torni.Application.Views.Key.Of(','), "Settings", "settings", Tip: "Edit the settings.")], "Settings").ShouldBe(",");
     }
 
     [Fact]
@@ -144,7 +144,7 @@ public sealed class SmokeScriptShould
     [Fact]
     public void TakeTheFirstKeyWithAHint()
     {
-        SmokeScript.KeyFor([new KeyHelp(Source191.Vantage.Application.Views.Key.Of('w'), "Sessions", "back", Tip: "Go back."), new KeyHelp(Source191.Vantage.Application.Views.Key.Escape, "Sessions", "back", Tip: "Go back.")], "Sessions").ShouldBe("w");
+        SmokeScript.KeyFor([new KeyHelp(Source191.Torni.Application.Views.Key.Of('w'), "Sessions", "back", Tip: "Go back."), new KeyHelp(Source191.Torni.Application.Views.Key.Escape, "Sessions", "back", Tip: "Go back.")], "Sessions").ShouldBe("w");
     }
 
     [Fact]

@@ -88,15 +88,15 @@ The force-remove key SHALL remove a worktree despite changes or unpushed commits
 - **THEN** the status line names the reason and does not mention force-remove, whatever words the reason uses
 
 ### Requirement: Branch deletion follows ownership and merge state
-After removing a worktree, Vantage SHALL delete its branch automatically only when Vantage created that branch and it is fully merged into the remote default branch, and SHALL otherwise ask before deleting. A worktree whose head is detached, or whose head git did not name, has no branch of its own: it SHALL be removed with no branch deleted and no question asked, and its folder's name SHALL never be taken for a branch.
+After removing a worktree, Torni SHALL delete its branch automatically only when Torni created that branch and it is fully merged into the remote default branch, and SHALL otherwise ask before deleting. A worktree whose head is detached, or whose head git did not name, has no branch of its own: it SHALL be removed with no branch deleted and no question asked, and its folder's name SHALL never be taken for a branch.
 
-#### Scenario: Vantage-created merged branch
-- **WHEN** the removed worktree's branch was created by Vantage and is merged
+#### Scenario: Torni-created merged branch
+- **WHEN** the removed worktree's branch was created by Torni and is merged
 - **THEN** the branch is deleted without asking
 
 #### Scenario: Hand-made branch
-- **WHEN** the removed worktree's branch was not created by Vantage
-- **THEN** Vantage asks whether to delete the branch and keeps it unless the user agrees
+- **WHEN** the removed worktree's branch was not created by Torni
+- **THEN** Torni asks whether to delete the branch and keeps it unless the user agrees
 
 #### Scenario: Detached head
 - **WHEN** the user removes a clean worktree at C:\Users\me\source\repos\Northwind.Orders-fix-123 that git lists on a detached head, and a branch named Northwind.Orders-fix-123 exists in the repository
@@ -166,8 +166,8 @@ Enter on a worktree row with a running session SHALL do what Enter does on that 
 - **THEN** Enter opens or switches to the tab of the one whose working directory is that worktree
 
 #### Scenario: The session's tab is open
-- **WHEN** a Vantage-opened tab for the worktree's background session is alive and the user presses Enter on the worktree row
-- **THEN** Windows Terminal switches to that tab, no new tab opens, and the Worktrees tab stays shown in Vantage
+- **WHEN** a Torni-opened tab for the worktree's background session is alive and the user presses Enter on the worktree row
+- **THEN** Windows Terminal switches to that tab, no new tab opens, and the Worktrees tab stays shown in Torni
 
 #### Scenario: The session has no tab
 - **WHEN** the worktree's background session has no live tab and the user presses Enter on the worktree row
@@ -197,7 +197,7 @@ The worktree scan SHALL stop counting a leftover folder's files at a fixed limit
 - **THEN** pressing remove says twelve files would be lost
 
 ### Requirement: Deleting a leftover folder never follows links
-When Vantage deletes a leftover folder from disc, every junction or symbolic link inside it SHALL be removed as a link, without descending into it or changing anything it points at, and the rest of the folder SHALL then be deleted completely, including read-only files.
+When Torni deletes a leftover folder from disc, every junction or symbolic link inside it SHALL be removed as a link, without descending into it or changing anything it points at, and the rest of the folder SHALL then be deleted completely, including read-only files.
 
 #### Scenario: Leftover folder holding a junction
 - **WHEN** the user force-removes an orphan folder whose node_modules holds a junction to a folder outside it, and that outside folder holds a read-only file
@@ -246,7 +246,7 @@ The worktrees view SHALL be the Worktrees tab of the console, under the same set
 - **THEN** the first bar row reads d Remove, D Force remove, P Prune, n New session, o Open shell and Enter Open session, and the second c Copy path, f Open folder, s Open solution, p Open PR, / Filter, ? Help, ! Report and q Quit
 
 ### Requirement: Deleting a leftover folder never deletes a root
-When Vantage deletes a leftover folder from disc, it SHALL refuse a path that is not fully qualified, or that is a drive root or a network share root, before changing anything. The status line SHALL report the refusal as a failure naming the path.
+When Torni deletes a leftover folder from disc, it SHALL refuse a path that is not fully qualified, or that is a drive root or a network share root, before changing anything. The status line SHALL report the refusal as a failure naming the path.
 
 #### Scenario: A drive root reaches the deletion
 - **WHEN** a leftover folder's path is C:\
@@ -270,7 +270,7 @@ For a row with health elsewhere, the remove and force-remove keys SHALL refuse, 
 ### Requirement: One WORKTREE column names the worktree
 The worktrees table SHALL show the repository and the folder in one WORKTREE column, as the repository, › and the folder's part after the repository (the slug of a folder named `<repository>-<slug>`, else the folder's label), elastic in width and elided in the middle of the repository name when too long, followed by HEALTH, LAST COMMIT and SESSION. LAST COMMIT SHALL be right-aligned, as AGE is on the Sessions tab, so its durations line up on their last character.
 
-#### Scenario: A worktree Vantage made
+#### Scenario: A worktree Torni made
 - **WHEN** Northwind.Billing has the worktree C:\Users\me\source\worktrees\Northwind.Billing-invoice-pdf on branch invoice-pdf
 - **THEN** its WORKTREE cell reads Northwind.Billing › invoice-pdf, and the pane reads Branch invoice-pdf
 
@@ -311,7 +311,7 @@ A folder directly under a root or under the worktree root whose .git file points
 
 #### Scenario: A worktree made with relative paths
 - **WHEN** a folder under C:\Users\me\source\worktrees has a .git file whose gitdir line is ../../other/Northwind.Ledger/.git/worktrees/spike, and that registration exists relative to the folder
-- **THEN** the view shows it with health elsewhere and its repository as Northwind.Ledger, whatever folder Vantage was started from
+- **THEN** the view shows it with health elsewhere and its repository as Northwind.Ledger, whatever folder Torni was started from
 
 ### Requirement: Leftover work is protected from removal
 An orphan or broken folder that still contains files SHALL be refused unless forced, because git no longer tracks that work, and a leftover folder with a live session inside SHALL be refused even when forced.
@@ -417,7 +417,7 @@ Whether a leftover folder exists and how many files it holds SHALL be read when 
 - **THEN** remove deletes nothing and the status line says three untracked files would be lost
 
 ### Requirement: A leftover folder is deleted only inside the roots
-Before Vantage deletes a leftover folder from disc, it SHALL refuse a path that is not under a repository root or the worktree root, changing nothing, and the status line SHALL say the folder is outside the roots and name it. Force-remove SHALL NOT be offered for this refusal.
+Before Torni deletes a leftover folder from disc, it SHALL refuse a path that is not under a repository root or the worktree root, changing nothing, and the status line SHALL say the folder is outside the roots and name it. Force-remove SHALL NOT be offered for this refusal.
 
 #### Scenario: A registration that points outside the roots
 - **WHEN** a repository under C:\Users\me\source\repos registers a worktree at D:\Northwind.Archive, git lists it as prunable, and the user presses remove or force-remove on its row
