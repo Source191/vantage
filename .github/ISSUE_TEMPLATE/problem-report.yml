@@ -1,6 +1,6 @@
 name: Problem report
 description: Report a problem with Torni. Press ! in Torni to open this form with its diagnostics filled in.
-labels: ["bug", "from-torni"]
+labels: ["bug", "problem-report"]
 body:
   - type: markdown
     attributes:
