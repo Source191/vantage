@@ -8,7 +8,7 @@ namespace Source191.Torni.Core.Tests.Application;
 
 public sealed class HeaderSettingsRowShould
 {
-    private const int TorniProcess = 4100;
+    private const int OwnProcess = 4100;
 
     private static readonly ToolVersion Running = new("0.20.0");
     private static readonly ClaudeCodeVersion Claude = new ClaudeCodeVersion.Reported("2.1.310");
@@ -26,8 +26,8 @@ public sealed class HeaderSettingsRowShould
     [Fact]
     public void ShowTheVersionsAndTornisMemory()
     {
-        processes.Using(TorniProcess, Fixtures.Noon.AddMinutes(-5), MemorySize.FromMegabytes(35));
-        HeaderSettingsRow header = new(Running, Claude, updates, processes, TorniProcess);
+        processes.Using(OwnProcess, Fixtures.Noon.AddMinutes(-5), MemorySize.FromMegabytes(35));
+        HeaderSettingsRow header = new(Running, Claude, updates, processes, OwnProcess);
 
         IReadOnlyList<IReadOnlyList<TextPart>> rows = header.Rows(118);
 
@@ -37,7 +37,7 @@ public sealed class HeaderSettingsRowShould
     [Fact]
     public void ShowZeroWhenTheProcessCannotBeMeasured()
     {
-        HeaderSettingsRow header = new(Running, Claude, updates, processes, TorniProcess);
+        HeaderSettingsRow header = new(Running, Claude, updates, processes, OwnProcess);
 
         IReadOnlyList<IReadOnlyList<TextPart>> rows = header.Rows(118);
 
@@ -47,7 +47,7 @@ public sealed class HeaderSettingsRowShould
     [Fact]
     public async Task ShowTheUpdateStatusAsItIsNow()
     {
-        HeaderSettingsRow header = new(Running, Claude, updates, processes, TorniProcess);
+        HeaderSettingsRow header = new(Running, Claude, updates, processes, OwnProcess);
         IReadOnlyList<TextPart> before = header.Rows(118).Single();
         ReleaseVersion newer = ReleaseVersions.Version("0.21.0");
         await state.WriteUpdateCheckAsync(new UpdateCheckRecord.Checked(Fixtures.Noon.AddHours(-1), new NewestRelease.Found(newer)));

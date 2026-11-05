@@ -15,7 +15,7 @@ namespace Source191.Torni.Adapters.State;
 /// beside the file and is moved over it. The single-file recent.json of earlier versions is imported once and
 /// removed; the created.json, the descriptions\ folder and sessions.json of earlier versions are no longer read.
 /// </summary>
-public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, ITorniConfig, IUpdateCheckRecords, ILastRunVersion
+public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegistry, IRecentRepositories, ICreatedWorktrees, IUserConfig, IUpdateCheckRecords, ILastRunVersion
 {
     private const int RecentLimit = 10;
 
@@ -80,9 +80,9 @@ public sealed class JsonFileStore(string folder, TimeProvider clock) : ITabRegis
         return Task.CompletedTask;
     }
 
-    public async Task<TorniConfig> ReadConfigAsync() => await ReadJsonAsync<TorniConfig>(ConfigFile) ?? TorniConfig.Missing;
+    public async Task<UserConfig> ReadConfigAsync() => await ReadJsonAsync<UserConfig>(ConfigFile) ?? UserConfig.Missing;
 
-    public Task WriteConfigAsync(TorniConfig config) => WriteJsonAsync(ConfigFile, config);
+    public Task WriteConfigAsync(UserConfig config) => WriteJsonAsync(ConfigFile, config);
 
     public async Task<UpdateCheckRecord> ReadUpdateCheckAsync()
     {

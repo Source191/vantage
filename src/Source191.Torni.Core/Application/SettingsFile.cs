@@ -9,7 +9,7 @@ namespace Source191.Torni.Application;
 /// </summary>
 public static class SettingsFile
 {
-    public static Settings From(TorniConfig config, FolderPath home)
+    public static Settings From(UserConfig config, FolderPath home)
     {
         IReadOnlyList<FolderPath> roots = [.. (config.RepositoryRoots ?? []).Parsed<FolderPath>()];
         WorktreeRootChoice worktreeRoot = FolderPath.TryParse(config.WorktreeRoot, out FolderPath? parsed) ? new WorktreeRootChoice.At(parsed) : new WorktreeRootChoice.BesideFirstRoot();
@@ -24,14 +24,14 @@ public static class SettingsFile
             DefinedOr(config.DefaultPlace, Settings.PlaceWhenUnset));
     }
 
-    public static TorniConfig ToConfig(Settings settings)
+    public static UserConfig ToConfig(Settings settings)
     {
         EditorChoice editor = settings.Editor;
         EditorSetting setting = editor.Preset == EditorPreset.Custom
             ? new EditorSetting(editor.Preset.ToString(), editor.Executable, editor.Arguments)
             : new EditorSetting(editor.Preset.ToString(), Executable: null, Arguments: null);
 
-        return new TorniConfig([.. settings.RepositoryRoots.Select(root => root.Value)], settings.DefaultBase, settings.WorktreeRoot.Value, setting, settings.CheckForUpdates, settings.DefaultPlace);
+        return new UserConfig([.. settings.RepositoryRoots.Select(root => root.Value)], settings.DefaultBase, settings.WorktreeRoot.Value, setting, settings.CheckForUpdates, settings.DefaultPlace);
     }
 
     private static TEnum DefinedOr<TEnum>(TEnum? value, TEnum fallback)

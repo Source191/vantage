@@ -17,6 +17,7 @@
 - [x] 3.1 Redraw the mark as a T in `TorniMark.ps1` and describe it so in its synopsis and the README's banner text. Verify by looking at the 512 px icon.
 - [x] 3.2 Remake the icon sizes, `.ico` and console icon pixels with `New-Icon.ps1` and `New-IconPixels.ps1`, the header images with `New-Header.ps1`, and the README screenshot and animation with `New-ReadmeScreenshot.ps1`. Verify by looking at each image.
 - [x] 3.3 `TerminalFragmentShould` expects the fragment's icon copy as `logo.ico`; red, then name the icon files `logo-*` and `logo.ico` and every reference (the tool and Tui projects, `TerminalFragment`, `SharedParts`, `SceneHost`, `Compress-WingetBuild.ps1`, the icon scripts, docs and rules); green.
+- [x] 3.4 Rename `TorniMark.ps1` to `LogoMark.ps1` (`Add-LogoMark`), `TorniIcon` to `LogoIcon`, `ITorniConfig` and `TorniConfig` to `IUserConfig` and `UserConfig`, `TorniProcess` to `OwnProcess`, `UpdateTorni` to `SelfUpdate` and `C:\TorniDemo` to `C:\ReadmeDemo`, a refactor with no behaviour change. Verify the build and the whole suite pass unchanged.
 
 ## 4. Docs
 

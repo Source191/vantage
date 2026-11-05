@@ -2,7 +2,7 @@
 
 ## 1. The setting
 
-- [ ] 1.1 Red: `SettingsShould` and `SettingsFileShould` facts that `diagnosticLog` reads false when absent, true when `true`, every default for a value that is not a boolean, and is written back as `diagnosticLog`. Green: add it to `Domain\Settings`, `SettingsText`, `Ports\TorniConfig` and `Application\SettingsFile`. Verify the new facts and the existing settings facts pass.
+- [ ] 1.1 Red: `SettingsShould` and `SettingsFileShould` facts that `diagnosticLog` reads false when absent, true when `true`, every default for a value that is not a boolean, and is written back as `diagnosticLog`. Green: add it to `Domain\Settings`, `SettingsText`, `Ports\UserConfig` and `Application\SettingsFile`. Verify the new facts and the existing settings facts pass.
 
 ## 2. The switch and the file
 

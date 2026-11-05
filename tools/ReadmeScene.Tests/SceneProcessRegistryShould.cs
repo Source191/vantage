@@ -16,7 +16,7 @@ public sealed class SceneProcessRegistryShould
     public SceneProcessRegistryShould()
     {
         Scene scene = SceneFile.Read(File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "scene.json")));
-        listing = new SceneListing(scene, new SceneLayout(@"C:\TorniDemo\me"), clock);
+        listing = new SceneListing(scene, new SceneLayout(@"C:\ReadmeDemo\me"), clock);
         real.InTree(TabShell, "pwsh", 4, clock.GetUtcNow().AddMinutes(-1));
         registry = new SceneProcessRegistry(listing, real);
     }

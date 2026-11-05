@@ -8,7 +8,7 @@ public sealed class SharedKeysShould
     {
         { 'q', new Quit() },
         { '?', new ShowHelp() },
-        { 'U', new UpdateTorni() },
+        { 'U', new SelfUpdate() },
         { '!', new ShowProblemReport() },
     };
 

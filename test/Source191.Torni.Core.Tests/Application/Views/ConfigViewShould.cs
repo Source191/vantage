@@ -156,7 +156,7 @@ public sealed class ConfigViewShould
     [InlineData('q', typeof(Quit))]
     [InlineData('?', typeof(ShowHelp))]
     [InlineData('!', typeof(ShowProblemReport))]
-    [InlineData('U', typeof(UpdateTorni))]
+    [InlineData('U', typeof(SelfUpdate))]
     public void EmitTheEffectForTheKey(char key, Type effect)
     {
         ConfigView.Reduce(Loaded, new KeyPressed(Key.Of(key))).Effects.Single().ShouldBeOfType(effect);

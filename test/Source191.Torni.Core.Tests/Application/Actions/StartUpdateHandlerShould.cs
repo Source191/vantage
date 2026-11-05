@@ -44,6 +44,6 @@ public sealed class StartUpdateHandlerShould
 
     private StartUpdateHandler Handler(ProgramLocation winget)
     {
-        return new StartUpdateHandler(terminal, new TabScripts(@"C:\Users\me\.local\bin\claude.exe", Torni), new TorniProcess(4242, Home, winget));
+        return new StartUpdateHandler(terminal, new TabScripts(@"C:\Users\me\.local\bin\claude.exe", Torni), new OwnProcess(4242, Home, winget));
     }
 }

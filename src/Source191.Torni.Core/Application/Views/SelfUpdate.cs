@@ -7,7 +7,7 @@ namespace Source191.Torni.Application.Views;
 /// The update key, from any tab. Its flow asks the update check what is known: with a newer release it shows what
 /// changed and offers <see cref="StartUpdate"/>, otherwise the status line says why there is nothing to do.
 /// </summary>
-public sealed record UpdateTorni : ViewEffect, IDialogEffect
+public sealed record SelfUpdate : ViewEffect, IDialogEffect
 {
     /// <summary>Show the newest release's notes since the running version when an update is available; otherwise refuse with the status message that says why there is nothing to update to.</summary>
     public static UpdateDecision Decide(UpdateStatus status, ReleaseNotes notes)

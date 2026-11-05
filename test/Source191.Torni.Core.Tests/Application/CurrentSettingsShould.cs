@@ -15,7 +15,7 @@ public sealed class CurrentSettingsShould
     {
         CurrentSettings current = await CurrentSettings.LoadAsync(new InMemoryState(), Home);
 
-        current.Value.ShouldBe(SettingsFile.From(TorniConfig.Missing, Home));
+        current.Value.ShouldBe(SettingsFile.From(UserConfig.Missing, Home));
     }
 
     [Fact]

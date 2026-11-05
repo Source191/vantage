@@ -12,7 +12,7 @@ public static class SharedKeys
         {
             { Name: KeyName.Character, Character: 'q' } => new Quit(),
             { Name: KeyName.Character, Character: '?' } => new ShowHelp(),
-            { Name: KeyName.Character, Character: 'U' } => new UpdateTorni(),
+            { Name: KeyName.Character, Character: 'U' } => new SelfUpdate(),
             { Name: KeyName.Character, Character: '!' } => new ShowProblemReport(),
             _ => null,
         };

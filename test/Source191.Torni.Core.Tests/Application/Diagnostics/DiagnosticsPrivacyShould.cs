@@ -172,7 +172,7 @@ public sealed class DiagnosticsPrivacyShould
         LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);
         EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders(), new FakeCrashFile());
 
-        return Composition.Handlers(ports, launches, new TabScripts(Claude, Torni), TestSettings.Current(), new TorniProcess(4242, FolderPath.From(@"C:\Users\me"), new ProgramLocation.Missing()), log);
+        return Composition.Handlers(ports, launches, new TabScripts(Claude, Torni), TestSettings.Current(), new OwnProcess(4242, FolderPath.From(@"C:\Users\me"), new ProgramLocation.Missing()), log);
     }
 
     private async Task StartASessionWithAPromptAsync(ClaudeCli claude, GitCli git)

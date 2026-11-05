@@ -39,7 +39,7 @@
 
 ## 6. The script and the images
 
-- [x] 6.1 Write `tools\New-ReadmeScreenshot.ps1`: clear `NO_COLOR`, `CLAUDECODE`, `CLAUDE_PID` and `CLAUDE_CODE_*` for the window it opens, check `wt`, git and ffmpeg, build the demo repositories under `-SceneRoot` (default `C:\TorniDemo`) with the made-up author and remotes, open the window with the cleared environment, wait for the marker, capture the PNG, play and capture the GIF, close the window and delete the scene folder; verify a run leaves only `assets\readme\sessions.png` and `assets\readme\new-session.gif` changed and nothing in `%LOCALAPPDATA%\Torni` or `~\.claude` touched (compare their last-write times before and after)
+- [x] 6.1 Write `tools\New-ReadmeScreenshot.ps1`: clear `NO_COLOR`, `CLAUDECODE`, `CLAUDE_PID` and `CLAUDE_CODE_*` for the window it opens, check `wt`, git and ffmpeg, build the demo repositories under `-SceneRoot` (default `C:\ReadmeDemo`) with the made-up author and remotes, open the window with the cleared environment, wait for the marker, capture the PNG, play and capture the GIF, close the window and delete the scene folder; verify a run leaves only `assets\readme\sessions.png` and `assets\readme\new-session.gif` changed and nothing in `%LOCALAPPDATA%\Torni` or `~\.claude` touched (compare their last-write times before and after)
 - [x] 6.2 Run the script and commit both images; verify by eye that no real repository other than `torni`, person, organisation or user path appears, and that the GIF is under 2 MB
 
 ## 7. User guide

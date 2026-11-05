@@ -30,7 +30,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
         [typeof(RemoveWorktree)] = (self, context, effect) => self.Remove(context, (RemoveWorktree)effect),
         [typeof(FindSolution)] = (self, context, effect) => self.OpenSolutionOf(context, (FindSolution)effect),
         [typeof(EditSetting)] = (self, context, effect) => self.EditSettings(context, ((EditSetting)effect).Scope),
-        [typeof(UpdateTorni)] = (self, context, _) => self.ConfirmUpdate(context),
+        [typeof(SelfUpdate)] = (self, context, _) => self.ConfirmUpdate(context),
         [typeof(ShowProblemReport)] = (self, context, effect) => self.ReportProblem(context, (ShowProblemReport)effect),
         [typeof(ShowMemory)] = (self, context, effect) => self.ShowMemoryOf(context, (ShowMemory)effect),
     }.ToFrozenDictionary();
@@ -111,7 +111,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     /// </summary>
     private void ConfirmUpdate(IEffectContext context)
     {
-        switch (UpdateTorni.Decide(updates.Status, updates.Notes))
+        switch (SelfUpdate.Decide(updates.Status, updates.Notes))
         {
             case UpdateDecision.Ask ask:
                 AskToUpdate(context, ask);

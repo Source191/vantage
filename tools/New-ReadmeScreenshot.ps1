@@ -27,7 +27,7 @@
 #>
 [CmdletBinding()]
 param(
-    [string] $SceneRoot = 'C:\TorniDemo',
+    [string] $SceneRoot = 'C:\ReadmeDemo',
     [switch] $KeepScene,
     [ValidateSet('Both', 'Screenshot', 'Animation', 'None')]
     [string] $Only = 'Both'

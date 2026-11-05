@@ -82,7 +82,7 @@ internal static class ConsoleComposition
             launch.Claude, launch.Git, parts.ProcessRegistry, transcripts, terminal, parts.Store,
             TimeProvider.System, clipboard, desktop, editors, folders, parts.CrashFile);
         TabScripts tabScripts = new(launch.Programs.Claude, parts.TorniExecutable);
-        TorniProcess torni = new(Environment.ProcessId, home, parts.Programs.Locate("winget"));
+        OwnProcess torni = new(Environment.ProcessId, home, parts.Programs.Locate("winget"));
 
         return HandlerComposition.Handlers(ports, launch.Launches, tabScripts, settings, torni, parts.Log);
     }

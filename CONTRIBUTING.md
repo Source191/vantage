@@ -99,7 +99,7 @@ The README's screenshot (`assets\readme\sessions.png`) and animation (`assets\re
 
 - **When to run it:** after a change that alters what the Sessions tab, the new-session wizard or the session tabs look like, so the README still shows the console as it is.
 - **What it needs:** Windows Terminal, git, and ffmpeg for the animation (`winget install Gyan.FFmpeg`). The window it opens must be left alone while it runs; the workstation may be locked.
-- **What it touches:** only the scene folder (`C:\TorniDemo` unless `-SceneRoot` says otherwise), which it deletes afterwards, and the two images. Your own settings and state, `~\.claude` and your sessions are never read or written, and every tab it opens stays in its own window.
+- **What it touches:** only the scene folder (`C:\ReadmeDemo` unless `-SceneRoot` says otherwise), which it deletes afterwards, and the two images. Your own settings and state, `~\.claude` and your sessions are never read or written, and every tab it opens stays in its own window.
 - **Changing what they show:** [tools\ReadmeScene](tools/ReadmeScene/README.md) says how: the sessions and pull requests are in `scene.json`, the animation's keys in `new-session.keys`. Only made-up repositories and Torni itself are allowed in the scene.
 ## How the code is organised
 

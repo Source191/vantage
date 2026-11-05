@@ -6,12 +6,12 @@ namespace Source191.Torni.Ports;
 /// config.json as written: every member may be missing, as it is in a file from an earlier version or one edited by
 /// hand, and <c>SettingsFile</c> resolves what is missing to its default. A file written by this version names all six.
 /// </summary>
-public sealed record TorniConfig(IReadOnlyList<string>? RepositoryRoots, WorktreeBase? DefaultBase, string? WorktreeRoot, EditorSetting? Editor, bool? CheckForUpdates = null, LaunchMode? DefaultPlace = null)
+public sealed record UserConfig(IReadOnlyList<string>? RepositoryRoots, WorktreeBase? DefaultBase, string? WorktreeRoot, EditorSetting? Editor, bool? CheckForUpdates = null, LaunchMode? DefaultPlace = null)
 {
     /// <summary>No config.json, or one that cannot be read: every member missing, so every setting reads as its default.</summary>
-    public static readonly TorniConfig Missing = new(RepositoryRoots: null, DefaultBase: null, WorktreeRoot: null, Editor: null);
+    public static readonly UserConfig Missing = new(RepositoryRoots: null, DefaultBase: null, WorktreeRoot: null, Editor: null);
 
-    public bool Equals(TorniConfig? other)
+    public bool Equals(UserConfig? other)
     {
         return other is not null
             && DefaultBase == other.DefaultBase

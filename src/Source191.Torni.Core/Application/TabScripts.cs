@@ -49,12 +49,12 @@ public sealed class TabScripts(string claudeExecutable, string torniExecutable)
     /// winget package from the winget source alone (the one the check followed), then starts Torni again only when the
     /// upgrade succeeded; otherwise winget's output stays on screen with a hint.
     /// </summary>
-    public TabLaunch Update(int torniProcessId, FolderPath startingDirectory, string winget) => new(
+    public TabLaunch Update(int ownProcessId, FolderPath startingDirectory, string winget) => new(
         Wording.UpdateTabTitle,
         ShellColour,
         startingDirectory,
         string.Join('\n',
-            WaitFor(torniProcessId),
+            WaitFor(ownProcessId),
             PowerShellScript.Invoke(winget, ["upgrade", .. WingetPackage]),
             $"if ($LASTEXITCODE -eq 0) {{ {PowerShellScript.Invoke(torniExecutable, [])} }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}"));
 

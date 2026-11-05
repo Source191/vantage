@@ -27,7 +27,7 @@ None.
 ## Impact
 
 - **Code:**
-  - Core: `Domain\Settings` and `SettingsText`, `Ports\TorniConfig` and `Application\SettingsFile` (the new property); `Views\ConfigRow`, `ConfigRows` and `ConfigView` (the row and its Enter).
+  - Core: `Domain\Settings` and `SettingsText`, `Ports\UserConfig` and `Application\SettingsFile` (the new property); `Views\ConfigRow`, `ConfigRows` and `ConfigView` (the row and its Enter).
   - A new `ToggleDiagnosticLog` effect with a `ToggleDiagnosticLogHandler` and outcome, and its `Wording` and `WordingOfConfig` lines.
   - `Diagnostics\PeriodicCounts`, and `DiagnosticLogSetting`, which is removed.
   - Infrastructure: `Diagnostics\DiagnosticFile` (the fixed path, the switch and the rollover).

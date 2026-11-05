@@ -337,7 +337,7 @@ public sealed class SessionsViewShould
     [InlineData('R', typeof(ResumeSessions))]
     [InlineData('q', typeof(Quit))]
     [InlineData('?', typeof(ShowHelp))]
-    [InlineData('U', typeof(UpdateTorni))]
+    [InlineData('U', typeof(SelfUpdate))]
     [InlineData('!', typeof(ShowProblemReport))]
     public void EmitTheEffectForTheKey(char key, Type effect)
     {

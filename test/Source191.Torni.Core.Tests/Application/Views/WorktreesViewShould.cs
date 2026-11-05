@@ -232,7 +232,7 @@ public sealed class WorktreesViewShould
     [Fact]
     public void AskToUpdateOnCapitalU()
     {
-        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('U'))).Effects.ShouldBe([new UpdateTorni()]);
+        WorktreesView.Reduce(Loaded, new KeyPressed(Key.Of('U'))).Effects.ShouldBe([new SelfUpdate()]);
     }
 
     [Fact]

@@ -8,14 +8,14 @@ namespace Source191.Torni.Application;
 /// wizard or a dialog, so a save from the settings dialog applies at once without a restart; a hand edit of
 /// config.json applies on the next start.
 /// </summary>
-public sealed class CurrentSettings(Settings initial, ITorniConfig store)
+public sealed class CurrentSettings(Settings initial, IUserConfig store)
 {
     private readonly SharedSnapshot<Settings> snapshot = new(initial);
 
     /// <summary>The settings now: an immutable snapshot, replaced whole on a save.</summary>
     public Settings Value => snapshot.Value;
 
-    public static async Task<CurrentSettings> LoadAsync(ITorniConfig store, FolderPath home) => new(SettingsFile.From(await store.ReadConfigAsync(), home), store);
+    public static async Task<CurrentSettings> LoadAsync(IUserConfig store, FolderPath home) => new(SettingsFile.From(await store.ReadConfigAsync(), home), store);
 
     /// <summary>Writes config.json, then makes the saved settings the current ones.</summary>
     public async Task SaveAsync(Settings settings)

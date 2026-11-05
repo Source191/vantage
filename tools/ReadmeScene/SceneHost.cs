@@ -79,7 +79,7 @@ internal sealed class SceneHost(SceneFolders folders, Scene scene, ToolVersion v
         EditorLocator editors = new(fileFolders, processes, EditorFolders.ForCurrentUser());
         EffectPorts ports = new(claude, gitCli, processRegistry, transcripts, terminal, store, clock, clipboard, desktop, editors, fileFolders, crashFile);
         TabScripts tabScripts = new(executables.Claude, ownPath);
-        TorniProcess torni = new(Environment.ProcessId, home, new ProgramLocation.Missing());
+        OwnProcess torni = new(Environment.ProcessId, home, new ProgramLocation.Missing());
         EffectDispatcher dispatcher = HandlerComposition.Handlers(ports, launches, tabScripts, settings, torni, log);
 
         ProblemReports reports = new(log, counts.Processes, crashFile, start, settings, clock);

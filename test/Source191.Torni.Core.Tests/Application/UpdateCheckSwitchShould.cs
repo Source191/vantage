@@ -27,7 +27,7 @@ public sealed class UpdateCheckSwitchShould
     [Fact]
     public async Task BeOffWhenTheSettingIsOff()
     {
-        await store.WriteConfigAsync(new TorniConfig([@"C:\Users\me\source\repos"], null, null, null, CheckForUpdates: false));
+        await store.WriteConfigAsync(new UserConfig([@"C:\Users\me\source\repos"], null, null, null, CheckForUpdates: false));
 
         UpdateCheckSwitch updateSwitch = new(await SettingsAsync(), string.Empty);
 

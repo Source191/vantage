@@ -76,7 +76,7 @@ public sealed class EffectDispatcherShould
         ClaudeCli claude = new(processes, Claude);
         LaunchService launches = new(claude, git, store, store, new WorktreeIncludeCopier(git), clock);
         EffectPorts ports = new(claude, git, new FakeProcessRegistry(), new FakeTranscripts(), new FakeWindowsTerminal(), store, clock, new FakeClipboard(), new FakeDesktop(), new FakeEditorLocator(), new FakeFolders(), new FakeCrashFile());
-        EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, @"C:\Users\me\.dotnet\tools\torni.exe"), TestSettings.Current(), new TorniProcess(4242, FolderPath.From(@"C:\Users\me"), new ProgramLocation.Missing()), log);
+        EffectDispatcher dispatcher = Composition.Handlers(ports, launches, new TabScripts(Claude, @"C:\Users\me\.dotnet\tools\torni.exe"), TestSettings.Current(), new OwnProcess(4242, FolderPath.From(@"C:\Users\me"), new ProgramLocation.Missing()), log);
         // A dialog effect that is dispatched itself once its dialog has been answered.
         Type[] dispatchedAfterTheirDialog = [typeof(CloseEmptyTerminals)];
 
