@@ -5,7 +5,7 @@ namespace Source191.Torni.Infrastructure.Tests;
 
 public sealed class CrashFileShould : IDisposable
 {
-    private readonly string folder = Path.Combine(Path.GetTempPath(), $"torni-state-{Guid.NewGuid():N}");
+    private readonly string folder = Path.Combine(Path.GetTempPath(), $"test-state-{Guid.NewGuid():N}");
 
     public void Dispose()
     {

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Builds Torni's self-contained winget build, or extracts one from a check run's artefact, into a folder of its own
+    Builds the self-contained winget build, or extracts one from a check run's artefact, into a folder of its own
     for testing before it is released, and prints the executable's full path.
 
 .DESCRIPTION
@@ -80,5 +80,5 @@ else {
     Copy-Item -Path (Join-Path $Published '*') -Destination $Destination -Recurse
 }
 
-Write-Host "Torni is at $Executable" -ForegroundColor Green
+Write-Host "Installed at $Executable" -ForegroundColor Green
 Write-Host "Run it by that path; the torni command on the PATH still runs the installed release."

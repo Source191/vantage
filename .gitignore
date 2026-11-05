@@ -437,7 +437,7 @@ test-results/
 # Icon must end with two \r
 Icon
 
-# The Torni icon folder is not the macOS Icon file.
+# The icon folder is not the macOS Icon file.
 !/assets/icon/
 
 
@@ -488,7 +488,7 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# Torni
+# Visual Studio
 .vs/
 *.user
 

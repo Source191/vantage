@@ -11,7 +11,7 @@ namespace Source191.Torni.Infrastructure.Tests;
 [Trait("Category", "Integration")]
 public sealed class GitCliIntegrationShould : IDisposable
 {
-    private readonly string root = Path.Combine(Path.GetTempPath(), "torni-git-" + Guid.NewGuid().ToString("N"));
+    private readonly string root = Path.Combine(Path.GetTempPath(), "test-git-" + Guid.NewGuid().ToString("N"));
     private readonly GitCli git = new(new ProcessRunner(TimeSpan.FromMinutes(1)), "git");
 
     private string Repository => Path.Combine(root, "Northwind.Orders");
@@ -188,7 +188,7 @@ public sealed class GitCliIntegrationShould : IDisposable
     {
         Directory.CreateDirectory(Repository);
         await RunGitAsync("init", "-q", "-b", "main");
-        await RunGitAsync("config", "user.email", "torni@example.test");
+        await RunGitAsync("config", "user.email", "tests@example.test");
         await RunGitAsync("config", "user.name", "Torni Tests");
         await File.WriteAllTextAsync(Path.Combine(Repository, "README.md"), "# test");
         await RunGitAsync("add", "-A");

@@ -33,7 +33,7 @@ public sealed class HandoffCheck(ClaudeJobs jobs)
             return CouldNotStart;
         }
 
-        string name = "torni-check-" + Guid.NewGuid().ToString("N")[..6];
+        string name = "handoff-check-" + Guid.NewGuid().ToString("N")[..6];
         try
         {
             return await DriveAsync(exe, repository, name);

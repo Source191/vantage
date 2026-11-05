@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Draws the Torni header (the mark, the name, the tagline and the install line over a faint git graph) in three layouts.
+Draws the header (the mark, the name, the tagline and the install line over a faint git graph) in three layouts.
 .DESCRIPTION
 Writes to assets\header:
 - buy-me-a-coffee-cover.png, 3200 x 800. Buy Me a Coffee shows a cover full width at about 390 px tall and crops it, and its About and

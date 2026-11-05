@@ -12,7 +12,7 @@ namespace Source191.Torni.Infrastructure.Tests;
 [Trait("Category", "Integration")]
 public sealed class WorktreeIncludeCopierShould : IDisposable
 {
-    private readonly string root = Path.Combine(Path.GetTempPath(), "torni-include-" + Guid.NewGuid().ToString("N"));
+    private readonly string root = Path.Combine(Path.GetTempPath(), "test-include-" + Guid.NewGuid().ToString("N"));
     private readonly GitCli git = new(new ProcessRunner(TimeSpan.FromMinutes(1)), "git");
 
     private string Repository => Path.Combine(root, "Northwind.Orders");

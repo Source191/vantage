@@ -1,11 +1,11 @@
 #Requires -Version 7
 <#
 .SYNOPSIS
-    Zips the self-contained winget build and fails unless the zip holds exactly the files Torni ships.
+    Zips the self-contained winget build and fails unless the zip holds exactly the files the program ships.
 
 .DESCRIPTION
     The publish folder (dotnet publish src\Source191.Torni -p:PublishProfile=win-x64) must hold torni.exe, Terminal.Gui's
-    native libonigwrap.dll, and the three files Torni reads or must carry beside itself: CHANGELOG.md (the notes of the
+    native libonigwrap.dll, and the three files the program reads or must carry beside itself: CHANGELOG.md (the notes of the
     running version), logo.ico (the Windows Terminal profiles' icon) and THIRD-PARTY-NOTICES.txt. Anything else, a PDB or
     an XML documentation file above all, fails the build rather than shipping, and so does a missing file. The zip is flat,
     so winget extracts every file beside torni.exe. Exit code 0 means the zip was written and checked; 1 means it was not.

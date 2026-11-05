@@ -11,7 +11,7 @@ public sealed class TemporaryGitRoot : IDisposable
 {
     private readonly ProcessRunner processes = new(TimeSpan.FromMinutes(1));
 
-    public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "torni-root-" + Guid.NewGuid().ToString("N"));
+    public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "test-root-" + Guid.NewGuid().ToString("N"));
 
     public TemporaryGitRoot()
     {
@@ -23,7 +23,7 @@ public sealed class TemporaryGitRoot : IDisposable
         string repository = System.IO.Path.Combine(Path, name);
         Directory.CreateDirectory(repository);
         await GitAsync(repository, "init", "-q", "-b", "main");
-        await GitAsync(repository, "config", "user.email", "torni@example.test");
+        await GitAsync(repository, "config", "user.email", "tests@example.test");
         await GitAsync(repository, "config", "user.name", "Torni Tests");
         await File.WriteAllTextAsync(System.IO.Path.Combine(repository, "README.md"), "# test");
         await GitAsync(repository, "add", "-A");

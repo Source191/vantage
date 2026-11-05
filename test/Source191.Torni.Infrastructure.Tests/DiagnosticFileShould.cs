@@ -4,7 +4,7 @@ namespace Source191.Torni.Infrastructure.Tests;
 
 public sealed class DiagnosticFileShould : IDisposable
 {
-    private readonly string path = Path.Combine(Path.GetTempPath(), $"torni-log-{Guid.NewGuid():N}.log");
+    private readonly string path = Path.Combine(Path.GetTempPath(), $"test-log-{Guid.NewGuid():N}.log");
 
     public void Dispose()
     {

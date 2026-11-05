@@ -8,7 +8,7 @@ namespace Source191.Torni.Infrastructure.Tests;
 [Trait("Category", "Integration")]
 public sealed class FoldersShould : IDisposable
 {
-    private readonly string root = Path.Combine(Path.GetTempPath(), "torni-folders-" + Guid.NewGuid().ToString("N"));
+    private readonly string root = Path.Combine(Path.GetTempPath(), "test-folders-" + Guid.NewGuid().ToString("N"));
     private readonly Folders folders = new();
     private readonly List<string> junctions = [];
 

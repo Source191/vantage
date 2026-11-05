@@ -6,7 +6,7 @@ namespace Source191.Torni.Infrastructure.Tests;
 /// <summary>The changelog beside the tool, with a temporary folder standing for the installed tool's.</summary>
 public sealed class PackagedReleaseNotesShould : IDisposable
 {
-    private readonly string folder = Path.Combine(Path.GetTempPath(), $"torni-tool-{Guid.NewGuid():N}");
+    private readonly string folder = Path.Combine(Path.GetTempPath(), $"test-tool-{Guid.NewGuid():N}");
 
     [Fact]
     public async Task ReadTheChangelogBesideTheTool()

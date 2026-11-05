@@ -8,7 +8,7 @@ namespace Source191.Torni.Infrastructure.Tests;
 [Trait("Category", "Integration")]
 public sealed class FolderDeletionShould : IDisposable
 {
-    private readonly string root = Path.Combine(Path.GetTempPath(), "torni-deletion-" + Guid.NewGuid().ToString("N"));
+    private readonly string root = Path.Combine(Path.GetTempPath(), "test-deletion-" + Guid.NewGuid().ToString("N"));
 
     private readonly List<string> junctions = [];
 
@@ -69,7 +69,7 @@ public sealed class FolderDeletionShould : IDisposable
     [Fact]
     public void RefuseAShareRoot()
     {
-        const string share = @"\\torni-no-such-host\share\";
+        const string share = @"\\no-such-host\share\";
 
         IOException refusal = Should.Throw<IOException>(() => FolderDeletion.DeleteTree(share));
 

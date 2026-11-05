@@ -14,7 +14,7 @@ public sealed class DesktopShould : IDisposable
 {
     private const string Pwsh = "pwsh.exe";
 
-    private readonly string folder = Path.Combine(Path.GetTempPath(), "torni-desktop-" + Guid.NewGuid().ToString("N"));
+    private readonly string folder = Path.Combine(Path.GetTempPath(), "test-desktop-" + Guid.NewGuid().ToString("N"));
     private static readonly string[] Markers = ["CLAUDECODE", "NO_COLOR", "CLAUDE_PID", "CLAUDE_CODE_SESSION_ID"];
 
     private readonly Dictionary<string, string?> previousMarkers = Markers.ToDictionary(name => name, name => Environment.GetEnvironmentVariable(name));

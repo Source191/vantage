@@ -12,7 +12,7 @@ public sealed class PullRequestHostsShould : IDisposable
     private static readonly FolderPath Checkout = FolderPath.From(@"C:\Users\me\source\repos\Northwind.Orders");
 
     private readonly FakeProcessRunner processes = new FakeProcessRunner().AnswerAll(new ProcessResult(0, "[]", string.Empty));
-    private readonly string folder = Path.Combine(Path.GetTempPath(), "torni-az-" + Guid.NewGuid().ToString("N"));
+    private readonly string folder = Path.Combine(Path.GetTempPath(), "test-az-" + Guid.NewGuid().ToString("N"));
 
     [Theory]
     [InlineData("gh")]
@@ -46,7 +46,7 @@ public sealed class PullRequestHostsShould : IDisposable
     [Fact]
     public void FindAzOnlyInFullPathFolders()
     {
-        string relativeName = "torni-az-relative-" + Guid.NewGuid().ToString("N");
+        string relativeName = "test-az-relative-" + Guid.NewGuid().ToString("N");
         string relative = Path.Combine(Environment.CurrentDirectory, relativeName);
         string full = Path.Combine(folder, "full");
         Directory.CreateDirectory(relative);

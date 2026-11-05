@@ -98,7 +98,7 @@ public sealed class JsonFileStoreShould : IDisposable
 
     private static readonly UserConfig SavedConfig = new([@"C:\Users\me\source\repos", @"D:\work"], WorktreeBase.RemoteDefault, @"C:\Users\me\source\worktrees", new EditorSetting("VsCode", Executable: null, Arguments: null), CheckForUpdates: true, DefaultPlace: LaunchMode.NewWorktree);
 
-    private readonly string folder = Path.Combine(Path.GetTempPath(), "torni-state-" + Guid.NewGuid().ToString("N"));
+    private readonly string folder = Path.Combine(Path.GetTempPath(), "test-state-" + Guid.NewGuid().ToString("N"));
     private readonly FakeTimeProvider clock = new(Noon);
 
     private JsonFileStore Store => new(folder, clock);

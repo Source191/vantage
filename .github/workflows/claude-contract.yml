@@ -1,7 +1,7 @@
 name: claude-contract
 
-# Every night, checks that the latest Claude Code CLI still offers what Torni relies on (.claude\rules\checks.md, "Claude Code
-# contract tests"): the contract tests drive Torni's own Claude adapters against a fresh install, compare the
+# Every night, checks that the latest Claude Code CLI still offers what the console relies on (.claude\rules\checks.md, "Claude Code
+# contract tests"): the contract tests drive the solution's own Claude adapters against a fresh install, compare the
 # commands and options in the CLI's help with the committed snapshots, and the hand-off check attaches through torni here and detaches.
 # A failed install or contract test raises one rolling issue labelled claude-cli, assigned to the login in the
 # CLAUDE_CLI_WATCHER repository variable, so each failure notifies them. Never runs on pull requests: a CLI release
