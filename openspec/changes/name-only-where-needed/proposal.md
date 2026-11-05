@@ -22,7 +22,7 @@ None.
 
 ### Modified Capabilities
 
-None at the requirement level: no requirement or scenario quotes a sentence that changes, and the tab file's own-tab word is not specified. The change declares `skip_specs: true`.
+- `detail-pane`: the Prompted line's scenario quotes "not seen since the console started". No other requirement or scenario quotes a sentence that changes, and the tab file's own-tab word is not specified.
 
 ## Impact
 
