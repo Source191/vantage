@@ -33,7 +33,7 @@ public abstract record StatusMessage
     /// <summary>The typed name was refused, for the domain's reason.</summary>
     public sealed record InvalidName(NameProblem Problem) : StatusMessage;
 
-    public sealed record AlreadyUnderTorni(ListedName Name) : StatusMessage;
+    public sealed record AlreadyInBackground(ListedName Name) : StatusMessage;
 
     public sealed record WorkingSoAdoptWaits(ListedName Name) : StatusMessage;
 

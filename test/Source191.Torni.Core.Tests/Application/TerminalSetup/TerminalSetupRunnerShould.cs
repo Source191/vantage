@@ -7,7 +7,7 @@ namespace Source191.Torni.Core.Tests.Application.TerminalSetup;
 
 public sealed class TerminalSetupRunnerShould : IDisposable
 {
-    private const string Torni = @"C:\Users\me\.dotnet\tools\torni.exe";
+    private const string OwnExecutable = @"C:\Users\me\.dotnet\tools\torni.exe";
     private const string Media = @"C:\Windows\Media";
     private const string NotifyMessaging = @"C:\Windows\Media\Windows Notify Messaging.wav";
     private const string ProximityNotification = @"C:\Windows\Media\Windows Proximity Notification.wav";
@@ -29,7 +29,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         exitCode.ShouldBe(0);
         fragment.Written.ShouldBeEmpty();
         settings.Enabled.ShouldBe(0);
-        output.ToString().ShouldContain(Wording.TerminalSetupPlan(fragment.Location, new TerminalProfiles(Torni, new BellSound.File(NotifyMessaging), new BellSound.File(ProximityNotification))));
+        output.ToString().ShouldContain(Wording.TerminalSetupPlan(fragment.Location, new TerminalProfiles(OwnExecutable, new BellSound.File(NotifyMessaging), new BellSound.File(ProximityNotification))));
         output.ToString().ShouldContain(Wording.WriteProfilesQuestion);
         output.ToString().ShouldContain(Wording.NothingWritten);
     }
@@ -51,7 +51,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         int exitCode = await RunAsync("y\nn\n");
 
         exitCode.ShouldBe(0);
-        fragment.Written.ShouldBe([new TerminalProfiles(Torni, new BellSound.File(NotifyMessaging), new BellSound.File(ProximityNotification))]);
+        fragment.Written.ShouldBe([new TerminalProfiles(OwnExecutable, new BellSound.File(NotifyMessaging), new BellSound.File(ProximityNotification))]);
         output.ToString().ShouldContain(Wording.ProfilesWritten(fragment.Location));
         output.ToString().ShouldNotContain(Wording.NothingWritten);
     }
@@ -70,7 +70,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = new SoundArgument.Given(Chimes), SessionSound = new SoundArgument.Given(NotifyMessaging.ToUpperInvariant()) });
 
         exitCode.ShouldBe(0);
-        fragment.Written.Single().ShouldBe(new TerminalProfiles(Torni, new BellSound.File(Chimes), new BellSound.File(NotifyMessaging.ToUpperInvariant())));
+        fragment.Written.Single().ShouldBe(new TerminalProfiles(OwnExecutable, new BellSound.File(Chimes), new BellSound.File(NotifyMessaging.ToUpperInvariant())));
     }
 
     [Fact]
@@ -82,14 +82,14 @@ public sealed class TerminalSetupRunnerShould : IDisposable
         int exitCode = await RunAsync(string.Empty, Defaults with { Yes = true, Sound = new SoundArgument.Given("ding.wav") });
 
         exitCode.ShouldBe(0);
-        fragment.Written.Single().TorniSound.ShouldBe(new BellSound.File(full));
+        fragment.Written.Single().ConsoleSound.ShouldBe(new BellSound.File(full));
     }
 
     [Fact]
     public async Task NameTheValueItReplacesWhenClaudeUsesAnotherChannel()
     {
         FakeClaudeSettings other = new(new NotificationChannelState.Configured("iterm2"));
-        TerminalSetupRunner runner = new(folders, fragment, other, Torni, Media, new StringReader("n\nn\n"), output, error);
+        TerminalSetupRunner runner = new(folders, fragment, other, OwnExecutable, Media, new StringReader("n\nn\n"), output, error);
 
         await runner.RunAsync(Defaults, CancellationToken.None);
 
@@ -112,11 +112,11 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     public async Task LeaveOutAMissingDefaultAndSaySo()
     {
         FakeFolders withoutDefault = new FakeFolders().WithFile(ProximityNotification);
-        TerminalSetupRunner runner = new(withoutDefault, fragment, settings, Torni, Media, new StringReader("y\nn\n"), output, error);
+        TerminalSetupRunner runner = new(withoutDefault, fragment, settings, OwnExecutable, Media, new StringReader("y\nn\n"), output, error);
 
         await runner.RunAsync(Defaults, CancellationToken.None);
 
-        fragment.Written.Single().ShouldBe(new TerminalProfiles(Torni, new BellSound.TerminalDefault(), new BellSound.File(ProximityNotification)));
+        fragment.Written.Single().ShouldBe(new TerminalProfiles(OwnExecutable, new BellSound.TerminalDefault(), new BellSound.File(ProximityNotification)));
         output.ToString().ShouldContain(Wording.DefaultSoundMissing("Torni", NotifyMessaging));
         output.ToString().ShouldNotContain("Torni session profile uses");
     }
@@ -154,7 +154,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     }
 
     [Fact]
-    public async Task ReportTheTorniSoundsProblemBeforeTheSessionSounds()
+    public async Task ReportTheConsoleSoundsProblemBeforeTheSessionSounds()
     {
         int exitCode = await RunAsync("y\ny\n", Defaults with { Sound = new SoundArgument.Given(@"C:\Windows\Media\notes.txt"), SessionSound = new SoundArgument.Given(@"C:\Users\me\missing.wav") });
 
@@ -193,7 +193,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     public async Task OfferTheTerminalBellWhenItIsNotAlreadySet(string? current)
     {
         FakeClaudeSettings other = new(current is null ? new NotificationChannelState.Unset() : new NotificationChannelState.Configured(current));
-        TerminalSetupRunner runner = new(folders, fragment, other, Torni, Media, new StringReader("n\nn\n"), output, error);
+        TerminalSetupRunner runner = new(folders, fragment, other, OwnExecutable, Media, new StringReader("n\nn\n"), output, error);
 
         await runner.RunAsync(Defaults, CancellationToken.None);
 
@@ -213,7 +213,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     public async Task NotOfferTheTerminalBellWhenItIsAlreadyOn()
     {
         FakeClaudeSettings alreadyOn = new(new NotificationChannelState.Configured(NotificationChannelState.TerminalBell));
-        TerminalSetupRunner runner = new(folders, fragment, alreadyOn, Torni, Media, new StringReader("y\n"), output, error);
+        TerminalSetupRunner runner = new(folders, fragment, alreadyOn, OwnExecutable, Media, new StringReader("y\n"), output, error);
 
         await runner.RunAsync(Defaults, CancellationToken.None);
 
@@ -238,7 +238,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
     public async Task SkipAnUnreadableSettingsFileButStillWriteProfiles()
     {
         FakeClaudeSettings unreadable = new(new NotificationChannelState.Unreadable("bad json"));
-        TerminalSetupRunner runner = new(folders, fragment, unreadable, Torni, Media, new StringReader("y\n"), output, error);
+        TerminalSetupRunner runner = new(folders, fragment, unreadable, OwnExecutable, Media, new StringReader("y\n"), output, error);
 
         int exitCode = await runner.RunAsync(Defaults, CancellationToken.None);
 
@@ -318,7 +318,7 @@ public sealed class TerminalSetupRunnerShould : IDisposable
 
     private Task<int> RunAsync(string answers, TerminalSetupRequest? request = null)
     {
-        TerminalSetupRunner runner = new(folders, fragment, settings, Torni, Media, new StringReader(answers), output, error);
+        TerminalSetupRunner runner = new(folders, fragment, settings, OwnExecutable, Media, new StringReader(answers), output, error);
 
         return runner.RunAsync(request ?? Defaults, CancellationToken.None);
     }

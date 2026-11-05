@@ -30,7 +30,7 @@ public sealed class DiagnosticEventsShould
 
     [Theory]
     [MemberData(nameof(EventTypes))]
-    public void HoldOnlyValuesTorniDefines(Type type)
+    public void HoldOnlyValuesTheSolutionDefines(Type type)
     {
         IEnumerable<Type> members = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(property => property.Name != "EqualityContract")

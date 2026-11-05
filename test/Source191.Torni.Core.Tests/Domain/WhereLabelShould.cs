@@ -7,7 +7,7 @@ public sealed class WhereLabelShould
     private const string LongRepository = "Northwind.Integration.CosmosDb.ChangeFeedMonitoring";
 
     [Fact]
-    public void NameTheRepositoryAndTheSlugOfAWorktreeTorniMade()
+    public void NameTheRepositoryAndTheSlugOfAWorktreeMadeHere()
     {
         WhereLabel.For("Northwind.Orders", "Northwind.Orders-fix-123", inRepository: true).Text.ShouldBe("Northwind.Orders › fix-123");
     }

@@ -24,7 +24,7 @@ public sealed class RemoveWorktreeHandlerShould
         GitCalls(processes).Single(request => request.Arguments.Contains("remove")).ShouldSatisfyAllConditions(
             request => request.WorkingDirectory.ShouldBe(new WorkingFolder.At(Repository)),
             request => request.Arguments.ShouldBe(["worktree", "remove", Worktree]));
-        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123")), CreatedByTorni: false));
+        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123")), CreatedHere: false));
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public sealed class RemoveWorktreeHandlerShould
     }
 
     [Fact]
-    public async Task DeleteTheBranchWhenTorniCreatedItAndItIsMerged()
+    public async Task DeleteTheBranchWhenCreatedHereAndMerged()
     {
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Fixtures.Noon));
 
@@ -91,7 +91,7 @@ public sealed class RemoveWorktreeHandlerShould
     }
 
     [Fact]
-    public async Task KeepAnUnmergedBranchTorniCreatedAndSayTorniCreatedIt()
+    public async Task KeepAnUnmergedBranchCreatedHereAndSaySo()
     {
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Fixtures.Noon));
         processes.Answer(request => request.Arguments.Contains("merge-base"), new ProcessResult(1, string.Empty, string.Empty));
@@ -99,7 +99,7 @@ public sealed class RemoveWorktreeHandlerShould
         RemoveWorktreeOutcome outcome = await Handler.RemoveAsync(Row(WorktreeHealthKind.Ok), forced: false, CancellationToken.None);
 
         GitCalls(processes).ShouldNotContain(request => request.Arguments.Contains("branch"));
-        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123")), CreatedByTorni: true));
+        outcome.ShouldBe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", new BranchToConfirm(FolderPath.From(Repository), BranchName.From("fix-123")), CreatedHere: true));
     }
 
     [Fact]

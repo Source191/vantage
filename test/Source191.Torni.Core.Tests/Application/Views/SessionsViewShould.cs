@@ -211,7 +211,7 @@ public sealed class SessionsViewShould
         ViewUpdate<SessionsViewState> update = SessionsView.Reduce(Loaded, new KeyPressed(Key.Of('b')));
 
         update.Effects.ShouldBeEmpty();
-        update.State.Message.ShouldBe(new StatusMessage.AlreadyUnderTorni(Listed.As("change-feed")));
+        update.State.Message.ShouldBe(new StatusMessage.AlreadyInBackground(Listed.As("change-feed")));
     }
 
     [Fact]

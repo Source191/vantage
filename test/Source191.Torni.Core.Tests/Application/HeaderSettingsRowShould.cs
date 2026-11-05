@@ -24,7 +24,7 @@ public sealed class HeaderSettingsRowShould
     }
 
     [Fact]
-    public void ShowTheVersionsAndTornisMemory()
+    public void ShowTheVersionsAndItsMemory()
     {
         processes.Using(OwnProcess, Fixtures.Noon.AddMinutes(-5), MemorySize.FromMegabytes(35));
         HeaderSettingsRow header = new(Running, Claude, updates, processes, OwnProcess);

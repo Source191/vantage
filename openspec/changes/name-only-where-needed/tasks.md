@@ -1,6 +1,6 @@
 ## 1. Identifiers
 
-- [ ] 1.1 Rename the identifiers and test names that only meant "this program" with the token-level tool. Verify the build and the whole suite pass unchanged, and `git grep` finds no `Torni` identifier outside namespaces.
+- [x] 1.1 Rename the identifiers and test names that only meant "this program" with the token-level tool. Verify the build and the whole suite pass unchanged, and `git grep` finds no `Torni` identifier outside namespaces.
 
 ## 2. State word and label
 

@@ -7,7 +7,7 @@ namespace Source191.Torni.Application;
 /// Every tab Torni opens, built in one place: the script it runs, its title, folder and colour. Values reach the
 /// script only through <see cref="PowerShellScript.Quote"/>, and the two executable paths live here, nowhere else.
 /// </summary>
-public sealed class TabScripts(string claudeExecutable, string torniExecutable)
+public sealed class TabScripts(string claudeExecutable, string consoleExecutable)
 {
     private static readonly TabColour TrustColour = TabPalette.Green;
 
@@ -27,7 +27,7 @@ public sealed class TabScripts(string claudeExecutable, string torniExecutable)
         registration.Colour,
         session.WorkingDirectory,
         string.Join('\n',
-            $"{PowerShellScript.Invoke(torniExecutable, ["claim-tab", registration.Id.ToString("N")])} $PID",
+            $"{PowerShellScript.Invoke(consoleExecutable, ["claim-tab", registration.Id.ToString("N")])} $PID",
             "Clear-Host",
             PowerShellScript.Invoke(claudeExecutable, ["attach", session.JobId.Value]),
             "if ($LASTEXITCODE -eq 0) { exit }"));
@@ -56,7 +56,7 @@ public sealed class TabScripts(string claudeExecutable, string torniExecutable)
         string.Join('\n',
             WaitFor(ownProcessId),
             PowerShellScript.Invoke(winget, ["upgrade", .. WingetPackage]),
-            $"if ($LASTEXITCODE -eq 0) {{ {PowerShellScript.Invoke(torniExecutable, [])} }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}"));
+            $"if ($LASTEXITCODE -eq 0) {{ {PowerShellScript.Invoke(consoleExecutable, [])} }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}"));
 
     /// <summary>A plain PowerShell tab in a worktree.</summary>
     public static TabLaunch Shell(FolderPath worktree) => new(worktree.Name, ShellColour, worktree, "Clear-Host");

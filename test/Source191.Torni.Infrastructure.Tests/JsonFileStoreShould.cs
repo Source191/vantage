@@ -18,7 +18,7 @@ public sealed class JsonFileStoreShould : IDisposable
     private static readonly Guid OwnTabId = Guid.Parse("1c9e3f4b-5a8c-7d6e-5f4a-3b2c1d0b8d2a");
 
     private static readonly TabRegistration SessionTab = new(SessionTabId, new TabOwner.ForSession(SessionId.From("1a4d2d86-8e87-44fe-a9f7-61d47d481ae3")), TabPalette.Yellow, Noon, new TabClaim.Claimed(4242, Noon.AddSeconds(5)));
-    private static readonly TabRegistration OwnTab = new(OwnTabId, TabOwner.Torni, TabPalette.Green, Noon, new TabClaim.Claimed(5151, Noon.AddSeconds(1)));
+    private static readonly TabRegistration OwnTab = new(OwnTabId, TabOwner.Console, TabPalette.Green, Noon, new TabClaim.Claimed(5151, Noon.AddSeconds(1)));
 
     /// <summary>A session's tab file exactly as the store wrote it before ids were typed: the owner is the session id string.</summary>
     private const string SessionTabJson = """

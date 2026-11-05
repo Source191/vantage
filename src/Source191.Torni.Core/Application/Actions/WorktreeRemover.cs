@@ -13,18 +13,18 @@ namespace Source191.Torni.Application.Actions;
 /// </summary>
 public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees, IFolderDeleter deleter, CurrentSettings settings)
 {
-    public async Task<RemoveWorktreeOutcome> CarryOutAsync(WorktreeRow row, RemovalDecision decision, bool createdByTorni, CancellationToken cancellationToken)
+    public async Task<RemoveWorktreeOutcome> CarryOutAsync(WorktreeRow row, RemovalDecision decision, bool createdHere, CancellationToken cancellationToken)
     {
         return decision switch
         {
             RemovalDecision.Refused refused => new RemoveWorktreeOutcome.Refused(refused.Reason),
             RemovalDecision.DeleteFolder deleteFolder => await DeleteFolderAsync(row, deleteFolder, cancellationToken),
-            RemovalDecision.RemoveWorktree removeWorktree => await RemoveThroughGitAsync(row, removeWorktree, createdByTorni, cancellationToken),
+            RemovalDecision.RemoveWorktree removeWorktree => await RemoveThroughGitAsync(row, removeWorktree, createdHere, cancellationToken),
             _ => throw new UnreachableException(),
         };
     }
 
-    private async Task<RemoveWorktreeOutcome> RemoveThroughGitAsync(WorktreeRow row, RemovalDecision.RemoveWorktree decision, bool createdByTorni, CancellationToken cancellationToken)
+    private async Task<RemoveWorktreeOutcome> RemoveThroughGitAsync(WorktreeRow row, RemovalDecision.RemoveWorktree decision, bool createdHere, CancellationToken cancellationToken)
     {
         try
         {
@@ -40,7 +40,7 @@ public sealed class WorktreeRemover(IGit git, ICreatedWorktrees createdWorktrees
         return (decision.Branch, row.Head) switch
         {
             (BranchAction.Delete, Head.OnBranch merged) => await DeleteBranchAsync(row, merged.Branch, cancellationToken),
-            (BranchAction.Ask, Head.OnBranch kept) => new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository, kept.Branch), createdByTorni),
+            (BranchAction.Ask, Head.OnBranch kept) => new RemoveWorktreeOutcome.BranchKept(row.FolderName, new BranchToConfirm(row.Repository, kept.Branch), createdHere),
             (_, Head.Detached or Head.Unknown) => new RemoveWorktreeOutcome.Removed(row.FolderName),
             _ => throw new UnreachableException(),
         };

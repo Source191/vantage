@@ -5,9 +5,9 @@ namespace Source191.Torni.Ports;
 /// is PowerShell and, once the fragment exists, the profile every tab Torni opens asks for. Each has its bell sound,
 /// a file or Windows Terminal's own.
 /// </summary>
-public sealed record TerminalProfiles(string TorniExecutable, BellSound TorniSound, BellSound SessionSound)
+public sealed record TerminalProfiles(string ConsoleExecutable, BellSound ConsoleSound, BellSound SessionSound)
 {
-    public const string TorniProfileName = "Torni";
+    public const string ConsoleProfileName = "Torni";
 
     public const string SessionProfileName = "Torni session";
 

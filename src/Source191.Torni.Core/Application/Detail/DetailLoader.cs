@@ -55,11 +55,11 @@ public sealed class DetailLoader(IGit git, ICreatedWorktrees created, SessionAct
             IReadOnlyList<CreatedWorktree> records = await created.ReadCreatedWorktreesAsync();
 
             return records.FirstOrDefault(record => record.Path.Equals(row.Path)) is CreatedWorktree record
-                ? new WorktreeOrigin.CreatedByTorni(record)
-                : new WorktreeOrigin.NotByTorni();
+                ? new WorktreeOrigin.CreatedHere(record)
+                : new WorktreeOrigin.NotCreatedHere();
         },
         IsNotCancellation,
-        _ => new WorktreeOrigin.NotByTorni());
+        _ => new WorktreeOrigin.NotCreatedHere());
 
     private Task<DetailFact<T>> Read<T>(FolderPath folder, Func<Task<T>> read) => unreadableFacts.RunAsync<DetailFact<T>>(
         folder,

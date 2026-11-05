@@ -4,7 +4,7 @@ using Source191.Torni.Ports;
 namespace Source191.Torni.Application.Actions;
 
 /// <summary>
-/// Torni's own tab: registered like a session tab, owned by <see cref="TabOwner.Torni"/> and claimed by Torni's own process, so the
+/// Torni's own tab: registered like a session tab, owned by <see cref="TabOwner.Console"/> and claimed by Torni's own process, so the
 /// colour it takes (green when free) is skipped by session tabs and the registration goes stale with the process.
 /// </summary>
 public sealed class OwnTab(ITabRegistry tabs, IProcessRegistry processes, TimeProvider clock)
@@ -25,7 +25,7 @@ public sealed class OwnTab(ITabRegistry tabs, IProcessRegistry processes, TimePr
         DateTimeOffset now = clock.GetUtcNow();
         IReadOnlyList<TabRegistration> live = new TabRegistrations(await tabs.ReadTabsAsync()).Live(now, processes);
         ColourChoice choice = colours.Choose([.. live.Select(registration => registration.Colour)], Preferred);
-        await tabs.WriteTabAsync(TabRegistration.Pending(TabOwner.Torni, choice.Colour, now).ClaimedBy(processId, startedAt.Value));
+        await tabs.WriteTabAsync(TabRegistration.Pending(TabOwner.Console, choice.Colour, now).ClaimedBy(processId, startedAt.Value));
 
         return new OwnTabClaim.Claimed(choice.Colour);
     }

@@ -11,11 +11,11 @@ namespace Source191.Torni.Adapters.State;
 /// </summary>
 public sealed class TabOwnerJsonConverter : JsonConverter<TabOwner>
 {
-    private const string Torni = "torni";
+    private const string ConsoleWord = "torni";
 
     public override TabOwner Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) => reader.GetString() switch
     {
-        Torni => TabOwner.Torni,
+        ConsoleWord => TabOwner.Console,
         string text when SessionId.TryParse(text, out SessionId? id) => new TabOwner.ForSession(id),
         _ => throw new JsonException("A tab file has no owner."),
     };
@@ -23,7 +23,7 @@ public sealed class TabOwnerJsonConverter : JsonConverter<TabOwner>
     public override void Write(Utf8JsonWriter writer, TabOwner value, JsonSerializerOptions options) => writer.WriteStringValue(value switch
     {
         TabOwner.ForSession session => session.Id.Value,
-        TabOwner.ForTorni => Torni,
+        TabOwner.ForConsole => ConsoleWord,
         _ => throw new UnreachableException(),
     });
 }

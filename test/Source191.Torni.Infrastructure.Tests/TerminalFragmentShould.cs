@@ -45,7 +45,7 @@ public sealed class TerminalFragmentShould : IDisposable
     [Fact]
     public async Task LeaveOutTheSoundOfAProfileOnTheTerminalsOwnBell()
     {
-        await fragment.WriteAsync(Profiles with { TorniSound = new BellSound.TerminalDefault() }, CancellationToken.None);
+        await fragment.WriteAsync(Profiles with { ConsoleSound = new BellSound.TerminalDefault() }, CancellationToken.None);
 
         JsonArray profiles = WrittenProfiles;
         profiles[0]!.AsObject().ContainsKey("bellSound").ShouldBeFalse();
@@ -85,13 +85,13 @@ public sealed class TerminalFragmentShould : IDisposable
     }
 
     [Fact]
-    public async Task GiveTheTorniProfileNoTabColourAndNoFixedTitle()
+    public async Task GiveTheConsoleProfileNoTabColourAndNoFixedTitle()
     {
         await fragment.WriteAsync(Profiles, CancellationToken.None);
 
-        JsonObject torni = WrittenProfiles[0]!.AsObject();
-        torni.ContainsKey("tabColor").ShouldBeFalse();
-        torni.ContainsKey("suppressApplicationTitle").ShouldBeFalse();
+        JsonObject consoleProfile = WrittenProfiles[0]!.AsObject();
+        consoleProfile.ContainsKey("tabColor").ShouldBeFalse();
+        consoleProfile.ContainsKey("suppressApplicationTitle").ShouldBeFalse();
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public sealed class TerminalFragmentShould : IDisposable
     {
         await fragment.WriteAsync(Profiles, CancellationToken.None);
 
-        await fragment.WriteAsync(Profiles with { TorniSound = new BellSound.File(@"C:\Windows\Media\chimes.wav"), SessionSound = new BellSound.TerminalDefault() }, CancellationToken.None);
+        await fragment.WriteAsync(Profiles with { ConsoleSound = new BellSound.File(@"C:\Windows\Media\chimes.wav"), SessionSound = new BellSound.TerminalDefault() }, CancellationToken.None);
 
         JsonArray profiles = WrittenProfiles;
         profiles.Count.ShouldBe(2);
@@ -118,7 +118,7 @@ public sealed class TerminalFragmentShould : IDisposable
     }
 
     [Fact]
-    public async Task RemoveOnlyTheTorniFolder()
+    public async Task RemoveOnlyItsOwnFolder()
     {
         await fragment.WriteAsync(Profiles, CancellationToken.None);
         string other = Path.Combine(root, "Other", "other.json");

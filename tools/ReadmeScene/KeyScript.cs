@@ -36,7 +36,7 @@ public static class KeyScript
             [_, "type", string text] => new KeyStep.Type(delay, text),
             [_, "press", string key] when Enum.TryParse(key, ignoreCase: false, out NamedKey named) && Enum.IsDefined(named) => new KeyStep.Press(delay, named),
             [_, "press", string key] when key.Length == 1 => new KeyStep.Type(delay, key),
-            [_, "focus"] => new KeyStep.FocusTorni(delay),
+            [_, "focus"] => new KeyStep.FocusOwnTab(delay),
             [_, "mark", string name] => new KeyStep.Mark(delay, name),
             _ => throw new FormatException($"Not a key script line: {line}"),
         };

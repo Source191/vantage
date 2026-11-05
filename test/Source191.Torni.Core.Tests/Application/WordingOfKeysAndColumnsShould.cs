@@ -117,7 +117,7 @@ public sealed class WordingOfKeysAndColumnsShould
     }
 
     [Fact]
-    public void SayTheTabBlockMatchesTheTabAsItLooksFromTorni()
+    public void SayTheTabBlockMatchesTheTabAsItLooksFromTheConsole()
     {
         Wording.SessionsColumns.Single(column => column.Name == "TAB").Meaning
             .ShouldStartWith("a block in the tab's colour, faded as the tab looks from Torni's own tab,\nwhile a Torni tab shows the session;");

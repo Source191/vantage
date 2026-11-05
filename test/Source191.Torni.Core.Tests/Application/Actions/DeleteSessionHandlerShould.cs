@@ -20,7 +20,7 @@ public sealed class DeleteSessionHandlerShould
     private WorktreeRemover Remover(FakeFolders disc) => new(new GitCli(processes, "git"), store, disc, TestSettings.Current(@"C:\repos"));
 
     [Fact]
-    public async Task DeleteASessionOutsideATorniWorktreeWithoutTouchingGit()
+    public async Task DeleteASessionOutsideAWorktreeCreatedHereWithoutTouchingGit()
     {
         DeleteSessionOutcome outcome = await Handler.DeleteAsync(Job(Repository), forced: false, CancellationToken.None);
 
@@ -30,7 +30,7 @@ public sealed class DeleteSessionHandlerShould
     }
 
     [Fact]
-    public async Task DeleteASessionAndRemoveItsCleanTorniWorktreeAndMergedBranch()
+    public async Task DeleteASessionAndRemoveItsCleanWorktreeAndMergedBranch()
     {
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Fixtures.Noon));
 
@@ -73,7 +73,7 @@ public sealed class DeleteSessionHandlerShould
     }
 
     [Fact]
-    public async Task KeepATorniWorktreeThatStillHasChanges()
+    public async Task KeepAWorktreeCreatedHereThatStillHasChanges()
     {
         await store.RecordCreatedWorktreeAsync(new CreatedWorktree(FolderPath.From(Worktree), BranchName.From("fix-123"), FolderPath.From(Repository), Fixtures.Noon));
         processes.Answer(request => request.Arguments.Contains("status"), new ProcessResult(0, " M a.cs\n", string.Empty));

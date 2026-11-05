@@ -15,7 +15,7 @@ namespace Source191.Torni.Core.Tests.Application.Actions;
 public sealed class StartSessionHandlerShould
 {
     private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
-    private const string Torni = @"C:\Users\me\.dotnet\tools\torni.exe";
+    private const string OwnExecutable = @"C:\Users\me\.dotnet\tools\torni.exe";
     private const string Repository = @"C:\repos\Northwind.Orders";
     private const string Worktree = @"C:\repos\Northwind.Orders-fix-flaky-tests";
     private const string Started = "Starting background service…\nbackgrounded · 81cdb0f9 · Fix flaky tests (idle — send a prompt to start)\n";
@@ -39,9 +39,9 @@ public sealed class StartSessionHandlerShould
             GitCli git = new(processes, "git");
             FakeTimeProvider clock = new(Fixtures.Noon);
             LaunchService service = new(new ClaudeCli(processes, Claude), git, store, store, new WorktreeIncludeCopier(git), clock);
-            OpenTabHandler tabs = new(store, new FakeProcessRegistry(), terminal, clock, new TabScripts(Claude, Torni));
+            OpenTabHandler tabs = new(store, new FakeProcessRegistry(), terminal, clock, new TabScripts(Claude, OwnExecutable));
 
-            return new StartSessionHandler(service, tabs, terminal, new TabScripts(Claude, Torni));
+            return new StartSessionHandler(service, tabs, terminal, new TabScripts(Claude, OwnExecutable));
         }
     }
 

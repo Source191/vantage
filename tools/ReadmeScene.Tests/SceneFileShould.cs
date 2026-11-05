@@ -91,7 +91,7 @@ public sealed class SceneFileShould
     [InlineData("Northwind.Orders", "https://github.com/northwind-demo/Northwind.Orders.git")]
     [InlineData("Northwind.Billing", "https://dev.azure.com/northwind-demo/Northwind/_git/Northwind.Billing")]
     [InlineData("torni", "https://github.com/Source191/torni.git")]
-    public void AcceptAMadeUpRepositoryOrTorniItself(string name, string remote)
+    public void AcceptAMadeUpRepositoryOrItsOwn(string name, string remote)
     {
         string json = $$"""{ "claudeVersion": "2.1.316", "repositories": [ { "name": "{{name}}", "remote": "{{remote}}" } ] }""";
 

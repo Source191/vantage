@@ -19,7 +19,7 @@ public sealed class SmokeCheckShould : IDisposable
     }
 
     [Fact]
-    public void PretendToBeWindowsTerminalAndAnswerItsQueriesAsTorniExpects()
+    public void PretendToBeWindowsTerminalAndAnswerItsQueriesAsExpected()
     {
         SmokeCheck.Options.ShouldBe(new DriverOptions(PretendWindowsTerminal: true, AnswerQueries: true, XtversionDelayMs: 0));
     }

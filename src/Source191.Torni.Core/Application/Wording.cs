@@ -125,7 +125,7 @@ public static partial class Wording
             StatusMessage.WorkingSoRenameWaits rename => $"{Name(rename.Name)} is working; wait until it is idle or needs input, because renaming restarts it.",
             StatusMessage.RenameCancelled => "Rename cancelled.",
             StatusMessage.InvalidName invalid => Describe(invalid.Problem),
-            StatusMessage.AlreadyUnderTorni adopted => $"{Name(adopted.Name)} already runs in the background under Torni.",
+            StatusMessage.AlreadyInBackground adopted => $"{Name(adopted.Name)} already runs in the background under Torni.",
             StatusMessage.WorkingSoAdoptWaits adopt => $"{Name(adopt.Name)} is working; wait until it is idle or needs input, so nothing in flight is lost.",
             _ => DescribeWorktreesAndScreen(message),
         };
@@ -350,9 +350,9 @@ public static partial class Wording
         return $"{what}\nNone of them has been sent a message, so nothing is lost.";
     }
 
-    public static string DeleteBranchQuestion(string branch, bool createdByTorni)
+    public static string DeleteBranchQuestion(string branch, bool createdHere)
     {
-        return createdByTorni
+        return createdHere
             ? $"Branch {branch} is not merged. Delete it anyway?"
             : $"Branch {branch} was not created by Torni. Delete it anyway?";
     }
@@ -388,7 +388,7 @@ public static partial class Wording
         return string.Join(Environment.NewLine,
             $"Two Windows Terminal profiles will be written to {fragmentPath}",
             "Your Windows Terminal settings file is not changed.",
-            $"  {TerminalProfiles.TorniProfileName,-13}  runs {profiles.TorniExecutable}; bell sound {SoundText(profiles.TorniSound)}",
+            $"  {TerminalProfiles.ConsoleProfileName,-13}  runs {profiles.ConsoleExecutable}; bell sound {SoundText(profiles.ConsoleSound)}",
             $"  {TerminalProfiles.SessionProfileName,-13}  runs PowerShell; bell sound {SoundText(profiles.SessionSound)}",
             "Both ring the bell and flash the window and the taskbar.");
     }

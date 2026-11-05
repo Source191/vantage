@@ -43,7 +43,7 @@ public static class DiagnosticLine
     }
 
     /// <summary>The start facts without the time, as a problem report's environment line shows them.</summary>
-    public static string Environment(Started started) => $"Torni {started.Torni.Text}, Claude Code {started.ClaudeCode?.ToString() ?? "unknown"}, Windows {started.Windows}, .NET {started.Runtime}, terminal {started.Columns}x{started.Rows}";
+    public static string Environment(Started started) => $"Torni {started.Tool.Text}, Claude Code {started.ClaudeCode?.ToString() ?? "unknown"}, Windows {started.Windows}, .NET {started.Runtime}, terminal {started.Columns}x{started.Rows}";
 
     private static string Body(DiagnosticEvent diagnostic) => diagnostic switch
     {

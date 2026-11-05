@@ -36,5 +36,5 @@ public abstract record RemovalDecision
         };
     }
 
-    private static BranchAction BranchActionFor(WorktreeRemovalFacts facts) => facts is { BranchCreatedByTorni: true, BranchMerged: true } ? BranchAction.Delete : BranchAction.Ask;
+    private static BranchAction BranchActionFor(WorktreeRemovalFacts facts) => facts is { BranchCreatedHere: true, BranchMerged: true } ? BranchAction.Delete : BranchAction.Ask;
 }

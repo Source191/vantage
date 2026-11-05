@@ -12,14 +12,14 @@ namespace Source191.Torni.Core.Tests.Application.Actions;
 public sealed class OpenTabHandlerShould
 {
     private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
-    private const string Torni = @"C:\Users\me\.dotnet\tools\torni.exe";
+    private const string OwnExecutable = @"C:\Users\me\.dotnet\tools\torni.exe";
 
     private readonly FakeWindowsTerminal terminal = new();
     private readonly FakeProcessRegistry registry = new();
 
     private readonly InMemoryState store = new();
 
-    private OpenTabHandler Handler => new(store, registry, terminal, new FakeTimeProvider(Fixtures.Noon), new TabScripts(Claude, Torni));
+    private OpenTabHandler Handler => new(store, registry, terminal, new FakeTimeProvider(Fixtures.Noon), new TabScripts(Claude, OwnExecutable));
 
     private static Session.Background Job() => new(SessionId.From("sess-1"), JobId.From("81cdb0f9"), Listed.As("Refund retry policy"), FolderPath.From(@"C:\repos\Northwind.Orders"), Fixtures.Noon, DisplayState.Working, new JobProcess.None());
 
@@ -32,7 +32,7 @@ public sealed class OpenTabHandlerShould
         tab.Title.ShouldBe("Refund retry policy");
         tab.StartingDirectory.Value.ShouldBe(@"C:\repos\Northwind.Orders");
         tab.Colour.ShouldBe(TabPalette.Default[0]);
-        tab.Script.ShouldContain($"& '{Torni}' 'claim-tab' '");
+        tab.Script.ShouldContain($"& '{OwnExecutable}' 'claim-tab' '");
         tab.Script.ShouldContain("' $PID", customMessage: "the tab shell must pass its own process id, unquoted, so the registration outlives claim-tab");
         tab.Script.ShouldContain("Clear-Host", customMessage: "profile output must be cleared before the full-screen attach");
         tab.Script.ShouldContain($"& '{Claude}' 'attach' '81cdb0f9'");
@@ -75,10 +75,10 @@ public sealed class OpenTabHandlerShould
     }
 
     [Fact]
-    public async Task SkipTheColourOfTheTorniTabItself()
+    public async Task SkipTheColourOfTheConsolesTabItself()
     {
         registry.Running(100, Fixtures.Noon);
-        await store.WriteTabAsync(TabRegistration.Pending(TabOwner.Torni, TabPalette.Default[0], Fixtures.Noon).ClaimedBy(100, Fixtures.Noon));
+        await store.WriteTabAsync(TabRegistration.Pending(TabOwner.Console, TabPalette.Default[0], Fixtures.Noon).ClaimedBy(100, Fixtures.Noon));
 
         await Handler.HandleAsync(new OpenTabForSession(Job(), new LiveTab.None()), CancellationToken.None);
 

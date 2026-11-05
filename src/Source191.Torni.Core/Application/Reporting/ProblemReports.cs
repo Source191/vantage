@@ -18,7 +18,7 @@ public sealed class ProblemReports(DiagnosticLog log, ProcessCounts counts, ICra
     private const int FailureBand = 300_000;
 
     /// <summary>The title a report takes when its title box is left blank.</summary>
-    public ReportTitle DefaultTitle => ReportTitle.From(Wording.DefaultReportTitle(start.Torni));
+    public ReportTitle DefaultTitle => ReportTitle.From(Wording.DefaultReportTitle(start.Tool));
 
     public async Task<ProblemReport> BuildAsync()
     {

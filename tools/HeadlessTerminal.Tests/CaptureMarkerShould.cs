@@ -9,22 +9,22 @@ public sealed class CaptureMarkerShould
     public void MatchATitleOnlyWhenItIsTheWholeTitle()
     {
         CaptureMarker keys = new CaptureMarker.Title("Torni (Keys)");
-        CaptureMarker torni = new CaptureMarker.Title("Torni");
+        CaptureMarker title = new CaptureMarker.Title("Torni");
 
         int afterKeys = keys.FindAfter(Capture, 0) ?? -1;
 
         Capture[..afterKeys].ShouldEndWith("Torni (Keys)\u0007");
-        torni.FindAfter(Capture, afterKeys).ShouldBe(Capture.Length);
+        title.FindAfter(Capture, afterKeys).ShouldBe(Capture.Length);
         keys.FindAfter(Capture, afterKeys).ShouldBeNull();
     }
 
     [Fact]
     public void MatchAnOsc0OrOsc2TitleEndedByBelOrStringTerminator()
     {
-        CaptureMarker torni = new CaptureMarker.Title("Torni");
+        CaptureMarker title = new CaptureMarker.Title("Torni");
 
-        torni.FindAfter(Capture, 0).ShouldBe("\u001b]0;Torni\u0007".Length);
-        torni.FindAfter(Capture, 1).ShouldBe(Capture.Length);
+        title.FindAfter(Capture, 0).ShouldBe("\u001b]0;Torni\u0007".Length);
+        title.FindAfter(Capture, 1).ShouldBe(Capture.Length);
     }
 
     [Fact]

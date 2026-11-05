@@ -12,7 +12,7 @@ public sealed class TabRegistrationsShould
         TabRegistration first = Registration(new TabOwner.ForSession(SessionId.From("sess-1")));
         TabRegistration other = Registration(new TabOwner.ForSession(SessionId.From("sess-2")));
         TabRegistration second = Registration(new TabOwner.ForSession(SessionId.From("sess-1")));
-        TabRegistration own = Registration(TabOwner.Torni);
+        TabRegistration own = Registration(TabOwner.Console);
         TabRegistrations registrations = new([first, other, second, own]);
 
         registrations.For(SessionId.From("sess-1")).ShouldBe([first, second]);

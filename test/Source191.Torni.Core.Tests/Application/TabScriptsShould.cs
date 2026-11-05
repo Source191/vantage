@@ -9,12 +9,12 @@ namespace Source191.Torni.Core.Tests.Application;
 public sealed class TabScriptsShould
 {
     private const string Claude = @"C:\Users\me\.local\bin\claude.exe";
-    private const string Torni = @"C:\Users\me\.dotnet\tools\torni.exe";
+    private const string OwnExecutable = @"C:\Users\me\.dotnet\tools\torni.exe";
     private const string Winget = @"C:\Users\me\AppData\Local\Microsoft\WindowsApps\winget.exe";
 
     private static readonly FolderPath Repository = FolderPath.From(@"C:\repos\Northwind.Orders");
 
-    private readonly TabScripts scripts = new(Claude, Torni);
+    private readonly TabScripts scripts = new(Claude, OwnExecutable);
 
     [Fact]
     public void BuildTheAttachScript()
@@ -27,7 +27,7 @@ public sealed class TabScriptsShould
         tab.Title.ShouldBe("Refund retry policy");
         tab.StartingDirectory.ShouldBe(Repository);
         tab.Colour.ShouldBe(TabPalette.Default[0]);
-        tab.Script.ShouldContain($"& '{Torni}' 'claim-tab' '{registration.Id:N}'");
+        tab.Script.ShouldContain($"& '{OwnExecutable}' 'claim-tab' '{registration.Id:N}'");
         tab.Script.ShouldContain("' $PID", customMessage: "the tab shell must pass its own process id, unquoted, so the registration outlives claim-tab");
         tab.Script.ShouldContain("Clear-Host", customMessage: "profile output must be cleared before the full-screen attach");
         tab.Script.ShouldContain($"& '{Claude}' 'attach' '81cdb0f9'");
@@ -68,12 +68,12 @@ public sealed class TabScriptsShould
         string[] lines = tab.Script.Split('\n');
         lines[0].ShouldBe("Wait-Process -Id '4242' -ErrorAction SilentlyContinue");
         lines[1].ShouldBe($"& '{Winget}' 'upgrade' '--id' 'Source191.Torni' '--exact' '--source' 'winget'", customMessage: "the upgrade must come from the source the check consulted, whatever other sources the machine has");
-        lines[2].ShouldBe($"if ($LASTEXITCODE -eq 0) {{ & '{Torni}' }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}");
+        lines[2].ShouldBe($"if ($LASTEXITCODE -eq 0) {{ & '{OwnExecutable}' }} else {{ Write-Host {PowerShellScript.Quote(Wording.UpdateFailedHint)} -ForegroundColor Yellow }}");
         lines.Length.ShouldBe(3);
     }
 
     [Fact]
-    public void QuoteTheTorniPathInTheUpdateTab()
+    public void QuoteTheOwnPathInTheUpdateTab()
     {
         TabLaunch tab = new TabScripts(Claude, @"C:\Users\O'Brien\AppData\Local\Microsoft\WinGet\Links\torni.exe").Update(4242, FolderPath.From(@"C:\Users\O'Brien"), Winget);
 

@@ -16,8 +16,8 @@ public static partial class Wording
     public static readonly TextPart Dot = new(" · ", TextTone.Grey);
 
     /// <summary>The console's settings row, labels orange and values white, an available update in amber: Torni and Claude; the roots are on the Config tab.</summary>
-    public static IReadOnlyList<TextPart> SettingsRow(ToolVersion torni, ClaudeCodeVersion claude, UpdateStatus update, MemorySize torniMemory) =>
-        [Label("Torni "), .. TorniVersion(torni, update, torniMemory), Dot, Label("Claude "), Value(ClaudeVersion(claude))];
+    public static IReadOnlyList<TextPart> SettingsRow(ToolVersion tool, ClaudeCodeVersion claude, UpdateStatus update, MemorySize ownMemory) =>
+        [Label("Torni "), .. OwnVersion(tool, update, ownMemory), Dot, Label("Claude "), Value(ClaudeVersion(claude))];
 
     /// <summary>The Config counts beside the tabs: how many settings, then how much setup is left to do, in amber.</summary>
     public static IReadOnlyList<TextPart> ConfigCounts(IReadOnlyList<ConfigRow> rows)

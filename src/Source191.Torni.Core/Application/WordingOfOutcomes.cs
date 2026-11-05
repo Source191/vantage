@@ -286,7 +286,7 @@ public static partial class Wording
             RemoveWorktreeOutcome.InUse inUse => $"Not removed: the folder {inUse.FolderName} is still in use by a tab or program; close it and remove again.",
             RemoveWorktreeOutcome.Removed removed => $"Removed {removed.FolderName}.",
             RemoveWorktreeOutcome.RemovedAndDeletedBranch removed => $"Removed {removed.FolderName} and deleted its merged branch {removed.Branch}.",
-            RemoveWorktreeOutcome.BranchKept { CreatedByTorni: true } kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} is not merged.",
+            RemoveWorktreeOutcome.BranchKept { CreatedHere: true } kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} is not merged.",
             RemoveWorktreeOutcome.BranchKept kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} was not created by Torni, so it is kept.",
             RemoveWorktreeOutcome.DeletedFolder deleted => $"Deleted the folder {deleted.FolderName}.",
             RemoveWorktreeOutcome.DeletedFolderAndPruned pruned =>

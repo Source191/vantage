@@ -50,14 +50,14 @@ public sealed class DeleteSessionHandler(IClaudeCli claude, IGit git, ICreatedWo
         {
             row = await RowAsync(created, cancellationToken);
             bool merged = await inspector.IsMergedAsync(created.Repository, created.Branch, cancellationToken);
-            decision = RemovalDecision.For(row.Facts(branchCreatedByTorni: true, merged), forced);
+            decision = RemovalDecision.For(row.Facts(branchCreatedHere: true, merged), forced);
         }
         catch (GitException failure)
         {
             return new DeleteSessionOutcome.KeptWorktree(name, new RemovalReason.GitFailed(failure.Message), tabClosed);
         }
 
-        return await remover.CarryOutAsync(row, decision, createdByTorni: true, cancellationToken) switch
+        return await remover.CarryOutAsync(row, decision, createdHere: true, cancellationToken) switch
         {
             RemoveWorktreeOutcome.Refused refused => new DeleteSessionOutcome.KeptWorktree(name, refused.Reason, tabClosed),
             RemoveWorktreeOutcome.RemovedAndDeletedBranch removed => new DeleteSessionOutcome.RemovedWorktreeAndBranch(name, removed.Branch, tabClosed),

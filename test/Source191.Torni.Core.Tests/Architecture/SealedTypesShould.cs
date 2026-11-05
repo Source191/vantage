@@ -13,7 +13,7 @@ namespace Source191.Torni.Core.Tests.Architecture;
 /// </summary>
 public sealed class SealedTypesShould
 {
-    private static readonly Assembly[] Torni = [typeof(Session).Assembly, typeof(Source191.Torni.Adapters.Files.Folders).Assembly, typeof(Source191.Torni.Tui.ConsoleScreen).Assembly, typeof(InMemoryState).Assembly];
+    private static readonly Assembly[] Solution = [typeof(Session).Assembly, typeof(Source191.Torni.Adapters.Files.Folders).Assembly, typeof(Source191.Torni.Tui.ConsoleScreen).Assembly, typeof(InMemoryState).Assembly];
 
     [Fact]
     public void FindOnlyTheOpenLeaf()
@@ -26,7 +26,7 @@ public sealed class SealedTypesShould
     [Fact]
     public void LeaveNoClassOpen()
     {
-        OpenClassesIn(Torni.SelectMany(assembly => assembly.GetTypes())).ShouldBeEmpty();
+        OpenClassesIn(Solution.SelectMany(assembly => assembly.GetTypes())).ShouldBeEmpty();
     }
 
     private static IEnumerable<string?> OpenClassesIn(IEnumerable<Type> types)

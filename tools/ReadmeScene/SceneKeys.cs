@@ -22,7 +22,7 @@ public static class SceneKeys
         {
             steps.AddRange(FilterTo(session.Name));
             steps.Add(new KeyStep.Press(Beat, NamedKey.Enter));
-            steps.Add(new KeyStep.FocusTorni(TabOpening));
+            steps.Add(new KeyStep.FocusOwnTab(TabOpening));
             steps.Add(new KeyStep.Press(Beat, NamedKey.Esc));
         }
 

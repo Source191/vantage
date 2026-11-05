@@ -8,7 +8,7 @@ public sealed class HandoffCaptureShould
     private const string Clears = "\u001b[H\u001b[K\r\n\u001b[K\r\n\u001b[H\u001b[?25h";
 
     [Fact]
-    public void AcceptClaudesScreenDrawnAfterTorniHereHandsOver()
+    public void AcceptClaudesScreenDrawnAfterHereHandsOver()
     {
         string capture = Here + Enter + "\u001b[1m Claude Code v2.1.310" + Leave + Clears;
 

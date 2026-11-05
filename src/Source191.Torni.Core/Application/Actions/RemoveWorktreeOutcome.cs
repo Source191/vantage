@@ -13,7 +13,7 @@ public abstract record RemoveWorktreeOutcome : Outcome
     public sealed record RemovedAndDeletedBranch(string FolderName, BranchName Branch) : RemoveWorktreeOutcome;
 
     /// <summary>The branch was kept: Torni did not create it, or created it and it is not merged. The user is asked.</summary>
-    public sealed record BranchKept(string FolderName, BranchToConfirm Branch, bool CreatedByTorni) : RemoveWorktreeOutcome;
+    public sealed record BranchKept(string FolderName, BranchToConfirm Branch, bool CreatedHere) : RemoveWorktreeOutcome;
 
     public sealed record DeletedFolder(string FolderName) : RemoveWorktreeOutcome;
 

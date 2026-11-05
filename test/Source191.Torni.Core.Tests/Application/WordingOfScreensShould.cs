@@ -9,7 +9,7 @@ namespace Source191.Torni.Core.Tests.Application;
 public sealed class WordingOfScreensShould
 {
     [Fact]
-    public void TitleTheTabTorni()
+    public void TitleTheTabWithTheName()
     {
         Wording.TabTitle.ShouldBe("Torni");
     }
@@ -128,7 +128,7 @@ public sealed class WordingOfScreensShould
     [InlineData("0.18.0", "2.1.310", true, false, "Torni 0.18.0 (35 MB; 0.19.0 available, U to update) · Claude 2.1.310")]
     [InlineData("0.5.0-local", null, false, false, "Torni 0.5.0-local (35 MB) · Claude unknown")]
     [InlineData("0.18.0", "2.1.302", false, true, "Torni 0.18.0 (35 MB) · Claude 2.1.302 (below 2.1.309, update Claude Code)")]
-    public void KeepTheNoticeAndTheWarningOnTheSettingsRow(string torni, string? claude, bool updateAvailable, bool belowMinimum, string expected)
+    public void KeepTheNoticeAndTheWarningOnTheSettingsRow(string tool, string? claude, bool updateAvailable, bool belowMinimum, string expected)
     {
         ClaudeCodeVersion version = (claude, belowMinimum) switch
         {
@@ -138,7 +138,7 @@ public sealed class WordingOfScreensShould
         };
         UpdateStatus update = updateAvailable ? new UpdateStatus.Available(ReleaseVersions.Version("0.18.0"), ReleaseVersions.Version("0.19.0")) : new UpdateStatus.UpToDate();
 
-        Text(Wording.SettingsRow(new ToolVersion(torni), version, update, MemorySize.FromMegabytes(35))).ShouldBe(expected);
+        Text(Wording.SettingsRow(new ToolVersion(tool), version, update, MemorySize.FromMegabytes(35))).ShouldBe(expected);
     }
 
     [Fact]

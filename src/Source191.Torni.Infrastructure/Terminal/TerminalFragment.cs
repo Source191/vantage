@@ -38,7 +38,7 @@ public sealed class TerminalFragment(string fragmentsRoot, string iconSource) : 
         JsonObject fragment = new()
         {
             ["profiles"] = new JsonArray(
-                Profile(TerminalProfiles.TorniProfileName, $"\"{profiles.TorniExecutable}\"", profiles.TorniSound, withIcon),
+                Profile(TerminalProfiles.ConsoleProfileName, $"\"{profiles.ConsoleExecutable}\"", profiles.ConsoleSound, withIcon),
                 Profile(TerminalProfiles.SessionProfileName, TerminalProfiles.SessionCommandLine, profiles.SessionSound, withIcon)),
         };
 

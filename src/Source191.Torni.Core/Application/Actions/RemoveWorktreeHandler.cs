@@ -24,7 +24,7 @@ public sealed class RemoveWorktreeHandler(IGit git, ICreatedWorktrees createdWor
         bool merged = created is not null && row is { Head: Head.OnBranch { Branch: BranchName branch }, OwnerExists: true } && await inspector.IsMergedAsync(row.Repository, branch, cancellationToken);
         RemovalDecision decision = RemovalDecision.For(row.Facts(created is not null, merged), forced);
 
-        return await remover.CarryOutAsync(row, decision, createdByTorni: created is not null, cancellationToken);
+        return await remover.CarryOutAsync(row, decision, createdHere: created is not null, cancellationToken);
     }
 
     /// <summary>A leftover row with its folder's facts read again; a live worktree is git's to judge, through git worktree remove.</summary>

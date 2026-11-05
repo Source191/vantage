@@ -30,5 +30,5 @@ public sealed record WorktreeRow(
     public string FolderName => Path.Name;
 
     /// <summary>The removal facts as far as the scan knows them; the branch flags are settled by the action. The folder name is only the label a refusal's words use when the head names no branch; no branch is ever acted on by it.</summary>
-    public WorktreeRemovalFacts Facts(bool branchCreatedByTorni = false, bool branchMerged = false) => new(Health.Kind, Head is Head.OnBranch on ? on.Branch.Value : FolderName, DirtyFiles, UnpushedCommits, Session, branchCreatedByTorni, branchMerged, LeftoverFileCount);
+    public WorktreeRemovalFacts Facts(bool branchCreatedHere = false, bool branchMerged = false) => new(Health.Kind, Head is Head.OnBranch on ? on.Branch.Value : FolderName, DirtyFiles, UnpushedCommits, Session, branchCreatedHere, branchMerged, LeftoverFileCount);
 }

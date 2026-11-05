@@ -56,9 +56,9 @@ public static partial class Wording
     };
 
     /// <summary>The settings row's Torni value: the running version and its own process's memory, then, in amber inside the same brackets, the newer release with the update key when one is known.</summary>
-    private static IReadOnlyList<TextPart> TorniVersion(ToolVersion torni, UpdateStatus update, MemorySize memory)
+    private static IReadOnlyList<TextPart> OwnVersion(ToolVersion tool, UpdateStatus update, MemorySize memory)
     {
-        string version = $"{torni.Text} ({Memory(memory)}";
+        string version = $"{tool.Text} ({Memory(memory)}";
 
         return update is UpdateStatus.Available available
             ? [Value($"{version}; "), new TextPart($"{available.Newest} available, U to update", TextTone.Amber), Value(")")]

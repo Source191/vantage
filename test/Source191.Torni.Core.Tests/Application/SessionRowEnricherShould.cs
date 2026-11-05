@@ -218,7 +218,7 @@ public sealed class SessionRowEnricherShould : IDisposable
     }
 
     [Fact]
-    public async Task MarkASessionWithALiveTorniTab()
+    public async Task MarkASessionWithALiveTabOpenedHere()
     {
         Session session = Session(@"C:\repos\Northwind.Orders");
         TabRegistration live = TabRegistration.Pending(new TabOwner.ForSession(session.SessionId), TabPalette.Default[0], Fixtures.Noon.AddMinutes(-5)).ClaimedBy(7001, Fixtures.Noon.AddMinutes(-5));
@@ -234,10 +234,10 @@ public sealed class SessionRowEnricherShould : IDisposable
     }
 
     [Fact]
-    public async Task NotTakeTornisOwnTabForASessionsTab()
+    public async Task NotTakeTheConsolesOwnTabForASessionsTab()
     {
         Session session = Session(@"C:\repos\Northwind.Orders");
-        await store.WriteTabAsync(TabRegistration.Pending(TabOwner.Torni, TabPalette.Green, Fixtures.Noon.AddMinutes(-5)).ClaimedBy(7001, Fixtures.Noon.AddMinutes(-5)));
+        await store.WriteTabAsync(TabRegistration.Pending(TabOwner.Console, TabPalette.Green, Fixtures.Noon.AddMinutes(-5)).ClaimedBy(7001, Fixtures.Noon.AddMinutes(-5)));
         registry.Running(7001, Fixtures.Noon.AddMinutes(-5));
 
         SessionRow row = (await Enricher.EnrichAsync([session], CancellationToken.None)).Single();

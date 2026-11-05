@@ -176,7 +176,7 @@ public sealed class StatusTonesShould
         [typeof(StatusMessage.WorkingSoRenameWaits)] = StatusTone.Notice,
         [typeof(StatusMessage.RenameCancelled)] = StatusTone.Hint,
         [typeof(StatusMessage.InvalidName)] = StatusTone.Notice,
-        [typeof(StatusMessage.AlreadyUnderTorni)] = StatusTone.Notice,
+        [typeof(StatusMessage.AlreadyInBackground)] = StatusTone.Notice,
         [typeof(StatusMessage.WorkingSoAdoptWaits)] = StatusTone.Notice,
         [typeof(StatusMessage.NoWorktreeSelected)] = StatusTone.Notice,
         [typeof(StatusMessage.NotRemoved)] = StatusTone.Notice,
@@ -234,7 +234,7 @@ public sealed class StatusTonesShould
     [Fact]
     public void MarkAKeptBranchWithItsRemovalsTone()
     {
-        Wording.ToneOf(new StatusMessage.BranchKept(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedByTorni: true))).ShouldBe(StatusTone.Success);
+        Wording.ToneOf(new StatusMessage.BranchKept(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedHere: true))).ShouldBe(StatusTone.Success);
         Wording.ToneOf(new StatusMessage.BranchKept(new DeleteSessionOutcome.WorktreeInUse(Listed.As("fix-123"), "Northwind.Orders-fix-123", TabClosed: false))).ShouldBe(StatusTone.Notice);
     }
 

@@ -10,7 +10,7 @@ internal static class TerminalSetupComposition
     public static async Task<int> RunAsync(SharedParts parts, TerminalSetupRequest request, CancellationToken cancellationToken)
     {
         string windowsMedia = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Media");
-        TerminalSetupRunner setupRunner = new(new Folders(), parts.TerminalFragment, ClaudeSettings.ForCurrentUser(), parts.TorniExecutable, windowsMedia, Console.In, Console.Out, Console.Error);
+        TerminalSetupRunner setupRunner = new(new Folders(), parts.TerminalFragment, ClaudeSettings.ForCurrentUser(), parts.ConsoleExecutable, windowsMedia, Console.In, Console.Out, Console.Error);
 
         return await setupRunner.RunAsync(request, cancellationToken);
     }

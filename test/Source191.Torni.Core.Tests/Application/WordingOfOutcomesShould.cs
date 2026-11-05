@@ -103,7 +103,7 @@ public sealed class WordingOfOutcomesShould
     }
 
     [Fact]
-    public void SayASessionMovedUnderTorni()
+    public void SayASessionMovedIntoTheBackground()
     {
         Wording.Describe(new AdoptSessionOutcome.Moved(Listed.As("repos-31"), TabClosed: false)).ShouldBe("Moved repos-31 under Torni.");
         Wording.Describe(new AdoptSessionOutcome.Moved(Listed.As("repos-31"), TabClosed: true)).ShouldBe("Moved repos-31 under Torni and closed its old tab.");
@@ -335,14 +335,14 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayAHandMadeBranchWasKept()
     {
-        Wording.Describe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedByTorni: false))
+        Wording.Describe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedHere: false))
             .ShouldBe("Removed Northwind.Orders-fix-123; branch fix-123 was not created by Torni, so it is kept.");
     }
 
     [Fact]
-    public void SayAnUnmergedTorniBranchWasKept()
+    public void SayAnUnmergedBranchCreatedHereWasKept()
     {
-        Wording.Describe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedByTorni: true))
+        Wording.Describe(new RemoveWorktreeOutcome.BranchKept("Northwind.Orders-fix-123", Branch, CreatedHere: true))
             .ShouldBe("Removed Northwind.Orders-fix-123; branch fix-123 is not merged.");
     }
 
@@ -500,28 +500,28 @@ public sealed class WordingOfOutcomesShould
     // torni here.
 
     [Fact]
-    public void SayWhereTorniHereStartedTheSession()
+    public void SayWhereHereStartedTheSession()
     {
         Wording.Here(new LaunchOutcome.Listed(JobId.From("81cdb0f9"), SessionTestData.Job(@"C:\repos\Northwind.Orders")), "fix-tests", @"C:\repos\Northwind.Orders")
             .ShouldBe(@"Started fix-tests (81cdb0f9) in C:\repos\Northwind.Orders.");
     }
 
     [Fact]
-    public void SayWhereTorniHereStartedTheSessionBeforeItIsListed()
+    public void SayWhereHereStartedTheSessionBeforeItIsListed()
     {
         Wording.Here(new LaunchOutcome.NotListedYet(JobId.From("81cdb0f9")), "fix-tests", @"C:\repos\Northwind.Orders")
             .ShouldBe(@"Started fix-tests (81cdb0f9) in C:\repos\Northwind.Orders.");
     }
 
     [Fact]
-    public void TellTorniHereToTrustTheFolderFirst()
+    public void TellHereToTrustTheFolderFirst()
     {
         Wording.Here(new LaunchOutcome.WorkspaceNotTrusted(), "fix-tests", @"C:\repos\Northwind.Orders")
             .ShouldBe(@"Could not start: C:\repos\Northwind.Orders is not trusted yet. Run claude here once and accept the prompt.");
     }
 
     [Fact]
-    public void SayWhyTorniHereCouldNotStart()
+    public void SayWhyHereCouldNotStart()
     {
         Wording.Here(new LaunchOutcome.Failed("something broke"), "fix-tests", @"C:\repos\Northwind.Orders")
             .ShouldBe("Could not start: something broke");

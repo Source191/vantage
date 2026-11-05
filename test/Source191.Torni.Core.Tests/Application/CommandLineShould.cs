@@ -157,7 +157,7 @@ public sealed class CommandLineShould : IDisposable
     }
 
     [Fact]
-    public async Task DescribeTorniByItsTagline()
+    public async Task DescribeItselfByItsTagline()
     {
         await InvokeAsync("--help");
 
@@ -165,7 +165,7 @@ public sealed class CommandLineShould : IDisposable
     }
 
     [Fact]
-    public async Task SayWhereToSupportTorniInTheHelp()
+    public async Task SayWhereToSupportItInTheHelp()
     {
         await InvokeAsync("--help");
 
@@ -175,7 +175,7 @@ public sealed class CommandLineShould : IDisposable
     [Theory]
     [InlineData("here", "--help")]
     [InlineData("here", "fix-tests", "-h")]
-    public async Task PrintTheHelpOfTorniHere(params string[] arguments)
+    public async Task PrintTheHelpOfHere(params string[] arguments)
     {
         int exitCode = await InvokeAsync(arguments);
 

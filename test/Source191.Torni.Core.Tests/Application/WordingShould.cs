@@ -117,9 +117,9 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void SayABackgroundSessionIsAlreadyUnderTorni()
+    public void SayABackgroundSessionIsAlreadyInTheBackground()
     {
-        Wording.Describe(new StatusMessage.AlreadyUnderTorni(Listed.As("fix-123"))).ShouldBe("fix-123 already runs in the background under Torni.");
+        Wording.Describe(new StatusMessage.AlreadyInBackground(Listed.As("fix-123"))).ShouldBe("fix-123 already runs in the background under Torni.");
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public sealed class WordingShould
     // Dialogs and the screen.
 
     [Fact]
-    public void SayTorniIsUpToDate()
+    public void SayItIsUpToDate()
     {
         Wording.Describe(new StatusMessage.UpToDate()).ShouldBe("Torni is up to date.");
     }
@@ -383,15 +383,15 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void AskBeforeDeletingAnUnmergedBranchTorniCreated()
+    public void AskBeforeDeletingAnUnmergedBranchCreatedHere()
     {
-        Wording.DeleteBranchQuestion("fix-123", createdByTorni: true).ShouldBe("Branch fix-123 is not merged. Delete it anyway?");
+        Wording.DeleteBranchQuestion("fix-123", createdHere: true).ShouldBe("Branch fix-123 is not merged. Delete it anyway?");
     }
 
     [Fact]
-    public void AskBeforeDeletingABranchTorniDidNotCreate()
+    public void AskBeforeDeletingABranchNotCreatedHere()
     {
-        Wording.DeleteBranchQuestion("fix-123", createdByTorni: false).ShouldBe("Branch fix-123 was not created by Torni. Delete it anyway?");
+        Wording.DeleteBranchQuestion("fix-123", createdHere: false).ShouldBe("Branch fix-123 was not created by Torni. Delete it anyway?");
     }
 
     [Fact]
@@ -422,7 +422,7 @@ public sealed class WordingShould
     }
 
     [Fact]
-    public void SayWhereToSupportTorni()
+    public void SayWhereToSupportIt()
     {
         Wording.SupportLine.ShouldBe("Buy me a sliver of a Claude Max plan: https://buymeacoffee.com/simonvane");
     }

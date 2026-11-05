@@ -11,7 +11,7 @@ public sealed class RemovalDecisionShould
         DirtyFileCount: 0,
         UnpushedCommitCount: 0,
         Session: new WorktreeSession.None(),
-        BranchCreatedByTorni: true,
+        BranchCreatedHere: true,
         BranchMerged: true,
         LeftoverFileCount: 0);
 
@@ -74,9 +74,9 @@ public sealed class RemovalDecisionShould
     }
 
     [Fact]
-    public void AskAboutTheBranchWhenTorniDidNotCreateIt()
+    public void AskAboutTheBranchWhenItWasNotCreatedHere()
     {
-        RemovalDecision decision = RemovalDecision.For(Clean with { BranchCreatedByTorni = false }, forced: false);
+        RemovalDecision decision = RemovalDecision.For(Clean with { BranchCreatedHere = false }, forced: false);
 
         decision.ShouldBe(new RemovalDecision.RemoveWorktree(Forced: false, BranchAction.Ask));
     }

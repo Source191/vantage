@@ -23,7 +23,7 @@ public sealed class ClaudeContractShould
     private static readonly TimeSpan ExitDeadline = TimeSpan.FromSeconds(60);
 
     /// <summary>The fields an idle background row carries and the listing's parser reads.</summary>
-    private static readonly string[] FieldsTorniReads = ["pid", "id", "cwd", "kind", "startedAt", "sessionId", "name", "status"];
+    private static readonly string[] FieldsItReads = ["pid", "id", "cwd", "kind", "startedAt", "sessionId", "name", "status"];
 
     private readonly ProcessRunner runner = new(TimeSpan.FromMinutes(1));
 
@@ -40,7 +40,7 @@ public sealed class ClaudeContractShould
     }
 
     [Fact]
-    public async Task ListAStartedBackgroundSessionInAStateTorniKnows()
+    public async Task ListAStartedBackgroundSessionInAKnownState()
     {
         ClaudeCli cli = new(runner, ClaudeContract.Executable());
         SessionName name = UniqueName("listed");
@@ -61,7 +61,7 @@ public sealed class ClaudeContractShould
     }
 
     [Fact]
-    public async Task GiveTheStartedRowEveryFieldTorniReads()
+    public async Task GiveTheStartedRowEveryFieldItReads()
     {
         string executable = ClaudeContract.Executable();
         ClaudeCli cli = new(runner, executable);
@@ -72,7 +72,7 @@ public sealed class ClaudeContractShould
         {
             string[] present = await FieldsOfSettledRowAsync(executable, name);
 
-            FieldsTorniReads.Except(present).ShouldBeEmpty($"the row has [{string.Join(", ", present)}]");
+            FieldsItReads.Except(present).ShouldBeEmpty($"the row has [{string.Join(", ", present)}]");
         }
         finally
         {
@@ -82,7 +82,7 @@ public sealed class ClaudeContractShould
 
     /// <summary>Torni skips a row whose session id is not letters, digits and hyphens, a letter or digit first; a CLI that changed its ids would hide every row.</summary>
     [Fact]
-    public async Task ListOnlySessionIdsInTheShapeTorniAccepts()
+    public async Task ListOnlySessionIdsInTheAcceptedShape()
     {
         ProcessResult listing = await runner.RunAsync(new ProcessRequest(ClaudeContract.Executable(), ["agents", "--json", "--all"], WorkingFolder.Inherit), Cancellation);
         using JsonDocument rows = JsonDocument.Parse(listing.StandardOutput);
@@ -255,7 +255,7 @@ public sealed class ClaudeContractShould
             using JsonDocument rows = JsonDocument.Parse(listing.StandardOutput);
             JsonElement? row = rows.RootElement.EnumerateArray().Cast<JsonElement?>().FirstOrDefault(element => element!.Value.TryGetProperty("name", out JsonElement value) && value.GetString() == name.Value);
             present = row is JsonElement found ? [.. found.EnumerateObject().Select(property => property.Name)] : [];
-            if (!FieldsTorniReads.Except(present).Any())
+            if (!FieldsItReads.Except(present).Any())
             {
                 return present;
             }

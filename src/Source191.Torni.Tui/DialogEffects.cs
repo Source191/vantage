@@ -50,9 +50,9 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
     }
 
     /// <summary>Back on the UI thread after a removal: ask about the branch it left, and delete it on a yes.</summary>
-    private static StatusMessage AskAboutBranch(IEffectContext context, Outcome removal, BranchToConfirm branch, bool createdByTorni)
+    private static StatusMessage AskAboutBranch(IEffectContext context, Outcome removal, BranchToConfirm branch, bool createdHere)
     {
-        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.DeleteBranch, Wording.DeleteBranchTitle, Wording.DeleteBranchQuestion(branch.Branch.Value, createdByTorni), [.. Wording.DeleteBranchButtons]))
+        if (!Confirm.Ask(context.App, context.Diagnostics, DialogName.DeleteBranch, Wording.DeleteBranchTitle, Wording.DeleteBranchQuestion(branch.Branch.Value, createdHere), [.. Wording.DeleteBranchButtons]))
         {
             return new StatusMessage.BranchKept(removal);
         }
@@ -185,7 +185,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             new StatusMessage.Working(deletion),
             token => deleteSession.DeleteAsync(session, forced: false, token),
             outcome => outcome is DeleteSessionOutcome.BranchNotMerged unmerged
-                ? AskAboutBranch(context, outcome, unmerged.Branch, createdByTorni: true)
+                ? AskAboutBranch(context, outcome, unmerged.Branch, createdHere: true)
                 : new StatusMessage.Reported(outcome));
     }
 
@@ -195,7 +195,7 @@ public sealed class DialogEffects(RepositoryCatalogue catalogue, IRecentReposito
             new StatusMessage.Working(remove),
             token => removeWorktree.RemoveAsync(remove.Row, remove.Forced, token),
             outcome => outcome is RemoveWorktreeOutcome.BranchKept kept
-                ? AskAboutBranch(context, outcome, kept.Branch, kept.CreatedByTorni)
+                ? AskAboutBranch(context, outcome, kept.Branch, kept.CreatedHere)
                 : new StatusMessage.Reported(outcome));
     }
 

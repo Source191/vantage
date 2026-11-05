@@ -29,7 +29,7 @@ internal sealed class KeyPlayer(SceneFolders folders, IProcessRunner processes, 
             case KeyStep.Press press:
                 ConsoleKeys.Press(press.Key);
                 break;
-            case KeyStep.FocusTorni:
+            case KeyStep.FocusOwnTab:
                 // Torni's own tab is the first in the scene's window.
                 await processes.RunAsync(new ProcessRequest(executables.Terminal, ["-w", executables.WindowName, "focus-tab", "--target", "0"], WorkingFolder.Inherit), cancellationToken);
                 break;

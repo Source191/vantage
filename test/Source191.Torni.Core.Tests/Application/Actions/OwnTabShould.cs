@@ -24,7 +24,7 @@ public sealed class OwnTabShould
 
         claim.ShouldBe(new OwnTabClaim.Claimed(Green));
         TabRegistration own = (await store.ReadTabsAsync()).Single();
-        own.Owner.ShouldBe(TabOwner.Torni);
+        own.Owner.ShouldBe(TabOwner.Console);
         own.Colour.ShouldBe(Green);
         own.Claim.ShouldBe(new TabClaim.Claimed(100, Fixtures.Noon.AddSeconds(-3)));
     }

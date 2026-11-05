@@ -185,7 +185,7 @@ public static class SessionsView
     {
         return row.Session switch
         {
-            Session.Background => new RowDecision.Explain(new StatusMessage.AlreadyUnderTorni(row.Session.Name)),
+            Session.Background => new RowDecision.Explain(new StatusMessage.AlreadyInBackground(row.Session.Name)),
             Session.Interactive { State.Kind: DisplayStateKind.Working } => new RowDecision.Explain(new StatusMessage.WorkingSoAdoptWaits(row.Session.Name)),
             Session.Interactive terminal => new RowDecision.Act(new AdoptSession(terminal)),
             _ => throw new UnreachableException(),

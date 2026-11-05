@@ -11,7 +11,7 @@ public sealed class SceneKeysShould
 
         string[] tabbed = [.. scene.Sessions.Where(session => session.Tab).Select(session => session.Name)];
         steps.OfType<KeyStep.Type>().Select(step => step.Text).Where(text => text.Length > 1).ShouldBe([.. tabbed, scene.Sessions.First(session => session.State == SceneState.Waiting).Name]);
-        steps.OfType<KeyStep.FocusTorni>().Count().ShouldBe(tabbed.Length);
+        steps.OfType<KeyStep.FocusOwnTab>().Count().ShouldBe(tabbed.Length);
         steps.OfType<KeyStep.Press>().Count(step => step.Key == NamedKey.Enter).ShouldBe((tabbed.Length * 2) + 1);
     }
 
