@@ -105,14 +105,14 @@ public sealed class WordingOfOutcomesShould
     [Fact]
     public void SayASessionMovedIntoTheBackground()
     {
-        Wording.Describe(new AdoptSessionOutcome.Moved(Listed.As("repos-31"), TabClosed: false)).ShouldBe("Moved repos-31 under Torni.");
+        Wording.Describe(new AdoptSessionOutcome.Moved(Listed.As("repos-31"), TabClosed: false)).ShouldBe("Moved repos-31 into the background.");
         Wording.Describe(new AdoptSessionOutcome.Moved(Listed.As("repos-31"), TabClosed: true)).ShouldBe("Moved repos-31 into the background and closed its old tab.");
     }
 
     [Fact]
     public void SayWhyAMoveFailed()
     {
-        Wording.Describe(new AdoptSessionOutcome.Failed(Listed.As("repos-31"), "it started a copy")).ShouldBe("Could not move repos-31 under Torni: it started a copy");
+        Wording.Describe(new AdoptSessionOutcome.Failed(Listed.As("repos-31"), "it started a copy")).ShouldBe("Could not move repos-31 into the background: it started a copy");
     }
 
     [Fact]

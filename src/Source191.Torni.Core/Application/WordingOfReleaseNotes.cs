@@ -23,7 +23,7 @@ public static partial class Wording
 
     /// <summary>The dialog's lines before an update: what changed, newest release first, then what Update now does.</summary>
     public static IReadOnlyList<string> WhatsNewBeforeUpdate(IReadOnlyList<ReleaseSection> sections) =>
-        [.. WhatsNewLines(sections), string.Empty, "Update now quits Torni and updates it in a new tab; background sessions keep running."];
+        [.. WhatsNewLines(sections), string.Empty, "Update now quits the console and updates it in a new tab; background sessions keep running."];
 
     /// <summary>The dialog's lines on the first start of a new version: what changed, newest release first.</summary>
     public static IReadOnlyList<string> WhatsNewAfterUpdate(IReadOnlyList<ReleaseSection> sections) => WhatsNewLines(sections);

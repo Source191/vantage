@@ -292,7 +292,7 @@ public sealed class WordingShould
     [Fact]
     public void AnnounceANewlyFoundReleaseOnceWithTheKeyThatShowsWhatChanged()
     {
-        Wording.Describe(new StatusMessage.NewerReleaseFound(ReleaseVersions.Version("0.21.0"))).ShouldBe("Torni 0.21.0 is available: press U to see what changed.");
+        Wording.Describe(new StatusMessage.NewerReleaseFound(ReleaseVersions.Version("0.21.0"))).ShouldBe("Version 0.21.0 is available: press U to see what changed.");
         Wording.ToneOf(new StatusMessage.NewerReleaseFound(ReleaseVersions.Version("0.21.0"))).ShouldBe(StatusTone.Notice);
     }
 

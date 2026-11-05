@@ -36,11 +36,11 @@ public static partial class Wording
             OpenTabOutcome tab => Describe(tab),
             StartSessionOutcome start => Describe(start),
             SaveSettingsOutcome => "Settings saved.",
-            ToggleUpdateCheckOutcome toggled => toggled.On ? "The update check is on: Torni asks the winget community repository at most once a day." : "The update check is off.",
+            ToggleUpdateCheckOutcome toggled => toggled.On ? "The update check is on: the winget community repository is asked at most once a day." : "The update check is off.",
             ProblemReportOutcome.Opened => "Opened a problem report in your browser; describe the problem there and submit it.",
             ProblemReportOutcome.NotOpened notOpened => $"Could not open the browser: {notOpened.Reason} Press ! and choose Copy text instead.",
             ProblemReportOutcome.Copied => "Copied the problem report to the clipboard.",
-            UpdateStartedOutcome update => $"Updating to {update.Newest} in a new tab; Torni starts again there when it is done.",
+            UpdateStartedOutcome update => $"Updating to {update.Newest} in a new tab; it starts again there when it is done.",
             WingetMissingOutcome missing => $"winget was not found on the PATH, so Torni cannot install {missing.Newest} itself: press U and choose Release page to download it.",
             _ => outcome.ToString(),
         };
@@ -193,10 +193,10 @@ public static partial class Wording
         return outcome switch
         {
             AdoptSessionOutcome.NoMessages empty =>
-                $"{Name(empty.Name)} has no messages yet, so there is nothing to move. Send it something in its tab first, or close that tab and start a session from Torni.",
-            AdoptSessionOutcome.Moved { TabClosed: true } moved => $"Moved {Name(moved.Name)} under Torni and closed its old tab.",
-            AdoptSessionOutcome.Moved moved => $"Moved {Name(moved.Name)} under Torni.",
-            AdoptSessionOutcome.Failed failed => $"Could not move {Name(failed.Name)} under Torni: {failed.Message}",
+                $"{Name(empty.Name)} has no messages yet, so there is nothing to move. Send it something in its tab first, or close that tab and start a session here.",
+            AdoptSessionOutcome.Moved { TabClosed: true } moved => $"Moved {Name(moved.Name)} into the background and closed its old tab.",
+            AdoptSessionOutcome.Moved moved => $"Moved {Name(moved.Name)} into the background.",
+            AdoptSessionOutcome.Failed failed => $"Could not move {Name(failed.Name)} into the background: {failed.Message}",
             AdoptSessionOutcome.ProcessGone gone => $"Could not move {Name(gone.Name)}: it no longer runs under its listed process. Refresh and try again.",
             _ => outcome.ToString(),
         };
@@ -220,7 +220,7 @@ public static partial class Wording
 
     private static string Describe(CloseEmptyTerminalsOutcome outcome)
     {
-        IEnumerable<string> skipped = outcome.Skipped.Select(session => $"{Name(session.Name)} has messages (press b to move it under Torni)")
+        IEnumerable<string> skipped = outcome.Skipped.Select(session => $"{Name(session.Name)} has messages (press b to move it into the background)")
             .Concat(outcome.Gone.Select(name => $"{Name(name)} no longer runs under its listed process (refresh and try again)"));
         if (outcome.Closed.Count == 0 && outcome.Ended.Count == 0)
         {
@@ -287,7 +287,7 @@ public static partial class Wording
             RemoveWorktreeOutcome.Removed removed => $"Removed {removed.FolderName}.",
             RemoveWorktreeOutcome.RemovedAndDeletedBranch removed => $"Removed {removed.FolderName} and deleted its merged branch {removed.Branch}.",
             RemoveWorktreeOutcome.BranchKept { CreatedHere: true } kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} is not merged.",
-            RemoveWorktreeOutcome.BranchKept kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} was not created by Torni, so it is kept.",
+            RemoveWorktreeOutcome.BranchKept kept => $"Removed {kept.FolderName}; branch {kept.Branch.Branch} was not created here, so it is kept.",
             RemoveWorktreeOutcome.DeletedFolder deleted => $"Deleted the folder {deleted.FolderName}.",
             RemoveWorktreeOutcome.DeletedFolderAndPruned pruned =>
                 $"Deleted the folder {pruned.FolderName} and pruned {Registrations(pruned.Pruned)} from {pruned.RepositoryName}.",
@@ -303,7 +303,7 @@ public static partial class Wording
                 $"Opened {Name(opened.Name)} in a {opened.Colour.ToLowerInvariant()} tab (every palette colour is in use, so one was reused).",
             OpenTabOutcome.Opened opened => $"Opened {Name(opened.Name)} in a {opened.Colour.ToLowerInvariant()} tab.",
             OpenTabOutcome.SwitchedTo switched => $"Switched to the tab of {Name(switched.Name)}.",
-            OpenTabOutcome.NotFound missing => $"{Name(missing.Name)} is open in another tab, but Torni could not find it. Is it in another window?",
+            OpenTabOutcome.NotFound missing => $"{Name(missing.Name)} is open in another tab, but it could not be found. Is it in another window?",
             _ => outcome.ToString(),
         };
     }

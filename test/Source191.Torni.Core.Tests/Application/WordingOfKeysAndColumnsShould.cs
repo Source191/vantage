@@ -139,19 +139,19 @@ public sealed class WordingOfKeysAndColumnsShould
             Enter  open in its own tab, or switch to it          n      new session
             r      rename (restarts the session)                 x      stop
             d      delete, and its worktree if nothing is lost   R      resume every stopped or failed session shown, each in its own tab
-            C      close tabs of unused terminal sessions        b      move a terminal session under Torni
+            C      close tabs of unused terminal sessions        b      move a terminal session into the background
             /      filter                                        ?      help
             q      quit                                          c      copy the folder path
             f      open the folder in your editor                s      open its solution
             p      open its pull request in the browser          m      what its memory is made of
-            U      update Torni in a new tab                     !      report a problem on GitHub
+            U      update in a new tab                           !      report a problem on GitHub
             ←      the tab to the left                           →      the tab to the right
             <      scroll the columns left                       >      scroll the columns right
 
             Columns
             NAME        the session name given at launch, or the folder name for an unnamed one
-            TAB         a block in the tab's colour, faded as the tab looks from Torni's own tab,
-                        while a Torni tab shows the session; ▯ grey for a plain claude in its own terminal
+            TAB         a block in the tab's colour, faded as the tab looks from the console's own tab,
+                        while a tab opened here shows the session; ▯ grey for a plain claude in its own terminal
             STATE       ◐ needs input (amber), ● working (cyan), ○ idle (white),
                         ✓ completed (green), ✗ failed (red), ■ stopped (grey), ? unknown (grey)
             REPOSITORY  the repository it runs in, or the folder's label outside a repository
@@ -187,7 +187,7 @@ public sealed class WordingOfKeysAndColumnsShould
             ?      help                                          q      quit
             c      copy the folder path                          f      open the folder in your editor
             s      open its solution                             p      open its pull request in the browser
-            U      update Torni in a new tab                     !      report a problem on GitHub
+            U      update in a new tab                           !      report a problem on GitHub
             ←      the tab to the left                           →      the tab to the right
             <      scroll the columns left                       >      scroll the columns right
 
@@ -220,7 +220,7 @@ public sealed class WordingOfKeysAndColumnsShould
             Enter  edit the setting, or say how to set up         Esc    back to sessions (clears a filter first)
             /      filter                                         ?      help
             q      quit                                           c      copy the path
-            f      open the folder, or the one holding the file   U      update Torni in a new tab
+            f      open the folder, or the one holding the file   U      update in a new tab
             !      report a problem on GitHub                     ←      the tab to the left
             →      the tab to the right                           <      scroll the columns left
             >      scroll the columns right

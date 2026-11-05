@@ -10,7 +10,7 @@ public static partial class Wording
 {
     private const string UnknownVersion = "unknown";
 
-    private const string UpdateLine = "update Torni in a new tab";
+    private const string UpdateLine = "update in a new tab";
     private const string ReportLine = "report a problem on GitHub";
 
     /// <summary>The title of Torni's own tab outside a dialog; every writer of it uses this one value. The version is in the settings row.</summary>
@@ -98,16 +98,16 @@ public static partial class Wording
         new(Key.Of('d'), "Delete", "delete, and its worktree if nothing is lost", Tip: "Delete the session, and its worktree too when no work would be lost."),
         new(Key.Of('R'), "Resume", "resume every stopped or failed session shown, each in its own tab", Tip: "Resume each stopped or failed session shown, in its own tab; / filters which."),
         new(Key.Of('C'), "Close empty", "close tabs of unused terminal sessions", Tip: "Close the tabs of terminal sessions that were never sent a message."),
-        new(Key.Of('b'), "Adopt", "move a terminal session under Torni", Tip: "Move a plain claude session from its own tab under Torni's supervision."),
+        new(Key.Of('b'), "Adopt", "move a terminal session into the background", Tip: "Move a plain claude session from its own tab into the background."),
         new(Key.Of('/'), "Filter", "filter", Tip: "Type to show only the rows that match; Esc clears the filter."),
         new(Key.Of('?'), "Help", "help", Tip: "Show every key and what each column means."),
-        new(Key.Of('q'), "Quit", "quit", Tip: "Quit Torni; your sessions keep running in the background."),
+        new(Key.Of('q'), "Quit", "quit", Tip: "Quit; your sessions keep running in the background."),
         new(Key.Of('c'), "Copy path", "copy the folder path", Tip: "Copy the row's folder path to the clipboard."),
         new(Key.Of('f'), "Open folder", "open the folder in your editor", Tip: "Open the row's folder in the editor chosen on the Config tab."),
         new(Key.Of('s'), "Open solution", "open its solution", Tip: "Open the row's Visual Studio solution, asking when there are several."),
         new(Key.Of('p'), "Open PR", "open its pull request in the browser", Tip: "Open the row's pull request in your browser."),
         new(Key.Of('m'), "Memory", "what its memory is made of", Tip: "Show what the session's memory is made of; the detail pane shows the total."),
-        new(Key.Of('U'), "Update", UpdateLine, Tip: "Update Torni to the newest release, in a tab of its own."),
+        new(Key.Of('U'), "Update", UpdateLine, Tip: "Update to the newest release, in a tab of its own."),
         new(Key.Of('!'), "Report", ReportLine, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
         .. TabKeyHelp,
     ];
@@ -123,12 +123,12 @@ public static partial class Wording
         new(Key.Escape, "Sessions", "back to sessions (clears a filter first)", Tip: "Clear the filter, or go back to the sessions view when there is none."),
         new(Key.Of('/'), "Filter", "filter", Tip: "Type to show only the rows that match; Esc clears the filter."),
         new(Key.Of('?'), "Help", "help", Tip: "Show every key and what each column means."),
-        new(Key.Of('q'), "Quit", "quit", Tip: "Quit Torni; your sessions keep running in the background."),
+        new(Key.Of('q'), "Quit", "quit", Tip: "Quit; your sessions keep running in the background."),
         new(Key.Of('c'), "Copy path", "copy the folder path", Tip: "Copy the row's folder path to the clipboard."),
         new(Key.Of('f'), "Open folder", "open the folder in your editor", Tip: "Open the row's folder in the editor chosen on the Config tab."),
         new(Key.Of('s'), "Open solution", "open its solution", Tip: "Open the row's Visual Studio solution, asking when there are several."),
         new(Key.Of('p'), "Open PR", "open its pull request in the browser", Tip: "Open the row's pull request in your browser."),
-        new(Key.Of('U'), "Update", UpdateLine, Tip: "Update Torni to the newest release, in a tab of its own."),
+        new(Key.Of('U'), "Update", UpdateLine, Tip: "Update to the newest release, in a tab of its own."),
         new(Key.Of('!'), "Report", ReportLine, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
         .. TabKeyHelp,
     ];
@@ -139,10 +139,10 @@ public static partial class Wording
         new(Key.Escape, "Sessions", "back to sessions (clears a filter first)", Tip: "Clear the filter, or go back to the sessions view when there is none."),
         new(Key.Of('/'), "Filter", "filter", Tip: "Type to show only the rows that match; Esc clears the filter."),
         new(Key.Of('?'), "Help", "help", Tip: "Show every key and what each column means."),
-        new(Key.Of('q'), "Quit", "quit", Tip: "Quit Torni; your sessions keep running in the background."),
+        new(Key.Of('q'), "Quit", "quit", Tip: "Quit; your sessions keep running in the background."),
         new(Key.Of('c'), "Copy", "copy the path", Tip: "Copy the row's path to the clipboard."),
         new(Key.Of('f'), "Open folder", "open the folder, or the one holding the file", Tip: "Open the row's folder, or the folder holding its file, in the editor chosen above."),
-        new(Key.Of('U'), "Update", UpdateLine, Tip: "Update Torni to the newest release, in a tab of its own."),
+        new(Key.Of('U'), "Update", UpdateLine, Tip: "Update to the newest release, in a tab of its own."),
         new(Key.Of('!'), "Report", ReportLine, Tip: "Report a problem: preview the diagnostics, then open a GitHub issue."),
         .. TabKeyHelp,
     ];
@@ -223,7 +223,7 @@ public static partial class Wording
 
     public static ColumnHelp NameColumn { get; } = new("NAME", "the session name given at launch, or the folder name for an unnamed one");
 
-    public static ColumnHelp TabColumn { get; } = new("TAB", $"a block in the tab's colour, faded as the tab looks from Torni's own tab,\nwhile a Torni tab shows the session; {TerminalSwatch} grey for a plain claude in its own terminal");
+    public static ColumnHelp TabColumn { get; } = new("TAB", $"a block in the tab's colour, faded as the tab looks from the console's own tab,\nwhile a tab opened here shows the session; {TerminalSwatch} grey for a plain claude in its own terminal");
 
     public static ColumnHelp StateColumn { get; } = new("STATE", "◐ needs input (amber), ● working (cyan), ○ idle (white),\n✓ completed (green), ✗ failed (red), ■ stopped (grey), ? unknown (grey)");
 
@@ -239,7 +239,7 @@ public static partial class Wording
 
     public static ColumnHelp LastCommitColumn { get; } = new("LAST COMMIT", "time since the last commit");
 
-    public static ColumnHelp SettingColumn { get; } = new("SETTING", "a setting Torni keeps in config.json, or, under the Setup heading, setup it reads but does not change");
+    public static ColumnHelp SettingColumn { get; } = new("SETTING", "a setting kept in config.json, or, under the Setup heading, setup it reads but does not change");
 
     public static ColumnHelp ValueColumn { get; } = new("VALUE", "its value; a setup row that needs attention says what to run");
 
@@ -256,12 +256,12 @@ public static partial class Wording
     [
         new("Waiting", "what it waits for: Claude Code's reason, a first prompt, or nothing"),
         new("Started", "when the session started"),
-        new("Prompted", "when Torni last saw it go from waiting or idle to working"),
+        new("Prompted", "when it was last seen going from waiting or idle to working"),
         new("Folder", "the folder it runs in"),
         new("Session", "the session id"),
         new("Worktree", "the worktree's slug, the path inside the repository, or the main checkout"),
         new("Branch", "the branch checked out there"),
-        new("Tab", "its Torni tab and the tab's colour, or its own terminal"),
+        new("Tab", "the tab opened for it and the tab's colour, or its own terminal"),
         new("Changes", "changed files, unpushed commits and the last commit there"),
         new("Memory", "what the session and everything it started use; m for the breakdown"),
     ];

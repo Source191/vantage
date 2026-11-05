@@ -36,7 +36,7 @@ public static partial class Wording
     {
         PullRequestGap.NoBranch => $"{none.RowName} has no branch, so it has no pull request.",
         PullRequestGap.NoRemote => $"{none.RowName}'s repository has no origin remote to look up pull requests on.",
-        PullRequestGap.UnknownHost => $"{none.RowName}'s origin is on neither GitHub nor Azure DevOps, so Torni cannot look up its pull requests.",
+        PullRequestGap.UnknownHost => $"{none.RowName}'s origin is on neither GitHub nor Azure DevOps, so its pull requests cannot be looked up.",
         PullRequestGap.CliMissing => $"Install {Cli(none.Host)} to see {none.RowName}'s pull request.",
         PullRequestGap.NotSignedIn => $"Sign in with {SignIn(none.Host)} to see {none.RowName}'s pull request.",
         PullRequestGap.Looking => $"Still looking up {none.RowName}'s pull request; try again in a moment.",

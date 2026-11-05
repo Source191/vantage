@@ -45,12 +45,12 @@ public static partial class Wording
     /// <summary>What a Config row's setting does, or what its setup is for: the row's hover tooltip only.</summary>
     public static string ConfigDescription(ConfigRow row) => row switch
     {
-        ConfigRow.RepositoryRoot => "A folder Torni searches for git repositories; Enter edits every root, one per line.",
+        ConfigRow.RepositoryRoot => "A folder searched for git repositories; Enter edits every root, one per line.",
         ConfigRow.WorktreeRoot => "Where new worktrees go, each in a folder named <repository>-<slug> on a branch named <slug>.",
-        ConfigRow.OpenFolderWith => "The program f opens a row's folder with: one of the editors Torni knows, or a program of your own.",
+        ConfigRow.OpenFolderWith => "The program f opens a row's folder with: one of the known editors, or a program of your own.",
         ConfigRow.DefaultBase => "New worktrees branch from origin's default branch as of your last git fetch (no fetch is made), or from HEAD.",
         ConfigRow.DefaultPlace => "Where the wizard opened with n starts a session: a new worktree, or the repository's current branch.",
-        ConfigRow.CheckForUpdates => "Whether Torni asks the winget community repository once a day for a newer release, which U then installs.",
+        ConfigRow.CheckForUpdates => "Whether to ask the winget community repository once a day for a newer release, which U then installs.",
         ConfigRow.Setup setup => SetupDescription(setup.Item),
         _ => string.Empty,
     };
@@ -112,10 +112,10 @@ public static partial class Wording
         return item switch
         {
             SetupItem.SettingsFile => "This tab writes the settings file: edit a setting above to change it.",
-            SetupItem.TerminalProfiles => "Run torni setup-terminal, then restart Windows Terminal, to add the Torni profiles.",
+            SetupItem.TerminalProfiles => "Run torni setup-terminal, then restart Windows Terminal, to add the profiles.",
             SetupItem.ClaudeBell => "Run torni setup-terminal to make Claude ring the terminal bell when a session needs you.",
-            SetupItem.DiagnosticLog => "Set the TORNI_LOG environment variable to a file path before starting Torni to keep a diagnostic log.",
-            SetupItem.LastUpdateCheck => "Torni asks the winget community repository at most once a day; turn the check on or off with Check for updates.",
+            SetupItem.DiagnosticLog => "Set the TORNI_LOG environment variable to a file path, then start again, to keep a diagnostic log.",
+            SetupItem.LastUpdateCheck => "The winget community repository is asked at most once a day; turn the check on or off with Check for updates.",
         };
     }
 
@@ -123,11 +123,11 @@ public static partial class Wording
     {
         return item switch
         {
-            SetupItem.SettingsFile => "The file Torni keeps the settings above in; f opens the folder holding it.",
-            SetupItem.TerminalProfiles => "Windows Terminal profiles that give Torni tabs a bell and the Torni icon.",
+            SetupItem.SettingsFile => "The file the settings above are kept in; f opens the folder holding it.",
+            SetupItem.TerminalProfiles => "Windows Terminal profiles that give the console's tabs a bell and the icon.",
             SetupItem.ClaudeBell => "Claude's terminal bell, which rings when a session finishes or needs permission while you are away.",
-            SetupItem.DiagnosticLog => "The file TORNI_LOG names, where Torni writes its diagnostic log as it runs.",
-            SetupItem.LastUpdateCheck => "When Torni last asked the winget community repository for a newer release, and the newest it found.",
+            SetupItem.DiagnosticLog => "The file TORNI_LOG names, where the diagnostic log is written as it runs.",
+            SetupItem.LastUpdateCheck => "When the winget community repository was last asked for a newer release, and the newest it found.",
         };
     }
 

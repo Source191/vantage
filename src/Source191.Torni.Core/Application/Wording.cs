@@ -116,7 +116,7 @@ public static partial class Wording
             StatusMessage.Blank => string.Empty,
             StatusMessage.NoSessionSelected => "No session selected.",
             StatusMessage.RunsInOwnTerminal { HasTranscript: true } terminal =>
-                $"{Name(terminal.Name)} runs in its own terminal. Press b to move it under Torni (its old tab closes), or type /bg there.",
+                $"{Name(terminal.Name)} runs in its own terminal. Press b to move it into the background (its old tab closes), or type /bg there.",
             StatusMessage.RunsInOwnTerminal terminal =>
                 $"{Name(terminal.Name)} runs in its own terminal and has no messages yet. d closes its tab, C closes every such tab, or send it something there and press b.",
             StatusMessage.NeverSentAMessage never => $"{Name(never.Name)} has nothing to resume: it was never sent a message. d deletes it.",
@@ -125,7 +125,7 @@ public static partial class Wording
             StatusMessage.WorkingSoRenameWaits rename => $"{Name(rename.Name)} is working; wait until it is idle or needs input, because renaming restarts it.",
             StatusMessage.RenameCancelled => "Rename cancelled.",
             StatusMessage.InvalidName invalid => Describe(invalid.Problem),
-            StatusMessage.AlreadyInBackground adopted => $"{Name(adopted.Name)} already runs in the background under Torni.",
+            StatusMessage.AlreadyInBackground adopted => $"{Name(adopted.Name)} already runs in the background.",
             StatusMessage.WorkingSoAdoptWaits adopt => $"{Name(adopt.Name)} is working; wait until it is idle or needs input, so nothing in flight is lost.",
             _ => DescribeWorktreesAndScreen(message),
         };
@@ -207,7 +207,7 @@ public static partial class Wording
             SettingsProblem.RootAlreadyListed repeated => $"{repeated.Path} is already a repository root.",
             SettingsProblem.WorktreeRootNotFullPath => @"The worktree root must be a full path, such as C:\Users\me\source\worktrees.",
             SettingsProblem.NoExecutable => "A custom editor needs an executable.",
-            SettingsProblem.ExecutableNotFullPath => @"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder Torni was started from.",
+            SettingsProblem.ExecutableNotFullPath => @"A custom editor's executable must be a full path, such as C:\Tools\subl.exe, so it is never looked for in the folder the console was started from.",
             SettingsProblem.BatchFileExecutable => "A batch file cannot be used as the editor: cmd.exe would read the folder path as commands.",
             SettingsProblem.NoFolderPlaceholder => $"A custom editor's arguments need {EditorChoice.FolderPlaceholder} where the folder goes.",
             SettingsProblem.ExecutableMissing missing => $"{missing.Path} does not exist.",
@@ -258,7 +258,7 @@ public static partial class Wording
         {
             OpenTabForSession open => $"Opening a tab for {Name(open.Session.Name)}...",
             StopSession => "Stopping...",
-            AdoptSession adopt => $"Moving {Name(adopt.Session.Name)} under Torni...",
+            AdoptSession adopt => $"Moving {Name(adopt.Session.Name)} into the background...",
             RenameSession rename => $"Renaming {Name(rename.Session.Name)} to {rename.NewName.Value}...",
             CloseEmptyTerminals => "Closing...",
             ResumeSessions resume => $"Resuming {resume.Sessions.Count}...",
@@ -354,7 +354,7 @@ public static partial class Wording
     {
         return createdHere
             ? $"Branch {branch} is not merged. Delete it anyway?"
-            : $"Branch {branch} was not created by Torni. Delete it anyway?";
+            : $"Branch {branch} was not created here. Delete it anyway?";
     }
 
     // torni setup-terminal.
@@ -413,7 +413,7 @@ public static partial class Wording
 
     public static string ClaudeSettingsUnreadable(string settingsPath, string reason) => $"Could not read {settingsPath} ({reason}), so it was left alone.";
 
-    public static string ProfilesRemoved(string fragmentPath) => $"Removed {fragmentPath}. Restart Windows Terminal to drop the Torni profiles.";
+    public static string ProfilesRemoved(string fragmentPath) => $"Removed {fragmentPath}. Restart Windows Terminal to drop the profiles.";
 
     /// <summary>An exception's message reports what failed, here and nowhere as a reason.</summary>
     public static string TerminalSetupFailed(string path, string reason) => $"Could not write {path}: {reason}";
@@ -445,8 +445,8 @@ public static partial class Wording
             StatusMessage.NoSolution none => $"No solution found in {none.FolderName} or its src folder.",
             StatusMessage.NothingToMeasure stopped => $"{Name(stopped.Name)} has no process to measure; it is stopped.",
             StatusMessage.NoPullRequest none => Describe(none),
-            StatusMessage.UpToDate => "Torni is up to date.",
-            StatusMessage.NewerReleaseFound found => $"Torni {found.Version} is available: press U to see what changed.",
+            StatusMessage.UpToDate => "This is the newest release.",
+            StatusMessage.NewerReleaseFound found => $"Version {found.Version} is available: press U to see what changed.",
             StatusMessage.UpdateCheckOff => "The update check is off, or this is a development build; nothing to update to.",
             StatusMessage.Kept => "Kept.",
             StatusMessage.NothingToResume => "Nothing to resume.",

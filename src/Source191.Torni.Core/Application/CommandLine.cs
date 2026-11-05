@@ -90,7 +90,7 @@ public static class CommandLine
         Option<string?> sound = new("--sound") { HelpName = "wav", Description = "The bell sound of the Torni profile." };
         Option<string?> sessionSound = new("--session-sound") { HelpName = "wav", Description = "The bell sound of the Torni session profile." };
         Option<bool> yes = new("--yes") { Description = "Write without asking." };
-        Option<bool> remove = new("--remove") { Description = "Remove Torni's profiles." };
+        Option<bool> remove = new("--remove") { Description = "Remove the profiles." };
         Command setup = new("setup-terminal", "Add the Torni and Torni session profiles to Windows Terminal, each with a bell that sounds and flashes, then offer to turn on Claude Code's terminal bell. Shows what it will write and asks first.") { sound, sessionSound, yes, remove };
         setup.SetAction((parsed, cancellationToken) => actions.SetUpTerminal(new TerminalSetupRequest(SoundOf(parsed.GetValue(sound)), SoundOf(parsed.GetValue(sessionSound)), parsed.GetValue(yes), parsed.GetValue(remove)), cancellationToken));
 
@@ -104,7 +104,7 @@ public static class CommandLine
     {
         Argument<Guid> registration = new("registration-id");
         Argument<int> processId = new("process-id");
-        Command claim = new("claim-tab", "Run by the shell inside a tab Torni opened, to claim that tab.") { registration, processId };
+        Command claim = new("claim-tab", "Run by the shell inside a tab the console opened, to claim that tab.") { registration, processId };
         claim.Hidden = true;
         claim.SetAction((parsed, cancellationToken) => actions.ClaimTab(parsed.GetValue(registration), parsed.GetValue(processId), cancellationToken));
 
