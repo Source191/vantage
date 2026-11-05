@@ -149,7 +149,7 @@ public sealed class TerminalFragmentShould : IDisposable
 
         await withIcon.WriteAsync(Profiles, CancellationToken.None);
 
-        string copy = Path.Combine(root, "Torni", "torni.ico");
+        string copy = Path.Combine(root, "Torni", "logo.ico");
         (await File.ReadAllBytesAsync(copy, TestContext.Current.CancellationToken)).ShouldBe([1, 2, 3]);
         foreach (JsonNode? profile in WrittenProfiles)
         {
@@ -159,7 +159,7 @@ public sealed class TerminalFragmentShould : IDisposable
 
     [Theory]
     [InlineData("missing.ico")]
-    [InlineData(@"no-such-folder\torni.ico")]
+    [InlineData(@"no-such-folder\logo.ico")]
     public async Task WriteNoIconWhenTheToolHasNone(string source)
     {
         TerminalFragment withoutIcon = new(root, Path.Combine(root, source));
@@ -171,7 +171,7 @@ public sealed class TerminalFragmentShould : IDisposable
             profile!.AsObject().ContainsKey("icon").ShouldBeFalse();
         }
 
-        File.Exists(Path.Combine(root, "Torni", "torni.ico")).ShouldBeFalse();
+        File.Exists(Path.Combine(root, "Torni", "logo.ico")).ShouldBeFalse();
     }
 
     [Fact]
@@ -183,13 +183,13 @@ public sealed class TerminalFragmentShould : IDisposable
 
         await withIcon.RemoveAsync(CancellationToken.None);
 
-        File.Exists(Path.Combine(root, "Torni", "torni.ico")).ShouldBeFalse();
+        File.Exists(Path.Combine(root, "Torni", "logo.ico")).ShouldBeFalse();
         File.Exists(source).ShouldBeTrue();
     }
 
     private string ToolIcon(byte[] bytes)
     {
-        string source = Path.Combine(root, "tool", "torni.ico");
+        string source = Path.Combine(root, "tool", "logo.ico");
         Directory.CreateDirectory(Path.GetDirectoryName(source)!);
         File.WriteAllBytes(source, bytes);
 
